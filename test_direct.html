@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste Direto Streamlit</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <h1>🔗 Teste Direto para Streamlit</h1>
+    
+    <div id="token-display">Carregando token...</div>
+    
+    <button onclick="testLocal()">Testar Localhost</button>
+    <button onclick="testNgrok()">Testar Ngrok</button>
+    <button onclick="clearCache()">Limpar Cache</button>
+    
+    <script>
+    // Tenta pegar token do localStorage
+    function getToken() {
+        return localStorage.getItem('fluxon_auth_token') || 
+               new URLSearchParams(window.location.search).get('token');
+    }
+    
+    function testLocal() {
+        const token = getToken();
+        if (token) {
+            window.location.href = `http://localhost:8501?token=${token}`;
+        } else {
+            alert('Token não encontrado! Faça login primeiro.');
+        }
+    }
+    
+    function testNgrok() {
+        const token = getToken();
+        if (token) {
+            window.location.href = `https://1ac41472cd64.ngrok-free.app?token=${token}`;
+        } else {
+            alert('Token não encontrado! Faça login primeiro.');
+        }
+    }
+    
+    function clearCache() {
+        localStorage.removeItem('fluxon_auth_token');
+        localStorage.removeItem('alma_gateway_url');
+        sessionStorage.clear();
+        alert('Cache limpo! Recarregue a página.');
+    }
+    
+    // Mostra se tem token
+    document.getElementById('token-display').textContent = 
+        getToken() ? '✅ Token encontrado!' : '❌ Token não encontrado';
+    </script>
+</body>
+</html>

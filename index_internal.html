@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>ALMA - Gateway Interno</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 40px;
+            background: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .online { background: #d4edda; color: #155724; }
+        .offline { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 ALMA - Gateway Interno</h1>
+        <p>Este é o servidor interno que faz a ponte entre o frontend externo e os serviços locais.</p>
+        
+        <div id="status" class="status">🟡 Verificando serviços...</div>
+        <div id="connections"></div>
+        
+        <h3>📊 Estatísticas:</h3>
+        <ul id="stats">
+            <li>Requisições recebidas: <span id="request-count">0</span></li>
+            <li>Tokens gerados: <span id="token-count">0</span></li>
+            <li>Erros: <span id="error-count">0</span></li>
+        </ul>
+    </div>
+
+    <script>
+        class InternalGateway {
+            constructor() {
+                this.stats = {
+                    requests: 0,
+                    tokens: 0, 
+                    errors: 0
+                };
+                
+                this.services = {
+                    proxy: 'http://localhost:5500',
+                    flask: 'http://localhost:5000',
+                    streamlit: 'http://localhost:8501'
+                };
+                
+                this.init();
+            }
+            
+            async init() {
+                console.log('🚀 Gateway interno iniciado');
+                await this.checkServices();
+                this.startAPI();
+                setInterval(() => this.checkServices(), 10000);
+            }
+            
+            async checkServices() {
+                const statusEl = document.getElementById('status');
+                const connectionsEl = document.getElementById('connections');
+                
+                statusEl.innerHTML = '🟡 Verificando serviços...';
+                connectionsEl.innerHTML = '';
+                
+                let allOnline = true;
+                const results = {};
+                
+                // Verifica Proxy
+                try {
+                    const proxyResponse = await fetch(`${this.services.proxy}/health`, { 
+                        signal: AbortSignal.timeout(3000) 
+                    });
+                    results.proxy = proxyResponse.ok;
+                    connectionsEl.innerHTML += `
+                        <div class="status online">✅ proxy (${this.services.proxy}) - ONLINE</div>
+                    `;
+                } catch (error) {
+                    results.proxy = false;
+                    connectionsEl.innerHTML += `
+                        <div class="status offline">❌ proxy (${this.services.proxy}) - OFFLINE</div>
+                    `;
+                    allOnline = false;
+                }
+                
+                // Verifica Flask
+                try {
+                    const flaskResponse = await fetch(`${this.services.flask}/health`, { 
+                        signal: AbortSignal.timeout(3000) 
+                    });
+                    results.flask = flaskResponse.ok;
+                    connectionsEl.innerHTML += `
+                        <div class="status online">✅ flask (${this.services.flask}) - ONLINE</div>
+                    `;
+                } catch (error) {
+                    results.flask = false;
+                    connectionsEl.innerHTML += `
+                        <div class="status offline">❌ flask (${this.services.flask}) - OFFLINE</div>
+                    `;
+                    allOnline = false;
+                }
+                
+                // Verifica Streamlit de forma diferente (não tem /health)
+                try {
+                    // Tenta acessar a página principal do Streamlit
+                    const streamlitResponse = await fetch(this.services.streamlit, { 
+                        signal: AbortSignal.timeout(3000),
+                        mode: 'no-cors' // 🔥 IGNORA CORS para Streamlit
+                    });
+                    results.streamlit = true;
+                    connectionsEl.innerHTML += `
+                        <div class="status online">✅ streamlit (${this.services.streamlit}) - ONLINE</div>
+                    `;
+                } catch (error) {
+                    results.streamlit = false;
+                    connectionsEl.innerHTML += `
+                        <div class="status offline">⚠️ streamlit (${this.services.streamlit}) - SEM CORS</div>
+                    `;
+                    // Não marca como offline porque Streamlit pode estar rodando sem CORS
+                }
+                
+                statusEl.innerHTML = allOnline ? 
+                    '<div class="status online">✅ Serviços essenciais online!</div>' :
+                    '<div class="status offline">⚠️ Alguns serviços com problemas</div>';
+            }
+            
+            startAPI() {
+                // Simula um servidor API usando localStorage como comunicação
+                setInterval(() => {
+                    // Verifica se há requisições do frontend externo
+                    const requests = JSON.parse(localStorage.getItem('alma_requests') || '[]');
+                    
+                    if (requests.length > 0) {
+                        this.processRequests(requests);
+                        localStorage.setItem('alma_requests', '[]');
+                    }
+                }, 1000);
+            }
+            
+            async processRequests(requests) {
+                for (const request of requests) {
+                    this.stats.requests++;
+                    
+                    try {
+                        let response;
+                        
+                        switch (request.action) {
+                            case 'login':
+                                response = await this.handleLogin(request.data);
+                                break;
+                            case 'validate_token':
+                                response = await this.handleValidateToken(request.data);
+                                break;
+                            case 'health':
+                                response = await this.handleHealthCheck();
+                                break;
+                            default:
+                                response = { error: 'Ação não suportada' };
+                        }
+                        
+                        // Armazena resposta para o frontend externo
+                        const responses = JSON.parse(localStorage.getItem('alma_responses') || '{}');
+                        responses[request.id] = response;
+                        localStorage.setItem('alma_responses', JSON.stringify(responses));
+                        
+                    } catch (error) {
+                        this.stats.errors++;
+                        console.error('Erro processando requisição:', error);
+                        
+                        // Envia erro como resposta
+                        const responses = JSON.parse(localStorage.getItem('alma_responses') || '{}');
+                        responses[request.id] = { 
+                            success: false, 
+                            error: 'Erro interno no gateway' 
+                        };
+                        localStorage.setItem('alma_responses', JSON.stringify(responses));
+                    }
+                }
+                
+                this.updateStats();
+            }
+            
+            async handleLogin(credentials) {
+                try {
+                    const response = await fetch(`${this.services.proxy}/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(credentials)
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        this.stats.tokens++;
+                        return { success: true, data };
+                    } else {
+                        return { success: false, error: data.error };
+                    }
+                    
+                } catch (error) {
+                    return { success: false, error: 'Erro de conexão com o proxy' };
+                }
+            }
+            
+            async handleValidateToken(tokenData) {
+                try {
+                    const response = await fetch(`${this.services.proxy}/validate_token`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(tokenData)
+                    });
+                    
+                    const data = await response.json();
+                    return { success: response.ok, data };
+                    
+                } catch (error) {
+                    return { success: false, error: 'Erro de conexão com o proxy' };
+                }
+            }
+            
+            async handleHealthCheck() {
+                const status = {};
+                
+                // Verifica Proxy
+                try {
+                    const response = await fetch(`${this.services.proxy}/health`, { 
+                        signal: AbortSignal.timeout(2000) 
+                    });
+                    status.proxy = response.ok;
+                } catch {
+                    status.proxy = false;
+                }
+                
+                // Verifica Flask
+                try {
+                    const response = await fetch(`${this.services.flask}/health`, { 
+                        signal: AbortSignal.timeout(2000) 
+                    });
+                    status.flask = response.ok;
+                } catch {
+                    status.flask = false;
+                }
+                
+                // Streamlit - assumimos que está online se os outros estão
+                status.streamlit = status.proxy && status.flask;
+                
+                return { 
+                    success: status.proxy && status.flask, 
+                    services: status 
+                };
+            }
+            
+            updateStats() {
+                document.getElementById('request-count').textContent = this.stats.requests;
+                document.getElementById('token-count').textContent = this.stats.tokens;
+                document.getElementById('error-count').textContent = this.stats.errors;
+            }
+        }
+        
+        // Inicializa o gateway quando a página carrega
+        document.addEventListener('DOMContentLoaded', () => {
+            new InternalGateway();
+        });
+    </script>
+</body>
+</html>
