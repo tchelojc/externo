@@ -13,15 +13,19 @@
     
     body {
       font-family: 'Roboto', sans-serif;
-      height: 100vh;
+      min-height: 100vh;
       background: url('https://images.unsplash.com/photo-1639762681057-408e52192e55?q=80&w=2232&auto=format&fit=crop') no-repeat center center fixed;
       background-size: cover;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
-      overflow: hidden;
+      overflow-x: hidden;
+      padding: 20px;
+      position: relative;
     }
     
+    /* Elemento principal ALMA */
     .alma-button {
       width: 200px;
       height: 200px;
@@ -46,6 +50,7 @@
       position: relative;
       overflow: hidden;
       z-index: 2;
+      margin-bottom: 40px;
     }
     
     .alma-button:hover {
@@ -80,6 +85,86 @@
       }
     }
     
+    /* Container para os cards */
+    .cards-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 25px;
+      max-width: 1200px;
+      width: 100%;
+      margin-top: 30px;
+    }
+    
+    /* Estilo dos cards */
+    .platform-card {
+      background: rgba(25, 39, 65, 0.7);
+      border-radius: 15px;
+      padding: 20px;
+      color: white;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    
+    .platform-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      background: rgba(35, 55, 90, 0.8);
+    }
+    
+    .card-title {
+      font-size: 1.4rem;
+      margin-bottom: 12px;
+      color: #fff;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      padding-bottom: 10px;
+    }
+    
+    .card-description {
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: rgba(255, 255, 255, 0.85);
+      margin-bottom: 15px;
+      flex-grow: 1;
+    }
+    
+    .card-link {
+      display: block;
+      background: rgba(74, 111, 165, 0.7);
+      color: white;
+      text-align: center;
+      padding: 10px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: background 0.3s;
+      margin-top: auto;
+    }
+    
+    .card-link:hover {
+      background: rgba(74, 111, 165, 1);
+    }
+    
+    .status-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      margin-left: 10px;
+      background: rgba(46, 204, 113, 0.3);
+      color: #fff;
+    }
+    
+    .status-badge.construction {
+      background: rgba(241, 196, 15, 0.3);
+    }
+    
     .loading-text {
       position: absolute;
       bottom: 30px;
@@ -112,6 +197,10 @@
         height: 170px;
         font-size: 2.2rem;
       }
+      
+      .cards-container {
+        grid-template-columns: 1fr;
+      }
     }
     
     @media (max-width: 480px) {
@@ -133,39 +222,68 @@
         ALMA
     </a>
     
-    <div class="loading-text">Clique para acessar</div>
+    <div class="cards-container">
+        <!-- Card 1 -->
+        <a href="https://kdc73ek2qtyggsv69ekcvx.streamlit.app/" target="_blank" class="platform-card">
+            <h3 class="card-title">Matrix ALMA <span class="status-badge">Online</span></h3>
+            <p class="card-description">Registro de presença digital com nome e nível quântico para acesso à nova dimensão da plataforma.</p>
+            <span class="card-link">Acessar Dimensão</span>
+        </a>
+        
+        <!-- Card 2 -->
+        <a href="https://8w3t8fn8fhjodctaph6jaf.streamlit.app/" target="_blank" class="platform-card">
+            <h3 class="card-title">Universo Áureo <span class="status-badge">Online</span></h3>
+            <p class="card-description">Sistema modular para estudo de buracos negros, energia, sistema planetário e frequências áureas.</p>
+            <span class="card-link">Explorar Universo</span>
+        </a>
+        
+        <!-- Card 3 -->
+        <a href="https://eygkaswytz73tv7fzskhsz.streamlit.app/" target="_blank" class="platform-card">
+            <h3 class="card-title">Ciclos Energéticos <span class="status-badge construction">Em Construção</span></h3>
+            <p class="card-description">Análise de ciclos energéticos através de alinhamentos planetários e seus impactos nos relacionamentos e comportamentos coletivos.</p>
+            <span class="card-link">Ver Ciclos</span>
+        </a>
+        
+        <!-- Card 4 -->
+        <a href="https://nguo7ede4q8xm6bg4asusg.streamlit.app/" target="_blank" class="platform-card">
+            <h3 class="card-title">Trajeto do Nada ao Tudo <span class="status-badge">Online</span></h3>
+            <p class="card-description">Análise do fluxo universal desde Espinoza, Einstein, Tesla até Fibonacci, demonstrando o equilíbrio como força divina.</p>
+            <span class="card-link">Estudar Trajeto</span>
+        </a>
+        
+        <!-- Card 5 -->
+        <a href="https://fluxomatematico-ottwmqiutrdkrn7jdsdmfg.streamlit.app/" target="_blank" class="platform-card">
+            <h3 class="card-title">Fluxo Matemático <span class="status-badge construction">Em Construção</span></h3>
+            <p class="card-description">Conexão de cálculos e análises através do fluxo matemático para validação de padrões e execuções.</p>
+            <span class="card-link">Analisar Fluxo</span>
+        </a>
+        
+        <!-- Card 6 -->
+        <a href="https://laboratorio-hosqszezxd6hf7hu85ncvz.streamlit.app/" target="_blank" class="platform-card">
+            <h3 class="card-title">Laboratório Quântico <span class="status-badge">Online</span></h3>
+            <p class="card-description">Criação de circuitos quânticos através de portas lógicas com adaptação infinita e sem conflitos.</p>
+            <span class="card-link">Experimentar</span>
+        </a>
+        
+        <!-- Card 7 -->
+        <a href="https://simulador-eo7akxztyvn6nikgd3thtn.streamlit.app/" target="_blank" class="platform-card">
+            <h3 class="card-title">Orientador Quântico <span class="status-badge construction">Em Construção</span></h3>
+            <p class="card-description">Sistema de correção de circuitos quânticos com prompts e análise de arquivos para resolver erros e falhas.</p>
+            <span class="card-link">Otimizar Circuitos</span>
+        </a>
+    </div>
     
-    <div class="connection-status" id="connection-status">Conectando...</div>
+    <div class="loading-text">Selecione uma plataforma para explorar</div>
+    
+    <div class="connection-status" id="connection-status">Conectado às Dimensões ALMA</div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const almaButton = document.getElementById('alma-btn');
-        const connectionStatus = document.getElementById('connection-status');
-        const loadingText = document.querySelector('.loading-text');
-
-        // ✅ LÓGICA DE ENDEREÇO DINÂMICO
-        // Detecta se estamos em produção (almafluxo.uk) ou localmente
-        const isProduction = window.location.hostname.includes('almafluxo.uk');
-        
-        // Define a URL base do servidor principal (o que tem a página de login)
-        const loginServerBaseUrl = isProduction 
-            ? 'https://almafluxo.uk' 
-            : 'http://localhost:5000'; // Assumindo que seu Flask/Login está na porta 5000
-
-        const loginUrl = `${loginServerBaseUrl}/login`;
-
-        // Atualiza o link do botão
-        almaButton.href = loginUrl;
-        connectionStatus.textContent = `Servidor: ${loginServerBaseUrl}`;
-        
-        // Configurar o clique do botão
-        almaButton.addEventListener('click', (event) => {
-            event.preventDefault(); // Previne o clique padrão
-            loadingText.textContent = "Redirecionando...";
-            // Redireciona para a URL de login correta
-            window.location.href = loginUrl;
+    <script>
+        // Adicionando interação ao botão ALMA
+        document.getElementById('alma-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            const cardsSection = document.querySelector('.cards-container');
+            cardsSection.scrollIntoView({ behavior: 'smooth' });
         });
-    });
-</script>
+    </script>
 </body>
 </html>
