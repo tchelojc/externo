@@ -186,6 +186,76 @@
       font-size: 0.8rem;
     }
     
+    /* Novo estilo para o card de informação do Streamlit */
+    .streamlit-info {
+      background: rgba(255, 75, 75, 0.15);
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 30px;
+      border: 1px solid rgba(255, 107, 107, 0.3);
+      backdrop-filter: blur(10px);
+      position: relative;
+      max-width: 800px;
+      width: 100%;
+    }
+    
+    .streamlit-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .streamlit-icon {
+      color: #FF4B4B;
+      font-size: 24px;
+    }
+    
+    .streamlit-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #FF4B4B;
+    }
+    
+    .streamlit-content {
+      margin-bottom: 20px;
+      line-height: 1.6;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.85);
+    }
+    
+    .streamlit-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 75, 75, 0.2);
+      color: #FF4B4B;
+      padding: 10px 15px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s;
+      border: 1px solid rgba(255, 75, 75, 0.3);
+    }
+    
+    .streamlit-link:hover {
+      background: rgba(255, 75, 75, 0.3);
+      transform: translateY(-2px);
+    }
+    
+    /* Estilo para categorias */
+    .category-title {
+      font-size: 1.8rem;
+      color: white;
+      margin: 40px 0 20px;
+      text-align: center;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      width: 100%;
+      max-width: 1200px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
     @keyframes fade {
       0%, 100% { opacity: 0.4; }
       50% { opacity: 0.8; }
@@ -201,6 +271,11 @@
       .cards-container {
         grid-template-columns: 1fr;
       }
+      
+      .category-title {
+        font-size: 1.5rem;
+        margin: 30px 0 15px;
+      }
     }
     
     @media (max-width: 480px) {
@@ -214,6 +289,10 @@
         font-size: 0.8rem;
         bottom: 20px;
       }
+      
+      .category-title {
+        font-size: 1.3rem;
+      }
     }
   </style>
 </head>
@@ -222,55 +301,94 @@
         ALMA
     </a>
     
-    <div class="cards-container">
-        <!-- Card 1 -->
-        <a href="https://kdc73ek2qtyggsv69ekcvx.streamlit.app/" target="_blank" class="platform-card">
-            <h3 class="card-title">Matrix ALMA <span class="status-badge">Online</span></h3>
-            <p class="card-description">Registro de presença digital com nome e nível quântico para acesso à nova dimensão da plataforma.</p>
-            <span class="card-link">Acessar Dimensão</span>
+    <!-- Card informativo do Streamlit -->
+    <div class="streamlit-info">
+        <div class="streamlit-header">
+            <div class="streamlit-icon">⚠️</div>
+            <div class="streamlit-title">Acesso às Plataformas</div>
+        </div>
+        <div class="streamlit-content">
+            Para acessar as plataformas de análise, é necessário realizar um cadastro gratuito no Streamlit. 
+            Esta etapa é obrigatória para garantir acesso completo a todas as funcionalidades.
+        </div>
+        <a href="https://streamlit.io/" target="_blank" class="streamlit-link">
+            Cadastre-se no Streamlit
         </a>
-        
-        <!-- Card 2 -->
-        <a href="https://8w3t8fn8fhjodctaph6jaf.streamlit.app/" target="_blank" class="platform-card">
-            <h3 class="card-title">Universo Áureo <span class="status-badge">Online</span></h3>
-            <p class="card-description">Sistema modular para estudo de buracos negros, energia, sistema planetário e frequências áureas.</p>
-            <span class="card-link">Explorar Universo</span>
-        </a>
-        
-        <!-- Card 3 -->
-        <a href="https://eygkaswytz73tv7fzskhsz.streamlit.app/" target="_blank" class="platform-card">
-            <h3 class="card-title">Ciclos Energéticos <span class="status-badge construction">Em Construção</span></h3>
-            <p class="card-description">Análise de ciclos energéticos através de alinhamentos planetários e seus impactos nos relacionamentos e comportamentos coletivos.</p>
-            <span class="card-link">Ver Ciclos</span>
-        </a>
-        
-        <!-- Card 4 -->
+    </div>
+    
+    <!-- Categoria: Trajeto do Nada ao Tudo (posicionada abaixo da esfera ALMA) -->
+    <div class="cards-container" style="margin-top: 0;">
         <a href="https://nguo7ede4q8xm6bg4asusg.streamlit.app/" target="_blank" class="platform-card">
             <h3 class="card-title">Trajeto do Nada ao Tudo <span class="status-badge">Online</span></h3>
             <p class="card-description">Análise do fluxo universal desde Espinoza, Einstein, Tesla até Fibonacci, demonstrando o equilíbrio como força divina.</p>
             <span class="card-link">Estudar Trajeto</span>
         </a>
-        
-        <!-- Card 5 -->
+    </div>
+    
+    <!-- Categoria: Matrix ALMA -->
+    <h2 class="category-title">Matrix ALMA</h2>
+    <div class="cards-container">
+        <a href="https://kdc73ek2qtyggsv69ekcvx.streamlit.app/" target="_blank" class="platform-card">
+            <h3 class="card-title">Matrix ALMA <span class="status-badge">Online</span></h3>
+            <p class="card-description">Registro de presença digital com nome e nível quântico para acesso à nova dimensão da plataforma.</p>
+            <span class="card-link">Acessar Dimensão</span>
+        </a>
+    </div>
+    
+    <!-- Categoria: Universo Áureo -->
+    <h2 class="category-title">Universo Áureo</h2>
+    <div class="cards-container">
+        <a href="https://8w3t8fn8fhjodctaph6jaf.streamlit.app/" target="_blank" class="platform-card">
+            <h3 class="card-title">Universo Áureo <span class="status-badge">Online</span></h3>
+            <p class="card-description">Sistema modular para estudo de buracos negros, energia, sistema planetário e frequências áureas.</p>
+            <span class="card-link">Explorar Universo</span>
+        </a>
+    </div>
+    
+    <!-- Categoria: Ciclos Energéticos -->
+    <h2 class="category-title">Ciclos Energéticos</h2>
+    <div class="cards-container">
+        <a href="https://eygkaswytz73tv7fzskhsz.streamlit.app/" target="_blank" class="platform-card">
+            <h3 class="card-title">Ciclos Energéticos <span class="status-badge construction">Em Construção</span></h3>
+            <p class="card-description">Análise de ciclos energéticos através de alinhamentos planetários e seus impactos nos relacionamentos e comportamentos coletivos.</p>
+            <span class="card-link">Ver Ciclos</span>
+        </a>
+    </div>
+    
+    <!-- Categoria: Fluxo Matemático -->
+    <h2 class="category-title">Fluxo Matemático</h2>
+    <div class="cards-container">
         <a href="https://fluxomatematico-ottwmqiutrdkrn7jdsdmfg.streamlit.app/" target="_blank" class="platform-card">
             <h3 class="card-title">Fluxo Matemático <span class="status-badge construction">Em Construção</span></h3>
             <p class="card-description">Conexão de cálculos e análises através do fluxo matemático para validação de padrões e execuções.</p>
             <span class="card-link">Analisar Fluxo</span>
         </a>
-        
-        <!-- Card 6 -->
+    </div>
+    
+    <!-- Categoria: Laboratório Quântico -->
+    <h2 class="category-title">Laboratório Quântico</h2>
+    <div class="cards-container">
         <a href="https://laboratorio-hosqszezxd6hf7hu85ncvz.streamlit.app/" target="_blank" class="platform-card">
             <h3 class="card-title">Laboratório Quântico <span class="status-badge">Online</span></h3>
             <p class="card-description">Criação de circuitos quânticos através de portas lógicas com adaptação infinita e sem conflitos.</p>
             <span class="card-link">Experimentar</span>
         </a>
         
-        <!-- Card 7 -->
         <a href="https://simulador-eo7akxztyvn6nikgd3thtn.streamlit.app/" target="_blank" class="platform-card">
             <h3 class="card-title">Orientador Quântico <span class="status-badge construction">Em Construção</span></h3>
             <p class="card-description">Sistema de correção de circuitos quânticos com prompts e análise de arquivos para resolver erros e falhas.</p>
             <span class="card-link">Otimizar Circuitos</span>
         </a>
+    </div>
+    
+    <!-- Categoria: Livros -->
+    <h2 class="category-title">Livros</h2>
+    <div class="cards-container">
+        <div class="platform-card" style="cursor: auto;">
+            <h3 class="card-title">Biblioteca ALMA <span class="status-badge construction">Em Construção</span></h3>
+            <p class="card-description">Coleção de livros e materiais de estudo sobre física quântica, matemática avançada, filosofia e ciências correlatas.</p>
+            <span class="card-link" style="background: rgba(241, 196, 15, 0.3);">Em Breve</span>
+        </div>
     </div>
     
     <div class="loading-text">Selecione uma plataforma para explorar</div>
@@ -281,8 +399,8 @@
         // Adicionando interação ao botão ALMA
         document.getElementById('alma-btn').addEventListener('click', function(e) {
             e.preventDefault();
-            const cardsSection = document.querySelector('.cards-container');
-            cardsSection.scrollIntoView({ behavior: 'smooth' });
+            const firstCategory = document.querySelector('.category-title');
+            firstCategory.scrollIntoView({ behavior: 'smooth' });
         });
     </script>
 </body>
