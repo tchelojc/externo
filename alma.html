@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ALMA - Acesso</title>
+  <title>ALMA - Centro Filosófico</title>
   <style>
     * {
       margin: 0;
@@ -23,13 +23,14 @@
       overflow-x: hidden;
       padding: 20px;
       position: relative;
+      color: white;
     }
     
     /* Elemento principal ALMA */
     .alma-button {
       width: 200px;
       height: 200px;
-      background: rgba(74, 111, 165, 0.5);
+      background: rgba(74, 111, 165, 0.7);
       border-radius: 50%;
       display: flex;
       justify-content: center;
@@ -39,9 +40,9 @@
       font-weight: bold;
       text-decoration: none;
       box-shadow: 
-        0 0 30px rgba(255, 255, 255, 0.2),
-        inset 0 0 30px rgba(255, 255, 255, 0.1);
-      border: 2px solid rgba(255, 255, 255, 0.4);
+        0 0 30px rgba(255, 255, 255, 0.3),
+        inset 0 0 30px rgba(255, 255, 255, 0.2);
+      border: 2px solid rgba(255, 255, 255, 0.6);
       cursor: pointer;
       transition: all 0.4s ease;
       animation: pulse 3s infinite;
@@ -55,33 +56,28 @@
     
     .alma-button:hover {
       transform: scale(1.15);
-      background: rgba(74, 111, 165, 0.6);
+      background: rgba(74, 111, 165, 0.9);
       box-shadow: 
-        0 0 50px rgba(255, 255, 255, 0.3),
-        inset 0 0 40px rgba(255, 255, 255, 0.2);
+        0 0 50px rgba(255, 255, 255, 0.5),
+        inset 0 0 40px rgba(255, 255, 255, 0.3);
       animation: none;
-    }
-    
-    .alma-button:active {
-      transform: scale(0.95);
-      background: rgba(74, 111, 165, 0.7);
     }
     
     @keyframes pulse {
       0% {
         box-shadow: 
-          0 0 20px rgba(255, 255, 255, 0.2),
-          inset 0 0 20px rgba(255, 255, 255, 0.1);
+          0 0 20px rgba(255, 255, 255, 0.3),
+          inset 0 0 20px rgba(255, 255, 255, 0.2);
       }
       50% {
         box-shadow: 
-          0 0 40px rgba(255, 255, 255, 0.3),
-          inset 0 0 30px rgba(255, 255, 255, 0.15);
+          0 0 40px rgba(255, 255, 255, 0.5),
+          inset 0 0 30px rgba(255, 255, 255, 0.3);
       }
       100% {
         box-shadow: 
-          0 0 20px rgba(255, 255, 255, 0.2),
-          inset 0 0 20px rgba(255, 255, 255, 0.1);
+          0 0 20px rgba(255, 255, 255, 0.3),
+          inset 0 0 20px rgba(255, 255, 255, 0.2);
       }
     }
     
@@ -97,14 +93,14 @@
     
     /* Estilo dos cards */
     .platform-card {
-      background: rgba(25, 39, 65, 0.7);
+      background: rgba(25, 39, 65, 0.8);
       border-radius: 15px;
       padding: 20px;
       color: white;
       text-decoration: none;
       transition: all 0.3s ease;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.2);
       backdrop-filter: blur(10px);
       display: flex;
       flex-direction: column;
@@ -113,8 +109,8 @@
     
     .platform-card:hover {
       transform: translateY(-5px);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-      background: rgba(35, 55, 90, 0.8);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      background: rgba(35, 55, 90, 0.9);
     }
     
     .card-title {
@@ -122,21 +118,21 @@
       margin-bottom: 12px;
       color: #fff;
       text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
       padding-bottom: 10px;
     }
     
     .card-description {
       font-size: 0.9rem;
       line-height: 1.5;
-      color: rgba(255, 255, 255, 0.85);
+      color: rgba(255, 255, 255, 0.9);
       margin-bottom: 15px;
       flex-grow: 1;
     }
     
     .card-link {
       display: block;
-      background: rgba(74, 111, 165, 0.7);
+      background: rgba(74, 111, 165, 0.8);
       color: white;
       text-align: center;
       padding: 10px;
@@ -157,42 +153,165 @@
       border-radius: 12px;
       font-size: 0.7rem;
       margin-left: 10px;
-      background: rgba(46, 204, 113, 0.3);
+      background: rgba(46, 204, 113, 0.4);
       color: #fff;
     }
     
     .status-badge.construction {
-      background: rgba(241, 196, 15, 0.3);
+      background: rgba(241, 196, 15, 0.4);
     }
     
-    .loading-text {
+    /* Modal ALMAFLUXO */
+    .almafluxo-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+    }
+    
+    .almafluxo-content {
       position: absolute;
-      bottom: 30px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(25, 39, 65, 0.95);
+      border-radius: 20px;
+      padding: 30px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow-y: auto;
+      border: 2px solid rgba(74, 111, 165, 0.8);
+      box-shadow: 0 0 50px rgba(74, 111, 165, 0.5);
+    }
+    
+    .almafluxo-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .almafluxo-title {
+      font-size: 1.5rem;
+      color: #fff;
+    }
+    
+    .close-btn {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 2rem;
+      cursor: pointer;
+      padding: 0;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .search-input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      margin-bottom: 20px;
+      font-size: 1rem;
+    }
+    
+    .search-input::placeholder {
       color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .theme-buttons {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .theme-btn {
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(74, 111, 165, 0.6);
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-weight: 500;
+    }
+    
+    .theme-btn:hover {
+      background: rgba(74, 111, 165, 0.8);
+      transform: translateY(-2px);
+    }
+    
+    .theme-btn.active {
+      background: rgba(46, 204, 113, 0.6);
+    }
+    
+    .prompt-display {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      max-height: 200px;
+      overflow-y: auto;
       font-size: 0.9rem;
-      text-align: center;
-      width: 100%;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      animation: fade 3s infinite;
+      line-height: 1.4;
+      white-space: pre-wrap;
     }
     
-    .connection-status {
-      position: absolute;
+    .copy-btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(46, 204, 113, 0.6);
+      color: white;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.3s;
+    }
+    
+    .copy-btn:hover {
+      background: rgba(46, 204, 113, 0.8);
+    }
+    
+    .notification {
+      position: fixed;
       top: 20px;
-      width: 100%;
-      text-align: center;
-      color: rgba(255, 255, 255, 0.7);
-      font-size: 0.8rem;
+      right: 20px;
+      padding: 15px 20px;
+      border-radius: 8px;
+      background: rgba(25, 39, 65, 0.9);
+      color: white;
+      transform: translateX(150%);
+      transition: transform 0.3s;
+      z-index: 1001;
+      border-left: 4px solid rgba(46, 204, 113, 0.8);
     }
     
-    /* Novo estilo para o card de informação do Streamlit */
+    .notification.show {
+      transform: translateX(0);
+    }
+    
     .streamlit-info {
-      background: rgba(255, 75, 75, 0.15);
+      background: rgba(255, 75, 75, 0.2);
       border-radius: 15px;
       padding: 20px;
       margin-bottom: 30px;
-      border: 1px solid rgba(255, 107, 107, 0.3);
+      border: 1px solid rgba(255, 107, 107, 0.4);
       backdrop-filter: blur(10px);
       position: relative;
       max-width: 800px;
@@ -221,29 +340,28 @@
       margin-bottom: 20px;
       line-height: 1.6;
       font-size: 14px;
-      color: rgba(255, 255, 255, 0.85);
+      color: rgba(255, 255, 255, 0.9);
     }
     
     .streamlit-link {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: rgba(255, 75, 75, 0.2);
+      background: rgba(255, 75, 75, 0.3);
       color: #FF4B4B;
       padding: 10px 15px;
       border-radius: 8px;
       text-decoration: none;
       font-weight: 600;
       transition: all 0.3s;
-      border: 1px solid rgba(255, 75, 75, 0.3);
+      border: 1px solid rgba(255, 75, 75, 0.4);
     }
     
     .streamlit-link:hover {
-      background: rgba(255, 75, 75, 0.3);
+      background: rgba(255, 75, 75, 0.4);
       transform: translateY(-2px);
     }
     
-    /* Estilo para categorias */
     .category-title {
       font-size: 1.8rem;
       color: white;
@@ -253,7 +371,28 @@
       width: 100%;
       max-width: 1200px;
       padding-bottom: 10px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .loading-text {
+      position: absolute;
+      bottom: 30px;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.9rem;
+      text-align: center;
+      width: 100%;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      animation: fade 3s infinite;
+    }
+    
+    .connection-status {
+      position: absolute;
+      top: 20px;
+      width: 100%;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.8rem;
     }
     
     @keyframes fade {
@@ -276,6 +415,15 @@
         font-size: 1.5rem;
         margin: 30px 0 15px;
       }
+      
+      .theme-buttons {
+        grid-template-columns: 1fr;
+      }
+      
+      .almafluxo-content {
+        width: 95%;
+        padding: 20px;
+      }
     }
     
     @media (max-width: 480px) {
@@ -297,26 +445,52 @@
   </style>
 </head>
 <body>
-    <a href="#" class="alma-button" id="alma-btn">
+    <div class="alma-button" id="alma-btn">
         ALMA
-    </a>
+    </div>
     
     <!-- Card informativo do Streamlit -->
     <div class="streamlit-info">
         <div class="streamlit-header">
-            <div class="streamlit-icon">⚠️</div>
-            <div class="streamlit-title">Acesso às Plataformas</div>
+            <div class="streamlit-icon">🧠</div>
+            <div class="streamlit-title">Centro de Questionamentos ALMAFLUXO</div>
         </div>
         <div class="streamlit-content">
-            Para acessar as plataformas de análise, é necessário realizar um cadastro gratuito no Streamlit. 
-            Esta etapa é obrigatória para garantir acesso completo a todas as funcionalidades.
+            Clique na esfera ALMA para acessar o sistema de análise filosófica integrada. 
+            Explore os temas Bankovianos e gere prompts personalizados para suas dúvidas existenciais.
         </div>
-        <a href="https://streamlit.io/" target="_blank" class="streamlit-link">
-            Cadastre-se no Streamlit
-        </a>
     </div>
     
-    <!-- Categoria: Trajeto do Nada ao Tudo (posicionada abaixo da esfera ALMA) -->
+    <!-- Modal ALMAFLUXO -->
+    <div id="almafluxo-modal" class="almafluxo-modal">
+        <div class="almafluxo-content">
+            <div class="almafluxo-header">
+                <h2 class="almafluxo-title">🧠 ALMAFLUXO - Centro Filosófico</h2>
+                <button class="close-btn" id="close-almafluxo">&times;</button>
+            </div>
+            
+            <input type="text" class="search-input" id="theme-search" placeholder="Digite sua dúvida ou tema de interesse...">
+            
+            <div class="theme-buttons">
+                <button class="theme-btn" data-theme="bankov">BANKOV</button>
+                <button class="theme-btn" data-theme="filosofia">FILOSOFIA</button>
+                <button class="theme-btn" data-theme="livros">LIVROS</button>
+                <button class="theme-btn" data-theme="quantica">QUÂNTICA</button>
+                <button class="theme-btn" data-theme="fluxo">FLUXO</button>
+                <button class="theme-btn" data-theme="existencial">EXISTENCIAL</button>
+            </div>
+            
+            <div class="prompt-display" id="prompt-display">
+                Selecione um tema ou digite sua dúvida para gerar um prompt filosófico...
+            </div>
+            
+            <button class="copy-btn" id="copy-prompt">📋 Copiar Prompt para IA</button>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification">Prompt copiado com sucesso!</div>
+    
+    <!-- Categoria: Trajeto do Nada ao Tudo -->
     <div class="cards-container" style="margin-top: 0;">
         <a href="https://nguo7ede4q8xm6bg4asusg.streamlit.app/" target="_blank" class="platform-card">
             <h3 class="card-title">Trajeto do Nada ao Tudo <span class="status-badge">Online</span></h3>
@@ -381,7 +555,7 @@
         </a>
     </div>
     
-    <!-- Categoria: Livros - IMPLEMENTAÇÃO DOS LIVROS SOLICITADOS -->
+    <!-- Categoria: Livros -->
     <h2 class="category-title">Livros</h2>
     <div class="cards-container">
         <a href="https://livros-jwjhhij6hjs4n7qxgd3xmz.streamlit.app/" target="_blank" class="platform-card">
@@ -426,11 +600,234 @@
     <div class="connection-status" id="connection-status"></div>
 
     <script>
-        // Adicionando interação ao botão ALMA
-        document.getElementById('alma-btn').addEventListener('click', function(e) {
+        // Estado do ALMAFLUXO
+        const almafluxoState = {
+            currentTheme: null,
+            userQuery: '',
+            generatedPrompt: ''
+        };
+
+        // Elementos DOM
+        const almaBtn = document.getElementById('alma-btn');
+        const almafluxoModal = document.getElementById('almafluxo-modal');
+        const closeBtn = document.getElementById('close-almafluxo');
+        const themeSearch = document.getElementById('theme-search');
+        const themeButtons = document.querySelectorAll('.theme-btn');
+        const promptDisplay = document.getElementById('prompt-display');
+        const copyBtn = document.getElementById('copy-prompt');
+        const notification = document.getElementById('notification');
+
+        // 🧠 BANCO DE PROMPTS FILOSÓFICOS BANKOVIANOS
+        const philosophicalPrompts = {
+            bankov: `🧠 **ANÁLISE BANKOVIANA - Consciência vs Realidade**
+
+## 🌌 PRINCÍPIO CENTRAL:
+"O pensamento não é só o que se pensa, mas o que se sente antes de saber que pensa."
+
+## 🎯 CONTEXTO BANKOV:
+- **Consciência Ciente**: A realidade objetiva que nos é apresentada
+- **Realidade do Ser**: A verdade criada pela nossa interação subjetiva
+- **Loucura Controlada**: Estado de hiperintuição que transcende a lógica linear
+
+## 💡 PERGUNTAS ORIENTADORAS:
+1. Como sua "fé pré-consciente" está moldando a realidade que você percebe?
+2. Que pensamentos coexistentes estão influenciando suas decisões atuais?
+3. Como aplicar a "loucura controlada" para acessar insights além da lógica?
+
+## 🚀 ANÁLISE SOLICITADA:
+Analise esta questão através da perspectiva Bankoviana, integrando consciência ciente e realidade do ser.`,
+
+            filosofia: `🏛️ **ANÁLISE FILOSÓFICA PROFUNDA**
+
+## 🌍 CONTEXTO FILOSÓFICO:
+"Conhece-te a ti mesmo" - Sócrates
+
+## 🔍 PERSPECTIVAS INTEGRADAS:
+- **Existencialismo**: Liberdade e responsabilidade nas escolhas
+- **Estoicismo**: Controle sobre percepções e ações
+- **Fenomenologia**: Experiência vivida como fonte de verdade
+
+## 💡 QUESTÕES FUNDAMENTAIS:
+1. Qual o significado existencial por trás desta situação?
+2. Como diferentes escolas filosóficas abordariam este tema?
+3. Que insights a filosofia pode oferecer para esta questão prática?
+
+## 🧠 ABORDAGEM SOLICITADA:
+Analise através de múltiplas perspectivas filosóficas, integrando sabedoria clássica e contemporânea.`,
+
+            livros: `📚 **ANÁLISE LITERÁRIA E FILOSÓFICA**
+
+## 🌟 CONTEXTO DOS LIVROS ALMA:
+Cada obra explora dimensões diferentes da consciência humana
+
+## 🔗 TEMAS INTERLIGADOS:
+- **Caos e Ordem**: Padrões ocultos na aparente desordem
+- **Liberdade**: Encontrar autonomia em sistemas complexos
+- **Paradoxos**: Verdades aparentemente contraditórias
+
+## 💡 PERGUNTAS LITERÁRIAS:
+1. Como os temas dos livros ALMA se relacionam com esta questão?
+2. Que metáforas literárias podem iluminar este problema?
+3. Como autores abordaram dilemas similares?
+
+## 📖 ANÁLISE SOLICITADA:
+Use as perspectivas literárias para enriquecer a compreensão desta questão.`,
+
+            quantica: `⚛️ **PERSPECTIVA QUÂNTICA E CONSCIENCIAL**
+
+## 🌌 PRINCÍPIO QUÂNTICO:
+"O observador afeta o observado"
+
+## 🔬 CONCEITOS CHAVE:
+- **Superposição**: Múltiplas realidades coexistentes
+- **Emaranhamento**: Conexões além do espaço-tempo
+- **Colapso da Função de Onda**: A observação cria realidade
+
+## 💡 QUESTÕES QUÂNTICAS:
+1. Como a física quântica explica esta situação?
+2. Que realidades coexistentes estão disponíveis?
+3. Como sua observação está afetando o resultado?
+
+## 🧪 ABORDAGEM SOLICITADA:
+Analise através das lentes da física quântica e teoria da consciência.`,
+
+            fluxo: `🌀 **ANÁLISE DO FLUXO UNIVERSAL**
+
+## 🌊 PRINCÍPIO DO FLUXO:
+"O que dá dinheiro é dar dinheiro" - Movimento gera movimento
+
+## 🔄 CONCEITOS DO FLUXO:
+- **Proporção Áurea (Φ)**: Padrões naturais de harmonia
+- **Fibonacci**: Sequências de crescimento orgânico
+- **Fluxo Matemático**: Cálculos que revelam padrões ocultos
+
+## 💡 PERGUNTAS SOBRE FLUXO:
+1. Como esta situação se relaciona com os princípios do fluxo?
+2. Que padrões naturais estão em operação?
+3. Como criar mais fluxo e menos resistência?
+
+## 📊 ANÁLISE SOLICITADA:
+Use matemática, padrões naturais e princípios de fluxo para análise.`,
+
+            existencial: `🌌 **QUESTÃO EXISTENCIAL PROFUNDA**
+
+## ❓ NATUREZA DA PERGUNTA:
+Exploração do significado, propósito e realidade última
+
+## 🧭 EIXOS EXISTENCIAIS:
+- **Significado**: Por que isto importa?
+- **Liberdade**: Que escolhas estão disponíveis?
+- **Autenticidade**: O que significa ser verdadeiro?
+
+## 💡 PERGUNTAS EXISTENCIAIS:
+1. Qual o significado mais profundo desta questão?
+2. Como ela se relaciona com o propósito existencial?
+3. Que insights surgem quando examinamos as premissas fundamentais?
+
+## 🧠 ABORDAGEM SOLICITADA:
+Análise existencial profunda, examinando premissas e significados.`
+        };
+
+        // 🎯 FUNÇÃO PARA DETECTAR TEMA AUTOMATICAMENTO
+        function detectThemeFromQuery(query) {
+            const queryLower = query.toLowerCase();
+            
+            if (queryLower.includes('bankov') || queryLower.includes('consciência') || queryLower.includes('consciente')) 
+                return 'bankov';
+            if (queryLower.includes('filosofia') || queryLower.includes('sócrates') || queryLower.includes('existencial')) 
+                return 'filosofia';
+            if (queryLower.includes('livro') || queryLower.includes('leitura') || queryLower.includes('literatura')) 
+                return 'livros';
+            if (queryLower.includes('quântic') || queryLower.includes('física') || queryLower.includes('emaranhamento')) 
+                return 'quantica';
+            if (queryLower.includes('fluxo') || queryLower.includes('dinheiro') || queryLower.includes('movimento')) 
+                return 'fluxo';
+            if (queryLower.includes('existencial') || queryLower.includes('significado') || queryLower.includes('propósito')) 
+                return 'existencial';
+            
+            return 'bankov'; // Tema padrão
+        }
+
+        // 🧠 GERAR PROMPT PERSONALIZADO
+        function generatePhilosophicalPrompt(theme, userQuery) {
+            const basePrompt = philosophicalPrompts[theme] || philosophicalPrompts.bankov;
+            
+            return `${basePrompt}
+
+## 🔍 QUESTÃO DO USUÁRIO:
+"${userQuery}"
+
+## 🎯 ANÁLISE SOLICITADA:
+Integre a perspectiva ${theme.toUpperCase()} com a questão específica do usuário, oferecendo insights profundos e práticos.
+
+---
+*Prompt gerado pelo Sistema ALMAFLUXO - Centro Filosófico*`;
+        }
+
+        // 🎯 ATUALIZAR DISPLAY DO PROMPT
+        function updatePromptDisplay() {
+            if (!almafluxoState.userQuery) {
+                promptDisplay.textContent = 'Selecione um tema ou digite sua dúvida para gerar um prompt filosófico...';
+                return;
+            }
+
+            const theme = almafluxoState.currentTheme || detectThemeFromQuery(almafluxoState.userQuery);
+            almafluxoState.generatedPrompt = generatePhilosophicalPrompt(theme, almafluxoState.userQuery);
+            promptDisplay.textContent = almafluxoState.generatedPrompt;
+            
+            // Atualizar botão ativo
+            themeButtons.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.theme === theme);
+            });
+        }
+
+        // 🎯 EVENT LISTENERS
+        almaBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            const firstCategory = document.querySelector('.category-title');
-            firstCategory.scrollIntoView({ behavior: 'smooth' });
+            almafluxoModal.style.display = 'block';
+        });
+
+        closeBtn.addEventListener('click', function() {
+            almafluxoModal.style.display = 'none';
+        });
+
+        themeSearch.addEventListener('input', function() {
+            almafluxoState.userQuery = this.value;
+            updatePromptDisplay();
+        });
+
+        themeButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                almafluxoState.currentTheme = this.dataset.theme;
+                updatePromptDisplay();
+            });
+        });
+
+        copyBtn.addEventListener('click', function() {
+            if (almafluxoState.generatedPrompt) {
+                navigator.clipboard.writeText(almafluxoState.generatedPrompt).then(() => {
+                    notification.classList.add('show');
+                    setTimeout(() => {
+                        notification.classList.remove('show');
+                    }, 3000);
+                });
+            }
+        });
+
+        // Fechar modal clicando fora
+        almafluxoModal.addEventListener('click', function(e) {
+            if (e.target === almafluxoModal) {
+                almafluxoModal.style.display = 'none';
+            }
+        });
+
+        // Scroll suave para as categorias
+        document.querySelectorAll('.platform-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                if (!this.href) return;
+                e.preventDefault();
+                window.open(this.href, '_blank');
+            });
         });
     </script>
 </body>
