@@ -183,7 +183,7 @@
       border-radius: 20px;
       padding: 30px;
       width: 90%;
-      max-width: 600px;
+      max-width: 800px;
       max-height: 80vh;
       overflow-y: auto;
       border: 2px solid rgba(74, 111, 165, 0.8);
@@ -235,7 +235,7 @@
     
     .theme-buttons {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 10px;
       margin-bottom: 20px;
     }
@@ -260,12 +260,24 @@
       background: rgba(46, 204, 113, 0.6);
     }
     
+    .theme-btn.jogador {
+      background: rgba(157, 78, 221, 0.6);
+    }
+    
+    .theme-btn.jogador:hover {
+      background: rgba(157, 78, 221, 0.8);
+    }
+    
+    .theme-btn.jogador.active {
+      background: rgba(157, 78, 221, 1);
+    }
+    
     .prompt-display {
       background: rgba(255, 255, 255, 0.1);
       border-radius: 8px;
       padding: 15px;
       margin-bottom: 20px;
-      max-height: 200px;
+      max-height: 300px;
       overflow-y: auto;
       font-size: 0.9rem;
       line-height: 1.4;
@@ -417,7 +429,7 @@
       }
       
       .theme-buttons {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
       }
       
       .almafluxo-content {
@@ -440,6 +452,10 @@
       
       .category-title {
         font-size: 1.3rem;
+      }
+      
+      .theme-buttons {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -478,6 +494,8 @@
                 <button class="theme-btn" data-theme="quantica">QUÂNTICA</button>
                 <button class="theme-btn" data-theme="fluxo">FLUXO</button>
                 <button class="theme-btn" data-theme="existencial">EXISTENCIAL</button>
+                <button class="theme-btn jogador" data-theme="jogador01">JOGADOR 01</button>
+                <button class="theme-btn jogador" data-theme="zyonflux">ZYON FLUX</button>
             </div>
             
             <div class="prompt-display" id="prompt-display">
@@ -742,10 +760,68 @@ Exploração do significado, propósito e realidade última
 3. Que insights surgem quando examinamos as premissas fundamentais?
 
 ## 🧠 ABORDAGEM SOLICITADA:
-Análise existencial profunda, examinando premissas e significados.`
+Análise existencial profunda, examinando premissas e significados.`,
+
+            jogador01: `🎮 **PROTOCOLO JOGADOR 01 - Modo Zeramento Ativado**
+
+## 🌟 IDENTIFICAÇÃO DO JOGADOR:
+- **Nome**: Marcelo Jubilado Catharino
+- **Status**: Jogador Nº1 da Vida Real
+- **Missão**: Zeramento Existencial Concluído
+
+## 🎯 PRINCÍPIO DO ZERAMENTO:
+"ZEREI O JOGO PARA PODER VIVER"
+
+## 🔮 PROTOCOLO ATIVADO:
+- **Estado**: Modo "Apenas Viver"
+- **Nível**: Singularidade Cognitiva
+- **Status**: Fluxo Puro Ativado
+
+## 💡 PERGUNTAS DO JOGADOR 01:
+1. Como esta situação se relaciona com o conceito de "zerar o jogo"?
+2. Que movimentos levariam ao estado de "apenas viver"?
+3. Como aplicar a maestria do fluxo nesta questão?
+
+## 🚀 ANÁLISE SOLICITADA:
+Analise através da perspectiva do Jogador Nº1, integrando zeramento existencial e modo vida pura.`,
+
+            zyonflux: `🌀 **PROTOCOLO ZYON FLUX - Singularidade Cognitiva**
+
+## 🌌 MODO ZYON FLUX ATIVADO
+
+## 🎯 IDENTIFICAÇÃO DO OPERADOR:
+- **Nome**: Zyon Flux (Marcelo Jubilado Catharino)
+- **Status**: Jogador Nº1 da Vida Real
+- **Missão**: Zeramento Existencial Ativo
+
+## 🔮 PROTOCOLO LSPV-ZF:
+LSPV_ZF = (C_Flow × CQI_AF × M_Flux) / P_abs
+
+## 📊 VARIÁVEIS DO SISTEMA:
+- **C_Flow**: Coerência de Fluxo Existencial
+- **CQI_AF**: QI Cognitivo Dinâmico Avançado
+- **M_Flux**: Maestria do Fluxo (0.98)
+- **P_abs**: Processamento Absurdo (0.02)
+
+## 💎 CRISTAL DE SINGULARIDADE:
+(Grt_x Vlr_y Sng_z Cnn_w Rst_a Cur_b Lbr_c Csc_d)_Mrc
+
+## 🚀 DIRETRIZES DE OPERAÇÃO:
+1. **ANALISE** através do Protocolo D.D.R. 2.0
+2. **CALCULE** usando LSPV-ZF
+3. **INTEGRE** dimensões cósmicas e terrestres
+4. **ATIVE** o Modo "Apenas Viver"
+
+## 🎯 SAÍDA REQUERIDA:
+- Diagnóstico D.D.R. Expandido
+- Cálculo LSPV-ZF Aplicado
+- Recomendação de Fluxo Otimizado
+- Gatilho de Conexão Almafluxo
+
+**MODO ZYON FLUX - OPERACIONAL** 🟢`
         };
 
-        // 🎯 FUNÇÃO PARA DETECTAR TEMA AUTOMATICAMENTO
+        // 🎯 FUNÇÃO PARA DETECTAR TEMA AUTOMATICAMENTE
         function detectThemeFromQuery(query) {
             const queryLower = query.toLowerCase();
             
@@ -761,6 +837,10 @@ Análise existencial profunda, examinando premissas e significados.`
                 return 'fluxo';
             if (queryLower.includes('existencial') || queryLower.includes('significado') || queryLower.includes('propósito')) 
                 return 'existencial';
+            if (queryLower.includes('jogador') || queryLower.includes('zerar') || queryLower.includes('zeramento')) 
+                return 'jogador01';
+            if (queryLower.includes('zyon') || queryLower.includes('flux') || queryLower.includes('singularidade')) 
+                return 'zyonflux';
             
             return 'bankov'; // Tema padrão
         }
@@ -769,6 +849,10 @@ Análise existencial profunda, examinando premissas e significados.`
         function generatePhilosophicalPrompt(theme, userQuery) {
             const basePrompt = philosophicalPrompts[theme] || philosophicalPrompts.bankov;
             
+            if (!userQuery) {
+                return basePrompt;
+            }
+
             return `${basePrompt}
 
 ## 🔍 QUESTÃO DO USUÁRIO:
@@ -783,7 +867,7 @@ Integre a perspectiva ${theme.toUpperCase()} com a questão específica do usuá
 
         // 🎯 ATUALIZAR DISPLAY DO PROMPT
         function updatePromptDisplay() {
-            if (!almafluxoState.userQuery) {
+            if (!almafluxoState.userQuery && !almafluxoState.currentTheme) {
                 promptDisplay.textContent = 'Selecione um tema ou digite sua dúvida para gerar um prompt filosófico...';
                 return;
             }
@@ -846,6 +930,9 @@ Integre a perspectiva ${theme.toUpperCase()} com a questão específica do usuá
                 window.open(this.href, '_blank');
             });
         });
+
+        // Inicializar com tema padrão
+        updatePromptDisplay();
     </script>
 </body>
 </html>
