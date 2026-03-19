@@ -5,12 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ALMAFLUXO · Contato</title>
   <style>
-    /* Mantendo sua estrutura original impecável */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: 'Roboto', sans-serif;
@@ -29,11 +24,9 @@
     body::before {
       content: '';
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
       z-index: 0;
     }
 
@@ -44,10 +37,7 @@
       width: 100%;
     }
 
-    .header {
-      text-align: center;
-      margin-bottom: 40px;
-    }
+    .header { text-align: center; margin-bottom: 40px; }
 
     .header h1 {
       font-size: 2.5rem;
@@ -87,7 +77,7 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      height: fit-content; /* Garante que o card não estique desnecessariamente */
+      height: fit-content;
     }
 
     .card-header {
@@ -99,9 +89,7 @@
       user-select: none;
     }
 
-    .card-header:hover {
-      background: rgba(255,255,255,0.05);
-    }
+    .card-header:hover { background: rgba(255,255,255,0.05); }
 
     .card-header-top {
       display: flex;
@@ -112,9 +100,8 @@
 
     .card-icon {
       font-size: 2.5rem;
-      background: rgba(74, 111, 165, 0.4);
-      width: 60px;
-      height: 60px;
+      background: rgba(74,111,165,0.4);
+      width: 60px; height: 60px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -135,17 +122,16 @@
 
     .badge {
       display: inline-block;
-      background: rgba(46, 204, 113, 0.3);
-      border: 1px solid rgba(46, 204, 113, 0.6);
+      background: rgba(46,204,113,0.3);
+      border: 1px solid rgba(46,204,113,0.6);
       padding: 4px 10px;
       border-radius: 20px;
       font-size: 0.7rem;
       margin-left: 10px;
-      vertical-align: middle;
     }
 
     .badge-paid {
-      background: rgba(255, 193, 7, 0.3);
+      background: rgba(255,193,7,0.3);
       border-color: #ffc107;
     }
 
@@ -156,11 +142,10 @@
       padding-left: 75px;
     }
 
-    /* ── CORPO DO CARD (Ajustado para o efeito sanfona) ── */
     .card-body {
       display: grid;
-      grid-template-rows: 0fr; 
-      transition: grid-template-rows 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.4s cubic-bezier(0.4,0,0.2,1);
       background: rgba(0,0,0,0.2);
     }
 
@@ -170,7 +155,6 @@
       transition: padding 0.4s ease;
     }
 
-    /* Classe ativada pelo JS */
     .card.expanded .card-body {
       grid-template-rows: 1fr;
       border-top: 1px solid rgba(255,255,255,0.1);
@@ -182,13 +166,13 @@
 
     .card-description {
       color: rgba(255,255,255,0.7);
-      line-height: 1.5;
+      line-height: 1.6;
       margin-bottom: 10px;
     }
 
     .card-action {
-      background: rgba(74, 111, 165, 0.7);
-      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(74,111,165,0.7);
+      border: none;
       border-radius: 30px;
       padding: 12px 20px;
       color: white;
@@ -199,32 +183,96 @@
       cursor: pointer;
       display: inline-block;
       margin-top: 10px;
-      border: none;
+      font-size: 0.95rem;
     }
 
     .card-action:hover {
-      background: rgba(74, 111, 165, 1);
+      background: rgba(74,111,165,1);
       transform: translateY(-2px);
     }
 
-    .list-plataformas {
-      list-style: none;
-      margin: 15px 0;
+    /* Formulário */
+    .contact-form { margin-top: 12px; }
+    .form-group { margin-bottom: 12px; }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.25);
+      background: rgba(0,0,0,0.35);
+      color: white;
+      font-family: inherit;
+      font-size: 0.95rem;
+      transition: border-color 0.2s;
     }
 
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: rgba(170,204,255,0.6);
+    }
+
+    .form-group textarea { min-height: 90px; resize: vertical; }
+
+    .form-group input::placeholder,
+    .form-group textarea::placeholder { color: rgba(255,255,255,0.4); }
+
+    .form-msg {
+      margin-top: 10px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      display: none;
+    }
+    .form-msg.success {
+      display: block;
+      background: rgba(46,204,113,0.2);
+      border: 1px solid rgba(46,204,113,0.5);
+      color: #a8f0c6;
+    }
+    .form-msg.error {
+      display: block;
+      background: rgba(231,76,60,0.2);
+      border: 1px solid rgba(231,76,60,0.5);
+      color: #f5b7b1;
+    }
+
+    /* Lista de planos */
+    .list-plataformas { list-style: none; margin: 12px 0; }
+
     .list-plataformas li {
-      padding: 8px 0;
+      padding: 10px 0;
       border-bottom: 1px solid rgba(255,255,255,0.1);
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
     }
 
-    .plataforma-preco {
-      color: #ffd700;
+    .plataforma-preco { color: #ffd700; font-weight: 600; white-space: nowrap; }
+
+    .btn-solicitar {
+      background: rgba(74,111,165,0.5);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 20px;
+      padding: 5px 14px;
+      color: white;
+      font-size: 0.8rem;
       font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+      white-space: nowrap;
     }
 
+    .btn-solicitar:hover {
+      background: rgba(74,111,165,0.9);
+      transform: translateY(-1px);
+    }
+
+    /* FAQ */
     .faq-item {
       margin-bottom: 10px;
       border-bottom: 1px solid rgba(255,255,255,0.1);
@@ -239,34 +287,20 @@
       padding: 8px 0;
       font-weight: 500;
       color: #aaccff;
+      transition: color 0.2s;
     }
+
+    .faq-question:hover { color: white; }
 
     .faq-answer {
       max-height: 0;
       overflow: hidden;
-      transition: max-height 0.3s ease-out;
+      transition: max-height 0.35s ease;
       color: rgba(255,255,255,0.7);
       font-size: 0.9rem;
     }
 
-    .faq-answer.show {
-      max-height: 200px;
-      padding-top: 8px;
-    }
-
-    .contact-form .form-group {
-      margin-bottom: 12px;
-    }
-
-    .form-group input, .form-group textarea {
-      width: 100%;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid rgba(255,255,255,0.3);
-      background: rgba(0,0,0,0.3);
-      color: white;
-      font-family: inherit;
-    }
+    .faq-answer.show { max-height: 200px; padding-top: 8px; }
 
     .info-box {
       background: rgba(0,0,0,0.3);
@@ -278,6 +312,8 @@
       border: 1px solid rgba(255,255,255,0.1);
     }
 
+    .info-box p { font-size: 0.95rem; color: rgba(255,255,255,0.8); }
+
     .footer {
       margin-top: 50px;
       font-size: 0.8rem;
@@ -286,187 +322,259 @@
     }
 
     @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(74, 111, 165, 0.5); }
-      70% { box-shadow: 0 0 0 10px rgba(74, 111, 165, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(74, 111, 165, 0); }
+      0%   { box-shadow: 0 0 0 0   rgba(74,111,165,0.5); }
+      70%  { box-shadow: 0 0 0 10px rgba(74,111,165,0);   }
+      100% { box-shadow: 0 0 0 0   rgba(74,111,165,0);    }
     }
 
-    .card:first-child .card-icon {
-      animation: pulse 2s infinite;
-    }
+    .card:first-child .card-icon { animation: pulse 2s infinite; }
 
     @media (max-width: 600px) {
       .header h1 { font-size: 2rem; }
       .card-header-summary { padding-left: 0; text-align: center; }
       .card-header-top { justify-content: center; }
+      .list-plataformas li { flex-direction: column; align-items: flex-start; gap: 6px; }
     }
   </style>
 </head>
 <body>
+<div class="container">
 
-  <div class="container">
-    <div class="header">
-      <h1>⚡ ALMAFLUXO · CONTATO</h1>
-      <p>Conecte‑se com nossa equipe e explore licenças, pagamentos e suporte.</p>
-    </div>
-
-    <div class="cards-grid" id="cardsGrid">
-
-      <div class="card" id="card-email">
-        <div class="card-header" onclick="toggleCard('card-email')">
-          <div class="card-header-top">
-            <div class="card-icon">📧</div>
-            <h2 class="card-title">E-mail <span class="badge">Online</span></h2>
-          </div>
-          <div class="card-header-summary">Envie sua mensagem diretamente ou use almafluxo@almafluxo.uk</div>
-        </div>
-        <div class="card-body">
-          <div class="card-body-inner">
-            <div class="card-description">
-              <p>Envie sua mensagem diretamente pelo formulário abaixo ou use <strong>almafluxo@almafluxo.uk</strong>.</p>
-              <form class="contact-form">
-                <div class="form-group">
-                  <input type="text" placeholder="Seu nome" required>
-                </div>
-                <div class="form-group">
-                  <input type="email" placeholder="Seu e-mail para resposta" required>
-                </div>
-                <div class="form-group">
-                  <textarea placeholder="Sua mensagem" required></textarea>
-                </div>
-                <button type="button" class="card-action">✉️ Enviar mensagem</button>
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card" id="card-licencas">
-        <div class="card-header" onclick="toggleCard('card-licencas')">
-          <div class="card-header-top">
-            <div class="card-icon">🔑</div>
-            <h2 class="card-title">Licenças <span class="badge badge-paid">Planos pagos</span></h2>
-          </div>
-          <div class="card-header-summary">Solicite licenças de teste ou planos pagos</div>
-        </div>
-        <div class="card-body">
-          <div class="card-body-inner">
-            <div class="card-description">
-              <ul class="list-plataformas">
-                <li><span>Hedge Dinâmico – Basquete</span> <span class="plataforma-preco">R$ 199/mês</span></li>
-                <li><span>Hedge Dinâmico – Futebol</span> <span class="plataforma-preco">R$ 249/mês</span></li>
-                <li><span>Hedge Dinâmico – Multi Esportes</span> <span class="plataforma-preco">R$ 199/mês</span></li>
-                <li><span>Operador – Day-trade</span> <span class="plataforma-preco">R$ 249/mês</span></li>
-                <li><span>ALMAfluxo (completo)</span> <span class="plataforma-preco">R$ 299/mês</span></li>
-              </ul>
-              <a href="#" class="card-action">🔓 Solicitar licença</a>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card" id="card-pagamentos">
-        <div class="card-header" onclick="toggleCard('card-pagamentos')">
-          <div class="card-header-top">
-            <div class="card-icon">💳</div>
-            <h2 class="card-title">Pagamentos</h2>
-          </div>
-          <div class="card-header-summary">Transferência bancária ou PIX</div>
-        </div>
-        <div class="card-body">
-          <div class="card-body-inner">
-            <div class="card-description">
-              <p>Pagamentos realizados exclusivamente por <strong>PIX</strong> para garantir controle total dos acessos.</p>
-              <a href="#" class="card-action">💸 Solicitar dados</a>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card Dúvidas (FAQ) -->
-      <div class="card" id="card-duvidas">
-        <div class="card-header" onclick="toggleCard('card-duvidas')">
-          <div class="card-header-top">
-            <div class="card-icon">❓</div>
-            <h2 class="card-title">Dúvidas frequentes</h2>
-          </div>
-          <div class="card-header-summary">Perguntas comuns sobre licenças, pagamentos e acesso</div>
-        </div>
-        <div class="card-body">
-          <div class="card-body-inner">
-            <div class="card-description">
-              <div class="faq-item">
-                <div class="faq-question" onclick="event.stopPropagation(); toggleFAQ(this)">
-                  <span>Como recebo minha licença após o pagamento?</span>
-                  <span class="faq-toggle">▼</span>
-                </div>
-                <div class="faq-answer">Após a confirmação do pagamento, enviaremos um e‑mail com o link de acesso e a chave de licença (se aplicável) em até 24 horas úteis.</div>
-              </div>
-              <div class="faq-item">
-                <div class="faq-question" onclick="event.stopPropagation(); toggleFAQ(this)">
-                  <span>Posso testar antes de comprar?</span>
-                  <span class="faq-toggle">▼</span>
-                </div>
-                <div class="faq-answer">Sim. Oferecemos licenças de teste com duração de 24h para todas as plataformas pagas. Basta solicitar via e‑mail.</div>
-              </div>
-              <div class="faq-item">
-                <div class="faq-question" onclick="event.stopPropagation(); toggleFAQ(this)">
-                  <span>Qual a diferença entre os planos?</span>
-                  <span class="faq-toggle">▼</span>
-                </div>
-                <div class="faq-answer">Cada plano corresponde a uma plataforma específica. O pacote completo inclui todas as plataformas de trading e o ALMAfluxo.</div>
-              </div>
-              <div class="faq-item">
-                <div class="faq-question" onclick="event.stopPropagation(); toggleFAQ(this)">
-                  <span>O pagamento é seguro?</span>
-                  <span class="faq-toggle">▼</span>
-                </div>
-                <div class="faq-answer">Sim. Utilizamos transferência bancária ou PIX, e todas as transações são registradas. Não armazenamos dados de cartão de crédito.</div>
-              </div>
-              <div class="faq-item">
-                <div class="faq-question" onclick="event.stopPropagation(); toggleFAQ(this)">
-                  <span>Como acesso a plataforma após a compra?</span>
-                  <span class="faq-toggle">▼</span>
-                </div>
-                <div class="faq-answer">Você receberá um link exclusivo e uma senha de acesso. Basta clicar no link e inserir a senha para começar a usar.</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <div class="info-box">
-      <p>🧠 <strong>Atendimento personalizado:</strong> Estamos aqui para ajudar.</p>
-    </div>
-
-    <div class="footer">ALMAFLUXO · © 2026</div>
+  <div class="header">
+    <h1>⚡ ALMAFLUXO · CONTATO</h1>
+    <p>Conecte‑se com nossa equipe e explore licenças, pagamentos e suporte.</p>
   </div>
 
-  <script>
-    function toggleCard(cardId) {
-      const targetCard = document.getElementById(cardId);
-      const allCards = document.querySelectorAll('.card');
-      const isAlreadyExpanded = targetCard.classList.contains('expanded');
+  <div class="cards-grid">
 
-      // 1. Remove a classe de todos os cards primeiro (Fecha todos)
-      allCards.forEach(card => {
-        card.classList.remove('expanded');
+    <!-- CARD E-MAIL via Web3Forms -->
+    <div class="card" id="card-email">
+      <div class="card-header" onclick="toggleCard('card-email')">
+        <div class="card-header-top">
+          <div class="card-icon">📧</div>
+          <h2 class="card-title">E-mail <span class="badge">Online</span></h2>
+        </div>
+        <div class="card-header-summary">Envie sua mensagem — respondemos em até 24h</div>
+      </div>
+      <div class="card-body">
+        <div class="card-body-inner">
+          <div class="card-description">
+            <p>Preencha o formulário abaixo. A mensagem chega direto na nossa caixa de entrada.</p>
+
+            <form class="contact-form" id="contactForm">
+              <!-- Web3Forms: chave de acesso -->
+              <input type="hidden" name="access_key" value="eb4edc0c-b94c-4287-83bf-6f2e05f65774">
+              <input type="hidden" name="subject" value="Novo contato via AlmaFluxo">
+              <input type="hidden" name="from_name" value="Site AlmaFluxo">
+              <!-- Honeypot anti-spam (não remova) -->
+              <input type="checkbox" name="botcheck" style="display:none">
+
+              <div class="form-group">
+                <input type="text" name="name" placeholder="Seu nome" required>
+              </div>
+              <div class="form-group">
+                <input type="email" name="email" placeholder="Seu e-mail para resposta" required>
+              </div>
+              <div class="form-group">
+                <textarea name="message" placeholder="Sua mensagem" required></textarea>
+              </div>
+              <button type="submit" class="card-action" id="submitBtn">✉️ Enviar mensagem</button>
+            </form>
+
+            <div class="form-msg success" id="msgSuccess">
+              ✅ Mensagem enviada com sucesso! Responderemos em até 24h.
+            </div>
+            <div class="form-msg error" id="msgError">
+              ❌ Erro ao enviar. Tente novamente ou escreva para almafluxo@almafluxo.uk
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD LICENÇAS com e-mail pré-preenchido por plano -->
+    <div class="card" id="card-licencas">
+      <div class="card-header" onclick="toggleCard('card-licencas')">
+        <div class="card-header-top">
+          <div class="card-icon">🔑</div>
+          <h2 class="card-title">Licenças <span class="badge badge-paid">Planos pagos</span></h2>
+        </div>
+        <div class="card-header-summary">Clique no plano desejado para solicitar</div>
+      </div>
+      <div class="card-body">
+        <div class="card-body-inner">
+          <div class="card-description">
+            <p>Clique em <strong>Solicitar</strong> no plano desejado — seu e-mail abrirá já preenchido com o nome do plano.</p>
+            <ul class="list-plataformas">
+              <li>
+                <span>Hedge Dinâmico – Basquete</span>
+                <span class="plataforma-preco">R$ 199/mês</span>
+                <a class="btn-solicitar" href="mailto:almafluxo@almafluxo.uk?subject=Solicita%C3%A7%C3%A3o%20de%20licen%C3%A7a%3A%20Hedge%20Din%C3%A2mico%20%E2%80%93%20Basquete&body=Ol%C3%A1%2C%20tenho%20interesse%20na%20licen%C3%A7a%20do%20plano%20Hedge%20Din%C3%A2mico%20%E2%80%93%20Basquete%20(R%24%20199%2Fm%C3%AAs).%0A%0AMeu%20nome%3A%20%0AMeu%20e-mail%3A%20%0ADd%C3%BAvidas%2FObserva%C3%A7%C3%B5es%3A%20">🔓 Solicitar</a>
+              </li>
+              <li>
+                <span>Hedge Dinâmico – Futebol</span>
+                <span class="plataforma-preco">R$ 249/mês</span>
+                <a class="btn-solicitar" href="mailto:almafluxo@almafluxo.uk?subject=Solicita%C3%A7%C3%A3o%20de%20licen%C3%A7a%3A%20Hedge%20Din%C3%A2mico%20%E2%80%93%20Futebol&body=Ol%C3%A1%2C%20tenho%20interesse%20na%20licen%C3%A7a%20do%20plano%20Hedge%20Din%C3%A2mico%20%E2%80%93%20Futebol%20(R%24%20249%2Fm%C3%AAs).%0A%0AMeu%20nome%3A%20%0AMeu%20e-mail%3A%20%0ADd%C3%BAvidas%2FObserva%C3%A7%C3%B5es%3A%20">🔓 Solicitar</a>
+              </li>
+              <li>
+                <span>Hedge Dinâmico – Multi Esportes</span>
+                <span class="plataforma-preco">R$ 199/mês</span>
+                <a class="btn-solicitar" href="mailto:almafluxo@almafluxo.uk?subject=Solicita%C3%A7%C3%A3o%20de%20licen%C3%A7a%3A%20Hedge%20Din%C3%A2mico%20%E2%80%93%20Multi%20Esportes&body=Ol%C3%A1%2C%20tenho%20interesse%20na%20licen%C3%A7a%20do%20plano%20Hedge%20Din%C3%A2mico%20%E2%80%93%20Multi%20Esportes%20(R%24%20199%2Fm%C3%AAs).%0A%0AMeu%20nome%3A%20%0AMeu%20e-mail%3A%20%0ADd%C3%BAvidas%2FObserva%C3%A7%C3%B5es%3A%20">🔓 Solicitar</a>
+              </li>
+              <li>
+                <span>Operador – Day-trade</span>
+                <span class="plataforma-preco">R$ 249/mês</span>
+                <a class="btn-solicitar" href="mailto:almafluxo@almafluxo.uk?subject=Solicita%C3%A7%C3%A3o%20de%20licen%C3%A7a%3A%20Operador%20Day-trade&body=Ol%C3%A1%2C%20tenho%20interesse%20na%20licen%C3%A7a%20do%20plano%20Operador%20%E2%80%93%20Day-trade%20(R%24%20249%2Fm%C3%AAs).%0A%0AMeu%20nome%3A%20%0AMeu%20e-mail%3A%20%0ADd%C3%BAvidas%2FObserva%C3%A7%C3%B5es%3A%20">🔓 Solicitar</a>
+              </li>
+              <li>
+                <span>ALMAfluxo (completo)</span>
+                <span class="plataforma-preco">R$ 299/mês</span>
+                <a class="btn-solicitar" href="mailto:almafluxo@almafluxo.uk?subject=Solicita%C3%A7%C3%A3o%20de%20licen%C3%A7a%3A%20ALMAfluxo%20Completo&body=Ol%C3%A1%2C%20tenho%20interesse%20na%20licen%C3%A7a%20do%20plano%20ALMAfluxo%20Completo%20(R%24%20299%2Fm%C3%AAs).%0A%0AMeu%20nome%3A%20%0AMeu%20e-mail%3A%20%0ADd%C3%BAvidas%2FObserva%C3%A7%C3%B5es%3A%20">🔓 Solicitar</a>
+              </li>
+            </ul>
+            <p style="font-size:0.82rem; margin-top:8px; color:rgba(255,255,255,0.5);">
+              Ao clicar em Solicitar, seu aplicativo de e-mail abrirá com o assunto já preenchido.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD PAGAMENTOS -->
+    <div class="card" id="card-pagamentos">
+      <div class="card-header" onclick="toggleCard('card-pagamentos')">
+        <div class="card-header-top">
+          <div class="card-icon">💳</div>
+          <h2 class="card-title">Pagamentos</h2>
+        </div>
+        <div class="card-header-summary">Exclusivamente via PIX — rápido e seguro</div>
+      </div>
+      <div class="card-body">
+        <div class="card-body-inner">
+          <div class="card-description">
+            <p>Pagamentos realizados exclusivamente via <strong>PIX</strong>. Após confirmação, as credenciais de acesso são enviadas em até <strong>24h</strong>.</p>
+            <p style="margin-top:10px;">Para receber os dados bancários, clique abaixo:</p>
+            <a class="card-action" href="mailto:almafluxo@almafluxo.uk?subject=Solicita%C3%A7%C3%A3o%20de%20dados%20para%20pagamento%20PIX&body=Ol%C3%A1%2C%20gostaria%20de%20receber%20os%20dados%20para%20pagamento%20via%20PIX.%0A%0APlano%20de%20interesse%3A%20%0AMeu%20nome%3A%20%0AMeu%20e-mail%3A%20">
+              💸 Receber chave PIX
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD FAQ -->
+    <div class="card" id="card-duvidas">
+      <div class="card-header" onclick="toggleCard('card-duvidas')">
+        <div class="card-header-top">
+          <div class="card-icon">❓</div>
+          <h2 class="card-title">Dúvidas frequentes</h2>
+        </div>
+        <div class="card-header-summary">Perguntas comuns sobre licenças, pagamentos e acesso</div>
+      </div>
+      <div class="card-body">
+        <div class="card-body-inner">
+          <div class="card-description">
+
+            <div class="faq-item">
+              <div class="faq-question" onclick="event.stopPropagation(); toggleFAQ(this)">
+                <span>Como recebo minha licença após o pagamento?</span><span>▼</span>
+              </div>
+              <div class="faq-answer">Após a confirmação do pagamento via PIX, enviaremos um e‑mail com o link de acesso e a chave de licença em até 24 horas úteis.</div>
+            </div>
+
+            <div class="faq-item">
+              <div class="faq-question" onclick="event.stopPropagation(); toggleFAQ(this)">
+                <span>Posso testar antes de comprar?</span><span>▼</span>
+              </div>
+              <div class="faq-answer">Sim. Oferecemos licenças de teste com duração de 24h para todas as plataformas pagas. Basta solicitar via e‑mail.</div>
+            </div>
+
+            <div class="faq-item">
+              <div class="faq-question" onclick="event.stopPropagation(); toggleFAQ(this)">
+                <span>Qual a diferença entre os planos?</span><span>▼</span>
+              </div>
+              <div class="faq-answer">Cada plano corresponde a uma plataforma específica. O ALMAfluxo completo inclui todas as ferramentas de trading da plataforma.</div>
+            </div>
+
+            <div class="faq-item">
+              <div class="faq-question" onclick="event.stopPropagation(); toggleFAQ(this)">
+                <span>O pagamento é seguro?</span><span>▼</span>
+              </div>
+              <div class="faq-answer">Sim. Utilizamos exclusivamente PIX — todas as transações são registradas e não armazenamos nenhum dado financeiro.</div>
+            </div>
+
+            <div class="faq-item">
+              <div class="faq-question" onclick="event.stopPropagation(); toggleFAQ(this)">
+                <span>Como acesso a plataforma após a compra?</span><span>▼</span>
+              </div>
+              <div class="faq-answer">Você receberá um link exclusivo e uma senha de acesso por e-mail. Basta clicar no link e inserir a senha para começar.</div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /cards-grid -->
+
+  <div class="info-box">
+    <p>🧠 <strong>Atendimento personalizado:</strong> Para questões técnicas ou comerciais, utilize o formulário de e-mail ou clique em Solicitar no plano desejado.</p>
+  </div>
+
+  <div class="footer">ALMAFLUXO · O fluxo da consciência · © 2026</div>
+
+</div><!-- /container -->
+
+<script>
+  /* Accordion de cards */
+  function toggleCard(cardId) {
+    const target = document.getElementById(cardId);
+    const isOpen = target.classList.contains('expanded');
+    document.querySelectorAll('.card').forEach(c => c.classList.remove('expanded'));
+    if (!isOpen) target.classList.add('expanded');
+  }
+
+  /* FAQ */
+  function toggleFAQ(el) {
+    const answer = el.nextElementSibling;
+    const arrow  = el.querySelector('span:last-child');
+    answer.classList.toggle('show');
+    arrow.textContent = answer.classList.contains('show') ? '▲' : '▼';
+  }
+
+  /* Web3Forms — envia sem redirecionar a página */
+  document.getElementById('contactForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const btn     = document.getElementById('submitBtn');
+    const success = document.getElementById('msgSuccess');
+    const error   = document.getElementById('msgError');
+
+    btn.textContent = '⏳ Enviando...';
+    btn.disabled    = true;
+    success.style.display = 'none';
+    error.style.display   = 'none';
+
+    try {
+      const res  = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        body: new FormData(this)
       });
+      const data = await res.json();
 
-      // 2. Se o card clicado NÃO estava aberto, agora ele abre
-      // Se ele JÁ estava aberto, o passo 1 já o fechou (efeito de alternar)
-      if (!isAlreadyExpanded) {
-        targetCard.classList.add('expanded');
+      if (data.success) {
+        success.style.display = 'block';
+        this.reset();
+      } else {
+        throw new Error(data.message);
       }
+    } catch {
+      error.style.display = 'block';
+    } finally {
+      btn.textContent = '✉️ Enviar mensagem';
+      btn.disabled    = false;
     }
-
-    function toggleFAQ(element) {
-      const answer = element.nextElementSibling;
-      answer.classList.toggle('show');
-      element.querySelector('span:last-child').textContent = answer.classList.contains('show') ? '▲' : '▼';
-    }
-  </script>
+  });
+</script>
 </body>
 </html>
