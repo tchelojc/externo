@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ALMAFLUXO · Contato</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      min-height: 100vh;
+      background: url('https://images.unsplash.com/photo-1639762681057-408e52192e55?q=80&w=2232&auto=format&fit=crop') no-repeat center center fixed;
+      background-size: cover;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: white;
+      position: relative;
+    }
+
+    /* overlay escuro para contraste */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 2;
+      max-width: 1200px;
+      width: 100%;
+    }
+
+    /* cabeçalho */
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+      background: linear-gradient(135deg, #fff 0%, #aaccff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      font-size: 1.1rem;
+      color: rgba(255,255,255,0.8);
+      max-width: 600px;
+      margin: 0 auto;
+      backdrop-filter: blur(5px);
+      padding: 8px 20px;
+      border-radius: 40px;
+      background: rgba(0,0,0,0.2);
+    }
+
+    /* grid de cards */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 25px;
+      margin: 30px 0;
+    }
+
+    .card {
+      background: rgba(25, 39, 65, 0.8);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 25px 20px;
+      border: 1px solid rgba(255,255,255,0.2);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .card:hover {
+      transform: translateY(-8px);
+      background: rgba(35, 55, 90, 0.9);
+      box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+      border-color: rgba(255,255,255,0.4);
+    }
+
+    .card-icon {
+      font-size: 2.5rem;
+      margin-bottom: 15px;
+      background: rgba(74, 111, 165, 0.4);
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+
+    .card-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: white;
+    }
+
+    .card-description {
+      color: rgba(255,255,255,0.7);
+      line-height: 1.5;
+      margin-bottom: 20px;
+      flex-grow: 1;
+    }
+
+    .card-action {
+      background: rgba(74, 111, 165, 0.7);
+      border: none;
+      border-radius: 30px;
+      padding: 12px 20px;
+      color: white;
+      font-weight: 600;
+      text-decoration: none;
+      text-align: center;
+      transition: background 0.3s, transform 0.2s;
+      cursor: pointer;
+      display: inline-block;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .card-action:hover {
+      background: rgba(74, 111, 165, 1);
+      transform: scale(1.02);
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(46, 204, 113, 0.3);
+      border: 1px solid rgba(46, 204, 113, 0.6);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+
+    /* seção extra de informações */
+    .info-box {
+      background: rgba(0,0,0,0.3);
+      backdrop-filter: blur(5px);
+      border-radius: 20px;
+      padding: 20px;
+      margin-top: 40px;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .info-box p {
+      font-size: 0.95rem;
+      color: rgba(255,255,255,0.8);
+    }
+
+    .info-box a {
+      color: #aaccff;
+      text-decoration: none;
+      border-bottom: 1px dotted;
+    }
+
+    /* rodapé */
+    .footer {
+      margin-top: 50px;
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.4);
+      text-align: center;
+    }
+
+    /* animações sutis */
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(74, 111, 165, 0.5); }
+      70% { box-shadow: 0 0 0 10px rgba(74, 111, 165, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(74, 111, 165, 0); }
+    }
+
+    .card:first-child .card-icon {
+      animation: pulse 2s infinite;
+    }
+
+    /* responsividade */
+    @media (max-width: 600px) {
+      .header h1 { font-size: 2rem; }
+      .cards-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>⚡ ALMAFLUXO · CONTATO</h1>
+      <p>Conecte‑se com nossa equipe e explore licenças, pagamentos e suporte.</p>
+    </div>
+
+    <div class="cards-grid">
+      <!-- Card E-mail -->
+      <div class="card">
+        <div class="card-icon">📧</div>
+        <h2 class="card-title">E-mail <span class="badge">Online</span></h2>
+        <p class="card-description">
+          Envie uma mensagem para <strong>almafluxo@almafluxo.uk</strong>.<br>
+          Respondemos em até 24h úteis.
+        </p>
+        <a href="mailto:almafluxo@almafluxo.uk?subject=Contato%20via%20site" class="card-action">
+          ✉️ Enviar e‑mail
+        </a>
+      </div>
+
+      <!-- Card Licenças -->
+      <div class="card">
+        <div class="card-icon">🔑</div>
+        <h2 class="card-title">Licenças</h2>
+        <p class="card-description">
+          Ative, renove ou tire dúvidas sobre licenças dos sistemas AlmaFluxo, Universo Áureo e módulos quânticos.
+        </p>
+        <a href="#" class="card-action" onclick="alert('Em breve: área de licenças.')">🔓 Gerenciar licenças</a>
+      </div>
+
+      <!-- Card Pagamentos -->
+      <div class="card">
+        <div class="card-icon">💳</div>
+        <h2 class="card-title">Pagamentos</h2>
+        <p class="card-description">
+          Consulte faturas, métodos de pagamento e histórico. Suporte para assinaturas e planos.
+        </p>
+        <a href="#" class="card-action" onclick="alert('Portal de pagamentos em construção.')">💸 Central de pagamentos</a>
+      </div>
+
+      <!-- Card Dúvidas -->
+      <div class="card">
+        <div class="card-icon">❓</div>
+        <h2 class="card-title">Dúvidas frequentes</h2>
+        <p class="card-description">
+          Encontre respostas rápidas sobre funcionamento das plataformas, instalação e configuração.
+        </p>
+        <a href="#" class="card-action" onclick="alert('Base de conhecimento em breve.')">📘 Acessar FAQ</a>
+      </div>
+    </div>
+
+    <!-- Informações complementares -->
+    <div class="info-box">
+      <p>
+        🧠 <strong>Atendimento personalizado:</strong> Para questões técnicas ou comerciais, utilize o e-mail acima ou clique no card correspondente. Estamos desenvolvendo uma central de autoatendimento.
+      </p>
+      <p style="margin-top: 10px;">
+        📍 <a href="https://almafluxo.uk">Voltar ao início</a> · <a href="#" onclick="alert('Termos e condições em atualização.')">Política de privacidade</a>
+      </p>
+    </div>
+
+    <div class="footer">
+      ALMAFLUXO · O fluxo da consciência · © 2026
+    </div>
+  </div>
+
+  <script>
+    // Pequena interatividade: notificação simulada ao copiar e-mail (opcional)
+    document.querySelectorAll('.card-action').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        // Se for o link de e-mail, não intercepta (deixa o href agir)
+        if (this.closest('.card').querySelector('.card-title').innerText.includes('E-mail')) {
+          return; // comportamento padrão do mailto
+        }
+        // Se for outro link, já tem o onclick com alert – mantemos
+      });
+    });
+
+    // Suavizar exibição de badges
+    console.log('Página de contato AlmaFluxo carregada.');
+  </script>
+</body>
+</html>
