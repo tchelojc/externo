@@ -174,6 +174,32 @@
       background: rgba(241, 196, 15, 0.4);
     }
     
+    /* Badge para planos pagos */
+    .status-badge.pago {
+      background: rgba(255, 107, 107, 0.6);
+    }
+    
+    /* Botão extra para FAQ dentro do card */
+    .faq-link-button {
+      display: block;
+      background: rgba(255, 193, 7, 0.3);
+      color: #ffd700;
+      text-align: center;
+      padding: 10px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: background 0.3s;
+      margin-top: 10px;
+      cursor: pointer;
+      border: 1px solid rgba(255, 193, 7, 0.5);
+    }
+    
+    .faq-link-button:hover {
+      background: rgba(255, 193, 7, 0.5);
+      color: #fff;
+    }
+    
     /* Modal ALMAFLUXO */
     .almafluxo-modal {
       display: none;
@@ -425,6 +451,17 @@
       50% { opacity: 0.8; }
     }
     
+    /* Destaque ao rolar para o FAQ */
+    .faq-highlight {
+      animation: faqGlow 0.8s ease-out 3;
+    }
+    
+    @keyframes faqGlow {
+      0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); border-color: rgba(255, 215, 0, 0.5); }
+      50% { box-shadow: 0 0 20px 10px rgba(255, 215, 0, 0.5); border-color: gold; }
+      100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); border-color: rgba(255,255,255,0.2); }
+    }
+    
     @media (max-width: 768px) {
       .alma-button {
         width: 170px;
@@ -596,47 +633,74 @@
             <span class="card-link">Otimizar Circuitos</span>
         </a>
     </div>
-  
-    <!-- ===== NOVA CATEGORIA: ALMAfluxo ===== -->
+
+    <!-- ===== NOVA CATEGORIA: ALMAfluxo (PAGO) ===== -->
     <h2 class="category-title">ALMAfluxo</h2>
     <div class="cards-container">
-        <a href="https://tchelojc.github.io/ALMAfluxo/" target="_blank" class="platform-card">
-            <h3 class="card-title">ALMAfluxo <span class="status-badge">Online</span></h3>
-            <p class="card-description">Análise do fluxo universal desde alimentação, propósito, carmas e tudo que os movimentos demonstram – o equilíbrio como força divina.</p>
-            <span class="card-link">Explorar</span>
-        </a>
+        <div class="platform-card">
+            <h3 class="card-title">ALMAfluxo <span class="status-badge pago">Pago</span></h3>
+            <p class="card-description">
+                Análise do fluxo universal desde alimentação, propósito, carmas e tudo que os movimentos demonstram – o equilíbrio como força divina.
+                <br><br>
+                💡 <strong>Para pagamento e informações completas, clique no botão abaixo.</strong>
+            </p>
+            <a href="https://tchelojc.github.io/ALMAfluxo/" target="_blank" class="card-link">Explorar</a>
+            <a class="faq-link-button" href="#faq-card" onclick="event.preventDefault(); scrollToFAQ(event);">💰 Ver FAQ para Pagamento</a>
+        </div>
     </div>
-  
-    <!-- ===== PLATAFORMAS DE TRADING ===== -->
+
+    <!-- ===== PLATAFORMAS DE TRADING (PAGAS) ===== -->
     <h2 class="category-title">Plataformas de Trading</h2>
     <div class="cards-container">
-        <!-- Card 1: Interface OPERADOR (já existente) -->
-        <a href="https://tchelojc.github.io/daytrade/OPERADOR.html" target="_blank" class="platform-card">
-            <h3 class="card-title">📈 Interface OPERADOR <span class="status-badge">Online</span></h3>
-            <p class="card-description">Interface web dedicada para operações de day trade com visualização em tempo real e controle avançado de ordens.</p>
-            <span class="card-link">Acessar Interface Web</span>
-        </a>
-    
+
+        <!-- Card 1: Interface OPERADOR -->
+        <div class="platform-card">
+            <h3 class="card-title">📈 Interface OPERADOR <span class="status-badge pago">Pago</span></h3>
+            <p class="card-description">
+                Interface web dedicada para operações de day trade com visualização em tempo real e controle avançado de ordens.
+                <br><br>
+                💡 <strong>Para pagamento e informações completas, clique no botão abaixo.</strong>
+            </p>
+            <a href="https://tchelojc.github.io/daytrade/OPERADOR.html" target="_blank" class="card-link">Acessar Interface Web</a>
+            <a class="faq-link-button" href="#faq-card" onclick="event.preventDefault(); scrollToFAQ(event);">💰 Ver FAQ para Pagamento</a>
+        </div>
+
         <!-- Card 2: Basquete -->
-        <a href="https://tchelojc.github.io/basquete/" target="_blank" class="platform-card">
-            <h3 class="card-title">🏀 Hedge Dinâmico – Basquete <span class="status-badge">Online</span></h3>
-            <p class="card-description">Distribuição proporcional, odds ao vivo e cenários de hedge para jogos de basquete. Ideal para quem opera com spreads totais e margens.</p>
-            <span class="card-link">Acessar Plataforma</span>
-        </a>
-    
+        <div class="platform-card">
+            <h3 class="card-title">🏀 Hedge Dinâmico – Basquete <span class="status-badge pago">Pago</span></h3>
+            <p class="card-description">
+                Distribuição proporcional, odds ao vivo e cenários de hedge para jogos de basquete. Ideal para quem opera com spreads totais e margens.
+                <br><br>
+                💡 <strong>Para pagamento e informações completas, clique no botão abaixo.</strong>
+            </p>
+            <a href="https://tchelojc.github.io/basquete/" target="_blank" class="card-link">Acessar Plataforma</a>
+            <a class="faq-link-button" href="#faq-card" onclick="event.preventDefault(); scrollToFAQ(event);">💰 Ver FAQ para Pagamento</a>
+        </div>
+
         <!-- Card 3: Futebol -->
-        <a href="https://tchelojc.github.io/futebol/" target="_blank" class="platform-card">
-            <h3 class="card-title">⚽ Hedge Dinâmico – Futebol <span class="status-badge">Online</span></h3>
-            <p class="card-description">Sistema completo para mercados de futebol: mais/menos gols, ambas marcam, handicaps e estatísticas avançadas com proteção automática.</p>
-            <span class="card-link">Acessar Plataforma</span>
-        </a>
-    
-        <!-- Card 4: Multiesportes (Vôlei, Tênis, Lutas) -->
-        <a href="https://tchelojc.github.io/Multioperador/" target="_blank" class="platform-card">
-            <h3 class="card-title">🎾 Hedge Multiesportes <span class="status-badge">Online</span></h3>
-            <p class="card-description">Vôlei, tênis e lutas (MMA/Boxe) com configuração automática por esporte, estratégias por sets/rounds e operação ao vivo.</p>
-            <span class="card-link">Acessar Plataforma</span>
-        </a>
+        <div class="platform-card">
+            <h3 class="card-title">⚽ Hedge Dinâmico – Futebol <span class="status-badge pago">Pago</span></h3>
+            <p class="card-description">
+                Sistema completo para mercados de futebol: mais/menos gols, ambas marcam, handicaps e estatísticas avançadas com proteção automática.
+                <br><br>
+                💡 <strong>Para pagamento e informações completas, clique no botão abaixo.</strong>
+            </p>
+            <a href="https://tchelojc.github.io/futebol/" target="_blank" class="card-link">Acessar Plataforma</a>
+            <a class="faq-link-button" href="#faq-card" onclick="event.preventDefault(); scrollToFAQ(event);">💰 Ver FAQ para Pagamento</a>
+        </div>
+
+        <!-- Card 4: Multiesportes -->
+        <div class="platform-card">
+            <h3 class="card-title">🎾 Hedge Multiesportes <span class="status-badge pago">Pago</span></h3>
+            <p class="card-description">
+                Vôlei, tênis e lutas (MMA/Boxe) com configuração automática por esporte, estratégias por sets/rounds e operação ao vivo.
+                <br><br>
+                💡 <strong>Para pagamento e informações completas, clique no botão abaixo.</strong>
+            </p>
+            <a href="https://tchelojc.github.io/Multioperador/" target="_blank" class="card-link">Acessar Plataforma</a>
+            <a class="faq-link-button" href="#faq-card" onclick="event.preventDefault(); scrollToFAQ(event);">💰 Ver FAQ para Pagamento</a>
+        </div>
+
     </div>
     
     <!-- Categoria: Livros -->
@@ -696,25 +760,24 @@
         </a>
     </div>
 
-  <!-- Categoria: Atendimento ao Cliente -->
+    <!-- Categoria: FAQ (card alvo) -->
     <h2 class="category-title">FAQ</h2>
-    <div class="cards-container">
+    <div class="cards-container" id="faq-card">
         <a href="https://almafluxo.uk/contato" target="_blank" class="platform-card">
             <h3 class="card-title">FAQ <span class="status-badge">Online</span></h3>
-            <p class="card-description">Página para Entrar em Contato para envios de E-mail, Licenças, Pagamentos e Dúvidas Frequentes </p>
+            <p class="card-description">Página para Entrar em Contato para envios de E-mail, Licenças, Pagamentos e Dúvidas Frequentes</p>
             <span class="card-link">contato</span>
         </a>
     </div>
 
     <script>
-        // Estado do ALMAFLUXO
+        // ==================== ALMAFLUXO MODAL ====================
         const almafluxoState = {
             currentTheme: null,
             userQuery: '',
             generatedPrompt: ''
         };
 
-        // Elementos DOM
         const almaBtn = document.getElementById('alma-btn');
         const almafluxoModal = document.getElementById('almafluxo-modal');
         const closeBtn = document.getElementById('close-almafluxo');
@@ -724,7 +787,6 @@
         const copyBtn = document.getElementById('copy-prompt');
         const notification = document.getElementById('notification');
 
-        // 🧠 BANCO DE PROMPTS FILOSÓFICOS BANKOVIANOS
         const philosophicalPrompts = {
             bankov: `🧠 **ANÁLISE BANKOVIANA - Consciência vs Realidade**
 
@@ -993,39 +1055,23 @@ Interpretação: [MISSÃO DE VIDA NUMEROLÓGICA]
 
         };
 
-        // 🎯 FUNÇÃO PARA DETECTAR TEMA AUTOMATICAMENTE
         function detectThemeFromQuery(query) {
-            const queryLower = query.toLowerCase();
-            
-            if (queryLower.includes('bankov') || queryLower.includes('consciência') || queryLower.includes('consciente')) 
-                return 'bankov';
-            if (queryLower.includes('filosofia') || queryLower.includes('sócrates') || queryLower.includes('existencial')) 
-                return 'filosofia';
-            if (queryLower.includes('livro') || queryLower.includes('leitura') || queryLower.includes('literatura')) 
-                return 'livros';
-            if (queryLower.includes('quântic') || queryLower.includes('física') || queryLower.includes('emaranhamento')) 
-                return 'quantica';
-            if (queryLower.includes('fluxo') || queryLower.includes('dinheiro') || queryLower.includes('movimento')) 
-                return 'fluxo';
-            if (queryLower.includes('existencial') || queryLower.includes('significado') || queryLower.includes('propósito')) 
-                return 'existencial';
-            if (queryLower.includes('jogador') || queryLower.includes('zerar') || queryLower.includes('zeramento')) 
-                return 'jogador01';
-            if (queryLower.includes('zyon') || queryLower.includes('flux') || queryLower.includes('singularidade')) 
-                return 'zyonflux';
-            
-            return 'bankov'; // Tema padrão
+            const q = query.toLowerCase();
+            if (q.includes('bankov')) return 'bankov';
+            if (q.includes('filosofia')) return 'filosofia';
+            if (q.includes('livro')) return 'livros';
+            if (q.includes('quântic')) return 'quantica';
+            if (q.includes('fluxo')) return 'fluxo';
+            if (q.includes('existencial')) return 'existencial';
+            if (q.includes('jogador') || q.includes('zerar')) return 'jogador01';
+            if (q.includes('zyon')) return 'zyonflux';
+            return 'bankov';
         }
 
-        // 🧠 GERAR PROMPT PERSONALIZADO
         function generatePhilosophicalPrompt(theme, userQuery) {
-            const basePrompt = philosophicalPrompts[theme] || philosophicalPrompts.bankov;
-            
-            if (!userQuery) {
-                return basePrompt;
-            }
-
-            return `${basePrompt}
+            let base = philosophicalPrompts[theme] || philosophicalPrompts.bankov;
+            if (!userQuery) return base;
+            return `${base}
 
 ## 🔍 QUESTÃO DO USUÁRIO:
 "${userQuery}"
@@ -1037,73 +1083,43 @@ Integre a perspectiva ${theme.toUpperCase()} com a questão específica do usuá
 *Prompt gerado pelo Sistema ALMAFLUXO - Centro Filosófico*`;
         }
 
-        // 🎯 ATUALIZAR DISPLAY DO PROMPT
         function updatePromptDisplay() {
             if (!almafluxoState.userQuery && !almafluxoState.currentTheme) {
                 promptDisplay.textContent = 'Selecione um tema ou digite sua dúvida para gerar um prompt filosófico...';
                 return;
             }
-
             const theme = almafluxoState.currentTheme || detectThemeFromQuery(almafluxoState.userQuery);
             almafluxoState.generatedPrompt = generatePhilosophicalPrompt(theme, almafluxoState.userQuery);
             promptDisplay.textContent = almafluxoState.generatedPrompt;
-            
-            // Atualizar botão ativo
-            themeButtons.forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.theme === theme);
-            });
+            themeButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.theme === theme));
         }
 
-        // 🎯 EVENT LISTENERS
-        almaBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            almafluxoModal.style.display = 'block';
-        });
-
-        closeBtn.addEventListener('click', function() {
-            almafluxoModal.style.display = 'none';
-        });
-
-        themeSearch.addEventListener('input', function() {
-            almafluxoState.userQuery = this.value;
-            updatePromptDisplay();
-        });
-
-        themeButtons.forEach(btn => {
-            btn.addEventListener('click', function() {
-                almafluxoState.currentTheme = this.dataset.theme;
-                updatePromptDisplay();
-            });
-        });
-
+        almaBtn.addEventListener('click', () => almafluxoModal.style.display = 'block');
+        closeBtn.addEventListener('click', () => almafluxoModal.style.display = 'none');
+        themeSearch.addEventListener('input', function() { almafluxoState.userQuery = this.value; updatePromptDisplay(); });
+        themeButtons.forEach(btn => btn.addEventListener('click', function() { almafluxoState.currentTheme = this.dataset.theme; updatePromptDisplay(); }));
         copyBtn.addEventListener('click', function() {
             if (almafluxoState.generatedPrompt) {
-                navigator.clipboard.writeText(almafluxoState.generatedPrompt).then(() => {
-                    notification.classList.add('show');
-                    setTimeout(() => {
-                        notification.classList.remove('show');
-                    }, 3000);
-                });
+                navigator.clipboard.writeText(almafluxoState.generatedPrompt);
+                notification.classList.add('show');
+                setTimeout(() => notification.classList.remove('show'), 3000);
             }
         });
+        almafluxoModal.addEventListener('click', (e) => { if (e.target === almafluxoModal) almafluxoModal.style.display = 'none'; });
 
-        // Fechar modal clicando fora
-        almafluxoModal.addEventListener('click', function(e) {
-            if (e.target === almafluxoModal) {
-                almafluxoModal.style.display = 'none';
+        // ==================== FUNÇÃO DE SCROLL PARA O FAQ ====================
+        function scrollToFAQ(event) {
+            event.stopPropagation();
+            event.preventDefault();
+            const faqCard = document.getElementById('faq-card');
+            if (faqCard) {
+                faqCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                faqCard.classList.add('faq-highlight');
+                setTimeout(() => faqCard.classList.remove('faq-highlight'), 1500);
             }
-        });
+        }
 
-        // Scroll suave para as categorias
-        document.querySelectorAll('.platform-card').forEach(card => {
-            card.addEventListener('click', function(e) {
-                if (!this.href) return;
-                e.preventDefault();
-                window.open(this.href, '_blank');
-            });
-        });
-
-        // Inicializar com tema padrão
+        // Inicializar
         updatePromptDisplay();
     </script>
 </body>
