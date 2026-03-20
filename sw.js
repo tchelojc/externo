@@ -1,30 +1,34 @@
 const CACHE = 'almafluxo-v1';
 
-// Arquivos que ficam disponíveis offline
+// Agora inclui todas as páginas e ícones necessários
 const ASSETS = [
   'index.html',
-  'manifest.json'
+  'alma.html',
+  'contato.html',
+  'manifest.json',
+  'icons/icon-192.png',
+  'icons/icon-512.png'
 ];
 
-// Instala e faz cache dos arquivos principais
+// Instalação: baixa todos os arquivos listados
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE).then(c => c.addAll(ASSETS))
   );
-  self.skipWaiting();
+  self.skipWaiting(); // ativa o novo worker imediatamente
 });
 
-// Remove caches antigos ao ativar nova versão
+// Ativação: remove caches antigos
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
       Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
     )
   );
-  self.clients.claim();
+  self.clients.claim(); // assume controle de todas as abas abertas
 });
 
-// Responde com cache primeiro, depois rede (offline-first)
+// Estratégia offline-first: busca no cache, se não tiver, vai à rede
 self.addEventListener('fetch', e => {
   e.respondWith(
     caches.match(e.request).then(cached => cached || fetch(e.request))
