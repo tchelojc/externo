@@ -191,12 +191,13 @@
       transform: translateY(-2px);
     }
 
-    /* Formulário */
+    /* Formulário de contato */
     .contact-form { margin-top: 12px; }
     .form-group { margin-bottom: 12px; }
 
     .form-group input,
-    .form-group textarea {
+    .form-group textarea,
+    .form-group select {
       width: 100%;
       padding: 10px 12px;
       border-radius: 8px;
@@ -208,8 +209,11 @@
       transition: border-color 0.2s;
     }
 
+    .form-group select option { background: #1a2740; color: white; }
+
     .form-group input:focus,
-    .form-group textarea:focus {
+    .form-group textarea:focus,
+    .form-group select:focus {
       outline: none;
       border-color: rgba(170,204,255,0.6);
     }
@@ -218,6 +222,14 @@
 
     .form-group input::placeholder,
     .form-group textarea::placeholder { color: rgba(255,255,255,0.4); }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
 
     .form-msg {
       margin-top: 10px;
@@ -302,6 +314,70 @@
 
     .faq-answer.show { max-height: 200px; padding-top: 8px; }
 
+    /* ── Aviso de acesso restrito ── */
+    .aviso-restrito {
+      background: rgba(255,193,7,0.1);
+      border: 1px solid rgba(255,193,7,0.35);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      font-size: 0.88rem;
+      color: rgba(255,255,255,0.85);
+      line-height: 1.6;
+    }
+
+    .aviso-restrito strong { color: #ffd700; }
+
+    /* ── Questionário de avaliação ── */
+    .quiz-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #aaccff;
+      margin: 18px 0 12px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(170,204,255,0.2);
+      letter-spacing: 1px;
+    }
+
+    .radio-group {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      margin-top: 6px;
+    }
+
+    .radio-group label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      color: rgba(255,255,255,0.8);
+      margin-bottom: 0;
+    }
+
+    .radio-group input[type="radio"] {
+      width: 16px;
+      height: 16px;
+      accent-color: #4a6fa5;
+      flex-shrink: 0;
+      padding: 0;
+    }
+
+    .plano-selecionado {
+      background: rgba(46,204,113,0.15);
+      border: 1px solid rgba(46,204,113,0.4);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 0.88rem;
+      color: #a8f0c6;
+      margin-bottom: 14px;
+      display: none;
+    }
+
+    .plano-selecionado.show { display: block; }
+
+    /* Info box e footer */
     .info-box {
       background: rgba(0,0,0,0.3);
       backdrop-filter: blur(5px);
@@ -347,7 +423,7 @@
 
   <div class="cards-grid">
 
-    <!-- CARD E-MAIL via Web3Forms -->
+    <!-- ══ CARD E-MAIL ══ -->
     <div class="card" id="card-email">
       <div class="card-header" onclick="toggleCard('card-email')">
         <div class="card-header-top">
@@ -360,15 +436,11 @@
         <div class="card-body-inner">
           <div class="card-description">
             <p>Preencha o formulário abaixo. A mensagem chega direto na nossa caixa de entrada.</p>
-
             <form class="contact-form" id="contactForm">
-              <!-- Web3Forms: chave de acesso -->
               <input type="hidden" name="access_key" value="eb4edc0c-b94c-4287-83bf-6f2e05f65774">
               <input type="hidden" name="subject" value="Novo contato via AlmaFluxo">
               <input type="hidden" name="from_name" value="Site AlmaFluxo">
-              <!-- Honeypot anti-spam (não remova) -->
               <input type="checkbox" name="botcheck" style="display:none">
-
               <div class="form-group">
                 <input type="text" name="name" placeholder="Seu nome" required>
               </div>
@@ -380,19 +452,14 @@
               </div>
               <button type="submit" class="card-action" id="submitBtn">✉️ Enviar mensagem</button>
             </form>
-
-            <div class="form-msg success" id="msgSuccess">
-              ✅ Mensagem enviada com sucesso! Responderemos em até 24h.
-            </div>
-            <div class="form-msg error" id="msgError">
-              ❌ Erro ao enviar. Tente novamente ou escreva para almafluxo@almafluxo.uk
-            </div>
+            <div class="form-msg success" id="msgSuccess">✅ Mensagem enviada com sucesso! Responderemos em até 24h.</div>
+            <div class="form-msg error" id="msgError">❌ Erro ao enviar. Tente novamente ou escreva para almafluxo@almafluxo.uk</div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- CARD LICENÇAS com e-mail pré-preenchido por plano -->
+    <!-- ══ CARD LICENÇAS ══ -->
     <div class="card" id="card-licencas">
       <div class="card-header" onclick="toggleCard('card-licencas')">
         <div class="card-header-top">
@@ -404,65 +471,190 @@
       <div class="card-body">
         <div class="card-body-inner">
           <div class="card-description">
-            <p>Clique em <strong>Solicitar</strong> no plano desejado — seu e-mail abrirá já preenchido com o nome do plano.</p>
+            <p>Clique em <strong>Solicitar</strong> no plano desejado — seu e-mail abrirá com assunto, valor e corpo já preenchidos. Você só precisará informar seu <strong>nome</strong> e <strong>e-mail para resposta</strong>.</p>
             <ul class="list-plataformas">
+
               <li>
-                <span>Hedge Dinâmico – Basquete</span>
+                <span>🏀 Hedge Dinâmico – Basquete</span>
                 <span class="plataforma-preco">R$ 199/mês</span>
-                <a class="btn-solicitar" href="mailto:almafluxo@almafluxo.uk?subject=Solicita%C3%A7%C3%A3o%20de%20licen%C3%A7a%3A%20Hedge%20Din%C3%A2mico%20%E2%80%93%20Basquete&body=Ol%C3%A1%2C%20tenho%20interesse%20na%20licen%C3%A7a%20do%20plano%20Hedge%20Din%C3%A2mico%20%E2%80%93%20Basquete%20(R%24%20199%2Fm%C3%AAs).%0A%0AMeu%20nome%3A%20%0AMeu%20e-mail%3A%20%0ADd%C3%BAvidas%2FObserva%C3%A7%C3%B5es%3A%20">🔓 Solicitar</a>
+                <a class="btn-solicitar" href="mailto:almafluxo@almafluxo.uk?subject=Solicita%C3%A7%C3%A3o%20de%20Licen%C3%A7a%3A%20Hedge%20Din%C3%A2mico%20%E2%80%93%20Basquete%20%7C%20R%24%20199%2Fm%C3%AAs&body=Ol%C3%A1%2C%20equipe%20ALMAFLUXO!%0A%0AEstou%20solicitando%20acesso%20ao%20plano%3A%0A%E2%96%BA%20Hedge%20Din%C3%A2mico%20%E2%80%93%20Basquete%20%7C%20R%24%20199%2Fm%C3%AAs%0A%0AMeus%20dados%3A%0ANome%3A%20%5BPREENCHA%20AQUI%5D%0AE-mail%20para%20resposta%3A%20%5BPREENCHA%20AQUI%5D%0A%0AConfirmo%20que%20li%20as%20condi%C3%A7%C3%B5es%20de%20acesso%20e%20aguardo%20a%20avalia%C3%A7%C3%A3o%20da%20equipe.%0A%0AAtenciosamente.">🔓 Solicitar</a>
               </li>
+
               <li>
-                <span>Hedge Dinâmico – Futebol</span>
+                <span>⚽ Hedge Dinâmico – Futebol</span>
                 <span class="plataforma-preco">R$ 249/mês</span>
-                <a class="btn-solicitar" href="mailto:almafluxo@almafluxo.uk?subject=Solicita%C3%A7%C3%A3o%20de%20licen%C3%A7a%3A%20Hedge%20Din%C3%A2mico%20%E2%80%93%20Futebol&body=Ol%C3%A1%2C%20tenho%20interesse%20na%20licen%C3%A7a%20do%20plano%20Hedge%20Din%C3%A2mico%20%E2%80%93%20Futebol%20(R%24%20249%2Fm%C3%AAs).%0A%0AMeu%20nome%3A%20%0AMeu%20e-mail%3A%20%0ADd%C3%BAvidas%2FObserva%C3%A7%C3%B5es%3A%20">🔓 Solicitar</a>
+                <a class="btn-solicitar" href="mailto:almafluxo@almafluxo.uk?subject=Solicita%C3%A7%C3%A3o%20de%20Licen%C3%A7a%3A%20Hedge%20Din%C3%A2mico%20%E2%80%93%20Futebol%20%7C%20R%24%20249%2Fm%C3%AAs&body=Ol%C3%A1%2C%20equipe%20ALMAFLUXO!%0A%0AEstou%20solicitando%20acesso%20ao%20plano%3A%0A%E2%96%BA%20Hedge%20Din%C3%A2mico%20%E2%80%93%20Futebol%20%7C%20R%24%20249%2Fm%C3%AAs%0A%0AMeus%20dados%3A%0ANome%3A%20%5BPREENCHA%20AQUI%5D%0AE-mail%20para%20resposta%3A%20%5BPREENCHA%20AQUI%5D%0A%0AConfirmo%20que%20li%20as%20condi%C3%A7%C3%B5es%20de%20acesso%20e%20aguardo%20a%20avalia%C3%A7%C3%A3o%20da%20equipe.%0A%0AAtenciosamente.">🔓 Solicitar</a>
               </li>
+
               <li>
-                <span>Hedge Dinâmico – Multi Esportes</span>
+                <span>🎾 Hedge Dinâmico – Multi Esportes</span>
                 <span class="plataforma-preco">R$ 199/mês</span>
-                <a class="btn-solicitar" href="mailto:almafluxo@almafluxo.uk?subject=Solicita%C3%A7%C3%A3o%20de%20licen%C3%A7a%3A%20Hedge%20Din%C3%A2mico%20%E2%80%93%20Multi%20Esportes&body=Ol%C3%A1%2C%20tenho%20interesse%20na%20licen%C3%A7a%20do%20plano%20Hedge%20Din%C3%A2mico%20%E2%80%93%20Multi%20Esportes%20(R%24%20199%2Fm%C3%AAs).%0A%0AMeu%20nome%3A%20%0AMeu%20e-mail%3A%20%0ADd%C3%BAvidas%2FObserva%C3%A7%C3%B5es%3A%20">🔓 Solicitar</a>
+                <a class="btn-solicitar" href="mailto:almafluxo@almafluxo.uk?subject=Solicita%C3%A7%C3%A3o%20de%20Licen%C3%A7a%3A%20Hedge%20Din%C3%A2mico%20%E2%80%93%20Multi%20Esportes%20%7C%20R%24%20199%2Fm%C3%AAs&body=Ol%C3%A1%2C%20equipe%20ALMAFLUXO!%0A%0AEstou%20solicitando%20acesso%20ao%20plano%3A%0A%E2%96%BA%20Hedge%20Din%C3%A2mico%20%E2%80%93%20Multi%20Esportes%20%7C%20R%24%20199%2Fm%C3%AAs%0A%0AMeus%20dados%3A%0ANome%3A%20%5BPREENCHA%20AQUI%5D%0AE-mail%20para%20resposta%3A%20%5BPREENCHA%20AQUI%5D%0A%0AConfirmo%20que%20li%20as%20condi%C3%A7%C3%B5es%20de%20acesso%20e%20aguardo%20a%20avalia%C3%A7%C3%A3o%20da%20equipe.%0A%0AAtenciosamente.">🔓 Solicitar</a>
               </li>
+
               <li>
-                <span>Operador – Day-trade</span>
+                <span>📈 Operador – Day-trade</span>
                 <span class="plataforma-preco">R$ 249/mês</span>
-                <a class="btn-solicitar" href="mailto:almafluxo@almafluxo.uk?subject=Solicita%C3%A7%C3%A3o%20de%20licen%C3%A7a%3A%20Operador%20Day-trade&body=Ol%C3%A1%2C%20tenho%20interesse%20na%20licen%C3%A7a%20do%20plano%20Operador%20%E2%80%93%20Day-trade%20(R%24%20249%2Fm%C3%AAs).%0A%0AMeu%20nome%3A%20%0AMeu%20e-mail%3A%20%0ADd%C3%BAvidas%2FObserva%C3%A7%C3%B5es%3A%20">🔓 Solicitar</a>
+                <a class="btn-solicitar" href="mailto:almafluxo@almafluxo.uk?subject=Solicita%C3%A7%C3%A3o%20de%20Licen%C3%A7a%3A%20Operador%20Day-trade%20%7C%20R%24%20249%2Fm%C3%AAs&body=Ol%C3%A1%2C%20equipe%20ALMAFLUXO!%0A%0AEstou%20solicitando%20acesso%20ao%20plano%3A%0A%E2%96%BA%20Operador%20%E2%80%93%20Day-trade%20%7C%20R%24%20249%2Fm%C3%AAs%0A%0AMeus%20dados%3A%0ANome%3A%20%5BPREENCHA%20AQUI%5D%0AE-mail%20para%20resposta%3A%20%5BPREENCHA%20AQUI%5D%0A%0AConfirmo%20que%20li%20as%20condi%C3%A7%C3%B5es%20de%20acesso%20e%20aguardo%20a%20avalia%C3%A7%C3%A3o%20da%20equipe.%0A%0AAtenciosamente.">🔓 Solicitar</a>
               </li>
+
               <li>
-                <span>ALMAfluxo (completo)</span>
+                <span>⚡ ALMAfluxo (completo)</span>
                 <span class="plataforma-preco">R$ 299/mês</span>
-                <a class="btn-solicitar" href="mailto:almafluxo@almafluxo.uk?subject=Solicita%C3%A7%C3%A3o%20de%20licen%C3%A7a%3A%20ALMAfluxo%20Completo&body=Ol%C3%A1%2C%20tenho%20interesse%20na%20licen%C3%A7a%20do%20plano%20ALMAfluxo%20Completo%20(R%24%20299%2Fm%C3%AAs).%0A%0AMeu%20nome%3A%20%0AMeu%20e-mail%3A%20%0ADd%C3%BAvidas%2FObserva%C3%A7%C3%B5es%3A%20">🔓 Solicitar</a>
+                <a class="btn-solicitar" href="mailto:almafluxo@almafluxo.uk?subject=Solicita%C3%A7%C3%A3o%20de%20Licen%C3%A7a%3A%20ALMAfluxo%20Completo%20%7C%20R%24%20299%2Fm%C3%AAs&body=Ol%C3%A1%2C%20equipe%20ALMAFLUXO!%0A%0AEstou%20solicitando%20acesso%20ao%20plano%3A%0A%E2%96%BA%20ALMAfluxo%20Completo%20%7C%20R%24%20299%2Fm%C3%AAs%0A%0AMeus%20dados%3A%0ANome%3A%20%5BPREENCHA%20AQUI%5D%0AE-mail%20para%20resposta%3A%20%5BPREENCHA%20AQUI%5D%0A%0AConfirmo%20que%20li%20as%20condi%C3%A7%C3%B5es%20de%20acesso%20e%20aguardo%20a%20avalia%C3%A7%C3%A3o%20da%20equipe.%0A%0AAtenciosamente.">🔓 Solicitar</a>
               </li>
+
             </ul>
-            <p style="font-size:0.82rem; margin-top:8px; color:rgba(255,255,255,0.5);">
-              Ao clicar em Solicitar, seu aplicativo de e-mail abrirá com o assunto já preenchido.
+            <p style="font-size:0.82rem; margin-top:10px; color:rgba(255,255,255,0.45);">
+              Ao clicar em Solicitar, seu aplicativo de e-mail abrirá com assunto e corpo já preenchidos. Preencha apenas seu nome e e-mail.
             </p>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- CARD PAGAMENTOS -->
+    <!-- ══ CARD PAGAMENTOS + QUESTIONÁRIO ══ -->
     <div class="card" id="card-pagamentos">
       <div class="card-header" onclick="toggleCard('card-pagamentos')">
         <div class="card-header-top">
           <div class="card-icon">💳</div>
           <h2 class="card-title">Pagamentos</h2>
         </div>
-        <div class="card-header-summary">Exclusivamente via PIX — rápido e seguro</div>
+        <div class="card-header-summary">Acesso restrito — avaliação obrigatória</div>
       </div>
       <div class="card-body">
         <div class="card-body-inner">
           <div class="card-description">
-            <p>Pagamentos realizados exclusivamente via <strong>PIX</strong>. Após confirmação, as credenciais de acesso são enviadas em até <strong>24h</strong>.</p>
-            <p style="margin-top:10px;">Para receber os dados bancários, clique abaixo:</p>
-            <a class="card-action" href="mailto:almafluxo@almafluxo.uk?subject=Solicita%C3%A7%C3%A3o%20de%20dados%20para%20pagamento%20PIX&body=Ol%C3%A1%2C%20gostaria%20de%20receber%20os%20dados%20para%20pagamento%20via%20PIX.%0A%0APlano%20de%20interesse%3A%20%0AMeu%20nome%3A%20%0AMeu%20e-mail%3A%20">
-              💸 Receber chave PIX
-            </a>
+
+            <div class="aviso-restrito">
+              🔒 <strong>Acesso Restrito e Controlado</strong><br>
+              As plataformas ALMAFLUXO operam com <strong>serviços restritos e movimentação financeira real</strong>. Para garantir a integridade do sistema e a segurança de todos os usuários, <strong>a liberação de senha e cadastro somente ocorre após análise e aprovação pela equipe</strong>.<br><br>
+              O pagamento via PIX é realizado <strong>somente após aprovação</strong>. Preencha o questionário abaixo honestamente — ele é parte do processo de avaliação.
+            </div>
+
+            <div class="quiz-title">📋 Questionário de Avaliação de Acesso</div>
+
+            <form id="quizForm">
+              <input type="hidden" name="access_key" value="eb4edc0c-b94c-4287-83bf-6f2e05f65774">
+              <input type="hidden" name="subject" value="Solicitação de Acesso — Questionário ALMAFLUXO">
+              <input type="hidden" name="from_name" value="Avaliação ALMAFLUXO">
+              <input type="checkbox" name="botcheck" style="display:none">
+
+              <!-- Dados pessoais -->
+              <div class="form-group">
+                <label>Seu nome completo</label>
+                <input type="text" name="nome" placeholder="Nome completo" required>
+              </div>
+              <div class="form-group">
+                <label>Seu e-mail para resposta</label>
+                <input type="email" name="email_resposta" placeholder="seuemail@exemplo.com" required>
+              </div>
+
+              <!-- Plano de interesse -->
+              <div class="form-group">
+                <label>Plano de interesse</label>
+                <select name="plano" id="planoSelect" required onchange="atualizarPlano()">
+                  <option value="" disabled selected>Selecione o plano desejado</option>
+                  <option value="Hedge Dinâmico – Basquete | R$ 199/mês">🏀 Hedge Dinâmico – Basquete — R$ 199/mês</option>
+                  <option value="Hedge Dinâmico – Futebol | R$ 249/mês">⚽ Hedge Dinâmico – Futebol — R$ 249/mês</option>
+                  <option value="Hedge Dinâmico – Multi Esportes | R$ 199/mês">🎾 Hedge Multi Esportes — R$ 199/mês</option>
+                  <option value="Operador – Day-trade | R$ 249/mês">📈 Operador – Day-trade — R$ 249/mês</option>
+                  <option value="ALMAfluxo Completo | R$ 299/mês">⚡ ALMAfluxo Completo — R$ 299/mês</option>
+                </select>
+              </div>
+
+              <div class="plano-selecionado" id="planoSelecionado">✅ Plano selecionado: <span id="planoNome"></span></div>
+
+              <!-- Q1 -->
+              <div class="form-group">
+                <label>1. Por qual motivo deseja acessar a plataforma?</label>
+                <div class="radio-group">
+                  <label><input type="radio" name="motivo" value="Trabalho profissional" required> Trabalho profissional</label>
+                  <label><input type="radio" name="motivo" value="Uso particular / pessoal"> Uso particular / pessoal</label>
+                  <label><input type="radio" name="motivo" value="Estudo e aprendizado"> Estudo e aprendizado</label>
+                  <label><input type="radio" name="motivo" value="Renda complementar"> Renda complementar</label>
+                </div>
+              </div>
+
+              <!-- Q2 -->
+              <div class="form-group">
+                <label>2. Quantas horas por dia pretende operar nas plataformas?</label>
+                <select name="horas_dia" required>
+                  <option value="" disabled selected>Selecione a quantidade de horas</option>
+                  <option value="1 hora">1 hora</option>
+                  <option value="2 horas">2 horas</option>
+                  <option value="3 horas">3 horas</option>
+                  <option value="4 horas">4 horas</option>
+                  <option value="5 horas">5 horas</option>
+                  <option value="6 horas">6 horas</option>
+                  <option value="7 horas">7 horas</option>
+                  <option value="8 horas">8 horas</option>
+                  <option value="9 horas">9 horas</option>
+                  <option value="10 horas">10 horas</option>
+                  <option value="11 horas">11 horas</option>
+                  <option value="12 horas">12 horas</option>
+                  <option value="13 horas">13 horas</option>
+                  <option value="14 horas">14 horas</option>
+                </select>
+              </div>
+
+              <!-- Q3 -->
+              <div class="form-group">
+                <label>3. Você conversa com outras pessoas sobre apostas ou prefere manter isso em particular?</label>
+                <div class="radio-group">
+                  <label><input type="radio" name="social_apostas" value="Converso abertamente sobre apostas" required> Converso abertamente</label>
+                  <label><input type="radio" name="social_apostas" value="Converso apenas com pessoas próximas"> Só com pessoas próximas</label>
+                  <label><input type="radio" name="social_apostas" value="Prefiro manter em privado"> Prefiro manter em privado</label>
+                  <label><input type="radio" name="social_apostas" value="Tenho vergonha de falar sobre o assunto"> Tenho certo receio / vergonha</label>
+                </div>
+              </div>
+
+              <!-- Q4 -->
+              <div class="form-group">
+                <label>4. Você se considera uma pessoa impulsiva ou controlada nas decisões financeiras?</label>
+                <div class="radio-group">
+                  <label><input type="radio" name="perfil_decisao" value="Muito controlada — analiso antes de agir" required> Muito controlada — analiso antes de agir</label>
+                  <label><input type="radio" name="perfil_decisao" value="Equilibrada — às vezes analiso, às vezes ajo rápido"> Equilibrada</label>
+                  <label><input type="radio" name="perfil_decisao" value="Um pouco impulsiva — já me arrependi de decisões rápidas"> Um pouco impulsiva</label>
+                  <label><input type="radio" name="perfil_decisao" value="Muito impulsiva — costuma agir por emoção"> Muito impulsiva</label>
+                </div>
+              </div>
+
+              <!-- Q5 -->
+              <div class="form-group">
+                <label>5. Quando criança, como você se imaginava como adulto — está próximo, no caminho ou distante disso?</label>
+                <div class="radio-group">
+                  <label><input type="radio" name="realizacao_pessoal" value="Estou próximo — realizei grande parte do que imaginava" required> Estou próximo — realizei muito</label>
+                  <label><input type="radio" name="realizacao_pessoal" value="Estou no caminho — progredindo gradualmente"> Estou no caminho — progredindo</label>
+                  <label><input type="radio" name="realizacao_pessoal" value="Distante ainda — mas buscando alcançar"> Distante, mas buscando</label>
+                  <label><input type="radio" name="realizacao_pessoal" value="Mudei completamente de perspectiva — não me identifico mais com aquela visão"> Mudei completamente de perspectiva</label>
+                </div>
+              </div>
+
+              <!-- Observações livres -->
+              <div class="form-group">
+                <label>Observações adicionais (opcional)</label>
+                <textarea name="observacoes" placeholder="Algo mais que queira compartilhar com a equipe..."></textarea>
+              </div>
+
+              <button type="submit" class="card-action" id="quizBtn" style="width:100%; margin-top:6px;">
+                🚀 Enviar solicitação para análise
+              </button>
+            </form>
+
+            <div class="form-msg success" id="quizSuccess">
+              ✅ Solicitação enviada! Nossa equipe irá analisar seu perfil e retornará em até 48h com a decisão e, se aprovado, os dados para pagamento via PIX.
+            </div>
+            <div class="form-msg error" id="quizError">
+              ❌ Erro ao enviar. Tente novamente ou escreva para almafluxo@almafluxo.uk
+            </div>
+
           </div>
         </div>
       </div>
     </div>
 
-    <!-- CARD FAQ -->
+    <!-- ══ CARD FAQ ══ -->
     <div class="card" id="card-duvidas">
       <div class="card-header" onclick="toggleCard('card-duvidas')">
         <div class="card-header-top">
@@ -479,35 +671,35 @@
               <div class="faq-question" onclick="event.stopPropagation(); toggleFAQ(this)">
                 <span>Como recebo minha licença após o pagamento?</span><span>▼</span>
               </div>
-              <div class="faq-answer">Após a confirmação do pagamento via PIX, enviaremos um e‑mail com o link de acesso e a chave de licença em até 24 horas úteis.</div>
+              <div class="faq-answer">Após aprovação do questionário e confirmação do pagamento via PIX, enviaremos um e‑mail com o link de acesso e a senha em até 24 horas úteis.</div>
+            </div>
+
+            <div class="faq-item">
+              <div class="faq-question" onclick="event.stopPropagation(); toggleFAQ(this)">
+                <span>Por que existe um processo de avaliação?</span><span>▼</span>
+              </div>
+              <div class="faq-answer">As plataformas operam com serviços restritos e movimentação financeira real. A avaliação garante que o usuário está preparado e alinhado com a filosofia do ALMAFLUXO, protegendo tanto o sistema quanto o próprio usuário.</div>
             </div>
 
             <div class="faq-item">
               <div class="faq-question" onclick="event.stopPropagation(); toggleFAQ(this)">
                 <span>Posso testar antes de comprar?</span><span>▼</span>
               </div>
-              <div class="faq-answer">Sim. Oferecemos licenças de teste com duração de 24h para todas as plataformas pagas. Basta solicitar via e‑mail.</div>
-            </div>
-
-            <div class="faq-item">
-              <div class="faq-question" onclick="event.stopPropagation(); toggleFAQ(this)">
-                <span>Qual a diferença entre os planos?</span><span>▼</span>
-              </div>
-              <div class="faq-answer">Cada plano corresponde a uma plataforma específica. O ALMAfluxo completo inclui todas as ferramentas de trading da plataforma.</div>
+              <div class="faq-answer">Sim. Após aprovação no questionário, licenças de teste de 24h podem ser disponibilizadas. Solicite via e-mail ou pelo formulário de contato.</div>
             </div>
 
             <div class="faq-item">
               <div class="faq-question" onclick="event.stopPropagation(); toggleFAQ(this)">
                 <span>O pagamento é seguro?</span><span>▼</span>
               </div>
-              <div class="faq-answer">Sim. Utilizamos exclusivamente PIX — todas as transações são registradas e não armazenamos nenhum dado financeiro.</div>
+              <div class="faq-answer">Sim. Utilizamos exclusivamente PIX — pagamento somente após aprovação da avaliação. Não armazenamos nenhum dado financeiro e todas as transações são registradas.</div>
             </div>
 
             <div class="faq-item">
               <div class="faq-question" onclick="event.stopPropagation(); toggleFAQ(this)">
-                <span>Como acesso a plataforma após a compra?</span><span>▼</span>
+                <span>Como acesso a plataforma após a aprovação?</span><span>▼</span>
               </div>
-              <div class="faq-answer">Você receberá um link exclusivo e uma senha de acesso por e-mail. Basta clicar no link e inserir a senha para começar.</div>
+              <div class="faq-answer">Você receberá um link exclusivo e uma senha de acesso por e-mail. Basta clicar no link e inserir a senha para começar a operar.</div>
             </div>
 
           </div>
@@ -518,7 +710,7 @@
   </div><!-- /cards-grid -->
 
   <div class="info-box">
-    <p>🧠 <strong>Atendimento personalizado:</strong> Para questões técnicas ou comerciais, utilize o formulário de e-mail ou clique em Solicitar no plano desejado.</p>
+    <p>🧠 <strong>Atendimento personalizado:</strong> Para questões técnicas ou comerciais, utilize o formulário de e-mail. Para solicitar acesso às plataformas pagas, preencha o questionário no card Pagamentos.</p>
   </div>
 
   <div class="footer">ALMAFLUXO · O fluxo da consciência · © 2026</div>
@@ -526,7 +718,7 @@
 </div><!-- /container -->
 
 <script>
-  /* Accordion de cards */
+  /* ── Accordion ── */
   function toggleCard(cardId) {
     const target = document.getElementById(cardId);
     const isOpen = target.classList.contains('expanded');
@@ -534,7 +726,7 @@
     if (!isOpen) target.classList.add('expanded');
   }
 
-  /* FAQ */
+  /* ── FAQ ── */
   function toggleFAQ(el) {
     const answer = el.nextElementSibling;
     const arrow  = el.querySelector('span:last-child');
@@ -542,38 +734,74 @@
     arrow.textContent = answer.classList.contains('show') ? '▲' : '▼';
   }
 
-  /* Web3Forms — envia sem redirecionar a página */
+  /* ── Exibe plano selecionado ── */
+  function atualizarPlano() {
+    const sel   = document.getElementById('planoSelect');
+    const box   = document.getElementById('planoSelecionado');
+    const nome  = document.getElementById('planoNome');
+    if (sel.value) {
+      nome.textContent = sel.value;
+      box.classList.add('show');
+    }
+  }
+
+  /* ── Web3Forms: formulário de contato ── */
   document.getElementById('contactForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-
     const btn     = document.getElementById('submitBtn');
     const success = document.getElementById('msgSuccess');
     const error   = document.getElementById('msgError');
-
     btn.textContent = '⏳ Enviando...';
-    btn.disabled    = true;
+    btn.disabled = true;
+    success.style.display = 'none';
+    error.style.display   = 'none';
+    try {
+      const res  = await fetch('https://api.web3forms.com/submit', { method:'POST', body: new FormData(this) });
+      const data = await res.json();
+      if (data.success) { success.style.display = 'block'; this.reset(); }
+      else throw new Error(data.message);
+    } catch { error.style.display = 'block'; }
+    finally  { btn.textContent = '✉️ Enviar mensagem'; btn.disabled = false; }
+  });
+
+  /* ── Web3Forms: questionário de avaliação ── */
+  document.getElementById('quizForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn     = document.getElementById('quizBtn');
+    const success = document.getElementById('quizSuccess');
+    const error   = document.getElementById('quizError');
+    btn.textContent = '⏳ Enviando...';
+    btn.disabled = true;
     success.style.display = 'none';
     error.style.display   = 'none';
 
-    try {
-      const res  = await fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        body: new FormData(this)
-      });
-      const data = await res.json();
+    /* Monta o corpo do e-mail com todas as respostas */
+    const fd = new FormData(this);
+    const resumo = `SOLICITAÇÃO DE ACESSO — ALMAFLUXO
+=====================================
+Nome: ${fd.get('nome')}
+E-mail: ${fd.get('email_resposta')}
+Plano: ${fd.get('plano')}
 
-      if (data.success) {
-        success.style.display = 'block';
-        this.reset();
-      } else {
-        throw new Error(data.message);
-      }
-    } catch {
-      error.style.display = 'block';
-    } finally {
-      btn.textContent = '✉️ Enviar mensagem';
-      btn.disabled    = false;
-    }
+QUESTIONÁRIO:
+1. Motivo: ${fd.get('motivo')}
+2. Horas/dia: ${fd.get('horas_dia')}
+3. Perfil social: ${fd.get('social_apostas')}
+4. Perfil decisório: ${fd.get('perfil_decisao')}
+5. Realização pessoal: ${fd.get('realizacao_pessoal')}
+
+Observações: ${fd.get('observacoes') || '—'}
+=====================================`;
+
+    fd.set('message', resumo);
+
+    try {
+      const res  = await fetch('https://api.web3forms.com/submit', { method:'POST', body: fd });
+      const data = await res.json();
+      if (data.success) { success.style.display = 'block'; this.reset(); document.getElementById('planoSelecionado').classList.remove('show'); }
+      else throw new Error(data.message);
+    } catch { error.style.display = 'block'; }
+    finally  { btn.textContent = '🚀 Enviar solicitação para análise'; btn.disabled = false; }
   });
 </script>
 </body>
