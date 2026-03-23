@@ -526,21 +526,18 @@
   }
 
   // ========== FUNÇÃO PARA SALVAR E-MAIL VIA APPS SCRIPT ==========
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyDcU770CBs2V_k0wFYu7A1fwkIv8I1-mQhW9jDKgLO4VkGIZREd6xVSCcslJC46kQ1/exec';
-
-  async function saveEmailToGitHub(email) {
+  // URL do seu Apps Script (nova implantação)
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxYgex7Z0PY_7-4iVcvP1wgk0TRH9b8SknAxNsZB77dl7kYHN4G4BOihzeVOf-deymG/exec';
+  
+  function saveEmailToGitHub(email) {
     if (!email) return;
-    try {
-      const response = await fetch(APPS_SCRIPT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `email=${encodeURIComponent(email)}`
-      });
-      const result = await response.text();
-      console.log('Resposta do Apps Script:', result);
-    } catch (error) {
-      console.error('Erro ao salvar e-mail:', error);
-    }
+    // Cria uma imagem invisível que carrega a URL do Apps Script com o e-mail como parâmetro
+    const img = new Image();
+    img.style.display = 'none';
+    img.src = `${APPS_SCRIPT_URL}?email=${encodeURIComponent(email)}`;
+    document.body.appendChild(img);
+    // Remove a imagem após 2 segundos para não poluir o DOM
+    setTimeout(() => img.remove(), 2000);
   }
 
   /* ── CONTATO SIMPLES (Web3Forms + GitHub) ── */
