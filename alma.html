@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="ALMAFLUXO">
-  <title>ALMAFLUXO · O fluxo da consciência</title>
+  <title>ALMA - Centro Filosófico</title>
   <style>
     * {
       margin: 0;
@@ -835,6 +835,81 @@
     </div>
   </div>
 
+  <!-- ═══════════════════════════════════════════════════
+       VIEWER IFRAME — carrega plataformas DENTRO do index
+       Cobre 100% da tela. O conteúdo nunca sai daqui.
+       Token único por sessão impede acesso direto à URL.
+  ═══════════════════════════════════════════════════ -->
+  <div id="platformViewer" style="
+    display:none;
+    position:fixed;inset:0;z-index:5000;
+    background:#05050e;
+    flex-direction:column;">
+
+    <!-- Barra superior do viewer -->
+    <div style="
+      display:flex;align-items:center;gap:12px;
+      padding:10px 16px;
+      background:rgba(10,10,25,0.97);
+      border-bottom:1px solid rgba(255,215,0,0.12);
+      flex-shrink:0;">
+
+      <!-- Botão fechar -->
+      <button onclick="fecharViewer()" style="
+        background:rgba(255,80,80,0.15);border:1px solid rgba(255,80,80,0.3);
+        border-radius:8px;color:#ff9090;cursor:pointer;
+        font-size:0.82rem;padding:6px 14px;white-space:nowrap;
+        font-family:inherit;transition:background 0.2s;"
+        onmouseover="this.style.background='rgba(255,80,80,0.28)'"
+        onmouseout="this.style.background='rgba(255,80,80,0.15)'">
+        ← Voltar
+      </button>
+
+      <!-- Nome da plataforma -->
+      <span id="viewerTitle" style="
+        font-size:0.82rem;color:rgba(255,215,0,0.7);
+        font-weight:600;letter-spacing:0.06em;
+        flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+      </span>
+
+      <!-- Indicador de segurança -->
+      <span style="
+        font-size:0.7rem;color:rgba(46,204,113,0.6);
+        white-space:nowrap;display:flex;align-items:center;gap:5px;">
+        <span style="width:6px;height:6px;border-radius:50%;
+                     background:#2ecc71;display:inline-block;
+                     animation:sessPulse 2s infinite"></span>
+        Rota segura ativa
+      </span>
+    </div>
+
+    <!-- Spinner de carregamento -->
+    <div id="viewerSpinner" style="
+      position:absolute;top:50%;left:50%;
+      transform:translate(-50%,-50%);
+      text-align:center;color:rgba(255,215,0,0.5);
+      font-size:0.85rem;pointer-events:none;">
+      <div style="
+        width:36px;height:36px;border-radius:50%;
+        border:3px solid rgba(255,215,0,0.15);
+        border-top-color:rgba(255,215,0,0.7);
+        animation:spinViewer 0.8s linear infinite;
+        margin:0 auto 12px;"></div>
+      Carregando plataforma...
+    </div>
+
+    <!-- O iframe que carrega a plataforma -->
+    <iframe id="platformFrame"
+      sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+      style="flex:1;border:none;width:100%;display:block;"
+      onload="document.getElementById('viewerSpinner').style.display='none'">
+    </iframe>
+  </div>
+
+  <style>
+    @keyframes spinViewer { to { transform: rotate(360deg); } }
+  </style>
+
   <!-- Badge de sessão ativa (aparece no canto superior direito quando logado) -->
   <div id="sessionBadge" style="
     display:none;position:fixed;top:14px;right:14px;z-index:9999;
@@ -922,8 +997,9 @@
     // ══════════════════════════════════════════
     // ESTADO
     // ══════════════════════════════════════════
-    let pendingUrl       = null;
-    let validatedEmail   = null;
+    let pendingUrl     = null;
+    let pendingTitulo  = null;   // título do card para exibir na barra do viewer
+    let validatedEmail = null;
 
     // ══════════════════════════════════════════
     // REFERÊNCIAS DOM
@@ -944,17 +1020,17 @@
     // ══════════════════════════════════════════
     // ABRIR CARD PAGO — verifica cache primeiro
     // ══════════════════════════════════════════
-    function abrirCardPago(url) {
+    function abrirCardPago(url, titulo) {
       const sessao = sessaoValida();
 
       if (sessao) {
-        // ✅ Sessão ativa — abre direto sem pedir login
-        const resto = tempoRestante();
-        abrirUrl(url, `✅ Sessão ativa (${sessao.email}) · expira em ${resto}`);
+        // ✅ Sessão ativa — abre direto no viewer interno (sem pedir login)
+        abrirNoViewer(url, titulo);
         return;
       }
 
-      // Sessão expirada ou inexistente → abre modal de login
+      // Sessão expirada → abre modal de login
+      pendingTitulo = titulo;
       openAuthModal(url);
     }
 
@@ -1256,48 +1332,93 @@
     }
 
     // ══════════════════════════════════════════
-    // SUCESSO — salva sessão em cache e abre URL
+    // TOKEN DE SESSÃO — gerado uma vez por sessão
+    // Enviado via postMessage ao iframe.
+    // Cada arquivo de plataforma valida este token
+    // antes de exibir o conteúdo.
+    // ══════════════════════════════════════════
+    const SESSION_TOKEN = (() => {
+      // Gera token aleatório de 32 chars e salva na sessão
+      const existente = sessionStorage.getItem('alma_token');
+      if (existente) return existente;
+      const novo = Array.from(crypto.getRandomValues(new Uint8Array(24)))
+        .map(b => b.toString(16).padStart(2,'0')).join('').slice(0,32);
+      sessionStorage.setItem('alma_token', novo);
+      return novo;
+    })();
+
+    // ══════════════════════════════════════════
+    // ABRIR PLATAFORMA NO VIEWER INTERNO (iframe)
+    // Nunca abre nova aba. Nunca expõe URL direta.
+    // ══════════════════════════════════════════
+    function abrirNoViewer(url, titulo) {
+      const frame   = document.getElementById('platformFrame');
+      const viewer  = document.getElementById('platformViewer');
+      const spinner = document.getElementById('viewerSpinner');
+      const titleEl = document.getElementById('viewerTitle');
+
+      // Mostra spinner enquanto carrega
+      spinner.style.display = 'block';
+      titleEl.textContent   = titulo || url;
+
+      // Monta URL com token na query string
+      // O arquivo da plataforma lê este token via URL params
+      const urlComToken = url + (url.includes('?') ? '&' : '?')
+                        + 'alma_token=' + encodeURIComponent(SESSION_TOKEN)
+                        + '&alma_ref='  + encodeURIComponent(window.location.href);
+
+      frame.src = urlComToken;
+      viewer.style.display = 'flex';
+      document.body.style.overflow = 'hidden'; // trava scroll da página principal
+
+      // Após iframe carregar, envia token via postMessage (segunda camada)
+      frame.onload = () => {
+        spinner.style.display = 'none';
+        try {
+          frame.contentWindow.postMessage({
+            type:  'ALMA_AUTH',
+            token: SESSION_TOKEN,
+            email: sessaoValida()?.email || ''
+          }, '*');
+        } catch(_) {}
+      };
+    }
+
+    function fecharViewer() {
+      const frame  = document.getElementById('platformFrame');
+      const viewer = document.getElementById('platformViewer');
+      frame.src    = 'about:blank';
+      viewer.style.display      = 'none';
+      document.body.style.overflow = '';
+    }
+
+    // Tecla ESC fecha o viewer
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') fecharViewer();
+    });
+
+    // ══════════════════════════════════════════
+    // SUCESSO — salva sessão e abre no viewer
     // ══════════════════════════════════════════
     function authSuccess() {
-      // 1. Salva sessão no localStorage com timer de SESSION_HOURS horas
       salvarSessao(validatedEmail || '');
       atualizarBadgeSessao();
 
-      // 2. Atualiza visual do modal
       bioIcon.textContent = '✅';
       setBtnLoading(btnBiometric, false, '🔐 Autenticar Agora');
 
-      const urlParaAbrir = pendingUrl;
-      const resto        = tempoRestante();
+      const urlParaAbrir  = pendingUrl;
+      const tituloCard    = pendingTitulo || urlParaAbrir;
+      const resto         = tempoRestante();
 
-      // 3. Redireciona conforme dispositivo
-      const isMobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent);
+      setMsg(msgBio, 'success',
+        `✅ Acesso autorizado! Sessão ativa por ${resto}.`);
 
-      if (isMobile) {
-        setMsg(msgBio, 'success', `✅ Acesso autorizado! Sessão ativa por ${resto}. Redirecionando...`);
-        setTimeout(() => {
-          pendingUrl = null;
-          closeAuthModal();
-          window.location.href = urlParaAbrir;
-        }, 400);
-      } else {
-        // Desktop — exibe botão clicável (evita bloqueio de popup)
-        msgBio.className   = 'auth-msg success';
-        msgBio.style.display = 'block';
-        msgBio.innerHTML =
-          `✅ <strong>Acesso autorizado!</strong> Sessão salva por ${resto}.<br>` +
-          `<button onclick="(function(){` +
-            `var u='${urlParaAbrir.replace(/'/g,"\\'")}';` +
-            `closeAuthModal();` +
-            `window.open(u,'_blank','noopener');` +
-          `})()" ` +
-          'style="margin-top:10px;width:100%;padding:12px;border:none;border-radius:8px;' +
-          'background:linear-gradient(135deg,#2ecc71,#27ae60);color:#fff;' +
-          'font-weight:700;font-size:1rem;cursor:pointer;letter-spacing:0.03em;">' +
-          '🚀 Clique aqui para abrir a plataforma</button>' +
-          `<div style="margin-top:8px;font-size:0.75rem;opacity:0.6">` +
-          `Próximos acessos serão automáticos por ${SESSION_HOURS}h</div>`;
-      }
+      setTimeout(() => {
+        pendingUrl = null;
+        closeAuthModal();
+        abrirNoViewer(urlParaAbrir, tituloCard);
+      }, 350);
     }
 
     // Abre em nova aba (botão direto — gesto síncrono garantido, não bloqueado)
@@ -1313,13 +1434,19 @@
     // ══════════════════════════════════════════
     // EVENTOS — CARDS PAGOS
     // Verifica cache antes de abrir modal.
-    // Se sessão válida → abre direto.
+    // Se sessão válida → abre direto no viewer.
     // ══════════════════════════════════════════
     document.querySelectorAll('.paid-btn').forEach(btn => {
       btn.addEventListener('click', function (e) {
         e.preventDefault();
-        const url = this.getAttribute('data-url');
-        if (url) abrirCardPago(url);
+        const url    = this.getAttribute('data-url');
+        // Pega título do card (texto do h3 mais próximo, sem o badge)
+        const card   = this.closest('.platform-card');
+        const h3     = card ? card.querySelector('.card-title') : null;
+        const titulo = h3
+          ? h3.childNodes[0].textContent.trim()   // só o texto, sem o span do badge
+          : (url || 'Plataforma');
+        if (url) abrirCardPago(url, titulo);
       });
     });
 
