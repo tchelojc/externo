@@ -311,7 +311,7 @@
       </div>
     </div>
 
-    <!-- ══ CARD PAGAMENTOS + QUESTIONÁRIO ══ -->
+    <!-- ══ CARD PAGAMENTOS + QUESTIONÁRIO (MODIFICADO) ══ -->
     <div class="card" id="card-pagamentos">
       <div class="card-header" onclick="toggleCard('card-pagamentos')">
         <div class="card-header-top">
@@ -328,6 +328,7 @@
               🔒 <strong>Acesso Restrito e Controlado</strong><br>
               As plataformas ALMAFLUXO operam com <strong>serviços restritos e movimentação financeira real</strong>. A <strong>liberação de senha e cadastro ocorre somente após análise e aprovação pela equipe</strong>.<br><br>
               O pagamento via PIX é realizado <strong>somente após aprovação</strong>. Preencha o questionário abaixo com sinceridade — ele é parte essencial do processo de avaliação de perfil.
+              <br><span id="alertaSimples" style="display:none; color:#ffd700;">Para o plano ALMAfluxo Completo, basta informar nome e e-mail. Os demais campos não são necessários.</span>
             </div>
 
             <div class="quiz-title">📋 Questionário de Avaliação de Acesso</div>
@@ -360,70 +361,73 @@
               </div>
               <div class="plano-selecionado" id="planoSelecionado">✅ Plano selecionado: <span id="planoNome"></span></div>
 
-              <div class="form-group">
-                <label>1. Por qual motivo deseja acessar a plataforma?</label>
-                <div class="radio-group">
-                  <label><input type="radio" name="motivo" value="Trabalho profissional" required> Trabalho profissional</label>
-                  <label><input type="radio" name="motivo" value="Uso particular / pessoal"> Uso particular / pessoal</label>
-                  <label><input type="radio" name="motivo" value="Estudo e aprendizado"> Estudo e aprendizado</label>
-                  <label><input type="radio" name="motivo" value="Renda complementar"> Renda complementar</label>
+              <!-- Container das perguntas do questionário (será ocultado para ALMAfluxo Completo) -->
+              <div id="quizQuestionsContainer">
+                <div class="form-group">
+                  <label>1. Por qual motivo deseja acessar a plataforma?</label>
+                  <div class="radio-group">
+                    <label><input type="radio" name="motivo" value="Trabalho profissional" required> Trabalho profissional</label>
+                    <label><input type="radio" name="motivo" value="Uso particular / pessoal"> Uso particular / pessoal</label>
+                    <label><input type="radio" name="motivo" value="Estudo e aprendizado"> Estudo e aprendizado</label>
+                    <label><input type="radio" name="motivo" value="Renda complementar"> Renda complementar</label>
+                  </div>
                 </div>
-              </div>
 
-              <div class="form-group">
-                <label>2. Quantas horas por dia pretende operar?</label>
-                <select name="horas_dia" required>
-                  <option value="" disabled selected>Selecione a quantidade de horas</option>
-                  <option value="1 hora">1 hora</option>
-                  <option value="2 horas">2 horas</option>
-                  <option value="3 horas">3 horas</option>
-                  <option value="4 horas">4 horas</option>
-                  <option value="5 horas">5 horas</option>
-                  <option value="6 horas">6 horas</option>
-                  <option value="7 horas">7 horas</option>
-                  <option value="8 horas">8 horas</option>
-                  <option value="9 horas">9 horas</option>
-                  <option value="10 horas">10 horas</option>
-                  <option value="11 horas">11 horas</option>
-                  <option value="12 horas">12 horas</option>
-                  <option value="13 horas">13 horas</option>
-                  <option value="14 horas">14 horas</option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label>3. Você conversa com outras pessoas sobre apostas ou prefere manter em particular?</label>
-                <div class="radio-group">
-                  <label><input type="radio" name="social_apostas" value="Converso abertamente sobre apostas" required> Converso abertamente</label>
-                  <label><input type="radio" name="social_apostas" value="Converso apenas com pessoas próximas"> Só com pessoas próximas</label>
-                  <label><input type="radio" name="social_apostas" value="Prefiro manter em privado"> Prefiro manter em privado</label>
-                  <label><input type="radio" name="social_apostas" value="Tenho vergonha de falar sobre o assunto"> Tenho certo receio / vergonha</label>
+                <div class="form-group">
+                  <label>2. Quantas horas por dia pretende operar?</label>
+                  <select name="horas_dia" required>
+                    <option value="" disabled selected>Selecione a quantidade de horas</option>
+                    <option value="1 hora">1 hora</option>
+                    <option value="2 horas">2 horas</option>
+                    <option value="3 horas">3 horas</option>
+                    <option value="4 horas">4 horas</option>
+                    <option value="5 horas">5 horas</option>
+                    <option value="6 horas">6 horas</option>
+                    <option value="7 horas">7 horas</option>
+                    <option value="8 horas">8 horas</option>
+                    <option value="9 horas">9 horas</option>
+                    <option value="10 horas">10 horas</option>
+                    <option value="11 horas">11 horas</option>
+                    <option value="12 horas">12 horas</option>
+                    <option value="13 horas">13 horas</option>
+                    <option value="14 horas">14 horas</option>
+                  </select>
                 </div>
-              </div>
 
-              <div class="form-group">
-                <label>4. Você se considera impulsivo ou controlado nas decisões financeiras?</label>
-                <div class="radio-group">
-                  <label><input type="radio" name="perfil_decisao" value="Muito controlada — analiso antes de agir" required> Muito controlado — analiso antes de agir</label>
-                  <label><input type="radio" name="perfil_decisao" value="Equilibrada — às vezes analiso, às vezes ajo rápido"> Equilibrado</label>
-                  <label><input type="radio" name="perfil_decisao" value="Um pouco impulsiva — já me arrependi de decisões rápidas"> Um pouco impulsivo</label>
-                  <label><input type="radio" name="perfil_decisao" value="Muito impulsiva — costuma agir por emoção"> Muito impulsivo</label>
+                <div class="form-group">
+                  <label>3. Você conversa com outras pessoas sobre apostas ou prefere manter em particular?</label>
+                  <div class="radio-group">
+                    <label><input type="radio" name="social_apostas" value="Converso abertamente sobre apostas" required> Converso abertamente</label>
+                    <label><input type="radio" name="social_apostas" value="Converso apenas com pessoas próximas"> Só com pessoas próximas</label>
+                    <label><input type="radio" name="social_apostas" value="Prefiro manter em privado"> Prefiro manter em privado</label>
+                    <label><input type="radio" name="social_apostas" value="Tenho vergonha de falar sobre o assunto"> Tenho certo receio / vergonha</label>
+                  </div>
                 </div>
-              </div>
 
-              <div class="form-group">
-                <label>5. Quando criança, como você se imaginava adulto — está próximo, no caminho ou distante disso?</label>
-                <div class="radio-group">
-                  <label><input type="radio" name="realizacao_pessoal" value="Estou próximo — realizei grande parte do que imaginava" required> Estou próximo — realizei muito</label>
-                  <label><input type="radio" name="realizacao_pessoal" value="Estou no caminho — progredindo gradualmente"> Estou no caminho — progredindo</label>
-                  <label><input type="radio" name="realizacao_pessoal" value="Distante ainda — mas buscando alcançar"> Distante, mas buscando</label>
-                  <label><input type="radio" name="realizacao_pessoal" value="Mudei completamente de perspectiva — não me identifico mais com aquela visão"> Mudei completamente de perspectiva</label>
+                <div class="form-group">
+                  <label>4. Você se considera impulsivo ou controlado nas decisões financeiras?</label>
+                  <div class="radio-group">
+                    <label><input type="radio" name="perfil_decisao" value="Muito controlada — analiso antes de agir" required> Muito controlado — analiso antes de agir</label>
+                    <label><input type="radio" name="perfil_decisao" value="Equilibrada — às vezes analiso, às vezes ajo rápido"> Equilibrado</label>
+                    <label><input type="radio" name="perfil_decisao" value="Um pouco impulsiva — já me arrependi de decisões rápidas"> Um pouco impulsivo</label>
+                    <label><input type="radio" name="perfil_decisao" value="Muito impulsiva — costuma agir por emoção"> Muito impulsivo</label>
+                  </div>
                 </div>
-              </div>
 
-              <div class="form-group">
-                <label>Observações adicionais (opcional)</label>
-                <textarea name="observacoes" placeholder="Algo mais que queira compartilhar com a equipe..."></textarea>
+                <div class="form-group">
+                  <label>5. Quando criança, como você se imaginava adulto — está próximo, no caminho ou distante disso?</label>
+                  <div class="radio-group">
+                    <label><input type="radio" name="realizacao_pessoal" value="Estou próximo — realizei grande parte do que imaginava" required> Estou próximo — realizei muito</label>
+                    <label><input type="radio" name="realizacao_pessoal" value="Estou no caminho — progredindo gradualmente"> Estou no caminho — progredindo</label>
+                    <label><input type="radio" name="realizacao_pessoal" value="Distante ainda — mas buscando alcançar"> Distante, mas buscando</label>
+                    <label><input type="radio" name="realizacao_pessoal" value="Mudei completamente de perspectiva — não me identifico mais com aquela visão"> Mudei completamente de perspectiva</label>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Observações adicionais (opcional)</label>
+                  <textarea name="observacoes" placeholder="Algo mais que queira compartilhar com a equipe..."></textarea>
+                </div>
               </div>
 
               <button type="submit" class="card-action" id="quizBtn" style="width:100%;margin-top:6px;">
@@ -517,18 +521,39 @@
     arr.textContent = ans.classList.contains('show') ? '▲' : '▼';
   }
 
-  /* ── Plano selecionado ── */
+  /* ── Plano selecionado e controle do questionário ── */
+  const questionsContainer = document.getElementById('quizQuestionsContainer');
+  const alertaSimples = document.getElementById('alertaSimples');
+
   function atualizarPlano() {
     const sel = document.getElementById('planoSelect');
     const box = document.getElementById('planoSelecionado');
-    document.getElementById('planoNome').textContent = sel.value;
-    box.classList.toggle('show', !!sel.value);
+    const planoValor = sel.value;
+    document.getElementById('planoNome').textContent = planoValor;
+    box.classList.toggle('show', !!planoValor);
+
+    // Verifica se o plano selecionado é "ALMAfluxo Completo"
+    const isAlmafluxoCompleto = planoValor && planoValor.startsWith('ALMAfluxo Completo');
+
+    if (isAlmafluxoCompleto) {
+      // Oculta o questionário completo e exibe aviso
+      questionsContainer.style.display = 'none';
+      alertaSimples.style.display = 'block';
+      // Remove required de todos os inputs dentro do container
+      const requiredFields = questionsContainer.querySelectorAll('[required]');
+      requiredFields.forEach(field => field.removeAttribute('required'));
+    } else {
+      // Mostra o questionário e exibe aviso padrão
+      questionsContainer.style.display = 'block';
+      alertaSimples.style.display = 'none';
+      // Restaura required nos campos originais
+      const requiredFields = questionsContainer.querySelectorAll('[required]');
+      requiredFields.forEach(field => field.setAttribute('required', 'required'));
+    }
   }
 
-  // ========== FUNÇÃO PARA SALVAR E-MAIL VIA APPS SCRIPT ==========
-  // URL atualizada com a nova implantação
+  /* ── Função para salvar e-mail via Apps Script (mesma anterior) ── */
   const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwP5invqZvbg4w0XXsBt6KcKLK26YU0p_Y7G-2SXLvrgHPD0hAFj2Ru7UEQLVaA3UDB/exec';
-
   async function saveEmailToGitHub(email) {
     if (!email) return;
     try {
@@ -540,7 +565,7 @@
     }
   }
 
-  /* ── CONTATO SIMPLES (Web3Forms + GitHub) ── */
+  /* ── CONTATO SIMPLES (Web3Forms) ── */
   document.getElementById('contactForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const btn = document.getElementById('submitBtn');
@@ -549,7 +574,6 @@
     btn.textContent = '⏳ Enviando...'; btn.disabled = true;
     ok.style.display = err.style.display = 'none';
 
-    // NÃO salva e-mail no GitHub – apenas envia o formulário
     try {
       const r = await fetch('https://api.web3forms.com/submit', { method:'POST', body: new FormData(this) });
       const d = await r.json();
@@ -564,7 +588,7 @@
     }
   });
 
-  /* ── QUESTIONÁRIO DE AVALIAÇÃO (Web3Forms + GitHub) ── */
+  /* ── QUESTIONÁRIO DE AVALIAÇÃO (com condição para ALMAfluxo Completo) ── */
   document.getElementById('quizForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const btn = document.getElementById('quizBtn');
@@ -574,10 +598,30 @@
     ok.style.display = err.style.display = 'none';
 
     const fd = new FormData(this);
-    const email = fd.get('email_resposta'); // captura o e-mail para salvar
+    const plano = fd.get('plano');
+    const isAlmafluxoCompleto = plano && plano.startsWith('ALMAfluxo Completo');
+    const email = fd.get('email_resposta');
 
-    // PROMPT de avaliação (já existente)
-    const promptIA = `═══════════════════════════════════════════════
+    let mensagemCorpo = '';
+
+    if (isAlmafluxoCompleto) {
+      // Monta mensagem simples apenas com dados cadastrais
+      mensagemCorpo = `═══════════════════════════════════════════════
+SOLICITAÇÃO SIMPLIFICADA — PLANO ALMAFLUXO COMPLETO
+═══════════════════════════════════════════════
+
+Nome: ${fd.get('nome')}
+E-mail: ${email}
+Plano solicitado: ${plano}
+
+Observações: ${fd.get('observacoes') || '(nenhuma)'}
+
+⏺ Este usuário solicitou acesso ao plano ALMAfluxo Completo.
+A equipe deverá avaliar o perfil e, se aprovado, enviar os dados para pagamento.
+═══════════════════════════════════════════════`;
+    } else {
+      // Monta mensagem com o prompt IA (como antes)
+      mensagemCorpo = `═══════════════════════════════════════════════
 PROMPT PARA AVALIAÇÃO — COLE NUMA IA (Claude, ChatGPT, Gemini ou DeepSeek)
 ═══════════════════════════════════════════════
 
@@ -613,8 +657,8 @@ RESPOSTAS DO USUÁRIO — COLE ABAIXO NA IA
 ═══════════════════════════════════════════════
 
 Nome: ${fd.get('nome')}
-E-mail: ${fd.get('email_resposta')}
-Plano solicitado: ${fd.get('plano')}
+E-mail: ${email}
+Plano solicitado: ${plano}
 
 1. Motivo de acesso: ${fd.get('motivo')}
 2. Horas por dia: ${fd.get('horas_dia')}
@@ -626,8 +670,10 @@ Observações do usuário: ${fd.get('observacoes') || '(nenhuma)'}
 ═══════════════════════════════════════════════
 FIM DO BLOCO — AGUARDE O PARECER DA IA
 ═══════════════════════════════════════════════`;
+    }
 
-    fd.set('message', promptIA);
+    // Substitui o campo 'message' no FormData pelo corpo montado
+    fd.set('message', mensagemCorpo);
 
     try {
       const r = await fetch('https://api.web3forms.com/submit', { method:'POST', body: fd });
