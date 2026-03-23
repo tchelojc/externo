@@ -526,18 +526,18 @@
   }
 
   // ========== FUNÇÃO PARA SALVAR E-MAIL VIA APPS SCRIPT ==========
-  // URL do seu Apps Script (nova implantação)
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxYgex7Z0PY_7-4iVcvP1wgk0TRH9b8SknAxNsZB77dl7kYHN4G4BOihzeVOf-deymG/exec';
-  
-  function saveEmailToGitHub(email) {
+  // URL atualizada com a nova implantação
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwP5invqZvbg4w0XXsBt6KcKLK26YU0p_Y7G-2SXLvrgHPD0hAFj2Ru7UEQLVaA3UDB/exec';
+
+  async function saveEmailToGitHub(email) {
     if (!email) return;
-    // Cria uma imagem invisível que carrega a URL do Apps Script com o e-mail como parâmetro
-    const img = new Image();
-    img.style.display = 'none';
-    img.src = `${APPS_SCRIPT_URL}?email=${encodeURIComponent(email)}`;
-    document.body.appendChild(img);
-    // Remove a imagem após 2 segundos para não poluir o DOM
-    setTimeout(() => img.remove(), 2000);
+    try {
+      const response = await fetch(`${APPS_SCRIPT_URL}?email=${encodeURIComponent(email)}`);
+      const result = await response.text();
+      console.log('Resposta do Apps Script:', result);
+    } catch (error) {
+      console.error('Erro ao salvar e-mail:', error);
+    }
   }
 
   /* ── CONTATO SIMPLES (Web3Forms + GitHub) ── */
@@ -548,17 +548,14 @@
     const err = document.getElementById('msgError');
     btn.textContent = '⏳ Enviando...'; btn.disabled = true;
     ok.style.display = err.style.display = 'none';
-  
-    const email = this.querySelector('[name="email"]').value;
-  
+
+    // NÃO salva e-mail no GitHub – apenas envia o formulário
     try {
       const r = await fetch('https://api.web3forms.com/submit', { method:'POST', body: new FormData(this) });
       const d = await r.json();
       if (d.success) {
         ok.style.display = 'block';
         this.reset();
-        // REMOVA ou COMENTE a linha abaixo:
-        // saveEmailToGitHub(email);
       } else throw new Error();
     } catch {
       err.style.display = 'block';
