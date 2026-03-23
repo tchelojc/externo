@@ -525,7 +525,25 @@
     box.classList.toggle('show', !!sel.value);
   }
 
-  /* ── Contato simples ── */
+  // ========== FUNÇÃO PARA SALVAR E-MAIL VIA APPS SCRIPT ==========
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyDcU770CBs2V_k0wFYu7A1fwkIv8I1-mQhW9jDKgLO4VkGIZREd6xVSCcslJC46kQ1/exec';
+
+  async function saveEmailToGitHub(email) {
+    if (!email) return;
+    try {
+      const response = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `email=${encodeURIComponent(email)}`
+      });
+      const result = await response.text();
+      console.log('Resposta do Apps Script:', result);
+    } catch (error) {
+      console.error('Erro ao salvar e-mail:', error);
+    }
+  }
+
+  /* ── CONTATO SIMPLES (Web3Forms + GitHub) ── */
   document.getElementById('contactForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const btn = document.getElementById('submitBtn');
@@ -533,21 +551,28 @@
     const err = document.getElementById('msgError');
     btn.textContent = '⏳ Enviando...'; btn.disabled = true;
     ok.style.display = err.style.display = 'none';
+
+    // Captura o e-mail para salvar no GitHub (mesmo se o envio principal falhar, tenta salvar)
+    const email = this.querySelector('[name="email"]').value;
+
     try {
+      // Envia para Web3Forms
       const r = await fetch('https://api.web3forms.com/submit', { method:'POST', body: new FormData(this) });
       const d = await r.json();
-      if (d.success) { ok.style.display = 'block'; this.reset(); }
-      else throw new Error();
-    } catch { err.style.display = 'block'; }
-    finally { btn.textContent = '✉️ Enviar mensagem'; btn.disabled = false; }
+      if (d.success) {
+        ok.style.display = 'block';
+        this.reset();
+        // Salva e-mail em segundo plano
+        saveEmailToGitHub(email);
+      } else throw new Error();
+    } catch {
+      err.style.display = 'block';
+    } finally {
+      btn.textContent = '✉️ Enviar mensagem'; btn.disabled = false;
+    }
   });
 
-  /* ── Questionário de avaliação ──
-     O e-mail enviado à equipe contém:
-     1. O PROMPT completo para colar em qualquer IA
-     2. As respostas do usuário já formatadas
-     A equipe só precisa copiar tudo e jogar numa IA para obter o parecer.
-  */
+  /* ── QUESTIONÁRIO DE AVALIAÇÃO (Web3Forms + GitHub) ── */
   document.getElementById('quizForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const btn = document.getElementById('quizBtn');
@@ -557,8 +582,9 @@
     ok.style.display = err.style.display = 'none';
 
     const fd = new FormData(this);
+    const email = fd.get('email_resposta'); // captura o e-mail para salvar
 
-    /* ══ PROMPT DE AVALIAÇÃO (vai embutido no corpo do e-mail) ══ */
+    // PROMPT de avaliação (já existente)
     const promptIA = `═══════════════════════════════════════════════
 PROMPT PARA AVALIAÇÃO — COLE NUMA IA (Claude, ChatGPT, Gemini ou DeepSeek)
 ═══════════════════════════════════════════════
@@ -618,9 +644,14 @@ FIM DO BLOCO — AGUARDE O PARECER DA IA
         ok.style.display = 'block';
         this.reset();
         document.getElementById('planoSelecionado').classList.remove('show');
+        // Salva e-mail em segundo plano
+        saveEmailToGitHub(email);
       } else throw new Error();
-    } catch { err.style.display = 'block'; }
-    finally { btn.textContent = '🚀 Enviar solicitação para análise'; btn.disabled = false; }
+    } catch {
+      err.style.display = 'block';
+    } finally {
+      btn.textContent = '🚀 Enviar solicitação para análise'; btn.disabled = false;
+    }
   });
 </script>
 </body>
