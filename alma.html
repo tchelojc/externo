@@ -835,12 +835,89 @@
     </div>
   </div>
 
+  <!-- Badge de sessão ativa (aparece no canto superior direito quando logado) -->
+  <div id="sessionBadge" style="
+    display:none;position:fixed;top:14px;right:14px;z-index:9999;
+    background:rgba(15,30,60,0.92);backdrop-filter:blur(10px);
+    border:1px solid rgba(46,204,113,0.4);border-radius:20px;
+    padding:7px 14px;font-size:0.75rem;color:#80f0b0;
+    display:none;align-items:center;gap:8px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.4);">
+    <span style="width:7px;height:7px;border-radius:50%;
+                 background:#2ecc71;display:inline-block;
+                 box-shadow:0 0 6px #2ecc71;animation:sessPulse 2s infinite"></span>
+    <span id="sessionBadgeText">Sessão ativa</span>
+    <button onclick="encerrarSessao()" title="Encerrar sessão"
+      style="background:rgba(255,80,80,0.2);border:1px solid rgba(255,80,80,0.3);
+             border-radius:10px;color:#ff9090;cursor:pointer;
+             font-size:0.7rem;padding:2px 7px;margin-left:2px">Sair</button>
+  </div>
+  <style>
+    @keyframes sessPulse {
+      0%,100%{opacity:1} 50%{opacity:0.4}
+    }
+  </style>
+
   <!-- ═══════════════ SCRIPTS ═══════════════ -->
   <script>
     // ══════════════════════════════════════════
     // CONFIGURAÇÃO
     // ══════════════════════════════════════════
     const EMAILS_JSON_URL = 'https://tchelojc.github.io/externo/emails.json';
+
+    // Tempo de sessão autenticada (em horas).
+    // Após este tempo o usuário precisa logar novamente.
+    const SESSION_HOURS = 8;
+    const SESSION_KEY   = 'alma_session';
+
+    // ══════════════════════════════════════════
+    // SISTEMA DE CACHE DE SESSÃO
+    // Salva no localStorage com expiração.
+    // Enquanto válido, cliques em cards pagos
+    // abrem direto, sem pedir login novamente.
+    // ══════════════════════════════════════════
+    function salvarSessao(email) {
+      const expira = Date.now() + SESSION_HOURS * 60 * 60 * 1000;
+      const sessao = { email, expira, autenticado: true };
+      try {
+        localStorage.setItem(SESSION_KEY, JSON.stringify(sessao));
+      } catch (_) {}
+    }
+
+    function sessaoValida() {
+      try {
+        const raw = localStorage.getItem(SESSION_KEY);
+        if (!raw) return false;
+        const s = JSON.parse(raw);
+        if (!s.autenticado || !s.expira) return false;
+        if (Date.now() > s.expira) {
+          localStorage.removeItem(SESSION_KEY);
+          return false;
+        }
+        return s; // retorna objeto com { email, expira }
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function limparSessao() {
+      try { localStorage.removeItem(SESSION_KEY); } catch (_) {}
+    }
+
+    // Formata tempo restante da sessão em texto legível
+    function tempoRestante() {
+      try {
+        const raw = localStorage.getItem(SESSION_KEY);
+        if (!raw) return '';
+        const s = JSON.parse(raw);
+        const ms = s.expira - Date.now();
+        if (ms <= 0) return '';
+        const h = Math.floor(ms / 3600000);
+        const m = Math.floor((ms % 3600000) / 60000);
+        if (h > 0) return `${h}h ${m}min`;
+        return `${m}min`;
+      } catch (_) { return ''; }
+    }
 
     // ══════════════════════════════════════════
     // ESTADO
@@ -865,12 +942,61 @@
     const fallbackSection = document.getElementById('fallbackSection');
 
     // ══════════════════════════════════════════
+    // ABRIR CARD PAGO — verifica cache primeiro
+    // ══════════════════════════════════════════
+    function abrirCardPago(url) {
+      const sessao = sessaoValida();
+
+      if (sessao) {
+        // ✅ Sessão ativa — abre direto sem pedir login
+        const resto = tempoRestante();
+        abrirUrl(url, `✅ Sessão ativa (${sessao.email}) · expira em ${resto}`);
+        return;
+      }
+
+      // Sessão expirada ou inexistente → abre modal de login
+      openAuthModal(url);
+    }
+
+    // ══════════════════════════════════════════
+    // ABRIR URL — lógica única de redirecionamento
+    // Resolve o problema de popup blocker:
+    //   Mobile  → mesma aba (nunca bloqueado)
+    //   Desktop → botão clicável pelo usuário
+    // ══════════════════════════════════════════
+    function abrirUrl(url, msgSessao) {
+      const isMobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent);
+
+      if (isMobile) {
+        // Mobile: redireciona na mesma aba
+        window.location.href = url;
+      } else {
+        // Desktop: abre nova aba via botão (gesto direto = não bloqueado)
+        // Se a sessão já estava válida (sem modal aberto), abre diretamente
+        if (!authModal || authModal.style.display !== 'flex') {
+          window.open(url, '_blank', 'noopener');
+        } else {
+          // Dentro do modal de auth → exibe botão para o usuário clicar
+          msgBio.className = 'auth-msg success';
+          msgBio.innerHTML =
+            (msgSessao ? `<small style="opacity:.7">${msgSessao}</small><br>` : '') +
+            '✅ <strong>Acesso autorizado!</strong><br>' +
+            `<button onclick="(function(){window.open('${url}','_blank','noopener');closeAuthModal();})()" ` +
+            'style="margin-top:10px;width:100%;padding:12px;border:none;border-radius:8px;' +
+            'background:linear-gradient(135deg,#2ecc71,#27ae60);color:#fff;' +
+            'font-weight:700;font-size:0.95rem;cursor:pointer;letter-spacing:0.03em">' +
+            '🚀 Clique aqui para abrir a plataforma</button>';
+          msgBio.style.display = 'block';
+        }
+      }
+    }
+
+    // ══════════════════════════════════════════
     // ABRIR / FECHAR MODAL
     // ══════════════════════════════════════════
     function openAuthModal(url) {
       pendingUrl      = url;
       validatedEmail  = null;
-      // Reset
       emailInput.value = '';
       setMsg(msgEmail, '', '');
       setMsg(msgBio,   '', '');
@@ -1130,45 +1256,47 @@
     }
 
     // ══════════════════════════════════════════
-    // SUCESSO — redireciona ou exibe botão de acesso
-    //
-    // Estratégia anti-bloqueio de popup:
-    //  - Mobile: window.location.href (mesma aba, NUNCA bloqueado)
-    //  - Desktop: exibe botão clicável pelo usuário
-    //    (gesto direto = nunca bloqueado)
+    // SUCESSO — salva sessão em cache e abre URL
     // ══════════════════════════════════════════
     function authSuccess() {
+      // 1. Salva sessão no localStorage com timer de SESSION_HOURS horas
+      salvarSessao(validatedEmail || '');
+      atualizarBadgeSessao();
+
+      // 2. Atualiza visual do modal
       bioIcon.textContent = '✅';
       setBtnLoading(btnBiometric, false, '🔐 Autenticar Agora');
 
       const urlParaAbrir = pendingUrl;
+      const resto        = tempoRestante();
 
-      // Detecta mobile vs desktop
+      // 3. Redireciona conforme dispositivo
       const isMobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent);
 
       if (isMobile) {
-        // Mobile: redireciona direto (mesma aba), nunca bloqueado
-        setMsg(msgBio, 'success', '✅ Acesso autorizado! Redirecionando...');
-        pendingUrl = null;
+        setMsg(msgBio, 'success', `✅ Acesso autorizado! Sessão ativa por ${resto}. Redirecionando...`);
         setTimeout(() => {
+          pendingUrl = null;
           closeAuthModal();
           window.location.href = urlParaAbrir;
         }, 400);
       } else {
-        // Desktop: exibe botão — usuário clica diretamente (gesto síncrono)
-        // Isso evita completamente o bloqueador de popup do navegador
-        msgBio.className = 'auth-msg success';
-        msgBio.innerHTML =
-          '✅ <strong>Acesso autorizado!</strong><br>' +
-          '<button onclick="authSuccessNewTab()" ' +
-          'style="margin-top:10px;width:100%;padding:11px;border:none;border-radius:8px;' +
-          'background:linear-gradient(135deg,#2ecc71,#27ae60);color:#fff;' +
-          'font-weight:700;font-size:0.95rem;cursor:pointer;letter-spacing:0.03em">' +
-          '🚀 Clique aqui para abrir a plataforma</button>';
+        // Desktop — exibe botão clicável (evita bloqueio de popup)
+        msgBio.className   = 'auth-msg success';
         msgBio.style.display = 'block';
-
-        // Guarda URL para o botão interno usar
-        // (pendingUrl continua definido até o clique)
+        msgBio.innerHTML =
+          `✅ <strong>Acesso autorizado!</strong> Sessão salva por ${resto}.<br>` +
+          `<button onclick="(function(){` +
+            `var u='${urlParaAbrir.replace(/'/g,"\\'")}';` +
+            `closeAuthModal();` +
+            `window.open(u,'_blank','noopener');` +
+          `})()" ` +
+          'style="margin-top:10px;width:100%;padding:12px;border:none;border-radius:8px;' +
+          'background:linear-gradient(135deg,#2ecc71,#27ae60);color:#fff;' +
+          'font-weight:700;font-size:1rem;cursor:pointer;letter-spacing:0.03em;">' +
+          '🚀 Clique aqui para abrir a plataforma</button>' +
+          `<div style="margin-top:8px;font-size:0.75rem;opacity:0.6">` +
+          `Próximos acessos serão automáticos por ${SESSION_HOURS}h</div>`;
       }
     }
 
@@ -1184,12 +1312,14 @@
 
     // ══════════════════════════════════════════
     // EVENTOS — CARDS PAGOS
+    // Verifica cache antes de abrir modal.
+    // Se sessão válida → abre direto.
     // ══════════════════════════════════════════
     document.querySelectorAll('.paid-btn').forEach(btn => {
       btn.addEventListener('click', function (e) {
         e.preventDefault();
         const url = this.getAttribute('data-url');
-        if (url) openAuthModal(url);
+        if (url) abrirCardPago(url);
       });
     });
 
@@ -1438,6 +1568,30 @@ LSPV_ZF = (C_Flow × CQI_AF × M_Flux) / P_abs
       }
     });
     almafluxoModal.addEventListener('click', e => { if (e.target === almafluxoModal) almafluxoModal.style.display = 'none'; });
+
+    // ══════════════════════════════════════════
+    // INICIALIZAÇÃO — Verifica sessão ao carregar
+    // ══════════════════════════════════════════
+    function atualizarBadgeSessao() {
+      const badge     = document.getElementById('sessionBadge');
+      const badgeText = document.getElementById('sessionBadgeText');
+      const sessao    = sessaoValida();
+      if (sessao) {
+        badgeText.textContent = `${sessao.email} · ${tempoRestante()}`;
+        badge.style.display = 'flex';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    function encerrarSessao() {
+      limparSessao();
+      atualizarBadgeSessao();
+    }
+
+    // Atualiza badge a cada minuto (mantém o tempo restante atualizado)
+    atualizarBadgeSessao();
+    setInterval(atualizarBadgeSessao, 60000);
 
     updatePromptDisplay();
   </script>
