@@ -1192,6 +1192,7 @@ Integre a perspectiva ${theme.toUpperCase()} com a questão específica do usuá
 
         function openAuthModal(url) {
             pendingUrl = url;
+            console.log("openAuthModal, pendingUrl =", pendingUrl);
             validatedEmail = null;
             authStepEmail.style.display = 'block';
             authStepBiometric.style.display = 'none';
@@ -1231,7 +1232,7 @@ Integre a perspectiva ${theme.toUpperCase()} com a questão específica do usuá
                 alert(`Erro ao validar e‑mail: ${error.message}. Verifique o console (F12) para mais detalhes.`);
             }
         }
-
+        
         async function authenticateWithBiometrics() {
             if (!validatedEmail) {
                 alert('E‑mail não validado. Por favor, reinicie o processo.');
@@ -1262,8 +1263,18 @@ Integre a perspectiva ${theme.toUpperCase()} com a questão específica do usuá
             try {
                 const credential = await navigator.credentials.create({ publicKey: publicKeyCredentialCreationOptions });
                 biometricMessage.innerHTML = '✅ Autenticação biométrica bem‑sucedida! Redirecionando...';
+                console.log("Redirecionando para:", pendingUrl);
+                // Fecha o modal e redireciona
                 closeAuthModal();
-                if (pendingUrl) window.location.href = pendingUrl;
+                if (pendingUrl) {
+                    // Pequeno delay para dar tempo de fechar o modal visualmente
+                    setTimeout(() => {
+                        window.location.href = pendingUrl;
+                    }, 200);
+                } else {
+                    console.error("pendingUrl está vazio!");
+                    alert("Erro: URL de destino não encontrada.");
+                }
             } catch (err) {
                 console.error('Erro na autenticação biométrica:', err);
                 let msg = '❌ Falha na autenticação biométrica. ';
@@ -1279,6 +1290,7 @@ Integre a perspectiva ${theme.toUpperCase()} com a questão específica do usuá
             link.addEventListener('click', function(e) {
                 e.preventDefault();
                 const url = this.getAttribute('data-url') || this.href;
+                console.log("Link pago clicado, URL:", url);
                 if (url) openAuthModal(url);
             });
         });
