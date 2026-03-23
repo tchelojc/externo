@@ -462,50 +462,75 @@
       100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); border-color: rgba(255,255,255,0.2); }
     }
     
-    @media (max-width: 768px) {
-      .alma-button {
-        width: 170px;
-        height: 170px;
-        font-size: 2.2rem;
-      }
-      
-      .cards-container {
-        grid-template-columns: 1fr;
-      }
-      
-      .category-title {
-        font-size: 1.5rem;
-        margin: 30px 0 15px;
-      }
-      
-      .theme-buttons {
-        grid-template-columns: repeat(2, 1fr);
-      }
-      
-      .almafluxo-content {
-        width: 95%;
-        padding: 20px;
-      }
+    /* Modal de Autenticação (novo) */
+    .auth-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(12px);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
     }
-    
-    @media (max-width: 480px) {
-      .alma-button {
-        width: 140px;
-        height: 140px;
-        font-size: 2rem;
-      }
-      
-      .loading-text {
-        font-size: 0.8rem;
-        bottom: 20px;
-      }
-      
-      .category-title {
-        font-size: 1.3rem;
-      }
-      
-      .theme-buttons {
-        grid-template-columns: 1fr;
+    .auth-modal-content {
+      background: rgba(25, 39, 65, 0.95);
+      border-radius: 24px;
+      max-width: 450px;
+      width: 90%;
+      padding: 30px;
+      border: 1px solid rgba(255,255,255,0.2);
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .auth-modal-content h3 {
+      margin-bottom: 20px;
+      color: #aaccff;
+    }
+    .auth-modal-content input,
+    .auth-modal-content button {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: none;
+      font-size: 1rem;
+    }
+    .auth-modal-content input {
+      background: rgba(0,0,0,0.5);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+    .auth-modal-content button {
+      background: rgba(74,111,165,0.8);
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .auth-modal-content button:hover {
+      background: rgba(74,111,165,1);
+    }
+    .close-auth-modal {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      font-size: 30px;
+      cursor: pointer;
+      color: white;
+      font-weight: bold;
+      z-index: 2001;
+    }
+    .face-msg {
+      margin-top: 15px;
+      font-size: 0.9rem;
+      color: #ffd700;
+    }
+    @media (max-width: 600px) {
+      .auth-modal-content {
+        padding: 20px;
       }
     }
   </style>
@@ -656,7 +681,7 @@
                 <br><br>
                 💡 <strong>Para pagamento e informações completas, clique no botão abaixo.</strong>
             </p>
-            <a href="https://tchelojc.github.io/ALMAfluxo/" target="_blank" class="card-link">Explorar</a>
+            <a href="https://tchelojc.github.io/ALMAfluxo/" target="_blank" class="card-link paid-link" data-url="https://tchelojc.github.io/ALMAfluxo/">Explorar</a>
             <a class="faq-link-button" href="#faq-card" onclick="event.preventDefault(); scrollToFAQ(event);">💰 Ver FAQ para Pagamento</a>
         </div>
     </div>
@@ -673,7 +698,7 @@
                 <br><br>
                 💡 <strong>Para pagamento e informações completas, clique no botão abaixo.</strong>
             </p>
-            <a href="https://tchelojc.github.io/daytrade/OPERADOR.html" target="_blank" class="card-link">Acessar Interface Web</a>
+            <a href="https://tchelojc.github.io/daytrade/OPERADOR.html" target="_blank" class="card-link paid-link" data-url="https://tchelojc.github.io/daytrade/OPERADOR.html">Acessar Interface Web</a>
             <a class="faq-link-button" href="#faq-card" onclick="event.preventDefault(); scrollToFAQ(event);">💰 Ver FAQ para Pagamento</a>
         </div>
 
@@ -685,7 +710,7 @@
                 <br><br>
                 💡 <strong>Para pagamento e informações completas, clique no botão abaixo.</strong>
             </p>
-            <a href="https://tchelojc.github.io/basquete/" target="_blank" class="card-link">Acessar Plataforma</a>
+            <a href="https://tchelojc.github.io/basquete/" target="_blank" class="card-link paid-link" data-url="https://tchelojc.github.io/basquete/">Acessar Plataforma</a>
             <a class="faq-link-button" href="#faq-card" onclick="event.preventDefault(); scrollToFAQ(event);">💰 Ver FAQ para Pagamento</a>
         </div>
 
@@ -697,7 +722,7 @@
                 <br><br>
                 💡 <strong>Para pagamento e informações completas, clique no botão abaixo.</strong>
             </p>
-            <a href="https://tchelojc.github.io/futebol/" target="_blank" class="card-link">Acessar Plataforma</a>
+            <a href="https://tchelojc.github.io/futebol/" target="_blank" class="card-link paid-link" data-url="https://tchelojc.github.io/futebol/">Acessar Plataforma</a>
             <a class="faq-link-button" href="#faq-card" onclick="event.preventDefault(); scrollToFAQ(event);">💰 Ver FAQ para Pagamento</a>
         </div>
 
@@ -709,7 +734,7 @@
                 <br><br>
                 💡 <strong>Para pagamento e informações completas, clique no botão abaixo.</strong>
             </p>
-            <a href="https://tchelojc.github.io/Multioperador/" target="_blank" class="card-link">Acessar Plataforma</a>
+            <a href="https://tchelojc.github.io/Multioperador/" target="_blank" class="card-link paid-link" data-url="https://tchelojc.github.io/Multioperador/">Acessar Plataforma</a>
             <a class="faq-link-button" href="#faq-card" onclick="event.preventDefault(); scrollToFAQ(event);">💰 Ver FAQ para Pagamento</a>
         </div>
 
@@ -795,8 +820,27 @@
         </a>
     </div>
 
+    <!-- MODAL DE AUTENTICAÇÃO BIOMÉTRICA -->
+    <div id="authModal" class="auth-modal">
+        <div class="close-auth-modal" onclick="closeAuthModal()">&times;</div>
+        <div class="auth-modal-content">
+            <div id="authStepEmail">
+                <h3>🔐 Acesso Restrito</h3>
+                <p>Informe seu e‑mail cadastrado:</p>
+                <input type="email" id="authEmail" placeholder="seuemail@exemplo.com">
+                <button onclick="validateEmailForAccess()">Verificar E-mail</button>
+            </div>
+            <div id="authStepBiometric" style="display:none;">
+                <h3>✅ E-mail verificado</h3>
+                <p>Autentique-se com seu rosto ou impressão digital:</p>
+                <button onclick="authenticateWithBiometrics()">🔐 Autenticar com biometria</button>
+                <div id="biometricMessage" class="face-msg"></div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // ==================== ALMAFLUXO MODAL ====================
+        // ==================== ALMAFLUXO MODAL (original) ====================
         const almafluxoState = {
             currentTheme: null,
             userQuery: '',
@@ -1144,7 +1188,116 @@ Integre a perspectiva ${theme.toUpperCase()} com a questão específica do usuá
             }
         }
 
-        // Inicializar
+        // ==================== AUTENTICAÇÃO BIOMÉTRICA (WebAuthn) ====================
+        let pendingUrl = null;
+        let validatedEmail = null;
+
+        const authModal = document.getElementById('authModal');
+        const authStepEmail = document.getElementById('authStepEmail');
+        const authStepBiometric = document.getElementById('authStepBiometric');
+        const authEmailInput = document.getElementById('authEmail');
+        const biometricMessage = document.getElementById('biometricMessage');
+
+        function openAuthModal(url) {
+            pendingUrl = url;
+            validatedEmail = null;
+            authStepEmail.style.display = 'block';
+            authStepBiometric.style.display = 'none';
+            authEmailInput.value = '';
+            biometricMessage.innerHTML = '';
+            authModal.style.display = 'flex';
+        }
+
+        function closeAuthModal() {
+            authModal.style.display = 'none';
+            pendingUrl = null;
+            validatedEmail = null;
+        }
+
+        async function validateEmailForAccess() {
+            const email = authEmailInput.value.trim();
+            if (!email) {
+                alert('Por favor, informe um e‑mail.');
+                return;
+            }
+            try {
+                const response = await fetch('emails.json');
+                if (!response.ok) throw new Error('Não foi possível carregar a lista de e‑mails.');
+                const emails = await response.json();
+                if (emails.includes(email)) {
+                    validatedEmail = email;
+                    authStepEmail.style.display = 'none';
+                    authStepBiometric.style.display = 'block';
+                    biometricMessage.innerHTML = '🔐 Clique no botão abaixo e autentique-se usando seu rosto ou impressão digital.';
+                } else {
+                    alert('❌ E‑mail não cadastrado. Solicite acesso através do formulário de Pagamentos.');
+                }
+            } catch (error) {
+                console.error('Erro ao verificar e‑mail:', error);
+                alert('Erro ao validar e‑mail. Tente novamente.');
+            }
+        }
+
+        async function authenticateWithBiometrics() {
+            if (!validatedEmail) {
+                alert('E‑mail não validado. Por favor, reinicie o processo.');
+                return;
+            }
+            if (!window.PublicKeyCredential) {
+                biometricMessage.innerHTML = '⚠️ Seu navegador não suporta autenticação biométrica. Atualize ou use um navegador moderno.';
+                return;
+            }
+            // Criar um ID de usuário baseado no e‑mail
+            const userId = new TextEncoder().encode(validatedEmail);
+            const challenge = crypto.getRandomValues(new Uint8Array(32));
+            const publicKeyCredentialCreationOptions = {
+                challenge: challenge,
+                rp: { name: "ALMAFLUXO", id: window.location.hostname },
+                user: {
+                    id: userId,
+                    name: validatedEmail,
+                    displayName: validatedEmail
+                },
+                pubKeyCredParams: [{ alg: -7, type: "public-key" }],
+                authenticatorSelection: {
+                    userVerification: "required",
+                    authenticatorAttachment: "platform" // força uso de autenticador interno (FaceID, etc.)
+                },
+                timeout: 60000,
+                attestation: "none"
+            };
+            try {
+                // Tenta criar uma nova credencial (o usuário será solicitado a usar biometria)
+                const credential = await navigator.credentials.create({ publicKey: publicKeyCredentialCreationOptions });
+                // Se chegou aqui, a biometria foi usada com sucesso
+                biometricMessage.innerHTML = '✅ Autenticação biométrica bem‑sucedida! Redirecionando...';
+                closeAuthModal();
+                if (pendingUrl) window.location.href = pendingUrl;
+            } catch (err) {
+                console.error('Erro na autenticação biométrica:', err);
+                let msg = '❌ Falha na autenticação biométrica. ';
+                if (err.name === 'NotAllowedError') msg += 'Você não autorizou o uso da biometria.';
+                else if (err.name === 'InvalidStateError') msg += 'Talvez o dispositivo já tenha uma credencial para este site. Tente usar a opção "entrar" em vez de registrar novamente.';
+                else msg += err.message;
+                biometricMessage.innerHTML = msg;
+            }
+        }
+
+        // Adiciona evento aos links pagos (com classe .paid-link)
+        document.querySelectorAll('.paid-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const url = this.getAttribute('data-url') || this.href;
+                if (url) openAuthModal(url);
+            });
+        });
+
+        // Fechar modal clicando fora
+        window.onclick = function(event) {
+            if (event.target === authModal) closeAuthModal();
+        };
+
+        // Inicializar (já existente)
         updatePromptDisplay();
     </script>
 </body>
