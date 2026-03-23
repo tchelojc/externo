@@ -1213,7 +1213,7 @@ Integre a perspectiva ${theme.toUpperCase()} com a questão específica do usuá
             pendingUrl = null;
             validatedEmail = null;
         }
-
+  
         async function validateEmailForAccess() {
             const email = authEmailInput.value.trim();
             if (!email) {
@@ -1221,8 +1221,10 @@ Integre a perspectiva ${theme.toUpperCase()} com a questão específica do usuá
                 return;
             }
             try {
-                console.log("Tentando carregar emails.json...");
-                const response = await fetch('emails.json');
+                // URL absoluta para o arquivo emails.json no repositório
+                const url = 'https://tchelojc.github.io/externo/emails.json';
+                console.log("Tentando carregar emails.json de:", url);
+                const response = await fetch(url);
                 console.log("Status da resposta:", response.status);
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -1242,7 +1244,7 @@ Integre a perspectiva ${theme.toUpperCase()} com a questão específica do usuá
                 alert(`Erro ao validar e‑mail: ${error.message}. Verifique o console (F12) para mais detalhes.`);
             }
         }
-
+      
         async function authenticateWithBiometrics() {
             if (!validatedEmail) {
                 alert('E‑mail não validado. Por favor, reinicie o processo.');
