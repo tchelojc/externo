@@ -348,20 +348,39 @@
                 <input type="email" name="email_resposta" placeholder="seuemail@exemplo.com" required>
               </div>
 
+              <!-- PLANO DE INTERESSE – TRADING -->
               <div class="form-group">
-                <label>Plano de interesse</label>
-                <select name="plano" id="planoSelect" required onchange="atualizarPlano()">
-                  <option value="" disabled selected>Selecione o plano desejado</option>
-                  <option value="Hedge Dinâmico – Basquete | R$ 199/mês">🏀 Hedge Dinâmico – Basquete — R$ 199/mês</option>
-                  <option value="Hedge Dinâmico – Futebol | R$ 249/mês">⚽ Hedge Dinâmico – Futebol — R$ 249/mês</option>
-                  <option value="Hedge Dinâmico – Multi Esportes | R$ 199/mês">🎾 Hedge Multi Esportes — R$ 199/mês</option>
-                  <option value="Operador – Day-trade | R$ 249/mês">📈 Operador – Day-trade — R$ 249/mês</option>
-                  <option value="ALMAfluxo Completo | R$ 299/mês">⚡ ALMAfluxo Completo — R$ 299/mês</option>
+                <label>Plano de interesse (trading)</label>
+                <select name="plano" id="planoSelect" onchange="atualizarPlano()">
+                  <option value="" selected>Nenhum</option>
+                  <option value="Hedge Dinâmico – Basquete | R$ 199/mês" data-preco="199">🏀 Hedge Dinâmico – Basquete — R$ 199/mês</option>
+                  <option value="Hedge Dinâmico – Futebol | R$ 249/mês" data-preco="249">⚽ Hedge Dinâmico – Futebol — R$ 249/mês</option>
+                  <option value="Hedge Dinâmico – Multi Esportes | R$ 199/mês" data-preco="199">🎾 Hedge Multi Esportes — R$ 199/mês</option>
+                  <option value="Operador – Day-trade | R$ 249/mês" data-preco="249">📈 Operador – Day-trade — R$ 249/mês</option>
+                  <option value="ALMAfluxo Completo | R$ 299/mês" data-preco="299">⚡ ALMAfluxo Completo — R$ 299/mês</option>
                 </select>
               </div>
-              <div class="plano-selecionado" id="planoSelecionado">✅ Plano selecionado: <span id="planoNome"></span></div>
 
-              <!-- Container das perguntas do questionário (será ocultado para ALMAfluxo Completo) -->
+              <!-- SEÇÃO NUMEROLOGIA – Mapa do Próprio Destino -->
+              <div class="quiz-title">🌌 Mapa do Próprio Destino - Análise Numerológica</div>
+              <div class="form-group">
+                <label>Selecione as civilizações para análise (R$ 100 cada):</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-top: 5px;">
+                  <label><input type="checkbox" name="civilizacao" value="Inca" data-preco="100"> 🏔️ Inca</label>
+                  <label><input type="checkbox" name="civilizacao" value="Chinês" data-preco="100"> 🐉 Chinês</label>
+                  <label><input type="checkbox" name="civilizacao" value="Maia" data-preco="100"> 🌙 Maia</label>
+                  <label><input type="checkbox" name="civilizacao" value="Egípcio" data-preco="100"> ☥ Egípcio</label>
+                  <label><input type="checkbox" name="civilizacao" value="Sumério" data-preco="100"> 𒀭 Sumério</label>
+                  <label><input type="checkbox" name="civilizacao" value="Asteca" data-preco="100"> 🗿 Asteca</label>
+                  <label><input type="checkbox" name="civilizacao" value="Cabala" data-preco="100"> 🔯 Cabala</label>
+                </div>
+                <div id="totalNumerologia" style="margin-top: 10px; font-weight: bold; color: #ffd700;">Total adicional: R$ 0,00</div>
+              </div>
+
+              <div class="plano-selecionado" id="planoSelecionado">✅ Plano selecionado: <span id="planoNome"></span></div>
+              <div id="valorTotal" style="margin: 10px 0; font-size: 1.1rem; font-weight: bold; color: #ffd700; display: none;">💰 Valor total: R$ 0,00</div>
+
+              <!-- Container das perguntas do questionário (será ocultado quando nenhum plano de trading for selecionado) -->
               <div id="quizQuestionsContainer">
                 <div class="form-group">
                   <label>1. Por qual motivo deseja acessar a plataforma?</label>
@@ -521,38 +540,80 @@
     arr.textContent = ans.classList.contains('show') ? '▲' : '▼';
   }
 
-  /* ── Plano selecionado e controle do questionário ── */
+  /* ── Controle do questionário e cálculo de total ── */
   const questionsContainer = document.getElementById('quizQuestionsContainer');
   const alertaSimples = document.getElementById('alertaSimples');
+  const planoSelect = document.getElementById('planoSelect');
 
   function atualizarPlano() {
-    const sel = document.getElementById('planoSelect');
+    const sel = planoSelect;
     const box = document.getElementById('planoSelecionado');
     const planoValor = sel.value;
     document.getElementById('planoNome').textContent = planoValor;
     box.classList.toggle('show', !!planoValor);
 
-    // Verifica se o plano selecionado é "ALMAfluxo Completo"
     const isAlmafluxoCompleto = planoValor && planoValor.startsWith('ALMAfluxo Completo');
+    const isAnyTradingPlan = planoValor && planoValor !== '';
 
-    if (isAlmafluxoCompleto) {
-      // Oculta o questionário completo e exibe aviso
+    // Mostrar/ocultar questionário baseado no plano:
+    // - Se nenhum plano (vazio) -> ocultar
+    // - Se ALMAfluxo Completo -> ocultar (tratamento simplificado)
+    // - Outros planos de trading -> mostrar
+    if (!isAnyTradingPlan) {
+      questionsContainer.style.display = 'none';
+      alertaSimples.style.display = 'none';
+    } else if (isAlmafluxoCompleto) {
       questionsContainer.style.display = 'none';
       alertaSimples.style.display = 'block';
-      // Remove required de todos os inputs dentro do container
-      const requiredFields = questionsContainer.querySelectorAll('[required]');
-      requiredFields.forEach(field => field.removeAttribute('required'));
     } else {
-      // Mostra o questionário e exibe aviso padrão
       questionsContainer.style.display = 'block';
       alertaSimples.style.display = 'none';
-      // Restaura required nos campos originais
-      const requiredFields = questionsContainer.querySelectorAll('[required]');
+    }
+
+    // Ajustar required nos campos do questionário
+    const requiredFields = questionsContainer.querySelectorAll('[required]');
+    if (questionsContainer.style.display === 'none') {
+      requiredFields.forEach(field => field.removeAttribute('required'));
+    } else {
       requiredFields.forEach(field => field.setAttribute('required', 'required'));
     }
   }
 
-  /* ── Função para salvar e-mail via Apps Script (mesma anterior) ── */
+  // Função para calcular total (plano + civilizações)
+  function atualizarTotal() {
+    const planoSel = planoSelect;
+    const precoPlano = planoSel.options[planoSel.selectedIndex]?.getAttribute('data-preco') || 0;
+    const checkboxes = document.querySelectorAll('input[name="civilizacao"]:checked');
+    let totalNumerologia = 0;
+    checkboxes.forEach(cb => {
+      totalNumerologia += parseInt(cb.getAttribute('data-preco') || 0);
+    });
+    const total = (parseInt(precoPlano) || 0) + totalNumerologia;
+    document.getElementById('totalNumerologia').innerHTML = `Total adicional (R$ 100 cada): R$ ${totalNumerologia},00`;
+    const totalDiv = document.getElementById('valorTotal');
+    if (total > 0) {
+      totalDiv.style.display = 'block';
+      totalDiv.innerHTML = `💰 Valor total: R$ ${total},00`;
+    } else {
+      totalDiv.style.display = 'none';
+    }
+    return total;
+  }
+
+  // Adicionar listeners
+  document.querySelectorAll('input[name="civilizacao"]').forEach(cb => {
+    cb.addEventListener('change', atualizarTotal);
+  });
+  planoSelect.addEventListener('change', function() {
+    atualizarPlano();
+    atualizarTotal();
+  });
+
+  // Chamar inicialização
+  atualizarPlano();
+  atualizarTotal();
+
+  /* ── Função para salvar e-mail via Apps Script ── */
   const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwP5invqZvbg4w0XXsBt6KcKLK26YU0p_Y7G-2SXLvrgHPD0hAFj2Ru7UEQLVaA3UDB/exec';
   async function saveEmailToGitHub(email) {
     if (!email) return;
@@ -588,7 +649,7 @@
     }
   });
 
-  /* ── QUESTIONÁRIO DE AVALIAÇÃO (com condição para ALMAfluxo Completo) ── */
+  /* ── QUESTIONÁRIO DE AVALIAÇÃO (com condição para ALMAfluxo Completo e numerologia) ── */
   document.getElementById('quizForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const btn = document.getElementById('quizBtn');
@@ -602,10 +663,15 @@
     const isAlmafluxoCompleto = plano && plano.startsWith('ALMAfluxo Completo');
     const email = fd.get('email_resposta');
 
+    // Capturar civilizações selecionadas
+    const civilizacoes = Array.from(document.querySelectorAll('input[name="civilizacao"]:checked')).map(cb => cb.value);
+    const totalNumerologia = civilizacoes.length * 100;
+    const precoPlano = plano ? (planoSelect.options[planoSelect.selectedIndex]?.getAttribute('data-preco') || 0) : 0;
+    const totalGeral = precoPlano + totalNumerologia;
+
     let mensagemCorpo = '';
 
     if (isAlmafluxoCompleto) {
-      // Monta mensagem simples apenas com dados cadastrais
       mensagemCorpo = `═══════════════════════════════════════════════
 SOLICITAÇÃO SIMPLIFICADA — PLANO ALMAFLUXO COMPLETO
 ═══════════════════════════════════════════════
@@ -614,13 +680,16 @@ Nome: ${fd.get('nome')}
 E-mail: ${email}
 Plano solicitado: ${plano}
 
+Civilizações para Mapa do Próprio Destino: ${civilizacoes.length > 0 ? civilizacoes.join(', ') : 'Nenhuma'}
+Total adicional numerologia: R$ ${totalNumerologia},00
+Valor total da solicitação: R$ ${totalGeral},00
+
 Observações: ${fd.get('observacoes') || '(nenhuma)'}
 
 ⏺ Este usuário solicitou acesso ao plano ALMAfluxo Completo.
 A equipe deverá avaliar o perfil e, se aprovado, enviar os dados para pagamento.
 ═══════════════════════════════════════════════`;
     } else {
-      // Monta mensagem com o prompt IA (como antes)
       mensagemCorpo = `═══════════════════════════════════════════════
 PROMPT PARA AVALIAÇÃO — COLE NUMA IA (Claude, ChatGPT, Gemini ou DeepSeek)
 ═══════════════════════════════════════════════
@@ -658,7 +727,10 @@ RESPOSTAS DO USUÁRIO — COLE ABAIXO NA IA
 
 Nome: ${fd.get('nome')}
 E-mail: ${email}
-Plano solicitado: ${plano}
+Plano solicitado: ${plano || 'Nenhum'}
+Civilizações para Mapa do Próprio Destino: ${civilizacoes.length > 0 ? civilizacoes.join(', ') : 'Nenhuma'}
+Total adicional numerologia: R$ ${totalNumerologia},00
+Valor total da solicitação: R$ ${totalGeral},00
 
 1. Motivo de acesso: ${fd.get('motivo')}
 2. Horas por dia: ${fd.get('horas_dia')}
@@ -672,7 +744,6 @@ FIM DO BLOCO — AGUARDE O PARECER DA IA
 ═══════════════════════════════════════════════`;
     }
 
-    // Substitui o campo 'message' no FormData pelo corpo montado
     fd.set('message', mensagemCorpo);
 
     try {
@@ -682,7 +753,10 @@ FIM DO BLOCO — AGUARDE O PARECER DA IA
         ok.style.display = 'block';
         this.reset();
         document.getElementById('planoSelecionado').classList.remove('show');
-        // Salva e-mail em segundo plano
+        document.getElementById('valorTotal').style.display = 'none';
+        document.getElementById('totalNumerologia').innerHTML = 'Total adicional: R$ 0,00';
+        // Resetar checkboxes
+        document.querySelectorAll('input[name="civilizacao"]:checked').forEach(cb => cb.checked = false);
         saveEmailToGitHub(email);
       } else throw new Error();
     } catch {
