@@ -548,19 +548,17 @@
     const err = document.getElementById('msgError');
     btn.textContent = '⏳ Enviando...'; btn.disabled = true;
     ok.style.display = err.style.display = 'none';
-
-    // Captura o e-mail para salvar no GitHub (mesmo se o envio principal falhar, tenta salvar)
+  
     const email = this.querySelector('[name="email"]').value;
-
+  
     try {
-      // Envia para Web3Forms
       const r = await fetch('https://api.web3forms.com/submit', { method:'POST', body: new FormData(this) });
       const d = await r.json();
       if (d.success) {
         ok.style.display = 'block';
         this.reset();
-        // Salva e-mail em segundo plano
-        saveEmailToGitHub(email);
+        // REMOVA ou COMENTE a linha abaixo:
+        // saveEmailToGitHub(email);
       } else throw new Error();
     } catch {
       err.style.display = 'block';
