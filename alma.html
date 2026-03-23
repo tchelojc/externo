@@ -1221,20 +1221,25 @@ Integre a perspectiva ${theme.toUpperCase()} com a questão específica do usuá
                 return;
             }
             try {
+                console.log("Tentando carregar emails.json...");
                 const response = await fetch('emails.json');
-                if (!response.ok) throw new Error('Não foi possível carregar a lista de e‑mails.');
+                console.log("Status da resposta:", response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
                 const emails = await response.json();
+                console.log("Emails carregados:", emails);
                 if (emails.includes(email)) {
                     validatedEmail = email;
                     authStepEmail.style.display = 'none';
                     authStepBiometric.style.display = 'block';
                     biometricMessage.innerHTML = '🔐 Clique no botão abaixo e autentique-se usando seu rosto ou impressão digital.';
                 } else {
-                    alert('❌ E‑mail não cadastrado. Solicite acesso através do formulário de Pagamentos.');
+                    alert(`❌ E‑mail "${email}" não cadastrado. Solicite acesso através do formulário de Pagamentos.`);
                 }
             } catch (error) {
                 console.error('Erro ao verificar e‑mail:', error);
-                alert('Erro ao validar e‑mail. Tente novamente.');
+                alert(`Erro ao validar e‑mail: ${error.message}. Verifique o console (F12) para mais detalhes.`);
             }
         }
 
