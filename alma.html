@@ -1085,8 +1085,15 @@
 
     // ══════════════════════════════════════════
     // FALLBACK — Senha fornecida na compra
-    // (A senha real fica no seu emails.json ou
-    //  num JSON separado de senhas por e‑mail)
+    //
+    // COMO CONFIGURAR SUAS SENHAS:
+    // Crie o arquivo senhas.json em:
+    //   tchelojc.github.io/externo/senhas.json
+    // Com o formato:
+    //   { "email@exemplo.com": "senha123", ... }
+    //
+    // Enquanto o arquivo NÃO existir, qualquer
+    // senha não vazia libera o acesso (modo demo).
     // ══════════════════════════════════════════
     async function fallbackLogin() {
       const pwd = document.getElementById('fallbackPassword').value.trim();
@@ -1097,39 +1104,82 @@
 
       setMsg(msgBio, 'info', '⏳ Verificando senha...');
 
+      // Tenta carregar senhas.json — silencia erro 404 sem poluir console
+      let senhaCorreta = null;
       try {
-        // Carrega mapa { "email": "senha" } do JSON de senhas
-        // Se não existir, aceita qualquer senha não vazia (modo de demonstração)
-        let senhaCorreta = null;
-        try {
-          const res = await fetch('https://tchelojc.github.io/externo/senhas.json', { cache: 'no-store' });
-          if (res.ok) {
-            const senhas = await res.json();
-            senhaCorreta = senhas[validatedEmail] || null;
-          }
-        } catch (_) { /* senhas.json não existe ainda — modo demo */ }
-
-        if (!senhaCorreta || pwd === senhaCorreta) {
-          // Senha correta (ou modo demo sem JSON de senhas configurado)
-          authSuccess();
-        } else {
-          setMsg(msgBio, 'error', '❌ Senha incorreta. Verifique com o suporte.');
+        const res = await fetch('https://tchelojc.github.io/externo/senhas.json', { cache: 'no-store' });
+        if (res.ok) {
+          const senhas = await res.json();
+          senhaCorreta = (senhas[validatedEmail] || '').trim() || null;
         }
-      } catch (err) {
-        setMsg(msgBio, 'error', '⚠️ Erro ao verificar senha. Tente novamente.');
+        // Se res.status === 404 → senhas.json ainda não existe → modo demo
+      } catch (_) {
+        // Rede offline ou CORS — modo demo
+      }
+
+      if (!senhaCorreta) {
+        // ── MODO DEMO: senhas.json não configurado ──
+        // Qualquer senha não-vazia libera o acesso.
+        // Remova este bloco assim que criar senhas.json.
+        authSuccess();
+      } else if (pwd === senhaCorreta) {
+        authSuccess();
+      } else {
+        setMsg(msgBio, 'error', '❌ Senha incorreta. Verifique com o suporte em almafluxo.uk/contato');
       }
     }
 
     // ══════════════════════════════════════════
-    // SUCESSO — redireciona para a plataforma
+    // SUCESSO — redireciona ou exibe botão de acesso
+    //
+    // Estratégia anti-bloqueio de popup:
+    //  - Mobile: window.location.href (mesma aba, NUNCA bloqueado)
+    //  - Desktop: exibe botão clicável pelo usuário
+    //    (gesto direto = nunca bloqueado)
     // ══════════════════════════════════════════
     function authSuccess() {
-      setMsg(msgBio, 'success', '✅ Acesso autorizado! Redirecionando...');
       bioIcon.textContent = '✅';
-      setTimeout(() => {
+      setBtnLoading(btnBiometric, false, '🔐 Autenticar Agora');
+
+      const urlParaAbrir = pendingUrl;
+
+      // Detecta mobile vs desktop
+      const isMobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent);
+
+      if (isMobile) {
+        // Mobile: redireciona direto (mesma aba), nunca bloqueado
+        setMsg(msgBio, 'success', '✅ Acesso autorizado! Redirecionando...');
+        pendingUrl = null;
+        setTimeout(() => {
+          closeAuthModal();
+          window.location.href = urlParaAbrir;
+        }, 400);
+      } else {
+        // Desktop: exibe botão — usuário clica diretamente (gesto síncrono)
+        // Isso evita completamente o bloqueador de popup do navegador
+        msgBio.className = 'auth-msg success';
+        msgBio.innerHTML =
+          '✅ <strong>Acesso autorizado!</strong><br>' +
+          '<button onclick="authSuccessNewTab()" ' +
+          'style="margin-top:10px;width:100%;padding:11px;border:none;border-radius:8px;' +
+          'background:linear-gradient(135deg,#2ecc71,#27ae60);color:#fff;' +
+          'font-weight:700;font-size:0.95rem;cursor:pointer;letter-spacing:0.03em">' +
+          '🚀 Clique aqui para abrir a plataforma</button>';
+        msgBio.style.display = 'block';
+
+        // Guarda URL para o botão interno usar
+        // (pendingUrl continua definido até o clique)
+      }
+    }
+
+    // Abre em nova aba (botão direto — gesto síncrono garantido, não bloqueado)
+    function authSuccessNewTab() {
+      if (pendingUrl) {
+        const u = pendingUrl;
+        pendingUrl = null;
+        window.open(u, '_blank', 'noopener');
         closeAuthModal();
-        if (pendingUrl) window.open(pendingUrl, '_blank');
-      }, 900);
+      }
     }
 
     // ══════════════════════════════════════════
