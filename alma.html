@@ -1,14 +1,28 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
+  <!-- iOS PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="ALMAFLUXO">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ALMA - Centro Filosófico</title>
-  <!-- Favicon inline para evitar erro 530 -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
   <style>
-    /* ========== SEU CSS ORIGINAL (mantido integralmente) ========== */
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    /* Seu CSS original – mantido exatamente igual */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
     body {
       font-family: 'Roboto', sans-serif;
       min-height: 100vh;
@@ -23,6 +37,8 @@
       position: relative;
       color: white;
     }
+    
+    /* Elemento principal ALMA */
     .alma-button {
       width: 200px;
       height: 200px;
@@ -35,7 +51,9 @@
       font-size: 2.5rem;
       font-weight: bold;
       text-decoration: none;
-      box-shadow: 0 0 30px rgba(255, 255, 255, 0.3), inset 0 0 30px rgba(255, 255, 255, 0.2);
+      box-shadow: 
+        0 0 30px rgba(255, 255, 255, 0.3),
+        inset 0 0 30px rgba(255, 255, 255, 0.2);
       border: 2px solid rgba(255, 255, 255, 0.6);
       cursor: pointer;
       transition: all 0.4s ease;
@@ -47,17 +65,35 @@
       z-index: 2;
       margin-bottom: 40px;
     }
+    
     .alma-button:hover {
       transform: scale(1.15);
       background: rgba(74, 111, 165, 0.9);
-      box-shadow: 0 0 50px rgba(255, 255, 255, 0.5), inset 0 0 40px rgba(255, 255, 255, 0.3);
+      box-shadow: 
+        0 0 50px rgba(255, 255, 255, 0.5),
+        inset 0 0 40px rgba(255, 255, 255, 0.3);
       animation: none;
     }
+    
     @keyframes pulse {
-      0% { box-shadow: 0 0 20px rgba(255, 255, 255, 0.3), inset 0 0 20px rgba(255, 255, 255, 0.2); }
-      50% { box-shadow: 0 0 40px rgba(255, 255, 255, 0.5), inset 0 0 30px rgba(255, 255, 255, 0.3); }
-      100% { box-shadow: 0 0 20px rgba(255, 255, 255, 0.3), inset 0 0 20px rgba(255, 255, 255, 0.2); }
+      0% {
+        box-shadow: 
+          0 0 20px rgba(255, 255, 255, 0.3),
+          inset 0 0 20px rgba(255, 255, 255, 0.2);
+      }
+      50% {
+        box-shadow: 
+          0 0 40px rgba(255, 255, 255, 0.5),
+          inset 0 0 30px rgba(255, 255, 255, 0.3);
+      }
+      100% {
+        box-shadow: 
+          0 0 20px rgba(255, 255, 255, 0.3),
+          inset 0 0 20px rgba(255, 255, 255, 0.2);
+      }
     }
+    
+    /* Container para os cards */
     .cards-container {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -66,6 +102,8 @@
       width: 100%;
       margin-top: 30px;
     }
+    
+    /* Estilo dos cards */
     .platform-card {
       background: rgba(25, 39, 65, 0.8);
       border-radius: 15px;
@@ -80,11 +118,13 @@
       flex-direction: column;
       height: 100%;
     }
+    
     .platform-card:hover {
       transform: translateY(-5px);
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
       background: rgba(35, 55, 90, 0.9);
     }
+    
     .card-title {
       font-size: 1.4rem;
       margin-bottom: 12px;
@@ -93,6 +133,7 @@
       border-bottom: 1px solid rgba(255, 255, 255, 0.3);
       padding-bottom: 10px;
     }
+    
     .card-description {
       font-size: 0.9rem;
       line-height: 1.5;
@@ -100,6 +141,7 @@
       margin-bottom: 15px;
       flex-grow: 1;
     }
+    
     .card-link {
       display: block;
       background: rgba(74, 111, 165, 0.8);
@@ -112,7 +154,11 @@
       transition: background 0.3s;
       margin-top: auto;
     }
-    .card-link:hover { background: rgba(74, 111, 165, 1); }
+    
+    .card-link:hover {
+      background: rgba(74, 111, 165, 1);
+    }
+    
     .status-badge {
       display: inline-block;
       padding: 3px 8px;
@@ -122,8 +168,17 @@
       background: rgba(46, 204, 113, 0.4);
       color: #fff;
     }
-    .status-badge.construction { background: rgba(241, 196, 15, 0.4); }
-    .status-badge.pago { background: rgba(255, 107, 107, 0.6); }
+    
+    .status-badge.construction {
+      background: rgba(241, 196, 15, 0.4);
+    }
+    
+    /* Badge para planos pagos */
+    .status-badge.pago {
+      background: rgba(255, 107, 107, 0.6);
+    }
+    
+    /* Botão extra para FAQ dentro do card */
     .faq-link-button {
       display: block;
       background: rgba(255, 193, 7, 0.3);
@@ -138,7 +193,13 @@
       cursor: pointer;
       border: 1px solid rgba(255, 193, 7, 0.5);
     }
-    .faq-link-button:hover { background: rgba(255, 193, 7, 0.5); color: #fff; }
+    
+    .faq-link-button:hover {
+      background: rgba(255, 193, 7, 0.5);
+      color: #fff;
+    }
+    
+    /* Modal ALMAFLUXO */
     .almafluxo-modal {
       display: none;
       position: fixed;
@@ -150,6 +211,7 @@
       z-index: 1000;
       backdrop-filter: blur(10px);
     }
+    
     .almafluxo-content {
       position: absolute;
       top: 50%;
@@ -165,6 +227,7 @@
       border: 2px solid rgba(74, 111, 165, 0.8);
       box-shadow: 0 0 50px rgba(74, 111, 165, 0.5);
     }
+    
     .almafluxo-header {
       display: flex;
       justify-content: space-between;
@@ -173,7 +236,12 @@
       padding-bottom: 15px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.3);
     }
-    .almafluxo-title { font-size: 1.5rem; color: #fff; }
+    
+    .almafluxo-title {
+      font-size: 1.5rem;
+      color: #fff;
+    }
+    
     .close-btn {
       background: none;
       border: none;
@@ -187,6 +255,7 @@
       align-items: center;
       justify-content: center;
     }
+    
     .search-input {
       width: 100%;
       padding: 12px;
@@ -197,13 +266,18 @@
       margin-bottom: 20px;
       font-size: 1rem;
     }
-    .search-input::placeholder { color: rgba(255, 255, 255, 0.6); }
+    
+    .search-input::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+    
     .theme-buttons {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 10px;
       margin-bottom: 20px;
     }
+    
     .theme-btn {
       padding: 12px;
       border: none;
@@ -214,14 +288,28 @@
       transition: all 0.3s;
       font-weight: 500;
     }
+    
     .theme-btn:hover {
       background: rgba(74, 111, 165, 0.8);
       transform: translateY(-2px);
     }
-    .theme-btn.active { background: rgba(46, 204, 113, 0.6); }
-    .theme-btn.jogador { background: rgba(157, 78, 221, 0.6); }
-    .theme-btn.jogador:hover { background: rgba(157, 78, 221, 0.8); }
-    .theme-btn.jogador.active { background: rgba(157, 78, 221, 1); }
+    
+    .theme-btn.active {
+      background: rgba(46, 204, 113, 0.6);
+    }
+    
+    .theme-btn.jogador {
+      background: rgba(157, 78, 221, 0.6);
+    }
+    
+    .theme-btn.jogador:hover {
+      background: rgba(157, 78, 221, 0.8);
+    }
+    
+    .theme-btn.jogador.active {
+      background: rgba(157, 78, 221, 1);
+    }
+    
     .prompt-display {
       background: rgba(255, 255, 255, 0.1);
       border-radius: 8px;
@@ -233,6 +321,7 @@
       line-height: 1.4;
       white-space: pre-wrap;
     }
+    
     .copy-btn {
       width: 100%;
       padding: 12px;
@@ -244,7 +333,11 @@
       font-weight: 500;
       transition: background 0.3s;
     }
-    .copy-btn:hover { background: rgba(46, 204, 113, 0.8); }
+    
+    .copy-btn:hover {
+      background: rgba(46, 204, 113, 0.8);
+    }
+    
     .notification {
       position: fixed;
       top: 20px;
@@ -258,7 +351,11 @@
       z-index: 1001;
       border-left: 4px solid rgba(46, 204, 113, 0.8);
     }
-    .notification.show { transform: translateX(0); }
+    
+    .notification.show {
+      transform: translateX(0);
+    }
+    
     .streamlit-info {
       background: rgba(255, 75, 75, 0.2);
       border-radius: 15px;
@@ -270,20 +367,32 @@
       max-width: 800px;
       width: 100%;
     }
+    
     .streamlit-header {
       display: flex;
       align-items: center;
       gap: 10px;
       margin-bottom: 15px;
     }
-    .streamlit-icon { color: #FF4B4B; font-size: 24px; }
-    .streamlit-title { font-size: 18px; font-weight: 700; color: #FF4B4B; }
+    
+    .streamlit-icon {
+      color: #FF4B4B;
+      font-size: 24px;
+    }
+    
+    .streamlit-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #FF4B4B;
+    }
+    
     .streamlit-content {
       margin-bottom: 20px;
       line-height: 1.6;
       font-size: 14px;
       color: rgba(255, 255, 255, 0.9);
     }
+    
     .category-title {
       font-size: 1.8rem;
       color: white;
@@ -295,14 +404,17 @@
       padding-bottom: 10px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.3);
     }
+    
     .faq-highlight {
       animation: faqGlow 0.8s ease-out 3;
     }
+    
     @keyframes faqGlow {
       0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); border-color: rgba(255, 215, 0, 0.5); }
       50% { box-shadow: 0 0 20px 10px rgba(255, 215, 0, 0.5); border-color: gold; }
       100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); border-color: rgba(255,255,255,0.2); }
     }
+    
     /* Modal de Autenticação (com câmera) */
     .auth-modal {
       display: none;
@@ -327,7 +439,10 @@
       text-align: center;
       box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
-    .auth-modal-content h3 { margin-bottom: 20px; color: #aaccff; }
+    .auth-modal-content h3 {
+      margin-bottom: 20px;
+      color: #aaccff;
+    }
     .auth-modal-content input,
     .auth-modal-content button {
       width: 100%;
@@ -348,7 +463,9 @@
       cursor: pointer;
       transition: background 0.3s;
     }
-    .auth-modal-content button:hover { background: rgba(74,111,165,1); }
+    .auth-modal-content button:hover {
+      background: rgba(74,111,165,1);
+    }
     .close-auth-modal {
       position: absolute;
       top: 20px;
@@ -359,20 +476,37 @@
       font-weight: bold;
       z-index: 2001;
     }
-    .face-msg { margin-top: 15px; font-size: 0.9rem; color: #ffd700; }
-    .video-container { margin: 15px 0; display: flex; justify-content: center; }
+    .face-msg {
+      margin-top: 15px;
+      font-size: 0.9rem;
+      color: #ffd700;
+    }
+    .video-container {
+      margin: 15px 0;
+      display: flex;
+      justify-content: center;
+    }
     video {
       width: 100%;
       max-width: 300px;
       border-radius: 12px;
       border: 2px solid #aaccff;
     }
-    @media (max-width: 600px) { .auth-modal-content { padding: 20px; } }
+    @media (max-width: 600px) {
+      .auth-modal-content {
+        padding: 20px;
+      }
+    }
   </style>
 </head>
 <body>
-    <div class="alma-button" id="alma-btn">ALMA<div style="font-size: 12px; margin-top: 10px; text-align: center;">FLUXO</div></div>
-
+    <div class="alma-button" id="alma-btn">
+        ALMA
+        <div style="font-size: 12px; margin-top: 10px; text-align: center;">
+            FLUXO
+        </div>
+    </div>
+        
     <!-- Card informativo do Streamlit -->
     <div class="streamlit-info">
         <div class="streamlit-header">
@@ -382,25 +516,33 @@
         <div class="streamlit-content">
             <div style="font-weight: 700; font-size: 1.05em; line-height: 1.6; margin-bottom: 16px;">
                 Quem entra pela ALMA → fica pelo FLUXO<br>
-                <span style="opacity: 0.85; font-size: 0.92em; letter-spacing: 0.04em;">ALMAFLUXO · O fluxo da consciência</span>
+                <span style="opacity: 0.85; font-size: 0.92em; letter-spacing: 0.04em;">
+                    ALMAFLUXO · O fluxo da consciência
+                </span>
             </div>
+    
             <div style="height: 1px; background: linear-gradient(to right, rgba(255,215,0,0.3), transparent); margin-bottom: 16px;"></div>
-            Clique na esfera ALMAfluxo para acessar o sistema de análise filosófica integrada. Explore os temas Bankovianos e gere prompts personalizados para suas dúvidas existenciais.
+    
+            Clique na esfera ALMAfluxo para acessar o sistema de análise filosófica integrada.
+            Explore os temas Bankovianos e gere prompts personalizados para suas dúvidas existenciais.
             <br><br>
-            <a href="https://tchelojc.github.io/externo/" target="_blank" style="color: #ffd700; text-decoration: none; border-bottom: 1px dotted rgba(255,215,0,0.4); font-weight: 500; transition: all 0.2s;">
+            <a href="https://tchelojc.github.io/externo/" target="_blank"
+               style="color: #ffd700; text-decoration: none; border-bottom: 1px dotted rgba(255,215,0,0.4); font-weight: 500; transition: all 0.2s;">
                 🌌 Vivencie a abertura (3,69s) e, em seguida, instale o ALMAFLUXO para uma imersão total.
             </a>
         </div>
     </div>
-
-    <!-- Modal ALMAFLUXO (completo, com prompts originais) -->
+    
+    <!-- Modal ALMAFLUXO -->
     <div id="almafluxo-modal" class="almafluxo-modal">
         <div class="almafluxo-content">
             <div class="almafluxo-header">
                 <h2 class="almafluxo-title">🧠 ALMAFLUXO - Centro Filosófico</h2>
                 <button class="close-btn" id="close-almafluxo">&times;</button>
             </div>
+            
             <input type="text" class="search-input" id="theme-search" placeholder="Digite sua dúvida ou tema de interesse...">
+            
             <div class="theme-buttons">
                 <button class="theme-btn" data-theme="bankov">BANKOV</button>
                 <button class="theme-btn" data-theme="filosofia">FILOSOFIA</button>
@@ -411,13 +553,18 @@
                 <button class="theme-btn jogador" data-theme="jogador01">JOGADOR 01</button>
                 <button class="theme-btn jogador" data-theme="zyonflux">ZYON FLUX</button>
             </div>
-            <div class="prompt-display" id="prompt-display">Selecione um tema ou digite sua dúvida para gerar um prompt filosófico...</div>
+            
+            <div class="prompt-display" id="prompt-display">
+                Selecione um tema ou digite sua dúvida para gerar um prompt filosófico...
+            </div>
+            
             <button class="copy-btn" id="copy-prompt">📋 Copiar Prompt para IA</button>
         </div>
     </div>
+    
     <div class="notification" id="notification">Prompt copiado com sucesso!</div>
-
-    <!-- ========== TODOS OS CARDS (originais, com classes .paid-link) ========== -->
+  
+    <!-- ========== TODOS OS CARDS (original, com classes .paid-link) ========== -->
     <h2 class="category-title">Universo Áureo</h2>
     <div class="cards-container">
         <a href="https://tchelojc.github.io/significado/observador.html" target="_blank" class="platform-card">
@@ -436,7 +583,7 @@
             <span class="card-link">Explorar Universo</span>
         </a>
     </div>
-
+  
     <h2 class="category-title">Trajeto do Nada ao Tudo</h2>
     <div class="cards-container">
         <a href="https://nguo7ede4q8xm6bg4asusg.streamlit.app/" target="_blank" class="platform-card">
@@ -454,7 +601,7 @@
             <span class="card-link">Acessar Dimensão</span>
         </a>
     </div>
-
+    
     <h2 class="category-title">Ciclos Energéticos</h2>
     <div class="cards-container">
         <a href="https://eygkaswytz73tv7fzskhsz.streamlit.app/" target="_blank" class="platform-card">
@@ -463,7 +610,7 @@
             <span class="card-link">Ver Ciclos</span>
         </a>
     </div>
-
+    
     <h2 class="category-title">Laboratório Quântico</h2>
     <div class="cards-container">
         <a href="https://laboratorio-hosqszezxd6hf7hu85ncvz.streamlit.app/" target="_blank" class="platform-card">
@@ -482,7 +629,11 @@
     <div class="cards-container">
         <div class="platform-card">
             <h3 class="card-title">ALMAfluxo <span class="status-badge pago">Pago</span></h3>
-            <p class="card-description">Análise do fluxo universal desde alimentação, propósito, carmas e tudo que os movimentos demonstram – o equilíbrio como força divina.<br><br>💡 <strong>Para pagamento e informações completas, clique no botão abaixo.</strong></p>
+            <p class="card-description">
+                Análise do fluxo universal desde alimentação, propósito, carmas e tudo que os movimentos demonstram – o equilíbrio como força divina.
+                <br><br>
+                💡 <strong>Para pagamento e informações completas, clique no botão abaixo.</strong>
+            </p>
             <a href="https://tchelojc.github.io/ALMAfluxo/" target="_blank" class="card-link paid-link" data-url="https://tchelojc.github.io/ALMAfluxo/">Explorar</a>
             <a class="faq-link-button" href="#faq-card" onclick="event.preventDefault(); scrollToFAQ(event);">💰 Ver FAQ para Pagamento</a>
         </div>
@@ -492,51 +643,114 @@
     <div class="cards-container">
         <div class="platform-card">
             <h3 class="card-title">📈 Interface OPERADOR <span class="status-badge pago">Pago</span></h3>
-            <p class="card-description">Interface web dedicada para operações de day trade com visualização em tempo real e controle avançado de ordens.<br><br>💡 <strong>Para pagamento e informações completas, clique no botão abaixo.</strong></p>
+            <p class="card-description">
+                Interface web dedicada para operações de day trade com visualização em tempo real e controle avançado de ordens.
+                <br><br>
+                💡 <strong>Para pagamento e informações completas, clique no botão abaixo.</strong>
+            </p>
             <a href="https://tchelojc.github.io/daytrade/OPERADOR.html" target="_blank" class="card-link paid-link" data-url="https://tchelojc.github.io/daytrade/OPERADOR.html">Acessar Interface Web</a>
             <a class="faq-link-button" href="#faq-card" onclick="event.preventDefault(); scrollToFAQ(event);">💰 Ver FAQ para Pagamento</a>
         </div>
         <div class="platform-card">
             <h3 class="card-title">🏀 Hedge Dinâmico – Basquete <span class="status-badge pago">Pago</span></h3>
-            <p class="card-description">Distribuição proporcional, odds ao vivo e cenários de hedge para jogos de basquete. Ideal para quem opera com spreads totais e margens.<br><br>💡 <strong>Para pagamento e informações completas, clique no botão abaixo.</strong></p>
+            <p class="card-description">
+                Distribuição proporcional, odds ao vivo e cenários de hedge para jogos de basquete. Ideal para quem opera com spreads totais e margens.
+                <br><br>
+                💡 <strong>Para pagamento e informações completas, clique no botão abaixo.</strong>
+            </p>
             <a href="https://tchelojc.github.io/basquete/" target="_blank" class="card-link paid-link" data-url="https://tchelojc.github.io/basquete/">Acessar Plataforma</a>
             <a class="faq-link-button" href="#faq-card" onclick="event.preventDefault(); scrollToFAQ(event);">💰 Ver FAQ para Pagamento</a>
         </div>
         <div class="platform-card">
             <h3 class="card-title">⚽ Hedge Dinâmico – Futebol <span class="status-badge pago">Pago</span></h3>
-            <p class="card-description">Sistema completo para mercados de futebol: mais/menos gols, ambas marcam, handicaps e estatísticas avançadas com proteção automática.<br><br>💡 <strong>Para pagamento e informações completas, clique no botão abaixo.</strong></p>
+            <p class="card-description">
+                Sistema completo para mercados de futebol: mais/menos gols, ambas marcam, handicaps e estatísticas avançadas com proteção automática.
+                <br><br>
+                💡 <strong>Para pagamento e informações completas, clique no botão abaixo.</strong>
+            </p>
             <a href="https://tchelojc.github.io/futebol/" target="_blank" class="card-link paid-link" data-url="https://tchelojc.github.io/futebol/">Acessar Plataforma</a>
             <a class="faq-link-button" href="#faq-card" onclick="event.preventDefault(); scrollToFAQ(event);">💰 Ver FAQ para Pagamento</a>
         </div>
         <div class="platform-card">
             <h3 class="card-title">🎾 Hedge Multiesportes <span class="status-badge pago">Pago</span></h3>
-            <p class="card-description">Vôlei, tênis e lutas (MMA/Boxe) com configuração automática por esporte, estratégias por sets/rounds e operação ao vivo.<br><br>💡 <strong>Para pagamento e informações completas, clique no botão abaixo.</strong></p>
+            <p class="card-description">
+                Vôlei, tênis e lutas (MMA/Boxe) com configuração automática por esporte, estratégias por sets/rounds e operação ao vivo.
+                <br><br>
+                💡 <strong>Para pagamento e informações completas, clique no botão abaixo.</strong>
+            </p>
             <a href="https://tchelojc.github.io/Multioperador/" target="_blank" class="card-link paid-link" data-url="https://tchelojc.github.io/Multioperador/">Acessar Plataforma</a>
             <a class="faq-link-button" href="#faq-card" onclick="event.preventDefault(); scrollToFAQ(event);">💰 Ver FAQ para Pagamento</a>
         </div>
     </div>
-
+    
+    <!-- Categoria: Livros -->
     <h2 class="category-title">Livros</h2>
     <div class="cards-container">
-        <a href="https://tchelojc.github.io/codigo_divino/" target="_blank" class="platform-card"><h3 class="card-title">Código Divino - O Manifesto do Fluxo <span class="status-badge">Online</span></h3><p class="card-description">Prefácio Cósmico: Onde a Loucura se Transforma em Lucidez. Sistema operacional para realidades que ousam questionar sua própria sanidade.</p><span class="card-link">Ler Livro</span></a>
-        <a href="https://livros-jwjhhij6hjs4n7qxgd3xmz.streamlit.app/" target="_blank" class="platform-card"><h3 class="card-title">Caos do Passado Sendo Vivivdo no Futuro <span class="status-badge">Online</span></h3><p class="card-description">Explora as conexões entre eventos passados e suas manifestações futuras através de uma perspectiva quântica.</p><span class="card-link">Ler Livro</span></a>
-        <a href="https://livros-alwkohoykgaioy7m8y8ns6.streamlit.app/" target="_blank" class="platform-card"><h3 class="card-title">Liberdade Dentro do Caos <span class="status-badge">Online</span></h3><p class="card-description">Uma análise profunda sobre como encontrar ordem e liberdade em meio à aparente desordem do universo.</p><span class="card-link">Ler Livro</span></a>
-        <a href="https://livros-cbakzabjpbyxwpgjbsgap5.streamlit.app/" target="_blank" class="platform-card"><h3 class="card-title">O Presidente <span class="status-badge">Online</span></h3><p class="card-description">Estudo sobre liderança, poder e tomada de decisões em contextos complexos e sistemas dinâmicos.</p><span class="card-link">Ler Livro</span></a>
-        <a href="https://livros-qjxclgnty24kt8gngupopm.streamlit.app/" target="_blank" class="platform-card"><h3 class="card-title">Preconceito Quântico <span class="status-badge">Online</span></h3><p class="card-description">Investiga as limitações perceptivas humanas e como elas distorcem nossa compreensão da realidade quântica.</p><span class="card-link">Ler Livro</span></a>
-        <a href="https://livros-9fq2vxbzawxxwvxguwnewt.streamlit.app/" target="_blank" class="platform-card"><h3 class="card-title">Paradoxo dos Movimentos <span class="status-badge">Online</span></h3><p class="card-description">Análise dos paradoxos inerentes aos sistemas em movimento e suas implicações na física moderna.</p><span class="card-link">Ler Livro</span></a>
-        <a href="https://livros-zgkycz4zkstv6iw4avs8ou.streamlit.app/" target="_blank" class="platform-card"><h3 class="card-title">"Fuder" ou não Foder, Éis a Questão <span class="status-badge">Online</span></h3><p class="card-description">Uma reflexão filosófica sobre escolhas, consequências e a natureza dual da existência humana.</p><span class="card-link">Ler Livro</span></a>
+        <a href="https://tchelojc.github.io/codigo_divino/" target="_blank" class="platform-card">
+            <h3 class="card-title">Código Divino - O Manifesto do Fluxo <span class="status-badge">Online</span></h3>
+            <p class="card-description">Prefácio Cósmico: Onde a Loucura se Transforma em Lucidez. Sistema operacional para realidades que ousam questionar sua própria sanidade.</p>
+            <span class="card-link">Ler Livro</span>
+        </a>
+        <a href="https://livros-jwjhhij6hjs4n7qxgd3xmz.streamlit.app/" target="_blank" class="platform-card">
+            <h3 class="card-title">Caos do Passado Sendo Vivivdo no Futuro <span class="status-badge">Online</span></h3>
+            <p class="card-description">Explora as conexões entre eventos passados e suas manifestações futuras através de uma perspectiva quântica.</p>
+            <span class="card-link">Ler Livro</span>
+        </a>
+        <a href="https://livros-alwkohoykgaioy7m8y8ns6.streamlit.app/" target="_blank" class="platform-card">
+            <h3 class="card-title">Liberdade Dentro do Caos <span class="status-badge">Online</span></h3>
+            <p class="card-description">Uma análise profunda sobre como encontrar ordem e liberdade em meio à aparente desordem do universo.</p>
+            <span class="card-link">Ler Livro</span>
+        </a>
+        <a href="https://livros-cbakzabjpbyxwpgjbsgap5.streamlit.app/" target="_blank" class="platform-card">
+            <h3 class="card-title">O Presidente <span class="status-badge">Online</span></h3>
+            <p class="card-description">Estudo sobre liderança, poder e tomada de decisões em contextos complexos e sistemas dinâmicos.</p>
+            <span class="card-link">Ler Livro</span>
+        </a>
+        <a href="https://livros-qjxclgnty24kt8gngupopm.streamlit.app/" target="_blank" class="platform-card">
+            <h3 class="card-title">Preconceito Quântico <span class="status-badge">Online</span></h3>
+            <p class="card-description">Investiga as limitações perceptivas humanas e como elas distorcem nossa compreensão da realidade quântica.</p>
+            <span class="card-link">Ler Livro</span>
+        </a>
+        <a href="https://livros-9fq2vxbzawxxwvxguwnewt.streamlit.app/" target="_blank" class="platform-card">
+            <h3 class="card-title">Paradoxo dos Movimentos <span class="status-badge">Online</span></h3>
+            <p class="card-description">Análise dos paradoxos inerentes aos sistemas em movimento e suas implicações na física moderna.</p>
+            <span class="card-link">Ler Livro</span>
+        </a>
+        <a href="https://livros-zgkycz4zkstv6iw4avs8ou.streamlit.app/" target="_blank" class="platform-card">
+            <h3 class="card-title">"Fuder" ou não Foder, Éis a Questão <span class="status-badge">Online</span></h3>
+            <p class="card-description">Uma reflexão filosófica sobre escolhas, consequências e a natureza dual da existência humana.</p>
+            <span class="card-link">Ler Livro</span>
+        </a>
     </div>
 
+    <!-- Categoria: Ferramentas ALMA -->
     <h2 class="category-title">🔧 Ferramentas ALMA</h2>
     <div class="cards-container">
-        <a href="https://tchelojc.github.io/editor_html/interface_genesis.html" target="_blank" class="platform-card"><h3 class="card-title">GÊNESIS BUILDER PRO <span class="status-badge">Online</span></h3><p class="card-description">Plataforma de criação de interfaces web com sistema visual de construção, múltiplos templates, configuração avançada e exportação de projetos completos.</p><span class="card-link">Iniciar Criação</span></a>
-        <a href="https://qrcode-k5xv38lfcahgq5xosp5wuu.streamlit.app" target="_blank" class="platform-card"><h3 class="card-title">Gerador QRcode <span class="status-badge">Online</span></h3><p class="card-description">Transforme informações em portais dimensionais com QR Codes personalizados e cósmicos.</p><span class="card-link">Criar QRcode</span></a>
-        <a href="https://editor-video-suuoupysctxpjqp2phuur3.streamlit.app/" target="_blank" class="platform-card"><h3 class="card-title">STUDIO PRO EDITOR AI <span class="status-badge">Online</span></h3><p class="card-description">Plataforma avançada para Edição Completa de Vídeo e Áudio • IA Integrada • Fácil e Poderoso</p><span class="card-link">Editar</span></a>
+        <a href="https://tchelojc.github.io/editor_html/interface_genesis.html" target="_blank" class="platform-card">
+            <h3 class="card-title">GÊNESIS BUILDER PRO <span class="status-badge">Online</span></h3>
+            <p class="card-description">Plataforma de criação de interfaces web com sistema visual de construção, múltiplos templates, configuração avançada e exportação de projetos completos.</p>
+            <span class="card-link">Iniciar Criação</span>
+        </a>
+        <a href="https://qrcode-k5xv38lfcahgq5xosp5wuu.streamlit.app" target="_blank" class="platform-card">
+            <h3 class="card-title">Gerador QRcode <span class="status-badge">Online</span></h3>
+            <p class="card-description">Transforme informações em portais dimensionais com QR Codes personalizados e cósmicos.</p>
+            <span class="card-link">Criar QRcode</span>
+        </a>
+        <a href="https://editor-video-suuoupysctxpjqp2phuur3.streamlit.app/" target="_blank" class="platform-card">
+            <h3 class="card-title">STUDIO PRO EDITOR AI <span class="status-badge">Online</span></h3>
+            <p class="card-description">Plataforma avançada para Edição Completa de Vídeo e Áudio • IA Integrada • Fácil e Poderoso</p>
+            <span class="card-link">Editar</span>
+        </a>
     </div>
 
+    <!-- Categoria: FAQ (card alvo) -->
     <h2 class="category-title">FAQ</h2>
     <div class="cards-container" id="faq-card">
-        <a href="https://almafluxo.uk/contato" target="_blank" class="platform-card"><h3 class="card-title">FAQ <span class="status-badge">Online</span></h3><p class="card-description">Página para Entrar em Contato para envios de E-mail, Licenças, Pagamentos e Dúvidas Frequentes</p><span class="card-link">contato</span></a>
+        <a href="https://almafluxo.uk/contato" target="_blank" class="platform-card">
+            <h3 class="card-title">FAQ <span class="status-badge">Online</span></h3>
+            <p class="card-description">Página para Entrar em Contato para envios de E-mail, Licenças, Pagamentos e Dúvidas Frequentes</p>
+            <span class="card-link">contato</span>
+        </a>
     </div>
 
     <!-- MODAL DE AUTENTICAÇÃO (COM CÂMERA) -->
@@ -650,7 +864,7 @@
                 faceMessage.innerHTML = '❌ URL de destino não encontrada. Tente novamente.';
                 return;
             }
-            // Simula processamento
+            // Simula processamento (você pode integrar uma API real de reconhecimento facial aqui)
             faceMessage.innerHTML = '🔄 Processando reconhecimento facial...';
             setTimeout(() => {
                 faceMessage.innerHTML = '✅ Reconhecimento facial aprovado! Redirecionando...';
@@ -663,7 +877,7 @@
             }, 1500);
         }
 
-        // ==================== CÓDIGO DO MODAL ALMAFLUXO (COMPLETO) ====================
+        // ==================== CÓDIGO DO MODAL ALMAFLUXO (original completo) ====================
         const almafluxoState = {
             currentTheme: null,
             userQuery: '',
