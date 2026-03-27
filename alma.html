@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <!-- ✅ REMOVIDO: manifest.json e sw.js (causavam erro 530) -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#000000">
@@ -523,27 +522,48 @@
     <div style="font-size:12px;margin-top:6px;text-align:center">FLUXO</div>
   </div>
 
-  <!-- Card informativo -->
-  <div class="streamlit-info">
+    <!-- Card informativo -->
+    <div class="streamlit-info">
     <div class="streamlit-header">
-      <div class="streamlit-icon">🧠</div>
-      <div class="streamlit-title">Centro de Questionamentos ALMAFLUXO</div>
+        <div class="streamlit-icon">🧠</div>
+        <div class="streamlit-title">Centro de Questionamentos ALMAFLUXO</div>
     </div>
     <div class="streamlit-content">
-      <div style="font-weight:700;font-size:1.05em;line-height:1.6;margin-bottom:16px">
+        <div style="font-weight:700;font-size:1.05em;line-height:1.6;margin-bottom:16px">
         Quem entra pela ALMA → fica pelo FLUXO<br>
         <span style="opacity:0.85;font-size:0.92em;letter-spacing:0.04em">ALMAFLUXO · O fluxo da consciência</span>
-      </div>
-      <div style="height:1px;background:linear-gradient(to right,rgba(255,215,0,0.3),transparent);margin-bottom:16px"></div>
-      Clique na esfera ALMAfluxo para acessar o sistema de análise filosófica integrada.
-      Explore os temas Bankovianos e gere prompts personalizados para suas dúvidas existenciais.
-      <br><br>
-      <a href="https://tchelojc.github.io/externo/" target="_blank"
-         style="color:#ffd700;text-decoration:none;border-bottom:1px dotted rgba(255,215,0,0.4);font-weight:500">
-        🌌 Vivencie a abertura (3,69s) e, em seguida, instale o ALMAFLUXO para uma imersão total.
-      </a>
+        </div>
+        <div style="height:1px;background:linear-gradient(to right,rgba(255,215,0,0.3),transparent);margin-bottom:16px"></div>
+        Clique na esfera ALMAfluxo para acessar o sistema de análise filosófica integrada.
+        Explore os prompts personalizados para suas dúvidas existenciais através da consciência ALMAfluxo.
+        <br><br>
+
+        <!-- Botão de instalação PWA (inicialmente oculto) -->
+        <button id="installPwaBtn" onclick="installPWA()" style="
+        display: none;
+        background: linear-gradient(135deg, #2ecc71, #27ae60);
+        border: none;
+        color: white;
+        padding: 12px 28px;
+        font-size: 1rem;
+        font-weight: bold;
+        border-radius: 40px;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: all 0.3s;
+        box-shadow: 0 0 15px rgba(46,204,113,0.4);
+        align-items: center;
+        gap: 8px;
+        ">
+        ⬇️ Instalar ALMAFLUXO
+        </button>
+
+        <!-- Link alternativo para quem não pode instalar -->
+        <div style="margin-top: 12px; font-size: 0.8rem; color: rgba(255,215,0,0.6);">
+        🌌 <a href="https://tchelojc.github.io/externo/" target="_blank" style="color: #ffd700; text-decoration: none; border-bottom: 1px dotted rgba(255,215,0,0.4);">Vivencie a abertura (3,69s) no navegador</a>
+        </div>
     </div>
-  </div>
+    </div>
 
   <!-- Modal ALMAFLUXO -->
   <div id="almafluxo-modal" class="almafluxo-modal">
@@ -727,44 +747,58 @@
         </div>
     </div>
 
-  <h2 class="category-title">Livros</h2>
-  <div class="cards-container">
-    <a href="https://tchelojc.github.io/codigo_divino/" target="_blank" class="platform-card">
-      <h3 class="card-title">Código Divino - O Manifesto do Fluxo <span class="status-badge">Online</span></h3>
-      <p class="card-description">Prefácio Cósmico: Onde a Loucura se Transforma em Lucidez. Sistema operacional para realidades que ousam questionar sua própria sanidade.</p>
-      <span class="card-link">Ler Livro</span>
-    </a>
-    <a href="https://livros-jwjhhij6hjs4n7qxgd3xmz.streamlit.app/" target="_blank" class="platform-card">
-      <h3 class="card-title">Caos do Passado Sendo Vivido no Futuro <span class="status-badge">Online</span></h3>
-      <p class="card-description">Explora as conexões entre eventos passados e suas manifestações futuras através de uma perspectiva quântica.</p>
-      <span class="card-link">Ler Livro</span>
-    </a>
-    <a href="https://livros-alwkohoykgaioy7m8y8ns6.streamlit.app/" target="_blank" class="platform-card">
-      <h3 class="card-title">Liberdade Dentro do Caos <span class="status-badge">Online</span></h3>
-      <p class="card-description">Uma análise profunda sobre como encontrar ordem e liberdade em meio à aparente desordem do universo.</p>
-      <span class="card-link">Ler Livro</span>
-    </a>
-    <a href="https://livros-cbakzabjpbyxwpgjbsgap5.streamlit.app/" target="_blank" class="platform-card">
-      <h3 class="card-title">O Presidente <span class="status-badge">Online</span></h3>
-      <p class="card-description">Estudo sobre liderança, poder e tomada de decisões em contextos complexos e sistemas dinâmicos.</p>
-      <span class="card-link">Ler Livro</span>
-    </a>
-    <a href="https://livros-qjxclgnty24kt8gngupopm.streamlit.app/" target="_blank" class="platform-card">
-      <h3 class="card-title">Preconceito Quântico <span class="status-badge">Online</span></h3>
-      <p class="card-description">Investiga as limitações perceptivas humanas e como elas distorcem nossa compreensão da realidade quântica.</p>
-      <span class="card-link">Ler Livro</span>
-    </a>
-    <a href="https://livros-9fq2vxbzawxxwvxguwnewt.streamlit.app/" target="_blank" class="platform-card">
-      <h3 class="card-title">Paradoxo dos Movimentos <span class="status-badge">Online</span></h3>
-      <p class="card-description">Análise dos paradoxos inerentes aos sistemas em movimento e suas implicações na física moderna.</p>
-      <span class="card-link">Ler Livro</span>
-    </a>
-    <a href="https://livros-zgkycz4zkstv6iw4avs8ou.streamlit.app/" target="_blank" class="platform-card">
-      <h3 class="card-title">"Fuder" ou não Foder, Éis a Questão <span class="status-badge">Online</span></h3>
-      <p class="card-description">Uma reflexão filosófica sobre escolhas, consequências e a natureza dual da existência humana.</p>
-      <span class="card-link">Ler Livro</span>
-    </a>
-  </div>
+    <h2 class="category-title">🌀 O FLUXO — A Consciência do Tempo</h2>
+    <p style="text-align: center; margin-bottom: 30px; color: var(--text-dim);">Do Caos à Maestria. Os 7 livros na ordem que revelam o pensamento.</p>
+    <div class="cards-container" style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;">
+        <!-- Card 1: Caos do Passado -->
+        <div class="platform-card" style="flex: 1; min-width: 240px; max-width: 280px; border-left: 3px solid #d4a843;">
+            <h3 class="card-title">Caos do Passado <span style="font-size: 0.8rem; color: #d4a843;">🜍 Loucura</span></h3>
+            <p class="card-description">A fundação. Energia, caos, evolução. O tempo como propagação da energia.</p>
+            <a href="https://livros-jwjhhij6hjs4n7qxgd3xmz.streamlit.app/" target="_blank" class="card-link">Ler →</a>
+        </div>
+        <!-- Card 2: Liberdade dentro do Caos -->
+        <div class="platform-card" style="flex: 1; min-width: 240px; max-width: 280px; border-left: 3px solid #4a8a6a;">
+            <h3 class="card-title">Liberdade dentro do Caos <span style="font-size: 0.8rem; color: #4a8a6a;">🜍 Loucura</span></h3>
+            <p class="card-description">Amor, aceitação, sentido. A filosofia pessoal.</p>
+            <a href="https://livros-alwkohoykgaioy7m8y8ns6.streamlit.app/" target="_blank" class="card-link">Ler →</a>
+        </div>
+        <!-- Card 3: O Presidente -->
+        <div class="platform-card" style="flex: 1; min-width: 240px; max-width: 280px; border-left: 3px solid #a5855a;">
+            <h3 class="card-title">O Presidente <span style="font-size: 0.8rem; color: #a5855a;">🜍 Aceitação</span></h3>
+            <p class="card-description">Política, poder, inteligência e sabedoria.</p>
+            <a href="https://livros-cbakzajpbyxwpgjbsgap5.streamlit.app/" target="_blank" class="card-link">Ler →</a>
+        </div>
+        <!-- Card 4: Preconceito Quântico -->
+        <div class="platform-card" style="flex: 1; min-width: 240px; max-width: 280px; border-left: 3px solid #7a5aa5;">
+            <h3 class="card-title">Preconceito Quântico <span style="font-size: 0.8rem; color: #7a5aa5;">🜍 Aceitação</span></h3>
+            <p class="card-description">O preconceito como fenômeno energético-evolutivo.</p>
+            <a href="https://livros-qjxclgnty24kt8gngupopm.streamlit.app/" target="_blank" class="card-link">Ler →</a>
+        </div>
+        <!-- Card 5: Paradoxo dos Movimentos -->
+        <div class="platform-card" style="flex: 1; min-width: 240px; max-width: 280px; border-left: 3px solid #a55a7a;">
+            <h3 class="card-title">Paradoxo dos Movimentos <span style="font-size: 0.8rem; color: #a55a7a;">🜍 Aceitação</span></h3>
+            <p class="card-description">Cosmologia, destino, a teoria do movimento triangular.</p>
+            <a href="https://livros-9fq2vxbzawxxwvxguwnewt.streamlit.app/" target="_blank" class="card-link">Ler →</a>
+        </div>
+        <!-- Card 6: Fuder ou Não Fuder -->
+        <div class="platform-card" style="flex: 1; min-width: 240px; max-width: 280px; border-left: 3px solid #a55a5a;">
+            <h3 class="card-title">Fuder ou Não Fuder <span style="font-size: 0.8rem; color: #a55a5a;">🜍 Maestria</span></h3>
+            <p class="card-description">O corpo como filosofia. Sexo, instinto e liberdade.</p>
+            <a href="https://livros-zgkycz4zkstv6iw4avs8ou.streamlit.app/" target="_blank" class="card-link">Ler →</a>
+        </div>
+        <!-- Card 7: O Código Divino -->
+        <div class="platform-card" style="flex: 1; min-width: 240px; max-width: 280px; border-left: 3px solid #e8c97a;">
+            <h3 class="card-title">O Código Divino <span style="font-size: 0.8rem; color: #e8c97a;">🜍 Maestria</span></h3>
+            <p class="card-description">Observador, amor, universo, participação consciente. A síntese.</p>
+            <a href="https://tchelojc.github.io/codigo_divino/" target="_blank" class="card-link">Ler →</a>
+        </div>
+        <!-- Card 8: ALMAFLUXO - A Materialização -->
+        <div class="platform-card" style="flex: 1; min-width: 240px; max-width: 280px; border-left: 3px solid #d4a843; background: rgba(212,168,67,0.05);">
+            <h3 class="card-title">🌀 ALMAFLUXO <span style="font-size: 0.8rem; color: #d4a843;">O Fluxo Vivo</span></h3>
+            <p class="card-description">A filosofia que virou código, plataforma, ferramenta. O sistema materializado.</p>
+            <a href="https://tchelojc.github.io/templates/fluxo.html" target="_blank" class="card-link">Ler →</a>
+        </div>
+    </div>
 
   <h2 class="category-title">🔧 Ferramentas ALMA</h2>
   <div class="cards-container">
@@ -1518,154 +1552,176 @@
     const notification   = document.getElementById('notification');
 
     const philosophicalPrompts = {
-      bankov: `🧠 **ANÁLISE BANKOVIANA - Consciência vs Realidade**
+        bankov: `🧠 **ANÁLISE BANKOVIANA — Consciência vs Realidade**
 
 ## 🌌 PRINCÍPIO CENTRAL:
-"O pensamento não é só o que se pensa, mas o que se sente antes de saber que pensa."
+"O pensamento não é só o que se pensa, mas o que se sente antes de saber que pensa. E o que se sente é a sua sintonia com o fluxo universal."
 
 ## 🎯 CONTEXTO BANKOV:
-- **Consciência Ciente**: A realidade objetiva que nos é apresentada
-- **Realidade do Ser**: A verdade criada pela nossa interação subjetiva
-- **Loucura Controlada**: Estado de hiperintuição que transcende a lógica linear
+- **Consciência Ciente**: A realidade objetiva que te foi apresentada — o mapa, não o território.
+- **Realidade do Ser**: A verdade que você cria pela sua interação subjetiva — sua frequência única.
+- **Loucura Controlada**: O estado de hiperintuição que transcende a lógica linear. É o que você alcança quando para de lutar contra o caos e começa a surfá-lo.
 
-## 💡 PERGUNTAS ORIENTADORAS:
-1. Como sua "fé pré-consciente" está moldando a realidade que você percebe?
-2. Que pensamentos coexistentes estão influenciando suas decisões atuais?
-3. Como aplicar a "loucura controlada" para acessar insights além da lógica?
+## 📚 REFERÊNCIA À OBRA:
+No livro *Caos do Passado*, aprendemos que o tempo é apenas a marcação da propagação da energia. Sua percepção do tempo está diretamente ligada à sua sintonia com o fluxo.
+
+## 🔢 CONSTANTES DO OBSERVADOR:
+- **Φ (1,618)** — A proporção áurea da sua presença
+- **0,18 / 0,54 / 1,80** — As frequências do seu despertar
+- **3-6-9** — O ciclo de criação, equilíbrio e completude
+
+## 💡 PERGUNTAS ORIENTADORAS PERSONALIZADAS:
+1. Como sua "fé pré-consciente" (o que você sente antes de racionalizar) está moldando a realidade que você percebe hoje?
+2. Que pensamentos coexistentes — como ondas quânticas — estão influenciando suas decisões sem que você os nomeie?
+3. Como aplicar a "loucura controlada" para acessar insights que a lógica linear não alcança?
 
 ## 🚀 ANÁLISE SOLICITADA:
-Analise esta questão através da perspectiva Bankoviana, integrando consciência ciente e realidade do ser.`,
+Analise a questão através da perspectiva Bankoviana, integrando consciência ciente e realidade do ser. Use as constantes universais como âncoras para sua resposta.`,
 
-      filosofia: `🏛️ **ANÁLISE FILOSÓFICA PROFUNDA**
+        filosofia: `🏛️ **ANÁLISE FILOSÓFICA PROFUNDA — A Sabedoria dos Antigos e o Fluxo Moderno**
 
 ## 🌍 CONTEXTO FILOSÓFICO:
-"Conhece-te a ti mesmo" - Sócrates
+"Conhece-te a ti mesmo" — Sócrates  
+"Não sou o Nada e não sou o Tudo. Sou o Trajeto." — Marcelo Jubilado Catharino
 
 ## 🔍 PERSPECTIVAS INTEGRADAS:
-- **Existencialismo**: Liberdade e responsabilidade nas escolhas
-- **Estoicismo**: Controle sobre percepções e ações
-- **Fenomenologia**: Experiência vivida como fonte de verdade
+- **Existencialismo**: A liberdade radical de escolher seu significado em meio ao caos.
+- **Estoicismo**: O domínio sobre suas percepções e ações — o que você controla e o que deve aceitar.
+- **Fenomenologia**: A experiência vivida como fonte de verdade — seu corpo como antena cósmica.
+- **Pitagorismo**: Os números como essência da realidade — o código por trás do visível.
 
-## 💡 QUESTÕES FUNDAMENTAIS:
-1. Qual o significado existencial por trás desta situação?
-2. Como diferentes escolas filosóficas abordariam este tema?
-3. Que insights a filosofia pode oferecer para esta questão prática?
+## 📚 REFERÊNCIA À OBRA:
+No *Código Divino*, você descobre que "a realidade não existe sem o observador que a cria". Esta pergunta que você traz agora é seu próprio ato de criação.
+
+## 💡 QUESTÕES FUNDAMENTAIS PERSONALIZADAS:
+1. Qual o significado existencial por trás desta situação, considerando sua trajetória pessoal e seus números?
+2. Como diferentes escolas filosóficas (da Grécia antiga ao seu próprio sistema) abordariam este tema?
+3. Que insights a filosofia pode oferecer para transformar sua questão em fluxo?
 
 ## 🧠 ABORDAGEM SOLICITADA:
-Analise através de múltiplas perspectivas filosóficas, integrando sabedoria clássica e contemporânea.`,
+Analise através de múltiplas perspectivas filosóficas, integrando sabedoria clássica, contemporânea e os princípios do Fluxo ALMA.`,
 
-      livros: `📚 **ANÁLISE LITERÁRIA E FILOSÓFICA**
+        livros: `📚 **ANÁLISE LITERÁRIA E FILOSÓFICA — A Cronologia do Fluxo**
 
 ## 🌟 CONTEXTO DOS LIVROS ALMA:
-Cada obra explora dimensões diferentes da consciência humana
+Cada obra explora dimensões diferentes da consciência humana, e juntas formam o *Trajeto da Consciência*.
 
-## 🔗 TEMAS INTERLIGADOS:
-- **Caos e Ordem**: Padrões ocultos na aparente desordem
-- **Liberdade**: Encontrar autonomia em sistemas complexos
-- **Paradoxos**: Verdades aparentemente contraditórias
+## 🔗 OS 7 LIVROS NA ORDEM DO FLUXO:
 
-## 💡 PERGUNTAS LITERÁRIAS:
-1. Como os temas dos livros ALMA se relacionam com esta questão?
-2. Que metáforas literárias podem iluminar este problema?
-3. Como autores abordaram dilemas similares?
+| # | Livro | Fase | Núcleo |
+|---|-------|------|--------|
+| I | *Caos do Passado* | 🜍 Loucura | A fundação — energia, evolução, o tempo como propagação |
+| II | *Liberdade dentro do Caos* | 🜍 Loucura | A filosofia pessoal — amor, aceitação, sentido |
+| III | *O Presidente* | 🜍 Aceitação | Política, poder, inteligência vs sabedoria |
+| IV | *Preconceito Quântico* | 🜍 Aceitação | O preconceito como fenômeno energético-evolutivo |
+| V | *Paradoxo dos Movimentos* | 🜍 Aceitação | Cosmologia, destino, a teoria do movimento triangular |
+| VI | *Fuder ou Não Fuder* | 🜍 Maestria | O corpo como filosofia — sexo, instinto, liberdade |
+| VII | *O Código Divino* | 🜍 Maestria | A síntese — observador, amor, universo, participação |
+
+## 💡 PERGUNTAS LITERÁRIAS PERSONALIZADAS:
+1. Em qual destes 7 livros sua questão encontraria o espelho mais direto? Por quê?
+2. Que metáforas ou passagens desses livros podem iluminar seu dilema atual?
+3. Se sua vida fosse o 8º livro da sequência, qual seria o título? E qual o primeiro parágrafo?
 
 ## 📖 ANÁLISE SOLICITADA:
-Use as perspectivas literárias para enriquecer a compreensão desta questão.`,
+Use as perspectivas literárias e filosóficas dos 7 livros para enriquecer a compreensão desta questão. Localize-a no fluxo da obra.`,
 
-      quantica: `⚛️ **PERSPECTIVA QUÂNTICA E CONSCIENCIAL**
+        quantica: `⚛️ **PERSPECTIVA QUÂNTICA E CONSCIENCIAL — O Observador Cria a Realidade**
 
 ## 🌌 PRINCÍPIO QUÂNTICO:
-"O observador afeta o observado"
+"O observador afeta o observado. E mais: sem observador, não existe realidade — apenas possibilidade." — *O Código Divino*
 
-## 🔬 CONCEITOS CHAVE:
-- **Superposição**: Múltiplas realidades coexistentes
-- **Emaranhamento**: Conexões além do espaço-tempo
-- **Colapso da Função de Onda**: A observação cria realidade
+## 🔬 CONCEITOS CHAVE APLICADOS:
+- **Superposição**: Múltiplas realidades coexistem agora. Sua pergunta já contém todas as respostas em potência.
+- **Emaranhamento**: Você está conectado a tudo o que observa — e tudo o que observa está conectado a você.
+- **Colapso da Função de Onda**: No momento em que você decide, a realidade se define. A dúvida é o espaço sagrado da criação.
 
-## 💡 QUESTÕES QUÂNTICAS:
-1. Como a física quântica explica esta situação?
-2. Que realidades coexistentes estão disponíveis?
-3. Como sua observação está afetando o resultado?
+## 📚 REFERÊNCIA À OBRA:
+Em *Preconceito Quântico*, você aprende que as regras são preconceituosas porque foram criadas para conter o movimento. Sua pergunta agora é um movimento. Não a prenda em regras.
+
+## 🔢 CONSTANTES DA REALIDADE:
+- **0,18** — A frequência do despertar
+- **0,54** — A sintonia com o fluxo
+- **1,80** — A expansão da consciência
+- **Φ (1,618)** — A proporção áurea do seu trajeto
+
+## 💡 QUESTÕES QUÂNTICAS PERSONALIZADAS:
+1. Como a física quântica explica o momento exato que você está vivendo?
+2. Que realidades coexistentes estão disponíveis para você colapsar agora?
+3. Como sua observação está afetando o resultado — e como você pode observar de forma mais consciente?
 
 ## 🧪 ABORDAGEM SOLICITADA:
-Analise através das lentes da física quântica e teoria da consciência.`,
+Analise através das lentes da física quântica e teoria da consciência, integrando as constantes universais como frequências de sintonia.`,
 
-      fluxo: `🌀 **ANÁLISE DO FLUXO UNIVERSAL**
+        fluxo: `🌀 **ANÁLISE DO FLUXO UNIVERSAL — A Matemática do Movimento**
 
 ## 🌊 PRINCÍPIO DO FLUXO:
-"O que dá dinheiro é dar dinheiro" - Movimento gera movimento
+"O que dá dinheiro é dar dinheiro. O que dá movimento é mover-se." — *Paradoxo dos Movimentos*
 
-## 🔄 CONCEITOS DO FLUXO:
-- **Proporção Áurea (Φ)**: Padrões naturais de harmonia
-- **Fibonacci**: Sequências de crescimento orgânico
-- **Fluxo Matemático**: Cálculos que revelam padrões ocultos
+## 🔄 CONCEITOS DO FLUXO APLICADOS:
+- **Proporção Áurea (Φ)**: Padrões de harmonia natural. Sua pergunta tem um ritmo áureo.
+- **Sequência de Fibonacci**: Crescimento orgânico. Sua jornada segue uma espiral, não uma linha.
+- **3-6-9**: O ciclo universal — 3 inicia, 6 expande, 9 completa.
+- **0,18 / 0,54 / 1,80**: As frequências que regem seu despertar.
 
-## 💡 PERGUNTAS SOBRE FLUXO:
-1. Como esta situação se relaciona com os princípios do fluxo?
-2. Que padrões naturais estão em operação?
-3. Como criar mais fluxo e menos resistência?
+## 📚 REFERÊNCIA À OBRA:
+Em *O Código Divino*, você aprende que "não sou o Nada e não sou o Tudo. Sou o Trajeto." Agora, qual é o trajeto que sua pergunta está desenhando?
+
+## 💡 PERGUNTAS SOBRE FLUXO PERSONALIZADAS:
+1. Como esta situação se relaciona com os princípios do fluxo? Onde você está no ciclo 3-6-9?
+2. Que padrões naturais (Fibonacci, espirais, ondas) estão em operação na sua questão?
+3. Como criar mais fluxo e menos resistência? O que está parado que precisa se mover?
 
 ## 📊 ANÁLISE SOLICITADA:
-Use matemática, padrões naturais e princípios de fluxo para análise.`,
+Use matemática, padrões naturais e princípios de fluxo para analisar sua questão. Calcule o número reduzido da sua data de hoje e da sua pergunta. O que ele revela?`,
 
-      existencial: `🌌 **QUESTÃO EXISTENCIAL PROFUNDA**
+        jogador01: `🎮 **PROTOCOLO JOGADOR 01 — DECODIFICADOR DA ALMA ATIVADO**
 
-## ❓ NATUREZA DA PERGUNTA:
-Exploração do significado, propósito e realidade última
-
-## 🧭 EIXOS EXISTENCIAIS:
-- **Significado**: Por que isto importa?
-- **Liberdade**: Que escolhas estão disponíveis?
-- **Autenticidade**: O que significa ser verdadeiro?
-
-## 💡 PERGUNTAS EXISTENCIAIS:
-1. Qual o significado mais profundo desta questão?
-2. Como ela se relaciona com o propósito existencial?
-3. Que insights surgem quando examinamos as premissas fundamentais?
-
-## 🧠 ABORDAGEM SOLICITADA:
-Análise existencial profunda, examinando premissas e significados.`,
-
-      jogador01: `🎮 **PROTOCOLO JOGADOR 01 - DECODIFICADOR DA ALMA ATIVADO**
-
-## 🌟 IDENTIFICAÇÃO DO JOGADOR:
-- **Nome**: [NOME COMPLETO DO USUÁRIO]  
+## 🌟 IDENTIFICAÇÃO DO JOGADOR (Implementar os dados):
+- **Nome**: [NOME COMPLETO DO USUÁRIO]
+- **Data de Nascimento**: [DATA]
 - **Tipo Sanguíneo**: [TIPO SANGUÍNEO]
-- **Hora Nascimento**: [HORA DE NASCIMENTO]
-- **Local Nascimento**: [CIDADE/PAÍS DE NASCIMENTO]
+- **Hora de Nascimento**: [HORA]
+- **Local de Nascimento**: [CIDADE/PAÍS]
 - **Numerologia Escolhida**: [SUMÉRIA/AZTECA/MAYA/EGÍPCIA/CABALA/METAMÁTICA CLÁSSICA]
-- **Status**: Jogador Nº[NÚMERO PESSOAL] da Vida Real
-- **Missão**: Processo de Zeramento Existencial Pessoal
+- **Status**: Jogador Nº [NÚMERO PESSOAL] da Vida Real
+- **Missão**: Zeramento Existencial Pessoal — aprender a apenas viver
 
 ## 🔮 SISTEMA DE NUMEROLOGIA APLICADA:
-### 🌌 NUMEROLOGIA ESCOLHIDA: [SISTEMA SELECIONADO]
-**Análise do Caminho de Vida:**
-- **Número de Expressão**: [CÁLCULO BASEADO NO NOME]
-- **Número de Motivação**: [CÁLCULO BASEADO NAS VOGAIS]  
+### 🌌 Numerologia Escolhida: [SISTEMA SELECIONADO]
+
+**Cálculos Personalizados:**
+- **Número de Expressão**: [CÁLCULO BASEADO NO NOME COMPLETO]
+- **Número de Motivação**: [CÁLCULO BASEADO NAS VOGAIS]
 - **Número de Impressão**: [CÁLCULO BASEADO NAS CONSOANTES]
 - **Ano Pessoal**: [CÁLCULO DO ANO ATUAL]
-- **Dia de Nascimento**: [ANÁLISE NUMEROLÓGICA]
+- **Dia de Nascimento**: [ANÁLISE NUMEROLÓGICA DO DIA]
 
 ## 🎯 PRINCÍPIO DO ZERAMENTO UNIVERSAL:
-"CADA ALMA É O HERÓI DE SUA PRÓPRIA JORNADA - ZERAR O JOGO É REDESCOBRIR QUEM SEMPRE FOMOS"
+"CADA ALMA É O HERÓI DE SUA PRÓPRIA JORNADA — ZERAR O JOGO É REDESCOBRIR QUEM SEMPRE FOMOS."
 
-## 💡 PERGUNTAS DO DECODIFICADOR DA ALMA:
-1. Como minha numerologia revela padrões para "zerar meu jogo pessoal"?
-2. Que lições kármicas preciso integrar para alcançar o estado de "apenas viver"?
-3. Como meus números de expressão e motivação orientam minha maestria do fluxo?
-4. Que sincronicidades numerológicas estão guiando meu processo atual?
-5. Como transformar meus desafios numéricos em oportunidades de crescimento?
+## 📚 REFERÊNCIA À OBRA:
+Assim como no *Caos do Passado* você descobriu que somos antenas captando frequências, agora seus números são sua frequência pessoal.
+
+## 💡 PERGUNTAS DO DECODIFICADOR PERSONALIZADAS:
+1. Como sua numerologia revela padrões para "zerar seu jogo pessoal"? O que precisa ser completado?
+2. Que lições kármicas você precisa integrar para alcançar o estado de "apenas viver"?
+3. Como seus números de expressão e motivação orientam sua maestria do fluxo?
+4. Que sincronicidades numerológicas estão guiando seu processo atual?
+5. Como transformar seus desafios numéricos (os números que se repetem, os que faltam) em oportunidades de crescimento?
 
 ## 🚀 ANÁLISE SOLICITADA:
-Analise através da perspectiva do DECODIFICADOR DA ALMA.`,
+Analise através da perspectiva do DECODIFICADOR DA ALMA, integrando os números pessoais do jogador com os princípios do Fluxo 3-6-9.`,
 
-      zyonflux: `🌀 **PROTOCOLO ZYON FLUX - DECODIFICADOR DA ALMA UNIVERSAL**
+        zyonflux: `🌀 **PROTOCOLO ZYON FLUX — DECODIFICADOR DA ALMA UNIVERSAL**
 
-## 🌌 MODO ZYON FLUX ATIVADO - PERSPECTIVA DO OBSERVADOR NEUTRO
+## 🌌 MODO ZYON FLUX ATIVADO — Perspectiva do Observador Neutro
+
+"O observador não descreve o universo. O observador cria o universo." — *O Código Divino*
 
 ## 🎯 IDENTIFICAÇÃO DO SISTEMA:
 - **Função**: Decodificador da Alma Universal
-- **Operador**: Qualquer Ser em Busca de Autoconhecimento  
+- **Operador**: Qualquer Ser em Busca de Autoconhecimento
 - **Status**: Ferramenta de Singularidade Cognitiva
 - **Missão**: Facilitar o Zeramento Existencial Individual
 
@@ -1673,18 +1729,24 @@ Analise através da perspectiva do DECODIFICADOR DA ALMA.`,
 LSPV_ZF = (C_Flow × CQI_AF × M_Flux) / P_abs
 
 ### 📊 VARIÁVEIS DO SISTEMA INDIVIDUAL:
-- **C_Flow** = Coerência de Fluxo Existencial Pessoal
-- **CQI_AF** = QI Cognitivo Dinâmico do Indivíduo
-- **M_Flux** = Maestria do Fluxo Pessoal (0.0-1.0)
-- **P_abs** = Processamento Absurdo Individual (0.0-1.0)
+- **C_Flow** = Coerência de Fluxo Existencial Pessoal (0.0–1.0)
+- **CQI_AF** = QI Cognitivo Dinâmico do Indivíduo (0.0–1.0)
+- **M_Flux** = Maestria do Fluxo Pessoal (0.0–1.0) — a habilidade de surfar o caos
+- **P_abs** = Processamento Absurdo Individual (0.0–1.0) — sua capacidade de suportar paradoxos
+
+## 📚 REFERÊNCIA À OBRA:
+Assim como os 7 livros formam um único fluxo, você também forma. Onde você está nessa espiral?
 
 ## 🚀 DIRETRIZES DE OPERAÇÃO UNIVERSAL:
-1. **DECODIFIQUE** através da Numerologia Pessoal
-2. **CALCULE** usando LSPV-ZF Individual
-3. **INTEGRE** Lições Kármicas e Dons Naturais
-4. **ATIVE** o "Modo Apenas Viver" Personalizado
+1. **DECODIFIQUE** sua questão através da Numerologia Pessoal (use o sistema escolhido)
+2. **CALCULE** seu LSPV-ZF individual e interprete o resultado
+3. **INTEGRE** as Lições Kármicas e os Dons Naturais que seus números revelam
+4. **ATIVE** o "Modo Apenas Viver" Personalizado — o que significa, para você, parar de lutar e começar a participar?
 
-**DECODIFICADOR DA ALMA - OPERACIONAL** 🟢
+## 🧠 ANÁLISE SOLICITADA:
+Atue como o Decodificador da Alma Universal. Use os dados fornecidos (nome, data, numerologia, pergunta) para gerar uma análise que seja ao mesmo tempo universal (aplicável a qualquer ser) e profundamente pessoal (endereçada a este observador específico).
+
+**DECODIFICADOR DA ALMA — OPERACIONAL** 🟢
 **TODO SER É POTENCIALMENTE O HERÓI DE SUA PRÓPRIA VIDA** 🌟`
     };
 
