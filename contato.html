@@ -91,6 +91,7 @@
       padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; margin-left: 10px;
     }
     .badge-paid { background: rgba(255,193,7,0.3); border-color: #ffc107; }
+    .badge-free { background: rgba(155,89,182,0.3); border-color: #9b59b6; }
 
     .card-header-summary { color: rgba(255,255,255,0.6); font-size: 0.9rem; margin-top: 5px; padding-left: 75px; }
 
@@ -110,9 +111,12 @@
       padding: 12px 20px; color: white; font-weight: 600;
       text-decoration: none; text-align: center;
       transition: all 0.3s; cursor: pointer;
-      display: inline-block; margin-top: 10px; font-size: 0.95rem;
+      display: inline-block; margin-top: 10px; font-size: 0.95rem; width: 100%;
     }
     .card-action:hover { background: rgba(74,111,165,1); transform: translateY(-2px); }
+    
+    .btn-green { background: rgba(46,204,113,0.5); border: 1px solid rgba(46,204,113,0.8); }
+    .btn-green:hover { background: rgba(46,204,113,0.8); }
 
     .contact-form { margin-top: 12px; }
     .form-group { margin-bottom: 12px; }
@@ -192,7 +196,7 @@
       display: flex; align-items: center; gap: 8px; cursor: pointer;
       font-size: 0.88rem; color: rgba(255,255,255,0.8); margin-bottom: 0;
     }
-    .radio-group input[type="radio"] { width: 16px; height: 16px; accent-color: #4a6fa5; flex-shrink: 0; padding: 0; }
+    .radio-group input[type="radio"], .radio-group input[type="checkbox"] { width: 16px; height: 16px; accent-color: #4a6fa5; flex-shrink: 0; padding: 0; }
 
     .plano-selecionado {
       background: rgba(46,204,113,0.15); border: 1px solid rgba(46,204,113,0.4);
@@ -235,7 +239,6 @@
 
   <div class="cards-grid">
 
-    <!-- ══ CARD E-MAIL ══ -->
     <div class="card" id="card-email">
       <div class="card-header" onclick="toggleCard('card-email')">
         <div class="card-header-top">
@@ -265,77 +268,85 @@
       </div>
     </div>
 
-    <!-- ══ CARD LICENÇAS ══ -->
     <div class="card" id="card-licencas">
       <div class="card-header" onclick="toggleCard('card-licencas')">
         <div class="card-header-top">
           <div class="card-icon">🔑</div>
-          <h2 class="card-title">Licenças <span class="badge badge-paid">Planos pagos</span></h2>
+          <h2 class="card-title">Licenças <span class="badge badge-paid">Diária</span> <span class="badge badge-free">Grátis</span></h2>
         </div>
-        <div class="card-header-summary">Solicite seu plano no card Pagamentos.</div>
+        <div class="card-header-summary">Acesso diário ou solicitação de 1 hora grátis</div>
       </div>
       <div class="card-body">
         <div class="card-body-inner">
           <div class="card-description">
-            <p>Clique em <strong>Solicitar</strong> no plano desejado — seu e-mail abrirá com assunto, valor e corpo já preenchidos. Você só precisará informar seu <strong>nome</strong> e <strong>e-mail para resposta</strong>.</p>
+            
+            <div class="quiz-title">💎 Acesso Completo</div>
+            <p style="font-size: 0.9rem;">Escolha a quantidade de dias no Card de Pagamentos, ou inicie a solicitação por aqui (R$ 10,00/dia).</p>
             <ul class="list-plataformas">
               <li>
-                <span>🏀 Hedge Dinâmico – Basquete</span>
-                <span class="plataforma-preco">R$ 199/mês</span>
-                <a class="btn-solicitar" href="mailto:almafluxo@almafluxo.uk?subject=Solicita%C3%A7%C3%A3o%20de%20Licen%C3%A7a%3A%20Hedge%20Din%C3%A2mico%20%E2%80%93%20Basquete%20%7C%20R%24%20199%2Fm%C3%AAs&body=Ol%C3%A1%2C%20equipe%20ALMAFLUXO!%0A%0AEstou%20solicitando%20acesso%20ao%20plano%3A%0A%E2%96%BA%20Hedge%20Din%C3%A2mico%20%E2%80%93%20Basquete%20%7C%20R%24%20199%2Fm%C3%AAs%0A%0AMeus%20dados%3A%0ANome%3A%20%5BPREENCHA%20AQUI%5D%0AE-mail%20para%20resposta%3A%20%5BPREENCHA%20AQUI%5D%0A%0AConfirmo%20que%20li%20as%20condi%C3%A7%C3%B5es%20de%20acesso%20e%20aguardo%20a%20avalia%C3%A7%C3%A3o%20da%20equipe.%0A%0AAtenciosamente.">🔓 Solicitar</a>
-              </li>
-              <li>
-                <span>⚽ Hedge Dinâmico – Futebol</span>
-                <span class="plataforma-preco">R$ 249/mês</span>
-                <a class="btn-solicitar" href="mailto:almafluxo@almafluxo.uk?subject=Solicita%C3%A7%C3%A3o%20de%20Licen%C3%A7a%3A%20Hedge%20Din%C3%A2mico%20%E2%80%93%20Futebol%20%7C%20R%24%20249%2Fm%C3%AAs&body=Ol%C3%A1%2C%20equipe%20ALMAFLUXO!%0A%0AEstou%20solicitando%20acesso%20ao%20plano%3A%0A%E2%96%BA%20Hedge%20Din%C3%A2mico%20%E2%80%93%20Futebol%20%7C%20R%24%20249%2Fm%C3%AAs%0A%0AMeus%20dados%3A%0ANome%3A%20%5BPREENCHA%20AQUI%5D%0AE-mail%20para%20resposta%3A%20%5BPREENCHA%20AQUI%5D%0A%0AConfirmo%20que%20li%20as%20condi%C3%A7%C3%B5es%20de%20acesso%20e%20aguardo%20a%20avalia%C3%A7%C3%A3o%20da%20equipe.%0A%0AAtenciosamente.">🔓 Solicitar</a>
-              </li>
-              <li>
-                <span>🎾 Hedge Dinâmico – Multi Esportes</span>
-                <span class="plataforma-preco">R$ 199/mês</span>
-                <a class="btn-solicitar" href="mailto:almafluxo@almafluxo.uk?subject=Solicita%C3%A7%C3%A3o%20de%20Licen%C3%A7a%3A%20Hedge%20Din%C3%A2mico%20%E2%80%93%20Multi%20Esportes%20%7C%20R%24%20199%2Fm%C3%AAs&body=Ol%C3%A1%2C%20equipe%20ALMAFLUXO!%0A%0AEstou%20solicitando%20acesso%20ao%20plano%3A%0A%E2%96%BA%20Hedge%20Din%C3%A2mico%20%E2%80%93%20Multi%20Esportes%20%7C%20R%24%20199%2Fm%C3%AAs%0A%0AMeus%20dados%3A%0ANome%3A%20%5BPREENCHA%20AQUI%5D%0AE-mail%20para%20resposta%3A%20%5BPREENCHA%20AQUI%5D%0A%0AConfirmo%20que%20li%20as%20condi%C3%A7%C3%B5es%20de%20acesso%20e%20aguardo%20a%20avalia%C3%A7%C3%A3o%20da%20equipe.%0A%0AAtenciosamente.">🔓 Solicitar</a>
-              </li>
-              <li>
-                <span>📈 Operador – Day-trade</span>
-                <span class="plataforma-preco">R$ 249/mês</span>
-                <a class="btn-solicitar" href="mailto:almafluxo@almafluxo.uk?subject=Solicita%C3%A7%C3%A3o%20de%20Licen%C3%A7a%3A%20Operador%20Day-trade%20%7C%20R%24%20249%2Fm%C3%AAs&body=Ol%C3%A1%2C%20equipe%20ALMAFLUXO!%0A%0AEstou%20solicitando%20acesso%20ao%20plano%3A%0A%E2%96%BA%20Operador%20%E2%80%93%20Day-trade%20%7C%20R%24%20249%2Fm%C3%AAs%0A%0AMeus%20dados%3A%0ANome%3A%20%5BPREENCHA%20AQUI%5D%0AE-mail%20para%20resposta%3A%20%5BPREENCHA%20AQUI%5D%0A%0AConfirmo%20que%20li%20as%20condi%C3%A7%C3%B5es%20de%20acesso%20e%20aguardo%20a%20avalia%C3%A7%C3%A3o%20da%20equipe.%0A%0AAtenciosamente.">🔓 Solicitar</a>
-              </li>
-              <li>
-                <span>⚡ ALMAfluxo (completo)</span>
-                <span class="plataforma-preco">R$ 299/mês</span>
-                <a class="btn-solicitar" href="mailto:almafluxo@almafluxo.uk?subject=Solicita%C3%A7%C3%A3o%20de%20Licen%C3%A7a%3A%20ALMAfluxo%20Completo%20%7C%20R%24%20299%2Fm%C3%AAs&body=Ol%C3%A1%2C%20equipe%20ALMAFLUXO!%0A%0AEstou%20solicitando%20acesso%20ao%20plano%3A%0A%E2%96%BA%20ALMAfluxo%20Completo%20%7C%20R%24%20299%2Fm%C3%AAs%0A%0AMeus%20dados%3A%0ANome%3A%20%5BPREENCHA%20AQUI%5D%0AE-mail%20para%20resposta%3A%20%5BPREENCHA%20AQUI%5D%0A%0AConfirmo%20que%20li%20as%20condi%C3%A7%C3%B5es%20de%20acesso%20e%20aguardo%20a%20avalia%C3%A7%C3%A3o%20da%20equipe.%0A%0AAtenciosamente.">🔓 Solicitar</a>
+                <span>📆 Acesso diário</span>
+                <span class="plataforma-preco">R$ 10,00/dia</span>
+                <a class="btn-solicitar" href="javascript:void(0)" onclick="solicitarAcesso()">🔓 Solicitar</a>
               </li>
             </ul>
-            <p style="font-size:0.82rem;margin-top:10px;color:rgba(255,255,255,0.45);">Ao clicar em Solicitar, seu e-mail abrirá com assunto e corpo já preenchidos. Preencha apenas seu nome e e-mail.</p>
+
+            <hr style="border: 0; height: 1px; background: rgba(255,255,255,0.1); margin: 25px 0;">
+
+            <div class="quiz-title">⏱️ Teste Grátis (1 Hora)</div>
+            <p style="font-size: 0.9rem; margin-bottom: 12px;">Solicite uma senha temporária para conhecer a plataforma de trading na prática.</p>
+            
+            <form class="contact-form" id="freeTrialForm">
+              <input type="hidden" name="access_key" value="eb4edc0c-b94c-4287-83bf-6f2e05f65774">
+              <input type="hidden" name="subject" value="⚡ ALMAFLUXO — Solicitação de Teste Grátis (1 Hora)">
+              <input type="hidden" name="from_name" value="Sistema ALMAFLUXO">
+              <input type="checkbox" name="botcheck" style="display:none">
+
+              <div class="form-group"><input type="text" name="nome_teste" placeholder="Seu nome completo" required></div>
+              <div class="form-group"><input type="email" name="email_teste" placeholder="Seu e-mail" required></div>
+
+              <button type="submit" class="card-action btn-green" id="trialBtn">
+                ⏱️ Solicitar 1 Hora Grátis
+              </button>
+            </form>
+            <div class="form-msg success" id="trialSuccess">✅ Solicitação enviada! Em breve você receberá a senha de teste no seu e-mail.</div>
+            <div class="form-msg error" id="trialError">❌ Erro ao enviar. Tente novamente.</div>
+
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ══ CARD PAGAMENTOS + QUESTIONÁRIO (MODIFICADO) ══ -->
     <div class="card" id="card-pagamentos">
       <div class="card-header" onclick="toggleCard('card-pagamentos')">
         <div class="card-header-top">
           <div class="card-icon">💳</div>
           <h2 class="card-title">Pagamentos</h2>
         </div>
-        <div class="card-header-summary">Acesso restrito — avaliação obrigatória</div>
+        <div class="card-header-summary">Escolha o tipo de serviço e realize o pagamento</div>
       </div>
       <div class="card-body">
         <div class="card-body-inner">
           <div class="card-description">
-
             <div class="aviso-restrito">
               🔒 <strong>Acesso Restrito e Controlado</strong><br>
-              As plataformas ALMAFLUXO operam com <strong>serviços restritos e movimentação financeira real</strong>. A <strong>liberação de senha e cadastro ocorre somente após análise e aprovação pela equipe</strong>.<br><br>
-              O pagamento via PIX é realizado <strong>somente após aprovação</strong>. Preencha o questionário abaixo com sinceridade — ele é parte essencial do processo de avaliação de perfil.
-              <br><span id="alertaSimples" style="display:none; color:#ffd700;">Para o plano ALMAfluxo Completo, basta informar nome e e-mail. Os demais campos não são necessários.</span>
+              Para serviços de <strong>trading</strong> é obrigatório preencher o questionário de avaliação. Para <strong>Autoconhecimento & Numerologia</strong> basta preencher nome e e-mail.
             </div>
 
-            <div class="quiz-title">📋 Questionário de Avaliação de Acesso</div>
+            <div class="quiz-title">🔮 Escolha o tipo de serviço</div>
+            <div class="form-group">
+              <label>
+                <input type="radio" name="tipo_servico" value="trading" checked onchange="atualizarFormulario()"> 
+                📈 Plataformas de Trading (Hedge, Operador, ALMAfluxo Completo)
+              </label>
+              <label>
+                <input type="radio" name="tipo_servico" value="numerologia" onchange="atualizarFormulario()"> 
+                🌌 Autoconhecimento & Numerologia (Mapa do Próprio Destino | Sintesia Humana)
+              </label>
+            </div>
 
             <form id="quizForm">
               <input type="hidden" name="access_key" value="eb4edc0c-b94c-4287-83bf-6f2e05f65774">
-              <input type="hidden" name="subject" value="⚡ ALMAFLUXO — Nova Solicitação de Acesso para Avaliação">
+              <input type="hidden" name="subject" id="dynamicSubject" value="⚡ ALMAFLUXO — Nova Solicitação de Acesso (Trading)">
               <input type="hidden" name="from_name" value="Sistema ALMAFLUXO">
               <input type="checkbox" name="botcheck" style="display:none">
 
@@ -348,40 +359,14 @@
                 <input type="email" name="email_resposta" placeholder="seuemail@exemplo.com" required>
               </div>
 
-              <!-- PLANO DE INTERESSE – TRADING -->
-              <div class="form-group">
-                <label>Plano de interesse (trading)</label>
-                <select name="plano" id="planoSelect" onchange="atualizarPlano()">
-                  <option value="" selected>Nenhum</option>
-                  <option value="Hedge Dinâmico – Basquete | R$ 199/mês" data-preco="199">🏀 Hedge Dinâmico – Basquete — R$ 199/mês</option>
-                  <option value="Hedge Dinâmico – Futebol | R$ 249/mês" data-preco="249">⚽ Hedge Dinâmico – Futebol — R$ 249/mês</option>
-                  <option value="Hedge Dinâmico – Multi Esportes | R$ 199/mês" data-preco="199">🎾 Hedge Multi Esportes — R$ 199/mês</option>
-                  <option value="Operador – Day-trade | R$ 249/mês" data-preco="249">📈 Operador – Day-trade — R$ 249/mês</option>
-                  <option value="ALMAfluxo Completo | R$ 299/mês" data-preco="299">⚡ ALMAfluxo Completo — R$ 299/mês</option>
-                </select>
-              </div>
-
-              <!-- SEÇÃO NUMEROLOGIA – Mapa do Próprio Destino -->
-              <div class="quiz-title">🌌 Mapa do Próprio Destino - Análise Numerológica</div>
-              <div class="form-group">
-                <label>Selecione as civilizações para análise (R$ 100 cada):</label>
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-top: 5px;">
-                  <label><input type="checkbox" name="civilizacao" value="Inca" data-preco="100"> 🏔️ Inca</label>
-                  <label><input type="checkbox" name="civilizacao" value="Chinês" data-preco="100"> 🐉 Chinês</label>
-                  <label><input type="checkbox" name="civilizacao" value="Maia" data-preco="100"> 🌙 Maia</label>
-                  <label><input type="checkbox" name="civilizacao" value="Egípcio" data-preco="100"> ☥ Egípcio</label>
-                  <label><input type="checkbox" name="civilizacao" value="Sumério" data-preco="100"> 𒀭 Sumério</label>
-                  <label><input type="checkbox" name="civilizacao" value="Asteca" data-preco="100"> 🗿 Asteca</label>
-                  <label><input type="checkbox" name="civilizacao" value="Cabala" data-preco="100"> 🔯 Cabala</label>
+              <div id="tradingSection">
+                <div class="quiz-title">📋 Questionário de Avaliação de Acesso (Trading)</div>
+                <div class="form-group">
+                  <label>Quantos dias de acesso deseja? (R$ 10,00/dia)</label>
+                  <input type="number" id="dias" name="dias" min="1" max="365" value="1" step="1" onchange="atualizarTotal()" required>
                 </div>
-                <div id="totalNumerologia" style="margin-top: 10px; font-weight: bold; color: #ffd700;">Total adicional: R$ 0,00</div>
-              </div>
 
-              <div class="plano-selecionado" id="planoSelecionado">✅ Plano selecionado: <span id="planoNome"></span></div>
-              <div id="valorTotal" style="margin: 10px 0; font-size: 1.1rem; font-weight: bold; color: #ffd700; display: none;">💰 Valor total: R$ 0,00</div>
-
-              <!-- Container das perguntas do questionário (será ocultado quando nenhum plano de trading for selecionado) -->
-              <div id="quizQuestionsContainer">
+                <div class="quiz-title">📊 Perfil do Investidor</div>
                 <div class="form-group">
                   <label>1. Por qual motivo deseja acessar a plataforma?</label>
                   <div class="radio-group">
@@ -391,7 +376,6 @@
                     <label><input type="radio" name="motivo" value="Renda complementar"> Renda complementar</label>
                   </div>
                 </div>
-
                 <div class="form-group">
                   <label>2. Quantas horas por dia pretende operar?</label>
                   <select name="horas_dia" required>
@@ -412,7 +396,6 @@
                     <option value="14 horas">14 horas</option>
                   </select>
                 </div>
-
                 <div class="form-group">
                   <label>3. Você conversa com outras pessoas sobre apostas ou prefere manter em particular?</label>
                   <div class="radio-group">
@@ -422,7 +405,6 @@
                     <label><input type="radio" name="social_apostas" value="Tenho vergonha de falar sobre o assunto"> Tenho certo receio / vergonha</label>
                   </div>
                 </div>
-
                 <div class="form-group">
                   <label>4. Você se considera impulsivo ou controlado nas decisões financeiras?</label>
                   <div class="radio-group">
@@ -432,7 +414,6 @@
                     <label><input type="radio" name="perfil_decisao" value="Muito impulsiva — costuma agir por emoção"> Muito impulsivo</label>
                   </div>
                 </div>
-
                 <div class="form-group">
                   <label>5. Quando criança, como você se imaginava adulto — está próximo, no caminho ou distante disso?</label>
                   <div class="radio-group">
@@ -442,14 +423,46 @@
                     <label><input type="radio" name="realizacao_pessoal" value="Mudei completamente de perspectiva — não me identifico mais com aquela visão"> Mudei completamente de perspectiva</label>
                   </div>
                 </div>
+              </div>
 
+              <div id="numerologiaSection" style="display: none;">
+                <div class="quiz-title">🌌 Escolha o serviço de Autoconhecimento</div>
+                <div class="form-group">
+                  <label>
+                    <input type="radio" name="servico_numerologia" value="Mapa do Próprio Destino" data-preco="100" onchange="toggleCivilizacoes()"> 
+                    🧭 Mapa do Próprio Destino — R$ 100,00
+                  </label>
+                  <label>
+                    <input type="radio" name="servico_numerologia" value="Sintesia Humana" data-preco="10" onchange="toggleCivilizacoes()"> 
+                    🧬 Sintesia Humana — R$ 10,00
+                  </label>
+                </div>
+                
+                <div id="blocoCivilizacoes" style="display: none; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px; margin-top: 10px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05);">
+                  <label style="color: #aaccff; font-weight: 600; margin-bottom: 10px; display: block;">Selecione as civilizações para análise (R$ 100 cada):</label>
+                  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px;">
+                    <label><input type="checkbox" name="civilizacao" value="Inca" data-preco="100" onchange="atualizarTotal()"> 🏔️ Inca</label>
+                    <label><input type="checkbox" name="civilizacao" value="Chinês" data-preco="100" onchange="atualizarTotal()"> 🐉 Chinês</label>
+                    <label><input type="checkbox" name="civilizacao" value="Maia" data-preco="100" onchange="atualizarTotal()"> 🌙 Maia</label>
+                    <label><input type="checkbox" name="civilizacao" value="Egípcio" data-preco="100" onchange="atualizarTotal()"> ☥ Egípcio</label>
+                    <label><input type="checkbox" name="civilizacao" value="Sumério" data-preco="100" onchange="atualizarTotal()"> 𒀭 Sumério</label>
+                    <label><input type="checkbox" name="civilizacao" value="Asteca" data-preco="100" onchange="atualizarTotal()"> 🗿 Asteca</label>
+                    <label><input type="checkbox" name="civilizacao" value="Cabala" data-preco="100" onchange="atualizarTotal()"> 🔯 Cabala</label>
+                  </div>
+                  <div id="totalNumerologia" style="margin-top: 10px; font-weight: bold; color: #ffd700; font-size: 0.9rem;">Total civilizações: R$ 0,00</div>
+                </div>
+              </div>
+
+              <div class="plano-selecionado" id="planoSelecionado"></div>
+              <div id="valorTotal" style="margin: 10px 0; font-size: 1.1rem; font-weight: bold; color: #ffd700; display: none;">💰 Valor total: R$ 0,00</div>
+              <div id="observacoesContainer" style="display: none;">
                 <div class="form-group">
                   <label>Observações adicionais (opcional)</label>
                   <textarea name="observacoes" placeholder="Algo mais que queira compartilhar com a equipe..."></textarea>
                 </div>
               </div>
 
-              <button type="submit" class="card-action" id="quizBtn" style="width:100%;margin-top:6px;">
+              <button type="submit" class="card-action" id="quizBtn">
                 🚀 Enviar solicitação para análise
               </button>
             </form>
@@ -460,13 +473,11 @@
             <div class="form-msg error" id="quizError">
               ❌ Erro ao enviar. Tente novamente ou escreva para almafluxo@almafluxo.uk
             </div>
-
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ══ CARD FAQ ══ -->
     <div class="card" id="card-duvidas">
       <div class="card-header" onclick="toggleCard('card-duvidas')">
         <div class="card-header-top">
@@ -494,7 +505,7 @@
               <div class="faq-question" onclick="event.stopPropagation(); toggleFAQ(this)">
                 <span>Posso testar antes de comprar?</span><span>▼</span>
               </div>
-              <div class="faq-answer">Sim. Após aprovação no questionário, licenças de teste de 24h podem ser disponibilizadas mediante solicitação.</div>
+              <div class="faq-answer">Sim! Acesse o card "Licenças" e solicite uma senha temporária de 1 hora gratuita para conhecer a plataforma na prática.</div>
             </div>
             <div class="faq-item">
               <div class="faq-question" onclick="event.stopPropagation(); toggleFAQ(this)">
@@ -513,10 +524,8 @@
       </div>
     </div>
 
-  </div><!-- /cards-grid -->
-
-  <div class="info-box">
-    <p>🧠 <strong>Atendimento personalizado:</strong> Para dúvidas gerais use o formulário de e-mail. Para solicitar acesso às plataformas pagas, preencha o questionário no card Pagamentos.</p>
+  </div><div class="info-box">
+    <p>🧠 <strong>Atendimento personalizado:</strong> Para dúvidas gerais use o formulário de e-mail. Para solicitar acesso às plataformas pagas, preencha o formulário no card Pagamentos.</p>
   </div>
 
   <div class="footer">Quem entra pela ALMA → fica pelo FLUXO - ALMAFLUXO · O fluxo da consciência · © 2026</div>
@@ -539,57 +548,77 @@
     ans.classList.toggle('show');
     arr.textContent = ans.classList.contains('show') ? '▲' : '▼';
   }
-
-  /* ── Controle do questionário e cálculo de total ── */
-  const questionsContainer = document.getElementById('quizQuestionsContainer');
-  const alertaSimples = document.getElementById('alertaSimples');
-  const planoSelect = document.getElementById('planoSelect');
-
-  function atualizarPlano() {
-    const sel = planoSelect;
-    const box = document.getElementById('planoSelecionado');
-    const planoValor = sel.value;
-    document.getElementById('planoNome').textContent = planoValor;
-    box.classList.toggle('show', !!planoValor);
-
-    const isAlmafluxoCompleto = planoValor && planoValor.startsWith('ALMAfluxo Completo');
-    const isAnyTradingPlan = planoValor && planoValor !== '';
-
-    // Mostrar/ocultar questionário baseado no plano:
-    // - Se nenhum plano (vazio) -> ocultar
-    // - Se ALMAfluxo Completo -> ocultar (tratamento simplificado)
-    // - Outros planos de trading -> mostrar
-    if (!isAnyTradingPlan) {
-      questionsContainer.style.display = 'none';
-      alertaSimples.style.display = 'none';
-    } else if (isAlmafluxoCompleto) {
-      questionsContainer.style.display = 'none';
-      alertaSimples.style.display = 'block';
+  
+  /* ── Mostrar/Esconder Civilizações na Aba Numerologia ── */
+  function toggleCivilizacoes() {
+    const radioSelecionado = document.querySelector('input[name="servico_numerologia"]:checked');
+    const blocoCiv = document.getElementById('blocoCivilizacoes');
+    
+    if (radioSelecionado && radioSelecionado.value === 'Mapa do Próprio Destino') {
+      blocoCiv.style.display = 'block';
     } else {
-      questionsContainer.style.display = 'block';
-      alertaSimples.style.display = 'none';
+      blocoCiv.style.display = 'none';
+      document.querySelectorAll('input[name="civilizacao"]').forEach(cb => cb.checked = false);
     }
-
-    // Ajustar required nos campos do questionário
-    const requiredFields = questionsContainer.querySelectorAll('[required]');
-    if (questionsContainer.style.display === 'none') {
-      requiredFields.forEach(field => field.removeAttribute('required'));
-    } else {
-      requiredFields.forEach(field => field.setAttribute('required', 'required'));
-    }
+    atualizarTotal();
   }
 
-  // Função para calcular total (plano + civilizações)
+  // Alternar entre formulário de trading e numerologia
+  function atualizarFormulario() {
+    const tipo = document.querySelector('input[name="tipo_servico"]:checked').value;
+    const tradingDiv = document.getElementById('tradingSection');
+    const numerologiaDiv = document.getElementById('numerologiaSection');
+    const observacoesDiv = document.getElementById('observacoesContainer');
+    const subjectField = document.getElementById('dynamicSubject');
+    
+    if (tipo === 'trading') {
+      tradingDiv.style.display = 'block';
+      numerologiaDiv.style.display = 'none';
+      observacoesDiv.style.display = 'block';
+      subjectField.value = '⚡ ALMAFLUXO — Nova Solicitação de Acesso (Trading)';
+      
+      document.querySelectorAll('#numerologiaSection [required]').forEach(el => el.removeAttribute('required'));
+      document.querySelectorAll('#tradingSection [required]').forEach(el => el.setAttribute('required', 'required'));
+      
+      const radioNumerologia = document.querySelectorAll('input[name="servico_numerologia"]');
+      radioNumerologia.forEach(r => r.checked = false);
+      toggleCivilizacoes();
+      
+    } else {
+      tradingDiv.style.display = 'none';
+      numerologiaDiv.style.display = 'block';
+      observacoesDiv.style.display = 'none';
+      subjectField.value = '⚡ ALMAFLUXO — Nova Solicitação de Acesso (Numerologia)';
+      
+      document.querySelectorAll('#tradingSection [required]').forEach(el => el.removeAttribute('required'));
+    }
+    atualizarTotal();
+  }
+
   function atualizarTotal() {
-    const planoSel = planoSelect;
-    const precoPlano = planoSel.options[planoSel.selectedIndex]?.getAttribute('data-preco') || 0;
-    const checkboxes = document.querySelectorAll('input[name="civilizacao"]:checked');
-    let totalNumerologia = 0;
-    checkboxes.forEach(cb => {
-      totalNumerologia += parseInt(cb.getAttribute('data-preco') || 0);
-    });
-    const total = (parseInt(precoPlano) || 0) + totalNumerologia;
-    document.getElementById('totalNumerologia').innerHTML = `Total adicional (R$ 100 cada): R$ ${totalNumerologia},00`;
+    const tipo = document.querySelector('input[name="tipo_servico"]:checked').value;
+    let total = 0;
+    
+    if (tipo === 'trading') {
+      const dias = parseInt(document.getElementById('dias').value) || 0;
+      total += dias * 10;
+    } else {
+      const radio = document.querySelector('input[name="servico_numerologia"]:checked');
+      if (radio) {
+        total += parseInt(radio.getAttribute('data-preco')) || 0;
+      }
+      
+      if (radio && radio.value === 'Mapa do Próprio Destino') {
+        const checkboxes = document.querySelectorAll('input[name="civilizacao"]:checked');
+        let totalCivilizacoes = 0;
+        checkboxes.forEach(cb => {
+          totalCivilizacoes += parseInt(cb.getAttribute('data-preco') || 0);
+        });
+        document.getElementById('totalNumerologia').innerHTML = `Total civilizações: R$ ${totalCivilizacoes},00`;
+        total += totalCivilizacoes;
+      }
+    }
+    
     const totalDiv = document.getElementById('valorTotal');
     if (total > 0) {
       totalDiv.style.display = 'block';
@@ -600,31 +629,27 @@
     return total;
   }
 
-  // Adicionar listeners
-  document.querySelectorAll('input[name="civilizacao"]').forEach(cb => {
-    cb.addEventListener('change', atualizarTotal);
-  });
-  planoSelect.addEventListener('change', function() {
-    atualizarPlano();
-    atualizarTotal();
-  });
-
-  // Chamar inicialização
-  atualizarPlano();
-  atualizarTotal();
-
-  /* ── Função para salvar e-mail via Apps Script ── */
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwP5invqZvbg4w0XXsBt6KcKLK26YU0p_Y7G-2SXLvrgHPD0hAFj2Ru7UEQLVaA3UDB/exec';
-  async function saveEmailToGitHub(email) {
-    if (!email) return;
-    try {
-      const response = await fetch(`${APPS_SCRIPT_URL}?email=${encodeURIComponent(email)}`);
-      const result = await response.text();
-      console.log('Resposta do Apps Script:', result);
-    } catch (error) {
-      console.error('Erro ao salvar e-mail:', error);
+  /* ── NOVA FUNÇÃO: ABRE O CARD DE PAGAMENTOS (sem redirecionamento) ── */
+  function solicitarAcesso() {
+    // Abre o card de pagamentos (expande e fecha os outros)
+    const pagamentosCard = document.getElementById('card-pagamentos');
+    if (!pagamentosCard.classList.contains('expanded')) {
+      toggleCard('card-pagamentos');
     }
+    // Rola suavemente até o card
+    pagamentosCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Pequeno atraso para dar tempo de abrir e focar no campo de dias (opcional)
+    setTimeout(() => {
+      const diasInput = document.getElementById('dias');
+      if (diasInput) diasInput.focus();
+    }, 400);
   }
+
+  // Event listeners
+  document.getElementById('dias').addEventListener('input', atualizarTotal);
+
+  // Inicializar formulário
+  atualizarFormulario();
 
   /* ── CONTATO SIMPLES (Web3Forms) ── */
   document.getElementById('contactForm').addEventListener('submit', async function(e) {
@@ -649,100 +674,20 @@
     }
   });
 
-  /* ── QUESTIONÁRIO DE AVALIAÇÃO (com condição para ALMAfluxo Completo e numerologia) ── */
-  document.getElementById('quizForm').addEventListener('submit', async function(e) {
+  /* ── TESTE GRÁTIS DE 1 HORA (Web3Forms) ── */
+  document.getElementById('freeTrialForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    const btn = document.getElementById('quizBtn');
-    const ok  = document.getElementById('quizSuccess');
-    const err = document.getElementById('quizError');
+    const btn = document.getElementById('trialBtn');
+    const ok  = document.getElementById('trialSuccess');
+    const err = document.getElementById('trialError');
     btn.textContent = '⏳ Enviando...'; btn.disabled = true;
     ok.style.display = err.style.display = 'none';
 
     const fd = new FormData(this);
-    const plano = fd.get('plano');
-    const isAlmafluxoCompleto = plano && plano.startsWith('ALMAfluxo Completo');
-    const email = fd.get('email_resposta');
+    const nome = fd.get('nome_teste');
+    const email = fd.get('email_teste');
 
-    // Capturar civilizações selecionadas
-    const civilizacoes = Array.from(document.querySelectorAll('input[name="civilizacao"]:checked')).map(cb => cb.value);
-    const totalNumerologia = civilizacoes.length * 100;
-    const precoPlano = plano ? (planoSelect.options[planoSelect.selectedIndex]?.getAttribute('data-preco') || 0) : 0;
-    const totalGeral = precoPlano + totalNumerologia;
-
-    let mensagemCorpo = '';
-
-    if (isAlmafluxoCompleto) {
-      mensagemCorpo = `═══════════════════════════════════════════════
-SOLICITAÇÃO SIMPLIFICADA — PLANO ALMAFLUXO COMPLETO
-═══════════════════════════════════════════════
-
-Nome: ${fd.get('nome')}
-E-mail: ${email}
-Plano solicitado: ${plano}
-
-Civilizações para Mapa do Próprio Destino: ${civilizacoes.length > 0 ? civilizacoes.join(', ') : 'Nenhuma'}
-Total adicional numerologia: R$ ${totalNumerologia},00
-Valor total da solicitação: R$ ${totalGeral},00
-
-Observações: ${fd.get('observacoes') || '(nenhuma)'}
-
-⏺ Este usuário solicitou acesso ao plano ALMAfluxo Completo.
-A equipe deverá avaliar o perfil e, se aprovado, enviar os dados para pagamento.
-═══════════════════════════════════════════════`;
-    } else {
-      mensagemCorpo = `═══════════════════════════════════════════════
-PROMPT PARA AVALIAÇÃO — COLE NUMA IA (Claude, ChatGPT, Gemini ou DeepSeek)
-═══════════════════════════════════════════════
-
-Você é um avaliador especializado em perfil comportamental e aptidão para uso de plataformas financeiras e de trading esportivo de alto risco.
-
-Analise as respostas do questionário abaixo e emita um parecer técnico sobre se o usuário deve ser APROVADO, REPROVADO ou encaminhado para ANÁLISE MANUAL.
-
-== CRITÉRIOS ==
-
-APROVADO: usuário demonstra autocontrole, objetivo claro, perfil equilibrado ou controlado, maturidade emocional e sem sinais de dependência.
-
-REPROVADO: perfil altamente impulsivo + motivação financeira urgente, sinais de compulsão, ocultamento do comportamento, expectativas irreais ou respostas contraditórias.
-
-ANÁLISE MANUAL: perfil misto, ambíguo ou com observações que exigem julgamento humano.
-
-== FORMATO DA RESPOSTA (use sempre este formato) ==
-
-PARECER: [APROVADO / REPROVADO / ANÁLISE MANUAL]
-
-PONTUAÇÃO DE RISCO: [Baixo / Médio / Alto]
-
-JUSTIFICATIVA:
-[3 a 5 linhas com os principais fatores que levaram ao parecer]
-
-PONTOS DE ATENÇÃO:
-[Até 3 aspectos que a equipe deve observar]
-
-RECOMENDAÇÃO PARA A EQUIPE:
-[Instrução objetiva de como proceder com este usuário]
-
-═══════════════════════════════════════════════
-RESPOSTAS DO USUÁRIO — COLE ABAIXO NA IA
-═══════════════════════════════════════════════
-
-Nome: ${fd.get('nome')}
-E-mail: ${email}
-Plano solicitado: ${plano || 'Nenhum'}
-Civilizações para Mapa do Próprio Destino: ${civilizacoes.length > 0 ? civilizacoes.join(', ') : 'Nenhuma'}
-Total adicional numerologia: R$ ${totalNumerologia},00
-Valor total da solicitação: R$ ${totalGeral},00
-
-1. Motivo de acesso: ${fd.get('motivo')}
-2. Horas por dia: ${fd.get('horas_dia')}
-3. Perfil social (apostas): ${fd.get('social_apostas')}
-4. Perfil decisório: ${fd.get('perfil_decisao')}
-5. Realização pessoal: ${fd.get('realizacao_pessoal')}
-Observações do usuário: ${fd.get('observacoes') || '(nenhuma)'}
-
-═══════════════════════════════════════════════
-FIM DO BLOCO — AGUARDE O PARECER DA IA
-═══════════════════════════════════════════════`;
-    }
+    const mensagemCorpo = `═══════════════════════════════════════════════\nSOLICITAÇÃO DE TESTE GRÁTIS (1 HORA)\n═══════════════════════════════════════════════\n\nNome: ${nome}\nE-mail: ${email}\n\nO usuário acima está solicitando uma senha temporária para testar a plataforma por 1 hora.\n═══════════════════════════════════════════════`;
 
     fd.set('message', mensagemCorpo);
 
@@ -752,12 +697,65 @@ FIM DO BLOCO — AGUARDE O PARECER DA IA
       if (d.success) {
         ok.style.display = 'block';
         this.reset();
-        document.getElementById('planoSelecionado').classList.remove('show');
-        document.getElementById('valorTotal').style.display = 'none';
-        document.getElementById('totalNumerologia').innerHTML = 'Total adicional: R$ 0,00';
-        // Resetar checkboxes
-        document.querySelectorAll('input[name="civilizacao"]:checked').forEach(cb => cb.checked = false);
-        saveEmailToGitHub(email);
+      } else throw new Error();
+    } catch {
+      err.style.display = 'block';
+    } finally {
+      btn.textContent = '⏱️ Solicitar 1 Hora Grátis'; btn.disabled = false;
+    }
+  });
+
+  /* ── QUESTIONÁRIO DE AVALIAÇÃO (com redirecionamento para pagamento após envio) ── */
+  document.getElementById('quizForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('quizBtn');
+    const ok  = document.getElementById('quizSuccess');
+    const err = document.getElementById('quizError');
+    btn.textContent = '⏳ Enviando...'; btn.disabled = true;
+    ok.style.display = err.style.display = 'none';
+
+    const tipo = document.querySelector('input[name="tipo_servico"]:checked').value;
+    const fd = new FormData(this);
+    const nome = fd.get('nome');
+    const email = fd.get('email_resposta');
+
+    let total = 0;
+    let mensagemCorpo = '';
+    let redirectUrl = '';
+
+    if (tipo === 'trading') {
+      const dias = fd.get('dias') || 0;
+      const totalDias = parseInt(dias) * 10;
+      total = totalDias;
+      
+      mensagemCorpo = `═══════════════════════════════════════════════\nSOLICITAÇÃO DE ACESSO TRADING (DIÁRIO)\n═══════════════════════════════════════════════\n\nNome: ${nome}\nE-mail: ${email}\nDias solicitados: ${dias} (R$ ${totalDias},00)\nValor total da solicitação: R$ ${total},00\n\n═══════════════════════════════════════════════\nRESPOSTAS DO QUESTIONÁRIO:\n1. Motivo: ${fd.get('motivo') || '(não preenchido)'}\n2. Horas por dia: ${fd.get('horas_dia') || '(não preenchido)'}\n3. Perfil social: ${fd.get('social_apostas') || '(não preenchido)'}\n4. Perfil decisório: ${fd.get('perfil_decisao') || '(não preenchido)'}\n5. Realização pessoal: ${fd.get('realizacao_pessoal') || '(não preenchido)'}\nObservações: ${fd.get('observacoes') || '(nenhuma)'}\n═══════════════════════════════════════════════`;
+      redirectUrl = `https://tchelojc.github.io/links/pagamento.html?valor=${total}&nome=${encodeURIComponent(nome)}&email=${encodeURIComponent(email)}&dias=${dias}&tipo=trading`;
+      
+    } else { 
+      const servico = fd.get('servico_numerologia') || 'Nenhum';
+      let preco = 0;
+      
+      if (servico === 'Mapa do Próprio Destino') preco = 100;
+      else if (servico === 'Sintesia Humana') preco = 10;
+      
+      const civilizacoes = Array.from(document.querySelectorAll('input[name="civilizacao"]:checked')).map(cb => cb.value);
+      const totalNumerologia = civilizacoes.length * 100;
+      
+      total = preco + totalNumerologia;
+      
+      mensagemCorpo = `═══════════════════════════════════════════════\nSOLICITAÇÃO DE ACESSO NUMEROLOGIA\n═══════════════════════════════════════════════\n\nNome: ${nome}\nE-mail: ${email}\nServiço Base: ${servico} (R$ ${preco},00)\nCivilizações selecionadas: ${civilizacoes.length > 0 ? civilizacoes.join(', ') : 'Nenhuma'} (R$ ${totalNumerologia},00)\nValor total da solicitação: R$ ${total},00\n\nObservações: ${fd.get('observacoes') || '(nenhuma)'}\n═══════════════════════════════════════════════`;
+      redirectUrl = `https://tchelojc.github.io/links/pagamento.html?valor=${total}&nome=${encodeURIComponent(nome)}&email=${encodeURIComponent(email)}&servico=${encodeURIComponent(servico)}&civilizacoes=${encodeURIComponent(civilizacoes.join(','))}&tipo=numerologia`;
+    }
+
+    fd.set('message', mensagemCorpo);
+    fd.set('subject', document.getElementById('dynamicSubject').value);
+
+    try {
+      const r = await fetch('https://api.web3forms.com/submit', { method:'POST', body: fd });
+      const d = await r.json();
+      if (d.success) {
+        ok.style.display = 'block';
+        window.location.href = redirectUrl;
       } else throw new Error();
     } catch {
       err.style.display = 'block';
