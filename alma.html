@@ -1011,27 +1011,96 @@
   <!-- ═══════════════ SCRIPTS ═══════════════ -->
   <script>
     // ══════════════════════════════════════════
-    // CONFIGURAÇÃO
+    // CONFIGURAÇÃO DO PROXY (Apps Script)
     // ══════════════════════════════════════════
-    const EMAILS_JSON_URL = 'https://tchelojc.github.io/externo/emails.json';
+    const PROXY_URL = 'https://script.google.com/macros/s/AKfycbwhGYrKsQm1lsLev3NLt6nXzfT5AxNDQnulb0lId1-wsjuePpGG4o53mgj3sg3H6Cmh/exec';
 
-    // Tempo de sessão autenticada (em horas).
-    // Após este tempo o usuário precisa logar novamente.
+    // ══════════════════════════════════════════
+    // DEVICE ID — fingerprint FNV-1a
+    // ══════════════════════════════════════════
+    const _DEVICE_KEY = 'alma_device_id';
+    function _gerarDeviceId() {
+      const raw = [
+        navigator.userAgent,
+        navigator.language || '',
+        (Intl.DateTimeFormat().resolvedOptions().timeZone || ''),
+        navigator.hardwareConcurrency || 0,
+        navigator.deviceMemory        || 0,
+        screen.width + 'x' + screen.height,
+        screen.colorDepth || 0
+      ].join('|');
+      let h = 2166136261;
+      for (let i = 0; i < raw.length; i++) { h ^= raw.charCodeAt(i); h = (h * 16777619) >>> 0; }
+      return 'dev_' + h.toString(36);
+    }
+    const DEVICE_ID = (() => {
+      try {
+        let id = localStorage.getItem(_DEVICE_KEY);
+        if (!id) { id = _gerarDeviceId(); localStorage.setItem(_DEVICE_KEY, id); }
+        return id;
+      } catch (_) { return _gerarDeviceId(); }
+    })();
+
+    // ══════════════════════════════════════════
+    // CHAMADA AO PROXY
+    // ══════════════════════════════════════════
+    async function chamarProxy(action, dados = {}) {
+      const response = await fetch(PROXY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, ...dados })
+      });
+      if (!response.ok) throw new Error(`Proxy error: ${response.status}`);
+      const result = await response.json();
+      if (!result.ok) throw new Error(result.error || 'Erro desconhecido');
+      return result;
+    }
+
+    // ══════════════════════════════════════════
+    // NORMALIZAÇÃO DE LICENÇA
+    // ══════════════════════════════════════════
+    function _normalizar(item, idx) {
+      if (typeof item === 'string') {
+        return {
+          id:          `P${String(idx).padStart(4,'0')}`,
+          email:       item.trim().toLowerCase(),
+          tipo:        'permanente',
+          origem:      'manual',
+          deviceId:    null,
+          expira:      null,
+          plataforma:  'todos',
+          dataCriacao: null
+        };
+      }
+      return {
+        id:          item.id          || `L${String(idx).padStart(4,'0')}`,
+        email:       (item.email||'').trim().toLowerCase(),
+        tipo:        item.tipo        || 'permanente',
+        origem:      item.origem      || 'desconhecida',
+        deviceId:    item.deviceId    || null,
+        expira:      item.expira      || null,
+        plataforma:  item.plataforma  || 'todos',
+        dataCriacao: item.dataCriacao || null
+      };
+    }
+
+    // ══════════════════════════════════════════
+    // SISTEMA DE SESSÃO (localStorage)
+    // ══════════════════════════════════════════
     const SESSION_HOURS = 8;
     const SESSION_KEY   = 'alma_session';
 
-    // ══════════════════════════════════════════
-    // SISTEMA DE CACHE DE SESSÃO
-    // Salva no localStorage com expiração.
-    // Enquanto válido, cliques em cards pagos
-    // abrem direto, sem pedir login novamente.
-    // ══════════════════════════════════════════
-    function salvarSessao(email) {
+    function salvarSessao(email, licencaAtiva) {
       const expira = Date.now() + SESSION_HOURS * 60 * 60 * 1000;
-      const sessao = { email, expira, autenticado: true };
-      try {
-        localStorage.setItem(SESSION_KEY, JSON.stringify(sessao));
-      } catch (_) {}
+      const sessao = {
+        email,
+        expira,
+        autenticado: true,
+        licencaTipo: licencaAtiva?.tipo   || 'permanente',
+        licencaId:   licencaAtiva?.id     || '—',
+        licencaExp:  licencaAtiva?.expira || null
+      };
+      try { localStorage.setItem(SESSION_KEY, JSON.stringify(sessao)); } catch(_) {}
     }
 
     function sessaoValida() {
@@ -1044,17 +1113,14 @@
           localStorage.removeItem(SESSION_KEY);
           return false;
         }
-        return s; // retorna objeto com { email, expira }
-      } catch (_) {
-        return false;
-      }
+        return s;
+      } catch(_) { return false; }
     }
 
     function limparSessao() {
-      try { localStorage.removeItem(SESSION_KEY); } catch (_) {}
+      try { localStorage.removeItem(SESSION_KEY); } catch(_) {}
     }
 
-    // Formata tempo restante da sessão em texto legível
     function tempoRestante() {
       try {
         const raw = localStorage.getItem(SESSION_KEY);
@@ -1066,91 +1132,258 @@
         const m = Math.floor((ms % 3600000) / 60000);
         if (h > 0) return `${h}h ${m}min`;
         return `${m}min`;
-      } catch (_) { return ''; }
+      } catch(_) { return ''; }
     }
 
     // ══════════════════════════════════════════
-    // ESTADO
+    // VALIDAÇÃO DE EMAIL VIA PROXY
     // ══════════════════════════════════════════
-    let pendingUrl     = null;
-    let pendingTitulo  = null;   // título do card para exibir na barra do viewer
     let validatedEmail = null;
+    let _licencaAtiva = null;
 
-    // ══════════════════════════════════════════
-    // REFERÊNCIAS DOM
-    // ══════════════════════════════════════════
-    const authModal       = document.getElementById('authModal');
-    const stepEmail       = document.getElementById('authStepEmail');
-    const stepBio         = document.getElementById('authStepBio');
-    const emailInput      = document.getElementById('authEmailInput');
-    const msgEmail        = document.getElementById('authMsgEmail');
-    const msgBio          = document.getElementById('authMsgBio');
-    const btnValidate     = document.getElementById('btnValidateEmail');
-    const btnBiometric    = document.getElementById('btnBiometric');
-    const dot1            = document.getElementById('dot1');
-    const dot2            = document.getElementById('dot2');
-    const bioIcon         = document.getElementById('bioIcon');
-    const fallbackSection = document.getElementById('fallbackSection');
-
-    // ══════════════════════════════════════════
-    // ABRIR CARD PAGO — verifica cache primeiro
-    // ══════════════════════════════════════════
-    function abrirCardPago(url, titulo) {
-      const sessao = sessaoValida();
-
-      if (sessao) {
-        // ✅ Sessão ativa — abre direto no viewer interno (sem pedir login)
-        abrirNoViewer(url, titulo);
+    async function validateEmailForAccess() {
+      const email = emailInput.value.trim().toLowerCase();
+      if (!email) {
+        setMsg(msgEmail, 'error', '⚠️ Por favor, informe um e‑mail.');
         return;
       }
 
-      // Sessão expirada → abre modal de login
+      setBtnLoading(btnValidate, true, 'Verificar E‑mail');
+      setMsg(msgEmail, 'info', '⏳ Verificando licença...');
+
+      try {
+        const result = await chamarProxy('ler');
+        const rawList = result.lista;
+        const lista = rawList.map((item, i) => _normalizar(item, i));
+        const agora = Date.now();
+        const entrada = lista.find(l => l.email === email);
+
+        if (!entrada) {
+          setMsg(msgEmail, 'error',
+            '❌ E‑mail não cadastrado. Solicite acesso pelo formulário de Pagamentos ou Licenças.');
+          return;
+        }
+
+        if (entrada.tipo === 'permanente' || entrada.expira === null) {
+          _licencaAtiva = entrada;
+          validatedEmail = email;
+          setMsg(msgEmail, 'success',
+            `✅ Licença permanente verificada! · ID ${entrada.id}`);
+          setTimeout(() => showStep('bio'), 600);
+          return;
+        }
+
+        if (entrada.expira <= agora) {
+          const dt = new Date(entrada.expira).toLocaleString('pt-BR');
+          setMsg(msgEmail, 'error',
+            `⏱️ Licença de teste expirada em ${dt}.\nAdquira acesso completo em Pagamentos.`);
+          return;
+        }
+
+        if (entrada.deviceId && entrada.deviceId !== DEVICE_ID) {
+          setMsg(msgEmail, 'error',
+            '🚫 Esta licença de teste foi vinculada a outro dispositivo e não pode ser usada aqui.');
+          return;
+        }
+
+        const msRestantes = entrada.expira - agora;
+        const minRestantes = Math.ceil(msRestantes / 60000);
+        const tempoTexto = minRestantes >= 60
+          ? `${Math.floor(minRestantes/60)}h ${minRestantes%60}min`
+          : `${minRestantes}min`;
+
+        _licencaAtiva = entrada;
+        validatedEmail = email;
+        setMsg(msgEmail, 'success',
+          `✅ Licença de teste verificada! · ID ${entrada.id} · Expira em ${tempoTexto}`);
+        setTimeout(() => showStep('bio'), 700);
+
+      } catch (err) {
+        console.error('Erro ao verificar e‑mail:', err);
+        setMsg(msgEmail, 'error',
+          '⚠️ Não foi possível verificar. Verifique sua conexão e tente novamente.');
+      } finally {
+        setBtnLoading(btnValidate, false, 'Verificar E‑mail');
+      }
+    }
+
+    // ══════════════════════════════════════════
+    // AUTENTICAÇÃO BIOMÉTRICA (WebAuthn)
+    // ══════════════════════════════════════════
+    async function authenticateWithBiometrics() {
+      if (!validatedEmail) { goBackToEmail(); return; }
+      if (!window.PublicKeyCredential) {
+        setMsg(msgBio, 'info', '⚠️ Biometria não suportada neste navegador. Use a senha abaixo.');
+        fallbackSection.style.display = 'block';
+        return;
+      }
+      setBtnLoading(btnBiometric, true, '🔐 Autenticar Agora');
+      setMsg(msgBio, 'info', '⏳ Aguardando autenticação do dispositivo...');
+      try {
+        const challenge = crypto.getRandomValues(new Uint8Array(32));
+        const userIdRaw = new TextEncoder().encode(validatedEmail);
+        const creationOptions = {
+          challenge,
+          rp: { name: 'ALMAFLUXO', id: window.location.hostname },
+          user: { id: userIdRaw, name: validatedEmail, displayName: validatedEmail },
+          pubKeyCredParams: [
+            { alg: -7,   type: 'public-key' },
+            { alg: -257, type: 'public-key' }
+          ],
+          authenticatorSelection: {
+            authenticatorAttachment: 'platform',
+            userVerification: 'required',
+            residentKey: 'preferred'
+          },
+          timeout: 90000,
+          attestation: 'none'
+        };
+        const credential = await navigator.credentials.create({ publicKey: creationOptions });
+        if (credential) authSuccess();
+        else throw new Error('Credencial não gerada.');
+      } catch (err) {
+        console.warn('WebAuthn error:', err.name, err.message);
+        if (err.name === 'NotAllowedError') {
+          setMsg(msgBio, 'error', '❌ Autenticação cancelada. Tente novamente ou use a senha abaixo.');
+          fallbackSection.style.display = 'block';
+        } else if (err.name === 'InvalidStateError') {
+          setMsg(msgBio, 'info', '🔄 Credencial existente detectada. Solicitando verificação...');
+          await tryWebAuthnGet();
+        } else {
+          setMsg(msgBio, 'info', '⚠️ Não foi possível usar a biometria. Use a senha de acesso abaixo.');
+          fallbackSection.style.display = 'block';
+        }
+      } finally {
+        setBtnLoading(btnBiometric, false, '🔐 Autenticar Agora');
+      }
+    }
+
+    async function tryWebAuthnGet() {
+      try {
+        const challenge = crypto.getRandomValues(new Uint8Array(32));
+        const assertion = await navigator.credentials.get({
+          publicKey: {
+            challenge,
+            rpId: window.location.hostname,
+            userVerification: 'required',
+            timeout: 90000
+          }
+        });
+        if (assertion) authSuccess();
+        else throw new Error('Asserção não retornada.');
+      } catch (err) {
+        console.warn('WebAuthn get error:', err.name, err.message);
+        setMsg(msgBio, 'info', '⚠️ Não foi possível verificar. Use a senha de acesso abaixo.');
+        fallbackSection.style.display = 'block';
+      }
+    }
+
+    async function fallbackLogin() {
+      const pwd = document.getElementById('fallbackPassword').value.trim();
+      if (!pwd) { setMsg(msgBio, 'error', '⚠️ Informe a senha de acesso.'); return; }
+      setMsg(msgBio, 'info', '⏳ Verificando senha...');
+      let senhaCorreta = null;
+      try {
+        const res = await fetch('https://tchelojc.github.io/externo/senhas.json', { cache: 'no-store' });
+        if (res.ok) {
+          const senhas = await res.json();
+          senhaCorreta = (senhas[validatedEmail] || '').trim() || null;
+        }
+      } catch (_) {}
+      if (!senhaCorreta) {
+        authSuccess();
+      } else if (pwd === senhaCorreta) {
+        authSuccess();
+      } else {
+        setMsg(msgBio, 'error', '❌ Senha incorreta. Verifique com o suporte em almafluxo.uk/contato');
+      }
+    }
+
+    function authSuccess() {
+      salvarSessao(validatedEmail, _licencaAtiva);
+      atualizarBadgeSessao();
+      bioIcon.textContent = '✅';
+      setBtnLoading(btnBiometric, false, '🔐 Autenticar Agora');
+      const urlParaAbrir = pendingUrl;
+      const tituloCard = pendingTitulo || urlParaAbrir;
+      const resto = tempoRestante();
+      setMsg(msgBio, 'success', `✅ Acesso autorizado! Sessão ativa por ${resto}.`);
+      setTimeout(() => {
+        pendingUrl = null;
+        closeAuthModal();
+        abrirNoViewer(urlParaAbrir, tituloCard);
+      }, 350);
+    }
+
+    // ══════════════════════════════════════════
+    // CONTROLE DO VIEWER (iframe)
+    // ══════════════════════════════════════════
+    const SESSION_TOKEN = (() => {
+      const existente = sessionStorage.getItem('alma_token');
+      if (existente) return existente;
+      const novo = Array.from(crypto.getRandomValues(new Uint8Array(24)))
+        .map(b => b.toString(16).padStart(2,'0')).join('').slice(0,32);
+      sessionStorage.setItem('alma_token', novo);
+      return novo;
+    })();
+
+    function abrirNoViewer(url, titulo) {
+      const frame   = document.getElementById('platformFrame');
+      const viewer  = document.getElementById('platformViewer');
+      const spinner = document.getElementById('viewerSpinner');
+      const titleEl = document.getElementById('viewerTitle');
+      spinner.style.display = 'block';
+      titleEl.textContent   = titulo || url;
+      const urlComToken = url + (url.includes('?') ? '&' : '?')
+                        + 'alma_token=' + encodeURIComponent(SESSION_TOKEN)
+                        + '&alma_ref='  + encodeURIComponent(window.location.href);
+      frame.src = urlComToken;
+      viewer.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+      frame.onload = () => {
+        spinner.style.display = 'none';
+        try {
+          frame.contentWindow.postMessage({
+            type:  'ALMA_AUTH',
+            token: SESSION_TOKEN,
+            email: sessaoValida()?.email || ''
+          }, '*');
+        } catch(_) {}
+      };
+    }
+
+    function fecharViewer() {
+      const frame  = document.getElementById('platformFrame');
+      const viewer = document.getElementById('platformViewer');
+      frame.src    = 'about:blank';
+      viewer.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharViewer(); });
+
+    // ══════════════════════════════════════════
+    // ABRIR CARD PAGO
+    // ══════════════════════════════════════════
+    let pendingUrl = null;
+    let pendingTitulo = null;
+
+    function abrirCardPago(url, titulo) {
+      const sessao = sessaoValida();
+      if (sessao) {
+        abrirNoViewer(url, titulo);
+        return;
+      }
       pendingTitulo = titulo;
       openAuthModal(url);
     }
 
-    // ══════════════════════════════════════════
-    // ABRIR URL — lógica única de redirecionamento
-    // Resolve o problema de popup blocker:
-    //   Mobile  → mesma aba (nunca bloqueado)
-    //   Desktop → botão clicável pelo usuário
-    // ══════════════════════════════════════════
-    function abrirUrl(url, msgSessao) {
-      const isMobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent);
-
-      if (isMobile) {
-        // Mobile: redireciona na mesma aba
-        window.location.href = url;
-      } else {
-        // Desktop: abre nova aba via botão (gesto direto = não bloqueado)
-        // Se a sessão já estava válida (sem modal aberto), abre diretamente
-        if (!authModal || authModal.style.display !== 'flex') {
-          window.open(url, '_blank', 'noopener');
-        } else {
-          // Dentro do modal de auth → exibe botão para o usuário clicar
-          msgBio.className = 'auth-msg success';
-          msgBio.innerHTML =
-            (msgSessao ? `<small style="opacity:.7">${msgSessao}</small><br>` : '') +
-            '✅ <strong>Acesso autorizado!</strong><br>' +
-            `<button onclick="(function(){window.open('${url}','_blank','noopener');closeAuthModal();})()" ` +
-            'style="margin-top:10px;width:100%;padding:12px;border:none;border-radius:8px;' +
-            'background:linear-gradient(135deg,#2ecc71,#27ae60);color:#fff;' +
-            'font-weight:700;font-size:0.95rem;cursor:pointer;letter-spacing:0.03em">' +
-            '🚀 Clique aqui para abrir a plataforma</button>';
-          msgBio.style.display = 'block';
-        }
-      }
-    }
-
-    // ══════════════════════════════════════════
-    // ABRIR / FECHAR MODAL
-    // ══════════════════════════════════════════
     function openAuthModal(url) {
-      pendingUrl      = url;
-      validatedEmail  = null;
+      pendingUrl = url;
+      validatedEmail = null;
       emailInput.value = '';
       setMsg(msgEmail, '', '');
-      setMsg(msgBio,   '', '');
+      setMsg(msgBio, '', '');
       fallbackSection.style.display = 'none';
       showStep('email');
       authModal.style.display = 'flex';
@@ -1158,12 +1391,12 @@
 
     function closeAuthModal() {
       authModal.style.display = 'none';
-      pendingUrl     = null;
+      pendingUrl = null;
       validatedEmail = null;
     }
 
     // ══════════════════════════════════════════
-    // UTILITÁRIOS DE UI
+    // UI AUXILIARES
     // ══════════════════════════════════════════
     function showStep(step) {
       if (step === 'email') {
@@ -1188,17 +1421,14 @@
 
     function setBtnLoading(btn, loading, label) {
       btn.disabled = loading;
-      btn.innerHTML = loading
-        ? '<span class="spin"></span> Aguarde...'
-        : label;
+      btn.innerHTML = loading ? '<span class="spin"></span> Aguarde...' : label;
     }
 
-    // Detecta que tipo de biometria o dispositivo tem
     function updateBioIcon() {
       const ua = navigator.userAgent.toLowerCase();
-      if (/iphone|ipad/.test(ua))       bioIcon.textContent = '🔒'; // FaceID / TouchID iOS
-      else if (/android/.test(ua))       bioIcon.textContent = '👆'; // Digital Android
-      else                               bioIcon.textContent = '🔐'; // Windows Hello / genérico
+      if (/iphone|ipad/.test(ua))       bioIcon.textContent = '🔒';
+      else if (/android/.test(ua))       bioIcon.textContent = '👆';
+      else                               bioIcon.textContent = '🔐';
     }
 
     function goBackToEmail() {
@@ -1206,346 +1436,39 @@
       showStep('email');
     }
 
-    // ══════════════════════════════════════════
-    // ETAPA 1 — VALIDAR EMAIL
-    // ══════════════════════════════════════════
-    async function validateEmailForAccess() {
-      const email = emailInput.value.trim().toLowerCase();
-      if (!email) {
-        setMsg(msgEmail, 'error', '⚠️ Por favor, informe um e‑mail.');
-        return;
-      }
-
-      setBtnLoading(btnValidate, true, 'Verificar E‑mail');
-      setMsg(msgEmail, 'info', '⏳ Verificando e‑mail...');
-
-      try {
-        const res = await fetch(EMAILS_JSON_URL, { cache: 'no-store' });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const rawEmails = await res.json();
-        // Normaliza para lowercase para comparação sem case
-        const emails = rawEmails.map(e => e.trim().toLowerCase());
-
-        if (emails.includes(email)) {
-          validatedEmail = email;
-          setMsg(msgEmail, 'success', '✅ E‑mail verificado!');
-          setTimeout(() => showStep('bio'), 600);
-        } else {
-          setMsg(msgEmail, 'error', '❌ E‑mail não cadastrado. Solicite acesso pelo formulário de Pagamentos.');
-        }
-      } catch (err) {
-        console.error('Erro ao verificar e‑mail:', err);
-        setMsg(msgEmail, 'error', '⚠️ Não foi possível verificar. Verifique sua conexão e tente novamente.');
-      } finally {
-        setBtnLoading(btnValidate, false, 'Verificar E‑mail');
-      }
-    }
-
-    // ══════════════════════════════════════════
-    // ETAPA 2 — AUTENTICAÇÃO BIOMÉTRICA (WebAuthn)
-    // ══════════════════════════════════════════
-    async function authenticateWithBiometrics() {
-      if (!validatedEmail) {
-        goBackToEmail();
-        return;
-      }
-
-      // Verifica suporte ao WebAuthn
-      if (!window.PublicKeyCredential) {
-        setMsg(msgBio, 'info', '⚠️ Biometria não suportada neste navegador. Use a senha abaixo.');
-        fallbackSection.style.display = 'block';
-        return;
-      }
-
-      setBtnLoading(btnBiometric, true, '🔐 Autenticar Agora');
-      setMsg(msgBio, 'info', '⏳ Aguardando autenticação do dispositivo...');
-
-      try {
-        // ── Gera um desafio aleatório de 32 bytes ──
-        const challenge = crypto.getRandomValues(new Uint8Array(32));
-
-        // ── userId derivado do e‑mail (Base64URL) ──
-        const userIdRaw = new TextEncoder().encode(validatedEmail);
-
-        // ── Opções de criação de credencial ──
-        // platform = força biometria/senha do SO (não chave de segurança externa)
-        // userVerification: required = obriga verificação biométrica
-        const creationOptions = {
-          challenge,
-          rp: {
-            name: 'ALMAFLUXO',
-            // id deve ser o domínio exato (sem protocolo)
-            id: window.location.hostname
-          },
-          user: {
-            id:          userIdRaw,
-            name:        validatedEmail,
-            displayName: validatedEmail
-          },
-          pubKeyCredParams: [
-            { alg: -7,   type: 'public-key' }, // ES256
-            { alg: -257, type: 'public-key' }  // RS256 (Windows Hello)
-          ],
-          authenticatorSelection: {
-            authenticatorAttachment: 'platform',    // biometria nativa do dispositivo
-            userVerification:        'required',    // exige FaceID / digital / senha
-            residentKey:             'preferred'
-          },
-          timeout:     90000,  // 90 segundos para o usuário responder
-          attestation: 'none'  // não precisamos de attestation para uso simples
-        };
-
-        // Tenta criar credencial (registro + verificação em um passo)
-        // O SO vai pedir FaceID / digital / senha automaticamente
-        const credential = await navigator.credentials.create({ publicKey: creationOptions });
-
-        if (credential) {
-          // ✅ Biometria aprovada pelo SO
-          authSuccess();
-        } else {
-          throw new Error('Credencial não gerada.');
-        }
-
-      } catch (err) {
-        console.warn('WebAuthn error:', err.name, err.message);
-
-        if (err.name === 'NotAllowedError') {
-          // Usuário cancelou ou não autorizou
-          setMsg(msgBio, 'error', '❌ Autenticação cancelada. Tente novamente ou use a senha abaixo.');
-          fallbackSection.style.display = 'block';
-
-        } else if (err.name === 'InvalidStateError') {
-          // Credencial já existe para este domínio/usuário → tenta autenticar (get) em vez de criar
-          setMsg(msgBio, 'info', '🔄 Credencial existente detectada. Solicitando verificação...');
-          await tryWebAuthnGet();
-          return; // tryWebAuthnGet cuida do fluxo daqui em diante
-
-        } else if (err.name === 'NotSupportedError' || err.name === 'SecurityError') {
-          setMsg(msgBio, 'info', '⚠️ Biometria não disponível neste dispositivo/navegador. Use a senha abaixo.');
-          fallbackSection.style.display = 'block';
-
-        } else {
-          // Erro genérico → mostra fallback de senha
-          setMsg(msgBio, 'info', '⚠️ Não foi possível usar a biometria. Use a senha de acesso abaixo.');
-          fallbackSection.style.display = 'block';
-        }
-
-      } finally {
-        setBtnLoading(btnBiometric, false, '🔐 Autenticar Agora');
-      }
-    }
-
-    // ── Tenta autenticar via credencial já registrada (navigator.credentials.get) ──
-    async function tryWebAuthnGet() {
-      try {
-        const challenge = crypto.getRandomValues(new Uint8Array(32));
-        const assertion = await navigator.credentials.get({
-          publicKey: {
-            challenge,
-            rpId:           window.location.hostname,
-            userVerification: 'required',
-            timeout:        90000
+    function atualizarBadgeSessao() {
+      const badge     = document.getElementById('sessionBadge');
+      const badgeText = document.getElementById('sessionBadgeText');
+      const sessao    = sessaoValida();
+      if (sessao) {
+        const tipo   = sessao.licencaTipo === 'temporario' ? '⏱️ Teste' : '💎 Licença';
+        const id     = sessao.licencaId   ? ` · ${sessao.licencaId}` : '';
+        let tempoDisplay = tempoRestante();
+        if (sessao.licencaTipo === 'temporario' && sessao.licencaExp) {
+          const msLic = sessao.licencaExp - Date.now();
+          if (msLic > 0) {
+            const minLic = Math.ceil(msLic / 60000);
+            tempoDisplay = minLic >= 60 ? `${Math.floor(minLic/60)}h${minLic%60}min` : `${minLic}min`;
+          } else {
+            limparSessao();
+            badge.style.display = 'none';
+            return;
           }
-        });
-        if (assertion) {
-          authSuccess();
-        } else {
-          throw new Error('Asserção não retornada.');
         }
-      } catch (err) {
-        console.warn('WebAuthn get error:', err.name, err.message);
-        setBtnLoading(btnBiometric, false, '🔐 Autenticar Agora');
-        setMsg(msgBio, 'info', '⚠️ Não foi possível verificar. Use a senha de acesso abaixo.');
-        fallbackSection.style.display = 'block';
-      }
-    }
-
-    // ══════════════════════════════════════════
-    // FALLBACK — Senha fornecida na compra
-    //
-    // COMO CONFIGURAR SUAS SENHAS:
-    // Crie o arquivo senhas.json em:
-    //   tchelojc.github.io/externo/senhas.json
-    // Com o formato:
-    //   { "email@exemplo.com": "senha123", ... }
-    //
-    // Enquanto o arquivo NÃO existir, qualquer
-    // senha não vazia libera o acesso (modo demo).
-    // ══════════════════════════════════════════
-    async function fallbackLogin() {
-      const pwd = document.getElementById('fallbackPassword').value.trim();
-      if (!pwd) {
-        setMsg(msgBio, 'error', '⚠️ Informe a senha de acesso.');
-        return;
-      }
-
-      setMsg(msgBio, 'info', '⏳ Verificando senha...');
-
-      // Tenta carregar senhas.json — silencia erro 404 sem poluir console
-      let senhaCorreta = null;
-      try {
-        const res = await fetch('https://tchelojc.github.io/externo/senhas.json', { cache: 'no-store' });
-        if (res.ok) {
-          const senhas = await res.json();
-          senhaCorreta = (senhas[validatedEmail] || '').trim() || null;
-        }
-        // Se res.status === 404 → senhas.json ainda não existe → modo demo
-      } catch (_) {
-        // Rede offline ou CORS — modo demo
-      }
-
-      if (!senhaCorreta) {
-        // ── MODO DEMO: senhas.json não configurado ──
-        // Qualquer senha não-vazia libera o acesso.
-        // Remova este bloco assim que criar senhas.json.
-        authSuccess();
-      } else if (pwd === senhaCorreta) {
-        authSuccess();
+        badgeText.textContent = `${tipo}${id} · ${sessao.email} · ${tempoDisplay}`;
+        badge.style.display = 'flex';
       } else {
-        setMsg(msgBio, 'error', '❌ Senha incorreta. Verifique com o suporte em almafluxo.uk/contato');
+        badge.style.display = 'none';
       }
     }
 
-    // ══════════════════════════════════════════
-    // TOKEN DE SESSÃO — gerado uma vez por sessão
-    // Enviado via postMessage ao iframe.
-    // Cada arquivo de plataforma valida este token
-    // antes de exibir o conteúdo.
-    // ══════════════════════════════════════════
-    const SESSION_TOKEN = (() => {
-      // Gera token aleatório de 32 chars e salva na sessão
-      const existente = sessionStorage.getItem('alma_token');
-      if (existente) return existente;
-      const novo = Array.from(crypto.getRandomValues(new Uint8Array(24)))
-        .map(b => b.toString(16).padStart(2,'0')).join('').slice(0,32);
-      sessionStorage.setItem('alma_token', novo);
-      return novo;
-    })();
-
-    // ══════════════════════════════════════════
-    // ABRIR PLATAFORMA NO VIEWER INTERNO (iframe)
-    // Nunca abre nova aba. Nunca expõe URL direta.
-    // ══════════════════════════════════════════
-    function abrirNoViewer(url, titulo) {
-      const frame   = document.getElementById('platformFrame');
-      const viewer  = document.getElementById('platformViewer');
-      const spinner = document.getElementById('viewerSpinner');
-      const titleEl = document.getElementById('viewerTitle');
-
-      // Mostra spinner enquanto carrega
-      spinner.style.display = 'block';
-      titleEl.textContent   = titulo || url;
-
-      // Monta URL com token na query string
-      // O arquivo da plataforma lê este token via URL params
-      const urlComToken = url + (url.includes('?') ? '&' : '?')
-                        + 'alma_token=' + encodeURIComponent(SESSION_TOKEN)
-                        + '&alma_ref='  + encodeURIComponent(window.location.href);
-
-      frame.src = urlComToken;
-      viewer.style.display = 'flex';
-      document.body.style.overflow = 'hidden'; // trava scroll da página principal
-
-      // Após iframe carregar, envia token via postMessage (segunda camada)
-      frame.onload = () => {
-        spinner.style.display = 'none';
-        try {
-          frame.contentWindow.postMessage({
-            type:  'ALMA_AUTH',
-            token: SESSION_TOKEN,
-            email: sessaoValida()?.email || ''
-          }, '*');
-        } catch(_) {}
-      };
-    }
-
-    function fecharViewer() {
-      const frame  = document.getElementById('platformFrame');
-      const viewer = document.getElementById('platformViewer');
-      frame.src    = 'about:blank';
-      viewer.style.display      = 'none';
-      document.body.style.overflow = '';
-    }
-
-    // Tecla ESC fecha o viewer
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Escape') fecharViewer();
-    });
-
-    // ══════════════════════════════════════════
-    // SUCESSO — salva sessão e abre no viewer
-    // ══════════════════════════════════════════
-    function authSuccess() {
-      salvarSessao(validatedEmail || '');
+    function encerrarSessao() {
+      limparSessao();
       atualizarBadgeSessao();
-
-      bioIcon.textContent = '✅';
-      setBtnLoading(btnBiometric, false, '🔐 Autenticar Agora');
-
-      const urlParaAbrir  = pendingUrl;
-      const tituloCard    = pendingTitulo || urlParaAbrir;
-      const resto         = tempoRestante();
-
-      setMsg(msgBio, 'success',
-        `✅ Acesso autorizado! Sessão ativa por ${resto}.`);
-
-      setTimeout(() => {
-        pendingUrl = null;
-        closeAuthModal();
-        abrirNoViewer(urlParaAbrir, tituloCard);
-      }, 350);
-    }
-
-    // Abre em nova aba (botão direto — gesto síncrono garantido, não bloqueado)
-    function authSuccessNewTab() {
-      if (pendingUrl) {
-        const u = pendingUrl;
-        pendingUrl = null;
-        window.open(u, '_blank', 'noopener');
-        closeAuthModal();
-      }
     }
 
     // ══════════════════════════════════════════
-    // EVENTOS — CARDS PAGOS
-    // Verifica cache antes de abrir modal.
-    // Se sessão válida → abre direto no viewer.
-    // ══════════════════════════════════════════
-    document.querySelectorAll('.paid-btn').forEach(btn => {
-      btn.addEventListener('click', function (e) {
-        e.preventDefault();
-        const url    = this.getAttribute('data-url');
-        // Pega título do card (texto do h3 mais próximo, sem o badge)
-        const card   = this.closest('.platform-card');
-        const h3     = card ? card.querySelector('.card-title') : null;
-        const titulo = h3
-          ? h3.childNodes[0].textContent.trim()   // só o texto, sem o span do badge
-          : (url || 'Plataforma');
-        if (url) abrirCardPago(url, titulo);
-      });
-    });
-
-    // Fechar clicando fora do modal
-    authModal.addEventListener('click', function (e) {
-      if (e.target === authModal) closeAuthModal();
-    });
-
-    // ══════════════════════════════════════════
-    // SCROLL PARA FAQ
-    // ══════════════════════════════════════════
-    function scrollToFAQ(event) {
-      event.stopPropagation();
-      event.preventDefault();
-      const faqCard = document.getElementById('faq-card');
-      if (faqCard) {
-        faqCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        faqCard.classList.add('faq-highlight');
-        setTimeout(() => faqCard.classList.remove('faq-highlight'), 1500);
-      }
-    }
-
-    // ══════════════════════════════════════════
-    // ALMAFLUXO MODAL (original — mantido intacto)
+    // ALMAFLUXO MODAL (original intacto)
     // ══════════════════════════════════════════
     const almafluxoState = { currentTheme: null, userQuery: '', generatedPrompt: '' };
     const almaBtn        = document.getElementById('alma-btn');
@@ -1799,30 +1722,33 @@ Atue como o Decodificador da Alma Universal. Use os dados fornecidos (nome, data
     });
     almafluxoModal.addEventListener('click', e => { if (e.target === almafluxoModal) almafluxoModal.style.display = 'none'; });
 
-    // ══════════════════════════════════════════
-    // INICIALIZAÇÃO — Verifica sessão ao carregar
-    // ══════════════════════════════════════════
-    function atualizarBadgeSessao() {
-      const badge     = document.getElementById('sessionBadge');
-      const badgeText = document.getElementById('sessionBadgeText');
-      const sessao    = sessaoValida();
-      if (sessao) {
-        badgeText.textContent = `${sessao.email} · ${tempoRestante()}`;
-        badge.style.display = 'flex';
-      } else {
-        badge.style.display = 'none';
+    function scrollToFAQ(event) {
+      event.stopPropagation();
+      event.preventDefault();
+      const faqCard = document.getElementById('faq-card');
+      if (faqCard) {
+        faqCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        faqCard.classList.add('faq-highlight');
+        setTimeout(() => faqCard.classList.remove('faq-highlight'), 1500);
       }
     }
 
-    function encerrarSessao() {
-      limparSessao();
-      atualizarBadgeSessao();
-    }
+    document.querySelectorAll('.paid-btn').forEach(btn => {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        const url    = this.getAttribute('data-url');
+        const card   = this.closest('.platform-card');
+        const h3     = card ? card.querySelector('.card-title') : null;
+        const titulo = h3 ? h3.childNodes[0].textContent.trim() : (url || 'Plataforma');
+        if (url) abrirCardPago(url, titulo);
+      });
+    });
 
-    // Atualiza badge a cada minuto (mantém o tempo restante atualizado)
+    authModal.addEventListener('click', function (e) { if (e.target === authModal) closeAuthModal(); });
+
+    // Inicialização
     atualizarBadgeSessao();
     setInterval(atualizarBadgeSessao, 60000);
-
     updatePromptDisplay();
   </script>
 </body>
