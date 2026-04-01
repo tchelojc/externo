@@ -301,6 +301,17 @@
               <input type="hidden" name="from_name" value="Sistema ALMAFLUXO">
               <input type="checkbox" name="botcheck" style="display:none">
 
+              <!-- CAMPO DE SELEÇÃO DA PLATAFORMA ADICIONADO -->
+              <div class="form-group">
+                <label>Qual plataforma deseja testar?</label>
+                <select name="plataforma_teste" required>
+                  <option value="" disabled selected>Selecione a plataforma</option>
+                  <option value="Hedge">📊 Hedge</option>
+                  <option value="Operador">⚙️ Operador</option>
+                  <option value="ALMAfluxo Completo">🌊 ALMAfluxo Completo</option>
+                </select>
+              </div>
+
               <div class="form-group"><input type="text" name="nome_teste" placeholder="Seu nome completo" required></div>
               <div class="form-group"><input type="email" name="email_teste" placeholder="Seu e-mail" required></div>
 
@@ -674,7 +685,7 @@
     }
   });
 
-  /* ── TESTE GRÁTIS DE 1 HORA (Web3Forms) ── */
+  /* ── TESTE GRÁTIS DE 1 HORA (com plataforma selecionada) ── */
   document.getElementById('freeTrialForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const btn = document.getElementById('trialBtn');
@@ -686,8 +697,9 @@
     const fd = new FormData(this);
     const nome = fd.get('nome_teste');
     const email = fd.get('email_teste');
+    const plataforma = fd.get('plataforma_teste');
 
-    const mensagemCorpo = `═══════════════════════════════════════════════\nSOLICITAÇÃO DE TESTE GRÁTIS (1 HORA)\n═══════════════════════════════════════════════\n\nNome: ${nome}\nE-mail: ${email}\n\nO usuário acima está solicitando uma senha temporária para testar a plataforma por 1 hora.\n═══════════════════════════════════════════════`;
+    const mensagemCorpo = `═══════════════════════════════════════════════\nSOLICITAÇÃO DE TESTE GRÁTIS (1 HORA)\n═══════════════════════════════════════════════\n\nPlataforma desejada: ${plataforma}\nNome: ${nome}\nE-mail: ${email}\n\nO usuário acima está solicitando uma senha temporária para testar a plataforma ${plataforma} por 1 hora.\n═══════════════════════════════════════════════`;
 
     fd.set('message', mensagemCorpo);
 
