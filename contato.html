@@ -293,7 +293,7 @@
             <hr style="border: 0; height: 1px; background: rgba(255,255,255,0.1); margin: 25px 0;">
 
             <div class="quiz-title">⏱️ Teste Grátis (1 Hora aproximadamente)</div>
-            <p style="font-size: 0.9rem; margin-bottom: 12px;">Solicite uma senha temporária para conhecer a plataforma de trading na prática.</p>
+            <p style="font-size: 0.9rem; margin-bottom: 12px;">Solicite uma senha temporária para conhecer qualquer uma das plataformas abaixo na prática.</p>
             
             <form class="contact-form" id="freeTrialForm">
               <input type="hidden" name="access_key" value="eb4edc0c-b94c-4287-83bf-6f2e05f65774">
@@ -301,14 +301,16 @@
               <input type="hidden" name="from_name" value="Sistema ALMAFLUXO">
               <input type="checkbox" name="botcheck" style="display:none">
 
-              <!-- CAMPO DE SELEÇÃO DA PLATAFORMA ADICIONADO -->
+              <!-- CAMPO DE SELEÇÃO DA PLATAFORMA COM TODAS AS OPÇÕES -->
               <div class="form-group">
                 <label>Qual plataforma deseja testar?</label>
                 <select name="plataforma_teste" required>
                   <option value="" disabled selected>Selecione a plataforma</option>
-                  <option value="Hedge">📊 Hedge</option>
-                  <option value="Operador">⚙️ Operador</option>
-                  <option value="ALMAfluxo Completo">🌊 ALMAfluxo Completo</option>
+                  <option value="Operador">⚙️ Operador (trading)</option>
+                  <option value="Hedge Basquete">🏀 Hedge Dinâmico – Basquete</option>
+                  <option value="Hedge Futebol">⚽ Hedge Dinâmico – Futebol</option>
+                  <option value="Hedge Multiesportes">🎾 Hedge Multiesportes (Vôlei / Tênis / Lutas)</option>
+                  <option value="Sintesia Humana">🧬 Sintesia Humana (Autoconhecimento)</option>
                 </select>
               </div>
 
@@ -516,7 +518,7 @@
               <div class="faq-question" onclick="event.stopPropagation(); toggleFAQ(this)">
                 <span>Posso testar antes de comprar?</span><span>▼</span>
               </div>
-              <div class="faq-answer">Sim! No card Licenças, você pode solicitar uma senha de teste gratuita por aproximadamente 1 hora. 💡 Por questões técnicas do sistema, a duração exata pode variar um pouco (o gerador de senhas trabalha com slots temporários). Para aproveitar ao máximo, recomendamos usar a senha assim que receber o e-mail de confirmação.</div>
+              <div class="faq-answer">Sim! No card Licenças, você pode solicitar uma senha de teste gratuita por aproximadamente 1 hora para qualquer uma das plataformas listadas. 💡 Por questões técnicas do sistema, a duração exata pode variar um pouco (o gerador de senhas trabalha com slots temporários). Para aproveitar ao máximo, recomendamos usar a senha assim que receber o e-mail de confirmação.</div>
             </div>
             <div class="faq-item">
               <div class="faq-question" onclick="event.stopPropagation(); toggleFAQ(this)">
@@ -640,16 +642,13 @@
     return total;
   }
 
-  /* ── NOVA FUNÇÃO: ABRE O CARD DE PAGAMENTOS (sem redirecionamento) ── */
+  /* ── FUNÇÃO: ABRE O CARD DE PAGAMENTOS (sem redirecionamento) ── */
   function solicitarAcesso() {
-    // Abre o card de pagamentos (expande e fecha os outros)
     const pagamentosCard = document.getElementById('card-pagamentos');
     if (!pagamentosCard.classList.contains('expanded')) {
       toggleCard('card-pagamentos');
     }
-    // Rola suavemente até o card
     pagamentosCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    // Pequeno atraso para dar tempo de abrir e focar no campo de dias (opcional)
     setTimeout(() => {
       const diasInput = document.getElementById('dias');
       if (diasInput) diasInput.focus();
@@ -699,7 +698,7 @@
     const email = fd.get('email_teste');
     const plataforma = fd.get('plataforma_teste');
 
-    const mensagemCorpo = `═══════════════════════════════════════════════\nSOLICITAÇÃO DE TESTE GRÁTIS (1 HORA)\n═══════════════════════════════════════════════\n\nPlataforma desejada: ${plataforma}\nNome: ${nome}\nE-mail: ${email}\n\nO usuário acima está solicitando uma senha temporária para testar a plataforma ${plataforma} por 1 hora.\n═══════════════════════════════════════════════`;
+    const mensagemCorpo = `═══════════════════════════════════════════════\nSOLICITAÇÃO DE TESTE GRÁTIS (1 HORA)\n═══════════════════════════════════════════════\n\nPlataforma desejada: ${plataforma}\nNome: ${nome}\nE-mail: ${email}\n\nO usuário acima está solicitando uma senha temporária para testar a plataforma ${plataforma} por aproximadamente 1 hora.\n═══════════════════════════════════════════════`;
 
     fd.set('message', mensagemCorpo);
 
