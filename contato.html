@@ -331,30 +331,46 @@
   // ============================================================
   // REGISTRO DE TESTE GRÁTIS (SALVA EM emailsgratis.json)
   // ============================================================
-  async function registrarTrial(email, plataforma, nome) {
-    const statusEl = document.getElementById('trialGithubStatus');
-    statusEl.className = 'trial-status registering';
-    statusEl.textContent = '🔄 Registrando licença temporária…';
-
-    try {
-      const result = await chamarProxy('register_trial', {
-        email: email.toLowerCase(),
-        plataforma: plataforma,
-        nome: nome,
-        deviceId: DEVICE_ID,
-        collection: 'gratis'   // CRÍTICO: direciona para emailsgratis.json
-      });
-      const expiraStr = new Date(result.expira).toLocaleTimeString('pt-BR');
-      statusEl.className = 'trial-status registered';
-      statusEl.innerHTML = `✅ <strong>Licença temporária ativada!</strong><br><small>🆔 ID: ${result.id} · Plataforma: ${plataforma} · Expira às ${expiraStr}</small>`;
-      return true;
-    } catch (err) {
-      console.error('[Trial]', err);
-      statusEl.className = 'trial-status reg-error';
-      statusEl.innerHTML = `⚠️ ${err.message}<br><small>O e-mail será enviado normalmente.</small>`;
-      return false;
+  async function registrarTrial(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnTrial');
+      const msg = document.getElementById('msgTrial');
+      const nome = document.getElementById('trialNome').value.trim();
+      const email = document.getElementById('trialEmail').value.trim().toLowerCase();
+      const plat = document.getElementById('trialPlat').value;
+  
+      if (!plat) { msg.innerHTML = '⚠️ Escolha uma plataforma.'; msg.className = 'msg error'; msg.style.display = 'block'; return; }
+      if (!nome || !email) { msg.innerHTML = '⚠️ Preencha nome e e-mail.'; msg.className = 'msg error'; msg.style.display = 'block'; return; }
+  
+      btn.disabled = true; btn.innerHTML = '⏱️ Processando...';
+      msg.style.display = 'none';
+  
+      try {
+        // ===== A CORREÇÃO ESTÁ AQUI: ADICIONAR collection: 'gratis' =====
+        const r = await chamarProxy('register_trial', {
+          email: email,
+          nome: nome,
+          plataforma: plat,
+          deviceId: DEVICE_ID,
+          collection: 'gratis'  // <--- ESSA É A CHAVE QUE FALTAVA
+        });
+  
+        if (r.ok) {
+          msg.innerHTML = `✅ Solicitação enviada! Acesso liberado por 1 hora.`;
+          msg.className = 'msg success';
+          document.getElementById('formTrial').reset();
+        } else {
+          msg.innerHTML = `⚠️ Erro: ${r.error}`;
+          msg.className = 'msg error';
+        }
+      } catch (err) {
+        msg.innerHTML = `⚠️ Falha de comunicação. Tente novamente.`;
+        msg.className = 'msg error';
+      } finally {
+        btn.disabled = false; btn.innerHTML = '⏱️ Solicitar 1 Hora Grátis';
+        msg.style.display = 'block';
+      }
     }
-  }
 
   /* ════ ACCORDION E FUNÇÕES AUXILIARES ════ */
   function toggleCard(id) {
