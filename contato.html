@@ -287,7 +287,7 @@
 
 <script>
   // ============================================================
-  // CONFIGURAÇÃO DO PROXY (URL atualizada)
+  // CONFIGURAÇÃO DO PROXY (Google Apps Script)
   // ============================================================
   const PROXY_URL = 'https://script.google.com/macros/s/AKfycbwhGYrKsQm1lsLev3NLt6nXzfT5AxNDQnulb0lId1-wsjuePpGG4o53mgj3sg3H6Cmh/exec';
 
@@ -314,56 +314,49 @@
   })();
 
   // ============================================================
-  // FUNÇÕES DE COMUNICAÇÃO COM O PROXY (envia collection para separar arquivos)
+  // COMUNICAÇÃO COM O PROXY
   // ============================================================
   async function chamarProxy(action, dados = {}) {
     const response = await fetch(PROXY_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'text/plain' }, // evita CORS preflight
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({ action, ...dados })
     });
-    if (!response.ok) throw new Error(`HTTP ${response.status} - ${response.statusText}`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const result = await response.json();
     if (!result.ok) throw new Error(result.error || 'Erro desconhecido');
     return result;
   }
 
   // ============================================================
-  // REGISTRO DE TRIAL VIA PROXY (escrita no emailsgratis.json)
+  // REGISTRO DE TESTE GRÁTIS (SALVA EM emailsgratis.json)
   // ============================================================
   async function registrarTrial(email, plataforma, nome) {
     const statusEl = document.getElementById('trialGithubStatus');
     statusEl.className = 'trial-status registering';
-    statusEl.textContent = '🔄 Registrando licença temporária no sistema…';
+    statusEl.textContent = '🔄 Registrando licença temporária…';
 
     try {
-      // IMPORTANTE: adicionamos "collection": "gratis" para que o backend saiba escrever no emailsgratis.json
       const result = await chamarProxy('register_trial', {
         email: email.toLowerCase(),
         plataforma: plataforma,
         nome: nome,
         deviceId: DEVICE_ID,
-        collection: 'gratis'   // ← direciona para o arquivo de testes gratuitos
+        collection: 'gratis'   // CRÍTICO: direciona para emailsgratis.json
       });
-      if (result.ok) {
-        const expiraStr = new Date(result.expira).toLocaleTimeString('pt-BR');
-        statusEl.className = 'trial-status registered';
-        statusEl.innerHTML =
-          `✅ <strong>Licença temporária ativada!</strong><br>` +
-          `<small>🆔 ID: ${result.id} · Plataforma: ${plataforma} · Expira às ${expiraStr}</small>`;
-        return true;
-      } else {
-        throw new Error(result.error);
-      }
+      const expiraStr = new Date(result.expira).toLocaleTimeString('pt-BR');
+      statusEl.className = 'trial-status registered';
+      statusEl.innerHTML = `✅ <strong>Licença temporária ativada!</strong><br><small>🆔 ID: ${result.id} · Plataforma: ${plataforma} · Expira às ${expiraStr}</small>`;
+      return true;
     } catch (err) {
-      console.error('[ALMAFLUXO trial]', err);
+      console.error('[Trial]', err);
       statusEl.className = 'trial-status reg-error';
-      statusEl.innerHTML = `⚠️ Não foi possível ativar automaticamente. Aguarde o e-mail manual.<br><small>${err.message}</small>`;
+      statusEl.innerHTML = `⚠️ ${err.message}<br><small>O e-mail será enviado normalmente.</small>`;
       return false;
     }
   }
 
-  /* ════ ACCORDION E FUNÇÕES AUXILIARES (mantidas intactas) ════ */
+  /* ════ ACCORDION E FUNÇÕES AUXILIARES ════ */
   function toggleCard(id) {
     const t = document.getElementById(id);
     const open = t.classList.contains('expanded');
@@ -378,17 +371,16 @@
   }
   function toggleCivilizacoes() {
     const r = document.querySelector('input[name="servico_numerologia"]:checked');
-    document.getElementById('blocoCivilizacoes').style.display =
-      (r && r.value === 'Mapa do Próprio Destino') ? 'block' : 'none';
+    document.getElementById('blocoCivilizacoes').style.display = (r && r.value === 'Mapa do Próprio Destino') ? 'block' : 'none';
     if (!r || r.value !== 'Mapa do Próprio Destino')
       document.querySelectorAll('input[name="civilizacao"]').forEach(cb => cb.checked = false);
     atualizarTotal();
   }
   function atualizarFormulario() {
     const tipo = document.querySelector('input[name="tipo_servico"]:checked').value;
-    document.getElementById('tradingSection').style.display    = tipo === 'trading'     ? 'block' : 'none';
-    document.getElementById('numerologiaSection').style.display= tipo === 'numerologia' ? 'block' : 'none';
-    document.getElementById('observacoesContainer').style.display = tipo === 'trading'  ? 'block' : 'none';
+    document.getElementById('tradingSection').style.display    = tipo === 'trading' ? 'block' : 'none';
+    document.getElementById('numerologiaSection').style.display = tipo === 'numerologia' ? 'block' : 'none';
+    document.getElementById('observacoesContainer').style.display = tipo === 'trading' ? 'block' : 'none';
     document.getElementById('dynamicSubject').value = tipo === 'trading'
       ? '⚡ ALMAFLUXO — Nova Solicitação de Acesso (Trading)'
       : '⚡ ALMAFLUXO — Nova Solicitação de Acesso (Numerologia)';
@@ -409,7 +401,7 @@
       total = (parseInt(document.getElementById('dias').value)||0) * 10;
     } else {
       const r = document.querySelector('input[name="servico_numerologia"]:checked');
-      if (r) { total += parseInt(r.getAttribute('data-preco'))||0; }
+      if (r) total += parseInt(r.getAttribute('data-preco'))||0;
       if (r && r.value === 'Mapa do Próprio Destino') {
         let tc = 0;
         document.querySelectorAll('input[name="civilizacao"]:checked').forEach(cb => tc += parseInt(cb.getAttribute('data-preco')||0));
@@ -431,7 +423,9 @@
   document.getElementById('dias').addEventListener('input', atualizarTotal);
   atualizarFormulario();
 
-  /* ════ FORMULÁRIO CONTATO SIMPLES (sem alterações) ════ */
+  // ============================================================
+  // FORMULÁRIO DE CONTATO SIMPLES
+  // ============================================================
   document.getElementById('contactForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const btn=document.getElementById('submitBtn'), ok=document.getElementById('msgSuccess'), err=document.getElementById('msgError');
@@ -444,29 +438,32 @@
     finally { btn.textContent='✉️ Enviar mensagem'; btn.disabled=false; }
   });
 
-  /* ════ FORMULÁRIO TESTE GRÁTIS (com registro no emailsgratis.json) ════ */
+  // ============================================================
+  // TESTE GRÁTIS → emailsgratis.json
+  // ============================================================
   document.getElementById('freeTrialForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const btn=document.getElementById('trialBtn'), ok=document.getElementById('trialSuccess'), err=document.getElementById('trialError');
     btn.textContent='⏳ Processando...'; btn.disabled=true; ok.style.display=err.style.display='none';
 
     const fd = new FormData(this);
-    const nome      = fd.get('nome_teste');
-    const email     = fd.get('email_teste');
-    const plataforma= fd.get('plataforma_teste');
+    const nome = fd.get('nome_teste');
+    const email = fd.get('email_teste');
+    const plataforma = fd.get('plataforma_teste');
+    const dataHora = new Date().toLocaleString('pt-BR');
 
-    // Passo 1: registra no GitHub via proxy (collection 'gratis')
+    // 1) Registra via proxy (emailsgratis.json)
     const sucesso = await registrarTrial(email, plataforma, nome);
 
-    // Passo 2: envia notificação por e-mail (sempre, independente do sucesso do registro automático)
-    const dataHora = new Date().toLocaleString('pt-BR');
+    // 2) Notifica por e-mail (sempre)
     fd.set('message',
       `═══════════════════════════════════════════════\n` +
-      `SOLICITAÇÃO DE TESTE GRÁTIS (1 hora)\n` +
+      `SOLICITAÇÃO DE TESTE GRÁTIS (1h) — emailsgratis.json\n` +
       `═══════════════════════════════════════════════\n\n` +
       `Plataforma: ${plataforma}\nNome: ${nome}\nE-mail: ${email}\n` +
       `Device ID: ${DEVICE_ID}\nData/Hora: ${dataHora}\n` +
-      `Status GitHub: ${sucesso ? '✅ Licença registrada automaticamente' : '⚠️ Registro manual necessário'}\n` +
+      `Arquivo destino: emailsgratis.json\n` +
+      `Status proxy: ${sucesso ? '✅ Gravado automaticamente' : '⚠️ Falhou — gravar manualmente'}\n` +
       `═══════════════════════════════════════════════`
     );
 
@@ -478,20 +475,25 @@
     finally { btn.textContent='⏱️ Solicitar 1 Hora Grátis'; btn.disabled=false; }
   });
 
-  /* ════ QUESTIONÁRIO + PAGAMENTO (sem alterações, apenas envia e-mail e redireciona) ════ */
+  // ============================================================
+  // FORMULÁRIO DE PAGAMENTO (APENAS E-MAIL + REDIRECIONAMENTO)
+  // O registro efetivo em emails.json será feito pelo pagamento.html
+  // após confirmação do PIX.
+  // ============================================================
   document.getElementById('quizForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const btn=document.getElementById('quizBtn'), ok=document.getElementById('quizSuccess'), err=document.getElementById('quizError');
     btn.textContent='⏳ Enviando...'; btn.disabled=true; ok.style.display=err.style.display='none';
 
     const tipo = document.querySelector('input[name="tipo_servico"]:checked').value;
-    const fd   = new FormData(this);
-    const nome  = fd.get('nome'), email = fd.get('email_resposta');
-    let total=0, corpo='', redirectUrl='';
+    const fd = new FormData(this);
+    const nome = fd.get('nome');
+    const email = fd.get('email_resposta');
     const dataHora = new Date().toLocaleString('pt-BR');
+    let total = 0, corpo = '', redirectUrl = '';
 
     if (tipo === 'trading') {
-      const dias = fd.get('dias')||0; total = parseInt(dias)*10;
+      const dias = fd.get('dias')||1; total = parseInt(dias)*10;
       corpo = `═══ SOLICITAÇÃO TRADING ═══\nNome: ${nome}\nE-mail: ${email}\n` +
               `Dias: ${dias} (R$ ${total},00)\nData: ${dataHora}\nDevice: ${DEVICE_ID}\n\n` +
               `1. ${fd.get('motivo')||'-'}\n2. ${fd.get('horas_dia')||'-'}\n` +
@@ -501,22 +503,25 @@
     } else {
       const serv = fd.get('servico_numerologia')||'Nenhum';
       const preco = serv==='Mapa do Próprio Destino'?100:serv==='Sintesia Humana'?10:0;
-      const civs  = Array.from(document.querySelectorAll('input[name="civilizacao"]:checked')).map(c=>c.value);
+      const civs = Array.from(document.querySelectorAll('input[name="civilizacao"]:checked')).map(c=>c.value);
       total = preco + civs.length*100;
       corpo = `═══ SOLICITAÇÃO NUMEROLOGIA ═══\nNome: ${nome}\nE-mail: ${email}\n` +
               `Serviço: ${serv} (R$ ${preco},00)\nCivilizações: ${civs.join(', ')||'Nenhuma'}\n` +
               `Total: R$ ${total},00\nData: ${dataHora}\nDevice: ${DEVICE_ID}`;
       redirectUrl = `https://tchelojc.github.io/links/pagamento.html?valor=${total}&nome=${encodeURIComponent(nome)}&email=${encodeURIComponent(email)}&servico=${encodeURIComponent(serv)}&civilizacoes=${encodeURIComponent(civs.join(','))}&tipo=numerologia&device=${encodeURIComponent(DEVICE_ID)}`;
     }
+
     fd.set('message', corpo);
     fd.set('subject', document.getElementById('dynamicSubject').value);
 
     try {
       const r = await fetch('https://api.web3forms.com/submit', { method:'POST', body: fd });
       const d = await r.json();
-      if (d.success) { ok.style.display='block'; window.location.href = redirectUrl; }
-      else throw new Error();
-    } catch { err.style.display='block'; }
+      if (d.success) {
+        ok.style.display = 'block';
+        window.location.href = redirectUrl;
+      } else throw new Error();
+    } catch { err.style.display = 'block'; }
     finally { btn.textContent='🚀 Enviar solicitação para análise'; btn.disabled=false; }
   });
 </script>
