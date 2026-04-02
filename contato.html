@@ -313,14 +313,13 @@
     } catch(_) { return _deviceId(); }
   })();
 
-// ============================================================
-  // FUNÇÕES DE COMUNICAÇÃO COM O PROXY
+  // ============================================================
+  // FUNÇÕES DE COMUNICAÇÃO COM O PROXY (envia collection para separar arquivos)
   // ============================================================
   async function chamarProxy(action, dados = {}) {
     const response = await fetch(PROXY_URL, {
       method: 'POST',
-      // MUDANÇA AQUI: Alterado de application/json para text/plain para evitar o erro de CORS (Preflight OPTIONS)
-      headers: { 'Content-Type': 'text/plain' },
+      headers: { 'Content-Type': 'text/plain' }, // evita CORS preflight
       body: JSON.stringify({ action, ...dados })
     });
     if (!response.ok) throw new Error(`HTTP ${response.status} - ${response.statusText}`);
@@ -330,7 +329,7 @@
   }
 
   // ============================================================
-  // REGISTRO DE TRIAL VIA PROXY (com tratamento de erro detalhado)
+  // REGISTRO DE TRIAL VIA PROXY (escrita no emailsgratis.json)
   // ============================================================
   async function registrarTrial(email, plataforma, nome) {
     const statusEl = document.getElementById('trialGithubStatus');
@@ -338,11 +337,13 @@
     statusEl.textContent = '🔄 Registrando licença temporária no sistema…';
 
     try {
+      // IMPORTANTE: adicionamos "collection": "gratis" para que o backend saiba escrever no emailsgratis.json
       const result = await chamarProxy('register_trial', {
         email: email.toLowerCase(),
         plataforma: plataforma,
         nome: nome,
-        deviceId: DEVICE_ID
+        deviceId: DEVICE_ID,
+        collection: 'gratis'   // ← direciona para o arquivo de testes gratuitos
       });
       if (result.ok) {
         const expiraStr = new Date(result.expira).toLocaleTimeString('pt-BR');
@@ -430,7 +431,7 @@
   document.getElementById('dias').addEventListener('input', atualizarTotal);
   atualizarFormulario();
 
-  /* ════ FORMULÁRIO CONTATO SIMPLES ════ */
+  /* ════ FORMULÁRIO CONTATO SIMPLES (sem alterações) ════ */
   document.getElementById('contactForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const btn=document.getElementById('submitBtn'), ok=document.getElementById('msgSuccess'), err=document.getElementById('msgError');
@@ -443,7 +444,7 @@
     finally { btn.textContent='✉️ Enviar mensagem'; btn.disabled=false; }
   });
 
-  /* ════ FORMULÁRIO TESTE GRÁTIS ════ */
+  /* ════ FORMULÁRIO TESTE GRÁTIS (com registro no emailsgratis.json) ════ */
   document.getElementById('freeTrialForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const btn=document.getElementById('trialBtn'), ok=document.getElementById('trialSuccess'), err=document.getElementById('trialError');
@@ -454,10 +455,10 @@
     const email     = fd.get('email_teste');
     const plataforma= fd.get('plataforma_teste');
 
-    // Passo 1: registra no GitHub via proxy
+    // Passo 1: registra no GitHub via proxy (collection 'gratis')
     const sucesso = await registrarTrial(email, plataforma, nome);
 
-    // Passo 2: envia notificação por e-mail
+    // Passo 2: envia notificação por e-mail (sempre, independente do sucesso do registro automático)
     const dataHora = new Date().toLocaleString('pt-BR');
     fd.set('message',
       `═══════════════════════════════════════════════\n` +
@@ -477,7 +478,7 @@
     finally { btn.textContent='⏱️ Solicitar 1 Hora Grátis'; btn.disabled=false; }
   });
 
-  /* ════ QUESTIONÁRIO + PAGAMENTO ════ */
+  /* ════ QUESTIONÁRIO + PAGAMENTO (sem alterações, apenas envia e-mail e redireciona) ════ */
   document.getElementById('quizForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const btn=document.getElementById('quizBtn'), ok=document.getElementById('quizSuccess'), err=document.getElementById('quizError');
