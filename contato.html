@@ -313,13 +313,14 @@
     } catch(_) { return _deviceId(); }
   })();
 
-  // ============================================================
+// ============================================================
   // FUNÇÕES DE COMUNICAÇÃO COM O PROXY
   // ============================================================
   async function chamarProxy(action, dados = {}) {
     const response = await fetch(PROXY_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      // MUDANÇA AQUI: Alterado de application/json para text/plain para evitar o erro de CORS (Preflight OPTIONS)
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({ action, ...dados })
     });
     if (!response.ok) throw new Error(`HTTP ${response.status} - ${response.statusText}`);
