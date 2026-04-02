@@ -70,7 +70,6 @@
     .info-box { background:rgba(0,0,0,0.3);backdrop-filter:blur(5px);border-radius:20px;padding:20px;margin-top:40px;text-align:center;border:1px solid rgba(255,255,255,0.1); }
     .info-box p { font-size:0.95rem;color:rgba(255,255,255,0.8); }
     .footer { margin-top:50px;font-size:0.8rem;color:rgba(255,255,255,0.4);text-align:center; }
-    /* Status do registro temporário */
     .trial-status { margin-top:8px;padding:10px 14px;border-radius:8px;font-size:0.85rem;display:none;line-height:1.5; }
     .trial-status.registering { display:block;background:rgba(74,111,165,0.2);border:1px solid rgba(74,111,165,0.5);color:#aaccff; }
     .trial-status.registered { display:block;background:rgba(46,204,113,0.15);border:1px solid rgba(46,204,113,0.5);color:#a8f0c6; }
@@ -288,7 +287,7 @@
 
 <script>
   // ============================================================
-  // CONFIGURAÇÃO DO PROXY GOOGLE APPS SCRIPT (versão 6)
+  // CONFIGURAÇÃO DO PROXY (URL atualizada)
   // ============================================================
   const PROXY_URL = 'https://script.google.com/macros/s/AKfycbwhGYrKsQm1lsLev3NLt6nXzfT5AxNDQnulb0lId1-wsjuePpGG4o53mgj3sg3H6Cmh/exec';
 
@@ -315,7 +314,7 @@
   })();
 
   // ============================================================
-  // FUNÇÕES DE COMUNICAÇÃO COM O PROXY (APPS SCRIPT)
+  // FUNÇÕES DE COMUNICAÇÃO COM O PROXY
   // ============================================================
   async function chamarProxy(action, dados = {}) {
     const response = await fetch(PROXY_URL, {
@@ -323,14 +322,14 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action, ...dados })
     });
-    if (!response.ok) throw new Error(`Proxy error: ${response.status}`);
+    if (!response.ok) throw new Error(`HTTP ${response.status} - ${response.statusText}`);
     const result = await response.json();
     if (!result.ok) throw new Error(result.error || 'Erro desconhecido');
     return result;
   }
 
   // ============================================================
-  // REGISTRO DE TRIAL VIA PROXY
+  // REGISTRO DE TRIAL VIA PROXY (com tratamento de erro detalhado)
   // ============================================================
   async function registrarTrial(email, plataforma, nome) {
     const statusEl = document.getElementById('trialGithubStatus');
@@ -344,7 +343,6 @@
         nome: nome,
         deviceId: DEVICE_ID
       });
-      // result: { ok: true, id: "T0001", expira: timestamp }
       if (result.ok) {
         const expiraStr = new Date(result.expira).toLocaleTimeString('pt-BR');
         statusEl.className = 'trial-status registered';
@@ -363,7 +361,7 @@
     }
   }
 
-  /* ════ ACCORDION ════ */
+  /* ════ ACCORDION E FUNÇÕES AUXILIARES (mantidas intactas) ════ */
   function toggleCard(id) {
     const t = document.getElementById(id);
     const open = t.classList.contains('expanded');
@@ -444,9 +442,7 @@
     finally { btn.textContent='✉️ Enviar mensagem'; btn.disabled=false; }
   });
 
-  /* ════ FORMULÁRIO TESTE GRÁTIS ════
-     1. Registra no proxy (GitHub via Apps Script)
-     2. Envia notificação por e-mail via Web3Forms */
+  /* ════ FORMULÁRIO TESTE GRÁTIS ════ */
   document.getElementById('freeTrialForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const btn=document.getElementById('trialBtn'), ok=document.getElementById('trialSuccess'), err=document.getElementById('trialError');
@@ -460,7 +456,7 @@
     // Passo 1: registra no GitHub via proxy
     const sucesso = await registrarTrial(email, plataforma, nome);
 
-    // Passo 2: envia notificação por e-mail (independente do resultado)
+    // Passo 2: envia notificação por e-mail
     const dataHora = new Date().toLocaleString('pt-BR');
     fd.set('message',
       `═══════════════════════════════════════════════\n` +
