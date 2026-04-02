@@ -1043,23 +1043,16 @@
       try {
         const response = await fetch(PROXY_URL, {
           method: 'POST',
-          // MUDANÇA: text/plain evita o bloqueio CORS do Google
-          headers: { 'Content-Type': 'text/plain' }, 
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action, ...dados })
         });
-    
         console.log(`[Proxy] Status da resposta: ${response.status}`);
-        
-        // Pegamos o texto primeiro para garantir que vemos erros do Google
         const text = await response.text();
-        console.log(`[Proxy] Corpo bruto recebido: ${text}`);
-    
+        console.log(`[Proxy] Corpo bruto: ${text}`);
         const result = JSON.parse(text);
         console.log(`[Proxy] Resultado parseado:`, result);
-    
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         if (!result.ok) throw new Error(result.error || 'Erro desconhecido');
-        
         return result;
       } catch (err) {
         console.error('[Proxy] Erro na chamada:', err);
