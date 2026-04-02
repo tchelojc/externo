@@ -988,8 +988,95 @@
     // ============================================================
     // CONFIGURAÇÃO DO PROXY (Apps Script)
     // ============================================================
+// =========================================================
+    // URL DO SEU GOOGLE APPS SCRIPT (Web App) - ATUALIZADA
+    // =========================================================
     const PROXY_URL = 'https://script.google.com/macros/s/AKfycbwhGYrKsQm1lsLev3NLt6nXzfT5AxNDQnulb0lId1-wsjuePpGG4o53mgj3sg3H6Cmh/exec';
 
+    async function verificarAcesso() {
+        const emailInput = document.getElementById('emailInput');
+        const errorMsg = document.getElementById('errorMsg');
+        const loading = document.getElementById('loading');
+        const loginBtn = document.getElementById('loginBtn');
+        const email = emailInput.value.trim().toLowerCase();
+
+        if (!email || !email.includes('@')) {
+            mostrarErro('❌ Por favor, insira um e-mail válido.');
+            return;
+        }
+
+        // Estado de carregamento
+        errorMsg.style.display = 'none';
+        loading.style.display = 'block';
+        loginBtn.style.display = 'none';
+
+        try {
+            // MUDANÇA CHAVE: Usar POST e text/plain (igual ao contato) para buscar a action 'ler'
+            const response = await fetch(PROXY_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({ action: 'ler' })
+            });
+            const result = await response.json();
+
+            if (result.ok) {
+                const lista = result.lista;
+                
+                // === LÓGICA DE VALIDAÇÃO ===
+                const temAcesso = lista.some(item => {
+                    // Trata formato antigo (se houver array de strings)
+                    if (typeof item === 'string') {
+                        return item.toLowerCase() === email;
+                    }
+                    // Trata formato novo JSON (objetos temporários ou permanentes)
+                    if (typeof item === 'object' && item !== null) {
+                        if (item.email && item.email.toLowerCase() === email) {
+                            // Verifica se tem data de expiração (temporário) e se ainda é válida
+                            if (item.expira) {
+                                const agora = Date.now();
+                                if (agora > item.expira) return false;
+                            }
+                            return true;
+                        }
+                    }
+                    return false;
+                });
+
+                if (temAcesso) {
+                    // Sucesso: E-mail encontrado e dentro da validade
+                    loading.style.display = 'none';
+                    loginBtn.style.display = 'block';
+                    
+                    // Salvar no localStorage e avançar
+                    localStorage.setItem('alma_email', email);
+                    localStorage.setItem('alma_auth', 'true');
+                    
+                    // Animação de sucesso
+                    document.querySelector('.hologram-ring').style.borderColor = '#00ffaa';
+                    document.querySelector('.hologram-ring').style.boxShadow = '0 0 40px rgba(0, 255, 170, 0.4)';
+                    
+                    setTimeout(() => {
+                        window.location.href = 'links/fluxo.html'; // Redireciona para o painel
+                    }, 800);
+                } else {
+                    // Falha: E-mail não encontrado ou expirado
+                    mostrarErro('❌ Acesso negado. E-mail não encontrado ou licença expirada.');
+                    loading.style.display = 'none';
+                    loginBtn.style.display = 'block';
+                }
+            } else {
+                mostrarErro('❌ Erro interno do servidor. Tente novamente.');
+                console.error(result.error);
+                loading.style.display = 'none';
+                loginBtn.style.display = 'block';
+            }
+        } catch (error) {
+            console.error('Erro na validação:', error);
+            mostrarErro('❌ Falha de conexão. Verifique sua internet.');
+            loading.style.display = 'none';
+            loginBtn.style.display = 'block';
+        }
+    }
     // ============================================================
     // DEVICE ID
     // ============================================================
