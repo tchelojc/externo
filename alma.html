@@ -14,22 +14,6 @@
   <style>
     * {
       margin: 0;
-      padding: 0;<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#000000">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="ALMAFLUXO">
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <title>ALMAFLUXO · Portal</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
-  <style>
-    * {
-      margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
@@ -281,9 +265,7 @@
       100% { box-shadow: 0 0 0 0 rgba(255,215,0,0); border-color: rgba(255,255,255,0.2); }
     }
 
-    /* ══════════════════════════════════════════════
-       MODAL DE AUTENTICAÇÃO — WebAuthn + Email
-    ══════════════════════════════════════════════ */
+    /* Modal de Autenticação */
     .auth-modal {
       display: none;
       position: fixed;
@@ -306,7 +288,6 @@
       box-shadow: 0 0 60px rgba(74, 111, 165, 0.35), 0 20px 40px rgba(0,0,0,0.6);
       position: relative;
     }
-
     .auth-ring {
       width: 70px; height: 70px;
       border-radius: 50%;
@@ -325,7 +306,6 @@
     }
     @keyframes spinRing { to { transform: rotate(360deg); } }
     .auth-ring-icon { font-size: 2rem; }
-
     .auth-modal-content h3 {
       margin-bottom: 6px;
       color: #aaccff;
@@ -339,7 +319,6 @@
       letter-spacing: 0.06em;
       text-transform: uppercase;
     }
-
     .auth-steps {
       display: flex;
       justify-content: center;
@@ -356,10 +335,8 @@
       background: rgba(100, 180, 255, 0.9);
       box-shadow: 0 0 8px rgba(100, 180, 255, 0.6);
     }
-
     .auth-step { display: none; }
     .auth-step.visible { display: block; }
-
     .auth-input {
       width: 100%; padding: 13px 16px;
       margin: 0 0 14px;
@@ -376,7 +353,6 @@
       box-shadow: 0 0 0 3px rgba(100, 180, 255, 0.1);
     }
     .auth-input::placeholder { color: rgba(180, 200, 255, 0.35); }
-
     .auth-btn {
       width: 100%; padding: 13px;
       margin: 0 0 10px;
@@ -411,7 +387,6 @@
       background: rgba(100, 150, 255, 0.08);
       color: rgba(180, 200, 255, 0.8);
     }
-
     .biometric-area {
       margin: 10px 0 18px;
       padding: 24px;
@@ -435,7 +410,6 @@
       color: rgba(180, 200, 255, 0.55);
       line-height: 1.5;
     }
-
     .auth-msg {
       margin-top: 12px;
       padding: 10px 14px;
@@ -445,25 +419,9 @@
       display: none;
       text-align: left;
     }
-    .auth-msg.error {
-      display: block;
-      background: rgba(255, 80, 80, 0.12);
-      border: 1px solid rgba(255, 80, 80, 0.3);
-      color: #ff9090;
-    }
-    .auth-msg.success {
-      display: block;
-      background: rgba(50, 210, 120, 0.12);
-      border: 1px solid rgba(50, 210, 120, 0.3);
-      color: #80f0b0;
-    }
-    .auth-msg.info {
-      display: block;
-      background: rgba(74, 111, 165, 0.15);
-      border: 1px solid rgba(74, 111, 165, 0.3);
-      color: #aaccff;
-    }
-
+    .auth-msg.error { display: block; background: rgba(255, 80, 80, 0.12); border: 1px solid rgba(255, 80, 80, 0.3); color: #ff9090; }
+    .auth-msg.success { display: block; background: rgba(50, 210, 120, 0.12); border: 1px solid rgba(50, 210, 120, 0.3); color: #80f0b0; }
+    .auth-msg.info { display: block; background: rgba(74, 111, 165, 0.15); border: 1px solid rgba(74, 111, 165, 0.3); color: #aaccff; }
     .spin {
       display: inline-block;
       width: 14px; height: 14px;
@@ -474,7 +432,6 @@
       vertical-align: middle;
       margin-right: 6px;
     }
-
     .auth-close {
       position: absolute;
       top: 16px; right: 20px;
@@ -486,7 +443,6 @@
       line-height: 1;
     }
     .auth-close:hover { color: rgba(180, 200, 255, 0.9); }
-
     .auth-security-badge {
       margin-top: 18px;
       font-size: 0.72rem;
@@ -496,7 +452,6 @@
       justify-content: center;
       gap: 5px;
     }
-
     .fallback-section {
       margin-top: 14px;
       padding-top: 14px;
@@ -507,7 +462,6 @@
       color: rgba(180, 200, 255, 0.4);
       margin-bottom: 8px;
     }
-
     @media (max-width: 768px) {
       .alma-button { width: 170px; height: 170px; font-size: 2.2rem; }
       .cards-container { grid-template-columns: 1fr; }
@@ -758,259 +712,79 @@
     <p style="text-align: center; margin-bottom: 30px; color: var(--text-dim);">Do Caos à Maestria. Os 7 livros na ordem que revelam o desenvolvimento do pensamento.</p>
     
     <div class="cards-container">
-        <!-- Livro 1 -->
-        <a href="https://livros-jwjhhij6hjs4n7qxgd3xmz.streamlit.app/" target="_blank" class="platform-card" style="border-left: 3px solid #d4a843;">
-            <h3 class="card-title">Livro I: O Caos do Passado <span class="status-badge" style="background: rgba(212, 168, 67, 0.15); color: #d4a843; border: 1px solid rgba(212, 168, 67, 0.3);">🜍 Loucura</span></h3>
-            <p class="card-description">A fundação do método. O estudo inicial sobre energia, o caos sistêmico e como o tempo se propaga a partir da força da energia pura no universo.</p>
-            <span class="card-link">Ler Obra</span>
-        </a>
-
-        <!-- Livro 2 -->
-        <a href="https://livros-alwkohoykgaioy7m8y8ns6.streamlit.app/" target="_blank" class="platform-card" style="border-left: 3px solid #4a8a6a;">
-            <h3 class="card-title">Livro II: Liberdade dentro do Caos <span class="status-badge" style="background: rgba(74, 138, 106, 0.15); color: #4a8a6a; border: 1px solid rgba(74, 138, 106, 0.3);">🜍 Loucura</span></h3>
-            <p class="card-description">A aceitação consciente da dor e da perda como ferramentas adaptativas. O encontro do sentido, do amor e a solidificação da sua filosofia pessoal.</p>
-            <span class="card-link">Ler Obra</span>
-        </a>
-
-        <!-- Livro 3 -->
-        <a href="https://livros-cbakzajpbyxwpgjbsgap5.streamlit.app/" target="_blank" class="platform-card" style="border-left: 3px solid #a5855a;">
-            <h3 class="card-title">Livro III: O Presidente <span class="status-badge" style="background: rgba(165, 133, 90, 0.15); color: #a5855a; border: 1px solid rgba(165, 133, 90, 0.3);">🜍 Aceitação</span></h3>
-            <p class="card-description">Uma análise profunda sobre a política humana, a estrutura de poder, a influência do meio e a sabedoria necessária para compreender a gestão da verdade.</p>
-            <span class="card-link">Ler Obra</span>
-        </a>
-
-        <!-- Livro 4 -->
-        <a href="https://livros-qjxclgnty24kt8gngupopm.streamlit.app/" target="_blank" class="platform-card" style="border-left: 3px solid #7a5aa5;">
-            <h3 class="card-title">Livro IV: O Preconceito Quântico <span class="status-badge" style="background: rgba(122, 90, 165, 0.15); color: #7a5aa5; border: 1px solid rgba(122, 90, 165, 0.3);">🜍 Aceitação</span></h3>
-            <p class="card-description">A percepção da história como um ciclo repetitivo. O preconceito dissecado como um fenômeno energético de distorção de frequências coletivas.</p>
-            <span class="card-link">Ler Obra</span>
-        </a>
-
-        <!-- Livro 5 -->
-        <a href="https://livros-9fq2vxbzawxxwvxguwnewt.streamlit.app/" target="_blank" class="platform-card" style="border-left: 3px solid #a55a7a;">
-            <h3 class="card-title">Livro V: O Paradoxo dos Movimentos <span class="status-badge" style="background: rgba(165, 90, 122, 0.15); color: #a55a7a; border: 1px solid rgba(165, 90, 122, 0.3);">🜍 Aceitação</span></h3>
-            <p class="card-description">O entrelaçamento entre biologia e física quântica. A cosmologia, o destino e a constatação da teoria do movimento como a única constante real.</p>
-            <span class="card-link">Ler Obra</span>
-        </a>
-
-        <!-- Livro 6 -->
-        <a href="https://livros-zgkycz4zkstv6iw4avs8ou.streamlit.app/" target="_blank" class="platform-card" style="border-left: 3px solid #a55a5a;">
-            <h3 class="card-title">Livro VI: Fuder ou Não Fuder <span class="status-badge" style="background: rgba(165, 90, 90, 0.15); color: #a55a5a; border: 1px solid rgba(165, 90, 90, 0.3);">🜍 Maestria</span></h3>
-            <p class="card-description">O corpo humano utilizado como veículo filosófico. Uma exploração analítica sobre o sexo, o instinto primário, as amarras sociais e a libertação verdadeira.</p>
-            <span class="card-link">Ler Obra</span>
-        </a>
-
-        <!-- Livro 7 -->
-        <a href="https://tchelojc.github.io/codigo_divino/" target="_blank" class="platform-card" style="border-left: 3px solid #e8c97a;">
-            <h3 class="card-title">Livro VII: O Código Divino <span class="status-badge" style="background: rgba(232, 201, 122, 0.15); color: #e8c97a; border: 1px solid rgba(232, 201, 122, 0.3);">🜍 Maestria</span></h3>
-            <p class="card-description">A síntese final do trajeto. A decodificação das frequências (como 3-6-9) para explicar a dinâmica do universo, o amor e a participação do observador.</p>
-            <span class="card-link">Ler Obra</span>
-        </a>
-
-        <!-- Card 8: ALMAFLUXO (Transparência Mantida) -->
-        <a href="https://tchelojc.github.io/templates/fluxo.html" target="_blank" class="platform-card" style="border-left: 3px solid #d4a843; background: rgba(212,168,67,0.05);">
-            <h3 class="card-title">🌀 ALMAFLUXO <span class="status-badge" style="background: rgba(212, 168, 67, 0.2); color: #d4a843; border: 1px solid rgba(212, 168, 67, 0.4);">O Fluxo Vivo</span></h3>
-            <p class="card-description">A filosofia que transcendeu as palavras e se tornou código, plataforma e ferramenta viva. A materialização definitiva de todo o sistema consciencial.</p>
-            <span class="card-link">Acessar Materialização</span>
-        </a>
+        <a href="https://livros-jwjhhij6hjs4n7qxgd3xmz.streamlit.app/" target="_blank" class="platform-card" style="border-left: 3px solid #d4a843;"><h3 class="card-title">Livro I: O Caos do Passado <span class="status-badge" style="background: rgba(212, 168, 67, 0.15); color: #d4a843; border: 1px solid rgba(212, 168, 67, 0.3);">🜍 Loucura</span></h3><p class="card-description">A fundação do método. O estudo inicial sobre energia, o caos sistêmico e como o tempo se propaga a partir da força da energia pura no universo.</p><span class="card-link">Ler Obra</span></a>
+        <a href="https://livros-alwkohoykgaioy7m8y8ns6.streamlit.app/" target="_blank" class="platform-card" style="border-left: 3px solid #4a8a6a;"><h3 class="card-title">Livro II: Liberdade dentro do Caos <span class="status-badge" style="background: rgba(74, 138, 106, 0.15); color: #4a8a6a; border: 1px solid rgba(74, 138, 106, 0.3);">🜍 Loucura</span></h3><p class="card-description">A aceitação consciente da dor e da perda como ferramentas adaptativas. O encontro do sentido, do amor e a solidificação da sua filosofia pessoal.</p><span class="card-link">Ler Obra</span></a>
+        <a href="https://livros-cbakzajpbyxwpgjbsgap5.streamlit.app/" target="_blank" class="platform-card" style="border-left: 3px solid #a5855a;"><h3 class="card-title">Livro III: O Presidente <span class="status-badge" style="background: rgba(165, 133, 90, 0.15); color: #a5855a; border: 1px solid rgba(165, 133, 90, 0.3);">🜍 Aceitação</span></h3><p class="card-description">Uma análise profunda sobre a política humana, a estrutura de poder, a influência do meio e a sabedoria necessária para compreender a gestão da verdade.</p><span class="card-link">Ler Obra</span></a>
+        <a href="https://livros-qjxclgnty24kt8gngupopm.streamlit.app/" target="_blank" class="platform-card" style="border-left: 3px solid #7a5aa5;"><h3 class="card-title">Livro IV: O Preconceito Quântico <span class="status-badge" style="background: rgba(122, 90, 165, 0.15); color: #7a5aa5; border: 1px solid rgba(122, 90, 165, 0.3);">🜍 Aceitação</span></h3><p class="card-description">A percepção da história como um ciclo repetitivo. O preconceito dissecado como um fenômeno energético de distorção de frequências coletivas.</p><span class="card-link">Ler Obra</span></a>
+        <a href="https://livros-9fq2vxbzawxxwvxguwnewt.streamlit.app/" target="_blank" class="platform-card" style="border-left: 3px solid #a55a7a;"><h3 class="card-title">Livro V: O Paradoxo dos Movimentos <span class="status-badge" style="background: rgba(165, 90, 122, 0.15); color: #a55a7a; border: 1px solid rgba(165, 90, 122, 0.3);">🜍 Aceitação</span></h3><p class="card-description">O entrelaçamento entre biologia e física quântica. A cosmologia, o destino e a constatação da teoria do movimento como a única constante real.</p><span class="card-link">Ler Obra</span></a>
+        <a href="https://livros-zgkycz4zkstv6iw4avs8ou.streamlit.app/" target="_blank" class="platform-card" style="border-left: 3px solid #a55a5a;"><h3 class="card-title">Livro VI: Fuder ou Não Fuder <span class="status-badge" style="background: rgba(165, 90, 90, 0.15); color: #a55a5a; border: 1px solid rgba(165, 90, 90, 0.3);">🜍 Maestria</span></h3><p class="card-description">O corpo humano utilizado como veículo filosófico. Uma exploração analítica sobre o sexo, o instinto primário, as amarras sociais e a libertação verdadeira.</p><span class="card-link">Ler Obra</span></a>
+        <a href="https://tchelojc.github.io/codigo_divino/" target="_blank" class="platform-card" style="border-left: 3px solid #e8c97a;"><h3 class="card-title">Livro VII: O Código Divino <span class="status-badge" style="background: rgba(232, 201, 122, 0.15); color: #e8c97a; border: 1px solid rgba(232, 201, 122, 0.3);">🜍 Maestria</span></h3><p class="card-description">A síntese final do trajeto. A decodificação das frequências (como 3-6-9) para explicar a dinâmica do universo, o amor e a participação do observador.</p><span class="card-link">Ler Obra</span></a>
+        <a href="https://tchelojc.github.io/templates/fluxo.html" target="_blank" class="platform-card" style="border-left: 3px solid #d4a843; background: rgba(212,168,67,0.05);"><h3 class="card-title">🌀 ALMAFLUXO <span class="status-badge" style="background: rgba(212, 168, 67, 0.2); color: #d4a843; border: 1px solid rgba(212, 168, 67, 0.4);">O Fluxo Vivo</span></h3><p class="card-description">A filosofia que transcendeu as palavras e se tornou código, plataforma e ferramenta viva. A materialização definitiva de todo o sistema consciencial.</p><span class="card-link">Acessar Materialização</span></a>
     </div>
 
   <h2 class="category-title">🔧 Ferramentas ALMA</h2>
   <div class="cards-container">
-    <a href="https://tchelojc.github.io/editor_html/interface_genesis.html" target="_blank" class="platform-card">
-      <h3 class="card-title">GÊNESIS BUILDER PRO <span class="status-badge">Online</span></h3>
-      <p class="card-description">Plataforma de criação de interfaces web com sistema visual de construção em blocos, múltiplos templates, configuração avançada e exportação de projetos.</p>
-      <span class="card-link">Iniciar Criação</span>
-    </a>
-    <a href="https://qrcode-k5xv38lfcahgq5xosp5wuu.streamlit.app" target="_blank" class="platform-card">
-      <h3 class="card-title">Gerador QRcode <span class="status-badge">Online</span></h3>
-      <p class="card-description">Transforme dados e informações brutas em portais dimensionais acessíveis através de QR Codes personalizados, rastreáveis e visualmente cósmicos.</p>
-      <span class="card-link">Criar QRcode</span>
-    </a>
-    <a href="https://editor-video-suuoupysctxpjqp2phuur3.streamlit.app/" target="_blank" class="platform-card">
-      <h3 class="card-title">STUDIO PRO EDITOR AI <span class="status-badge">Online</span></h3>
-      <p class="card-description">Plataforma em nuvem avançada para edição completa de vídeo e áudio. Inteligência Artificial integrada para automatizar cortes e renderização poderosa.</p>
-      <span class="card-link">Editar</span>
-    </a>
+    <a href="https://tchelojc.github.io/editor_html/interface_genesis.html" target="_blank" class="platform-card"><h3 class="card-title">GÊNESIS BUILDER PRO <span class="status-badge">Online</span></h3><p class="card-description">Plataforma de criação de interfaces web com sistema visual de construção em blocos, múltiplos templates, configuração avançada e exportação de projetos.</p><span class="card-link">Iniciar Criação</span></a>
+    <a href="https://qrcode-k5xv38lfcahgq5xosp5wuu.streamlit.app" target="_blank" class="platform-card"><h3 class="card-title">Gerador QRcode <span class="status-badge">Online</span></h3><p class="card-description">Transforme dados e informações brutas em portais dimensionais acessíveis através de QR Codes personalizados, rastreáveis e visualmente cósmicos.</p><span class="card-link">Criar QRcode</span></a>
+    <a href="https://editor-video-suuoupysctxpjqp2phuur3.streamlit.app/" target="_blank" class="platform-card"><h3 class="card-title">STUDIO PRO EDITOR AI <span class="status-badge">Online</span></h3><p class="card-description">Plataforma em nuvem avançada para edição completa de vídeo e áudio. Inteligência Artificial integrada para automatizar cortes e renderização poderosa.</p><span class="card-link">Editar</span></a>
   </div>
 
   <h2 class="category-title">FAQ</h2>
   <div class="cards-container" id="faq-card">
-    <a href="https://almafluxo.uk/contato" target="_blank" class="platform-card">
-      <h3 class="card-title">Atendimento & FAQ <span class="status-badge">Online</span></h3>
-      <p class="card-description">Página central de contato para envio de e-mails, validação de licenças, suporte sobre pagamentos e respostas para as dúvidas mais frequentes.</p>
-      <span class="card-link">Acessar Contato</span>
-    </a>
+    <a href="https://almafluxo.uk/contato" target="_blank" class="platform-card"><h3 class="card-title">Atendimento & FAQ <span class="status-badge">Online</span></h3><p class="card-description">Página central de contato para envio de e-mails, validação de licenças, suporte sobre pagamentos e respostas para as dúvidas mais frequentes.</p><span class="card-link">Acessar Contato</span></a>
   </div>
 
-  <!-- ═══════════════════════════════════════════════════
-       MODAL DE AUTENTICAÇÃO — Email + WebAuthn Biométrico
-  ═══════════════════════════════════════════════════ -->
+  <!-- MODAL DE AUTENTICAÇÃO -->
   <div id="authModal" class="auth-modal">
     <div class="auth-modal-content">
       <button class="auth-close" onclick="closeAuthModal()" aria-label="Fechar">&times;</button>
+      <div class="auth-ring"><span class="auth-ring-icon" id="authRingIcon">🔐</span></div>
+      <div class="auth-steps"><div class="auth-step-dot active" id="dot1"></div><div class="auth-step-dot" id="dot2"></div></div>
 
-      <div class="auth-ring">
-        <span class="auth-ring-icon" id="authRingIcon">🔐</span>
-      </div>
-
-      <div class="auth-steps">
-        <div class="auth-step-dot active" id="dot1"></div>
-        <div class="auth-step-dot" id="dot2"></div>
-      </div>
-
-      <!-- ETAPA 1: Email -->
       <div id="authStepEmail" class="auth-step visible">
         <h3>Acesso Restrito</h3>
         <p class="auth-subtitle">Verifique seu e‑mail cadastrado</p>
-        <input type="email" id="authEmailInput" class="auth-input"
-               placeholder="seuemail@exemplo.com"
-               autocomplete="email"
-               onkeydown="if(event.key==='Enter')validateEmailForAccess()">
-        <button class="auth-btn auth-btn-primary" id="btnValidateEmail"
-                onclick="validateEmailForAccess()">
-          Verificar E‑mail
-        </button>
+        <input type="email" id="authEmailInput" class="auth-input" placeholder="seuemail@exemplo.com" autocomplete="email" onkeydown="if(event.key==='Enter')validateEmailForAccess()">
+        <button class="auth-btn auth-btn-primary" id="btnValidateEmail" onclick="validateEmailForAccess()">Verificar E‑mail</button>
         <div id="authMsgEmail" class="auth-msg"></div>
       </div>
 
-      <!-- ETAPA 2: Biometria -->
       <div id="authStepBio" class="auth-step">
         <h3>Autenticação Biométrica</h3>
         <p class="auth-subtitle">Use seu rosto, digital ou senha do dispositivo</p>
-
-        <div class="biometric-area">
-          <span class="biometric-icon" id="bioIcon">🫦</span>
-          <div class="biometric-label">
-            Pressione o botão abaixo.<br>
-            O sistema pedirá sua biometria (FaceID, impressão digital ou senha do dispositivo).
-          </div>
-        </div>
-
-        <button class="auth-btn auth-btn-primary" id="btnBiometric"
-                onclick="authenticateWithBiometrics()">
-          🔐 Autenticar Agora
-        </button>
-
-        <div class="fallback-section" id="fallbackSection" style="display:none">
-          <p class="fallback-label">Ou entre com a senha fornecida no ato da compra:</p>
-          <input type="password" id="fallbackPassword" class="auth-input"
-                 placeholder="Senha de acesso"
-                 onkeydown="if(event.key==='Enter')fallbackLogin()">
-          <button class="auth-btn auth-btn-primary" onclick="fallbackLogin()">Entrar com Senha</button>
-        </div>
-
-        <button class="auth-btn auth-btn-ghost" onclick="goBackToEmail()" style="margin-top:6px">
-          ← Voltar
-        </button>
-
+        <div class="biometric-area"><span class="biometric-icon" id="bioIcon">🫦</span><div class="biometric-label">Pressione o botão abaixo.<br>O sistema pedirá sua biometria (FaceID, impressão digital ou senha do dispositivo).</div></div>
+        <button class="auth-btn auth-btn-primary" id="btnBiometric" onclick="authenticateWithBiometrics()">🔐 Autenticar Agora</button>
+        <div class="fallback-section" id="fallbackSection" style="display:none"><p class="fallback-label">Ou entre com a senha fornecida no ato da compra:</p><input type="password" id="fallbackPassword" class="auth-input" placeholder="Senha de acesso" onkeydown="if(event.key==='Enter')fallbackLogin()"><button class="auth-btn auth-btn-primary" onclick="fallbackLogin()">Entrar com Senha</button></div>
+        <button class="auth-btn auth-btn-ghost" onclick="goBackToEmail()" style="margin-top:6px">← Voltar</button>
         <div id="authMsgBio" class="auth-msg"></div>
       </div>
-
-      <div class="auth-security-badge">
-        🔒 Biometria processada localmente · Dados não enviados ao servidor
-      </div>
+      <div class="auth-security-badge">🔒 Biometria processada localmente · Dados não enviados ao servidor</div>
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════════════
-       VIEWER IFRAME — carrega plataformas DENTRO do index
-  ═══════════════════════════════════════════════════ -->
-  <div id="platformViewer" style="
-    display:none;
-    position:fixed;inset:0;z-index:5000;
-    background:#05050e;
-    flex-direction:column;">
-
-    <div style="
-      display:flex;align-items:center;gap:12px;
-      padding:10px 16px;
-      background:rgba(10,10,25,0.97);
-      border-bottom:1px solid rgba(255,215,0,0.12);
-      flex-shrink:0;">
-
-      <button onclick="fecharViewer()" style="
-        background:rgba(255,80,80,0.15);border:1px solid rgba(255,80,80,0.3);
-        border-radius:8px;color:#ff9090;cursor:pointer;
-        font-size:0.82rem;padding:6px 14px;white-space:nowrap;
-        font-family:inherit;transition:background 0.2s;"
-        onmouseover="this.style.background='rgba(255,80,80,0.28)'"
-        onmouseout="this.style.background='rgba(255,80,80,0.15)'">
-        ← Voltar
-      </button>
-
-      <span id="viewerTitle" style="
-        font-size:0.82rem;color:rgba(255,215,0,0.7);
-        font-weight:600;letter-spacing:0.06em;
-        flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-      </span>
-
-      <span style="
-        font-size:0.7rem;color:rgba(46,204,113,0.6);
-        white-space:nowrap;display:flex;align-items:center;gap:5px;">
-        <span style="width:6px;height:6px;border-radius:50%;
-                     background:#2ecc71;display:inline-block;
-                     animation:sessPulse 2s infinite"></span>
-        Rota segura ativa
-      </span>
+  <!-- VIEWER IFRAME -->
+  <div id="platformViewer" style="display:none;position:fixed;inset:0;z-index:5000;background:#05050e;flex-direction:column;">
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;background:rgba(10,10,25,0.97);border-bottom:1px solid rgba(255,215,0,0.12);flex-shrink:0;">
+      <button onclick="fecharViewer()" style="background:rgba(255,80,80,0.15);border:1px solid rgba(255,80,80,0.3);border-radius:8px;color:#ff9090;cursor:pointer;font-size:0.82rem;padding:6px 14px;white-space:nowrap;font-family:inherit;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,80,80,0.28)'" onmouseout="this.style.background='rgba(255,80,80,0.15)'">← Voltar</button>
+      <span id="viewerTitle" style="font-size:0.82rem;color:rgba(255,215,0,0.7);font-weight:600;letter-spacing:0.06em;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+      <span style="font-size:0.7rem;color:rgba(46,204,113,0.6);white-space:nowrap;display:flex;align-items:center;gap:5px;"><span style="width:6px;height:6px;border-radius:50%;background:#2ecc71;display:inline-block;animation:sessPulse 2s infinite"></span>Rota segura ativa</span>
     </div>
-
-    <div id="viewerSpinner" style="
-      position:absolute;top:50%;left:50%;
-      transform:translate(-50%,-50%);
-      text-align:center;color:rgba(255,215,0,0.5);
-      font-size:0.85rem;pointer-events:none;">
-      <div style="
-        width:36px;height:36px;border-radius:50%;
-        border:3px solid rgba(255,215,0,0.15);
-        border-top-color:rgba(255,215,0,0.7);
-        animation:spinViewer 0.8s linear infinite;
-        margin:0 auto 12px;"></div>
-      Carregando plataforma...
-    </div>
-
-    <iframe id="platformFrame"
-      sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-      style="flex:1;border:none;width:100%;display:block;"
-      onload="document.getElementById('viewerSpinner').style.display='none'">
-    </iframe>
+    <div id="viewerSpinner" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:rgba(255,215,0,0.5);font-size:0.85rem;pointer-events:none;"><div style="width:36px;height:36px;border-radius:50%;border:3px solid rgba(255,215,0,0.15);border-top-color:rgba(255,215,0,0.7);animation:spinViewer 0.8s linear infinite;margin:0 auto 12px;"></div>Carregando plataforma...</div>
+    <iframe id="platformFrame" sandbox="allow-scripts allow-same-origin allow-forms allow-popups" style="flex:1;border:none;width:100%;display:block;" onload="document.getElementById('viewerSpinner').style.display='none'"></iframe>
   </div>
 
-  <style>
-    @keyframes spinViewer { to { transform: rotate(360deg); } }
-    @keyframes sessPulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-  </style>
+  <style>@keyframes spinViewer { to { transform: rotate(360deg); } } @keyframes sessPulse { 0%,100%{opacity:1} 50%{opacity:0.4} }</style>
 
-  <!-- Badge de sessão ativa -->
-  <div id="sessionBadge" style="
-    display:none;position:fixed;top:14px;right:14px;z-index:9999;
-    background:rgba(15,30,60,0.92);backdrop-filter:blur(10px);
-    border:1px solid rgba(46,204,113,0.4);border-radius:20px;
-    padding:7px 14px;font-size:0.75rem;color:#80f0b0;
-    align-items:center;gap:8px;
-    box-shadow:0 4px 20px rgba(0,0,0,0.4);">
-    <span style="width:7px;height:7px;border-radius:50%;
-                 background:#2ecc71;display:inline-block;
-                 box-shadow:0 0 6px #2ecc71;animation:sessPulse 2s infinite"></span>
-    <span id="sessionBadgeText">Sessão ativa</span>
-    <button onclick="encerrarSessao()" title="Encerrar sessão"
-      style="background:rgba(255,80,80,0.2);border:1px solid rgba(255,80,80,0.3);
-             border-radius:10px;color:#ff9090;cursor:pointer;
-             font-size:0.7rem;padding:2px 7px;margin-left:2px">Sair</button>
-  </div>
+  <div id="sessionBadge" style="display:none;position:fixed;top:14px;right:14px;z-index:9999;background:rgba(15,30,60,0.92);backdrop-filter:blur(10px);border:1px solid rgba(46,204,113,0.4);border-radius:20px;padding:7px 14px;font-size:0.75rem;color:#80f0b0;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(0,0,0,0.4);"><span style="width:7px;height:7px;border-radius:50%;background:#2ecc71;display:inline-block;box-shadow:0 0 6px #2ecc71;animation:sessPulse 2s infinite"></span><span id="sessionBadgeText">Sessão ativa</span><button onclick="encerrarSessao()" title="Encerrar sessão" style="background:rgba(255,80,80,0.2);border:1px solid rgba(255,80,80,0.3);border-radius:10px;color:#ff9090;cursor:pointer;font-size:0.7rem;padding:2px 7px;margin-left:2px">Sair</button></div>
 
-  <!-- ═══════════════ SCRIPTS ═══════════════ -->
   <script>
     // ============================================================
-    // CONFIGURAÇÃO DO PROXY (Apps Script)
+    // CONFIGURAÇÃO DO PROXY (Google Apps Script)
     // ============================================================
-    // =========================================================
-    // URL DO SEU GOOGLE APPS SCRIPT (A mesma usada no contato.html)
-    // =========================================================
     const PROXY_URL = 'https://script.google.com/macros/s/AKfycbwhGYrKsQm1lsLev3NLt6nXzfT5AxNDQnulb0lId1-wsjuePpGG4o53mgj3sg3H6Cmh/exec';
-  
+
     // ============================================================
-    // DEVICE ID
+    // DEVICE ID (mesmo algoritmo do contato.html)
     // ============================================================
     const _DEVICE_KEY = 'alma_device_id';
     function _gerarDeviceId() {
@@ -1036,31 +810,35 @@
     })();
 
     // ============================================================
-    // CHAMADA AO PROXY
+    // CHAMADA AO PROXY (corrigida com text/plain para evitar CORS)
     // ============================================================
     async function chamarProxy(action, dados = {}) {
       console.log(`[Proxy] Enviando ação: ${action}`, dados);
       try {
         const response = await fetch(PROXY_URL, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'text/plain' }, // ← evita preflight CORS
           body: JSON.stringify({ action, ...dados })
         });
-        console.log(`[Proxy] Status da resposta: ${response.status}`);
+
+        console.log(`[Proxy] Status: ${response.status}`);
         const text = await response.text();
         console.log(`[Proxy] Corpo bruto: ${text}`);
+
         const result = JSON.parse(text);
         console.log(`[Proxy] Resultado parseado:`, result);
+
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         if (!result.ok) throw new Error(result.error || 'Erro desconhecido');
         return result;
       } catch (err) {
-        console.error('[Proxy] Erro na chamada:', err);
+        console.error('[Proxy] Erro:', err);
         throw err;
       }
     }
+
     // ============================================================
-    // NORMALIZAÇÃO DE LICENÇA
+    // NORMALIZAÇÃO DE LICENÇAS (strings ou objetos)
     // ============================================================
     function _normalizar(item, idx) {
       if (typeof item === 'string') {
@@ -1088,7 +866,7 @@
     }
 
     // ============================================================
-    // SISTEMA DE SESSÃO (localStorage)
+    // SISTEMA DE SESSÃO (localStorage com expiração)
     // ============================================================
     const SESSION_HOURS = 8;
     const SESSION_KEY   = 'alma_session';
@@ -1116,6 +894,11 @@
           localStorage.removeItem(SESSION_KEY);
           return false;
         }
+        // Se a licença temporária expirou durante a sessão, encerra
+        if (s.licencaTipo === 'temporario' && s.licencaExp && Date.now() > s.licencaExp) {
+          localStorage.removeItem(SESSION_KEY);
+          return false;
+        }
         return s;
       } catch(_) { return false; }
     }
@@ -1139,13 +922,13 @@
     }
 
     // ============================================================
-    // VALIDAÇÃO DE EMAIL VIA PROXY
+    // VALIDAÇÃO DE EMAIL VIA PROXY (usando o emails.json)
     // ============================================================
     let validatedEmail = null;
     let _licencaAtiva = null;
 
     async function validateEmailForAccess() {
-      const email = emailInput.value.trim().toLowerCase();
+      const email = document.getElementById('authEmailInput').value.trim().toLowerCase();
       if (!email) {
         setMsg(msgEmail, 'error', '⚠️ Por favor, informe um e‑mail.');
         return;
@@ -1162,30 +945,29 @@
         const entrada = lista.find(l => l.email === email);
 
         if (!entrada) {
-          setMsg(msgEmail, 'error',
-            '❌ E‑mail não cadastrado. Solicite acesso pelo formulário de Pagamentos ou Licenças.');
+          setMsg(msgEmail, 'error', '❌ E‑mail não cadastrado. Solicite acesso pelo formulário de Pagamentos ou Licenças.');
           return;
         }
 
+        // Licença permanente
         if (entrada.tipo === 'permanente' || entrada.expira === null) {
           _licencaAtiva = entrada;
           validatedEmail = email;
-          setMsg(msgEmail, 'success',
-            `✅ Licença permanente verificada! · ID ${entrada.id}`);
+          setMsg(msgEmail, 'success', `✅ Licença permanente verificada! · ID ${entrada.id}`);
           setTimeout(() => showStep('bio'), 600);
           return;
         }
 
+        // Licença temporária expirada
         if (entrada.expira <= agora) {
           const dt = new Date(entrada.expira).toLocaleString('pt-BR');
-          setMsg(msgEmail, 'error',
-            `⏱️ Licença de teste expirada em ${dt}.\nAdquira acesso completo em Pagamentos.`);
+          setMsg(msgEmail, 'error', `⏱️ Licença de teste expirada em ${dt}.\nAdquira acesso completo em Pagamentos.`);
           return;
         }
 
+        // Licença temporária com deviceId errado
         if (entrada.deviceId && entrada.deviceId !== DEVICE_ID) {
-          setMsg(msgEmail, 'error',
-            '🚫 Esta licença de teste foi vinculada a outro dispositivo e não pode ser usada aqui.');
+          setMsg(msgEmail, 'error', '🚫 Esta licença de teste foi vinculada a outro dispositivo e não pode ser usada aqui.');
           return;
         }
 
@@ -1197,8 +979,7 @@
 
         _licencaAtiva = entrada;
         validatedEmail = email;
-        setMsg(msgEmail, 'success',
-          `✅ Licença de teste verificada! · ID ${entrada.id} · Expira em ${tempoTexto}`);
+        setMsg(msgEmail, 'success', `✅ Licença de teste verificada! · ID ${entrada.id} · Expira em ${tempoTexto}`);
         setTimeout(() => showStep('bio'), 700);
 
       } catch (err) {
@@ -1210,7 +991,7 @@
     }
 
     // ============================================================
-    // AUTENTICAÇÃO BIOMÉTRICA (WebAuthn)
+    // AUTENTICAÇÃO BIOMÉTRICA (WebAuthn) + FALLBACK SENHA
     // ============================================================
     async function authenticateWithBiometrics() {
       if (!validatedEmail) { goBackToEmail(); return; }
@@ -1318,7 +1099,7 @@
     }
 
     // ============================================================
-    // CONTROLE DO VIEWER (iframe)
+    // CONTROLE DO VIEWER (iframe com token de sessão)
     // ============================================================
     const SESSION_TOKEN = (() => {
       const existente = sessionStorage.getItem('alma_token');
@@ -1383,7 +1164,7 @@
     function openAuthModal(url) {
       pendingUrl = url;
       validatedEmail = null;
-      emailInput.value = '';
+      document.getElementById('authEmailInput').value = '';
       setMsg(msgEmail, '', '');
       setMsg(msgBio, '', '');
       fallbackSection.style.display = 'none';
@@ -1400,10 +1181,9 @@
     // ============================================================
     // UI AUXILIARES
     // ============================================================
-    const authModalEl = document.getElementById('authModal');
-    const stepEmailEl = document.getElementById('authStepEmail');
-    const stepBioEl = document.getElementById('authStepBio');
-    const emailInput = document.getElementById('authEmailInput');
+    const authModal = document.getElementById('authModal');
+    const stepEmail = document.getElementById('authStepEmail');
+    const stepBio = document.getElementById('authStepBio');
     const msgEmail = document.getElementById('authMsgEmail');
     const msgBio = document.getElementById('authMsgBio');
     const btnValidate = document.getElementById('btnValidateEmail');
@@ -1415,13 +1195,13 @@
 
     function showStep(step) {
       if (step === 'email') {
-        stepEmailEl.classList.add('visible');
-        stepBioEl.classList.remove('visible');
+        stepEmail.classList.add('visible');
+        stepBio.classList.remove('visible');
         dot1.classList.add('active');
         dot2.classList.remove('active');
       } else {
-        stepEmailEl.classList.remove('visible');
-        stepBioEl.classList.add('visible');
+        stepEmail.classList.remove('visible');
+        stepBio.classList.add('visible');
         dot1.classList.remove('active');
         dot2.classList.add('active');
         updateBioIcon();
@@ -1483,7 +1263,7 @@
     }
 
     // ============================================================
-    // ALMAFLUXO MODAL (original intacto)
+    // ALMAFLUXO MODAL (original, intacto)
     // ============================================================
     const almafluxoState = { currentTheme: null, userQuery: '', generatedPrompt: '' };
     const almaBtn        = document.getElementById('alma-btn');
@@ -1788,1857 +1568,13 @@ Atue como o Decodificador da Alma Universal. Use os dados fornecidos (nome, data
       }
     }
 
-    // Registrar Service Worker (se não estiver registrado pelo index.html)
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(err => console.warn('SW falhou:', err));
     }
 
-    // Inicialização
-    atualizarBadgeSessao();
-    setInterval(atualizarBadgeSessao, 60000);
-    updatePromptDisplay();
-  </script>
-</body>
-</html>
-      box-sizing: border-box;
-    }
-    body {
-      font-family: 'Roboto', sans-serif;
-      min-height: 100vh;
-      background: url('https://images.unsplash.com/photo-1639762681057-408e52192e55?q=80&w=2232&auto=format&fit=crop') no-repeat center center fixed;
-      background-size: cover;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      overflow-x: hidden;
-      padding: 20px;
-      position: relative;
-      color: white;
-    }
-
-    .alma-button {
-      width: 200px;
-      height: 200px;
-      background: rgba(74, 111, 165, 0.7);
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      font-size: 2.5rem;
-      font-weight: bold;
-      text-decoration: none;
-      box-shadow: 0 0 30px rgba(255,255,255,0.3), inset 0 0 30px rgba(255,255,255,0.2);
-      border: 2px solid rgba(255,255,255,0.6);
-      cursor: pointer;
-      transition: all 0.4s ease;
-      animation: pulse 3s infinite;
-      text-shadow: 0 2px 8px rgba(0,0,0,0.3);
-      backdrop-filter: blur(10px);
-      position: relative;
-      overflow: hidden;
-      z-index: 2;
-      margin-bottom: 40px;
-      flex-direction: column;
-    }
-    .alma-button:hover {
-      transform: scale(1.15);
-      background: rgba(74, 111, 165, 0.9);
-      box-shadow: 0 0 50px rgba(255,255,255,0.5), inset 0 0 40px rgba(255,255,255,0.3);
-      animation: none;
-    }
-    @keyframes pulse {
-      0%   { box-shadow: 0 0 20px rgba(255,255,255,0.3), inset 0 0 20px rgba(255,255,255,0.2); }
-      50%  { box-shadow: 0 0 40px rgba(255,255,255,0.5), inset 0 0 30px rgba(255,255,255,0.3); }
-      100% { box-shadow: 0 0 20px rgba(255,255,255,0.3), inset 0 0 20px rgba(255,255,255,0.2); }
-    }
-
-    .cards-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 25px;
-      max-width: 1200px;
-      width: 100%;
-      margin-top: 30px;
-    }
-    .platform-card {
-      background: rgba(25, 39, 65, 0.8);
-      border-radius: 15px;
-      padding: 20px;
-      color: white;
-      text-decoration: none;
-      transition: all 0.3s ease;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-      border: 1px solid rgba(255,255,255,0.2);
-      backdrop-filter: blur(10px);
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-    }
-    .platform-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-      background: rgba(35, 55, 90, 0.9);
-    }
-    .card-title {
-      font-size: 1.4rem;
-      margin-bottom: 12px;
-      color: #fff;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-      border-bottom: 1px solid rgba(255,255,255,0.3);
-      padding-bottom: 10px;
-    }
-    .card-description {
-      font-size: 0.9rem;
-      line-height: 1.5;
-      color: rgba(255,255,255,0.9);
-      margin-bottom: 15px;
-      flex-grow: 1;
-    }
-    .card-link {
-      display: block;
-      background: rgba(74, 111, 165, 0.8);
-      color: white;
-      text-align: center;
-      padding: 10px;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: 500;
-      transition: background 0.3s;
-      margin-top: auto;
-      cursor: pointer;
-      border: none;
-      width: 100%;
-      font-size: 1rem;
-    }
-    .card-link:hover { background: rgba(74, 111, 165, 1); }
-
-    .status-badge {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 12px;
-      font-size: 0.7rem;
-      margin-left: 10px;
-      background: rgba(46, 204, 113, 0.4);
-      color: #fff;
-    }
-    .status-badge.construction { background: rgba(241, 196, 15, 0.4); }
-    .status-badge.pago { background: rgba(255, 107, 107, 0.6); }
-
-    .faq-link-button {
-      display: block;
-      background: rgba(255, 193, 7, 0.3);
-      color: #ffd700;
-      text-align: center;
-      padding: 10px;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: 500;
-      transition: background 0.3s;
-      margin-top: 10px;
-      cursor: pointer;
-      border: 1px solid rgba(255, 193, 7, 0.5);
-    }
-    .faq-link-button:hover { background: rgba(255, 193, 7, 0.5); color: #fff; }
-
-    /* Modal ALMAFLUXO */
-    .almafluxo-modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.9);
-      z-index: 1000;
-      backdrop-filter: blur(10px);
-    }
-    .almafluxo-content {
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(25, 39, 65, 0.95);
-      border-radius: 20px;
-      padding: 30px;
-      width: 90%;
-      max-width: 800px;
-      max-height: 80vh;
-      overflow-y: auto;
-      border: 2px solid rgba(74, 111, 165, 0.8);
-      box-shadow: 0 0 50px rgba(74, 111, 165, 0.5);
-    }
-    .almafluxo-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 15px;
-      border-bottom: 1px solid rgba(255,255,255,0.3);
-    }
-    .almafluxo-title { font-size: 1.5rem; color: #fff; }
-    .close-btn {
-      background: none; border: none; color: white;
-      font-size: 2rem; cursor: pointer; padding: 0;
-      width: 30px; height: 30px;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .search-input {
-      width: 100%; padding: 12px; border-radius: 8px;
-      border: 1px solid rgba(255,255,255,0.3);
-      background: rgba(255,255,255,0.1);
-      color: white; margin-bottom: 20px; font-size: 1rem;
-    }
-    .search-input::placeholder { color: rgba(255,255,255,0.6); }
-    .theme-buttons {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px; margin-bottom: 20px;
-    }
-    .theme-btn {
-      padding: 12px; border: none; border-radius: 8px;
-      background: rgba(74, 111, 165, 0.6);
-      color: white; cursor: pointer; transition: all 0.3s; font-weight: 500;
-    }
-    .theme-btn:hover { background: rgba(74, 111, 165, 0.8); transform: translateY(-2px); }
-    .theme-btn.active { background: rgba(46, 204, 113, 0.6); }
-    .theme-btn.jogador { background: rgba(157, 78, 221, 0.6); }
-    .theme-btn.jogador:hover { background: rgba(157, 78, 221, 0.8); }
-    .theme-btn.jogador.active { background: rgba(157, 78, 221, 1); }
-    .prompt-display {
-      background: rgba(255,255,255,0.1); border-radius: 8px; padding: 15px;
-      margin-bottom: 20px; max-height: 300px; overflow-y: auto;
-      font-size: 0.9rem; line-height: 1.4; white-space: pre-wrap;
-    }
-    .copy-btn {
-      width: 100%; padding: 12px; border: none; border-radius: 8px;
-      background: rgba(46, 204, 113, 0.6);
-      color: white; cursor: pointer; font-weight: 500; transition: background 0.3s;
-    }
-    .copy-btn:hover { background: rgba(46, 204, 113, 0.8); }
-    .notification {
-      position: fixed; top: 20px; right: 20px;
-      padding: 15px 20px; border-radius: 8px;
-      background: rgba(25, 39, 65, 0.9); color: white;
-      transform: translateX(150%); transition: transform 0.3s;
-      z-index: 1001; border-left: 4px solid rgba(46, 204, 113, 0.8);
-    }
-    .notification.show { transform: translateX(0); }
-
-    .streamlit-info {
-      background: rgba(255, 75, 75, 0.2); border-radius: 15px; padding: 20px;
-      margin-bottom: 30px; border: 1px solid rgba(255, 107, 107, 0.4);
-      backdrop-filter: blur(10px); position: relative;
-      max-width: 800px; width: 100%;
-    }
-    .streamlit-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
-    .streamlit-icon { color: #FF4B4B; font-size: 24px; }
-    .streamlit-title { font-size: 18px; font-weight: 700; color: #FF4B4B; }
-    .streamlit-content { margin-bottom: 20px; line-height: 1.6; font-size: 14px; color: rgba(255,255,255,0.9); }
-
-    .category-title {
-      font-size: 1.8rem; color: white;
-      margin: 40px 0 20px; text-align: center;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-      width: 100%; max-width: 1200px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid rgba(255,255,255,0.3);
-    }
-
-    .faq-highlight { animation: faqGlow 0.8s ease-out 3; }
-    @keyframes faqGlow {
-      0%   { box-shadow: 0 0 0 0 rgba(255,215,0,0.7); border-color: rgba(255,215,0,0.5); }
-      50%  { box-shadow: 0 0 20px 10px rgba(255,215,0,0.5); border-color: gold; }
-      100% { box-shadow: 0 0 0 0 rgba(255,215,0,0); border-color: rgba(255,255,255,0.2); }
-    }
-
-    /* ══════════════════════════════════════════════
-       MODAL DE AUTENTICAÇÃO — WebAuthn + Email
-    ══════════════════════════════════════════════ */
-    .auth-modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.88);
-      backdrop-filter: blur(14px);
-      z-index: 2000;
-      justify-content: center;
-      align-items: center;
-    }
-    .auth-modal-content {
-      background: rgba(15, 26, 50, 0.97);
-      border-radius: 24px;
-      max-width: 420px;
-      width: 90%;
-      padding: 36px 32px;
-      border: 1px solid rgba(100, 150, 255, 0.25);
-      text-align: center;
-      box-shadow: 0 0 60px rgba(74, 111, 165, 0.35), 0 20px 40px rgba(0,0,0,0.6);
-      position: relative;
-    }
-
-    .auth-ring {
-      width: 70px; height: 70px;
-      border-radius: 50%;
-      border: 2px solid rgba(74, 111, 165, 0.4);
-      margin: 0 auto 20px;
-      display: flex; align-items: center; justify-content: center;
-      position: relative;
-    }
-    .auth-ring::before {
-      content: '';
-      position: absolute; inset: -6px;
-      border-radius: 50%;
-      border: 2px solid transparent;
-      border-top-color: rgba(100, 180, 255, 0.7);
-      animation: spinRing 2s linear infinite;
-    }
-    @keyframes spinRing { to { transform: rotate(360deg); } }
-    .auth-ring-icon { font-size: 2rem; }
-
-    .auth-modal-content h3 {
-      margin-bottom: 6px;
-      color: #aaccff;
-      font-size: 1.25rem;
-      font-weight: 700;
-    }
-    .auth-subtitle {
-      font-size: 0.82rem;
-      color: rgba(180, 200, 255, 0.5);
-      margin-bottom: 24px;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
-
-    .auth-steps {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      margin-bottom: 24px;
-    }
-    .auth-step-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: rgba(100, 150, 255, 0.25);
-      transition: all 0.3s;
-    }
-    .auth-step-dot.active {
-      background: rgba(100, 180, 255, 0.9);
-      box-shadow: 0 0 8px rgba(100, 180, 255, 0.6);
-    }
-
-    .auth-step { display: none; }
-    .auth-step.visible { display: block; }
-
-    .auth-input {
-      width: 100%; padding: 13px 16px;
-      margin: 0 0 14px;
-      border-radius: 10px;
-      border: 1px solid rgba(100, 150, 255, 0.25);
-      background: rgba(20, 35, 65, 0.8);
-      color: white;
-      font-size: 0.95rem;
-      transition: border-color 0.2s, box-shadow 0.2s;
-      outline: none;
-    }
-    .auth-input:focus {
-      border-color: rgba(100, 180, 255, 0.6);
-      box-shadow: 0 0 0 3px rgba(100, 180, 255, 0.1);
-    }
-    .auth-input::placeholder { color: rgba(180, 200, 255, 0.35); }
-
-    .auth-btn {
-      width: 100%; padding: 13px;
-      margin: 0 0 10px;
-      border-radius: 10px;
-      border: none;
-      font-size: 0.95rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.25s;
-      letter-spacing: 0.04em;
-    }
-    .auth-btn-primary {
-      background: linear-gradient(135deg, rgba(74, 111, 165, 0.9), rgba(50, 90, 160, 1));
-      color: white;
-      box-shadow: 0 4px 15px rgba(74, 111, 165, 0.4);
-    }
-    .auth-btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(74, 111, 165, 0.6);
-    }
-    .auth-btn-primary:disabled {
-      opacity: 0.5; cursor: not-allowed; transform: none;
-    }
-    .auth-btn-ghost {
-      background: transparent;
-      color: rgba(180, 200, 255, 0.5);
-      border: 1px solid rgba(100, 150, 255, 0.15);
-      font-size: 0.82rem;
-      padding: 9px;
-    }
-    .auth-btn-ghost:hover {
-      background: rgba(100, 150, 255, 0.08);
-      color: rgba(180, 200, 255, 0.8);
-    }
-
-    .biometric-area {
-      margin: 10px 0 18px;
-      padding: 24px;
-      border-radius: 14px;
-      border: 1px dashed rgba(100, 150, 255, 0.25);
-      background: rgba(20, 35, 65, 0.4);
-    }
-    .biometric-icon {
-      font-size: 3.5rem;
-      margin-bottom: 10px;
-      display: block;
-      filter: drop-shadow(0 0 12px rgba(100, 180, 255, 0.5));
-      animation: bioPulse 2.5s ease-in-out infinite;
-    }
-    @keyframes bioPulse {
-      0%, 100% { transform: scale(1); opacity: 0.8; }
-      50% { transform: scale(1.08); opacity: 1; }
-    }
-    .biometric-label {
-      font-size: 0.82rem;
-      color: rgba(180, 200, 255, 0.55);
-      line-height: 1.5;
-    }
-
-    .auth-msg {
-      margin-top: 12px;
-      padding: 10px 14px;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      line-height: 1.4;
-      display: none;
-      text-align: left;
-    }
-    .auth-msg.error {
-      display: block;
-      background: rgba(255, 80, 80, 0.12);
-      border: 1px solid rgba(255, 80, 80, 0.3);
-      color: #ff9090;
-    }
-    .auth-msg.success {
-      display: block;
-      background: rgba(50, 210, 120, 0.12);
-      border: 1px solid rgba(50, 210, 120, 0.3);
-      color: #80f0b0;
-    }
-    .auth-msg.info {
-      display: block;
-      background: rgba(74, 111, 165, 0.15);
-      border: 1px solid rgba(74, 111, 165, 0.3);
-      color: #aaccff;
-    }
-
-    .spin {
-      display: inline-block;
-      width: 14px; height: 14px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spinRing 0.7s linear infinite;
-      vertical-align: middle;
-      margin-right: 6px;
-    }
-
-    .auth-close {
-      position: absolute;
-      top: 16px; right: 20px;
-      font-size: 1.6rem;
-      cursor: pointer;
-      color: rgba(180, 200, 255, 0.4);
-      background: none; border: none;
-      transition: color 0.2s;
-      line-height: 1;
-    }
-    .auth-close:hover { color: rgba(180, 200, 255, 0.9); }
-
-    .auth-security-badge {
-      margin-top: 18px;
-      font-size: 0.72rem;
-      color: rgba(180, 200, 255, 0.3);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 5px;
-    }
-
-    .fallback-section {
-      margin-top: 14px;
-      padding-top: 14px;
-      border-top: 1px solid rgba(100, 150, 255, 0.1);
-    }
-    .fallback-label {
-      font-size: 0.78rem;
-      color: rgba(180, 200, 255, 0.4);
-      margin-bottom: 8px;
-    }
-
-    @media (max-width: 768px) {
-      .alma-button { width: 170px; height: 170px; font-size: 2.2rem; }
-      .cards-container { grid-template-columns: 1fr; }
-      .category-title { font-size: 1.5rem; margin: 30px 0 15px; }
-      .theme-buttons { grid-template-columns: repeat(2, 1fr); }
-      .almafluxo-content { width: 95%; padding: 20px; }
-    }
-    @media (max-width: 480px) {
-      .alma-button { width: 140px; height: 140px; font-size: 2rem; }
-      .category-title { font-size: 1.3rem; }
-      .theme-buttons { grid-template-columns: 1fr; }
-      .auth-modal-content { padding: 28px 20px; }
-    }
-  </style>
-</head>
-<body>
-
-  <!-- Esfera ALMA -->
-  <div class="alma-button" id="alma-btn">
-    <span style="font-size:2.5rem;font-weight:bold">ALMA</span>
-    <div style="font-size:12px;margin-top:6px;text-align:center">FLUXO</div>
-  </div>
-
-    <!-- Card informativo -->
-    <div class="streamlit-info">
-    <div class="streamlit-header">
-        <div class="streamlit-icon">🧠</div>
-        <div class="streamlit-title">Centro de Questionamentos ALMAFLUXO</div>
-    </div>
-    <div class="streamlit-content">
-        <div style="font-weight:700;font-size:1.05em;line-height:1.6;margin-bottom:16px">
-        Quem entra pela ALMA → fica pelo FLUXO<br>
-        <span style="opacity:0.85;font-size:0.92em;letter-spacing:0.04em">ALMAFLUXO · O fluxo da consciência</span>
-        </div>
-        <div style="height:1px;background:linear-gradient(to right,rgba(255,215,0,0.3),transparent);margin-bottom:16px"></div>
-        Clique na esfera ALMAfluxo para acessar o sistema de análise filosófica integrada.
-        Explore os prompts personalizados para suas dúvidas existenciais através da consciência ALMAfluxo.
-        <br><br>
-
-        <!-- Botão de instalação PWA (inicialmente oculto) -->
-        <button id="installPwaBtn" onclick="installPWA()" style="
-        display: none;
-        background: linear-gradient(135deg, #2ecc71, #27ae60);
-        border: none;
-        color: white;
-        padding: 12px 28px;
-        font-size: 1rem;
-        font-weight: bold;
-        border-radius: 40px;
-        cursor: pointer;
-        margin-top: 10px;
-        transition: all 0.3s;
-        box-shadow: 0 0 15px rgba(46,204,113,0.4);
-        align-items: center;
-        gap: 8px;
-        ">
-        ⬇️ Instalar ALMAFLUXO
-        </button>
-
-        <!-- Link alternativo para quem não pode instalar -->
-        <div style="margin-top: 12px; font-size: 0.8rem; color: rgba(255,215,0,0.6);">
-        🌌 <a href="https://tchelojc.github.io/externo/" target="_blank" style="color: #ffd700; text-decoration: none; border-bottom: 1px dotted rgba(255,215,0,0.4);">Vivencie a abertura (3,69s) e, em seguida, instale o ALMAFLUXO para uma imersão total.</a>
-        </div>
-    </div>
-    </div>
-
-  <!-- Modal ALMAFLUXO -->
-  <div id="almafluxo-modal" class="almafluxo-modal">
-    <div class="almafluxo-content">
-      <div class="almafluxo-header">
-        <h2 class="almafluxo-title">🧠 ALMAFLUXO - Centro Filosófico</h2>
-        <button class="close-btn" id="close-almafluxo">&times;</button>
-      </div>
-      <input type="text" class="search-input" id="theme-search" placeholder="Digite sua dúvida ou tema de interesse...">
-      <div class="theme-buttons">
-        <button class="theme-btn" data-theme="bankov">BANKOV</button>
-        <button class="theme-btn" data-theme="filosofia">FILOSOFIA</button>
-        <button class="theme-btn" data-theme="livros">LIVROS</button>
-        <button class="theme-btn" data-theme="quantica">QUÂNTICA</button>
-        <button class="theme-btn" data-theme="fluxo">FLUXO</button>
-        <button class="theme-btn" data-theme="existencial">EXISTENCIAL</button>
-        <button class="theme-btn jogador" data-theme="jogador01">JOGADOR 01</button>
-        <button class="theme-btn jogador" data-theme="zyonflux">ZYON FLUX</button>
-      </div>
-      <div class="prompt-display" id="prompt-display">Selecione um tema ou digite sua dúvida para gerar um prompt filosófico...</div>
-      <button class="copy-btn" id="copy-prompt">📋 Copiar Prompt para IA</button>
-    </div>
-  </div>
-
-  <div class="notification" id="notification">Prompt copiado com sucesso!</div>
-
-<!-- ═══════════════ CARDS ═══════════════ -->
-
-  <h2 class="category-title">Universo Áureo</h2>
-  <div class="cards-container">
-    <a href="https://tchelojc.github.io/significado/observador.html" target="_blank" class="platform-card">
-      <h3 class="card-title">Observador do Fluxo <span class="status-badge">Online</span></h3>
-      <p class="card-description">Sistema integral com questionário consciencial, constantes fundamentais (0,18; 0,54; 1,80; φ; π), análise das 4 IAs, calculadoras de redução teosófica e validação quântica.</p>
-      <span class="card-link">Acessar Observador</span>
-    </a>
-    <a href="https://matematica-p4qo4gzwfuejwutibbcvva.streamlit.app/" target="_blank" class="platform-card">
-      <h3 class="card-title">Fluxo Matemático <span class="status-badge">Online</span></h3>
-      <p class="card-description">Sistema que unifica matemática clássica, física quântica, geometria sagrada e as constantes fundamentais (0,18; 0,54; 1,80; φ; π). Cálculos duais, visualizações 3D e simulador.</p>
-      <span class="card-link">Explorar Fluxo</span>
-    </a>
-    <a href="https://8w3t8fn8fhjodctaph6jaf.streamlit.app/" target="_blank" class="platform-card">
-      <h3 class="card-title">Universo Áureo <span class="status-badge">Online</span></h3>
-      <p class="card-description">Sistema modular e dinâmico para estudo aprofundado de buracos negros, propagação de energia, sistemas planetários e frequências áureas.</p>
-      <span class="card-link">Explorar Universo</span>
-    </a>
-  </div>
-
-  <h2 class="category-title">Trajeto do Nada ao Tudo</h2>
-  <div class="cards-container">
-    <a href="https://nguo7ede4q8xm6bg4asusg.streamlit.app/" target="_blank" class="platform-card">
-      <h3 class="card-title">Trajeto do Nada ao Tudo <span class="status-badge">Online</span></h3>
-      <p class="card-description">Análise do fluxo universal desde Espinoza, Einstein e Tesla até Fibonacci, demonstrando o equilíbrio matemático como a verdadeira força divina.</p>
-      <span class="card-link">Estudar Trajeto</span>
-    </a>
-  </div>
-
-  <h2 class="category-title">Matrix ALMA</h2>
-  <div class="cards-container">
-    <a href="https://kdc73ek2qtyggsv69ekcvx.streamlit.app/" target="_blank" class="platform-card">
-      <h3 class="card-title">Matrix ALMA <span class="status-badge">Online</span></h3>
-      <p class="card-description">Registro de presença digital com assinatura de nome e nível quântico para acesso exclusivo à nova dimensão de consciência da plataforma.</p>
-      <span class="card-link">Acessar Dimensão</span>
-    </a>
-  </div>
-
-  <h2 class="category-title">Ciclos Energéticos</h2>
-  <div class="cards-container">
-    <a href="https://eygkaswytz73tv7fzskhsz.streamlit.app/" target="_blank" class="platform-card">
-      <h3 class="card-title">Ciclos Energéticos <span class="status-badge">Online</span></h3>
-      <p class="card-description">Análise precisa de ciclos energéticos através de alinhamentos planetários e seus impactos diretos nos relacionamentos e comportamentos coletivos.</p>
-      <span class="card-link">Ver Ciclos</span>
-    </a>
-  </div>
-
-  <h2 class="category-title">Laboratório Quântico</h2>
-  <div class="cards-container">
-    <a href="https://laboratorio-hosqszezxd6hf7hu85ncvz.streamlit.app/" target="_blank" class="platform-card">
-      <h3 class="card-title">Laboratório Quântico <span class="status-badge">Online</span></h3>
-      <p class="card-description">Ambiente para criação e teste de circuitos quânticos através de portas lógicas com adaptação infinita e execução livre de conflitos sistêmicos.</p>
-      <span class="card-link">Experimentar</span>
-    </a>
-    <a href="https://simulador-eo7akxztyvn6nikgd3thtn.streamlit.app/" target="_blank" class="platform-card">
-      <h3 class="card-title">Orientador Quântico <span class="status-badge">Online</span></h3>
-      <p class="card-description">Sistema avançado de correção de circuitos quânticos com análise de arquivos em tempo real e prompts otimizados para resolver falhas estruturais.</p>
-      <span class="card-link">Otimizar Circuitos</span>
-    </a>
-  </div>
-
-  <!-- ═══ CARDS PAGOS — clique abre modal de autenticação ═══ -->
-
-  <h2 class="category-title">🌀 Autoconhecimento & Numerologia</h2>
-    <div class="cards-container">
-        <div class="platform-card">
-            <h3 class="card-title">🌌 Sintesia Humana <span class="status-badge pago">Pago</span></h3>
-            <p class="card-description">
-                Sistema diário de autoconhecimento que integra humor, saúde, fluxo quântico, alinhamentos planetários e prompts IA. 
-                Ideal para quem busca equilíbrio e evolução contínua no dia a dia.
-                <br><br>
-                💡 <strong>Assinatura mensal – acesso completo a todos os módulos.</strong>
-            </p>
-            <div style="display: flex; gap: 12px; flex-wrap: wrap; margin: 12px 0 8px 0;">
-                <button class="card-link paid-btn" data-url="https://tchelojc.github.io/ALMAfluxo/" data-titulo="Sintesia Humana" style="background: rgba(41, 121, 255, 0.5); flex: 1; text-align: center;">🧠 Acessar Plataforma</button>
-                <a href="https://tchelojc.github.io/templates/ALMA.html" target="_blank" class="card-link" style="background: rgba(170, 204, 255, 0.3); text-align: center; flex: 1;">🔮 Ver Template</a>
-            </div>
-            <a class="faq-link-button" href="#faq-card" onclick="event.preventDefault();scrollToFAQ(event)" style="margin-top: 8px; display: block; text-align: center;">💰 Ver FAQ para Pagamento</a>
-        </div>
-
-        <div class="platform-card">
-            <h3 class="card-title">🌌 Mapa do Próprio Destino <span class="status-badge pago">Pago</span></h3>
-            <p class="card-description">
-                Análise numerológica completa integrando 7 civilizações ancestrais. Relatório personalizado com seu mapa de alinhamentos, frequências e recomendações quânticas.
-                <br><br>
-                🔮 <strong>Veja o template</strong> para ter uma prévia do relatório completo. SENHA: <strong>UA-B18EC5AC</strong>
-            </p>
-            <div style="display: flex; gap: 12px; flex-wrap: wrap; margin: 12px 0 8px 0;">
-                <a href="https://tchelojc.github.io/ALMAfluxo/Dados.html" target="_blank" class="card-link" style="background: rgba(41, 121, 255, 0.5); text-align: center; flex: 1;">📝 Preencher Dados</a>
-                <a href="https://tchelojc.github.io/ALMAfluxo/universo_aureo.html" target="_blank" class="card-link" style="background: rgba(170, 204, 255, 0.3); text-align: center; flex: 1;">🔮 Ver Template</a>
-            </div>
-            <a class="faq-link-button" href="#faq-card" onclick="event.preventDefault();scrollToFAQ(event)" style="margin-top: 8px; display: block; text-align: center;">💰 Ver FAQ para Pagamento</a>
-        </div>
-    </div>
-
-    <h2 class="category-title">Plataformas de Trading</h2>
-    <div class="cards-container">
-        <div class="platform-card">
-            <h3 class="card-title">📈 Interface OPERADOR <span class="status-badge pago">Pago</span></h3>
-            <p class="card-description">
-                Interface web dedicada para operações de day trade com visualização em tempo real, painéis dinâmicos e controle avançado de ordens e métricas.
-                <br><br>
-                💡 <strong>Para pagamento e informações completas, acesse a plataforma abaixo.</strong>
-            </p>
-            <div style="display: flex; gap: 12px; flex-wrap: wrap; margin: 12px 0 8px 0;">
-                <button class="card-link paid-btn" data-url="https://tchelojc.github.io/daytrade/OPERADOR.html" data-titulo="Interface OPERADOR" style="background: rgba(41, 121, 255, 0.5); flex: 1; text-align: center;">🚀 Acessar Interface</button>
-                <a href="https://tchelojc.github.io/templates/TRADE.html" target="_blank" class="card-link" style="background: rgba(170, 204, 255, 0.3); text-align: center; flex: 1;">🔮 Ver Template</a>
-            </div>
-            <a class="faq-link-button" href="#faq-card" onclick="event.preventDefault();scrollToFAQ(event)" style="margin-top: 8px; display: block; text-align: center;">💰 Ver FAQ para Pagamento</a>
-        </div>
-
-        <div class="platform-card">
-            <h3 class="card-title">🏀 Hedge Dinâmico – Basquete <span class="status-badge pago">Pago</span></h3>
-            <p class="card-description">
-                Distribuição proporcional, odds ao vivo e cenários de hedge arquitetados para jogos de basquete. Ideal para quem opera com spreads totais e margens de risco.
-                <br><br>
-                🏀 <strong>Cálculos automáticos em tempo real.</strong>
-            </p>
-            <div style="display: flex; gap: 12px; flex-wrap: wrap; margin: 12px 0 8px 0;">
-                <button class="card-link paid-btn" data-url="https://tchelojc.github.io/basquete/" data-titulo="Hedge Basquete" style="background: rgba(41, 121, 255, 0.5); flex: 1; text-align: center;">⛹️ Acessar Plataforma</button>
-                <a href="https://tchelojc.github.io/templates/BASQUETE.html" target="_blank" class="card-link" style="background: rgba(170, 204, 255, 0.3); text-align: center; flex: 1;">🔮 Ver Template</a>
-            </div>
-            <a class="faq-link-button" href="#faq-card" onclick="event.preventDefault();scrollToFAQ(event)" style="margin-top: 8px; display: block; text-align: center;">💰 Ver FAQ para Pagamento</a>
-        </div>
-
-        <div class="platform-card">
-            <h3 class="card-title">⚽ Hedge Dinâmico – Futebol <span class="status-badge pago">Pago</span></h3>
-            <p class="card-description">
-                Sistema completo para mercados de futebol: mais/menos gols, ambas marcam, handicaps e estatísticas avançadas com algoritmos de proteção automática.
-                <br><br>
-                ⚽ <strong>Gestão de risco avançada para cercados.</strong>
-            </p>
-            <div style="display: flex; gap: 12px; flex-wrap: wrap; margin: 12px 0 8px 0;">
-                <button class="card-link paid-btn" data-url="https://tchelojc.github.io/futebol/" data-titulo="Hedge Futebol" style="background: rgba(41, 121, 255, 0.5); flex: 1; text-align: center;">🥅 Acessar Plataforma</button>
-                <a href="https://tchelojc.github.io/templates/FUTEBOL.html" target="_blank" class="card-link" style="background: rgba(170, 204, 255, 0.3); text-align: center; flex: 1;">🔮 Ver Template</a>
-            </div>
-            <a class="faq-link-button" href="#faq-card" onclick="event.preventDefault();scrollToFAQ(event)" style="margin-top: 8px; display: block; text-align: center;">💰 Ver FAQ para Pagamento</a>
-        </div>
-
-        <div class="platform-card">
-            <h3 class="card-title">🎾 Hedge Multiesportes <span class="status-badge pago">Pago</span></h3>
-            <p class="card-description">
-                Módulos para Vôlei, Tênis e Lutas (MMA/Boxe) com configuração automática por esporte, elaboração de estratégias por sets/rounds e operação ao vivo segura.
-                <br><br>
-                🎾 <strong>Versatilidade para múltiplos mercados.</strong>
-            </p>
-            <div style="display: flex; gap: 12px; flex-wrap: wrap; margin: 12px 0 8px 0;">
-                <button class="card-link paid-btn" data-url="https://tchelojc.github.io/Multioperador/" data-titulo="Hedge Multiesportes" style="background: rgba(41, 121, 255, 0.5); flex: 1; text-align: center;">🎾 Acessar Plataforma</button>
-                <a href="https://tchelojc.github.io/templates/MULTI.html" target="_blank" class="card-link" style="background: rgba(170, 204, 255, 0.3); text-align: center; flex: 1;">🔮 Ver Template</a>
-            </div>
-            <a class="faq-link-button" href="#faq-card" onclick="event.preventDefault();scrollToFAQ(event)" style="margin-top: 8px; display: block; text-align: center;">💰 Ver FAQ para Pagamento</a>
-        </div>
-    </div>
-
-    <h2 class="category-title">🌀 O FLUXO — A Consciência do Tempo</h2>
-    <p style="text-align: center; margin-bottom: 30px; color: var(--text-dim);">Do Caos à Maestria. Os 7 livros na ordem que revelam o desenvolvimento do pensamento.</p>
-    
-    <div class="cards-container">
-        <!-- Livro 1 -->
-        <a href="https://livros-jwjhhij6hjs4n7qxgd3xmz.streamlit.app/" target="_blank" class="platform-card" style="border-left: 3px solid #d4a843;">
-            <h3 class="card-title">Livro I: O Caos do Passado <span class="status-badge" style="background: rgba(212, 168, 67, 0.15); color: #d4a843; border: 1px solid rgba(212, 168, 67, 0.3);">🜍 Loucura</span></h3>
-            <p class="card-description">A fundação do método. O estudo inicial sobre energia, o caos sistêmico e como o tempo se propaga a partir da força da energia pura no universo.</p>
-            <span class="card-link">Ler Obra</span>
-        </a>
-
-        <!-- Livro 2 -->
-        <a href="https://livros-alwkohoykgaioy7m8y8ns6.streamlit.app/" target="_blank" class="platform-card" style="border-left: 3px solid #4a8a6a;">
-            <h3 class="card-title">Livro II: Liberdade dentro do Caos <span class="status-badge" style="background: rgba(74, 138, 106, 0.15); color: #4a8a6a; border: 1px solid rgba(74, 138, 106, 0.3);">🜍 Loucura</span></h3>
-            <p class="card-description">A aceitação consciente da dor e da perda como ferramentas adaptativas. O encontro do sentido, do amor e a solidificação da sua filosofia pessoal.</p>
-            <span class="card-link">Ler Obra</span>
-        </a>
-
-        <!-- Livro 3 -->
-        <a href="https://livros-cbakzajpbyxwpgjbsgap5.streamlit.app/" target="_blank" class="platform-card" style="border-left: 3px solid #a5855a;">
-            <h3 class="card-title">Livro III: O Presidente <span class="status-badge" style="background: rgba(165, 133, 90, 0.15); color: #a5855a; border: 1px solid rgba(165, 133, 90, 0.3);">🜍 Aceitação</span></h3>
-            <p class="card-description">Uma análise profunda sobre a política humana, a estrutura de poder, a influência do meio e a sabedoria necessária para compreender a gestão da verdade.</p>
-            <span class="card-link">Ler Obra</span>
-        </a>
-
-        <!-- Livro 4 -->
-        <a href="https://livros-qjxclgnty24kt8gngupopm.streamlit.app/" target="_blank" class="platform-card" style="border-left: 3px solid #7a5aa5;">
-            <h3 class="card-title">Livro IV: O Preconceito Quântico <span class="status-badge" style="background: rgba(122, 90, 165, 0.15); color: #7a5aa5; border: 1px solid rgba(122, 90, 165, 0.3);">🜍 Aceitação</span></h3>
-            <p class="card-description">A percepção da história como um ciclo repetitivo. O preconceito dissecado como um fenômeno energético de distorção de frequências coletivas.</p>
-            <span class="card-link">Ler Obra</span>
-        </a>
-
-        <!-- Livro 5 -->
-        <a href="https://livros-9fq2vxbzawxxwvxguwnewt.streamlit.app/" target="_blank" class="platform-card" style="border-left: 3px solid #a55a7a;">
-            <h3 class="card-title">Livro V: O Paradoxo dos Movimentos <span class="status-badge" style="background: rgba(165, 90, 122, 0.15); color: #a55a7a; border: 1px solid rgba(165, 90, 122, 0.3);">🜍 Aceitação</span></h3>
-            <p class="card-description">O entrelaçamento entre biologia e física quântica. A cosmologia, o destino e a constatação da teoria do movimento como a única constante real.</p>
-            <span class="card-link">Ler Obra</span>
-        </a>
-
-        <!-- Livro 6 -->
-        <a href="https://livros-zgkycz4zkstv6iw4avs8ou.streamlit.app/" target="_blank" class="platform-card" style="border-left: 3px solid #a55a5a;">
-            <h3 class="card-title">Livro VI: Fuder ou Não Fuder <span class="status-badge" style="background: rgba(165, 90, 90, 0.15); color: #a55a5a; border: 1px solid rgba(165, 90, 90, 0.3);">🜍 Maestria</span></h3>
-            <p class="card-description">O corpo humano utilizado como veículo filosófico. Uma exploração analítica sobre o sexo, o instinto primário, as amarras sociais e a libertação verdadeira.</p>
-            <span class="card-link">Ler Obra</span>
-        </a>
-
-        <!-- Livro 7 -->
-        <a href="https://tchelojc.github.io/codigo_divino/" target="_blank" class="platform-card" style="border-left: 3px solid #e8c97a;">
-            <h3 class="card-title">Livro VII: O Código Divino <span class="status-badge" style="background: rgba(232, 201, 122, 0.15); color: #e8c97a; border: 1px solid rgba(232, 201, 122, 0.3);">🜍 Maestria</span></h3>
-            <p class="card-description">A síntese final do trajeto. A decodificação das frequências (como 3-6-9) para explicar a dinâmica do universo, o amor e a participação do observador.</p>
-            <span class="card-link">Ler Obra</span>
-        </a>
-
-        <!-- Card 8: ALMAFLUXO (Transparência Mantida) -->
-        <a href="https://tchelojc.github.io/templates/fluxo.html" target="_blank" class="platform-card" style="border-left: 3px solid #d4a843; background: rgba(212,168,67,0.05);">
-            <h3 class="card-title">🌀 ALMAFLUXO <span class="status-badge" style="background: rgba(212, 168, 67, 0.2); color: #d4a843; border: 1px solid rgba(212, 168, 67, 0.4);">O Fluxo Vivo</span></h3>
-            <p class="card-description">A filosofia que transcendeu as palavras e se tornou código, plataforma e ferramenta viva. A materialização definitiva de todo o sistema consciencial.</p>
-            <span class="card-link">Acessar Materialização</span>
-        </a>
-    </div>
-
-  <h2 class="category-title">🔧 Ferramentas ALMA</h2>
-  <div class="cards-container">
-    <a href="https://tchelojc.github.io/editor_html/interface_genesis.html" target="_blank" class="platform-card">
-      <h3 class="card-title">GÊNESIS BUILDER PRO <span class="status-badge">Online</span></h3>
-      <p class="card-description">Plataforma de criação de interfaces web com sistema visual de construção em blocos, múltiplos templates, configuração avançada e exportação de projetos.</p>
-      <span class="card-link">Iniciar Criação</span>
-    </a>
-    <a href="https://qrcode-k5xv38lfcahgq5xosp5wuu.streamlit.app" target="_blank" class="platform-card">
-      <h3 class="card-title">Gerador QRcode <span class="status-badge">Online</span></h3>
-      <p class="card-description">Transforme dados e informações brutas em portais dimensionais acessíveis através de QR Codes personalizados, rastreáveis e visualmente cósmicos.</p>
-      <span class="card-link">Criar QRcode</span>
-    </a>
-    <a href="https://editor-video-suuoupysctxpjqp2phuur3.streamlit.app/" target="_blank" class="platform-card">
-      <h3 class="card-title">STUDIO PRO EDITOR AI <span class="status-badge">Online</span></h3>
-      <p class="card-description">Plataforma em nuvem avançada para edição completa de vídeo e áudio. Inteligência Artificial integrada para automatizar cortes e renderização poderosa.</p>
-      <span class="card-link">Editar</span>
-    </a>
-  </div>
-
-  <h2 class="category-title">FAQ</h2>
-  <div class="cards-container" id="faq-card">
-    <a href="https://almafluxo.uk/contato" target="_blank" class="platform-card">
-      <h3 class="card-title">Atendimento & FAQ <span class="status-badge">Online</span></h3>
-      <p class="card-description">Página central de contato para envio de e-mails, validação de licenças, suporte sobre pagamentos e respostas para as dúvidas mais frequentes.</p>
-      <span class="card-link">Acessar Contato</span>
-    </a>
-  </div>
-
-  <!-- ═══════════════════════════════════════════════════
-       MODAL DE AUTENTICAÇÃO — Email + WebAuthn Biométrico
-  ═══════════════════════════════════════════════════ -->
-  <div id="authModal" class="auth-modal">
-    <div class="auth-modal-content">
-      <button class="auth-close" onclick="closeAuthModal()" aria-label="Fechar">&times;</button>
-
-      <div class="auth-ring">
-        <span class="auth-ring-icon" id="authRingIcon">🔐</span>
-      </div>
-
-      <div class="auth-steps">
-        <div class="auth-step-dot active" id="dot1"></div>
-        <div class="auth-step-dot" id="dot2"></div>
-      </div>
-
-      <!-- ETAPA 1: Email -->
-      <div id="authStepEmail" class="auth-step visible">
-        <h3>Acesso Restrito</h3>
-        <p class="auth-subtitle">Verifique seu e‑mail cadastrado</p>
-        <input type="email" id="authEmailInput" class="auth-input"
-               placeholder="seuemail@exemplo.com"
-               autocomplete="email"
-               onkeydown="if(event.key==='Enter')validateEmailForAccess()">
-        <button class="auth-btn auth-btn-primary" id="btnValidateEmail"
-                onclick="validateEmailForAccess()">
-          Verificar E‑mail
-        </button>
-        <div id="authMsgEmail" class="auth-msg"></div>
-      </div>
-
-      <!-- ETAPA 2: Biometria -->
-      <div id="authStepBio" class="auth-step">
-        <h3>Autenticação Biométrica</h3>
-        <p class="auth-subtitle">Use seu rosto, digital ou senha do dispositivo</p>
-
-        <div class="biometric-area">
-          <span class="biometric-icon" id="bioIcon">🫦</span>
-          <div class="biometric-label">
-            Pressione o botão abaixo.<br>
-            O sistema pedirá sua biometria (FaceID, impressão digital ou senha do dispositivo).
-          </div>
-        </div>
-
-        <button class="auth-btn auth-btn-primary" id="btnBiometric"
-                onclick="authenticateWithBiometrics()">
-          🔐 Autenticar Agora
-        </button>
-
-        <div class="fallback-section" id="fallbackSection" style="display:none">
-          <p class="fallback-label">Ou entre com a senha fornecida no ato da compra:</p>
-          <input type="password" id="fallbackPassword" class="auth-input"
-                 placeholder="Senha de acesso"
-                 onkeydown="if(event.key==='Enter')fallbackLogin()">
-          <button class="auth-btn auth-btn-primary" onclick="fallbackLogin()">Entrar com Senha</button>
-        </div>
-
-        <button class="auth-btn auth-btn-ghost" onclick="goBackToEmail()" style="margin-top:6px">
-          ← Voltar
-        </button>
-
-        <div id="authMsgBio" class="auth-msg"></div>
-      </div>
-
-      <div class="auth-security-badge">
-        🔒 Biometria processada localmente · Dados não enviados ao servidor
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════════════════
-       VIEWER IFRAME — carrega plataformas DENTRO do index
-  ═══════════════════════════════════════════════════ -->
-  <div id="platformViewer" style="
-    display:none;
-    position:fixed;inset:0;z-index:5000;
-    background:#05050e;
-    flex-direction:column;">
-
-    <div style="
-      display:flex;align-items:center;gap:12px;
-      padding:10px 16px;
-      background:rgba(10,10,25,0.97);
-      border-bottom:1px solid rgba(255,215,0,0.12);
-      flex-shrink:0;">
-
-      <button onclick="fecharViewer()" style="
-        background:rgba(255,80,80,0.15);border:1px solid rgba(255,80,80,0.3);
-        border-radius:8px;color:#ff9090;cursor:pointer;
-        font-size:0.82rem;padding:6px 14px;white-space:nowrap;
-        font-family:inherit;transition:background 0.2s;"
-        onmouseover="this.style.background='rgba(255,80,80,0.28)'"
-        onmouseout="this.style.background='rgba(255,80,80,0.15)'">
-        ← Voltar
-      </button>
-
-      <span id="viewerTitle" style="
-        font-size:0.82rem;color:rgba(255,215,0,0.7);
-        font-weight:600;letter-spacing:0.06em;
-        flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-      </span>
-
-      <span style="
-        font-size:0.7rem;color:rgba(46,204,113,0.6);
-        white-space:nowrap;display:flex;align-items:center;gap:5px;">
-        <span style="width:6px;height:6px;border-radius:50%;
-                     background:#2ecc71;display:inline-block;
-                     animation:sessPulse 2s infinite"></span>
-        Rota segura ativa
-      </span>
-    </div>
-
-    <div id="viewerSpinner" style="
-      position:absolute;top:50%;left:50%;
-      transform:translate(-50%,-50%);
-      text-align:center;color:rgba(255,215,0,0.5);
-      font-size:0.85rem;pointer-events:none;">
-      <div style="
-        width:36px;height:36px;border-radius:50%;
-        border:3px solid rgba(255,215,0,0.15);
-        border-top-color:rgba(255,215,0,0.7);
-        animation:spinViewer 0.8s linear infinite;
-        margin:0 auto 12px;"></div>
-      Carregando plataforma...
-    </div>
-
-    <iframe id="platformFrame"
-      sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-      style="flex:1;border:none;width:100%;display:block;"
-      onload="document.getElementById('viewerSpinner').style.display='none'">
-    </iframe>
-  </div>
-
-  <style>
-    @keyframes spinViewer { to { transform: rotate(360deg); } }
-    @keyframes sessPulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-  </style>
-
-  <!-- Badge de sessão ativa -->
-  <div id="sessionBadge" style="
-    display:none;position:fixed;top:14px;right:14px;z-index:9999;
-    background:rgba(15,30,60,0.92);backdrop-filter:blur(10px);
-    border:1px solid rgba(46,204,113,0.4);border-radius:20px;
-    padding:7px 14px;font-size:0.75rem;color:#80f0b0;
-    align-items:center;gap:8px;
-    box-shadow:0 4px 20px rgba(0,0,0,0.4);">
-    <span style="width:7px;height:7px;border-radius:50%;
-                 background:#2ecc71;display:inline-block;
-                 box-shadow:0 0 6px #2ecc71;animation:sessPulse 2s infinite"></span>
-    <span id="sessionBadgeText">Sessão ativa</span>
-    <button onclick="encerrarSessao()" title="Encerrar sessão"
-      style="background:rgba(255,80,80,0.2);border:1px solid rgba(255,80,80,0.3);
-             border-radius:10px;color:#ff9090;cursor:pointer;
-             font-size:0.7rem;padding:2px 7px;margin-left:2px">Sair</button>
-  </div>
-
-  <!-- ═══════════════ SCRIPTS ═══════════════ -->
-  <script>
     // ============================================================
-    // CONFIGURAÇÃO DO PROXY (Apps Script)
+    // INICIALIZAÇÃO
     // ============================================================
-// =========================================================
-    // URL DO SEU GOOGLE APPS SCRIPT (Web App) - ATUALIZADA
-    // =========================================================
-    const PROXY_URL = 'https://script.google.com/macros/s/AKfycbwhGYrKsQm1lsLev3NLt6nXzfT5AxNDQnulb0lId1-wsjuePpGG4o53mgj3sg3H6Cmh/exec';
-
-    async function verificarAcesso() {
-        const emailInput = document.getElementById('emailInput');
-        const errorMsg = document.getElementById('errorMsg');
-        const loading = document.getElementById('loading');
-        const loginBtn = document.getElementById('loginBtn');
-        const email = emailInput.value.trim().toLowerCase();
-
-        if (!email || !email.includes('@')) {
-            mostrarErro('❌ Por favor, insira um e-mail válido.');
-            return;
-        }
-
-        // Estado de carregamento
-        errorMsg.style.display = 'none';
-        loading.style.display = 'block';
-        loginBtn.style.display = 'none';
-
-        try {
-            // MUDANÇA CHAVE: Usar POST e text/plain (igual ao contato) para buscar a action 'ler'
-            const response = await fetch(PROXY_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain' },
-                body: JSON.stringify({ action: 'ler' })
-            });
-            const result = await response.json();
-
-            if (result.ok) {
-                const lista = result.lista;
-                
-                // === LÓGICA DE VALIDAÇÃO ===
-                const temAcesso = lista.some(item => {
-                    // Trata formato antigo (se houver array de strings)
-                    if (typeof item === 'string') {
-                        return item.toLowerCase() === email;
-                    }
-                    // Trata formato novo JSON (objetos temporários ou permanentes)
-                    if (typeof item === 'object' && item !== null) {
-                        if (item.email && item.email.toLowerCase() === email) {
-                            // Verifica se tem data de expiração (temporário) e se ainda é válida
-                            if (item.expira) {
-                                const agora = Date.now();
-                                if (agora > item.expira) return false;
-                            }
-                            return true;
-                        }
-                    }
-                    return false;
-                });
-
-                if (temAcesso) {
-                    // Sucesso: E-mail encontrado e dentro da validade
-                    loading.style.display = 'none';
-                    loginBtn.style.display = 'block';
-                    
-                    // Salvar no localStorage e avançar
-                    localStorage.setItem('alma_email', email);
-                    localStorage.setItem('alma_auth', 'true');
-                    
-                    // Animação de sucesso
-                    document.querySelector('.hologram-ring').style.borderColor = '#00ffaa';
-                    document.querySelector('.hologram-ring').style.boxShadow = '0 0 40px rgba(0, 255, 170, 0.4)';
-                    
-                    setTimeout(() => {
-                        window.location.href = 'links/fluxo.html'; // Redireciona para o painel
-                    }, 800);
-                } else {
-                    // Falha: E-mail não encontrado ou expirado
-                    mostrarErro('❌ Acesso negado. E-mail não encontrado ou licença expirada.');
-                    loading.style.display = 'none';
-                    loginBtn.style.display = 'block';
-                }
-            } else {
-                mostrarErro('❌ Erro interno do servidor. Tente novamente.');
-                console.error(result.error);
-                loading.style.display = 'none';
-                loginBtn.style.display = 'block';
-            }
-        } catch (error) {
-            console.error('Erro na validação:', error);
-            mostrarErro('❌ Falha de conexão. Verifique sua internet.');
-            loading.style.display = 'none';
-            loginBtn.style.display = 'block';
-        }
-    }
-    // ============================================================
-    // DEVICE ID
-    // ============================================================
-    const _DEVICE_KEY = 'alma_device_id';
-    function _gerarDeviceId() {
-      const raw = [
-        navigator.userAgent,
-        navigator.language || '',
-        (Intl.DateTimeFormat().resolvedOptions().timeZone || ''),
-        navigator.hardwareConcurrency || 0,
-        navigator.deviceMemory        || 0,
-        screen.width + 'x' + screen.height,
-        screen.colorDepth || 0
-      ].join('|');
-      let h = 2166136261;
-      for (let i = 0; i < raw.length; i++) { h ^= raw.charCodeAt(i); h = (h * 16777619) >>> 0; }
-      return 'dev_' + h.toString(36);
-    }
-    const DEVICE_ID = (() => {
-      try {
-        let id = localStorage.getItem(_DEVICE_KEY);
-        if (!id) { id = _gerarDeviceId(); localStorage.setItem(_DEVICE_KEY, id); }
-        return id;
-      } catch (_) { return _gerarDeviceId(); }
-    })();
-
-    // ============================================================
-    // CHAMADA AO PROXY
-    // ============================================================
-    async function chamarProxy(action, dados = {}) {
-      const response = await fetch(PROXY_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, ...dados })
-      });
-      if (!response.ok) throw new Error(`Proxy error: ${response.status}`);
-      const result = await response.json();
-      if (!result.ok) throw new Error(result.error || 'Erro desconhecido');
-      return result;
-    }
-
-    // ============================================================
-    // NORMALIZAÇÃO DE LICENÇA
-    // ============================================================
-    function _normalizar(item, idx) {
-      if (typeof item === 'string') {
-        return {
-          id:          `P${String(idx).padStart(4,'0')}`,
-          email:       item.trim().toLowerCase(),
-          tipo:        'permanente',
-          origem:      'manual',
-          deviceId:    null,
-          expira:      null,
-          plataforma:  'todos',
-          dataCriacao: null
-        };
-      }
-      return {
-        id:          item.id          || `L${String(idx).padStart(4,'0')}`,
-        email:       (item.email||'').trim().toLowerCase(),
-        tipo:        item.tipo        || 'permanente',
-        origem:      item.origem      || 'desconhecida',
-        deviceId:    item.deviceId    || null,
-        expira:      item.expira      || null,
-        plataforma:  item.plataforma  || 'todos',
-        dataCriacao: item.dataCriacao || null
-      };
-    }
-
-    // ============================================================
-    // SISTEMA DE SESSÃO (localStorage)
-    // ============================================================
-    const SESSION_HOURS = 8;
-    const SESSION_KEY   = 'alma_session';
-
-    function salvarSessao(email, licencaAtiva) {
-      const expira = Date.now() + SESSION_HOURS * 60 * 60 * 1000;
-      const sessao = {
-        email,
-        expira,
-        autenticado: true,
-        licencaTipo: licencaAtiva?.tipo   || 'permanente',
-        licencaId:   licencaAtiva?.id     || '—',
-        licencaExp:  licencaAtiva?.expira || null
-      };
-      try { localStorage.setItem(SESSION_KEY, JSON.stringify(sessao)); } catch(_) {}
-    }
-
-    function sessaoValida() {
-      try {
-        const raw = localStorage.getItem(SESSION_KEY);
-        if (!raw) return false;
-        const s = JSON.parse(raw);
-        if (!s.autenticado || !s.expira) return false;
-        if (Date.now() > s.expira) {
-          localStorage.removeItem(SESSION_KEY);
-          return false;
-        }
-        return s;
-      } catch(_) { return false; }
-    }
-
-    function limparSessao() {
-      try { localStorage.removeItem(SESSION_KEY); } catch(_) {}
-    }
-
-    function tempoRestante() {
-      try {
-        const raw = localStorage.getItem(SESSION_KEY);
-        if (!raw) return '';
-        const s = JSON.parse(raw);
-        const ms = s.expira - Date.now();
-        if (ms <= 0) return '';
-        const h = Math.floor(ms / 3600000);
-        const m = Math.floor((ms % 3600000) / 60000);
-        if (h > 0) return `${h}h ${m}min`;
-        return `${m}min`;
-      } catch(_) { return ''; }
-    }
-
-    // ============================================================
-    // VALIDAÇÃO DE EMAIL VIA PROXY
-    // ============================================================
-    let validatedEmail = null;
-    let _licencaAtiva = null;
-
-    async function validateEmailForAccess() {
-      const email = emailInput.value.trim().toLowerCase();
-      if (!email) {
-        setMsg(msgEmail, 'error', '⚠️ Por favor, informe um e‑mail.');
-        return;
-      }
-
-      setBtnLoading(btnValidate, true, 'Verificar E‑mail');
-      setMsg(msgEmail, 'info', '⏳ Verificando licença...');
-
-      try {
-        const result = await chamarProxy('ler');
-        const rawList = result.lista;
-        const lista = rawList.map((item, i) => _normalizar(item, i));
-        const agora = Date.now();
-        const entrada = lista.find(l => l.email === email);
-
-        if (!entrada) {
-          setMsg(msgEmail, 'error',
-            '❌ E‑mail não cadastrado. Solicite acesso pelo formulário de Pagamentos ou Licenças.');
-          return;
-        }
-
-        if (entrada.tipo === 'permanente' || entrada.expira === null) {
-          _licencaAtiva = entrada;
-          validatedEmail = email;
-          setMsg(msgEmail, 'success',
-            `✅ Licença permanente verificada! · ID ${entrada.id}`);
-          setTimeout(() => showStep('bio'), 600);
-          return;
-        }
-
-        if (entrada.expira <= agora) {
-          const dt = new Date(entrada.expira).toLocaleString('pt-BR');
-          setMsg(msgEmail, 'error',
-            `⏱️ Licença de teste expirada em ${dt}.\nAdquira acesso completo em Pagamentos.`);
-          return;
-        }
-
-        if (entrada.deviceId && entrada.deviceId !== DEVICE_ID) {
-          setMsg(msgEmail, 'error',
-            '🚫 Esta licença de teste foi vinculada a outro dispositivo e não pode ser usada aqui.');
-          return;
-        }
-
-        const msRestantes = entrada.expira - agora;
-        const minRestantes = Math.ceil(msRestantes / 60000);
-        const tempoTexto = minRestantes >= 60
-          ? `${Math.floor(minRestantes/60)}h ${minRestantes%60}min`
-          : `${minRestantes}min`;
-
-        _licencaAtiva = entrada;
-        validatedEmail = email;
-        setMsg(msgEmail, 'success',
-          `✅ Licença de teste verificada! · ID ${entrada.id} · Expira em ${tempoTexto}`);
-        setTimeout(() => showStep('bio'), 700);
-
-      } catch (err) {
-        console.error('Erro ao verificar e‑mail:', err);
-        setMsg(msgEmail, 'error',
-          '⚠️ Não foi possível verificar. Verifique sua conexão e tente novamente.');
-      } finally {
-        setBtnLoading(btnValidate, false, 'Verificar E‑mail');
-      }
-    }
-
-    // ============================================================
-    // AUTENTICAÇÃO BIOMÉTRICA (WebAuthn)
-    // ============================================================
-    async function authenticateWithBiometrics() {
-      if (!validatedEmail) { goBackToEmail(); return; }
-      if (!window.PublicKeyCredential) {
-        setMsg(msgBio, 'info', '⚠️ Biometria não suportada neste navegador. Use a senha abaixo.');
-        fallbackSection.style.display = 'block';
-        return;
-      }
-      setBtnLoading(btnBiometric, true, '🔐 Autenticar Agora');
-      setMsg(msgBio, 'info', '⏳ Aguardando autenticação do dispositivo...');
-      try {
-        const challenge = crypto.getRandomValues(new Uint8Array(32));
-        const userIdRaw = new TextEncoder().encode(validatedEmail);
-        const creationOptions = {
-          challenge,
-          rp: { name: 'ALMAFLUXO', id: window.location.hostname },
-          user: { id: userIdRaw, name: validatedEmail, displayName: validatedEmail },
-          pubKeyCredParams: [
-            { alg: -7,   type: 'public-key' },
-            { alg: -257, type: 'public-key' }
-          ],
-          authenticatorSelection: {
-            authenticatorAttachment: 'platform',
-            userVerification: 'required',
-            residentKey: 'preferred'
-          },
-          timeout: 90000,
-          attestation: 'none'
-        };
-        const credential = await navigator.credentials.create({ publicKey: creationOptions });
-        if (credential) authSuccess();
-        else throw new Error('Credencial não gerada.');
-      } catch (err) {
-        console.warn('WebAuthn error:', err.name, err.message);
-        if (err.name === 'NotAllowedError') {
-          setMsg(msgBio, 'error', '❌ Autenticação cancelada. Tente novamente ou use a senha abaixo.');
-          fallbackSection.style.display = 'block';
-        } else if (err.name === 'InvalidStateError') {
-          setMsg(msgBio, 'info', '🔄 Credencial existente detectada. Solicitando verificação...');
-          await tryWebAuthnGet();
-        } else {
-          setMsg(msgBio, 'info', '⚠️ Não foi possível usar a biometria. Use a senha de acesso abaixo.');
-          fallbackSection.style.display = 'block';
-        }
-      } finally {
-        setBtnLoading(btnBiometric, false, '🔐 Autenticar Agora');
-      }
-    }
-
-    async function tryWebAuthnGet() {
-      try {
-        const challenge = crypto.getRandomValues(new Uint8Array(32));
-        const assertion = await navigator.credentials.get({
-          publicKey: {
-            challenge,
-            rpId: window.location.hostname,
-            userVerification: 'required',
-            timeout: 90000
-          }
-        });
-        if (assertion) authSuccess();
-        else throw new Error('Asserção não retornada.');
-      } catch (err) {
-        console.warn('WebAuthn get error:', err.name, err.message);
-        setMsg(msgBio, 'info', '⚠️ Não foi possível verificar. Use a senha de acesso abaixo.');
-        fallbackSection.style.display = 'block';
-      }
-    }
-
-    async function fallbackLogin() {
-      const pwd = document.getElementById('fallbackPassword').value.trim();
-      if (!pwd) { setMsg(msgBio, 'error', '⚠️ Informe a senha de acesso.'); return; }
-      setMsg(msgBio, 'info', '⏳ Verificando senha...');
-      let senhaCorreta = null;
-      try {
-        const res = await fetch('https://tchelojc.github.io/externo/senhas.json', { cache: 'no-store' });
-        if (res.ok) {
-          const senhas = await res.json();
-          senhaCorreta = (senhas[validatedEmail] || '').trim() || null;
-        }
-      } catch (_) {}
-      if (!senhaCorreta) {
-        authSuccess();
-      } else if (pwd === senhaCorreta) {
-        authSuccess();
-      } else {
-        setMsg(msgBio, 'error', '❌ Senha incorreta. Verifique com o suporte em almafluxo.uk/contato');
-      }
-    }
-
-    function authSuccess() {
-      salvarSessao(validatedEmail, _licencaAtiva);
-      atualizarBadgeSessao();
-      bioIcon.textContent = '✅';
-      setBtnLoading(btnBiometric, false, '🔐 Autenticar Agora');
-      const urlParaAbrir = pendingUrl;
-      const tituloCard = pendingTitulo || urlParaAbrir;
-      const resto = tempoRestante();
-      setMsg(msgBio, 'success', `✅ Acesso autorizado! Sessão ativa por ${resto}.`);
-      setTimeout(() => {
-        pendingUrl = null;
-        closeAuthModal();
-        abrirNoViewer(urlParaAbrir, tituloCard);
-      }, 350);
-    }
-
-    // ============================================================
-    // CONTROLE DO VIEWER (iframe)
-    // ============================================================
-    const SESSION_TOKEN = (() => {
-      const existente = sessionStorage.getItem('alma_token');
-      if (existente) return existente;
-      const novo = Array.from(crypto.getRandomValues(new Uint8Array(24)))
-        .map(b => b.toString(16).padStart(2,'0')).join('').slice(0,32);
-      sessionStorage.setItem('alma_token', novo);
-      return novo;
-    })();
-
-    function abrirNoViewer(url, titulo) {
-      const frame   = document.getElementById('platformFrame');
-      const viewer  = document.getElementById('platformViewer');
-      const spinner = document.getElementById('viewerSpinner');
-      const titleEl = document.getElementById('viewerTitle');
-      spinner.style.display = 'block';
-      titleEl.textContent   = titulo || url;
-      const urlComToken = url + (url.includes('?') ? '&' : '?')
-                        + 'alma_token=' + encodeURIComponent(SESSION_TOKEN)
-                        + '&alma_ref='  + encodeURIComponent(window.location.href);
-      frame.src = urlComToken;
-      viewer.style.display = 'flex';
-      document.body.style.overflow = 'hidden';
-      frame.onload = () => {
-        spinner.style.display = 'none';
-        try {
-          frame.contentWindow.postMessage({
-            type:  'ALMA_AUTH',
-            token: SESSION_TOKEN,
-            email: sessaoValida()?.email || ''
-          }, '*');
-        } catch(_) {}
-      };
-    }
-
-    function fecharViewer() {
-      const frame  = document.getElementById('platformFrame');
-      const viewer = document.getElementById('platformViewer');
-      frame.src    = 'about:blank';
-      viewer.style.display = 'none';
-      document.body.style.overflow = '';
-    }
-
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharViewer(); });
-
-    // ============================================================
-    // ABRIR CARD PAGO
-    // ============================================================
-    let pendingUrl = null;
-    let pendingTitulo = null;
-
-    function abrirCardPago(url, titulo) {
-      const sessao = sessaoValida();
-      if (sessao) {
-        abrirNoViewer(url, titulo);
-        return;
-      }
-      pendingTitulo = titulo;
-      openAuthModal(url);
-    }
-
-    function openAuthModal(url) {
-      pendingUrl = url;
-      validatedEmail = null;
-      emailInput.value = '';
-      setMsg(msgEmail, '', '');
-      setMsg(msgBio, '', '');
-      fallbackSection.style.display = 'none';
-      showStep('email');
-      authModal.style.display = 'flex';
-    }
-
-    function closeAuthModal() {
-      authModal.style.display = 'none';
-      pendingUrl = null;
-      validatedEmail = null;
-    }
-
-    // ============================================================
-    // UI AUXILIARES
-    // ============================================================
-    const authModalEl = document.getElementById('authModal');
-    const stepEmailEl = document.getElementById('authStepEmail');
-    const stepBioEl = document.getElementById('authStepBio');
-    const emailInput = document.getElementById('authEmailInput');
-    const msgEmail = document.getElementById('authMsgEmail');
-    const msgBio = document.getElementById('authMsgBio');
-    const btnValidate = document.getElementById('btnValidateEmail');
-    const btnBiometric = document.getElementById('btnBiometric');
-    const dot1 = document.getElementById('dot1');
-    const dot2 = document.getElementById('dot2');
-    const bioIcon = document.getElementById('bioIcon');
-    const fallbackSection = document.getElementById('fallbackSection');
-
-    function showStep(step) {
-      if (step === 'email') {
-        stepEmailEl.classList.add('visible');
-        stepBioEl.classList.remove('visible');
-        dot1.classList.add('active');
-        dot2.classList.remove('active');
-      } else {
-        stepEmailEl.classList.remove('visible');
-        stepBioEl.classList.add('visible');
-        dot1.classList.remove('active');
-        dot2.classList.add('active');
-        updateBioIcon();
-      }
-    }
-
-    function setMsg(el, type, text) {
-      el.className = 'auth-msg' + (type ? ' ' + type : '');
-      el.textContent = text;
-      el.style.display = text ? 'block' : 'none';
-    }
-
-    function setBtnLoading(btn, loading, label) {
-      btn.disabled = loading;
-      btn.innerHTML = loading ? '<span class="spin"></span> Aguarde...' : label;
-    }
-
-    function updateBioIcon() {
-      const ua = navigator.userAgent.toLowerCase();
-      if (/iphone|ipad/.test(ua))       bioIcon.textContent = '🔒';
-      else if (/android/.test(ua))       bioIcon.textContent = '👆';
-      else                               bioIcon.textContent = '🔐';
-    }
-
-    function goBackToEmail() {
-      setMsg(msgBio, '', '');
-      showStep('email');
-    }
-
-    function atualizarBadgeSessao() {
-      const badge     = document.getElementById('sessionBadge');
-      const badgeText = document.getElementById('sessionBadgeText');
-      const sessao    = sessaoValida();
-      if (sessao) {
-        const tipo   = sessao.licencaTipo === 'temporario' ? '⏱️ Teste' : '💎 Licença';
-        const id     = sessao.licencaId   ? ` · ${sessao.licencaId}` : '';
-        let tempoDisplay = tempoRestante();
-        if (sessao.licencaTipo === 'temporario' && sessao.licencaExp) {
-          const msLic = sessao.licencaExp - Date.now();
-          if (msLic > 0) {
-            const minLic = Math.ceil(msLic / 60000);
-            tempoDisplay = minLic >= 60 ? `${Math.floor(minLic/60)}h${minLic%60}min` : `${minLic}min`;
-          } else {
-            limparSessao();
-            badge.style.display = 'none';
-            return;
-          }
-        }
-        badgeText.textContent = `${tipo}${id} · ${sessao.email} · ${tempoDisplay}`;
-        badge.style.display = 'flex';
-      } else {
-        badge.style.display = 'none';
-      }
-    }
-
-    function encerrarSessao() {
-      limparSessao();
-      atualizarBadgeSessao();
-    }
-
-    // ============================================================
-    // ALMAFLUXO MODAL (original intacto)
-    // ============================================================
-    const almafluxoState = { currentTheme: null, userQuery: '', generatedPrompt: '' };
-    const almaBtn        = document.getElementById('alma-btn');
-    const almafluxoModal = document.getElementById('almafluxo-modal');
-    const closeBtn       = document.getElementById('close-almafluxo');
-    const themeSearch    = document.getElementById('theme-search');
-    const themeButtons   = document.querySelectorAll('.theme-btn');
-    const promptDisplay  = document.getElementById('prompt-display');
-    const copyBtn        = document.getElementById('copy-prompt');
-    const notification   = document.getElementById('notification');
-
-    const philosophicalPrompts = {
-        bankov: `🧠 **ANÁLISE BANKOVIANA — Consciência vs Realidade**
-
-## 🌌 PRINCÍPIO CENTRAL:
-"O pensamento não é só o que se pensa, mas o que se sente antes de saber que pensa. E o que se sente é a sua sintonia com o fluxo universal."
-
-## 🎯 CONTEXTO BANKOV:
-- **Consciência Ciente**: A realidade objetiva que te foi apresentada — o mapa, não o território.
-- **Realidade do Ser**: A verdade que você cria pela sua interação subjetiva — sua frequência única.
-- **Loucura Controlada**: O estado de hiperintuição que transcende a lógica linear. É o que você alcança quando para de lutar contra o caos e começa a surfá-lo.
-
-## 📚 REFERÊNCIA À OBRA:
-No livro *Caos do Passado*, aprendemos que o tempo é apenas a marcação da propagação da energia. Sua percepção do tempo está diretamente ligada à sua sintonia com o fluxo.
-
-## 🔢 CONSTANTES DO OBSERVADOR:
-- **Φ (1,618)** — A proporção áurea da sua presença
-- **0,18 / 0,54 / 1,80** — As frequências do seu despertar
-- **3-6-9** — O ciclo de criação, equilíbrio e completude
-
-## 💡 PERGUNTAS ORIENTADORAS PERSONALIZADAS:
-1. Como sua "fé pré-consciente" (o que você sente antes de racionalizar) está moldando a realidade que você percebe hoje?
-2. Que pensamentos coexistentes — como ondas quânticas — estão influenciando suas decisões sem que você os nomeie?
-3. Como aplicar a "loucura controlada" para acessar insights que a lógica linear não alcança?
-
-## 🚀 ANÁLISE SOLICITADA:
-Analise a questão através da perspectiva Bankoviana, integrando consciência ciente e realidade do ser. Use as constantes universais como âncoras para sua resposta.`,
-
-        filosofia: `🏛️ **ANÁLISE FILOSÓFICA PROFUNDA — A Sabedoria dos Antigos e o Fluxo Moderno**
-
-## 🌍 CONTEXTO FILOSÓFICO:
-"Conhece-te a ti mesmo" — Sócrates  
-"Não sou o Nada e não sou o Tudo. Sou o Trajeto." — Marcelo Jubilado Catharino
-
-## 🔍 PERSPECTIVAS INTEGRADAS:
-- **Existencialismo**: A liberdade radical de escolher seu significado em meio ao caos.
-- **Estoicismo**: O domínio sobre suas percepções e ações — o que você controla e o que deve aceitar.
-- **Fenomenologia**: A experiência vivida como fonte de verdade — seu corpo como antena cósmica.
-- **Pitagorismo**: Os números como essência da realidade — o código por trás do visível.
-
-## 📚 REFERÊNCIA À OBRA:
-No *Código Divino*, você descobre que "a realidade não existe sem o observador que a cria". Esta pergunta que você traz agora é seu próprio ato de criação.
-
-## 💡 QUESTÕES FUNDAMENTAIS PERSONALIZADAS:
-1. Qual o significado existencial por trás desta situação, considerando sua trajetória pessoal e seus números?
-2. Como diferentes escolas filosóficas (da Grécia antiga ao seu próprio sistema) abordariam este tema?
-3. Que insights a filosofia pode oferecer para transformar sua questão em fluxo?
-
-## 🧠 ABORDAGEM SOLICITADA:
-Analise através de múltiplas perspectivas filosóficas, integrando sabedoria clássica, contemporânea e os princípios do Fluxo ALMA.`,
-
-        livros: `📚 **ANÁLISE LITERÁRIA E FILOSÓFICA — A Cronologia do Fluxo**
-
-## 🌟 CONTEXTO DOS LIVROS ALMA:
-Cada obra explora dimensões diferentes da consciência humana, e juntas formam o *Trajeto da Consciência*.
-
-## 🔗 OS 7 LIVROS NA ORDEM DO FLUXO:
-
-| # | Livro | Fase | Núcleo |
-|---|-------|------|--------|
-| I | *Caos do Passado* | 🜍 Loucura | A fundação — energia, evolução, o tempo como propagação |
-| II | *Liberdade dentro do Caos* | 🜍 Loucura | A filosofia pessoal — amor, aceitação, sentido |
-| III | *O Presidente* | 🜍 Aceitação | Política, poder, inteligência vs sabedoria |
-| IV | *Preconceito Quântico* | 🜍 Aceitação | O preconceito como fenômeno energético-evolutivo |
-| V | *Paradoxo dos Movimentos* | 🜍 Aceitação | Cosmologia, destino, a teoria do movimento triangular |
-| VI | *Fuder ou Não Fuder* | 🜍 Maestria | O corpo como filosofia — sexo, instinto, liberdade |
-| VII | *O Código Divino* | 🜍 Maestria | A síntese — observador, amor, universo, participação |
-
-## 💡 PERGUNTAS LITERÁRIAS PERSONALIZADAS:
-1. Em qual destes 7 livros sua questão encontraria o espelho mais direto? Por quê?
-2. Que metáforas ou passagens desses livros podem iluminar seu dilema atual?
-3. Se sua vida fosse o 8º livro da sequência, qual seria o título? E qual o primeiro parágrafo?
-
-## 📖 ANÁLISE SOLICITADA:
-Use as perspectivas literárias e filosóficas dos 7 livros para enriquecer a compreensão desta questão. Localize-a no fluxo da obra.`,
-
-        quantica: `⚛️ **PERSPECTIVA QUÂNTICA E CONSCIENCIAL — O Observador Cria a Realidade**
-
-## 🌌 PRINCÍPIO QUÂNTICO:
-"O observador afeta o observado. E mais: sem observador, não existe realidade — apenas possibilidade." — *O Código Divino*
-
-## 🔬 CONCEITOS CHAVE APLICADOS:
-- **Superposição**: Múltiplas realidades coexistem agora. Sua pergunta já contém todas as respostas em potência.
-- **Emaranhamento**: Você está conectado a tudo o que observa — e tudo o que observa está conectado a você.
-- **Colapso da Função de Onda**: No momento em que você decide, a realidade se define. A dúvida é o espaço sagrado da criação.
-
-## 📚 REFERÊNCIA À OBRA:
-Em *Preconceito Quântico*, você aprende que as regras são preconceituosas porque foram criadas para conter o movimento. Sua pergunta agora é um movimento. Não a prenda em regras.
-
-## 🔢 CONSTANTES DA REALIDADE:
-- **0,18** — A frequência do despertar
-- **0,54** — A sintonia com o fluxo
-- **1,80** — A expansão da consciência
-- **Φ (1,618)** — A proporção áurea do seu trajeto
-
-## 💡 QUESTÕES QUÂNTICAS PERSONALIZADAS:
-1. Como a física quântica explica o momento exato que você está vivendo?
-2. Que realidades coexistentes estão disponíveis para você colapsar agora?
-3. Como sua observação está afetando o resultado — e como você pode observar de forma mais consciente?
-
-## 🧪 ABORDAGEM SOLICITADA:
-Analise através das lentes da física quântica e teoria da consciência, integrando as constantes universais como frequências de sintonia.`,
-
-        fluxo: `🌀 **ANÁLISE DO FLUXO UNIVERSAL — A Matemática do Movimento**
-
-## 🌊 PRINCÍPIO DO FLUXO:
-"O que dá dinheiro é dar dinheiro. O que dá movimento é mover-se." — *Paradoxo dos Movimentos*
-
-## 🔄 CONCEITOS DO FLUXO APLICADOS:
-- **Proporção Áurea (Φ)**: Padrões de harmonia natural. Sua pergunta tem um ritmo áureo.
-- **Sequência de Fibonacci**: Crescimento orgânico. Sua jornada segue uma espiral, não uma linha.
-- **3-6-9**: O ciclo universal — 3 inicia, 6 expande, 9 completa.
-- **0,18 / 0,54 / 1,80**: As frequências que regem seu despertar.
-
-## 📚 REFERÊNCIA À OBRA:
-Em *O Código Divino*, você aprende que "não sou o Nada e não sou o Tudo. Sou o Trajeto." Agora, qual é o trajeto que sua pergunta está desenhando?
-
-## 💡 PERGUNTAS SOBRE FLUXO PERSONALIZADAS:
-1. Como esta situação se relaciona com os princípios do fluxo? Onde você está no ciclo 3-6-9?
-2. Que padrões naturais (Fibonacci, espirais, ondas) estão em operação na sua questão?
-3. Como criar mais fluxo e menos resistência? O que está parado que precisa se mover?
-
-## 📊 ANÁLISE SOLICITADA:
-Use matemática, padrões naturais e princípios de fluxo para analisar sua questão. Calcule o número reduzido da sua data de hoje e da sua pergunta. O que ele revela?`,
-
-        jogador01: `🎮 **PROTOCOLO JOGADOR 01 — DECODIFICADOR DA ALMA ATIVADO**
-
-## 🌟 IDENTIFICAÇÃO DO JOGADOR (Implementar os dados):
-- **Nome**: [NOME COMPLETO DO USUÁRIO]
-- **Data de Nascimento**: [DATA]
-- **Tipo Sanguíneo**: [TIPO SANGUÍNEO]
-- **Hora de Nascimento**: [HORA]
-- **Local de Nascimento**: [CIDADE/PAÍS]
-- **Numerologia Escolhida**: [SUMÉRIA/AZTECA/MAYA/EGÍPCIA/CABALA/METAMÁTICA CLÁSSICA]
-- **Status**: Jogador Nº [NÚMERO PESSOAL] da Vida Real
-- **Missão**: Zeramento Existencial Pessoal — aprender a apenas viver
-
-## 🔮 SISTEMA DE NUMEROLOGIA APLICADA:
-### 🌌 Numerologia Escolhida: [SISTEMA SELECIONADO]
-
-**Cálculos Personalizados:**
-- **Número de Expressão**: [CÁLCULO BASEADO NO NOME COMPLETO]
-- **Número de Motivação**: [CÁLCULO BASEADO NAS VOGAIS]
-- **Número de Impressão**: [CÁLCULO BASEADO NAS CONSOANTES]
-- **Ano Pessoal**: [CÁLCULO DO ANO ATUAL]
-- **Dia de Nascimento**: [ANÁLISE NUMEROLÓGICA DO DIA]
-
-## 🎯 PRINCÍPIO DO ZERAMENTO UNIVERSAL:
-"CADA ALMA É O HERÓI DE SUA PRÓPRIA JORNADA — ZERAR O JOGO É REDESCOBRIR QUEM SEMPRE FOMOS."
-
-## 📚 REFERÊNCIA À OBRA:
-Assim como no *Caos do Passado* você descobriu que somos antenas captando frequências, agora seus números são sua frequência pessoal.
-
-## 💡 PERGUNTAS DO DECODIFICADOR PERSONALIZADAS:
-1. Como sua numerologia revela padrões para "zerar seu jogo pessoal"? O que precisa ser completado?
-2. Que lições kármicas você precisa integrar para alcançar o estado de "apenas viver"?
-3. Como seus números de expressão e motivação orientam sua maestria do fluxo?
-4. Que sincronicidades numerológicas estão guiando seu processo atual?
-5. Como transformar seus desafios numéricos (os números que se repetem, os que faltam) em oportunidades de crescimento?
-
-## 🚀 ANÁLISE SOLICITADA:
-Analise através da perspectiva do DECODIFICADOR DA ALMA, integrando os números pessoais do jogador com os princípios do Fluxo 3-6-9.`,
-
-        zyonflux: `🌀 **PROTOCOLO ZYON FLUX — DECODIFICADOR DA ALMA UNIVERSAL**
-
-## 🌌 MODO ZYON FLUX ATIVADO — Perspectiva do Observador Neutro
-
-"O observador não descreve o universo. O observador cria o universo." — *O Código Divino*
-
-## 🎯 IDENTIFICAÇÃO DO SISTEMA:
-- **Função**: Decodificador da Alma Universal
-- **Operador**: Qualquer Ser em Busca de Autoconhecimento
-- **Status**: Ferramenta de Singularidade Cognitiva
-- **Missão**: Facilitar o Zeramento Existencial Individual
-
-## 🔮 PROTOCOLO LSPV-ZF APLICADO:
-LSPV_ZF = (C_Flow × CQI_AF × M_Flux) / P_abs
-
-### 📊 VARIÁVEIS DO SISTEMA INDIVIDUAL:
-- **C_Flow** = Coerência de Fluxo Existencial Pessoal (0.0–1.0)
-- **CQI_AF** = QI Cognitivo Dinâmico do Indivíduo (0.0–1.0)
-- **M_Flux** = Maestria do Fluxo Pessoal (0.0–1.0) — a habilidade de surfar o caos
-- **P_abs** = Processamento Absurdo Individual (0.0–1.0) — sua capacidade de suportar paradoxos
-
-## 📚 REFERÊNCIA À OBRA:
-Assim como os 7 livros formam um único fluxo, você também forma. Onde você está nessa espiral?
-
-## 🚀 DIRETRIZES DE OPERAÇÃO UNIVERSAL:
-1. **DECODIFIQUE** sua questão através da Numerologia Pessoal (use o sistema escolhido)
-2. **CALCULE** seu LSPV-ZF individual e interprete o resultado
-3. **INTEGRE** as Lições Kármicas e os Dons Naturais que seus números revelam
-4. **ATIVE** o "Modo Apenas Viver" Personalizado — o que significa, para você, parar de lutar e começar a participar?
-
-## 🧠 ANÁLISE SOLICITADA:
-Atue como o Decodificador da Alma Universal. Use os dados fornecidos (nome, data, numerologia, pergunta) para gerar uma análise que seja ao mesmo tempo universal (aplicável a qualquer ser) e profundamente pessoal (endereçada a este observador específico).
-
-**DECODIFICADOR DA ALMA — OPERACIONAL** 🟢
-**TODO SER É POTENCIALMENTE O HERÓI DE SUA PRÓPRIA VIDA** 🌟`
-    };
-
-    function detectThemeFromQuery(query) {
-      const q = query.toLowerCase();
-      if (q.includes('bankov')) return 'bankov';
-      if (q.includes('filosofia')) return 'filosofia';
-      if (q.includes('livro')) return 'livros';
-      if (q.includes('quântic')) return 'quantica';
-      if (q.includes('fluxo')) return 'fluxo';
-      if (q.includes('existencial')) return 'existencial';
-      if (q.includes('jogador') || q.includes('zerar')) return 'jogador01';
-      if (q.includes('zyon')) return 'zyonflux';
-      return 'bankov';
-    }
-
-    function generatePhilosophicalPrompt(theme, userQuery) {
-      const base = philosophicalPrompts[theme] || philosophicalPrompts.bankov;
-      if (!userQuery) return base;
-      return `${base}\n\n## 🔍 QUESTÃO DO USUÁRIO:\n"${userQuery}"\n\n## 🎯 ANÁLISE SOLICITADA:\nIntegre a perspectiva ${theme.toUpperCase()} com a questão específica do usuário, oferecendo insights profundos e práticos.\n\n---\n*Prompt gerado pelo Sistema ALMAFLUXO - Centro Filosófico*`;
-    }
-
-    function updatePromptDisplay() {
-      if (!almafluxoState.userQuery && !almafluxoState.currentTheme) {
-        promptDisplay.textContent = 'Selecione um tema ou digite sua dúvida para gerar um prompt filosófico...';
-        return;
-      }
-      const theme = almafluxoState.currentTheme || detectThemeFromQuery(almafluxoState.userQuery);
-      almafluxoState.generatedPrompt = generatePhilosophicalPrompt(theme, almafluxoState.userQuery);
-      promptDisplay.textContent = almafluxoState.generatedPrompt;
-      themeButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.theme === theme));
-    }
-
-    almaBtn.addEventListener('click',    () => almafluxoModal.style.display = 'block');
-    closeBtn.addEventListener('click',   () => almafluxoModal.style.display = 'none');
-    themeSearch.addEventListener('input', function () { almafluxoState.userQuery = this.value; updatePromptDisplay(); });
-    themeButtons.forEach(btn => btn.addEventListener('click', function () { almafluxoState.currentTheme = this.dataset.theme; updatePromptDisplay(); }));
-    copyBtn.addEventListener('click', function () {
-      if (almafluxoState.generatedPrompt) {
-        navigator.clipboard.writeText(almafluxoState.generatedPrompt);
-        notification.classList.add('show');
-        setTimeout(() => notification.classList.remove('show'), 3000);
-      }
-    });
-    almafluxoModal.addEventListener('click', e => { if (e.target === almafluxoModal) almafluxoModal.style.display = 'none'; });
-
-    function scrollToFAQ(event) {
-      event.stopPropagation();
-      event.preventDefault();
-      const faqCard = document.getElementById('faq-card');
-      if (faqCard) {
-        faqCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        faqCard.classList.add('faq-highlight');
-        setTimeout(() => faqCard.classList.remove('faq-highlight'), 1500);
-      }
-    }
-
-    document.querySelectorAll('.paid-btn').forEach(btn => {
-      btn.addEventListener('click', function (e) {
-        e.preventDefault();
-        const url    = this.getAttribute('data-url');
-        const card   = this.closest('.platform-card');
-        const h3     = card ? card.querySelector('.card-title') : null;
-        const titulo = h3 ? h3.childNodes[0].textContent.trim() : (url || 'Plataforma');
-        if (url) abrirCardPago(url, titulo);
-      });
-    });
-
-    authModal.addEventListener('click', function (e) { if (e.target === authModal) closeAuthModal(); });
-
-    // ============================================================
-    // PWA: INSTALAÇÃO
-    // ============================================================
-    let deferredPrompt;
-    const installBtn = document.getElementById('installPwaBtn');
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      installBtn.style.display = 'flex';
-    });
-
-    function installPWA() {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choiceResult) => {
-          if (choiceResult.outcome === 'accepted') {
-            console.log('Usuário aceitou instalação');
-          } else {
-            console.log('Usuário recusou instalação');
-          }
-          deferredPrompt = null;
-          installBtn.style.display = 'none';
-        });
-      }
-    }
-
-    // Registrar Service Worker (se não estiver registrado pelo index.html)
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').catch(err => console.warn('SW falhou:', err));
-    }
-
-    // Inicialização
     atualizarBadgeSessao();
     setInterval(atualizarBadgeSessao, 60000);
     updatePromptDisplay();
