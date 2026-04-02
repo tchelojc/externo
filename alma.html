@@ -7,7 +7,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="ALMAFLUXO">
-  <title>ALMAFLUXO</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <title>ALMAFLUXO · Portal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
   <style>
     * {
       margin: 0;
@@ -264,8 +267,6 @@
 
     /* ══════════════════════════════════════════════
        MODAL DE AUTENTICAÇÃO — WebAuthn + Email
-       Mantém a estética original, câmera removida,
-       substituída por biometria nativa do dispositivo
     ══════════════════════════════════════════════ */
     .auth-modal {
       display: none;
@@ -290,7 +291,6 @@
       position: relative;
     }
 
-    /* Anel animado decorativo no topo */
     .auth-ring {
       width: 70px; height: 70px;
       border-radius: 50%;
@@ -324,7 +324,6 @@
       text-transform: uppercase;
     }
 
-    /* Steps */
     .auth-steps {
       display: flex;
       justify-content: center;
@@ -397,7 +396,6 @@
       color: rgba(180, 200, 255, 0.8);
     }
 
-    /* Biometric icon área */
     .biometric-area {
       margin: 10px 0 18px;
       padding: 24px;
@@ -422,7 +420,6 @@
       line-height: 1.5;
     }
 
-    /* Mensagem de status */
     .auth-msg {
       margin-top: 12px;
       padding: 10px 14px;
@@ -451,7 +448,6 @@
       color: #aaccff;
     }
 
-    /* Spinner inline */
     .spin {
       display: inline-block;
       width: 14px; height: 14px;
@@ -463,7 +459,6 @@
       margin-right: 6px;
     }
 
-    /* Botão fechar */
     .auth-close {
       position: absolute;
       top: 16px; right: 20px;
@@ -476,7 +471,6 @@
     }
     .auth-close:hover { color: rgba(180, 200, 255, 0.9); }
 
-    /* Badge de segurança */
     .auth-security-badge {
       margin-top: 18px;
       font-size: 0.72rem;
@@ -487,7 +481,6 @@
       gap: 5px;
     }
 
-    /* Fallback: input de senha */
     .fallback-section {
       margin-top: 14px;
       padding-top: 14px;
@@ -836,19 +829,15 @@
 
   <!-- ═══════════════════════════════════════════════════
        MODAL DE AUTENTICAÇÃO — Email + WebAuthn Biométrico
-       Câmera REMOVIDA. Usa FaceID / Digital / Windows Hello
-       nativamente via Web Authentication API (WebAuthn).
   ═══════════════════════════════════════════════════ -->
   <div id="authModal" class="auth-modal">
     <div class="auth-modal-content">
       <button class="auth-close" onclick="closeAuthModal()" aria-label="Fechar">&times;</button>
 
-      <!-- Anel decorativo -->
       <div class="auth-ring">
         <span class="auth-ring-icon" id="authRingIcon">🔐</span>
       </div>
 
-      <!-- Indicador de etapas -->
       <div class="auth-steps">
         <div class="auth-step-dot active" id="dot1"></div>
         <div class="auth-step-dot" id="dot2"></div>
@@ -887,7 +876,6 @@
           🔐 Autenticar Agora
         </button>
 
-        <!-- Fallback: senha simples caso WebAuthn não funcione -->
         <div class="fallback-section" id="fallbackSection" style="display:none">
           <p class="fallback-label">Ou entre com a senha fornecida no ato da compra:</p>
           <input type="password" id="fallbackPassword" class="auth-input"
@@ -903,7 +891,6 @@
         <div id="authMsgBio" class="auth-msg"></div>
       </div>
 
-      <!-- Badge de segurança -->
       <div class="auth-security-badge">
         🔒 Biometria processada localmente · Dados não enviados ao servidor
       </div>
@@ -912,8 +899,6 @@
 
   <!-- ═══════════════════════════════════════════════════
        VIEWER IFRAME — carrega plataformas DENTRO do index
-       Cobre 100% da tela. O conteúdo nunca sai daqui.
-       Token único por sessão impede acesso direto à URL.
   ═══════════════════════════════════════════════════ -->
   <div id="platformViewer" style="
     display:none;
@@ -921,7 +906,6 @@
     background:#05050e;
     flex-direction:column;">
 
-    <!-- Barra superior do viewer -->
     <div style="
       display:flex;align-items:center;gap:12px;
       padding:10px 16px;
@@ -929,7 +913,6 @@
       border-bottom:1px solid rgba(255,215,0,0.12);
       flex-shrink:0;">
 
-      <!-- Botão fechar -->
       <button onclick="fecharViewer()" style="
         background:rgba(255,80,80,0.15);border:1px solid rgba(255,80,80,0.3);
         border-radius:8px;color:#ff9090;cursor:pointer;
@@ -940,14 +923,12 @@
         ← Voltar
       </button>
 
-      <!-- Nome da plataforma -->
       <span id="viewerTitle" style="
         font-size:0.82rem;color:rgba(255,215,0,0.7);
         font-weight:600;letter-spacing:0.06em;
         flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
       </span>
 
-      <!-- Indicador de segurança -->
       <span style="
         font-size:0.7rem;color:rgba(46,204,113,0.6);
         white-space:nowrap;display:flex;align-items:center;gap:5px;">
@@ -958,7 +939,6 @@
       </span>
     </div>
 
-    <!-- Spinner de carregamento -->
     <div id="viewerSpinner" style="
       position:absolute;top:50%;left:50%;
       transform:translate(-50%,-50%);
@@ -973,7 +953,6 @@
       Carregando plataforma...
     </div>
 
-    <!-- O iframe que carrega a plataforma -->
     <iframe id="platformFrame"
       sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
       style="flex:1;border:none;width:100%;display:block;"
@@ -983,15 +962,16 @@
 
   <style>
     @keyframes spinViewer { to { transform: rotate(360deg); } }
+    @keyframes sessPulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
   </style>
 
-  <!-- Badge de sessão ativa (aparece no canto superior direito quando logado) -->
+  <!-- Badge de sessão ativa -->
   <div id="sessionBadge" style="
     display:none;position:fixed;top:14px;right:14px;z-index:9999;
     background:rgba(15,30,60,0.92);backdrop-filter:blur(10px);
     border:1px solid rgba(46,204,113,0.4);border-radius:20px;
     padding:7px 14px;font-size:0.75rem;color:#80f0b0;
-    display:none;align-items:center;gap:8px;
+    align-items:center;gap:8px;
     box-shadow:0 4px 20px rgba(0,0,0,0.4);">
     <span style="width:7px;height:7px;border-radius:50%;
                  background:#2ecc71;display:inline-block;
@@ -1002,22 +982,17 @@
              border-radius:10px;color:#ff9090;cursor:pointer;
              font-size:0.7rem;padding:2px 7px;margin-left:2px">Sair</button>
   </div>
-  <style>
-    @keyframes sessPulse {
-      0%,100%{opacity:1} 50%{opacity:0.4}
-    }
-  </style>
 
   <!-- ═══════════════ SCRIPTS ═══════════════ -->
   <script>
-    // ══════════════════════════════════════════
+    // ============================================================
     // CONFIGURAÇÃO DO PROXY (Apps Script)
-    // ══════════════════════════════════════════
+    // ============================================================
     const PROXY_URL = 'https://script.google.com/macros/s/AKfycbwhGYrKsQm1lsLev3NLt6nXzfT5AxNDQnulb0lId1-wsjuePpGG4o53mgj3sg3H6Cmh/exec';
 
-    // ══════════════════════════════════════════
-    // DEVICE ID — fingerprint FNV-1a
-    // ══════════════════════════════════════════
+    // ============================================================
+    // DEVICE ID
+    // ============================================================
     const _DEVICE_KEY = 'alma_device_id';
     function _gerarDeviceId() {
       const raw = [
@@ -1041,9 +1016,9 @@
       } catch (_) { return _gerarDeviceId(); }
     })();
 
-    // ══════════════════════════════════════════
+    // ============================================================
     // CHAMADA AO PROXY
-    // ══════════════════════════════════════════
+    // ============================================================
     async function chamarProxy(action, dados = {}) {
       const response = await fetch(PROXY_URL, {
         method: 'POST',
@@ -1056,9 +1031,9 @@
       return result;
     }
 
-    // ══════════════════════════════════════════
+    // ============================================================
     // NORMALIZAÇÃO DE LICENÇA
-    // ══════════════════════════════════════════
+    // ============================================================
     function _normalizar(item, idx) {
       if (typeof item === 'string') {
         return {
@@ -1084,9 +1059,9 @@
       };
     }
 
-    // ══════════════════════════════════════════
+    // ============================================================
     // SISTEMA DE SESSÃO (localStorage)
-    // ══════════════════════════════════════════
+    // ============================================================
     const SESSION_HOURS = 8;
     const SESSION_KEY   = 'alma_session';
 
@@ -1135,9 +1110,9 @@
       } catch(_) { return ''; }
     }
 
-    // ══════════════════════════════════════════
+    // ============================================================
     // VALIDAÇÃO DE EMAIL VIA PROXY
-    // ══════════════════════════════════════════
+    // ============================================================
     let validatedEmail = null;
     let _licencaAtiva = null;
 
@@ -1207,9 +1182,9 @@
       }
     }
 
-    // ══════════════════════════════════════════
+    // ============================================================
     // AUTENTICAÇÃO BIOMÉTRICA (WebAuthn)
-    // ══════════════════════════════════════════
+    // ============================================================
     async function authenticateWithBiometrics() {
       if (!validatedEmail) { goBackToEmail(); return; }
       if (!window.PublicKeyCredential) {
@@ -1315,9 +1290,9 @@
       }, 350);
     }
 
-    // ══════════════════════════════════════════
+    // ============================================================
     // CONTROLE DO VIEWER (iframe)
-    // ══════════════════════════════════════════
+    // ============================================================
     const SESSION_TOKEN = (() => {
       const existente = sessionStorage.getItem('alma_token');
       if (existente) return existente;
@@ -1362,9 +1337,9 @@
 
     document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharViewer(); });
 
-    // ══════════════════════════════════════════
+    // ============================================================
     // ABRIR CARD PAGO
-    // ══════════════════════════════════════════
+    // ============================================================
     let pendingUrl = null;
     let pendingTitulo = null;
 
@@ -1395,18 +1370,31 @@
       validatedEmail = null;
     }
 
-    // ══════════════════════════════════════════
+    // ============================================================
     // UI AUXILIARES
-    // ══════════════════════════════════════════
+    // ============================================================
+    const authModalEl = document.getElementById('authModal');
+    const stepEmailEl = document.getElementById('authStepEmail');
+    const stepBioEl = document.getElementById('authStepBio');
+    const emailInput = document.getElementById('authEmailInput');
+    const msgEmail = document.getElementById('authMsgEmail');
+    const msgBio = document.getElementById('authMsgBio');
+    const btnValidate = document.getElementById('btnValidateEmail');
+    const btnBiometric = document.getElementById('btnBiometric');
+    const dot1 = document.getElementById('dot1');
+    const dot2 = document.getElementById('dot2');
+    const bioIcon = document.getElementById('bioIcon');
+    const fallbackSection = document.getElementById('fallbackSection');
+
     function showStep(step) {
       if (step === 'email') {
-        stepEmail.classList.add('visible');
-        stepBio.classList.remove('visible');
+        stepEmailEl.classList.add('visible');
+        stepBioEl.classList.remove('visible');
         dot1.classList.add('active');
         dot2.classList.remove('active');
       } else {
-        stepEmail.classList.remove('visible');
-        stepBio.classList.add('visible');
+        stepEmailEl.classList.remove('visible');
+        stepBioEl.classList.add('visible');
         dot1.classList.remove('active');
         dot2.classList.add('active');
         updateBioIcon();
@@ -1467,9 +1455,9 @@
       atualizarBadgeSessao();
     }
 
-    // ══════════════════════════════════════════
+    // ============================================================
     // ALMAFLUXO MODAL (original intacto)
-    // ══════════════════════════════════════════
+    // ============================================================
     const almafluxoState = { currentTheme: null, userQuery: '', generatedPrompt: '' };
     const almaBtn        = document.getElementById('alma-btn');
     const almafluxoModal = document.getElementById('almafluxo-modal');
@@ -1681,14 +1669,14 @@ Atue como o Decodificador da Alma Universal. Use os dados fornecidos (nome, data
 
     function detectThemeFromQuery(query) {
       const q = query.toLowerCase();
-      if (q.includes('bankov'))                       return 'bankov';
-      if (q.includes('filosofia'))                    return 'filosofia';
-      if (q.includes('livro'))                        return 'livros';
-      if (q.includes('quântic'))                      return 'quantica';
-      if (q.includes('fluxo'))                        return 'fluxo';
-      if (q.includes('existencial'))                  return 'existencial';
+      if (q.includes('bankov')) return 'bankov';
+      if (q.includes('filosofia')) return 'filosofia';
+      if (q.includes('livro')) return 'livros';
+      if (q.includes('quântic')) return 'quantica';
+      if (q.includes('fluxo')) return 'fluxo';
+      if (q.includes('existencial')) return 'existencial';
       if (q.includes('jogador') || q.includes('zerar')) return 'jogador01';
-      if (q.includes('zyon'))                         return 'zyonflux';
+      if (q.includes('zyon')) return 'zyonflux';
       return 'bankov';
     }
 
@@ -1745,6 +1733,38 @@ Atue como o Decodificador da Alma Universal. Use os dados fornecidos (nome, data
     });
 
     authModal.addEventListener('click', function (e) { if (e.target === authModal) closeAuthModal(); });
+
+    // ============================================================
+    // PWA: INSTALAÇÃO
+    // ============================================================
+    let deferredPrompt;
+    const installBtn = document.getElementById('installPwaBtn');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.style.display = 'flex';
+    });
+
+    function installPWA() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('Usuário aceitou instalação');
+          } else {
+            console.log('Usuário recusou instalação');
+          }
+          deferredPrompt = null;
+          installBtn.style.display = 'none';
+        });
+      }
+    }
+
+    // Registrar Service Worker (se não estiver registrado pelo index.html)
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(err => console.warn('SW falhou:', err));
+    }
 
     // Inicialização
     atualizarBadgeSessao();
