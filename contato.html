@@ -287,7 +287,7 @@
 
 <script>
   // ============================================================
-  // CONFIGURAÇÃO DO PROXY (Google Apps Script)
+  // CONFIGURAÇÃO DO PROXY (SUBSTITUA PELA SUA URL ATUALIZADA)
   // ============================================================
   const PROXY_URL = 'https://script.google.com/macros/s/AKfycbwhGYrKsQm1lsLev3NLt6nXzfT5AxNDQnulb0lId1-wsjuePpGG4o53mgj3sg3H6Cmh/exec';
 
@@ -314,65 +314,52 @@
   })();
 
   // ============================================================
-  // COMUNICAÇÃO COM O PROXY
+  // FUNÇÃO DE CHAMADA AO PROXY (com logs para depuração)
   // ============================================================
   async function chamarProxy(action, dados = {}) {
+    console.log(`[Proxy] Enviando ação: ${action}`, dados);
     const response = await fetch(PROXY_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({ action, ...dados })
     });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const result = await response.json();
+    const text = await response.text();
+    console.log(`[Proxy] Resposta bruta: ${text}`);
+    if (!response.ok) throw new Error(`HTTP ${response.status} - ${text}`);
+    const result = JSON.parse(text);
     if (!result.ok) throw new Error(result.error || 'Erro desconhecido');
     return result;
   }
 
   // ============================================================
-  // REGISTRO DE TESTE GRÁTIS (SALVA EM emailsgratis.json)
+  // REGISTRO DE TESTE GRÁTIS (FORÇA collection = 'gratis')
   // ============================================================
-  async function registrarTrial(e) {
-      e.preventDefault();
-      const btn = document.getElementById('btnTrial');
-      const msg = document.getElementById('msgTrial');
-      const nome = document.getElementById('trialNome').value.trim();
-      const email = document.getElementById('trialEmail').value.trim().toLowerCase();
-      const plat = document.getElementById('trialPlat').value;
-  
-      if (!plat) { msg.innerHTML = '⚠️ Escolha uma plataforma.'; msg.className = 'msg error'; msg.style.display = 'block'; return; }
-      if (!nome || !email) { msg.innerHTML = '⚠️ Preencha nome e e-mail.'; msg.className = 'msg error'; msg.style.display = 'block'; return; }
-  
-      btn.disabled = true; btn.innerHTML = '⏱️ Processando...';
-      msg.style.display = 'none';
-  
-      try {
-        // ===== A CORREÇÃO ESTÁ AQUI: ADICIONAR collection: 'gratis' =====
-        const r = await chamarProxy('register_trial', {
-          email: email,
-          nome: nome,
-          plataforma: plat,
-          deviceId: DEVICE_ID,
-          collection: 'gratis'  // <--- ESSA É A CHAVE QUE FALTAVA
-        });
-  
-        if (r.ok) {
-          msg.innerHTML = `✅ Solicitação enviada! Acesso liberado por 1 hora.`;
-          msg.className = 'msg success';
-          document.getElementById('formTrial').reset();
-        } else {
-          msg.innerHTML = `⚠️ Erro: ${r.error}`;
-          msg.className = 'msg error';
-        }
-      } catch (err) {
-        msg.innerHTML = `⚠️ Falha de comunicação. Tente novamente.`;
-        msg.className = 'msg error';
-      } finally {
-        btn.disabled = false; btn.innerHTML = '⏱️ Solicitar 1 Hora Grátis';
-        msg.style.display = 'block';
-      }
-    }
+  async function registrarTrial(email, plataforma, nome) {
+    const statusEl = document.getElementById('trialGithubStatus');
+    statusEl.className = 'trial-status registering';
+    statusEl.textContent = '🔄 Registrando licença temporária no emailsgratis.json…';
 
-  /* ════ ACCORDION E FUNÇÕES AUXILIARES ════ */
+    try {
+      const result = await chamarProxy('register_trial', {
+        email: email.toLowerCase(),
+        plataforma: plataforma,
+        nome: nome,
+        deviceId: DEVICE_ID,
+        collection: 'gratis'   // ESSE É O PARÂMETRO CRÍTICO
+      });
+      const expiraStr = new Date(result.expira).toLocaleTimeString('pt-BR');
+      statusEl.className = 'trial-status registered';
+      statusEl.innerHTML = `✅ <strong>Licença temporária ativada!</strong><br><small>🆔 ID: ${result.id} · Plataforma: ${plataforma} · Expira às ${expiraStr}</small>`;
+      return true;
+    } catch (err) {
+      console.error('[Trial] Erro no proxy:', err);
+      statusEl.className = 'trial-status reg-error';
+      statusEl.innerHTML = `⚠️ ${err.message}<br><small>O e-mail será enviado normalmente. Verifique o arquivo emailsgratis.json manualmente.</small>`;
+      return false;
+    }
+  }
+
+  /* ════ ACCORDION E FUNÇÕES AUXILIARES (MANTIDAS) ════ */
   function toggleCard(id) {
     const t = document.getElementById(id);
     const open = t.classList.contains('expanded');
@@ -455,7 +442,7 @@
   });
 
   // ============================================================
-  // TESTE GRÁTIS → emailsgratis.json
+  // TESTE GRÁTIS (TRIAL) → emailsgratis.json
   // ============================================================
   document.getElementById('freeTrialForm').addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -468,10 +455,10 @@
     const plataforma = fd.get('plataforma_teste');
     const dataHora = new Date().toLocaleString('pt-BR');
 
-    // 1) Registra via proxy (emailsgratis.json)
+    // 1) Registra no GitHub via proxy (collection = 'gratis')
     const sucesso = await registrarTrial(email, plataforma, nome);
 
-    // 2) Notifica por e-mail (sempre)
+    // 2) Notifica por e-mail (sempre, mesmo se o proxy falhar)
     fd.set('message',
       `═══════════════════════════════════════════════\n` +
       `SOLICITAÇÃO DE TESTE GRÁTIS (1h) — emailsgratis.json\n` +
@@ -493,8 +480,7 @@
 
   // ============================================================
   // FORMULÁRIO DE PAGAMENTO (APENAS E-MAIL + REDIRECIONAMENTO)
-  // O registro efetivo em emails.json será feito pelo pagamento.html
-  // após confirmação do PIX.
+  // O registro em emails.json será feito pelo pagamento.html
   // ============================================================
   document.getElementById('quizForm').addEventListener('submit', async function(e) {
     e.preventDefault();
