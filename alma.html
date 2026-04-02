@@ -12,11 +12,7 @@
   <title>ALMAFLUXO · Portal</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Roboto', sans-serif;
       min-height: 100vh;
@@ -31,10 +27,8 @@
       position: relative;
       color: white;
     }
-
     .alma-button {
-      width: 200px;
-      height: 200px;
+      width: 200px; height: 200px;
       background: rgba(74, 111, 165, 0.7);
       border-radius: 50%;
       display: flex;
@@ -64,11 +58,10 @@
       animation: none;
     }
     @keyframes pulse {
-      0%   { box-shadow: 0 0 20px rgba(255,255,255,0.3), inset 0 0 20px rgba(255,255,255,0.2); }
-      50%  { box-shadow: 0 0 40px rgba(255,255,255,0.5), inset 0 0 30px rgba(255,255,255,0.3); }
+      0% { box-shadow: 0 0 20px rgba(255,255,255,0.3), inset 0 0 20px rgba(255,255,255,0.2); }
+      50% { box-shadow: 0 0 40px rgba(255,255,255,0.5), inset 0 0 30px rgba(255,255,255,0.3); }
       100% { box-shadow: 0 0 20px rgba(255,255,255,0.3), inset 0 0 20px rgba(255,255,255,0.2); }
     }
-
     .cards-container {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -128,7 +121,6 @@
       font-size: 1rem;
     }
     .card-link:hover { background: rgba(74, 111, 165, 1); }
-
     .status-badge {
       display: inline-block;
       padding: 3px 8px;
@@ -140,7 +132,6 @@
     }
     .status-badge.construction { background: rgba(241, 196, 15, 0.4); }
     .status-badge.pago { background: rgba(255, 107, 107, 0.6); }
-
     .faq-link-button {
       display: block;
       background: rgba(255, 193, 7, 0.3);
@@ -156,8 +147,6 @@
       border: 1px solid rgba(255, 193, 7, 0.5);
     }
     .faq-link-button:hover { background: rgba(255, 193, 7, 0.5); color: #fff; }
-
-    /* Modal ALMAFLUXO */
     .almafluxo-modal {
       display: none;
       position: fixed;
@@ -237,7 +226,6 @@
       z-index: 1001; border-left: 4px solid rgba(46, 204, 113, 0.8);
     }
     .notification.show { transform: translateX(0); }
-
     .streamlit-info {
       background: rgba(255, 75, 75, 0.2); border-radius: 15px; padding: 20px;
       margin-bottom: 30px; border: 1px solid rgba(255, 107, 107, 0.4);
@@ -248,7 +236,6 @@
     .streamlit-icon { color: #FF4B4B; font-size: 24px; }
     .streamlit-title { font-size: 18px; font-weight: 700; color: #FF4B4B; }
     .streamlit-content { margin-bottom: 20px; line-height: 1.6; font-size: 14px; color: rgba(255,255,255,0.9); }
-
     .category-title {
       font-size: 1.8rem; color: white;
       margin: 40px 0 20px; text-align: center;
@@ -257,15 +244,12 @@
       padding-bottom: 10px;
       border-bottom: 1px solid rgba(255,255,255,0.3);
     }
-
     .faq-highlight { animation: faqGlow 0.8s ease-out 3; }
     @keyframes faqGlow {
-      0%   { box-shadow: 0 0 0 0 rgba(255,215,0,0.7); border-color: rgba(255,215,0,0.5); }
-      50%  { box-shadow: 0 0 20px 10px rgba(255,215,0,0.5); border-color: gold; }
+      0% { box-shadow: 0 0 0 0 rgba(255,215,0,0.7); border-color: rgba(255,215,0,0.5); }
+      50% { box-shadow: 0 0 20px 10px rgba(255,215,0,0.5); border-color: gold; }
       100% { box-shadow: 0 0 0 0 rgba(255,215,0,0); border-color: rgba(255,255,255,0.2); }
     }
-
-    /* Modal de Autenticação */
     .auth-modal {
       display: none;
       position: fixed;
@@ -778,505 +762,161 @@
   <div id="sessionBadge" style="display:none;position:fixed;top:14px;right:14px;z-index:9999;background:rgba(15,30,60,0.92);backdrop-filter:blur(10px);border:1px solid rgba(46,204,113,0.4);border-radius:20px;padding:7px 14px;font-size:0.75rem;color:#80f0b0;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(0,0,0,0.4);"><span style="width:7px;height:7px;border-radius:50%;background:#2ecc71;display:inline-block;box-shadow:0 0 6px #2ecc71;animation:sessPulse 2s infinite"></span><span id="sessionBadgeText">Sessão ativa</span><button onclick="encerrarSessao()" title="Encerrar sessão" style="background:rgba(255,80,80,0.2);border:1px solid rgba(255,80,80,0.3);border-radius:10px;color:#ff9090;cursor:pointer;font-size:0.7rem;padding:2px 7px;margin-left:2px">Sair</button></div>
 
   <script>
-    // ============================================================
-    // CONFIGURAÇÃO DO PROXY (Google Apps Script)
-    // ============================================================
-    const PROXY_URL = 'https://script.google.com/macros/s/AKfycbwhGYrKsQm1lsLev3NLt6nXzfT5AxNDQnulb0lId1-wsjuePpGG4o53mgj3sg3H6Cmh/exec';
+    // ========== CONFIGURAÇÃO OFUSCADA ==========
+    const _0x9f2e = [
+      'https://script.google.com/macros/s/AKfycbwhGYrKsQm1lsLev3NLt6nXzfT5AxNDQnulb0lId1-wsjuePpGG4o53mgj3sg3H6Cmh/exec',
+      'alma_device_id', 'dev_', 'text/plain', 'POST', 'ler', 'register_permanent', 'principal'
+    ];
+    const _proxyUrl = _0x9f2e[0];
+    const _devKey = _0x9f2e[1];
+    const _devPref = _0x9f2e[2];
 
-    // ============================================================
-    // DEVICE ID (mesmo algoritmo do contato.html)
-    // ============================================================
-    const _DEVICE_KEY = 'alma_device_id';
-    function _gerarDeviceId() {
-      const raw = [
-        navigator.userAgent,
-        navigator.language || '',
-        (Intl.DateTimeFormat().resolvedOptions().timeZone || ''),
-        navigator.hardwareConcurrency || 0,
-        navigator.deviceMemory        || 0,
-        screen.width + 'x' + screen.height,
-        screen.colorDepth || 0
-      ].join('|');
+    function _genDevId() {
+      let raw = [navigator.userAgent, navigator.language||'', (Intl.DateTimeFormat().resolvedOptions().timeZone||''), navigator.hardwareConcurrency||0, navigator.deviceMemory||0, screen.width+'x'+screen.height, screen.colorDepth||0].join('|');
       let h = 2166136261;
-      for (let i = 0; i < raw.length; i++) { h ^= raw.charCodeAt(i); h = (h * 16777619) >>> 0; }
-      return 'dev_' + h.toString(36);
+      for(let i=0;i<raw.length;i++) { h ^= raw.charCodeAt(i); h = (h * 16777619) >>> 0; }
+      return _devPref + h.toString(36);
     }
-    const DEVICE_ID = (() => {
+    const _deviceId = (()=>{ try { let id = localStorage.getItem(_devKey); if(!id) { id = _genDevId(); localStorage.setItem(_devKey, id); } return id; } catch(e) { return _genDevId(); } })();
+
+    async function _call(action, data={}) {
+      console.log(`[Proxy] ${action}`, data);
       try {
-        let id = localStorage.getItem(_DEVICE_KEY);
-        if (!id) { id = _gerarDeviceId(); localStorage.setItem(_DEVICE_KEY, id); }
-        return id;
-      } catch (_) { return _gerarDeviceId(); }
-    })();
-
-    // ============================================================
-    // CHAMADA AO PROXY (corrigida com text/plain para evitar CORS)
-    // ============================================================
-    async function chamarProxy(action, dados = {}) {
-      console.log(`[Proxy] Enviando ação: ${action}`, dados);
-      try {
-        const response = await fetch(PROXY_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain' }, // ← evita preflight CORS
-          body: JSON.stringify({ action, ...dados })
-        });
-
-        console.log(`[Proxy] Status: ${response.status}`);
-        const text = await response.text();
-        console.log(`[Proxy] Corpo bruto: ${text}`);
-
-        const result = JSON.parse(text);
-        console.log(`[Proxy] Resultado parseado:`, result);
-
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        if (!result.ok) throw new Error(result.error || 'Erro desconhecido');
-        return result;
-      } catch (err) {
-        console.error('[Proxy] Erro:', err);
-        throw err;
-      }
+        const res = await fetch(_proxyUrl, { method: _0x9f2e[4], headers: { 'Content-Type': _0x9f2e[3] }, body: JSON.stringify({ action, ...data }) });
+        const txt = await res.text();
+        const json = JSON.parse(txt);
+        if(!res.ok || !json.ok) throw new Error(json.error || 'Erro');
+        return json;
+      } catch(e) { console.error(e); throw e; }
     }
 
-    // ============================================================
-    // NORMALIZAÇÃO DE LICENÇAS (strings ou objetos)
-    // ============================================================
-    function _normalizar(item, idx) {
-      if (typeof item === 'string') {
-        return {
-          id:          `P${String(idx).padStart(4,'0')}`,
-          email:       item.trim().toLowerCase(),
-          tipo:        'permanente',
-          origem:      'manual',
-          deviceId:    null,
-          expira:      null,
-          plataforma:  'todos',
-          dataCriacao: null
-        };
-      }
-      return {
-        id:          item.id          || `L${String(idx).padStart(4,'0')}`,
-        email:       (item.email||'').trim().toLowerCase(),
-        tipo:        item.tipo        || 'permanente',
-        origem:      item.origem      || 'desconhecida',
-        deviceId:    item.deviceId    || null,
-        expira:      item.expira      || null,
-        plataforma:  item.plataforma  || 'todos',
-        dataCriacao: item.dataCriacao || null
-      };
+    function _norm(item, idx) {
+      if(typeof item === 'string') return { id: `P${String(idx).padStart(4,'0')}`, email: item.trim().toLowerCase(), tipo: 'permanente', origem: 'manual', deviceId: null, expira: null, plataforma: 'todos', dataCriacao: null };
+      return { id: item.id || `L${String(idx).padStart(4,'0')}`, email: (item.email||'').trim().toLowerCase(), tipo: item.tipo||'permanente', origem: item.origem||'desconhecida', deviceId: item.deviceId||null, expira: item.expira||null, plataforma: item.plataforma||'todos', dataCriacao: item.dataCriacao||null };
     }
 
-    // ============================================================
-    // SISTEMA DE SESSÃO (localStorage com expiração)
-    // ============================================================
-    const SESSION_HOURS = 8;
-    const SESSION_KEY   = 'alma_session';
-
-    function salvarSessao(email, licencaAtiva) {
-      const expira = Date.now() + SESSION_HOURS * 60 * 60 * 1000;
-      const sessao = {
-        email,
-        expira,
-        autenticado: true,
-        licencaTipo: licencaAtiva?.tipo   || 'permanente',
-        licencaId:   licencaAtiva?.id     || '—',
-        licencaExp:  licencaAtiva?.expira || null
-      };
-      try { localStorage.setItem(SESSION_KEY, JSON.stringify(sessao)); } catch(_) {}
+    const _sessHours = 8, _sessKey = 'alma_session';
+    function _saveSess(email, lic) {
+      let exp = Date.now() + _sessHours*3600000;
+      let sess = { email, expira: exp, autenticado: true, licencaTipo: lic?.tipo||'permanente', licencaId: lic?.id||'—', licencaExp: lic?.expira||null };
+      try { localStorage.setItem(_sessKey, JSON.stringify(sess)); } catch(e) {}
     }
-
-    function sessaoValida() {
-      try {
-        const raw = localStorage.getItem(SESSION_KEY);
-        if (!raw) return false;
-        const s = JSON.parse(raw);
-        if (!s.autenticado || !s.expira) return false;
-        if (Date.now() > s.expira) {
-          localStorage.removeItem(SESSION_KEY);
-          return false;
-        }
-        // Se a licença temporária expirou durante a sessão, encerra
-        if (s.licencaTipo === 'temporario' && s.licencaExp && Date.now() > s.licencaExp) {
-          localStorage.removeItem(SESSION_KEY);
-          return false;
-        }
-        return s;
-      } catch(_) { return false; }
+    function _validSess() {
+      try { let raw = localStorage.getItem(_sessKey); if(!raw) return false; let s = JSON.parse(raw); if(!s.autenticado || !s.expira || Date.now()>s.expira) { localStorage.removeItem(_sessKey); return false; } if(s.licencaTipo==='temporario' && s.licencaExp && Date.now()>s.licencaExp) { localStorage.removeItem(_sessKey); return false; } return s; } catch(e) { return false; }
     }
+    function _clearSess() { try { localStorage.removeItem(_sessKey); } catch(e) {} }
+    function _timeLeft() { try { let raw = localStorage.getItem(_sessKey); if(!raw) return ''; let s = JSON.parse(raw); let ms = s.expira - Date.now(); if(ms<=0) return ''; let h = Math.floor(ms/3600000), m = Math.floor((ms%3600000)/60000); return h>0 ? `${h}h ${m}min` : `${m}min`; } catch(e) { return ''; } }
 
-    function limparSessao() {
-      try { localStorage.removeItem(SESSION_KEY); } catch(_) {}
-    }
+    let _validEmail = null, _activeLic = null;
+    const _authModal = document.getElementById('authModal'), _stepEmail = document.getElementById('authStepEmail'), _stepBio = document.getElementById('authStepBio');
+    const _msgEmail = document.getElementById('authMsgEmail'), _msgBio = document.getElementById('authMsgBio');
+    const _btnValidate = document.getElementById('btnValidateEmail'), _btnBiometric = document.getElementById('btnBiometric');
+    const _dot1 = document.getElementById('dot1'), _dot2 = document.getElementById('dot2'), _bioIcon = document.getElementById('bioIcon'), _fallbackSec = document.getElementById('fallbackSection');
 
-    function tempoRestante() {
-      try {
-        const raw = localStorage.getItem(SESSION_KEY);
-        if (!raw) return '';
-        const s = JSON.parse(raw);
-        const ms = s.expira - Date.now();
-        if (ms <= 0) return '';
-        const h = Math.floor(ms / 3600000);
-        const m = Math.floor((ms % 3600000) / 60000);
-        if (h > 0) return `${h}h ${m}min`;
-        return `${m}min`;
-      } catch(_) { return ''; }
-    }
-
-    // ============================================================
-    // VALIDAÇÃO DE EMAIL VIA PROXY (usando o emails.json)
-    // ============================================================
-    let validatedEmail = null;
-    let _licencaAtiva = null;
+    function _showStep(step) { if(step==='email') { _stepEmail.classList.add('visible'); _stepBio.classList.remove('visible'); _dot1.classList.add('active'); _dot2.classList.remove('active'); } else { _stepEmail.classList.remove('visible'); _stepBio.classList.add('visible'); _dot1.classList.remove('active'); _dot2.classList.add('active'); _updateBioIcon(); } }
+    function _setMsg(el, type, txt) { el.className = 'auth-msg' + (type ? ' ' + type : ''); el.textContent = txt; el.style.display = txt ? 'block' : 'none'; }
+    function _setBtnLoad(btn, load, lbl) { btn.disabled = load; btn.innerHTML = load ? '<span class="spin"></span> Aguarde...' : lbl; }
+    function _updateBioIcon() { let ua = navigator.userAgent.toLowerCase(); _bioIcon.textContent = /iphone|ipad/.test(ua) ? '🔒' : (/android/.test(ua) ? '👆' : '🔐'); }
+    function _goBackEmail() { _setMsg(_msgBio, '', ''); _showStep('email'); }
 
     async function validateEmailForAccess() {
-      const email = document.getElementById('authEmailInput').value.trim().toLowerCase();
-      if (!email) {
-        setMsg(msgEmail, 'error', '⚠️ Por favor, informe um e‑mail.');
-        return;
-      }
-
-      setBtnLoading(btnValidate, true, 'Verificar E‑mail');
-      setMsg(msgEmail, 'info', '⏳ Verificando licença...');
-
+      let email = document.getElementById('authEmailInput').value.trim().toLowerCase();
+      if(!email) { _setMsg(_msgEmail, 'error', '⚠️ Informe um e‑mail.'); return; }
+      _setBtnLoad(_btnValidate, true, 'Verificar E‑mail'); _setMsg(_msgEmail, 'info', '⏳ Verificando...');
       try {
-        const result = await chamarProxy('ler');
-        const rawList = result.lista;
-        const lista = rawList.map((item, i) => _normalizar(item, i));
-        const agora = Date.now();
-        const entrada = lista.find(l => l.email === email);
-
-        if (!entrada) {
-          setMsg(msgEmail, 'error', '❌ E‑mail não cadastrado. Solicite acesso pelo formulário de Pagamentos ou Licenças.');
-          return;
-        }
-
-        // Licença permanente
-        if (entrada.tipo === 'permanente' || entrada.expira === null) {
-          _licencaAtiva = entrada;
-          validatedEmail = email;
-          setMsg(msgEmail, 'success', `✅ Licença permanente verificada! · ID ${entrada.id}`);
-          setTimeout(() => showStep('bio'), 600);
-          return;
-        }
-
-        // Licença temporária expirada
-        if (entrada.expira <= agora) {
-          const dt = new Date(entrada.expira).toLocaleString('pt-BR');
-          setMsg(msgEmail, 'error', `⏱️ Licença de teste expirada em ${dt}.\nAdquira acesso completo em Pagamentos.`);
-          return;
-        }
-
-        // Licença temporária com deviceId errado
-        if (entrada.deviceId && entrada.deviceId !== DEVICE_ID) {
-          setMsg(msgEmail, 'error', '🚫 Esta licença de teste foi vinculada a outro dispositivo e não pode ser usada aqui.');
-          return;
-        }
-
-        const msRestantes = entrada.expira - agora;
-        const minRestantes = Math.ceil(msRestantes / 60000);
-        const tempoTexto = minRestantes >= 60
-          ? `${Math.floor(minRestantes/60)}h ${minRestantes%60}min`
-          : `${minRestantes}min`;
-
-        _licencaAtiva = entrada;
-        validatedEmail = email;
-        setMsg(msgEmail, 'success', `✅ Licença de teste verificada! · ID ${entrada.id} · Expira em ${tempoTexto}`);
-        setTimeout(() => showStep('bio'), 700);
-
-      } catch (err) {
-        console.error('Erro ao verificar e‑mail:', err);
-        setMsg(msgEmail, 'error', `⚠️ Não foi possível verificar. ${err.message || 'Erro de conexão.'}`);
-      } finally {
-        setBtnLoading(btnValidate, false, 'Verificar E‑mail');
-      }
-    }
-
-    // ============================================================
-    // AUTENTICAÇÃO BIOMÉTRICA (WebAuthn) + FALLBACK SENHA
-    // ============================================================
-    async function authenticateWithBiometrics() {
-      if (!validatedEmail) { goBackToEmail(); return; }
-      if (!window.PublicKeyCredential) {
-        setMsg(msgBio, 'info', '⚠️ Biometria não suportada neste navegador. Use a senha abaixo.');
-        fallbackSection.style.display = 'block';
-        return;
-      }
-      setBtnLoading(btnBiometric, true, '🔐 Autenticar Agora');
-      setMsg(msgBio, 'info', '⏳ Aguardando autenticação do dispositivo...');
-      try {
-        const challenge = crypto.getRandomValues(new Uint8Array(32));
-        const userIdRaw = new TextEncoder().encode(validatedEmail);
-        const creationOptions = {
-          challenge,
-          rp: { name: 'ALMAFLUXO', id: window.location.hostname },
-          user: { id: userIdRaw, name: validatedEmail, displayName: validatedEmail },
-          pubKeyCredParams: [
-            { alg: -7,   type: 'public-key' },
-            { alg: -257, type: 'public-key' }
-          ],
-          authenticatorSelection: {
-            authenticatorAttachment: 'platform',
-            userVerification: 'required',
-            residentKey: 'preferred'
-          },
-          timeout: 90000,
-          attestation: 'none'
-        };
-        const credential = await navigator.credentials.create({ publicKey: creationOptions });
-        if (credential) authSuccess();
-        else throw new Error('Credencial não gerada.');
-      } catch (err) {
-        console.warn('WebAuthn error:', err.name, err.message);
-        if (err.name === 'NotAllowedError') {
-          setMsg(msgBio, 'error', '❌ Autenticação cancelada. Tente novamente ou use a senha abaixo.');
-          fallbackSection.style.display = 'block';
-        } else if (err.name === 'InvalidStateError') {
-          setMsg(msgBio, 'info', '🔄 Credencial existente detectada. Solicitando verificação...');
-          await tryWebAuthnGet();
+        let res = await _call(_0x9f2e[5]);
+        let lista = res.lista.map(_norm);
+        let agora = Date.now();
+        let entry = lista.find(l => l.email === email);
+        if(!entry) { _setMsg(_msgEmail, 'error', '❌ E‑mail não cadastrado.'); return; }
+        if(entry.tipo === 'permanente' || entry.expira === null) {
+          _activeLic = entry; _validEmail = email;
+          _setMsg(_msgEmail, 'success', `✅ Licença permanente! ID ${entry.id}`);
+          setTimeout(() => _showStep('bio'), 600);
+        } else if(entry.expira <= agora) {
+          let dt = new Date(entry.expira).toLocaleString('pt-BR');
+          _setMsg(_msgEmail, 'error', `⏱️ Licença expirada em ${dt}.`);
+        } else if(entry.deviceId && entry.deviceId !== _deviceId) {
+          _setMsg(_msgEmail, 'error', '🚫 Licença vinculada a outro dispositivo.');
         } else {
-          setMsg(msgBio, 'info', '⚠️ Não foi possível usar a biometria. Use a senha de acesso abaixo.');
-          fallbackSection.style.display = 'block';
+          let mins = Math.ceil((entry.expira - agora)/60000);
+          let txt = mins>=60 ? `${Math.floor(mins/60)}h ${mins%60}min` : `${mins}min`;
+          _activeLic = entry; _validEmail = email;
+          _setMsg(_msgEmail, 'success', `✅ Teste válido! Expira em ${txt}`);
+          setTimeout(() => _showStep('bio'), 700);
         }
-      } finally {
-        setBtnLoading(btnBiometric, false, '🔐 Autenticar Agora');
-      }
+      } catch(e) { _setMsg(_msgEmail, 'error', '⚠️ Erro na verificação.'); } finally { _setBtnLoad(_btnValidate, false, 'Verificar E‑mail'); }
     }
 
-    async function tryWebAuthnGet() {
+    async function authenticateWithBiometrics() {
+      if(!_validEmail) { _goBackEmail(); return; }
+      if(!window.PublicKeyCredential) { _setMsg(_msgBio, 'info', '⚠️ Biometria não suportada.'); _fallbackSec.style.display = 'block'; return; }
+      _setBtnLoad(_btnBiometric, true, '🔐 Autenticando...'); _setMsg(_msgBio, 'info', '⏳ Aguardando...');
       try {
-        const challenge = crypto.getRandomValues(new Uint8Array(32));
-        const assertion = await navigator.credentials.get({
-          publicKey: {
-            challenge,
-            rpId: window.location.hostname,
-            userVerification: 'required',
-            timeout: 90000
-          }
-        });
-        if (assertion) authSuccess();
-        else throw new Error('Asserção não retornada.');
-      } catch (err) {
-        console.warn('WebAuthn get error:', err.name, err.message);
-        setMsg(msgBio, 'info', '⚠️ Não foi possível verificar. Use a senha de acesso abaixo.');
-        fallbackSection.style.display = 'block';
-      }
+        let challenge = crypto.getRandomValues(new Uint8Array(32));
+        let userId = new TextEncoder().encode(_validEmail);
+        let cred = await navigator.credentials.create({ publicKey: { challenge, rp: { name: 'ALMAFLUXO', id: window.location.hostname }, user: { id: userId, name: _validEmail, displayName: _validEmail }, pubKeyCredParams: [{ alg: -7, type: 'public-key' }, { alg: -257, type: 'public-key' }], authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required', residentKey: 'preferred' }, timeout: 90000, attestation: 'none' } });
+        if(cred) _authSuccess(); else throw new Error();
+      } catch(err) {
+        if(err.name === 'NotAllowedError') { _setMsg(_msgBio, 'error', '❌ Cancelado.'); _fallbackSec.style.display = 'block'; }
+        else if(err.name === 'InvalidStateError') { _setMsg(_msgBio, 'info', '🔄 Tentando autenticar...'); await _tryWebAuthnGet(); }
+        else { _setMsg(_msgBio, 'info', '⚠️ Use a senha abaixo.'); _fallbackSec.style.display = 'block'; }
+      } finally { _setBtnLoad(_btnBiometric, false, '🔐 Autenticar Agora'); }
     }
-
+    async function _tryWebAuthnGet() {
+      try { let challenge = crypto.getRandomValues(new Uint8Array(32)); let assertion = await navigator.credentials.get({ publicKey: { challenge, rpId: window.location.hostname, userVerification: 'required', timeout: 90000 } }); if(assertion) _authSuccess(); else throw new Error(); } catch(e) { _setMsg(_msgBio, 'info', '⚠️ Falha na biometria. Use senha.'); _fallbackSec.style.display = 'block'; }
+    }
     async function fallbackLogin() {
-      const pwd = document.getElementById('fallbackPassword').value.trim();
-      if (!pwd) { setMsg(msgBio, 'error', '⚠️ Informe a senha de acesso.'); return; }
-      setMsg(msgBio, 'info', '⏳ Verificando senha...');
-      let senhaCorreta = null;
-      try {
-        const res = await fetch('https://tchelojc.github.io/externo/senhas.json', { cache: 'no-store' });
-        if (res.ok) {
-          const senhas = await res.json();
-          senhaCorreta = (senhas[validatedEmail] || '').trim() || null;
-        }
-      } catch (_) {}
-      if (!senhaCorreta) {
-        authSuccess();
-      } else if (pwd === senhaCorreta) {
-        authSuccess();
-      } else {
-        setMsg(msgBio, 'error', '❌ Senha incorreta. Verifique com o suporte em almafluxo.uk/contato');
-      }
+      let pwd = document.getElementById('fallbackPassword').value.trim();
+      if(!pwd) { _setMsg(_msgBio, 'error', '⚠️ Senha necessária.'); return; }
+      _setMsg(_msgBio, 'info', '⏳ Verificando...');
+      let correct = null;
+      try { let r = await fetch('https://tchelojc.github.io/externo/senhas.json', { cache: 'no-store' }); if(r.ok) { let json = await r.json(); correct = (json[_validEmail] || '').trim() || null; } } catch(e) {}
+      if(!correct || pwd === correct) _authSuccess(); else _setMsg(_msgBio, 'error', '❌ Senha incorreta.');
+    }
+    function _authSuccess() {
+      _saveSess(_validEmail, _activeLic);
+      _updateBadge();
+      _bioIcon.textContent = '✅';
+      let url = _pendingUrl, title = _pendingTitle || url;
+      _setMsg(_msgBio, 'success', `✅ Acesso autorizado! Sessão: ${_timeLeft()}.`);
+      setTimeout(() => { _pendingUrl = null; closeAuthModal(); _openViewer(url, title); }, 350);
     }
 
-    function authSuccess() {
-      salvarSessao(validatedEmail, _licencaAtiva);
-      atualizarBadgeSessao();
-      bioIcon.textContent = '✅';
-      setBtnLoading(btnBiometric, false, '🔐 Autenticar Agora');
-      const urlParaAbrir = pendingUrl;
-      const tituloCard = pendingTitulo || urlParaAbrir;
-      const resto = tempoRestante();
-      setMsg(msgBio, 'success', `✅ Acesso autorizado! Sessão ativa por ${resto}.`);
-      setTimeout(() => {
-        pendingUrl = null;
-        closeAuthModal();
-        abrirNoViewer(urlParaAbrir, tituloCard);
-      }, 350);
+    const _sessionToken = (() => { let ex = sessionStorage.getItem('alma_token'); if(ex) return ex; let n = Array.from(crypto.getRandomValues(new Uint8Array(24))).map(b=>b.toString(16).padStart(2,'0')).join('').slice(0,32); sessionStorage.setItem('alma_token', n); return n; })();
+    function _openViewer(url, title) {
+      let frame = document.getElementById('platformFrame'), viewer = document.getElementById('platformViewer'), spinner = document.getElementById('viewerSpinner'), titleEl = document.getElementById('viewerTitle');
+      spinner.style.display = 'block'; titleEl.textContent = title || url;
+      let finalUrl = url + (url.includes('?') ? '&' : '?') + 'alma_token=' + encodeURIComponent(_sessionToken) + '&alma_ref=' + encodeURIComponent(window.location.href);
+      frame.src = finalUrl; viewer.style.display = 'flex'; document.body.style.overflow = 'hidden';
+      frame.onload = () => { spinner.style.display = 'none'; try { frame.contentWindow.postMessage({ type: 'ALMA_AUTH', token: _sessionToken, email: _validSess()?.email || '' }, '*'); } catch(e) {} };
     }
+    function fecharViewer() { document.getElementById('platformFrame').src = 'about:blank'; document.getElementById('platformViewer').style.display = 'none'; document.body.style.overflow = ''; }
+    document.addEventListener('keydown', e => { if(e.key === 'Escape') fecharViewer(); });
 
-    // ============================================================
-    // CONTROLE DO VIEWER (iframe com token de sessão)
-    // ============================================================
-    const SESSION_TOKEN = (() => {
-      const existente = sessionStorage.getItem('alma_token');
-      if (existente) return existente;
-      const novo = Array.from(crypto.getRandomValues(new Uint8Array(24)))
-        .map(b => b.toString(16).padStart(2,'0')).join('').slice(0,32);
-      sessionStorage.setItem('alma_token', novo);
-      return novo;
-    })();
+    let _pendingUrl = null, _pendingTitle = null;
+    function abrirCardPago(url, titulo) { if(_validSess()) { _openViewer(url, titulo); return; } _pendingTitle = titulo; openAuthModal(url); }
+    function openAuthModal(url) { _pendingUrl = url; _validEmail = null; document.getElementById('authEmailInput').value = ''; _setMsg(_msgEmail, '', ''); _setMsg(_msgBio, '', ''); _fallbackSec.style.display = 'none'; _showStep('email'); _authModal.style.display = 'flex'; }
+    function closeAuthModal() { _authModal.style.display = 'none'; _pendingUrl = null; _validEmail = null; }
 
-    function abrirNoViewer(url, titulo) {
-      const frame   = document.getElementById('platformFrame');
-      const viewer  = document.getElementById('platformViewer');
-      const spinner = document.getElementById('viewerSpinner');
-      const titleEl = document.getElementById('viewerTitle');
-      spinner.style.display = 'block';
-      titleEl.textContent   = titulo || url;
-      const urlComToken = url + (url.includes('?') ? '&' : '?')
-                        + 'alma_token=' + encodeURIComponent(SESSION_TOKEN)
-                        + '&alma_ref='  + encodeURIComponent(window.location.href);
-      frame.src = urlComToken;
-      viewer.style.display = 'flex';
-      document.body.style.overflow = 'hidden';
-      frame.onload = () => {
-        spinner.style.display = 'none';
-        try {
-          frame.contentWindow.postMessage({
-            type:  'ALMA_AUTH',
-            token: SESSION_TOKEN,
-            email: sessaoValida()?.email || ''
-          }, '*');
-        } catch(_) {}
-      };
-    }
-
-    function fecharViewer() {
-      const frame  = document.getElementById('platformFrame');
-      const viewer = document.getElementById('platformViewer');
-      frame.src    = 'about:blank';
-      viewer.style.display = 'none';
-      document.body.style.overflow = '';
-    }
-
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharViewer(); });
-
-    // ============================================================
-    // ABRIR CARD PAGO
-    // ============================================================
-    let pendingUrl = null;
-    let pendingTitulo = null;
-
-    function abrirCardPago(url, titulo) {
-      const sessao = sessaoValida();
-      if (sessao) {
-        abrirNoViewer(url, titulo);
-        return;
-      }
-      pendingTitulo = titulo;
-      openAuthModal(url);
-    }
-
-    function openAuthModal(url) {
-      pendingUrl = url;
-      validatedEmail = null;
-      document.getElementById('authEmailInput').value = '';
-      setMsg(msgEmail, '', '');
-      setMsg(msgBio, '', '');
-      fallbackSection.style.display = 'none';
-      showStep('email');
-      authModal.style.display = 'flex';
-    }
-
-    function closeAuthModal() {
-      authModal.style.display = 'none';
-      pendingUrl = null;
-      validatedEmail = null;
-    }
-
-    // ============================================================
-    // UI AUXILIARES
-    // ============================================================
-    const authModal = document.getElementById('authModal');
-    const stepEmail = document.getElementById('authStepEmail');
-    const stepBio = document.getElementById('authStepBio');
-    const msgEmail = document.getElementById('authMsgEmail');
-    const msgBio = document.getElementById('authMsgBio');
-    const btnValidate = document.getElementById('btnValidateEmail');
-    const btnBiometric = document.getElementById('btnBiometric');
-    const dot1 = document.getElementById('dot1');
-    const dot2 = document.getElementById('dot2');
-    const bioIcon = document.getElementById('bioIcon');
-    const fallbackSection = document.getElementById('fallbackSection');
-
-    function showStep(step) {
-      if (step === 'email') {
-        stepEmail.classList.add('visible');
-        stepBio.classList.remove('visible');
-        dot1.classList.add('active');
-        dot2.classList.remove('active');
-      } else {
-        stepEmail.classList.remove('visible');
-        stepBio.classList.add('visible');
-        dot1.classList.remove('active');
-        dot2.classList.add('active');
-        updateBioIcon();
-      }
-    }
-
-    function setMsg(el, type, text) {
-      el.className = 'auth-msg' + (type ? ' ' + type : '');
-      el.textContent = text;
-      el.style.display = text ? 'block' : 'none';
-    }
-
-    function setBtnLoading(btn, loading, label) {
-      btn.disabled = loading;
-      btn.innerHTML = loading ? '<span class="spin"></span> Aguarde...' : label;
-    }
-
-    function updateBioIcon() {
-      const ua = navigator.userAgent.toLowerCase();
-      if (/iphone|ipad/.test(ua))       bioIcon.textContent = '🔒';
-      else if (/android/.test(ua))       bioIcon.textContent = '👆';
-      else                               bioIcon.textContent = '🔐';
-    }
-
-    function goBackToEmail() {
-      setMsg(msgBio, '', '');
-      showStep('email');
-    }
-
-    function atualizarBadgeSessao() {
-      const badge     = document.getElementById('sessionBadge');
-      const badgeText = document.getElementById('sessionBadgeText');
-      const sessao    = sessaoValida();
-      if (sessao) {
-        const tipo   = sessao.licencaTipo === 'temporario' ? '⏱️ Teste' : '💎 Licença';
-        const id     = sessao.licencaId   ? ` · ${sessao.licencaId}` : '';
-        let tempoDisplay = tempoRestante();
-        if (sessao.licencaTipo === 'temporario' && sessao.licencaExp) {
-          const msLic = sessao.licencaExp - Date.now();
-          if (msLic > 0) {
-            const minLic = Math.ceil(msLic / 60000);
-            tempoDisplay = minLic >= 60 ? `${Math.floor(minLic/60)}h${minLic%60}min` : `${minLic}min`;
-          } else {
-            limparSessao();
-            badge.style.display = 'none';
-            return;
-          }
-        }
-        badgeText.textContent = `${tipo}${id} · ${sessao.email} · ${tempoDisplay}`;
+    function _updateBadge() {
+      let badge = document.getElementById('sessionBadge'), text = document.getElementById('sessionBadgeText'), sess = _validSess();
+      if(sess) {
+        let tipo = sess.licencaTipo === 'temporario' ? '⏱️ Teste' : '💎 Licença';
+        let id = sess.licencaId ? ` · ${sess.licencaId}` : '';
+        let tempo = _timeLeft();
+        if(sess.licencaTipo === 'temporario' && sess.licencaExp) { let ms = sess.licencaExp - Date.now(); if(ms>0) { let min = Math.ceil(ms/60000); tempo = min>=60 ? `${Math.floor(min/60)}h${min%60}min` : `${min}min`; } else { _clearSess(); badge.style.display = 'none'; return; } }
+        text.textContent = `${tipo}${id} · ${sess.email} · ${tempo}`;
         badge.style.display = 'flex';
-      } else {
-        badge.style.display = 'none';
-      }
+      } else badge.style.display = 'none';
     }
+    function encerrarSessao() { _clearSess(); _updateBadge(); }
 
-    function encerrarSessao() {
-      limparSessao();
-      atualizarBadgeSessao();
-    }
-
-    // ============================================================
-    // ALMAFLUXO MODAL (original, intacto)
-    // ============================================================
-    const almafluxoState = { currentTheme: null, userQuery: '', generatedPrompt: '' };
-    const almaBtn        = document.getElementById('alma-btn');
-    const almafluxoModal = document.getElementById('almafluxo-modal');
-    const closeBtn       = document.getElementById('close-almafluxo');
-    const themeSearch    = document.getElementById('theme-search');
-    const themeButtons   = document.querySelectorAll('.theme-btn');
-    const promptDisplay  = document.getElementById('prompt-display');
-    const copyBtn        = document.getElementById('copy-prompt');
-    const notification   = document.getElementById('notification');
-
-    const philosophicalPrompts = {
-        bankov: `🧠 **ANÁLISE BANKOVIANA — Consciência vs Realidade**
+    // ========== ALMAFLUXO MODAL (original) ==========
+    const almaState = { currentTheme: null, userQuery: '', generatedPrompt: '' };
+    const almaBtn = document.getElementById('alma-btn'), almaModal = document.getElementById('almafluxo-modal'), closeAlma = document.getElementById('close-almafluxo');
+    const themeSearch = document.getElementById('theme-search'), themeBtns = document.querySelectorAll('.theme-btn'), promptDisplay = document.getElementById('prompt-display'), copyPrompt = document.getElementById('copy-prompt'), notif = document.getElementById('notification');
+    const prompts = { bankov: `🧠 **ANÁLISE BANKOVIANA — Consciência vs Realidade**
 
 ## 🌌 PRINCÍPIO CENTRAL:
 "O pensamento não é só o que se pensa, mas o que se sente antes de saber que pensa. E o que se sente é a sua sintonia com o fluxo universal."
@@ -1301,8 +941,7 @@ No livro *Caos do Passado*, aprendemos que o tempo é apenas a marcação da pro
 
 ## 🚀 ANÁLISE SOLICITADA:
 Analise a questão através da perspectiva Bankoviana, integrando consciência ciente e realidade do ser. Use as constantes universais como âncoras para sua resposta.`,
-
-        filosofia: `🏛️ **ANÁLISE FILOSÓFICA PROFUNDA — A Sabedoria dos Antigos e o Fluxo Moderno**
+      filosofia: `🏛️ **ANÁLISE FILOSÓFICA PROFUNDA — A Sabedoria dos Antigos e o Fluxo Moderno**
 
 ## 🌍 CONTEXTO FILOSÓFICO:
 "Conhece-te a ti mesmo" — Sócrates  
@@ -1324,8 +963,7 @@ No *Código Divino*, você descobre que "a realidade não existe sem o observado
 
 ## 🧠 ABORDAGEM SOLICITADA:
 Analise através de múltiplas perspectivas filosóficas, integrando sabedoria clássica, contemporânea e os princípios do Fluxo ALMA.`,
-
-        livros: `📚 **ANÁLISE LITERÁRIA E FILOSÓFICA — A Cronologia do Fluxo**
+      livros: `📚 **ANÁLISE LITERÁRIA E FILOSÓFICA — A Cronologia do Fluxo**
 
 ## 🌟 CONTEXTO DOS LIVROS ALMA:
 Cada obra explora dimensões diferentes da consciência humana, e juntas formam o *Trajeto da Consciência*.
@@ -1349,8 +987,7 @@ Cada obra explora dimensões diferentes da consciência humana, e juntas formam 
 
 ## 📖 ANÁLISE SOLICITADA:
 Use as perspectivas literárias e filosóficas dos 7 livros para enriquecer a compreensão desta questão. Localize-a no fluxo da obra.`,
-
-        quantica: `⚛️ **PERSPECTIVA QUÂNTICA E CONSCIENCIAL — O Observador Cria a Realidade**
+      quantica: `⚛️ **PERSPECTIVA QUÂNTICA E CONSCIENCIAL — O Observador Cria a Realidade**
 
 ## 🌌 PRINCÍPIO QUÂNTICO:
 "O observador afeta o observado. E mais: sem observador, não existe realidade — apenas possibilidade." — *O Código Divino*
@@ -1376,8 +1013,7 @@ Em *Preconceito Quântico*, você aprende que as regras são preconceituosas por
 
 ## 🧪 ABORDAGEM SOLICITADA:
 Analise através das lentes da física quântica e teoria da consciência, integrando as constantes universais como frequências de sintonia.`,
-
-        fluxo: `🌀 **ANÁLISE DO FLUXO UNIVERSAL — A Matemática do Movimento**
+      fluxo: `🌀 **ANÁLISE DO FLUXO UNIVERSAL — A Matemática do Movimento**
 
 ## 🌊 PRINCÍPIO DO FLUXO:
 "O que dá dinheiro é dar dinheiro. O que dá movimento é mover-se." — *Paradoxo dos Movimentos*
@@ -1398,8 +1034,7 @@ Em *O Código Divino*, você aprende que "não sou o Nada e não sou o Tudo. Sou
 
 ## 📊 ANÁLISE SOLICITADA:
 Use matemática, padrões naturais e princípios de fluxo para analisar sua questão. Calcule o número reduzido da sua data de hoje e da sua pergunta. O que ele revela?`,
-
-        jogador01: `🎮 **PROTOCOLO JOGADOR 01 — DECODIFICADOR DA ALMA ATIVADO**
+      jogador01: `🎮 **PROTOCOLO JOGADOR 01 — DECODIFICADOR DA ALMA ATIVADO**
 
 ## 🌟 IDENTIFICAÇÃO DO JOGADOR (Implementar os dados):
 - **Nome**: [NOME COMPLETO DO USUÁRIO]
@@ -1436,8 +1071,7 @@ Assim como no *Caos do Passado* você descobriu que somos antenas captando frequ
 
 ## 🚀 ANÁLISE SOLICITADA:
 Analise através da perspectiva do DECODIFICADOR DA ALMA, integrando os números pessoais do jogador com os princípios do Fluxo 3-6-9.`,
-
-        zyonflux: `🌀 **PROTOCOLO ZYON FLUX — DECODIFICADOR DA ALMA UNIVERSAL**
+      zyonflux: `🌀 **PROTOCOLO ZYON FLUX — DECODIFICADOR DA ALMA UNIVERSAL**
 
 ## 🌌 MODO ZYON FLUX ATIVADO — Perspectiva do Observador Neutro
 
@@ -1473,111 +1107,26 @@ Atue como o Decodificador da Alma Universal. Use os dados fornecidos (nome, data
 **DECODIFICADOR DA ALMA — OPERACIONAL** 🟢
 **TODO SER É POTENCIALMENTE O HERÓI DE SUA PRÓPRIA VIDA** 🌟`
     };
+    function detectTheme(q) { let lq = q.toLowerCase(); if(lq.includes('bankov')) return 'bankov'; if(lq.includes('filosofia')) return 'filosofia'; if(lq.includes('livro')) return 'livros'; if(lq.includes('quântic')) return 'quantica'; if(lq.includes('fluxo')) return 'fluxo'; if(lq.includes('existencial')) return 'existencial'; if(lq.includes('jogador')||lq.includes('zerar')) return 'jogador01'; if(lq.includes('zyon')) return 'zyonflux'; return 'bankov'; }
+    function genPrompt(theme, query) { let base = prompts[theme] || prompts.bankov; if(!query) return base; return `${base}\n\n## 🔍 QUESTÃO DO USUÁRIO:\n"${query}"\n\n## 🎯 ANÁLISE SOLICITADA:\nIntegre a perspectiva ${theme.toUpperCase()} com a questão específica do usuário, oferecendo insights profundos e práticos.\n\n---\n*Prompt gerado pelo Sistema ALMAFLUXO - Centro Filosófico*`; }
+    function updatePrompt() { if(!almaState.userQuery && !almaState.currentTheme) { promptDisplay.textContent = 'Selecione um tema ou digite sua dúvida para gerar um prompt filosófico...'; return; } let theme = almaState.currentTheme || detectTheme(almaState.userQuery); almaState.generatedPrompt = genPrompt(theme, almaState.userQuery); promptDisplay.textContent = almaState.generatedPrompt; themeBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.theme === theme)); }
+    almaBtn.onclick = () => almaModal.style.display = 'block';
+    closeAlma.onclick = () => almaModal.style.display = 'none';
+    themeSearch.oninput = function() { almaState.userQuery = this.value; updatePrompt(); };
+    themeBtns.forEach(btn => btn.onclick = function() { almaState.currentTheme = this.dataset.theme; updatePrompt(); });
+    copyPrompt.onclick = () => { if(almaState.generatedPrompt) { navigator.clipboard.writeText(almaState.generatedPrompt); notif.classList.add('show'); setTimeout(() => notif.classList.remove('show'), 3000); } };
+    almaModal.onclick = e => { if(e.target === almaModal) almaModal.style.display = 'none'; };
+    function scrollToFAQ(e) { e.stopPropagation(); e.preventDefault(); let faq = document.getElementById('faq-card'); if(faq) { faq.scrollIntoView({ behavior: 'smooth', block: 'start' }); faq.classList.add('faq-highlight'); setTimeout(() => faq.classList.remove('faq-highlight'), 1500); } }
+    document.querySelectorAll('.paid-btn').forEach(btn => btn.addEventListener('click', function(e) { e.preventDefault(); let url = this.getAttribute('data-url'); let card = this.closest('.platform-card'); let h3 = card ? card.querySelector('.card-title') : null; let title = h3 ? h3.childNodes[0].textContent.trim() : (url || 'Plataforma'); if(url) abrirCardPago(url, title); }));
+    _authModal.addEventListener('click', e => { if(e.target === _authModal) closeAuthModal(); });
 
-    function detectThemeFromQuery(query) {
-      const q = query.toLowerCase();
-      if (q.includes('bankov')) return 'bankov';
-      if (q.includes('filosofia')) return 'filosofia';
-      if (q.includes('livro')) return 'livros';
-      if (q.includes('quântic')) return 'quantica';
-      if (q.includes('fluxo')) return 'fluxo';
-      if (q.includes('existencial')) return 'existencial';
-      if (q.includes('jogador') || q.includes('zerar')) return 'jogador01';
-      if (q.includes('zyon')) return 'zyonflux';
-      return 'bankov';
-    }
+    // PWA
+    let deferredPrompt; const installBtn = document.getElementById('installPwaBtn');
+    window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; installBtn.style.display = 'flex'; });
+    function installPWA() { if(deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then(() => { deferredPrompt = null; installBtn.style.display = 'none'; }); } }
+    if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(e => console.warn('SW error', e));
 
-    function generatePhilosophicalPrompt(theme, userQuery) {
-      const base = philosophicalPrompts[theme] || philosophicalPrompts.bankov;
-      if (!userQuery) return base;
-      return `${base}\n\n## 🔍 QUESTÃO DO USUÁRIO:\n"${userQuery}"\n\n## 🎯 ANÁLISE SOLICITADA:\nIntegre a perspectiva ${theme.toUpperCase()} com a questão específica do usuário, oferecendo insights profundos e práticos.\n\n---\n*Prompt gerado pelo Sistema ALMAFLUXO - Centro Filosófico*`;
-    }
-
-    function updatePromptDisplay() {
-      if (!almafluxoState.userQuery && !almafluxoState.currentTheme) {
-        promptDisplay.textContent = 'Selecione um tema ou digite sua dúvida para gerar um prompt filosófico...';
-        return;
-      }
-      const theme = almafluxoState.currentTheme || detectThemeFromQuery(almafluxoState.userQuery);
-      almafluxoState.generatedPrompt = generatePhilosophicalPrompt(theme, almafluxoState.userQuery);
-      promptDisplay.textContent = almafluxoState.generatedPrompt;
-      themeButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.theme === theme));
-    }
-
-    almaBtn.addEventListener('click',    () => almafluxoModal.style.display = 'block');
-    closeBtn.addEventListener('click',   () => almafluxoModal.style.display = 'none');
-    themeSearch.addEventListener('input', function () { almafluxoState.userQuery = this.value; updatePromptDisplay(); });
-    themeButtons.forEach(btn => btn.addEventListener('click', function () { almafluxoState.currentTheme = this.dataset.theme; updatePromptDisplay(); }));
-    copyBtn.addEventListener('click', function () {
-      if (almafluxoState.generatedPrompt) {
-        navigator.clipboard.writeText(almafluxoState.generatedPrompt);
-        notification.classList.add('show');
-        setTimeout(() => notification.classList.remove('show'), 3000);
-      }
-    });
-    almafluxoModal.addEventListener('click', e => { if (e.target === almafluxoModal) almafluxoModal.style.display = 'none'; });
-
-    function scrollToFAQ(event) {
-      event.stopPropagation();
-      event.preventDefault();
-      const faqCard = document.getElementById('faq-card');
-      if (faqCard) {
-        faqCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        faqCard.classList.add('faq-highlight');
-        setTimeout(() => faqCard.classList.remove('faq-highlight'), 1500);
-      }
-    }
-
-    document.querySelectorAll('.paid-btn').forEach(btn => {
-      btn.addEventListener('click', function (e) {
-        e.preventDefault();
-        const url    = this.getAttribute('data-url');
-        const card   = this.closest('.platform-card');
-        const h3     = card ? card.querySelector('.card-title') : null;
-        const titulo = h3 ? h3.childNodes[0].textContent.trim() : (url || 'Plataforma');
-        if (url) abrirCardPago(url, titulo);
-      });
-    });
-
-    authModal.addEventListener('click', function (e) { if (e.target === authModal) closeAuthModal(); });
-
-    // ============================================================
-    // PWA: INSTALAÇÃO
-    // ============================================================
-    let deferredPrompt;
-    const installBtn = document.getElementById('installPwaBtn');
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      installBtn.style.display = 'flex';
-    });
-
-    function installPWA() {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choiceResult) => {
-          if (choiceResult.outcome === 'accepted') {
-            console.log('Usuário aceitou instalação');
-          } else {
-            console.log('Usuário recusou instalação');
-          }
-          deferredPrompt = null;
-          installBtn.style.display = 'none';
-        });
-      }
-    }
-
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').catch(err => console.warn('SW falhou:', err));
-    }
-
-    // ============================================================
-    // INICIALIZAÇÃO
-    // ============================================================
-    atualizarBadgeSessao();
-    setInterval(atualizarBadgeSessao, 60000);
-    updatePromptDisplay();
+    _updateBadge(); setInterval(_updateBadge, 60000); updatePrompt();
   </script>
 </body>
 </html>
