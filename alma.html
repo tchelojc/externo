@@ -553,6 +553,31 @@
       .group-header { padding: 14px 16px; }
       .group-label { font-size: 1rem; }
     }
+    /* ── SETA DE SCROLL ── */
+    #scrollArrow {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      border: 1.5px solid rgba(255,255,255,0.22);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      animation: arrowBounce 1.8s ease-in-out infinite;
+      transition: opacity 0.4s ease, visibility 0.4s ease;
+      pointer-events: none;
+      z-index: 900;
+    }
+    #scrollArrow.hidden { opacity: 0; visibility: hidden; }
+    @keyframes arrowBounce {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50%       { transform: translateX(-50%) translateY(6px); }
+    }
   </style>
 </head>
 <body>
@@ -1018,6 +1043,14 @@
     <button onclick="encerrarSessao()" title="Encerrar sessão" style="background:rgba(255,80,80,0.2);border:1px solid rgba(255,80,80,0.3);border-radius:10px;color:#ff9090;cursor:pointer;font-size:0.7rem;padding:2px 7px;margin-left:2px">Sair</button>
   </div>
 
+  <div id="scrollArrow">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+         stroke="rgba(255,255,255,0.7)" stroke-width="2.5"
+         stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="6 9 12 15 18 9"/>
+    </svg>
+  </div>
+
   <!-- ════════════════════════════════════════════
        JAVASCRIPT
   ════════════════════════════════════════════ -->
@@ -1113,6 +1146,18 @@
         try { if(recognition) recognition.start(); } catch(e2) {}
       }
     }
+
+    // ── SETA DE SCROLL ──
+    (function() {
+      var arrow = document.getElementById('scrollArrow');
+      function checkScroll() {
+        var scrolled = window.scrollY + window.innerHeight;
+        var total = document.body.scrollHeight;
+        arrow.classList.toggle('hidden', total - scrolled < 40);
+      }
+      window.addEventListener('scroll', checkScroll, { passive: true });
+      checkScroll();
+    })();
 
     // ══ MODAL ALMAFLUXO ══
     const almaBtn    = document.getElementById('alma-btn');
