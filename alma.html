@@ -578,6 +578,55 @@
       0%, 100% { transform: translateX(-50%) translateY(0); }
       50%       { transform: translateX(-50%) translateY(6px); }
     }
+    .animacao-links {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+      margin-top: 8px;
+      padding: 4px 0;
+    }
+    .animacao-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 40px;
+      padding: 12px 28px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-decoration: none;
+      backdrop-filter: blur(8px);
+      transition: all 0.25s;
+      border: 1.5px solid;
+      white-space: nowrap;
+    }
+    .animacao-link.dourado {
+      background: rgba(212,168,67,0.12);
+      border-color: rgba(212,168,67,0.45);
+      color: #d4a843;
+      box-shadow: 0 0 12px rgba(212,168,67,0.1);
+    }
+    .animacao-link.azul {
+      background: rgba(74,111,165,0.12);
+      border-color: rgba(74,111,165,0.45);
+      color: #aaccff;
+      box-shadow: 0 0 12px rgba(74,111,165,0.1);
+    }
+    /* Em telas pequenas, os botões ocupam 100% da largura e o texto se ajusta */
+    @media (max-width: 600px) {
+      .animacao-link {
+        padding: 12px 16px;
+        font-size: 0.9rem;
+        white-space: normal;
+        text-align: center;
+        flex: 1 1 100%;
+        justify-content: center;
+      }
+      .animacao-link span {
+        font-size: 1.2rem !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -681,19 +730,11 @@
         </a>
 
         <!-- LINKS ADICIONAIS: ALMAFLUXO (Animação) e BATIMENTO (agora dentro do grid) -->
-        <div style="grid-column: 1 / -1; display: flex; gap: 16px; justify-content: center; margin-top: 8px; padding: 4px 0;">
-          <a href="https://tchelojc.github.io/templates/almafluxo.html" target="_blank" 
-            style="display: inline-flex; align-items: center; gap: 8px; background: rgba(212,168,67,0.12); 
-                    border: 1.5px solid rgba(212,168,67,0.45); border-radius: 40px; padding: 12px 28px; 
-                    color: #d4a843; text-decoration: none; font-weight: 600; letter-spacing: 0.08em; 
-                    backdrop-filter: blur(8px); transition: all 0.25s; box-shadow: 0 0 12px rgba(212,168,67,0.1);">
+        <div class="animacao-links">
+          <a href="https://tchelojc.github.io/templates/almafluxo.html" target="_blank" class="animacao-link dourado">
             <span style="font-size: 1.2rem;">🌀</span> ALMAFLUXO · Animação Cósmica
           </a>
-          <a href="https://tchelojc.github.io/templates/batimento.html" target="_blank"
-            style="display: inline-flex; align-items: center; gap: 8px; background: rgba(74,111,165,0.12); 
-                    border: 1.5px solid rgba(74,111,165,0.45); border-radius: 40px; padding: 12px 28px; 
-                    color: #aaccff; text-decoration: none; font-weight: 600; letter-spacing: 0.08em; 
-                    backdrop-filter: blur(8px); transition: all 0.25s; box-shadow: 0 0 12px rgba(74,111,165,0.1);">
+          <a href="https://tchelojc.github.io/templates/batimento.html" target="_blank" class="animacao-link azul">
             <span style="font-size: 1.2rem;">💓</span> BATIMENTO · Motor de Singularidade
           </a>
         </div>
