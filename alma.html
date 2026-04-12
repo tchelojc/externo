@@ -635,6 +635,111 @@
         font-size: 1.2rem !important;
       }
     }
+
+    /* ── CONTROLE DE SOM DO CORAÇÃO ── */
+    #heartSoundBtn {
+      position: fixed;
+      bottom: 82px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 901;
+      background: rgba(10, 15, 35, 0.72);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 30px;
+      padding: 7px 18px;
+      color: rgba(255,255,255,0.55);
+      font-size: 0.72rem;
+      font-family: 'Roboto', sans-serif;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.25s ease;
+      white-space: nowrap;
+    }
+    #heartSoundBtn:hover {
+      background: rgba(74,111,165,0.28);
+      border-color: rgba(74,111,165,0.5);
+      color: rgba(255,255,255,0.85);
+    }
+    #heartSoundBtn.muted { opacity: 0.45; }
+    #heartSoundBtn .hs-icon {
+      font-size: 0.85rem;
+      animation: hsBeat 2.4s ease-in-out infinite;
+      display: inline-block;
+    }
+    #heartSoundBtn.muted .hs-icon { animation: none; }
+    @keyframes hsBeat {
+      0%,100% { transform: scale(1); }
+      14%     { transform: scale(1.28); }
+      28%     { transform: scale(1); }
+      42%     { transform: scale(1.16); }
+      56%     { transform: scale(1); }
+    }
+
+    /* ── BARRA DE NAVEGAÇÃO INFERIOR ── */
+    #almaNavBar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 950;
+      background: rgba(8, 12, 28, 0.96);
+      border-top: 1px solid rgba(74,111,165,0.28);
+      backdrop-filter: blur(18px);
+      display: flex;
+      justify-content: space-around;
+      align-items: stretch;
+      padding: 0;
+      height: 58px;
+    }
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: rgba(255,255,255,0.38);
+      font-family: 'Roboto', sans-serif;
+      font-size: 0.58rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: color 0.2s, background 0.2s;
+      padding: 6px 2px;
+      position: relative;
+      text-decoration: none;
+    }
+    .nav-item:hover {
+      color: rgba(255,255,255,0.75);
+      background: rgba(74,111,165,0.1);
+    }
+    .nav-item.active {
+      color: rgba(74,180,255,0.95);
+    }
+    .nav-item.active::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 20%; right: 20%;
+      height: 2px;
+      background: rgba(74,180,255,0.8);
+      border-radius: 0 0 2px 2px;
+    }
+    .nav-icon {
+      font-size: 1.2rem;
+      line-height: 1;
+    }
+    .nav-label { line-height: 1; }
+    @media (max-width: 480px) {
+      #almaNavBar { height: 54px; }
+      .nav-item { font-size: 0.52rem; }
+      .nav-icon { font-size: 1.05rem; }
+    }
   </style>
 </head>
 <body>
@@ -1150,6 +1255,40 @@
     </svg>
   </div>
 
+  <!-- ═══ BOTÃO DE SOM DO CORAÇÃO ═══ -->
+  <button id="heartSoundBtn" onclick="toggleHeartSound()" title="Coração ALMAFLUXO">
+    <span class="hs-icon">💓</span>
+    <span id="heartSoundLabel">SOM DO CORAÇÃO</span>
+  </button>
+
+  <!-- ═══ BARRA DE NAVEGAÇÃO INFERIOR ═══ -->
+  <nav id="almaNavBar" aria-label="Navegação ALMAFLUXO">
+    <button class="nav-item active" id="nav-home" onclick="navTo('home')">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Portal</span>
+    </button>
+    <button class="nav-item" id="nav-fluxo" onclick="navTo('fluxo')">
+      <span class="nav-icon">🌌</span>
+      <span class="nav-label">Universo</span>
+    </button>
+    <button class="nav-item" id="nav-trade" onclick="navTo('trade')">
+      <span class="nav-icon">📈</span>
+      <span class="nav-label">Trading</span>
+    </button>
+    <button class="nav-item" id="nav-livros" onclick="navTo('livros')">
+      <span class="nav-icon">📖</span>
+      <span class="nav-label">Livros</span>
+    </button>
+    <button class="nav-item" id="nav-tools" onclick="navTo('tools')">
+      <span class="nav-icon">🔧</span>
+      <span class="nav-label">Ferramentas</span>
+    </button>
+    <button class="nav-item" id="nav-alma" onclick="document.getElementById('alma-btn').click()">
+      <span class="nav-icon">🌀</span>
+      <span class="nav-label">ALMA</span>
+    </button>
+  </nav>
+
   <!-- ════════════════════════════════════════════
        JAVASCRIPT
   ════════════════════════════════════════════ -->
@@ -1518,6 +1657,208 @@
     _updateBadge();
     setInterval(_updateBadge, 60000);
     updatePrompt();
+
+    // ══════════════════════════════════════════════════════
+    // SOM DO CORAÇÃO — Web Audio API, sincronizado ao heartbeat 2.4s
+    // Dois batimentos: lub (14% = 336ms) e dub (42% = 1008ms)
+    // ══════════════════════════════════════════════════════
+    let _audioCtx      = null;
+    let _heartEnabled  = false;
+    let _heartTimer    = null;
+    const _BEAT_CYCLE  = 2400; // ms — igual ao animation: heartbeat 2.4s
+    const _LUB_OFFSET  = 0;    // primeiro batimento no início do ciclo
+    const _DUB_OFFSET  = 672;  // segundo batimento: 28% de 2400ms (pausa pós-lub)
+
+    function _ensureAudioCtx() {
+      if (!_audioCtx) {
+        _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (_audioCtx.state === 'suspended') _audioCtx.resume();
+      return _audioCtx;
+    }
+
+    // Gera um batimento cardíaco sintético realista (lub ou dub)
+    // lub: mais grave e forte  |  dub: levemente mais agudo e curto
+    function _playBeat(type) {
+      if (!_heartEnabled || !_audioCtx) return;
+      try {
+        const ctx  = _audioCtx;
+        const now  = ctx.currentTime;
+        const isLub = type === 'lub';
+
+        // Oscilador principal (tom tonal grave do coração)
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const dist = ctx.createWaveShaper();
+
+        // Curva de distorção suave para dar "carne" ao som
+        const curve = new Float32Array(256);
+        for (let i = 0; i < 256; i++) {
+          const x = (i * 2) / 256 - 1;
+          curve[i] = (Math.PI + 80) * x / (Math.PI + 80 * Math.abs(x));
+        }
+        dist.curve = curve;
+
+        osc.connect(dist);
+        dist.connect(gain);
+        gain.connect(ctx.destination);
+
+        // Frequências: lub ≈ 55–80 Hz, dub ≈ 80–110 Hz
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(isLub ? 60 : 85, now);
+        osc.frequency.exponentialRampToValueAtTime(isLub ? 30 : 45, now + (isLub ? 0.14 : 0.10));
+
+        // Envelope de amplitude — ataque rápido, decay suave
+        const peak   = isLub ? 0.55 : 0.38;
+        const dur    = isLub ? 0.16 : 0.12;
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(peak, now + 0.018);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+
+        osc.start(now);
+        osc.stop(now + dur + 0.02);
+
+        // Sub-batida (transiente de corpo — som de membrana)
+        const bufSize = Math.floor(ctx.sampleRate * (isLub ? 0.12 : 0.09));
+        const buf     = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+        const data    = buf.getChannelData(0);
+        for (let i = 0; i < bufSize; i++) {
+          // Ruído decrescente com envoltória exponencial
+          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufSize * (isLub ? 0.18 : 0.12)));
+        }
+        const noise = ctx.createBufferSource();
+        const ngain = ctx.createGain();
+        const filt  = ctx.createBiquadFilter();
+        filt.type            = 'lowpass';
+        filt.frequency.value = isLub ? 160 : 220;
+        filt.Q.value         = 0.7;
+        noise.buffer = buf;
+        noise.connect(filt);
+        filt.connect(ngain);
+        ngain.connect(ctx.destination);
+        ngain.gain.setValueAtTime(0, now);
+        ngain.gain.linearRampToValueAtTime(isLub ? 0.35 : 0.22, now + 0.008);
+        ngain.gain.exponentialRampToValueAtTime(0.001, now + (isLub ? 0.11 : 0.08));
+        noise.start(now);
+        noise.stop(now + (isLub ? 0.14 : 0.10));
+      } catch(e) {}
+    }
+
+    // Agenda o ciclo de batimento sincronizado com o CSS heartbeat
+    function _scheduleHeartCycle() {
+      if (!_heartEnabled) return;
+      // lub — início do ciclo (t=0, equivale a 14% da animação peak)
+      _playBeat('lub');
+      // dub — segundo pico (42% da animação = 1008ms, mas espaçamos o dub 340ms após o lub)
+      setTimeout(() => { if (_heartEnabled) _playBeat('dub'); }, 340);
+      // Próximo ciclo após 2400ms (igual ao CSS)
+      _heartTimer = setTimeout(_scheduleHeartCycle, _BEAT_CYCLE);
+    }
+
+    function _stopHeartCycle() {
+      clearTimeout(_heartTimer);
+      _heartTimer = null;
+    }
+
+    function toggleHeartSound() {
+      const btn   = document.getElementById('heartSoundBtn');
+      const label = document.getElementById('heartSoundLabel');
+      if (!_heartEnabled) {
+        // Primeira ativação: precisa de gesto do usuário para desbloquear AudioContext
+        _ensureAudioCtx();
+        _heartEnabled = true;
+        btn.classList.remove('muted');
+        label.textContent = 'PAUSAR SOM';
+        _scheduleHeartCycle();
+      } else {
+        _heartEnabled = false;
+        _stopHeartCycle();
+        btn.classList.add('muted');
+        label.textContent = 'SOM DO CORAÇÃO';
+      }
+    }
+
+    // ══════════════════════════════════════════════════════
+    // NAVEGAÇÃO INFERIOR — scroll suave para seções por grupo
+    // ══════════════════════════════════════════════════════
+    const _navMap = {
+      home:   null,          // topo da página
+      fluxo:  'g-aureo',     // Grupo Universo Áureo
+      trade:  'g-trade',     // Grupo Trading
+      livros: 'g-livros',    // Grupo Livros
+      tools:  'g-tools',     // Grupo Ferramentas
+    };
+
+    function navTo(section) {
+      // Atualiza estado ativo dos botões
+      document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+      const activeBtn = document.getElementById('nav-' + section);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      if (section === 'home') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+
+      const groupId = _navMap[section];
+      if (!groupId) return;
+
+      const groupWrapper = document.getElementById(groupId)?.closest('.group-wrapper');
+      if (!groupWrapper) return;
+
+      // Se o grupo estiver fechado, abre-o
+      const groupBody   = document.getElementById(groupId);
+      const groupHeader = groupWrapper.querySelector('.group-header');
+      if (groupBody && !groupBody.classList.contains('open')) {
+        groupBody.classList.add('open');
+        if (groupHeader) {
+          groupHeader.classList.add('open');
+          groupHeader.setAttribute('aria-expanded', 'true');
+        }
+      }
+
+      // Scroll até o grupo com pequena margem
+      setTimeout(() => {
+        const rect   = groupWrapper.getBoundingClientRect();
+        const offset = window.scrollY + rect.top - 16;
+        window.scrollTo({ top: offset, behavior: 'smooth' });
+      }, 60);
+    }
+
+    // Detecta seção visível no scroll para manter nav sincronizado
+    (function() {
+      const sections = [
+        { id: 'g-aureo',  nav: 'fluxo'  },
+        { id: 'g-trade',  nav: 'trade'  },
+        { id: 'g-livros', nav: 'livros' },
+        { id: 'g-tools',  nav: 'tools'  },
+      ];
+      let _navLocked = false; // evita conflito com clique direto
+
+      window.addEventListener('scroll', function() {
+        if (_navLocked) return;
+        const mid = window.scrollY + window.innerHeight * 0.4;
+        let found = 'home';
+        sections.forEach(s => {
+          const el = document.getElementById(s.id)?.closest('.group-wrapper');
+          if (el) {
+            const top = el.offsetTop;
+            if (mid >= top) found = s.nav;
+          }
+        });
+        document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+        const ab = document.getElementById('nav-' + found);
+        if (ab) ab.classList.add('active');
+      }, { passive: true });
+
+      // Desbloqueia detecção de scroll 600ms após qualquer clique de nav
+      document.querySelectorAll('.nav-item').forEach(btn => {
+        btn.addEventListener('click', () => {
+          _navLocked = true;
+          setTimeout(() => { _navLocked = false; }, 600);
+        });
+      });
+    })();
   </script>
 </body>
 </html>
