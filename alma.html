@@ -1097,9 +1097,8 @@
 
       </div>
     </div>
-  </div>
-
-<div class="group-wrapper">
+    </div>
+    <div class="group-wrapper">
     <button class="group-header" onclick="toggleGroup('g-tools', this)" aria-expanded="false">
       <div class="group-title-wrap">
         <span class="group-icon">🔧</span>
@@ -1115,46 +1114,77 @@
     </button>
     <div class="group-body" id="g-tools">
       <div class="group-inner">
-
-        <a href="https://tchelojc.github.io/editor_html/interface_genesis.html" target="_blank" class="platform-card">
+  
+        <!-- CARD 1: GÊNESIS BUILDER PRO -->
+        <div class="platform-card">
           <h3 class="card-title">GÊNESIS BUILDER PRO <span class="status-badge">Online</span></h3>
-          <p class="card-description">Plataforma de criação de interfaces web com sistema visual de construção em blocos, múltiplos templates, configuração avançada e exportação de projetos.</p>
-          <div class="card-actions"><span class="card-link">Iniciar Criação</span></div>
-        </a>
-
-        <a href="https://qrcode-k5xv38lfcahgq5xosp5wuu.streamlit.app" target="_blank" class="platform-card">
+          <p class="card-description">
+            Plataforma de criação de interfaces web com sistema visual de construção em blocos, múltiplos templates, configuração avançada e exportação de projetos.
+          </p>
+          <div class="card-actions">
+            <button class="card-link" onclick="window.open('https://tchelojc.github.io/editor_html/interface_genesis.html', '_blank')" style="background:rgba(41,121,255,0.5); border:none; cursor:pointer;">🚀 Iniciar Criação</button>
+          </div>
+        </div>
+  
+        <!-- CARD 2: Gerador QRcode -->
+        <div class="platform-card">
           <h3 class="card-title">Gerador QRcode <span class="status-badge">Online</span></h3>
-          <p class="card-description">Transforme dados e informações brutas em portais dimensionais acessíveis através de QR Codes personalizados, rastreáveis e visualmente cósmicos.</p>
-          <div class="card-actions"><span class="card-link">Criar QRcode</span></div>
-        </a>
-
-        <a href="https://editor-video-suuoupysctxpjqp2phuur3.streamlit.app/" target="_blank" class="platform-card">
+          <p class="card-description">
+            Transforme dados e informações brutas em portais dimensionais acessíveis através de QR Codes personalizados, rastreáveis e visualmente cósmicos.
+          </p>
+          <div class="card-actions">
+            <button class="card-link" onclick="window.open('https://qrcode-k5xv38lfcahgq5xosp5wuu.streamlit.app', '_blank')" style="background:rgba(41,121,255,0.5); border:none; cursor:pointer;">📱 Criar QRcode</button>
+          </div>
+        </div>
+  
+        <!-- CARD 3: STUDIO PRO EDITOR AI -->
+        <div class="platform-card">
           <h3 class="card-title">STUDIO PRO EDITOR AI <span class="status-badge">Online</span></h3>
-          <p class="card-description">Plataforma em nuvem avançada para edição completa de vídeo e áudio. Inteligência Artificial integrada para automatizar cortes e renderização poderosa.</p>
-          <div class="card-actions"><span class="card-link">Editar</span></div>
-        </a>
-
-        <a href="https://tchelojc.github.io/Soma/" target="_blank" class="platform-card" style="text-decoration: none; display: block;">
+          <p class="card-description">
+            Plataforma em nuvem avançada para edição completa de vídeo e áudio. Inteligência Artificial integrada para automatizar cortes e renderização poderosa.
+          </p>
+          <div class="card-actions">
+            <button class="card-link" onclick="window.open('https://editor-video-suuoupysctxpjqp2phuur3.streamlit.app/', '_blank')" style="background:rgba(41,121,255,0.5); border:none; cursor:pointer;">🎬 Editar</button>
+          </div>
+        </div>
+  
+        <!-- CARD 4: SOMA · QUANTUM SOUND (com senha copiável e limite de acessos) -->
+        <div class="platform-card">
           <h3 class="card-title">SOMA · QUANTUM SOUND <span class="status-badge">Online</span></h3>
           <p class="card-description">
             Engine de som quântico com timeline harmônica baseada na tabela periódica e geometria sagrada. Gere frequências binaurais e prompts musicais através de algoritmos matemáticos.
           </p>
           <p class="card-description" style="margin-top: 8px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px;">
-            🔑 <strong>Senha de acesso:</strong> 
+            🔑 <strong>Senha de acesso:</strong>
             <span id="senhaSoma" style="cursor: pointer; font-family: monospace; background: #1e1e2f; padding: 4px 8px; border-radius: 6px; user-select: all;" onclick="copiarSenha('UA-4AB030EC', this)">UA-4AB030EC</span>
-            <span style="font-size: 0.75rem; margin-left: 8px; color: #aaa;">(Anote para escrever)</span>
+            <span style="font-size: 0.75rem; margin-left: 8px; color: #aaa;">(clique para copiar)</span>
           </p>
           <p class="card-description" style="color: #ffaa44; font-weight: bold; margin-top: 4px;">
             ⚠️ Apenas <strong>100 acessos</strong> serão liberados nesta plataforma.
           </p>
           <div class="card-actions">
-            <span class="card-link">Sincronizar Frequência</span>
+            <button class="card-link" onclick="window.open('https://tchelojc.github.io/Soma/', '_blank')" style="background:rgba(41,121,255,0.5); border:none; cursor:pointer;">🔊 Sincronizar Frequência</button>
           </div>
-        </a>
-
+        </div>
+  
       </div>
     </div>
   </div>
+  
+  <script>
+  function copiarSenha(senha, elemento) {
+    navigator.clipboard.writeText(senha).then(() => {
+      const textoOriginal = elemento.innerText;
+      elemento.innerText = '✅ Copiado!';
+      setTimeout(() => {
+        elemento.innerText = textoOriginal;
+      }, 1500);
+    }).catch(err => {
+      console.error('Erro ao copiar: ', err);
+      alert('Não foi possível copiar a senha. Copie manualmente: ' + senha);
+    });
+  }
+  </script>
 
   <!-- ═══ FAQ (card único, sem grupo) ═══ -->
   <div class="faq-wrapper" id="faq-section">
