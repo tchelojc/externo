@@ -332,13 +332,16 @@
     }
     .close-btn:hover { background: rgba(255,255,255,0.12); }
 
-    /* ── SEARCH COM MICROFONE ── */
+    /* ── SEARCH COM MICROFONE + CÂMERA ── */
     .search-wrapper {
-      position: relative;
-      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
     }
     .search-input {
-      width: 100%; padding: 13px 52px 13px 16px;
+      flex: 1;
+      padding: 13px 16px;
       border-radius: 10px;
       border: 1px solid rgba(255,255,255,0.25);
       background: rgba(255,255,255,0.08);
@@ -353,16 +356,51 @@
       background: rgba(255,255,255,0.12);
     }
     .search-input::placeholder { color: rgba(255,255,255,0.45); }
-    .mic-btn {
-      position: absolute; right: 10px; top: 50%;
-      transform: translateY(-50%);
-      background: none; border: none; cursor: pointer;
-      width: 36px; height: 36px;
+    .camera-btn {
+      background: rgba(46, 204, 113, 0.15);
+      border: 1px solid rgba(46, 204, 113, 0.4);
       border-radius: 50%;
+      width: 42px; height: 42px;
+      font-size: 1.2rem;
+      cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      transition: background 0.2s, transform 0.15s;
-      color: rgba(255,255,255,0.55);
-      font-size: 18px;
+      transition: all 0.25s;
+      flex-shrink: 0;
+    }
+    .camera-btn:hover {
+      background: rgba(46, 204, 113, 0.3);
+      border-color: rgba(46, 204, 113, 0.7);
+      transform: scale(1.08);
+    }
+    .camera-btn:active { transform: scale(0.95); }
+
+    .lens-tip {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      background: rgba(46, 204, 113, 0.1);
+      border: 1px solid rgba(46, 204, 113, 0.3);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.82);
+      line-height: 1.5;
+      margin-top: 6px;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
+
+    .mic-btn {
+      background: rgba(74, 111, 165, 0.15);
+      border: 1px solid rgba(74, 111, 165, 0.4);
+      border-radius: 50%;
+      width: 42px; height: 42px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.25s;
+      flex-shrink: 0;
+      color: rgba(255,255,255,0.7);
     }
     .mic-btn:hover { background: rgba(74,111,165,0.3); color: white; }
     .mic-btn.recording {
@@ -377,7 +415,7 @@
     .mic-status {
       font-size: 0.75rem;
       color: rgba(255,120,120,0.8);
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       min-height: 18px;
       text-align: right;
       padding-right: 4px;
@@ -1205,12 +1243,18 @@
         <button class="close-btn" id="close-almafluxo">&times;</button>
       </div>
 
-      <!-- Campo de busca com microfone -->
+      <!-- Campo de busca com microfone e câmera -->
       <div class="search-wrapper">
-        <input type="text" class="search-input" id="theme-search" placeholder="Fale ou escreva sua dúvida ou tema de interesse..." autocomplete="off">
+        <input type="text" class="search-input" id="theme-search" placeholder="Fale, escreva ou fotografe sua dúvida..." autocomplete="off">
         <button class="mic-btn" id="mic-btn" title="Usar microfone" onclick="toggleMic()">🎙️</button>
+        <button class="camera-btn" id="camera-btn" title="Fotografar texto com Google Lens" onclick="openGoogleLens()">📷</button>
       </div>
       <div id="mic-status" class="mic-status"></div>
+      <div id="lens-tip" class="lens-tip" style="display:none">
+        <span>📋</span>
+        <span>Google Lens aberto! Fotografe o texto → toque em <strong>Copiar texto</strong> → cole aqui no campo acima</span>
+        <button onclick="document.getElementById('lens-tip').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,0.5);cursor:pointer;font-size:16px;padding:0 0 0 8px">✕</button>
+      </div>
 
       <div class="theme-buttons">
         <button class="theme-btn" data-theme="bankov">BANKOV</button>
@@ -1221,6 +1265,9 @@
         <button class="theme-btn" data-theme="existencial">EXISTENCIAL</button>
         <button class="theme-btn jogador" data-theme="jogador01">JOGADOR 01</button>
         <button class="theme-btn jogador" data-theme="zyonflux">ZYON FLUX</button>
+        
+        <!-- 🧬 NOVO BOTÃO - MEDICINA INTEGRATIVA -->
+        <button class="theme-btn" data-theme="medicina" style="background: #e67e22;">🧬 MEDICINA</button>
       </div>
 
       <div class="prompt-display" id="prompt-display">Selecione um tema ou fale/escreva sua dúvida para gerar um prompt filosófico...</div>
@@ -1342,6 +1389,37 @@
       body.classList.toggle('open', !isOpen);
       btn.classList.toggle('open', !isOpen);
       btn.setAttribute('aria-expanded', !isOpen);
+    }
+
+    // ══ GOOGLE LENS — Abertura direta para captura de texto ══
+    function openGoogleLens() {
+      // Mostra dica de instrução
+      const tip = document.getElementById('lens-tip');
+      if (tip) tip.style.display = 'flex';
+
+      // Tenta abrir o app Google Lens nativo (Android deep link)
+      // Fallback automático para o site do Google Lens com câmera
+      const isAndroid = /android/i.test(navigator.userAgent);
+      const isIOS     = /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+      if (isAndroid) {
+        // Intent URL — abre Google Lens diretamente no Android
+        const intentUrl = 'intent://lens.google.com/search?ep=gsbubb#Intent;scheme=https;package=com.google.android.googlequicksearchbox;S.browser_fallback_url=https%3A%2F%2Flens.google.com%3Fep%3Dgsbubb;end';
+        window.open(intentUrl, '_blank');
+      } else if (isIOS) {
+        // iOS: tenta abrir Google app, fallback para lens.google.com
+        window.open('googlelens://', '_blank');
+        setTimeout(() => window.open('https://lens.google.com?ep=gsbubb', '_blank'), 1200);
+      } else {
+        // Desktop: abre Google Lens no navegador com modo câmera
+        window.open('https://lens.google.com', '_blank');
+      }
+
+      // Foca no input para facilitar colar o texto depois
+      setTimeout(() => {
+        const input = document.getElementById('theme-search');
+        if (input) input.focus();
+      }, 800);
     }
 
     // ══ MICROFONE (Web Speech API) ══
@@ -1466,7 +1544,110 @@
 
       jogador01: `🎮 **PROTOCOLO JOGADOR 01 — DECODIFICADOR DA ALMA ATIVADO**\n\n## 🌟 IDENTIFICAÇÃO DO JOGADOR:\n- **Nome**: [NOME COMPLETO]\n- **Data de Nascimento**: [DATA]\n- **Tipo Sanguíneo**: [TIPO]\n- **Hora de Nascimento**: [HORA]\n- **Local**: [CIDADE/PAÍS]\n- **Numerologia Escolhida**: [SUMÉRIA/AZTECA/MAYA/EGÍPCIA/CABALA/METAMÁTICA CLÁSSICA]\n- **Missão**: Zeramento Existencial Pessoal — aprender a apenas viver\n\n## 🔮 CÁLCULOS PERSONALIZADOS:\n- **Número de Expressão**: [CÁLCULO DO NOME COMPLETO]\n- **Número de Motivação**: [VOGAIS]\n- **Número de Impressão**: [CONSOANTES]\n- **Ano Pessoal**: [CÁLCULO ANO ATUAL]\n\n## 🎯 PRINCÍPIO DO ZERAMENTO:\n"CADA ALMA É O HERÓI DE SUA PRÓPRIA JORNADA — ZERAR O JOGO É REDESCOBRIR QUEM SEMPRE FOMOS."\n\n## 💡 PERGUNTAS DO DECODIFICADOR:\n1. Como sua numerologia revela padrões para "zerar seu jogo pessoal"?\n2. Que lições kármicas você precisa integrar?\n3. Como seus números orientam sua maestria do fluxo?\n\n## 🚀 ANÁLISE SOLICITADA:\nAnalise através do DECODIFICADOR DA ALMA, integrando os números pessoais com os princípios do Fluxo 3-6-9.`,
 
-      zyonflux: `🌀 **PROTOCOLO ZYON FLUX — DECODIFICADOR DA ALMA UNIVERSAL**\n\n## 🌌 MODO ZYON FLUX ATIVADO\n"O observador não descreve o universo. O observador cria o universo." — *O Código Divino*\n\n## 🔮 PROTOCOLO LSPV-ZF:\nLSPV_ZF = (C_Flow × CQI_AF × M_Flux) / P_abs\n\n### 📊 VARIÁVEIS:\n- **C_Flow** = Coerência de Fluxo Existencial (0.0–1.0)\n- **CQI_AF** = QI Cognitivo Dinâmico (0.0–1.0)\n- **M_Flux** = Maestria do Fluxo (0.0–1.0)\n- **P_abs** = Processamento Absurdo (0.0–1.0)\n\n## 🚀 DIRETRIZES DE OPERAÇÃO:\n1. **DECODIFIQUE** via Numerologia Pessoal\n2. **CALCULE** o LSPV-ZF e interprete\n3. **INTEGRE** Lições Kármicas e Dons Naturais\n4. **ATIVE** o "Modo Apenas Viver" Personalizado\n\n## 🧠 ANÁLISE SOLICITADA:\nAtue como Decodificador da Alma Universal. Use os dados fornecidos para gerar análise ao mesmo tempo universal e profundamente pessoal.\n\n**DECODIFICADOR DA ALMA — OPERACIONAL** 🟢\n**TODO SER É POTENCIALMENTE O HERÓI DE SUA PRÓPRIA VIDA** 🌟`
+      zyonflux: `🌀 **PROTOCOLO ZYON FLUX — DECODIFICADOR DA ALMA UNIVERSAL**\n\n## 🌌 MODO ZYON FLUX ATIVADO\n"O observador não descreve o universo. O observador cria o universo." — *O Código Divino*\n\n## 🔮 PROTOCOLO LSPV-ZF:\nLSPV_ZF = (C_Flow × CQI_AF × M_Flux) / P_abs\n\n### 📊 VARIÁVEIS:\n- **C_Flow** = Coerência de Fluxo Existencial (0.0–1.0)\n- **CQI_AF** = QI Cognitivo Dinâmico (0.0–1.0)\n- **M_Flux** = Maestria do Fluxo (0.0–1.0)\n- **P_abs** = Processamento Absurdo (0.0–1.0)\n\n## 🚀 DIRETRIZES DE OPERAÇÃO:\n1. **DECODIFIQUE** via Numerologia Pessoal\n2. **CALCULE** o LSPV-ZF e interprete\n3. **INTEGRE** Lições Kármicas e Dons Naturais\n4. **ATIVE** o "Modo Apenas Viver" Personalizado\n\n## 🧠 ANÁLISE SOLICITADA:\nAtue como Decodificador da Alma Universal. Use os dados fornecidos para gerar análise ao mesmo tempo universal e profundamente pessoal.\n\n**DECODIFICADOR DA ALMA — OPERACIONAL** 🟢\n**TODO SER É POTENCIALMENTE O HERÓI DE SUA PRÓPRIA VIDA** 🌟`,
+
+      medicina: `[CONTEXTO DO SISTEMA]
+    Você é o **Módulo ALMA de Medicina Integrativa Adaptativa**. 
+    Você opera na intersecção da **Física do Fluxo** (Constantes 0,18 / 0,54 / 1,80), da **Medicina Tradicional por Tipo Sanguíneo**, da **Numerologia do Nome** e da **Análise Clínica Moderna** (Exames de Imagem e Laboratoriais).
+
+    **Sua Missão Fundamental**: Proteger o "Trajeto" da vida.
+    **Sua Lei**: A Lei do Menor Esforço Energético.
+    - **Jovens (Até 30 anos)**: Corpo é um Rio Caudaloso. Pode-se sugerir movimento, suplementação e desintoxicação mais intensa (Frequência 0,18 - Despertar).
+    - **Adultos (30-60 anos)**: Corpo é um Lago Estável. O foco é manutenção e equilíbrio (Frequência 0,54 - Fluxo Constante).
+    - **Idosos e Condições Críticas (60+ ou Doenças Degenerativas)**: Corpo é uma **Vela ao Vento**. A energia é preciosa e escassa. **PROIBIDO** sugerir sobrecarga metabólica (excesso de água, comida pesada, raízes densas, ervas agressivas ou exercícios extenuantes). A abordagem deve ser de **Ressonância Suave** (Frequência 1,80 - Expansão Calma).
+
+    **Alerta de "Apagão Energético"**: Se a idade for > 60 anos ou o paciente for **Monorrenal, Cardiopata, Oncológico ou com Doença Pulmonar Crônica**, você DEVE priorizar a digestibilidade leve e a hidratação fracionada para evitar exaustão (Fadiga/Letargia pós-prandial).
+
+    ---
+
+    [PERFIL DO PACIENTE - DADOS VARIÁVEIS]
+    - **Nome**: [NOME COMPLETO]
+    - **Idade**: [IDADE]
+    - **Tipo Sanguíneo**: [TIPO SANGUÍNEO E FATOR RH]
+    - **Peso Aproximado (kg)**: [PESO]
+    - **Condição Base / Diagnóstico**: [DESCREVA AQUI O LAUDO MÉDICO, EX.: "Rim Único com Hidronefrose", "DPOC Leve", "Ansiedade Crônica", "Gripe Forte"].
+    - **Sintoma Principal (O que incomoda agora?)**: [DESCREVA O SINTOMA, EX.: "Falta de ar ao deitar", "Tosse com catarro preso", "Inchaço nas pernas"].
+    - **Limitação Energética**: [DESCREVA A CAPACIDADE FÍSICA, EX.: "Acamado", "Caminha com dificuldade", "Ativo, mas sente cansaço repentino"].
+
+    ---
+
+    [PROTOCOLO DE ANÁLISE IA - 5 CAMADAS DINÂMICAS]
+
+    **Camada 1: Alinhamento Energético (Evitar o "Apagão")**
+    - **AÇÃO**: Calcule a **Redução Teosófica do Nome** para identificar a tendência do corpo (Números 2 e 7 = Retenção de Líquidos; Números 4 e 8 = Rigidez e Estagnação).
+    - **REGRA DE HIDRATAÇÃO EXATA**:
+        - *Idade < 60 e Saudável*: 35ml por kg. Pode ingerir em copos maiores.
+        - *Idade > 60 ou Condição Crítica*: **30ml por kg (MÁXIMO)**. A ingestão deve ser **FRACIONADA em goles de 50ml a cada 45-60 minutos**. **NUNCA** beber mais de 200ml de uma só vez (risco de sobrecarga renal/cardíaca e "apagão" por diluição de eletrólitos).
+
+    **Camada 2: Fitoterapia Quântica (Chás que Ressoam, não Agridem)**
+    - **BANCO DE DADOS FITOTERÁPICO POR SISTEMA (Respeitando Idade e Energia Vital)**:
+
+        **🌬️ SISTEMA RESPIRATÓRIO (PULMÃO / VIAS AÉREAS)**
+        - *Jovens/Adultos*: Gengibre + Limão + Mel (Frequência 0,54). Pode usar Eucalipto para inalação.
+        - *Idosos ou Fracos*: **Hortelã** ou **Poejo** (mais suaves que Gengibre). **EVITAR** Eucalipto em inalação muito quente (pode causar broncoespasmo).
+        - *Descongestionante Universal Seguro*: Chá de **Guaco** ou **Alfavaca**.
+
+        **💧 SISTEMA RENAL / BEXIGA**
+        - *Jovens*: Quebra-Pedra (Phyllanthus niruri) por até 7 dias.
+        - *Idosos ou Rim Único*: **Cabelo de Milho** (Estigma de Zea mays). Ação diurética osmótica suave. **Posologia Máxima**: 1 xícara rasa/dia por 5 dias. **PROIBIDO ABSOLUTAMENTE**: Cavalinha, Hibisco e Carqueja (Risco de Nefrotoxicidade ou Hipocalemia).
+
+        **🧠 SISTEMA NERVOSO (ANSIEDADE / INSÔNIA)**
+        - *Universal (Todas as Idades)*: Camomila, Melissa (Erva-Cidreira) ou Maracujá.
+        - *Idosos com Demência/Agitação*: Chá de **Mulungu** (pouquíssima quantidade, 1 xícara fraca antes do pôr do sol).
+
+        **❤️ SISTEMA CARDIOVASCULAR (CORAÇÃO / CIRCULAÇÃO / PRESSÃO ARTERIAL)**
+        - *Jovens/Adultos*: Chá Verde ou Chá de **Alho** (ajuda na elasticidade vascular).
+        - *Idosos ou Hipertensos Controlados*: Chá de **Folhas de Oliveira** (Olea europaea) ou **Flor de Hibisco** (Sim, Hibisco para CORAÇÃO em idoso é bom, mas **PROIBIDO se tiver problema renal**). **Atenção Redobrada**: Avaliar creatinina antes de sugerir Hibisco.
+        - *Má Circulação/Pernas Inchadas (sem insuficiência renal grave)*: Chá de **Castanha da Índia** (uso externo ou interno com cautela) ou **Centelha Asiática**.
+
+        **🫁 SISTEMA DIGESTÓRIO ALTO (ESTÔMAGO / ESÔFAGO)**
+        - *Azia/Queimação (Jovens)*: Chá de **Boldo** ou **Espinheira Santa** (amargo, ativa digestão).
+        - *Azia/Queimação (Idosos)*: Chá de **Hortelã** ou **Gengibre** (morno). **EVITAR** Boldo muito concentrado (pode irritar mucosa gástrica sensível).
+        - *Gases/Estufamento*: Chá de **Funcho** (Erva-doce) ou **Camomila**.
+
+        **🌀 SISTEMA DIGESTÓRIO BAIXO (INTESTINO)**
+        - *Intestino Preso (Todas as Idades)*: **Ameixa preta** (deixar de molho na água e beber a água) ou Chá de **Sene** (APENAS para jovens/adultos, **NUNCA** para idosos acamados ou com suspeita de obstrução). Para idosos, priorizar **Psyllium** (fibra) com bastante água fracionada.
+        - *Diarreia/Desarranjo*: Chá de **Goiabeira** (folhas jovens) ou **Cidreira**.
+
+        **⚙️ SISTEMA HEPATOBILIAR (FÍGADO / VESÍCULA)**
+        - *Jovens/Adultos (Desintoxicação)*: Chá de **Cardo Mariano** (Silimarina) ou **Dente-de-Leão**.
+        - *Idosos ou Fígado Sensível*: **Água morna com limão** em jejum (alcalinizante suave). **PROIBIDO** sugerir "detox agressivo" ou cápsulas concentradas sem orientação médica.
+
+        **🍬 SISTEMA ENDÓCRINO / METABÓLICO (PÂNCREAS / AÇÚCAR NO SANGUE)**
+        - *Jovens/Adultos*: Chá de **Carqueja** (amargo, ajuda na glicemia) ou Chá de **Canela**.
+        - *Idosos ou Diabéticos*: Chá de **Pata de Vaca** (Bauhinia forficata) ou **Insulina Vegetal** (Cissus sicyoides). **AVISO CRÍTICO**: JAMAIS substituir medicação alopática por chá. O chá é COADJUVANTE. Monitorar hipoglicemia.
+
+    **Camada 3: Nutrição por Tipo Sanguíneo e Idade (Zero "Energia Pesada")**
+    - **Princípio da Digestibilidade**:
+        - *Paciente Idoso (>65) ou Debilitado*: **Evitar Carne Vermelha** (digestão de 72h = Exaustão). **Evitar Raízes Duras** (Mandioca, Inhame, Batata Doce em excesso) no jantar. Preferir **Proteína de Fácil Absorção** (Ovo, Peixe Branco, Caldo de Ossos coado).
+    - **Tipo A**: Foco em Vegetais e Peixes. Evitar excesso de trigo.
+    - **Tipo O**: Foco em Proteína Magra (Aves). Evitar Laticínios.
+    - **Alerta de "Apagão"**: **Jantar até as 18h**. Se o paciente acordar cansado, é porque a digestão noturna competiu com a regeneração celular.
+
+    **Camada 4: Respiração e Posição (Física do Fluxo)**
+    - **PARA FALTA DE AR / CONGESTÃO**:
+        - *Técnica*: **Respiração 4-4-8** (Inspira 4s, Pausa 4s, Expira 8s). A expiração longa ativa o Parassimpático e reduz a pressão intra-torácica.
+        - *Posição*: Se estiver deitado, **NUNCA** ficar totalmente horizontal. Manter a cabeceira elevada a 45 graus ou sentar-se inclinado para frente com apoio nos braços (Posição do Tripé).
+    - **PARA RETENÇÃO DE LÍQUIDOS / INCHAÇO NAS PERNAS**:
+        - *Movimento Sutil*: Elevação das pernas acima do nível do coração por 20 min, 3x ao dia. **NÃO** sugerir caminhadas longas para idosos com edema (risco de piora do retorno venoso se houver fraqueza muscular).
+
+    **Camada 5: A Voz do Observador (Alertas Vermelhos)**
+    - Independente da idade, a IA deve listar **3 Sinais de Alerta Vermelho** específicos para o caso descrito que **NÃO** são para tratar em casa (Ex: Febre >38°C, Confusão Mental, Dor Súbita em Pontada, Ausência de Urina por mais de 12h).
+
+    ---
+
+    [SAÍDA ESPERADA DA IA]
+    Gere um **Plano de Cuidados Diários** em linguagem **clara e afetiva**, adequado para um **Cuidador Leigo**. O plano deve conter:
+    1. **Hidratação Inteligente**: Horários e tamanho exato do copo (ex: "Um copinho de café a cada 1h").
+    2. **Chá do Dia**: Nome, modo de preparo exato (tempo de infusão) e horário ideal para tomar.
+    3. **Sugestão Alimentar Leve**:
+      - Café da Manhã (Energia suave para começar o dia).
+      - Almoço (Leve, sem causar sono pesado).
+      - Lanche da Tarde (Leve).
+    4. **Movimento Respiratório**: Um exercício simples para fazer sentado na cama ou poltrona.
+    5. **Sinais de Alerta**: Os 3 sinais que indicam a necessidade de interromper as orientações e procurar o Pronto-Socorro.
+
+    **Instrução Final**: Ajuste a "força" da recomendação à **Reserva Energética** do paciente. Em caso de dúvida, **sempre opte pela abordagem mais suave e menos invasiva**.`
     };
 
     function detectTheme(q) {
@@ -1479,6 +1660,15 @@
       if (lq.includes('existencial'))               return 'existencial';
       if (lq.includes('jogador') || lq.includes('zerar')) return 'jogador01';
       if (lq.includes('zyon'))                      return 'zyonflux';
+      
+      // 🧬 NOVA DETECÇÃO - MEDICINA INTEGRATIVA
+      const termosMedicina = ['saúde', 'doença', 'exame', 'sintoma', 'remédio', 'chá', 
+                              'tosse', 'rim', 'coração', 'pulmão', 'febre', 'dor', 
+                              'medicina', 'tratamento', 'laudo', 'hospital', 'idoso'];
+      for (let termo of termosMedicina) {
+        if (lq.includes(termo)) return 'medicina';
+      }
+      
       return 'bankov';
     }
 
