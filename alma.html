@@ -599,6 +599,103 @@
       .group-header { padding: 14px 16px; }
       .group-label { font-size: 1rem; }
     }
+    /* ── SORTEIO NUMEROLOGIA ── */
+    #sorteioFab {
+      display: none;
+      position: fixed;
+      bottom: 90px;
+      right: 18px;
+      z-index: 9990;
+      background: linear-gradient(135deg, #ffd700, #ff8c00);
+      border: none;
+      border-radius: 50px;
+      padding: 12px 20px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #000;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(255,215,0,0.5);
+      animation: sorteioGlow 2s ease-in-out infinite;
+      letter-spacing: 0.03em;
+    }
+    @keyframes sorteioGlow {
+      0%,100% { box-shadow: 0 0 20px rgba(255,215,0,0.5); }
+      50%      { box-shadow: 0 0 35px rgba(255,215,0,0.9); }
+    }
+    #sorteioModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(6px);
+      align-items: center;
+      justify-content: center;
+    }
+    #sorteioModal.open { display: flex; }
+    .sorteio-box {
+      background: linear-gradient(135deg, #0a1628, #0d1f3c);
+      border: 1px solid rgba(255,215,0,0.4);
+      border-radius: 20px;
+      padding: 32px 28px;
+      max-width: 360px;
+      width: 92%;
+      text-align: center;
+      box-shadow: 0 0 40px rgba(255,215,0,0.2);
+    }
+    .sorteio-box h2 {
+      color: #ffd700;
+      font-size: 1.3rem;
+      margin-bottom: 8px;
+      text-shadow: 0 0 12px rgba(255,215,0,0.5);
+    }
+    .sorteio-box p {
+      color: rgba(200,220,255,0.75);
+      font-size: 0.85rem;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+    .sorteio-box input {
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,215,0,0.3);
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+      font-size: 0.9rem;
+      margin-bottom: 12px;
+      outline: none;
+      font-family: inherit;
+    }
+    .sorteio-box input:focus { border-color: #ffd700; }
+    .sorteio-box input::placeholder { color: rgba(180,200,255,0.4); }
+    .sorteio-btn-enviar {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, #ffd700, #ff8c00);
+      color: #000;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-bottom: 10px;
+      transition: opacity 0.2s;
+    }
+    .sorteio-btn-enviar:hover { opacity: 0.88; }
+    .sorteio-btn-fechar {
+      background: none;
+      border: none;
+      color: rgba(180,200,255,0.45);
+      font-size: 0.8rem;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+    .sorteio-timer {
+      font-size: 0.72rem;
+      color: rgba(255,215,0,0.5);
+      margin-bottom: 16px;
+    }
     /* ── SETA DE SCROLL ── */
     #scrollArrow {
       position: fixed;
@@ -812,19 +909,9 @@
     </div>
   </div>
   
-  <!-- NOVO CARD: PREÇO JUSTO -->
-  <div class="faq-wrapper" id="preco-justo-info">
-    <div class="faq-card">
-      <h3 class="card-title">💰 Preço Justo <span class="status-badge">Online</span></h3>
-      <p class="card-description">
-        Plataforma colaborativa de comparação de preços de supermercado. Envie preços com foto da etiqueta, ajude sua comunidade a economizar e descubra onde está o menor preço dos它 produtos do dia a dia.
-      </p>
-      <div class="card-actions">
-        <a href="https://tchelojc.github.io/preco_justo/index.html" target="_blank" class="card-link">Acessar Preço Justo</a>
-      </div>
-    </div>
-  </div>
-  
+  <!-- ═══════════════════════════════════════════════
+       GRUPOS EXPANSÍVEIS
+  ════════════════════════════════════════════════ -->
   <div class="faq-wrapper" id="marido-aluguel-info">
     <div class="faq-card">
       <h3 class="card-title">🛠️ Marido de Aluguel <span class="status-badge">Online</span></h3>
@@ -837,10 +924,19 @@
       </div>
     </div>
   </div>
-  
-  <!-- ═══════════════════════════════════════════════
-       GRUPOS EXPANSÍVEIS
-  ════════════════════════════════════════════════ -->
+
+  <!-- NOVO CARD: PREÇO JUSTO -->
+  <div class="faq-wrapper" id="preco-justo-info">
+    <div class="faq-card">
+      <h3 class="card-title">💰 Preço Justo <span class="status-badge">Online</span></h3>
+      <p class="card-description">
+        Plataforma colaborativa de comparação de preços de supermercado. Envie preços com foto da etiqueta, ajude sua comunidade a economizar e descubra onde está o menor preço dos它 produtos do dia a dia.
+      </p>
+      <div class="card-actions">
+        <a href="https://tchelojc.github.io/preco_justo/index.html" target="_blank" class="card-link">Acessar Preço Justo</a>
+      </div>
+    </div>
+  </div>
     <!-- GRUPO 1: Universo Áureo -->
   <div class="group-wrapper">
     <button class="group-header" onclick="toggleGroup('g-aureo', this)" aria-expanded="false">
@@ -1719,7 +1815,7 @@
 
     // ══ AUTENTICAÇÃO E LICENÇAS ══
     const _0x9f2e = [
-      'https://script.google.com/macros/s/AKfycbxLMKztkSAbrbek4y1kOHUb2pGt7RGXXlMhXd_IiJyDfCF8tHIePJUR0zoDGKe-17bg/exec',
+      'https://script.google.com/macros/s/AKfycbzrFAyavdgf_hYx5rtuslBttkFnoJ4WEEGS7ps-tPV-TJ7p8kG3Hd6oJXjPpckTPcqO/exec',
       'alma_device_id', 'dev_', 'text/plain', 'POST', 'ler', 'register_permanent', 'principal'
     ];
     const _proxyUrl = _0x9f2e[0];
@@ -2093,5 +2189,245 @@
       });
     })();
   </script>
+  <!-- ═══ SCRIPT SORTEIO NUMEROLOGIA ═══ -->
+  <script>
+  (function() {
+    var TEMPO_MS       = 15 * 60 * 1000; // 15 minutos
+    var KEY_PARTICIPOU = 'alma_sorteio_participou';
+    var KEY_INICIO     = 'alma_sorteio_inicio';
+    var GAS_URL        = 'https://script.google.com/macros/s/AKfycbzrFAyavdgf_hYx5rtuslBttkFnoJ4WEEGS7ps-tPV-TJ7p8kG3Hd6oJXjPpckTPcqO/exec';
+
+    var sistemasSel = new Set();
+
+    function jaParticipouHoje() {
+      return localStorage.getItem(KEY_PARTICIPOU) === new Date().toDateString();
+    }
+    function marcarParticipacao() {
+      localStorage.setItem(KEY_PARTICIPOU, new Date().toDateString());
+    }
+    function iniciarCronometro() {
+      if (!localStorage.getItem(KEY_INICIO)) localStorage.setItem(KEY_INICIO, Date.now().toString());
+    }
+    function tempoDecorrido() {
+      return Date.now() - parseInt(localStorage.getItem(KEY_INICIO) || '0');
+    }
+    function mostrarFab() {
+      var fab = document.getElementById('sorteioFab');
+      if (fab) { fab.style.display = 'flex'; fab.style.alignItems = 'center'; fab.style.gap = '6px'; }
+    }
+    function verificarTempo() {
+      if (jaParticipouHoje()) return;
+      if (tempoDecorrido() >= TEMPO_MS) mostrarFab();
+    }
+    iniciarCronometro();
+    if (!jaParticipouHoje()) { setInterval(verificarTempo, 10000); verificarTempo(); }
+
+    // ── CONTAGEM DE PARTICIPANTES DO DIA ──
+    async function carregarContagem() {
+      try {
+        var res = await fetch(GAS_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'sorteio_contagem' })
+        });
+        var data = await res.json();
+        var el = document.getElementById('sorteioContagem');
+        if (el && data.ok) {
+          el.textContent = '👥 ' + data.total + ' participante(s) hoje — ' + data.data;
+        }
+      } catch(e) {}
+    }
+
+    // ── TOKEN ÚNICO ──
+    function gerarToken() {
+      return 'ALM-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substr(2,4).toUpperCase();
+    }
+
+    // ── ABRIR / FECHAR ──
+    window.abrirSorteio = function() {
+      var modal = document.getElementById('sorteioModal');
+      var label = document.getElementById('sorteioTimerLabel');
+      if (label) {
+        var mins = Math.floor(tempoDecorrido() / 60000);
+        label.textContent = '⏱ ' + mins + ' minuto(s) no portal · você está qualificado(a)!';
+      }
+      if (modal) { modal.classList.add('open'); carregarContagem(); }
+    };
+    window.fecharSorteio = function() {
+      var modal = document.getElementById('sorteioModal');
+      if (modal) modal.classList.remove('open');
+    };
+    document.addEventListener('click', function(e) {
+      var modal = document.getElementById('sorteioModal');
+      if (modal && e.target === modal) fecharSorteio();
+    });
+
+    // ── SISTEMAS ──
+    window.toggleSistema = function(btn, nome) {
+      if (sistemasSel.has(nome)) { sistemasSel.delete(nome); btn.classList.remove('sel'); }
+      else { sistemasSel.add(nome); btn.classList.add('sel'); }
+    };
+
+    // ── ENVIAR PARA GAS ──
+    window.enviarSorteio = async function() {
+      var nome   = (document.getElementById('sNome')?.value || '').trim();
+      var insta  = (document.getElementById('sInsta')?.value || '').trim();
+      var nasc   = (document.getElementById('sNasc')?.value || '').trim();
+      var hora   = (document.getElementById('sHora')?.value || '').trim();
+      var local  = (document.getElementById('sLocal')?.value || '').trim();
+      var sangue = (document.getElementById('sSangue')?.value || '').trim();
+      var anc    = (document.getElementById('sAnc')?.value || '').trim();
+      var alim   = (document.getElementById('sAlim')?.value || '').trim();
+      var cor    = (document.getElementById('sCor')?.value || '#ffffff');
+
+      if (!nome)  { alert('Informe seu nome completo.'); return; }
+      if (!insta) { alert('Informe seu @instagram.'); return; }
+      if (!nasc)  { alert('Informe sua data de nascimento.'); return; }
+      if (sistemasSel.size === 0) { alert('Selecione ao menos um sistema numerológico.'); return; }
+
+      if (!insta.startsWith('@')) insta = '@' + insta;
+
+      var token = gerarToken();
+      var btn   = document.getElementById('sorteioBtnEnviar');
+      if (btn) { btn.disabled = true; btn.textContent = '⏳ Registrando...'; }
+
+      try {
+        var res = await fetch(GAS_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action:           'sorteio_participar',
+            nome,
+            instagram:        insta,
+            nascimento:       nasc,
+            hora_nascimento:  hora,
+            local_nascimento: local,
+            tipo_sanguineo:   sangue,
+            cor_favorita:     cor,
+            ancestralidade:   anc,
+            alimentacao:      alim,
+            sistemas:         Array.from(sistemasSel).join(', '),
+            token
+          })
+        });
+        var data = await res.json();
+
+        var resultado = document.getElementById('sorteioResultado');
+        if (data.ok) {
+          marcarParticipacao();
+          var fab = document.getElementById('sorteioFab');
+          if (fab) fab.style.display = 'none';
+          if (resultado) {
+            resultado.style.display = 'block';
+            resultado.innerHTML =
+              '✅ <strong>Participação confirmada!</strong><br>' +
+              '🔑 Token: <strong>' + token + '</strong><br>' +
+              '👥 Você é o participante nº <strong>' + (data.posicao || '?') + '</strong> de hoje.<br>' +
+              '🎬 O sorteio acontece às 13h. Se sorteado(a), você será marcado(a) no vídeo do YouTube às 18h. Boa sorte! 🌟';
+          }
+          if (typeof toast === 'function') toast('✨ Participação registrada! Boa sorte!');
+        } else {
+          if (resultado) {
+            resultado.style.display = 'block';
+            resultado.style.background = 'rgba(231,76,60,0.12)';
+            resultado.style.borderColor = 'rgba(231,76,60,0.35)';
+            resultado.style.color = '#ff9999';
+            resultado.innerHTML = '⚠️ ' + (data.error || 'Erro ao registrar. Tente novamente.');
+          }
+        }
+      } catch(err) {
+        alert('Erro de conexão. Verifique sua internet e tente novamente.');
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '✨ Participar do Sorteio'; }
+      }
+    };
+  })();
+  </script>
+
+  <!-- ═══ SORTEIO: BOTÃO + MODAL ═══ -->
+  <button id="sorteioFab" onclick="abrirSorteio()">🔮 Sorteio Numerologia</button>
+
+  <div id="sorteioModal" role="dialog" aria-modal="true">
+    <div class="sorteio-box">
+      <h2>🔮 Sorteio · Leitura de Numerologia</h2>
+      <p class="sorteio-sub">Uma leitura é sorteada por dia às 13h. Se você for sorteado(a), será marcado(a) no vídeo do YouTube às 18h.</p>
+      <div class="sorteio-timer" id="sorteioTimerLabel"></div>
+      <div class="sorteio-timer" id="sorteioContagem"></div>
+
+      <div class="sorteio-section">
+        <label>👤 Nome Completo *</label>
+        <input class="sorteio-input" id="sNome" type="text" placeholder="Seu nome completo" maxlength="80">
+      </div>
+      <div class="sorteio-section">
+        <label>📱 Instagram *</label>
+        <input class="sorteio-input" id="sInsta" type="text" placeholder="@seu_instagram" maxlength="60">
+      </div>
+      <div class="sorteio-section">
+        <div class="sorteio-row">
+          <div>
+            <label>📅 Nascimento *</label>
+            <input class="sorteio-input" id="sNasc" type="date">
+          </div>
+          <div>
+            <label>⏰ Hora (opcional)</label>
+            <input class="sorteio-input" id="sHora" type="time">
+          </div>
+        </div>
+      </div>
+      <div class="sorteio-section">
+        <label>📍 Local de Nascimento</label>
+        <input class="sorteio-input" id="sLocal" type="text" placeholder="Cidade, País" maxlength="80">
+      </div>
+      <div class="sorteio-section">
+        <div class="sorteio-row">
+          <div>
+            <label>🩸 Tipo Sanguíneo</label>
+            <select class="sorteio-input" id="sSangue">
+              <option value="">Selecione</option>
+              <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+              <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+            </select>
+          </div>
+          <div>
+            <label>🎨 Cor Favorita</label>
+            <input class="sorteio-input" id="sCor" type="color" value="#6e8cff" style="padding:4px;height:38px;cursor:pointer">
+          </div>
+        </div>
+      </div>
+      <div class="sorteio-section">
+        <label>🌍 Ancestralidade</label>
+        <input class="sorteio-input" id="sAnc" type="text" placeholder="Ex: Italiana, Africana, Indígena..." maxlength="60">
+      </div>
+      <div class="sorteio-section">
+        <label>🍽️ Alimentação</label>
+        <select class="sorteio-input" id="sAlim">
+          <option value="">Selecione</option>
+          <option>Onívoro</option><option>Vegetariano</option><option>Vegano</option>
+          <option>Pescetariano</option><option>Outro</option>
+        </select>
+      </div>
+
+      <div class="sorteio-divider"></div>
+
+      <div class="sorteio-section">
+        <label>🔮 Sistema Numerológico * (selecione um ou mais)</label>
+        <div class="sorteio-sistemas">
+          <button class="s-btn" onclick="toggleSistema(this,'METAMÁTICA')"><span class="se">🌀</span>Metamática</button>
+          <button class="s-btn" onclick="toggleSistema(this,'SUMÉRIA')"><span class="se">𒀭</span>Suméria</button>
+          <button class="s-btn" onclick="toggleSistema(this,'AZTECA')"><span class="se">🗿</span>Asteca</button>
+          <button class="s-btn" onclick="toggleSistema(this,'MAYA')"><span class="se">🌙</span>Maia</button>
+          <button class="s-btn" onclick="toggleSistema(this,'EGÍPCIA')"><span class="se">☥</span>Egípcia</button>
+          <button class="s-btn" onclick="toggleSistema(this,'CABALA')"><span class="se">🔯</span>Cabala</button>
+          <button class="s-btn" onclick="toggleSistema(this,'INCA')"><span class="se">🏔️</span>Inca</button>
+          <button class="s-btn" onclick="toggleSistema(this,'CHINÊS')"><span class="se">🐉</span>Chinês</button>
+        </div>
+      </div>
+
+      <div class="sorteio-divider"></div>
+
+      <button class="sorteio-btn-enviar" id="sorteioBtnEnviar" onclick="enviarSorteio()">✨ Participar do Sorteio</button>
+      <button class="sorteio-btn-fechar" onclick="fecharSorteio()">Fechar</button>
+      <div class="sorteio-resultado" id="sorteioResultado"></div>
+    </div>
+  </div>
+
 </body>
 </html>
