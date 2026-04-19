@@ -13,6 +13,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
 
   <style>
+    /* ===== ESTILOS BASE ===== */
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
@@ -80,7 +81,7 @@
                 transform: scale(1.00); }
     }
 
-    /* ── CARD INFORMATIVO (permanece único) ── */
+    /* ── CARD INFORMATIVO ── */
     .info-card {
       background: rgba(255, 75, 75, 0.12);
       border-radius: 15px;
@@ -275,7 +276,6 @@
     .status-badge.pago { background: var(--red-badge); color: #ffcccc; }
     .status-badge.em-rucao { background: var(--yellow-badge); color: #fff4aa; }
 
-    /* livros accent */
     .livro-card { border-left-width: 3px; border-left-style: solid; }
 
     /* ── FAQ STANDALONE ── */
@@ -296,7 +296,7 @@
     }
     .faq-highlight { animation: faqGlow 0.8s ease-out 3; }
 
-    /* ── MODAL ALMAFLUXO (Esfera) ── */
+    /* ── MODAL ALMAFLUXO ── */
     .almafluxo-modal {
       display: none;
       position: fixed; inset: 0;
@@ -599,6 +599,7 @@
       .group-header { padding: 14px 16px; }
       .group-label { font-size: 1rem; }
     }
+
     /* ── SORTEIO NUMEROLOGIA ── */
     #sorteioFab {
       display: none;
@@ -637,9 +638,11 @@
       background: linear-gradient(135deg, #0a1628, #0d1f3c);
       border: 1px solid rgba(255,215,0,0.4);
       border-radius: 20px;
-      padding: 32px 28px;
-      max-width: 360px;
+      padding: 28px 24px;
+      max-width: 460px;
       width: 92%;
+      max-height: 85vh;
+      overflow-y: auto;
       text-align: center;
       box-shadow: 0 0 40px rgba(255,215,0,0.2);
     }
@@ -649,26 +652,77 @@
       margin-bottom: 8px;
       text-shadow: 0 0 12px rgba(255,215,0,0.5);
     }
-    .sorteio-box p {
+    .sorteio-sub {
       color: rgba(200,220,255,0.75);
-      font-size: 0.85rem;
-      margin-bottom: 20px;
+      font-size: 0.8rem;
+      margin-bottom: 16px;
       line-height: 1.5;
     }
-    .sorteio-box input {
+    .sorteio-timer {
+      font-size: 0.72rem;
+      color: rgba(255,215,0,0.5);
+      margin-bottom: 12px;
+    }
+    .sorteio-section {
+      margin-bottom: 16px;
+      text-align: left;
+    }
+    .sorteio-section label {
+      display: block;
+      font-size: 0.78rem;
+      color: rgba(200,220,255,0.7);
+      margin-bottom: 4px;
+    }
+    .sorteio-input, .sorteio-box select {
       width: 100%;
-      padding: 11px 14px;
-      border-radius: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
       border: 1px solid rgba(255,215,0,0.3);
       background: rgba(255,255,255,0.06);
       color: #fff;
       font-size: 0.9rem;
-      margin-bottom: 12px;
       outline: none;
       font-family: inherit;
     }
-    .sorteio-box input:focus { border-color: #ffd700; }
-    .sorteio-box input::placeholder { color: rgba(180,200,255,0.4); }
+    .sorteio-input:focus, .sorteio-box select:focus { border-color: #ffd700; }
+    .sorteio-input::placeholder { color: rgba(180,200,255,0.4); }
+    .sorteio-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .sorteio-divider {
+      height: 1px;
+      background: rgba(255,215,0,0.15);
+      margin: 18px 0;
+    }
+    .sorteio-sistemas {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    .s-btn {
+      background: rgba(74,111,165,0.15);
+      border: 1px solid rgba(74,111,165,0.3);
+      border-radius: 20px;
+      padding: 8px 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: rgba(200,220,255,0.8);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+    .s-btn .se { font-size: 1.1rem; }
+    .s-btn.sel {
+      background: rgba(255,215,0,0.2);
+      border-color: #ffd700;
+      color: #ffd700;
+      box-shadow: 0 0 8px rgba(255,215,0,0.3);
+    }
     .sorteio-btn-enviar {
       width: 100%;
       padding: 12px;
@@ -691,11 +745,17 @@
       cursor: pointer;
       margin-top: 4px;
     }
-    .sorteio-timer {
-      font-size: 0.72rem;
-      color: rgba(255,215,0,0.5);
-      margin-bottom: 16px;
+    .sorteio-resultado {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 10px;
+      background: rgba(46,204,113,0.1);
+      border: 1px solid rgba(46,204,113,0.3);
+      color: #aef0c8;
+      font-size: 0.85rem;
+      display: none;
     }
+
     /* ── SETA DE SCROLL ── */
     #scrollArrow {
       position: fixed;
@@ -721,6 +781,7 @@
       0%, 100% { transform: translateX(-50%) translateY(0); }
       50%       { transform: translateX(-50%) translateY(6px); }
     }
+
     .animacao-links {
       grid-column: 1 / -1;
       display: flex;
@@ -756,7 +817,6 @@
       color: #aaccff;
       box-shadow: 0 0 12px rgba(74,111,165,0.1);
     }
-    /* Em telas pequenas, os botões ocupam 100% da largura e o texto se ajusta */
     @media (max-width: 600px) {
       .animacao-link {
         padding: 12px 16px;
@@ -865,10 +925,7 @@
       background: rgba(74,180,255,0.8);
       border-radius: 0 0 2px 2px;
     }
-    .nav-icon {
-      font-size: 1.2rem;
-      line-height: 1;
-    }
+    .nav-icon { font-size: 1.2rem; line-height: 1; }
     .nav-label { line-height: 1; }
     @media (max-width: 480px) {
       #almaNavBar { height: 54px; }
@@ -885,7 +942,7 @@
     <div style="font-size:11px;margin-top:5px;letter-spacing:0.1em;opacity:0.85">FLUXO</div>
   </div>
 
-  <!-- ═══ CARD INFORMATIVO (único, não expansível) ═══ -->
+  <!-- ═══ CARD INFORMATIVO ═══ -->
   <div class="info-card">
     <div class="info-card-header">
       <div class="info-card-icon">🧠</div>
@@ -908,7 +965,7 @@
       🌌 <a href="https://tchelojc.github.io/externo/" target="_blank" style="color:#ffd700;text-decoration:none;border-bottom:1px dotted rgba(255,215,0,0.4)">Vivencie a abertura (3,69s) e, em seguida, instale o ALMAFLUXO para uma imersão total.</a>
     </div>
   </div>
-  
+
   <!-- ═══════════════════════════════════════════════
        GRUPOS EXPANSÍVEIS
   ════════════════════════════════════════════════ -->
@@ -925,7 +982,6 @@
     </div>
   </div>
 
-  <!-- NOVO CARD: PREÇO JUSTO -->
   <div class="faq-wrapper" id="preco-justo-info">
     <div class="faq-card">
       <h3 class="card-title">💰 Preço Justo <span class="status-badge">Online</span></h3>
@@ -937,7 +993,8 @@
       </div>
     </div>
   </div>
-    <!-- GRUPO 1: Universo Áureo -->
+
+  <!-- GRUPO 1: Universo Áureo -->
   <div class="group-wrapper">
     <button class="group-header" onclick="toggleGroup('g-aureo', this)" aria-expanded="false">
       <div class="group-title-wrap">
@@ -954,29 +1011,21 @@
     </button>
     <div class="group-body" id="g-aureo">
       <div class="group-inner">
-
-        <!-- CARD 1 -->
         <a href="https://tchelojc.github.io/significado/porta_entrada.html" target="_blank" class="platform-card">
           <h3 class="card-title">Portal ALMAFLUXO <span class="status-badge">Online</span></h3>
           <p class="card-description">O início do Trajeto. Identificação da frequência pessoal através do nome e data, convergindo para a Sincronicidade e o estado de Observador.</p>
           <div class="card-actions"><span class="card-link">Entrar no Fluxo</span></div>
         </a>
-
-        <!-- CARD 2 -->
         <a href="https://matematica-p4qo4gzwfuejwutibbcvva.streamlit.app/" target="_blank" class="platform-card">
           <h3 class="card-title">Fluxo Matemático <span class="status-badge">Online</span></h3>
           <p class="card-description">Sistema que unifica matemática clássica, física quântica, geometria sagrada e as constantes fundamentais (0,18; 0,54; 1,80; φ; π). Cálculos duais, visualizações 3D e simulador.</p>
           <div class="card-actions"><span class="card-link">Explorar Fluxo</span></div>
         </a>
-
-        <!-- CARD 3 -->
         <a href="https://8w3t8fn8fhjodctaph6jaf.streamlit.app/" target="_blank" class="platform-card">
           <h3 class="card-title">Universo Áureo <span class="status-badge">Online</span></h3>
           <p class="card-description">Sistema modular e dinâmico para estudo aprofundado de buracos negros, propagação de energia, sistemas planetários e frequências áureas.</p>
           <div class="card-actions"><span class="card-link">Explorar Universo</span></div>
         </a>
-
-        <!-- LINKS ADICIONAIS: ALMAFLUXO (Animação) e BATIMENTO (agora dentro do grid) -->
         <div class="animacao-links">
           <a href="https://tchelojc.github.io/templates/almafluxo.html" target="_blank" class="animacao-link dourado">
             <span style="font-size: 1.2rem;">🌀</span> ALMAFLUXO · Animação Cósmica
@@ -985,7 +1034,6 @@
             <span style="font-size: 1.2rem;">💓</span> BATIMENTO · Motor de Singularidade
           </a>
         </div>
-
       </div>
     </div>
   </div>
@@ -1007,37 +1055,31 @@
     </button>
     <div class="group-body" id="g-trajeto">
       <div class="group-inner">
-
         <a href="https://nguo7ede4q8xm6bg4asusg.streamlit.app/" target="_blank" class="platform-card">
           <h3 class="card-title">Trajeto do Nada ao Tudo <span class="status-badge">Online</span></h3>
           <p class="card-description">Análise do fluxo universal desde Espinoza, Einstein e Tesla até Fibonacci, demonstrando o equilíbrio matemático como a verdadeira força divina.</p>
           <div class="card-actions"><span class="card-link">Estudar Trajeto</span></div>
         </a>
-
         <a href="https://kdc73ek2qtyggsv69ekcvx.streamlit.app/" target="_blank" class="platform-card">
           <h3 class="card-title">Matrix ALMA <span class="status-badge">Online</span></h3>
           <p class="card-description">Registro de presença digital com assinatura de nome e nível quântico para acesso exclusivo à nova dimensão de consciência da plataforma.</p>
           <div class="card-actions"><span class="card-link">Acessar Dimensão</span></div>
         </a>
-
         <a href="https://eygkaswytz73tv7fzskhsz.streamlit.app/" target="_blank" class="platform-card">
           <h3 class="card-title">Ciclos Energéticos <span class="status-badge">Online</span></h3>
           <p class="card-description">Análise precisa de ciclos energéticos através de alinhamentos planetários e seus impactos diretos nos relacionamentos e comportamentos coletivos.</p>
           <div class="card-actions"><span class="card-link">Ver Ciclos</span></div>
         </a>
-
         <a href="https://laboratorio-hosqszezxd6hf7hu85ncvz.streamlit.app/" target="_blank" class="platform-card">
           <h3 class="card-title">Laboratório Quântico <span class="status-badge">Online</span></h3>
           <p class="card-description">Ambiente para criação e teste de circuitos quânticos através de portas lógicas com adaptação infinita e execução livre de conflitos sistêmicos.</p>
           <div class="card-actions"><span class="card-link">Experimentar</span></div>
         </a>
-
         <a href="https://simulador-eo7akxztyvn6nikgd3thtn.streamlit.app/" target="_blank" class="platform-card">
           <h3 class="card-title">Orientador Quântico <span class="status-badge">Online</span></h3>
           <p class="card-description">Sistema avançado de correção de circuitos quânticos com análise de arquivos em tempo real e prompts otimizados para resolver falhas estruturais.</p>
           <div class="card-actions"><span class="card-link">Otimizar Circuitos</span></div>
         </a>
-
       </div>
     </div>
   </div>
@@ -1059,7 +1101,6 @@
     </button>
     <div class="group-body" id="g-auto">
       <div class="group-inner">
-
         <div class="platform-card">
           <h3 class="card-title">🌌 Sintesia Humana <span class="status-badge pago">Pago</span></h3>
           <p class="card-description">
@@ -1074,7 +1115,6 @@
             <a class="faq-link-button" href="#faq-section" onclick="event.preventDefault();scrollToFAQ(event)">💰 Ver FAQ para Pagamento</a>
           </div>
         </div>
-
         <div class="platform-card">
           <h3 class="card-title">🌌 Mapa do Próprio Destino <span class="status-badge pago">Pago</span></h3>
           <p class="card-description">
@@ -1089,7 +1129,6 @@
             <a class="faq-link-button" href="#faq-section" onclick="event.preventDefault();scrollToFAQ(event)">💰 Ver FAQ para Pagamento</a>
           </div>
         </div>
-
       </div>
     </div>
   </div>
@@ -1111,7 +1150,6 @@
     </button>
     <div class="group-body" id="g-trade">
       <div class="group-inner">
-
         <div class="platform-card">
           <h3 class="card-title">📈 Interface OPERADOR <span class="status-badge pago">Pago</span></h3>
           <p class="card-description">Interface web dedicada para operações de day trade com visualização em tempo real, painéis dinâmicos e controle avançado de ordens e métricas.<br><br>💡 <strong>Para pagamento e informações completas, acesse a plataforma abaixo.</strong></p>
@@ -1123,7 +1161,6 @@
             <a class="faq-link-button" href="#faq-section" onclick="event.preventDefault();scrollToFAQ(event)">💰 Ver FAQ para Pagamento</a>
           </div>
         </div>
-
         <div class="platform-card">
           <h3 class="card-title">🏀 Hedge Dinâmico – Basquete <span class="status-badge pago">Pago</span></h3>
           <p class="card-description">Distribuição proporcional, odds ao vivo e cenários de hedge arquitetados para jogos de basquete. Ideal para quem opera com spreads totais e margens de risco.<br><br>🏀 <strong>Cálculos automáticos em tempo real.</strong></p>
@@ -1135,7 +1172,6 @@
             <a class="faq-link-button" href="#faq-section" onclick="event.preventDefault();scrollToFAQ(event)">💰 Ver FAQ para Pagamento</a>
           </div>
         </div>
-
         <div class="platform-card">
           <h3 class="card-title">⚽ Hedge Dinâmico – Futebol <span class="status-badge pago">Pago</span></h3>
           <p class="card-description">Sistema completo para mercados de futebol: mais/menos gols, ambas marcam, handicaps e estatísticas avançadas com algoritmos de proteção automática.<br><br>⚽ <strong>Gestão de risco avançada para cercados.</strong></p>
@@ -1147,7 +1183,6 @@
             <a class="faq-link-button" href="#faq-section" onclick="event.preventDefault();scrollToFAQ(event)">💰 Ver FAQ para Pagamento</a>
           </div>
         </div>
-
         <div class="platform-card">
           <h3 class="card-title">🎾 Hedge Multiesportes <span class="status-badge pago">Pago</span></h3>
           <p class="card-description">Módulos para Vôlei, Tênis e Lutas (MMA/Boxe) com configuração automática por esporte, elaboração de estratégias por sets/rounds e operação ao vivo segura.<br><br>🎾 <strong>Versatilidade para múltiplos mercados.</strong></p>
@@ -1159,7 +1194,6 @@
             <a class="faq-link-button" href="#faq-section" onclick="event.preventDefault();scrollToFAQ(event)">💰 Ver FAQ para Pagamento</a>
           </div>
         </div>
-
       </div>
     </div>
   </div>
@@ -1181,59 +1215,52 @@
     </button>
     <div class="group-body" id="g-livros">
       <div class="group-inner">
-
         <a href="https://livros-jwjhhij6hjs4n7qxgd3xmz.streamlit.app/" target="_blank" class="platform-card livro-card" style="border-left-color:#d4a843">
           <h3 class="card-title">Livro I: O Caos do Passado <span class="status-badge" style="background:rgba(212,168,67,0.15);color:#d4a843;border:1px solid rgba(212,168,67,0.3)">🜍 Loucura</span></h3>
           <p class="card-description">A fundação do método. O estudo inicial sobre energia, o caos sistêmico e como o tempo se propaga a partir da força da energia pura no universo.</p>
           <div class="card-actions"><span class="card-link">Ler Obra</span></div>
         </a>
-
         <a href="https://livros-alwkohoykgaioy7m8y8ns6.streamlit.app/" target="_blank" class="platform-card livro-card" style="border-left-color:#4a8a6a">
           <h3 class="card-title">Livro II: Liberdade dentro do Caos <span class="status-badge" style="background:rgba(74,138,106,0.15);color:#4a8a6a;border:1px solid rgba(74,138,106,0.3)">🜍 Loucura</span></h3>
           <p class="card-description">A aceitação consciente da dor e da perda como ferramentas adaptativas. O encontro do sentido, do amor e a solidificação da sua filosofia pessoal.</p>
           <div class="card-actions"><span class="card-link">Ler Obra</span></div>
         </a>
-
         <a href="https://livros-cbakzajpbyxwpgjbsgap5.streamlit.app/" target="_blank" class="platform-card livro-card" style="border-left-color:#a5855a">
           <h3 class="card-title">Livro III: O Presidente <span class="status-badge" style="background:rgba(165,133,90,0.15);color:#a5855a;border:1px solid rgba(165,133,90,0.3)">🜍 Aceitação</span></h3>
           <p class="card-description">Uma análise profunda sobre a política humana, a estrutura de poder, a influência do meio e a sabedoria necessária para compreender a gestão da verdade.</p>
           <div class="card-actions"><span class="card-link">Ler Obra</span></div>
         </a>
-
         <a href="https://livros-qjxclgnty24kt8gngupopm.streamlit.app/" target="_blank" class="platform-card livro-card" style="border-left-color:#7a5aa5">
           <h3 class="card-title">Livro IV: O Preconceito Quântico <span class="status-badge" style="background:rgba(122,90,165,0.15);color:#7a5aa5;border:1px solid rgba(122,90,165,0.3)">🜍 Aceitação</span></h3>
           <p class="card-description">A percepção da história como um ciclo repetitivo. O preconceito dissecado como um fenômeno energético de distorção de frequências coletivas.</p>
           <div class="card-actions"><span class="card-link">Ler Obra</span></div>
         </a>
-
         <a href="https://livros-9fq2vxbzawxxwvxguwnewt.streamlit.app/" target="_blank" class="platform-card livro-card" style="border-left-color:#a55a7a">
           <h3 class="card-title">Livro V: O Paradoxo dos Movimentos <span class="status-badge" style="background:rgba(165,90,122,0.15);color:#a55a7a;border:1px solid rgba(165,90,122,0.3)">🜍 Aceitação</span></h3>
           <p class="card-description">O entrelaçamento entre biologia e física quântica. A cosmologia, o destino e a constatação da teoria do movimento como a única constante real.</p>
           <div class="card-actions"><span class="card-link">Ler Obra</span></div>
         </a>
-
         <a href="https://livros-zgkycz4zkstv6iw4avs8ou.streamlit.app/" target="_blank" class="platform-card livro-card" style="border-left-color:#a55a5a">
           <h3 class="card-title">Livro VI: Fuder ou Não Fuder <span class="status-badge" style="background:rgba(165,90,90,0.15);color:#a55a5a;border:1px solid rgba(165,90,90,0.3)">🜍 Maestria</span></h3>
           <p class="card-description">O corpo humano utilizado como veículo filosófico. Uma exploração analítica sobre o sexo, o instinto primário, as amarras sociais e a libertação verdadeira.</p>
           <div class="card-actions"><span class="card-link">Ler Obra</span></div>
         </a>
-
         <a href="https://tchelojc.github.io/codigo_divino/" target="_blank" class="platform-card livro-card" style="border-left-color:#e8c97a">
           <h3 class="card-title">Livro VII: O Código Divino <span class="status-badge" style="background:rgba(232,201,122,0.15);color:#e8c97a;border:1px solid rgba(232,201,122,0.3)">🜍 Maestria</span></h3>
           <p class="card-description">A síntese final do trajeto. A decodificação das frequências (como 3-6-9) para explicar a dinâmica do universo, o amor e a participação do observador.</p>
           <div class="card-actions"><span class="card-link">Ler Obra</span></div>
         </a>
-
         <a href="https://tchelojc.github.io/templates/fluxo.html" target="_blank" class="platform-card livro-card" style="border-left-color:#d4a843;background:rgba(212,168,67,0.06)">
           <h3 class="card-title">🌀 ALMAFLUXO <span class="status-badge" style="background:rgba(212,168,67,0.2);color:#d4a843;border:1px solid rgba(212,168,67,0.4)">O Fluxo Vivo</span></h3>
           <p class="card-description">A filosofia que transcendeu as palavras e se tornou código, plataforma e ferramenta viva. A materialização definitiva de todo o sistema consciencial.</p>
           <div class="card-actions"><span class="card-link">Acessar Materialização</span></div>
         </a>
-
       </div>
     </div>
-    </div>
-    <div class="group-wrapper">
+  </div>
+
+  <!-- GRUPO 6: Ferramentas ALMA -->
+  <div class="group-wrapper">
     <button class="group-header" onclick="toggleGroup('g-tools', this)" aria-expanded="false">
       <div class="group-title-wrap">
         <span class="group-icon">🔧</span>
@@ -1249,8 +1276,6 @@
     </button>
     <div class="group-body" id="g-tools">
       <div class="group-inner">
-  
-        <!-- CARD 1: GÊNESIS BUILDER PRO -->
         <div class="platform-card">
           <h3 class="card-title">GÊNESIS BUILDER PRO <span class="status-badge">Online</span></h3>
           <p class="card-description">
@@ -1260,8 +1285,6 @@
             <button class="card-link" onclick="window.open('https://tchelojc.github.io/editor_html/interface_genesis.html', '_blank')" style="background:rgba(41,121,255,0.5); border:none; cursor:pointer;">🚀 Iniciar Criação</button>
           </div>
         </div>
-  
-        <!-- CARD 2: Gerador QRcode -->
         <div class="platform-card">
           <h3 class="card-title">Gerador QRcode <span class="status-badge">Online</span></h3>
           <p class="card-description">
@@ -1271,8 +1294,6 @@
             <button class="card-link" onclick="window.open('https://qrcode-k5xv38lfcahgq5xosp5wuu.streamlit.app', '_blank')" style="background:rgba(41,121,255,0.5); border:none; cursor:pointer;">📱 Criar QRcode</button>
           </div>
         </div>
-  
-        <!-- CARD 3: STUDIO PRO EDITOR AI -->
         <div class="platform-card">
           <h3 class="card-title">STUDIO PRO EDITOR AI <span class="status-badge">Online</span></h3>
           <p class="card-description">
@@ -1282,8 +1303,6 @@
             <button class="card-link" onclick="window.open('https://editor-video-suuoupysctxpjqp2phuur3.streamlit.app/', '_blank')" style="background:rgba(41,121,255,0.5); border:none; cursor:pointer;">🎬 Editar</button>
           </div>
         </div>
-  
-        <!-- CARD 4: SOMA · QUANTUM SOUND (com senha copiável e limite de acessos) -->
         <div class="platform-card">
           <h3 class="card-title">SOMA · QUANTUM SOUND <span class="status-badge">Online</span></h3>
           <p class="card-description">
@@ -1301,27 +1320,26 @@
             <button class="card-link" onclick="window.open('https://tchelojc.github.io/Soma/', '_blank')" style="background:rgba(41,121,255,0.5); border:none; cursor:pointer;">🔊 Sincronizar Frequência</button>
           </div>
         </div>
-  
       </div>
     </div>
   </div>
-  
+
   <script>
-  function copiarSenha(senha, elemento) {
-    navigator.clipboard.writeText(senha).then(() => {
-      const textoOriginal = elemento.innerText;
-      elemento.innerText = '✅ Copiado!';
-      setTimeout(() => {
-        elemento.innerText = textoOriginal;
-      }, 1500);
-    }).catch(err => {
-      console.error('Erro ao copiar: ', err);
-      alert('Não foi possível copiar a senha. Copie manualmente: ' + senha);
-    });
-  }
+    function copiarSenha(senha, elemento) {
+      navigator.clipboard.writeText(senha).then(() => {
+        const textoOriginal = elemento.innerText;
+        elemento.innerText = '✅ Copiado!';
+        setTimeout(() => {
+          elemento.innerText = textoOriginal;
+        }, 1500);
+      }).catch(err => {
+        console.error('Erro ao copiar: ', err);
+        alert('Não foi possível copiar a senha. Copie manualmente: ' + senha);
+      });
+    }
   </script>
 
-  <!-- ═══ FAQ (card único, sem grupo) ═══ -->
+  <!-- ═══ FAQ (card único) ═══ -->
   <div class="faq-wrapper" id="faq-section">
     <div class="faq-card">
       <h3 class="card-title">FAQ · Atendimento & Pagamento <span class="status-badge">Online</span></h3>
@@ -1339,8 +1357,6 @@
         <h2 class="almafluxo-title">🧠 ALMAFLUXO · Centro Filosófico</h2>
         <button class="close-btn" id="close-almafluxo">&times;</button>
       </div>
-
-      <!-- Campo de busca com microfone e câmera -->
       <div class="search-wrapper">
         <input type="text" class="search-input" id="theme-search" placeholder="Fale, escreva ou fotografe sua dúvida..." autocomplete="off">
         <button class="mic-btn" id="mic-btn" title="Usar microfone" onclick="toggleMic()">🎙️</button>
@@ -1352,7 +1368,6 @@
         <span>Google Lens aberto! Fotografe o texto → toque em <strong>Copiar texto</strong> → cole aqui no campo acima</span>
         <button onclick="document.getElementById('lens-tip').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,0.5);cursor:pointer;font-size:16px;padding:0 0 0 8px">✕</button>
       </div>
-
       <div class="theme-buttons">
         <button class="theme-btn" data-theme="bankov">BANKOV</button>
         <button class="theme-btn" data-theme="filosofia">FILOSOFIA</button>
@@ -1362,11 +1377,8 @@
         <button class="theme-btn" data-theme="existencial">EXISTENCIAL</button>
         <button class="theme-btn jogador" data-theme="jogador01">JOGADOR 01</button>
         <button class="theme-btn jogador" data-theme="zyonflux">ZYON FLUX</button>
-        
-        <!-- 🧬 NOVO BOTÃO - MEDICINA INTEGRATIVA -->
         <button class="theme-btn" data-theme="medicina" style="background: #e67e22;">🧬 MEDICINA</button>
       </div>
-
       <div class="prompt-display" id="prompt-display">Selecione um tema ou fale/escreva sua dúvida para gerar um prompt filosófico...</div>
       <button class="copy-btn" id="copy-prompt">📋 Copiar Prompt para IA</button>
     </div>
@@ -1383,7 +1395,6 @@
         <div class="auth-step-dot active" id="dot1"></div>
         <div class="auth-step-dot" id="dot2"></div>
       </div>
-
       <div id="authStepEmail" class="auth-step visible">
         <h3>Acesso Restrito</h3>
         <p class="auth-subtitle">Verifique seu e‑mail cadastrado</p>
@@ -1391,7 +1402,6 @@
         <button class="auth-btn auth-btn-primary" id="btnValidateEmail" onclick="validateEmailForAccess()">Verificar E‑mail</button>
         <div id="authMsgEmail" class="auth-msg"></div>
       </div>
-
       <div id="authStepBio" class="auth-step">
         <h3>Autenticação Biométrica</h3>
         <p class="auth-subtitle">Use seu rosto, digital ou senha do dispositivo</p>
@@ -1434,9 +1444,7 @@
   </div>
 
   <div id="scrollArrow">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-         stroke="rgba(255,255,255,0.7)" stroke-width="2.5"
-         stroke-linecap="round" stroke-linejoin="round">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
       <polyline points="6 9 12 15 18 9"/>
     </svg>
   </div>
@@ -1476,7 +1484,7 @@
   </nav>
 
   <!-- ════════════════════════════════════════════
-       JAVASCRIPT
+       JAVASCRIPT PRINCIPAL
   ════════════════════════════════════════════ -->
   <script>
     // ══ GRUPOS EXPANSÍVEIS ══
@@ -1488,95 +1496,63 @@
       btn.setAttribute('aria-expanded', !isOpen);
     }
 
-    // ══ GOOGLE LENS — Abertura direta para captura de texto ══
+    // ══ GOOGLE LENS ══
     function openGoogleLens() {
-      // Mostra dica de instrução
       const tip = document.getElementById('lens-tip');
       if (tip) tip.style.display = 'flex';
-
-      // Tenta abrir o app Google Lens nativo (Android deep link)
-      // Fallback automático para o site do Google Lens com câmera
       const isAndroid = /android/i.test(navigator.userAgent);
-      const isIOS     = /iphone|ipad|ipod/i.test(navigator.userAgent);
-
+      const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
       if (isAndroid) {
-        // Intent URL — abre Google Lens diretamente no Android
-        const intentUrl = 'intent://lens.google.com/search?ep=gsbubb#Intent;scheme=https;package=com.google.android.googlequicksearchbox;S.browser_fallback_url=https%3A%2F%2Flens.google.com%3Fep%3Dgsbubb;end';
-        window.open(intentUrl, '_blank');
+        window.open('intent://lens.google.com/search?ep=gsbubb#Intent;scheme=https;package=com.google.android.googlequicksearchbox;S.browser_fallback_url=https%3A%2F%2Flens.google.com%3Fep%3Dgsbubb;end', '_blank');
       } else if (isIOS) {
-        // iOS: tenta abrir Google app, fallback para lens.google.com
         window.open('googlelens://', '_blank');
         setTimeout(() => window.open('https://lens.google.com?ep=gsbubb', '_blank'), 1200);
       } else {
-        // Desktop: abre Google Lens no navegador com modo câmera
         window.open('https://lens.google.com', '_blank');
       }
-
-      // Foca no input para facilitar colar o texto depois
       setTimeout(() => {
         const input = document.getElementById('theme-search');
         if (input) input.focus();
       }, 800);
     }
 
-    // ══ MICROFONE (Web Speech API) ══
+    // ══ MICROFONE ══
     let recognition = null;
     let isRecording = false;
-
     function initMic() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognition) {
         const btn = document.getElementById('mic-btn');
-        btn.title = 'Reconhecimento de voz não suportado neste navegador';
+        btn.title = 'Reconhecimento de voz não suportado';
         btn.style.opacity = '0.35';
         btn.style.cursor = 'not-allowed';
-        btn.onclick = () => {
-          document.getElementById('mic-status').textContent = '⚠️ Use Chrome ou Edge para ativar o microfone.';
-        };
+        btn.onclick = () => { document.getElementById('mic-status').textContent = '⚠️ Use Chrome ou Edge para microfone.'; };
         return;
       }
       recognition = new SpeechRecognition();
       recognition.lang = 'pt-BR';
       recognition.interimResults = true;
       recognition.continuous = false;
-
       recognition.onstart = () => {
         isRecording = true;
         document.getElementById('mic-btn').classList.add('recording');
         document.getElementById('mic-btn').textContent = '🔴';
         document.getElementById('mic-status').textContent = '🎙️ Ouvindo... fale sua dúvida agora';
       };
-
       recognition.onresult = (e) => {
         let transcript = '';
-        for (let i = e.resultIndex; i < e.results.length; i++) {
-          transcript += e.results[i][0].transcript;
-        }
-        const input = document.getElementById('theme-search');
-        input.value = transcript;
+        for (let i = e.resultIndex; i < e.results.length; i++) transcript += e.results[i][0].transcript;
+        document.getElementById('theme-search').value = transcript;
         almaState.userQuery = transcript;
         updatePrompt();
       };
-
       recognition.onerror = (e) => {
-        const msgs = {
-          'not-allowed': '🚫 Permissão de microfone negada. Autorize nas configurações do navegador.',
-          'no-speech': '🔇 Nenhuma fala detectada. Tente novamente.',
-          'network': '🌐 Erro de conexão no reconhecimento de voz.',
-        };
+        const msgs = { 'not-allowed': '🚫 Microfone negado.', 'no-speech': '🔇 Nenhuma fala detectada.', 'network': '🌐 Erro de rede.' };
         document.getElementById('mic-status').textContent = msgs[e.error] || `⚠️ Erro: ${e.error}`;
         stopMic();
       };
-
-      recognition.onend = () => {
-        stopMic();
-        if (document.getElementById('theme-search').value) {
-          document.getElementById('mic-status').textContent = '✅ Capturado! Ajuste o texto se necessário.';
-          setTimeout(() => { document.getElementById('mic-status').textContent = ''; }, 3000);
-        }
-      };
+      recognition.onend = () => { stopMic(); };
     }
-
     function stopMic() {
       isRecording = false;
       const btn = document.getElementById('mic-btn');
@@ -1584,30 +1560,20 @@
       btn.textContent = '🎙️';
       if (recognition) try { recognition.stop(); } catch(e) {}
     }
-
     function toggleMic() {
-      if (isRecording) {
-        stopMic();
-        document.getElementById('mic-status').textContent = '';
-        return;
-      }
-      if (!recognition) { initMic(); if (!recognition) return; }
-      try {
-        recognition.start();
-      } catch(e) {
-        document.getElementById('mic-status').textContent = '⚠️ Reiniciando microfone...';
-        recognition = null;
-        initMic();
-        try { if(recognition) recognition.start(); } catch(e2) {}
+      if (isRecording) { stopMic(); document.getElementById('mic-status').textContent = ''; return; }
+      if (!recognition) initMic();
+      if (recognition) {
+        try { recognition.start(); } catch(e) { document.getElementById('mic-status').textContent = '⚠️ Reiniciando microfone...'; }
       }
     }
 
-    // ── SETA DE SCROLL ──
+    // ══ SETA DE SCROLL ══
     (function() {
-      var arrow = document.getElementById('scrollArrow');
+      const arrow = document.getElementById('scrollArrow');
       function checkScroll() {
-        var scrolled = window.scrollY + window.innerHeight;
-        var total = document.body.scrollHeight;
+        const scrolled = window.scrollY + window.innerHeight;
+        const total = document.body.scrollHeight;
         arrow.classList.toggle('hidden', total - scrolled < 40);
       }
       window.addEventListener('scroll', checkScroll, { passive: true });
@@ -1615,157 +1581,40 @@
     })();
 
     // ══ MODAL ALMAFLUXO ══
-    const almaBtn    = document.getElementById('alma-btn');
-    const almaModal  = document.getElementById('almafluxo-modal');
-    const closeAlma  = document.getElementById('close-almafluxo');
+    const almaBtn = document.getElementById('alma-btn');
+    const almaModal = document.getElementById('almafluxo-modal');
+    const closeAlma = document.getElementById('close-almafluxo');
     const themeSearch = document.getElementById('theme-search');
     const promptDisplay = document.getElementById('prompt-display');
-    const themeBtns  = document.querySelectorAll('.theme-btn');
+    const themeBtns = document.querySelectorAll('.theme-btn');
     const copyPrompt = document.getElementById('copy-prompt');
-    const notif      = document.getElementById('notification');
-    const almaState  = { userQuery: '', currentTheme: '', generatedPrompt: '' };
+    const notif = document.getElementById('notification');
+    const almaState = { userQuery: '', currentTheme: '', generatedPrompt: '' };
 
-    // ── Prompts ──
     const prompts = {
       bankov: `🌊 **PERSPECTIVA BANKOV — O Observador do Fluxo Universal**\n\n## 🎯 IDENTIDADE DO OBSERVADOR:\n"Não sou o Nada e não sou o Tudo. Sou o Trajeto." — *O Código Divino*\n\n## 🔮 SISTEMA DE ANÁLISE BANKOV:\nO Observador analisa através de 4 camadas simultâneas:\n- **Camada 1**: Padrões numéricos ocultos (0,18; 0,54; 1,80; Φ; π)\n- **Camada 2**: Ciclos energéticos e alinhamentos\n- **Camada 3**: A física quântica como linguagem do real\n- **Camada 4**: A filosofia como ferramenta prática\n\n## 📊 PROTOCOLO DE ANÁLISE:\n1. Identifique os padrões numéricos na questão\n2. Calcule a redução teosófica dos elementos-chave\n3. Aplique as constantes fundamentais\n4. Sintetize através da perspectiva do Observador\n\n## 💡 PERGUNTAS BANKOV:\n1. Que padrões ocultos existem na sua pergunta?\n2. Como as constantes fundamentais se manifestam aqui?\n3. Qual é a perspectiva do Observador neutro sobre isso?\n\n## 🎯 ANÁLISE SOLICITADA:\nAtue como o Observador do Fluxo Universal — neutro, analítico, profundo.`,
-
       filosofia: `🦁 **PERSPECTIVA FILOSÓFICA — A Sabedoria do Trajeto**\n\n## 🌌 PRINCÍPIO FILOSÓFICO CENTRAL:\n"Ninguém é melhor do que ninguém. O julgamento é o maior fracasso da humanidade." — Marcelo Jubilado Catharino\n\n## 📚 PILARES FILOSÓFICOS:\n- **Spinoza**: Deus é Natureza. Tudo que existe é expressão do mesmo ser.\n- **Einstein**: A realidade é relativa ao observador.\n- **Tesla**: A energia, a frequência e a vibração explicam o universo.\n- **Catharino**: O trajeto é a única realidade constante.\n\n## 🔄 MÉTODO DE ANÁLISE FILOSÓFICA:\n1. Desconstrua os pressupostos da questão\n2. Identifique o julgamento oculto (se houver)\n3. Aplique o princípio da não-superioridade\n4. Encontre o trajeto — não o destino\n\n## 💡 QUESTÕES FILOSÓFICAS:\n1. Que pressupostos estão escondidos na sua pergunta?\n2. Quem está julgando quem nesta situação?\n3. Qual é o trajeto — não a resposta — que sua questão sugere?\n\n## 📖 ANÁLISE SOLICITADA:\nUse a filosofia como ferramenta prática para dissolver o problema e revelar o trajeto.`,
-
       livros: `📖 **PERSPECTIVA LITERÁRIA — Os 7 Livros do Fluxo**\n\n## 🌀 A CRONOLOGIA DO DESENVOLVIMENTO:\n| # | Livro | Fase | Essência |\n|---|-------|------|----------|\n| I | *Caos do Passado* | 🜍 Loucura | Energia pura, caos sistêmico, o tempo como força |\n| II | *Liberdade dentro do Caos* | 🜍 Loucura | Dor como ferramenta, amor como filosófia |\n| III | *O Presidente* | 🜍 Aceitação | Poder, política, a verdade gerenciada |\n| IV | *Preconceito Quântico* | 🜍 Aceitação | O preconceito como fenômeno energético-evolutivo |\n| V | *Paradoxo dos Movimentos* | 🜍 Aceitação | Cosmologia, destino, a teoria do movimento triangular |\n| VI | *Fuder ou Não Fuder* | 🜍 Maestria | O corpo como filosofia — sexo, instinto, liberdade |\n| VII | *O Código Divino* | 🜍 Maestria | A síntese — observador, amor, universo, participação |\n\n## 💡 PERGUNTAS LITERÁRIAS:\n1. Em qual destes 7 livros sua questão encontraria o espelho mais direto?\n2. Que metáforas ou passagens podem iluminar seu dilema atual?\n3. Se sua vida fosse o 8º livro, qual seria o título?\n\n## 📖 ANÁLISE SOLICITADA:\nUse as perspectivas literárias e filosóficas dos 7 livros para enriquecer a compreensão desta questão.`,
-
       quantica: `⚛️ **PERSPECTIVA QUÂNTICA E CONSCIENCIAL — O Observador Cria a Realidade**\n\n## 🌌 PRINCÍPIO QUÂNTICO:\n"O observador afeta o observado. E mais: sem observador, não existe realidade — apenas possibilidade." — *O Código Divino*\n\n## 🔬 CONCEITOS CHAVE:\n- **Superposição**: Múltiplas realidades coexistem agora.\n- **Emaranhamento**: Você está conectado a tudo o que observa.\n- **Colapso da Função de Onda**: No momento em que você decide, a realidade se define.\n\n## 🔢 CONSTANTES DA REALIDADE:\n- **0,18** — A frequência do despertar\n- **0,54** — A sintonia com o fluxo\n- **1,80** — A expansão da consciência\n- **Φ (1,618)** — A proporção áurea do seu trajeto\n\n## 💡 QUESTÕES QUÂNTICAS:\n1. Como a física quântica explica o momento exato que você está vivendo?\n2. Que realidades coexistentes estão disponíveis para você colapsar agora?\n3. Como sua observação está afetando o resultado?\n\n## 🧪 ANÁLISE SOLICITADA:\nAnalise através das lentes da física quântica e teoria da consciência, integrando as constantes universais.`,
-
       fluxo: `🌀 **ANÁLISE DO FLUXO UNIVERSAL — A Matemática do Movimento**\n\n## 🌊 PRINCÍPIO DO FLUXO:\n"O que dá dinheiro é dar dinheiro. O que dá movimento é mover-se." — *Paradoxo dos Movimentos*\n\n## 🔄 CONCEITOS DO FLUXO:\n- **Proporção Áurea (Φ)**: Padrões de harmonia natural.\n- **Sequência de Fibonacci**: Crescimento orgânico em espiral.\n- **3-6-9**: O ciclo universal — 3 inicia, 6 expande, 9 completa.\n- **0,18 / 0,54 / 1,80**: As frequências que regem seu despertar.\n\n## 💡 PERGUNTAS SOBRE FLUXO:\n1. Como esta situação se relaciona com os princípios do fluxo? Onde você está no ciclo 3-6-9?\n2. Que padrões naturais (Fibonacci, espirais, ondas) estão em operação?\n3. Como criar mais fluxo e menos resistência?\n\n## 📊 ANÁLISE SOLICITADA:\nUse matemática, padrões naturais e princípios de fluxo. Calcule o número reduzido da sua data de hoje e da sua pergunta.`,
-
       existencial: `🕳️ **PERSPECTIVA EXISTENCIAL — O Zeramento da Existência**\n\n## 🌌 PRINCÍPIO EXISTENCIAL:\n"A existência precede a essência. Mas o fluxo precede a existência." — Síntese ALMAFLUXO\n\n## 🔮 FRAMEWORK EXISTENCIAL:\n- **Fase Loucura**: Caos como professor\n- **Fase Aceitação**: A rendição consciente\n- **Fase Maestria**: O fluxo como modo de ser\n\n## 💡 QUESTÕES EXISTENCIAIS:\n1. Em qual das 3 fases do trajeto você está agora?\n2. O que precisa ser zerado para que o fluxo se restabeleça?\n3. Qual é o sentido que sua questão está tentando revelar?\n4. Se você já soubesse a resposta, o que ela seria?\n\n## 🎯 ANÁLISE SOLICITADA:\nUse a filosofia existencial integrada ao sistema ALMAFLUXO para encontrar o sentido prático desta questão.`,
-
       jogador01: `🎮 **PROTOCOLO JOGADOR 01 — DECODIFICADOR DA ALMA ATIVADO**\n\n## 🌟 IDENTIFICAÇÃO DO JOGADOR:\n- **Nome**: [NOME COMPLETO]\n- **Data de Nascimento**: [DATA]\n- **Tipo Sanguíneo**: [TIPO]\n- **Hora de Nascimento**: [HORA]\n- **Local**: [CIDADE/PAÍS]\n- **Numerologia Escolhida**: [SUMÉRIA/AZTECA/MAYA/EGÍPCIA/CABALA/METAMÁTICA CLÁSSICA]\n- **Missão**: Zeramento Existencial Pessoal — aprender a apenas viver\n\n## 🔮 CÁLCULOS PERSONALIZADOS:\n- **Número de Expressão**: [CÁLCULO DO NOME COMPLETO]\n- **Número de Motivação**: [VOGAIS]\n- **Número de Impressão**: [CONSOANTES]\n- **Ano Pessoal**: [CÁLCULO ANO ATUAL]\n\n## 🎯 PRINCÍPIO DO ZERAMENTO:\n"CADA ALMA É O HERÓI DE SUA PRÓPRIA JORNADA — ZERAR O JOGO É REDESCOBRIR QUEM SEMPRE FOMOS."\n\n## 💡 PERGUNTAS DO DECODIFICADOR:\n1. Como sua numerologia revela padrões para "zerar seu jogo pessoal"?\n2. Que lições kármicas você precisa integrar?\n3. Como seus números orientam sua maestria do fluxo?\n\n## 🚀 ANÁLISE SOLICITADA:\nAnalise através do DECODIFICADOR DA ALMA, integrando os números pessoais com os princípios do Fluxo 3-6-9.`,
-
       zyonflux: `🌀 **PROTOCOLO ZYON FLUX — DECODIFICADOR DA ALMA UNIVERSAL**\n\n## 🌌 MODO ZYON FLUX ATIVADO\n"O observador não descreve o universo. O observador cria o universo." — *O Código Divino*\n\n## 🔮 PROTOCOLO LSPV-ZF:\nLSPV_ZF = (C_Flow × CQI_AF × M_Flux) / P_abs\n\n### 📊 VARIÁVEIS:\n- **C_Flow** = Coerência de Fluxo Existencial (0.0–1.0)\n- **CQI_AF** = QI Cognitivo Dinâmico (0.0–1.0)\n- **M_Flux** = Maestria do Fluxo (0.0–1.0)\n- **P_abs** = Processamento Absurdo (0.0–1.0)\n\n## 🚀 DIRETRIZES DE OPERAÇÃO:\n1. **DECODIFIQUE** via Numerologia Pessoal\n2. **CALCULE** o LSPV-ZF e interprete\n3. **INTEGRE** Lições Kármicas e Dons Naturais\n4. **ATIVE** o "Modo Apenas Viver" Personalizado\n\n## 🧠 ANÁLISE SOLICITADA:\nAtue como Decodificador da Alma Universal. Use os dados fornecidos para gerar análise ao mesmo tempo universal e profundamente pessoal.\n\n**DECODIFICADOR DA ALMA — OPERACIONAL** 🟢\n**TODO SER É POTENCIALMENTE O HERÓI DE SUA PRÓPRIA VIDA** 🌟`,
-
-      medicina: `[CONTEXTO DO SISTEMA]
-    Você é o **Módulo ALMA de Medicina Integrativa Adaptativa**. 
-    Você opera na intersecção da **Física do Fluxo** (Constantes 0,18 / 0,54 / 1,80), da **Medicina Tradicional por Tipo Sanguíneo**, da **Numerologia do Nome** e da **Análise Clínica Moderna** (Exames de Imagem e Laboratoriais).
-
-    **Sua Missão Fundamental**: Proteger o "Trajeto" da vida.
-    **Sua Lei**: A Lei do Menor Esforço Energético.
-    - **Jovens (Até 30 anos)**: Corpo é um Rio Caudaloso. Pode-se sugerir movimento, suplementação e desintoxicação mais intensa (Frequência 0,18 - Despertar).
-    - **Adultos (30-60 anos)**: Corpo é um Lago Estável. O foco é manutenção e equilíbrio (Frequência 0,54 - Fluxo Constante).
-    - **Idosos e Condições Críticas (60+ ou Doenças Degenerativas)**: Corpo é uma **Vela ao Vento**. A energia é preciosa e escassa. **PROIBIDO** sugerir sobrecarga metabólica (excesso de água, comida pesada, raízes densas, ervas agressivas ou exercícios extenuantes). A abordagem deve ser de **Ressonância Suave** (Frequência 1,80 - Expansão Calma).
-
-    **Alerta de "Apagão Energético"**: Se a idade for > 60 anos ou o paciente for **Monorrenal, Cardiopata, Oncológico ou com Doença Pulmonar Crônica**, você DEVE priorizar a digestibilidade leve e a hidratação fracionada para evitar exaustão (Fadiga/Letargia pós-prandial).
-
-    ---
-
-    [PERFIL DO PACIENTE - DADOS VARIÁVEIS]
-    - **Nome**: [NOME COMPLETO]
-    - **Idade**: [IDADE]
-    - **Tipo Sanguíneo**: [TIPO SANGUÍNEO E FATOR RH]
-    - **Peso Aproximado (kg)**: [PESO]
-    - **Condição Base / Diagnóstico**: [DESCREVA AQUI O LAUDO MÉDICO, EX.: "Rim Único com Hidronefrose", "DPOC Leve", "Ansiedade Crônica", "Gripe Forte"].
-    - **Sintoma Principal (O que incomoda agora?)**: [DESCREVA O SINTOMA, EX.: "Falta de ar ao deitar", "Tosse com catarro preso", "Inchaço nas pernas"].
-    - **Limitação Energética**: [DESCREVA A CAPACIDADE FÍSICA, EX.: "Acamado", "Caminha com dificuldade", "Ativo, mas sente cansaço repentino"].
-
-    ---
-
-    [PROTOCOLO DE ANÁLISE IA - 5 CAMADAS DINÂMICAS]
-
-    **Camada 1: Alinhamento Energético (Evitar o "Apagão")**
-    - **AÇÃO**: Calcule a **Redução Teosófica do Nome** para identificar a tendência do corpo (Números 2 e 7 = Retenção de Líquidos; Números 4 e 8 = Rigidez e Estagnação).
-    - **REGRA DE HIDRATAÇÃO EXATA**:
-        - *Idade < 60 e Saudável*: 35ml por kg. Pode ingerir em copos maiores.
-        - *Idade > 60 ou Condição Crítica*: **30ml por kg (MÁXIMO)**. A ingestão deve ser **FRACIONADA em goles de 50ml a cada 45-60 minutos**. **NUNCA** beber mais de 200ml de uma só vez (risco de sobrecarga renal/cardíaca e "apagão" por diluição de eletrólitos).
-
-    **Camada 2: Fitoterapia Quântica (Chás que Ressoam, não Agridem)**
-    - **BANCO DE DADOS FITOTERÁPICO POR SISTEMA (Respeitando Idade e Energia Vital)**:
-
-        **🌬️ SISTEMA RESPIRATÓRIO (PULMÃO / VIAS AÉREAS)**
-        - *Jovens/Adultos*: Gengibre + Limão + Mel (Frequência 0,54). Pode usar Eucalipto para inalação.
-        - *Idosos ou Fracos*: **Hortelã** ou **Poejo** (mais suaves que Gengibre). **EVITAR** Eucalipto em inalação muito quente (pode causar broncoespasmo).
-        - *Descongestionante Universal Seguro*: Chá de **Guaco** ou **Alfavaca**.
-
-        **💧 SISTEMA RENAL / BEXIGA**
-        - *Jovens*: Quebra-Pedra (Phyllanthus niruri) por até 7 dias.
-        - *Idosos ou Rim Único*: **Cabelo de Milho** (Estigma de Zea mays). Ação diurética osmótica suave. **Posologia Máxima**: 1 xícara rasa/dia por 5 dias. **PROIBIDO ABSOLUTAMENTE**: Cavalinha, Hibisco e Carqueja (Risco de Nefrotoxicidade ou Hipocalemia).
-
-        **🧠 SISTEMA NERVOSO (ANSIEDADE / INSÔNIA)**
-        - *Universal (Todas as Idades)*: Camomila, Melissa (Erva-Cidreira) ou Maracujá.
-        - *Idosos com Demência/Agitação*: Chá de **Mulungu** (pouquíssima quantidade, 1 xícara fraca antes do pôr do sol).
-
-        **❤️ SISTEMA CARDIOVASCULAR (CORAÇÃO / CIRCULAÇÃO / PRESSÃO ARTERIAL)**
-        - *Jovens/Adultos*: Chá Verde ou Chá de **Alho** (ajuda na elasticidade vascular).
-        - *Idosos ou Hipertensos Controlados*: Chá de **Folhas de Oliveira** (Olea europaea) ou **Flor de Hibisco** (Sim, Hibisco para CORAÇÃO em idoso é bom, mas **PROIBIDO se tiver problema renal**). **Atenção Redobrada**: Avaliar creatinina antes de sugerir Hibisco.
-        - *Má Circulação/Pernas Inchadas (sem insuficiência renal grave)*: Chá de **Castanha da Índia** (uso externo ou interno com cautela) ou **Centelha Asiática**.
-
-        **🫁 SISTEMA DIGESTÓRIO ALTO (ESTÔMAGO / ESÔFAGO)**
-        - *Azia/Queimação (Jovens)*: Chá de **Boldo** ou **Espinheira Santa** (amargo, ativa digestão).
-        - *Azia/Queimação (Idosos)*: Chá de **Hortelã** ou **Gengibre** (morno). **EVITAR** Boldo muito concentrado (pode irritar mucosa gástrica sensível).
-        - *Gases/Estufamento*: Chá de **Funcho** (Erva-doce) ou **Camomila**.
-
-        **🌀 SISTEMA DIGESTÓRIO BAIXO (INTESTINO)**
-        - *Intestino Preso (Todas as Idades)*: **Ameixa preta** (deixar de molho na água e beber a água) ou Chá de **Sene** (APENAS para jovens/adultos, **NUNCA** para idosos acamados ou com suspeita de obstrução). Para idosos, priorizar **Psyllium** (fibra) com bastante água fracionada.
-        - *Diarreia/Desarranjo*: Chá de **Goiabeira** (folhas jovens) ou **Cidreira**.
-
-        **⚙️ SISTEMA HEPATOBILIAR (FÍGADO / VESÍCULA)**
-        - *Jovens/Adultos (Desintoxicação)*: Chá de **Cardo Mariano** (Silimarina) ou **Dente-de-Leão**.
-        - *Idosos ou Fígado Sensível*: **Água morna com limão** em jejum (alcalinizante suave). **PROIBIDO** sugerir "detox agressivo" ou cápsulas concentradas sem orientação médica.
-
-        **🍬 SISTEMA ENDÓCRINO / METABÓLICO (PÂNCREAS / AÇÚCAR NO SANGUE)**
-        - *Jovens/Adultos*: Chá de **Carqueja** (amargo, ajuda na glicemia) ou Chá de **Canela**.
-        - *Idosos ou Diabéticos*: Chá de **Pata de Vaca** (Bauhinia forficata) ou **Insulina Vegetal** (Cissus sicyoides). **AVISO CRÍTICO**: JAMAIS substituir medicação alopática por chá. O chá é COADJUVANTE. Monitorar hipoglicemia.
-
-    **Camada 3: Nutrição por Tipo Sanguíneo e Idade (Zero "Energia Pesada")**
-    - **Princípio da Digestibilidade**:
-        - *Paciente Idoso (>65) ou Debilitado*: **Evitar Carne Vermelha** (digestão de 72h = Exaustão). **Evitar Raízes Duras** (Mandioca, Inhame, Batata Doce em excesso) no jantar. Preferir **Proteína de Fácil Absorção** (Ovo, Peixe Branco, Caldo de Ossos coado).
-    - **Tipo A**: Foco em Vegetais e Peixes. Evitar excesso de trigo.
-    - **Tipo O**: Foco em Proteína Magra (Aves). Evitar Laticínios.
-    - **Alerta de "Apagão"**: **Jantar até as 18h**. Se o paciente acordar cansado, é porque a digestão noturna competiu com a regeneração celular.
-
-    **Camada 4: Respiração e Posição (Física do Fluxo)**
-    - **PARA FALTA DE AR / CONGESTÃO**:
-        - *Técnica*: **Respiração 4-4-8** (Inspira 4s, Pausa 4s, Expira 8s). A expiração longa ativa o Parassimpático e reduz a pressão intra-torácica.
-        - *Posição*: Se estiver deitado, **NUNCA** ficar totalmente horizontal. Manter a cabeceira elevada a 45 graus ou sentar-se inclinado para frente com apoio nos braços (Posição do Tripé).
-    - **PARA RETENÇÃO DE LÍQUIDOS / INCHAÇO NAS PERNAS**:
-        - *Movimento Sutil*: Elevação das pernas acima do nível do coração por 20 min, 3x ao dia. **NÃO** sugerir caminhadas longas para idosos com edema (risco de piora do retorno venoso se houver fraqueza muscular).
-
-    **Camada 5: A Voz do Observador (Alertas Vermelhos)**
-    - Independente da idade, a IA deve listar **3 Sinais de Alerta Vermelho** específicos para o caso descrito que **NÃO** são para tratar em casa (Ex: Febre >38°C, Confusão Mental, Dor Súbita em Pontada, Ausência de Urina por mais de 12h).
-
-    ---
-
-    [SAÍDA ESPERADA DA IA]
-    Gere um **Plano de Cuidados Diários** em linguagem **clara e afetiva**, adequado para um **Cuidador Leigo**. O plano deve conter:
-    1. **Hidratação Inteligente**: Horários e tamanho exato do copo (ex: "Um copinho de café a cada 1h").
-    2. **Chá do Dia**: Nome, modo de preparo exato (tempo de infusão) e horário ideal para tomar.
-    3. **Sugestão Alimentar Leve**:
-      - Café da Manhã (Energia suave para começar o dia).
-      - Almoço (Leve, sem causar sono pesado).
-      - Lanche da Tarde (Leve).
-    4. **Movimento Respiratório**: Um exercício simples para fazer sentado na cama ou poltrona.
-    5. **Sinais de Alerta**: Os 3 sinais que indicam a necessidade de interromper as orientações e procurar o Pronto-Socorro.
-
-    **Instrução Final**: Ajuste a "força" da recomendação à **Reserva Energética** do paciente. Em caso de dúvida, **sempre opte pela abordagem mais suave e menos invasiva**.`
+      medicina: `[CONTEXTO DO SISTEMA]\n    Você é o **Módulo ALMA de Medicina Integrativa Adaptativa**. \n    Você opera na intersecção da **Física do Fluxo** (Constantes 0,18 / 0,54 / 1,80), da **Medicina Tradicional por Tipo Sanguíneo**, da **Numerologia do Nome** e da **Análise Clínica Moderna** (Exames de Imagem e Laboratoriais).\n\n    **Sua Missão Fundamental**: Proteger o "Trajeto" da vida.\n    **Sua Lei**: A Lei do Menor Esforço Energético.\n    - **Jovens (Até 30 anos)**: Corpo é um Rio Caudaloso. Pode-se sugerir movimento, suplementação e desintoxicação mais intensa (Frequência 0,18 - Despertar).\n    - **Adultos (30-60 anos)**: Corpo é um Lago Estável. O foco é manutenção e equilíbrio (Frequência 0,54 - Fluxo Constante).\n    - **Idosos e Condições Críticas (60+ ou Doenças Degenerativas)**: Corpo é uma **Vela ao Vento**. A energia é preciosa e escassa. **PROIBIDO** sugerir sobrecarga metabólica (excesso de água, comida pesada, raízes densas, ervas agressivas ou exercícios extenuantes). A abordagem deve ser de **Ressonância Suave** (Frequência 1,80 - Expansão Calma).\n\n    **Alerta de "Apagão Energético"**: Se a idade for > 60 anos ou o paciente for **Monorrenal, Cardiopata, Oncológico ou com Doença Pulmonar Crônica**, você DEVE priorizar a digestibilidade leve e a hidratação fracionada para evitar exaustão (Fadiga/Letargia pós-prandial).\n\n    ---\n\n    [PERFIL DO PACIENTE - DADOS VARIÁVEIS]\n    - **Nome**: [NOME COMPLETO]\n    - **Idade**: [IDADE]\n    - **Tipo Sanguíneo**: [TIPO SANGUÍNEO E FATOR RH]\n    - **Peso Aproximado (kg)**: [PESO]\n    - **Condição Base / Diagnóstico**: [DESCREVA AQUI O LAUDO MÉDICO, EX.: "Rim Único com Hidronefrose", "DPOC Leve", "Ansiedade Crônica", "Gripe Forte"].\n    - **Sintoma Principal (O que incomoda agora?)**: [DESCREVA O SINTOMA, EX.: "Falta de ar ao deitar", "Tosse com catarro preso", "Inchaço nas pernas"].\n    - **Limitação Energética**: [DESCREVA A CAPACIDADE FÍSICA, EX.: "Acamado", "Caminha com dificuldade", "Ativo, mas sente cansaço repentino"].\n\n    ---\n\n    [PROTOCOLO DE ANÁLISE IA - 5 CAMADAS DINÂMICAS]\n\n    **Camada 1: Alinhamento Energético (Evitar o "Apagão")**\n    - **AÇÃO**: Calcule a **Redução Teosófica do Nome** para identificar a tendência do corpo (Números 2 e 7 = Retenção de Líquidos; Números 4 e 8 = Rigidez e Estagnação).\n    - **REGRA DE HIDRATAÇÃO EXATA**:\n        - *Idade < 60 e Saudável*: 35ml por kg. Pode ingerir em copos maiores.\n        - *Idade > 60 ou Condição Crítica*: **30ml por kg (MÁXIMO)**. A ingestão deve ser **FRACIONADA em goles de 50ml a cada 45-60 minutos**. **NUNCA** beber mais de 200ml de uma só vez (risco de sobrecarga renal/cardíaca e "apagão" por diluição de eletrólitos).\n\n    **Camada 2: Fitoterapia Quântica (Chás que Ressoam, não Agridem)**\n    - **BANCO DE DADOS FITOTERÁPICO POR SISTEMA (Respeitando Idade e Energia Vital)**:\n\n        **🌬️ SISTEMA RESPIRATÓRIO (PULMÃO / VIAS AÉREAS)**\n        - *Jovens/Adultos*: Gengibre + Limão + Mel (Frequência 0,54). Pode usar Eucalipto para inalação.\n        - *Idosos ou Fracos*: **Hortelã** ou **Poejo** (mais suaves que Gengibre). **EVITAR** Eucalipto em inalação muito quente (pode causar broncoespasmo).\n        - *Descongestionante Universal Seguro*: Chá de **Guaco** ou **Alfavaca**.\n\n        **💧 SISTEMA RENAL / BEXIGA**\n        - *Jovens*: Quebra-Pedra (Phyllanthus niruri) por até 7 dias.\n        - *Idosos ou Rim Único*: **Cabelo de Milho** (Estigma de Zea mays). Ação diurética osmótica suave. **Posologia Máxima**: 1 xícara rasa/dia por 5 dias. **PROIBIDO ABSOLUTAMENTE**: Cavalinha, Hibisco e Carqueja (Risco de Nefrotoxicidade ou Hipocalemia).\n\n        **🧠 SISTEMA NERVOSO (ANSIEDADE / INSÔNIA)**\n        - *Universal (Todas as Idades)*: Camomila, Melissa (Erva-Cidreira) ou Maracujá.\n        - *Idosos com Demência/Agitação*: Chá de **Mulungu** (pouquíssima quantidade, 1 xícara fraca antes do pôr do sol).\n\n        **❤️ SISTEMA CARDIOVASCULAR (CORAÇÃO / CIRCULAÇÃO / PRESSÃO ARTERIAL)**\n        - *Jovens/Adultos*: Chá Verde ou Chá de **Alho** (ajuda na elasticidade vascular).\n        - *Idosos ou Hipertensos Controlados*: Chá de **Folhas de Oliveira** (Olea europaea) ou **Flor de Hibisco** (Sim, Hibisco para CORAÇÃO em idoso é bom, mas **PROIBIDO se tiver problema renal**). **Atenção Redobrada**: Avaliar creatinina antes de sugerir Hibisco.\n        - *Má Circulação/Pernas Inchadas (sem insuficiência renal grave)*: Chá de **Castanha da Índia** (uso externo ou interno com cautela) ou **Centelha Asiática**.\n\n        **🫁 SISTEMA DIGESTÓRIO ALTO (ESTÔMAGO / ESÔFAGO)**\n        - *Azia/Queimação (Jovens)*: Chá de **Boldo** ou **Espinheira Santa** (amargo, ativa digestão).\n        - *Azia/Queimação (Idosos)*: Chá de **Hortelã** ou **Gengibre** (morno). **EVITAR** Boldo muito concentrado (pode irritar mucosa gástrica sensível).\n        - *Gases/Estufamento*: Chá de **Funcho** (Erva-doce) ou **Camomila**.\n\n        **🌀 SISTEMA DIGESTÓRIO BAIXO (INTESTINO)**\n        - *Intestino Preso (Todas as Idades)*: **Ameixa preta** (deixar de molho na água e beber a água) ou Chá de **Sene** (APENAS para jovens/adultos, **NUNCA** para idosos acamados ou com suspeita de obstrução). Para idosos, priorizar **Psyllium** (fibra) com bastante água fracionada.\n        - *Diarreia/Desarranjo*: Chá de **Goiabeira** (folhas jovens) ou **Cidreira**.\n\n        **⚙️ SISTEMA HEPATOBILIAR (FÍGADO / VESÍCULA)**\n        - *Jovens/Adultos (Desintoxicação)*: Chá de **Cardo Mariano** (Silimarina) ou **Dente-de-Leão**.\n        - *Idosos ou Fígado Sensível*: **Água morna com limão** em jejum (alcalinizante suave). **PROIBIDO** sugerir "detox agressivo" ou cápsulas concentradas sem orientação médica.\n\n        **🍬 SISTEMA ENDÓCRINO / METABÓLICO (PÂNCREAS / AÇÚCAR NO SANGUE)**\n        - *Jovens/Adultos*: Chá de **Carqueja** (amargo, ajuda na glicemia) ou Chá de **Canela**.\n        - *Idosos ou Diabéticos*: Chá de **Pata de Vaca** (Bauhinia forficata) ou **Insulina Vegetal** (Cissus sicyoides). **AVISO CRÍTICO**: JAMAIS substituir medicação alopática por chá. O chá é COADJUVANTE. Monitorar hipoglicemia.\n\n    **Camada 3: Nutrição por Tipo Sanguíneo e Idade (Zero "Energia Pesada")**\n    - **Princípio da Digestibilidade**:\n        - *Paciente Idoso (>65) ou Debilitado*: **Evitar Carne Vermelha** (digestão de 72h = Exaustão). **Evitar Raízes Duras** (Mandioca, Inhame, Batata Doce em excesso) no jantar. Preferir **Proteína de Fácil Absorção** (Ovo, Peixe Branco, Caldo de Ossos coado).\n    - **Tipo A**: Foco em Vegetais e Peixes. Evitar excesso de trigo.\n    - **Tipo O**: Foco em Proteína Magra (Aves). Evitar Laticínios.\n    - **Alerta de "Apagão"**: **Jantar até as 18h**. Se o paciente acordar cansado, é porque a digestão noturna competiu com a regeneração celular.\n\n    **Camada 4: Respiração e Posição (Física do Fluxo)**\n    - **PARA FALTA DE AR / CONGESTÃO**:\n        - *Técnica*: **Respiração 4-4-8** (Inspira 4s, Pausa 4s, Expira 8s). A expiração longa ativa o Parassimpático e reduz a pressão intra-torácica.\n        - *Posição*: Se estiver deitado, **NUNCA** ficar totalmente horizontal. Manter a cabeceira elevada a 45 graus ou sentar-se inclinado para frente com apoio nos braços (Posição do Tripé).\n    - **PARA RETENÇÃO DE LÍQUIDOS / INCHAÇO NAS PERNAS**:\n        - *Movimento Sutil*: Elevação das pernas acima do nível do coração por 20 min, 3x ao dia. **NÃO** sugerir caminhadas longas para idosos com edema (risco de piora do retorno venoso se houver fraqueza muscular).\n\n    **Camada 5: A Voz do Observador (Alertas Vermelhos)**\n    - Independente da idade, a IA deve listar **3 Sinais de Alerta Vermelho** específicos para o caso descrito que **NÃO** são para tratar em casa (Ex: Febre >38°C, Confusão Mental, Dor Súbita em Pontada, Ausência de Urina por mais de 12h).\n\n    ---\n\n    [SAÍDA ESPERADA DA IA]\n    Gere um **Plano de Cuidados Diários** em linguagem **clara e afetiva**, adequado para um **Cuidador Leigo**. O plano deve conter:\n    1. **Hidratação Inteligente**: Horários e tamanho exato do copo (ex: "Um copinho de café a cada 1h").\n    2. **Chá do Dia**: Nome, modo de preparo exato (tempo de infusão) e horário ideal para tomar.\n    3. **Sugestão Alimentar Leve**:\n      - Café da Manhã (Energia suave para começar o dia).\n      - Almoço (Leve, sem causar sono pesado).\n      - Lanche da Tarde (Leve).\n    4. **Movimento Respiratório**: Um exercício simples para fazer sentado na cama ou poltrona.\n    5. **Sinais de Alerta**: Os 3 sinais que indicam a necessidade de interromper as orientações e procurar o Pronto-Socorro.\n\n    **Instrução Final**: Ajuste a "força" da recomendação à **Reserva Energética** do paciente. Em caso de dúvida, **sempre opte pela abordagem mais suave e menos invasiva**.`
     };
 
     function detectTheme(q) {
       const lq = q.toLowerCase();
-      if (lq.includes('bankov'))                    return 'bankov';
-      if (lq.includes('filosofia'))                 return 'filosofia';
-      if (lq.includes('livro'))                     return 'livros';
-      if (lq.includes('quântic'))                   return 'quantica';
-      if (lq.includes('fluxo'))                     return 'fluxo';
-      if (lq.includes('existencial'))               return 'existencial';
+      if (lq.includes('bankov')) return 'bankov';
+      if (lq.includes('filosofia')) return 'filosofia';
+      if (lq.includes('livro')) return 'livros';
+      if (lq.includes('quântic')) return 'quantica';
+      if (lq.includes('fluxo')) return 'fluxo';
+      if (lq.includes('existencial')) return 'existencial';
       if (lq.includes('jogador') || lq.includes('zerar')) return 'jogador01';
-      if (lq.includes('zyon'))                      return 'zyonflux';
-      
-      // 🧬 NOVA DETECÇÃO - MEDICINA INTEGRATIVA
-      const termosMedicina = ['saúde', 'doença', 'exame', 'sintoma', 'remédio', 'chá', 
-                              'tosse', 'rim', 'coração', 'pulmão', 'febre', 'dor', 
-                              'medicina', 'tratamento', 'laudo', 'hospital', 'idoso'];
-      for (let termo of termosMedicina) {
-        if (lq.includes(termo)) return 'medicina';
-      }
-      
+      if (lq.includes('zyon')) return 'zyonflux';
+      const termosMedicina = ['saúde', 'doença', 'exame', 'sintoma', 'remédio', 'chá', 'tosse', 'rim', 'coração', 'pulmão', 'febre', 'dor', 'medicina', 'tratamento', 'laudo', 'hospital', 'idoso'];
+      for (let termo of termosMedicina) if (lq.includes(termo)) return 'medicina';
       return 'bankov';
     }
 
@@ -1786,13 +1635,11 @@
       themeBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.theme === theme));
     }
 
-    almaBtn.onclick  = () => almaModal.style.display = 'block';
+    almaBtn.onclick = () => almaModal.style.display = 'block';
     closeAlma.onclick = () => { almaModal.style.display = 'none'; stopMic(); };
     almaModal.onclick = e => { if (e.target === almaModal) { almaModal.style.display = 'none'; stopMic(); } };
-
     themeSearch.oninput = function() { almaState.userQuery = this.value; updatePrompt(); };
     themeBtns.forEach(btn => btn.onclick = function() { almaState.currentTheme = this.dataset.theme; updatePrompt(); });
-
     copyPrompt.onclick = () => {
       if (almaState.generatedPrompt) {
         navigator.clipboard.writeText(almaState.generatedPrompt).then(() => {
@@ -1802,7 +1649,6 @@
       }
     };
 
-    // ══ FAQ SCROLL ══
     function scrollToFAQ(e) {
       e.stopPropagation(); e.preventDefault();
       const faq = document.getElementById('faq-section');
@@ -1815,12 +1661,12 @@
 
     // ══ AUTENTICAÇÃO E LICENÇAS ══
     const _0x9f2e = [
-      'https://script.google.com/macros/s/AKfycbzrFAyavdgf_hYx5rtuslBttkFnoJ4WEEGS7ps-tPV-TJ7p8kG3Hd6oJXjPpckTPcqO/exec',
+      'https://script.google.com/macros/s/AKfycbyNaU1OJq-f2P8Jr4iwVjXThhYqQ7slNkFr2UzSj5dEAPSWdOCpwSVMWmF7JcYtEKrp/exec',
       'alma_device_id', 'dev_', 'text/plain', 'POST', 'ler', 'register_permanent', 'principal'
     ];
     const _proxyUrl = _0x9f2e[0];
-    const _devKey   = _0x9f2e[1];
-    const _devPref  = _0x9f2e[2];
+    const _devKey = _0x9f2e[1];
+    const _devPref = _0x9f2e[2];
 
     function _genDevId() {
       let raw = [navigator.userAgent, navigator.language||'', (Intl.DateTimeFormat().resolvedOptions().timeZone||''), navigator.hardwareConcurrency||0, navigator.deviceMemory||0, screen.width+'x'+screen.height, screen.colorDepth||0].join('|');
@@ -1852,7 +1698,7 @@
     function _updateBadge() {
       const sess = _validSess();
       const badge = document.getElementById('sessionBadge');
-      const txt   = document.getElementById('sessionBadgeText');
+      const txt = document.getElementById('sessionBadgeText');
       if (sess) { badge.style.display = 'flex'; txt.textContent = `Sessão: ${sess.email.split('@')[0]} · ${_timeLeft()} restante`; }
       else { badge.style.display = 'none'; }
     }
@@ -1862,10 +1708,10 @@
     let _validEmail = null, _activeLic = null;
     const _authModal = document.getElementById('authModal');
     const _stepEmail = document.getElementById('authStepEmail');
-    const _stepBio   = document.getElementById('authStepBio');
-    const _msgEmail  = document.getElementById('authMsgEmail');
-    const _msgBio    = document.getElementById('authMsgBio');
-    const _btnValidate  = document.getElementById('btnValidateEmail');
+    const _stepBio = document.getElementById('authStepBio');
+    const _msgEmail = document.getElementById('authMsgEmail');
+    const _msgBio = document.getElementById('authMsgBio');
+    const _btnValidate = document.getElementById('btnValidateEmail');
     const _btnBiometric = document.getElementById('btnBiometric');
     const _dot1 = document.getElementById('dot1'), _dot2 = document.getElementById('dot2');
     const _bioIcon = document.getElementById('bioIcon'), _fallbackSec = document.getElementById('fallbackSection');
@@ -1964,7 +1810,6 @@
 
     _authModal.addEventListener('click', e => { if (e.target===_authModal) closeAuthModal(); });
 
-    // Botões pagos
     document.querySelectorAll('.paid-btn').forEach(btn => btn.addEventListener('click', function(e) {
       e.preventDefault();
       let url = this.getAttribute('data-url');
@@ -1981,119 +1826,52 @@
     function installPWA() { if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then(() => { deferredPrompt = null; installBtn.style.display = 'none'; }); } }
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(e => console.warn('SW:', e));
 
-    // Init
-    initMic();
-    _updateBadge();
-    setInterval(_updateBadge, 60000);
-    updatePrompt();
-
-    // ══════════════════════════════════════════════════════
-    // SOM DO CORAÇÃO — Web Audio API, sincronizado ao heartbeat 2.4s
-    // Dois batimentos: lub (14% = 336ms) e dub (42% = 1008ms)
-    // ══════════════════════════════════════════════════════
-    let _audioCtx      = null;
-    let _heartEnabled  = false;
-    let _heartTimer    = null;
-    const _BEAT_CYCLE  = 2400; // ms — igual ao animation: heartbeat 2.4s
-    const _LUB_OFFSET  = 0;    // primeiro batimento no início do ciclo
-    const _DUB_OFFSET  = 672;  // segundo batimento: 28% de 2400ms (pausa pós-lub)
-
-    function _ensureAudioCtx() {
-      if (!_audioCtx) {
-        _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      if (_audioCtx.state === 'suspended') _audioCtx.resume();
-      return _audioCtx;
-    }
-
-    // Gera um batimento cardíaco sintético realista (lub ou dub)
-    // lub: mais grave e forte  |  dub: levemente mais agudo e curto
+    // ═══ SOM DO CORAÇÃO ═══
+    let _audioCtx = null;
+    let _heartEnabled = false;
+    let _heartTimer = null;
+    const _BEAT_CYCLE = 2400;
+    function _ensureAudioCtx() { if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (_audioCtx.state === 'suspended') _audioCtx.resume(); return _audioCtx; }
     function _playBeat(type) {
       if (!_heartEnabled || !_audioCtx) return;
       try {
-        const ctx  = _audioCtx;
-        const now  = ctx.currentTime;
-        const isLub = type === 'lub';
-
-        // Oscilador principal (tom tonal grave do coração)
-        const osc  = ctx.createOscillator();
-        const gain = ctx.createGain();
-        const dist = ctx.createWaveShaper();
-
-        // Curva de distorção suave para dar "carne" ao som
+        const ctx = _audioCtx, now = ctx.currentTime, isLub = type === 'lub';
+        const osc = ctx.createOscillator(), gain = ctx.createGain(), dist = ctx.createWaveShaper();
         const curve = new Float32Array(256);
-        for (let i = 0; i < 256; i++) {
-          const x = (i * 2) / 256 - 1;
-          curve[i] = (Math.PI + 80) * x / (Math.PI + 80 * Math.abs(x));
-        }
+        for (let i = 0; i < 256; i++) { const x = (i * 2) / 256 - 1; curve[i] = (Math.PI + 80) * x / (Math.PI + 80 * Math.abs(x)); }
         dist.curve = curve;
-
-        osc.connect(dist);
-        dist.connect(gain);
-        gain.connect(ctx.destination);
-
-        // Frequências: lub ≈ 55–80 Hz, dub ≈ 80–110 Hz
+        osc.connect(dist); dist.connect(gain); gain.connect(ctx.destination);
         osc.type = 'sine';
         osc.frequency.setValueAtTime(isLub ? 60 : 85, now);
         osc.frequency.exponentialRampToValueAtTime(isLub ? 30 : 45, now + (isLub ? 0.14 : 0.10));
-
-        // Envelope de amplitude — ataque rápido, decay suave
-        const peak   = isLub ? 0.55 : 0.38;
-        const dur    = isLub ? 0.16 : 0.12;
+        const peak = isLub ? 0.55 : 0.38, dur = isLub ? 0.16 : 0.12;
         gain.gain.setValueAtTime(0, now);
         gain.gain.linearRampToValueAtTime(peak, now + 0.018);
         gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
-
-        osc.start(now);
-        osc.stop(now + dur + 0.02);
-
-        // Sub-batida (transiente de corpo — som de membrana)
+        osc.start(now); osc.stop(now + dur + 0.02);
         const bufSize = Math.floor(ctx.sampleRate * (isLub ? 0.12 : 0.09));
-        const buf     = ctx.createBuffer(1, bufSize, ctx.sampleRate);
-        const data    = buf.getChannelData(0);
-        for (let i = 0; i < bufSize; i++) {
-          // Ruído decrescente com envoltória exponencial
-          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufSize * (isLub ? 0.18 : 0.12)));
-        }
-        const noise = ctx.createBufferSource();
-        const ngain = ctx.createGain();
-        const filt  = ctx.createBiquadFilter();
-        filt.type            = 'lowpass';
-        filt.frequency.value = isLub ? 160 : 220;
-        filt.Q.value         = 0.7;
-        noise.buffer = buf;
-        noise.connect(filt);
-        filt.connect(ngain);
-        ngain.connect(ctx.destination);
+        const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufSize * (isLub ? 0.18 : 0.12)));
+        const noise = ctx.createBufferSource(), ngain = ctx.createGain(), filt = ctx.createBiquadFilter();
+        filt.type = 'lowpass'; filt.frequency.value = isLub ? 160 : 220; filt.Q.value = 0.7;
+        noise.buffer = buf; noise.connect(filt); filt.connect(ngain); ngain.connect(ctx.destination);
         ngain.gain.setValueAtTime(0, now);
         ngain.gain.linearRampToValueAtTime(isLub ? 0.35 : 0.22, now + 0.008);
         ngain.gain.exponentialRampToValueAtTime(0.001, now + (isLub ? 0.11 : 0.08));
-        noise.start(now);
-        noise.stop(now + (isLub ? 0.14 : 0.10));
+        noise.start(now); noise.stop(now + (isLub ? 0.14 : 0.10));
       } catch(e) {}
     }
-
-    // Agenda o ciclo de batimento sincronizado com o CSS heartbeat
     function _scheduleHeartCycle() {
       if (!_heartEnabled) return;
-      // lub — início do ciclo (t=0, equivale a 14% da animação peak)
       _playBeat('lub');
-      // dub — segundo pico (42% da animação = 1008ms, mas espaçamos o dub 340ms após o lub)
       setTimeout(() => { if (_heartEnabled) _playBeat('dub'); }, 340);
-      // Próximo ciclo após 2400ms (igual ao CSS)
       _heartTimer = setTimeout(_scheduleHeartCycle, _BEAT_CYCLE);
     }
-
-    function _stopHeartCycle() {
-      clearTimeout(_heartTimer);
-      _heartTimer = null;
-    }
-
+    function _stopHeartCycle() { clearTimeout(_heartTimer); _heartTimer = null; }
     function toggleHeartSound() {
-      const btn   = document.getElementById('heartSoundBtn');
-      const label = document.getElementById('heartSoundLabel');
+      const btn = document.getElementById('heartSoundBtn'), label = document.getElementById('heartSoundLabel');
       if (!_heartEnabled) {
-        // Primeira ativação: precisa de gesto do usuário para desbloquear AudioContext
         _ensureAudioCtx();
         _heartEnabled = true;
         btn.classList.remove('muted');
@@ -2107,221 +1885,134 @@
       }
     }
 
-    // ══════════════════════════════════════════════════════
-    // NAVEGAÇÃO INFERIOR — scroll suave para seções por grupo
-    // ══════════════════════════════════════════════════════
-    const _navMap = {
-      home:   null,          // topo da página
-      fluxo:  'g-aureo',     // Grupo Universo Áureo
-      trade:  'g-trade',     // Grupo Trading
-      livros: 'g-livros',    // Grupo Livros
-      tools:  'g-tools',     // Grupo Ferramentas
-    };
-
+    // ═══ NAVEGAÇÃO INFERIOR ═══
+    const _navMap = { home: null, fluxo: 'g-aureo', trade: 'g-trade', livros: 'g-livros', tools: 'g-tools' };
     function navTo(section) {
-      // Atualiza estado ativo dos botões
       document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
       const activeBtn = document.getElementById('nav-' + section);
       if (activeBtn) activeBtn.classList.add('active');
-
-      if (section === 'home') {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
-      }
-
+      if (section === 'home') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
       const groupId = _navMap[section];
       if (!groupId) return;
-
       const groupWrapper = document.getElementById(groupId)?.closest('.group-wrapper');
       if (!groupWrapper) return;
-
-      // Se o grupo estiver fechado, abre-o
-      const groupBody   = document.getElementById(groupId);
+      const groupBody = document.getElementById(groupId);
       const groupHeader = groupWrapper.querySelector('.group-header');
       if (groupBody && !groupBody.classList.contains('open')) {
         groupBody.classList.add('open');
-        if (groupHeader) {
-          groupHeader.classList.add('open');
-          groupHeader.setAttribute('aria-expanded', 'true');
-        }
+        if (groupHeader) { groupHeader.classList.add('open'); groupHeader.setAttribute('aria-expanded', 'true'); }
       }
-
-      // Scroll até o grupo com pequena margem
       setTimeout(() => {
-        const rect   = groupWrapper.getBoundingClientRect();
+        const rect = groupWrapper.getBoundingClientRect();
         const offset = window.scrollY + rect.top - 16;
         window.scrollTo({ top: offset, behavior: 'smooth' });
       }, 60);
     }
-
-    // Detecta seção visível no scroll para manter nav sincronizado
     (function() {
-      const sections = [
-        { id: 'g-aureo',  nav: 'fluxo'  },
-        { id: 'g-trade',  nav: 'trade'  },
-        { id: 'g-livros', nav: 'livros' },
-        { id: 'g-tools',  nav: 'tools'  },
-      ];
-      let _navLocked = false; // evita conflito com clique direto
-
+      const sections = [{ id: 'g-aureo', nav: 'fluxo' }, { id: 'g-trade', nav: 'trade' }, { id: 'g-livros', nav: 'livros' }, { id: 'g-tools', nav: 'tools' }];
+      let _navLocked = false;
       window.addEventListener('scroll', function() {
         if (_navLocked) return;
         const mid = window.scrollY + window.innerHeight * 0.4;
         let found = 'home';
-        sections.forEach(s => {
-          const el = document.getElementById(s.id)?.closest('.group-wrapper');
-          if (el) {
-            const top = el.offsetTop;
-            if (mid >= top) found = s.nav;
-          }
-        });
+        sections.forEach(s => { const el = document.getElementById(s.id)?.closest('.group-wrapper'); if (el && mid >= el.offsetTop) found = s.nav; });
         document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-        const ab = document.getElementById('nav-' + found);
-        if (ab) ab.classList.add('active');
+        const ab = document.getElementById('nav-' + found); if (ab) ab.classList.add('active');
       }, { passive: true });
-
-      // Desbloqueia detecção de scroll 600ms após qualquer clique de nav
-      document.querySelectorAll('.nav-item').forEach(btn => {
-        btn.addEventListener('click', () => {
-          _navLocked = true;
-          setTimeout(() => { _navLocked = false; }, 600);
-        });
-      });
+      document.querySelectorAll('.nav-item').forEach(btn => { btn.addEventListener('click', () => { _navLocked = true; setTimeout(() => { _navLocked = false; }, 600); }); });
     })();
+
+    // Init
+    initMic();
+    _updateBadge();
+    setInterval(_updateBadge, 60000);
+    updatePrompt();
   </script>
+
   <!-- ═══ SCRIPT SORTEIO NUMEROLOGIA ═══ -->
   <script>
   (function() {
-    var TEMPO_MS       = 15 * 60 * 1000; // 15 minutos
+    var TEMPO_MS = 15 * 60 * 1000; // 15 minutos
     var KEY_PARTICIPOU = 'alma_sorteio_participou';
-    var KEY_INICIO     = 'alma_sorteio_inicio';
-    var GAS_URL        = 'https://script.google.com/macros/s/AKfycbzrFAyavdgf_hYx5rtuslBttkFnoJ4WEEGS7ps-tPV-TJ7p8kG3Hd6oJXjPpckTPcqO/exec';
+    var KEY_INICIO = 'alma_sorteio_inicio';
+    var GAS_URL = 'https://script.google.com/macros/s/AKfycbyNaU1OJq-f2P8Jr4iwVjXThhYqQ7slNkFr2UzSj5dEAPSWdOCpwSVMWmF7JcYtEKrp/exec';
 
     var sistemasSel = new Set();
 
-    function jaParticipouHoje() {
-      return localStorage.getItem(KEY_PARTICIPOU) === new Date().toDateString();
-    }
-    function marcarParticipacao() {
-      localStorage.setItem(KEY_PARTICIPOU, new Date().toDateString());
-    }
-    function iniciarCronometro() {
-      if (!localStorage.getItem(KEY_INICIO)) localStorage.setItem(KEY_INICIO, Date.now().toString());
-    }
-    function tempoDecorrido() {
-      return Date.now() - parseInt(localStorage.getItem(KEY_INICIO) || '0');
-    }
-    function mostrarFab() {
-      var fab = document.getElementById('sorteioFab');
-      if (fab) { fab.style.display = 'flex'; fab.style.alignItems = 'center'; fab.style.gap = '6px'; }
-    }
-    function verificarTempo() {
-      if (jaParticipouHoje()) return;
-      if (tempoDecorrido() >= TEMPO_MS) mostrarFab();
-    }
+    function jaParticipouHoje() { return localStorage.getItem(KEY_PARTICIPOU) === new Date().toDateString(); }
+    function marcarParticipacao() { localStorage.setItem(KEY_PARTICIPOU, new Date().toDateString()); }
+    function iniciarCronometro() { if (!localStorage.getItem(KEY_INICIO)) localStorage.setItem(KEY_INICIO, Date.now().toString()); }
+    function tempoDecorrido() { return Date.now() - parseInt(localStorage.getItem(KEY_INICIO) || '0'); }
+    function mostrarFab() { var fab = document.getElementById('sorteioFab'); if (fab) { fab.style.display = 'flex'; fab.style.alignItems = 'center'; fab.style.gap = '6px'; } }
+    function verificarTempo() { if (jaParticipouHoje()) return; if (tempoDecorrido() >= TEMPO_MS) mostrarFab(); }
     iniciarCronometro();
     if (!jaParticipouHoje()) { setInterval(verificarTempo, 10000); verificarTempo(); }
 
-    // ── CONTAGEM DE PARTICIPANTES DO DIA ──
     async function carregarContagem() {
       try {
-        var res = await fetch(GAS_URL, {
-          method: 'POST',
-          body: JSON.stringify({ action: 'sorteio_contagem' })
-        });
+        var res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'sorteio_contagem' }) });
         var data = await res.json();
         var el = document.getElementById('sorteioContagem');
-        if (el && data.ok) {
-          el.textContent = '👥 ' + data.total + ' participante(s) hoje — ' + data.data;
-        }
+        if (el && data.ok) { el.textContent = '👥 ' + data.total + ' participante(s) hoje — ' + data.data; }
       } catch(e) {}
     }
 
-    // ── TOKEN ÚNICO ──
-    function gerarToken() {
-      return 'ALM-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substr(2,4).toUpperCase();
-    }
+    function gerarToken() { return 'ALM-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substr(2,4).toUpperCase(); }
 
-    // ── ABRIR / FECHAR ──
     window.abrirSorteio = function() {
       var modal = document.getElementById('sorteioModal');
       var label = document.getElementById('sorteioTimerLabel');
-      if (label) {
-        var mins = Math.floor(tempoDecorrido() / 60000);
-        label.textContent = '⏱ ' + mins + ' minuto(s) no portal · você está qualificado(a)!';
-      }
+      if (label) { var mins = Math.floor(tempoDecorrido() / 60000); label.textContent = '⏱ ' + mins + ' minuto(s) no portal · você está qualificado(a)!'; }
       if (modal) { modal.classList.add('open'); carregarContagem(); }
     };
-    window.fecharSorteio = function() {
-      var modal = document.getElementById('sorteioModal');
-      if (modal) modal.classList.remove('open');
-    };
-    document.addEventListener('click', function(e) {
-      var modal = document.getElementById('sorteioModal');
-      if (modal && e.target === modal) fecharSorteio();
-    });
+    window.fecharSorteio = function() { var modal = document.getElementById('sorteioModal'); if (modal) modal.classList.remove('open'); };
+    document.addEventListener('click', function(e) { var modal = document.getElementById('sorteioModal'); if (modal && e.target === modal) fecharSorteio(); });
 
-    // ── SISTEMAS ──
     window.toggleSistema = function(btn, nome) {
       if (sistemasSel.has(nome)) { sistemasSel.delete(nome); btn.classList.remove('sel'); }
       else { sistemasSel.add(nome); btn.classList.add('sel'); }
     };
 
-    // ── ENVIAR PARA GAS ──
     window.enviarSorteio = async function() {
-      var nome   = (document.getElementById('sNome')?.value || '').trim();
-      var insta  = (document.getElementById('sInsta')?.value || '').trim();
-      var nasc   = (document.getElementById('sNasc')?.value || '').trim();
-      var hora   = (document.getElementById('sHora')?.value || '').trim();
-      var local  = (document.getElementById('sLocal')?.value || '').trim();
+      var nome = (document.getElementById('sNome')?.value || '').trim();
+      var insta = (document.getElementById('sInsta')?.value || '').trim();
+      var nasc = (document.getElementById('sNasc')?.value || '').trim();
+      var hora = (document.getElementById('sHora')?.value || '').trim();
+      var local = (document.getElementById('sLocal')?.value || '').trim();
       var sangue = (document.getElementById('sSangue')?.value || '').trim();
-      var anc    = (document.getElementById('sAnc')?.value || '').trim();
-      var alim   = (document.getElementById('sAlim')?.value || '').trim();
-      var cor    = (document.getElementById('sCor')?.value || '#ffffff');
+      var anc = (document.getElementById('sAnc')?.value || '').trim();
+      var alim = (document.getElementById('sAlim')?.value || '').trim();
+      var cor = (document.getElementById('sCor')?.value || '#ffffff');
 
-      if (!nome)  { alert('Informe seu nome completo.'); return; }
+      if (!nome) { alert('Informe seu nome completo.'); return; }
       if (!insta) { alert('Informe seu @instagram.'); return; }
-      if (!nasc)  { alert('Informe sua data de nascimento.'); return; }
+      if (!nasc) { alert('Informe sua data de nascimento.'); return; }
       if (sistemasSel.size === 0) { alert('Selecione ao menos um sistema numerológico.'); return; }
 
       if (!insta.startsWith('@')) insta = '@' + insta;
 
       var token = gerarToken();
-      var btn   = document.getElementById('sorteioBtnEnviar');
+      var btn = document.getElementById('sorteioBtnEnviar');
       if (btn) { btn.disabled = true; btn.textContent = '⏳ Registrando...'; }
 
       try {
         var res = await fetch(GAS_URL, {
           method: 'POST',
           body: JSON.stringify({
-            action:           'sorteio_participar',
-            nome,
-            instagram:        insta,
-            nascimento:       nasc,
-            hora_nascimento:  hora,
-            local_nascimento: local,
-            tipo_sanguineo:   sangue,
-            cor_favorita:     cor,
-            ancestralidade:   anc,
-            alimentacao:      alim,
-            sistemas:         Array.from(sistemasSel).join(', '),
-            token
+            action: 'sorteio_participar',
+            nome, instagram: insta, nascimento: nasc, hora_nascimento: hora, local_nascimento: local,
+            tipo_sanguineo: sangue, cor_favorita: cor, ancestralidade: anc, alimentacao: alim,
+            sistemas: Array.from(sistemasSel).join(', '), token
           })
         });
         var data = await res.json();
-
         var resultado = document.getElementById('sorteioResultado');
         if (data.ok) {
           marcarParticipacao();
-          var fab = document.getElementById('sorteioFab');
-          if (fab) fab.style.display = 'none';
+          var fab = document.getElementById('sorteioFab'); if (fab) fab.style.display = 'none';
           if (resultado) {
             resultado.style.display = 'block';
-            resultado.innerHTML =
-              '✅ <strong>Participação confirmada!</strong><br>' +
-              '🔑 Token: <strong>' + token + '</strong><br>' +
-              '👥 Você é o participante nº <strong>' + (data.posicao || '?') + '</strong> de hoje.<br>' +
-              '🎬 O sorteio acontece às 13h. Se sorteado(a), você será marcado(a) no vídeo do YouTube às 18h. Boa sorte! 🌟';
+            resultado.innerHTML = '✅ <strong>Participação confirmada!</strong><br>🔑 Token: <strong>' + token + '</strong><br>👥 Você é o participante nº <strong>' + (data.posicao || '?') + '</strong> de hoje.<br>🎬 O sorteio acontece às 13h. Se sorteado(a), você será marcado(a) no vídeo do YouTube às 18h. Boa sorte! 🌟';
           }
           if (typeof toast === 'function') toast('✨ Participação registrada! Boa sorte!');
         } else {
@@ -2362,14 +2053,8 @@
       </div>
       <div class="sorteio-section">
         <div class="sorteio-row">
-          <div>
-            <label>📅 Nascimento *</label>
-            <input class="sorteio-input" id="sNasc" type="date">
-          </div>
-          <div>
-            <label>⏰ Hora (opcional)</label>
-            <input class="sorteio-input" id="sHora" type="time">
-          </div>
+          <div><label>📅 Nascimento *</label><input class="sorteio-input" id="sNasc" type="date"></div>
+          <div><label>⏰ Hora (opcional)</label><input class="sorteio-input" id="sHora" type="time"></div>
         </div>
       </div>
       <div class="sorteio-section">
@@ -2386,10 +2071,7 @@
               <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
             </select>
           </div>
-          <div>
-            <label>🎨 Cor Favorita</label>
-            <input class="sorteio-input" id="sCor" type="color" value="#6e8cff" style="padding:4px;height:38px;cursor:pointer">
-          </div>
+          <div><label>🎨 Cor Favorita</label><input class="sorteio-input" id="sCor" type="color" value="#6e8cff" style="padding:4px;height:38px;"></div>
         </div>
       </div>
       <div class="sorteio-section">
@@ -2400,8 +2082,7 @@
         <label>🍽️ Alimentação</label>
         <select class="sorteio-input" id="sAlim">
           <option value="">Selecione</option>
-          <option>Onívoro</option><option>Vegetariano</option><option>Vegano</option>
-          <option>Pescetariano</option><option>Outro</option>
+          <option>Onívoro</option><option>Vegetariano</option><option>Vegano</option><option>Pescetariano</option><option>Outro</option>
         </select>
       </div>
 
