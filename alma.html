@@ -759,7 +759,7 @@
     /* ── SETA DE SCROLL ── */
     #scrollArrow {
       position: fixed;
-      bottom: 28px;
+      bottom: 75px; /* Era 28px, agora sobe para 75px */
       left: 50%;
       transform: translateX(-50%);
       width: 44px; height: 44px;
@@ -830,11 +830,15 @@
         font-size: 1.2rem !important;
       }
     }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.1); }
+    }
 
     /* ── CONTROLE DE SOM DO CORAÇÃO ── */
     #heartSoundBtn {
       position: fixed;
-      bottom: 82px;
+      bottom: 120px; /* Era 82px, agora sobe para 120px */
       left: 50%;
       transform: translateX(-50%);
       z-index: 901;
@@ -1449,6 +1453,12 @@
     </svg>
   </div>
 
+  <!-- ═══ CONTADOR DE SORTEIO ═══ -->
+  <div id="sorteioTimerBadge" style="display: none; position: fixed; top: 14px; right: 14px; z-index: 9998; background: rgba(15,30,60,0.92); backdrop-filter: blur(10px); border: 1px solid rgba(255,215,0,0.5); border-radius: 20px; padding: 7px 14px; font-size: 0.74rem; color: #ffd700; align-items: center; gap: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);">
+    <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #ffd700; box-shadow: 0 0 8px #ffd700; animation: pulse 1.5s infinite;"></span>
+    <span id="sorteioTimerText">⏳ 15:00</span>
+  </div>
+
   <!-- ═══ BOTÃO DE SOM DO CORAÇÃO ═══ -->
   <button id="heartSoundBtn" onclick="toggleHeartSound()" title="Coração ALMAFLUXO">
     <span class="hs-icon">💓</span>
@@ -1939,14 +1949,72 @@
 
     var sistemasSel = new Set();
 
+    // ── ELEMENTOS DO CONTADOR ──
+    var timerBadge = document.getElementById('sorteioTimerBadge');
+    var timerText = document.getElementById('sorteioTimerText');
+
     function jaParticipouHoje() { return localStorage.getItem(KEY_PARTICIPOU) === new Date().toDateString(); }
     function marcarParticipacao() { localStorage.setItem(KEY_PARTICIPOU, new Date().toDateString()); }
     function iniciarCronometro() { if (!localStorage.getItem(KEY_INICIO)) localStorage.setItem(KEY_INICIO, Date.now().toString()); }
     function tempoDecorrido() { return Date.now() - parseInt(localStorage.getItem(KEY_INICIO) || '0'); }
-    function mostrarFab() { var fab = document.getElementById('sorteioFab'); if (fab) { fab.style.display = 'flex'; fab.style.alignItems = 'center'; fab.style.gap = '6px'; } }
+    function tempoRestante() {
+      var restante = TEMPO_MS - tempoDecorrido();
+      return restante > 0 ? restante : 0;
+    }
+
+    function formatarTempo(ms) {
+      if (ms <= 0) return '00:00';
+      var totalSegundos = Math.floor(ms / 1000);
+      var minutos = Math.floor(totalSegundos / 60);
+      var segundos = totalSegundos % 60;
+      return (minutos < 10 ? '0' : '') + minutos + ':' + (segundos < 10 ? '0' : '') + segundos;
+    }
+
+    function atualizarContador() {
+      if (jaParticipouHoje()) {
+        if (timerBadge) timerBadge.style.display = 'none';
+        return;
+      }
+      var restante = tempoRestante();
+      if (restante <= 0) {
+        if (timerBadge) timerBadge.style.display = 'none';
+        mostrarFab();
+        return;
+      }
+      if (timerBadge) timerBadge.style.display = 'flex';
+      if (timerText) timerText.textContent = '⏳ ' + formatarTempo(restante);
+    }
+    function mostrarFab() {
+      var fab = document.getElementById('sorteioFab');
+      if (fab) {
+        fab.style.display = 'flex';
+        fab.style.alignItems = 'center';
+        fab.style.gap = '6px';
+      }
+      if (timerBadge) timerBadge.style.display = 'none';
+    }
     function verificarTempo() { if (jaParticipouHoje()) return; if (tempoDecorrido() >= TEMPO_MS) mostrarFab(); }
     iniciarCronometro();
-    if (!jaParticipouHoje()) { setInterval(verificarTempo, 10000); verificarTempo(); }
+    // ═══ INICIALIZAÇÃO DO CONTADOR ═══
+    if (!jaParticipouHoje()) {
+      atualizarContador();
+      setInterval(function() {
+        if (jaParticipouHoje()) {
+          if (timerBadge) timerBadge.style.display = 'none';
+          return;
+        }
+        var restante = tempoRestante();
+        if (restante <= 0) {
+          if (timerBadge) timerBadge.style.display = 'none';
+          mostrarFab();
+        } else {
+          if (timerText) timerText.textContent = '⏳ ' + formatarTempo(restante);
+        }
+      }, 1000);
+    } else {
+      if (timerBadge) timerBadge.style.display = 'none';
+    }
+    // ═══════════════════════════════════════
 
     async function carregarContagem() {
       try {
@@ -2010,6 +2078,7 @@
         if (data.ok) {
           marcarParticipacao();
           var fab = document.getElementById('sorteioFab'); if (fab) fab.style.display = 'none';
+          if (timerBadge) timerBadge.style.display = 'none';
           if (resultado) {
             resultado.style.display = 'block';
             resultado.innerHTML = '✅ <strong>Participação confirmada!</strong><br>🔑 Token: <strong>' + token + '</strong><br>👥 Você é o participante nº <strong>' + (data.posicao || '?') + '</strong> de hoje.<br>🎬 O sorteio acontece às 13h. Se sorteado(a), você será marcado(a) no vídeo do YouTube às 18h. Boa sorte! 🌟';
