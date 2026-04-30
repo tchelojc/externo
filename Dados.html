@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌌 AlmaFluxo - Coleta de Dados Pessoais</title>
+    <title>🌌 AlmaFluxo Quântico · Coleta de Dados e Pagamento</title>
     
     <style>
         :root {
@@ -148,17 +148,6 @@
             color: white;
         }
 
-        .input-estilizado[type="date"],
-        .input-estilizado[type="time"] {
-            cursor: pointer;
-        }
-
-        .input-estilizado[type="color"] {
-            height: 50px;
-            cursor: pointer;
-            padding: 5px;
-        }
-
         .select-estilizado {
             appearance: none;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239bb3ff' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
@@ -166,10 +155,6 @@
             background-position: right 15px center;
             background-size: 12px;
             padding-right: 40px;
-        }
-
-        .grupo-input.duplo {
-            grid-column: span 2;
         }
 
         .info-ajuda {
@@ -227,15 +212,8 @@
             box-shadow: 0 5px 20px rgba(90, 120, 255, 0.3);
         }
 
-        .sistema-emoji {
-            font-size: 1.8rem;
-            margin-bottom: 8px;
-        }
-
-        .sistema-nome {
-            font-weight: 600;
-            font-size: 0.95rem;
-        }
+        .sistema-emoji { font-size: 1.8rem; margin-bottom: 8px; }
+        .sistema-nome { font-weight: 600; font-size: 0.95rem; }
 
         .botoes-acoes {
             display: flex;
@@ -279,42 +257,6 @@
         .btn-secundario:hover {
             background: rgba(50, 55, 90, 0.9);
             transform: translateY(-2px);
-        }
-
-        .preview-dados {
-            background: var(--gradiente-card);
-            border-radius: 15px;
-            padding: 25px;
-            margin-top: 30px;
-            border: var(--borda-sutil);
-            display: none;
-        }
-
-        .preview-dados.mostrar {
-            display: block;
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .dados-json {
-            background: rgba(20, 20, 35, 0.8);
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 15px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            color: #9bb3ff;
-            overflow-x: auto;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-
-        .emoji-titulo {
-            font-size: 1.5rem;
         }
 
         .modal-mensagem {
@@ -379,40 +321,16 @@
         }
 
         @media (max-width: 768px) {
-            .grid-formulario {
-                grid-template-columns: 1fr;
-            }
-            
-            .grupo-input.duplo {
-                grid-column: span 1;
-            }
-            
-            .container-coleta {
-                padding: 25px;
-                margin: 15px auto;
-            }
-            
-            .titulo-coleta {
-                font-size: 2rem;
-            }
-            
-            .botoes-acoes {
-                flex-direction: column;
-            }
-            
-            .grid-sistemas {
-                grid-template-columns: repeat(2, 1fr);
-            }
+            .grid-formulario { grid-template-columns: 1fr; }
+            .container-coleta { padding: 25px; margin: 15px auto; }
+            .titulo-coleta { font-size: 2rem; }
+            .botoes-acoes { flex-direction: column; }
+            .grid-sistemas { grid-template-columns: repeat(2, 1fr); }
         }
 
         @media (max-width: 480px) {
-            .grid-sistemas {
-                grid-template-columns: 1fr;
-            }
-            
-            .container-coleta {
-                padding: 20px;
-            }
+            .grid-sistemas { grid-template-columns: 1fr; }
+            .container-coleta { padding: 20px; }
         }
     </style>
 </head>
@@ -420,94 +338,42 @@
     <div class="container-coleta">
         <header class="header-coleta">
             <h1 class="titulo-coleta">🌌 AlmaFluxo Quântico</h1>
-            <p class="subtitulo-coleta">Preencha seus dados para análise numerológica completa</p>
+            <p class="subtitulo-coleta">Preencha seus dados para análise numerológica e prossiga para o pagamento</p>
         </header>
         
         <form id="formulario-dados">
             <div class="grid-formulario">
-                <!-- Coluna 1 -->
                 <div class="grupo-input">
                     <label for="nome_completo">👤 Nome Completo</label>
-                    <input type="text" 
-                           id="nome_completo" 
-                           class="input-estilizado" 
-                           placeholder="Digite seu nome completo"
-                           required>
+                    <input type="text" id="nome_completo" class="input-estilizado" placeholder="Digite seu nome completo" required>
                     <div class="info-ajuda">Este nome será usado em todas as análises</div>
                 </div>
                 
                 <div class="grupo-input">
                     <label for="data_nascimento">📅 Data de Nascimento</label>
-                    <input type="date" 
-                           id="data_nascimento" 
-                           class="input-estilizado" 
-                           required>
+                    <input type="date" id="data_nascimento" class="input-estilizado" required>
                 </div>
                 
                 <div class="grupo-input">
                     <label for="hora_nascimento">⏰ Hora de Nascimento</label>
-                    <input type="time" 
-                           id="hora_nascimento" 
-                           class="input-estilizado" 
-                           required>
+                    <input type="time" id="hora_nascimento" class="input-estilizado" required>
                     <div class="info-ajuda">Se não souber, use 12:00</div>
                 </div>
                 
                 <div class="grupo-input">
                     <label for="local_nascimento">📍 Local de Nascimento</label>
-                    <input type="text" 
-                           id="local_nascimento" 
-                           class="input-estilizado" 
-                           placeholder="Cidade, País"
-                           required>
+                    <input type="text" id="local_nascimento" class="input-estilizado" placeholder="Cidade, País" required>
                 </div>
-                
-                <!-- Coluna 2 -->
+
                 <div class="grupo-input">
-                    <label for="tipo_sanguineo">🩸 Tipo Sanguíneo</label>
-                    <select id="tipo_sanguineo" class="input-estilizado select-estilizado">
-                        <option value="A+">A+</option>
-                        <option value="A-">A-</option>
-                        <option value="B+">B+</option>
-                        <option value="B-">B-</option>
-                        <option value="AB+">AB+</option>
-                        <option value="AB-">AB-</option>
-                        <option value="O+">O+</option>
-                        <option value="O-">O-</option>
-                        <option value="nao_sei">Não sei</option>
-                    </select>
-                </div>
-                
-                <div class="grupo-input">
-                    <label for="cor_favorita">🎨 Cor Favorita</label>
-                    <input type="color" 
-                           id="cor_favorita" 
-                           class="input-estilizado" 
-                           value="#3498db">
-                </div>
-                
-                <div class="grupo-input">
-                    <label for="ancestralidade">🌍 Ancestralidade</label>
-                    <input type="text" 
-                           id="ancestralidade" 
-                           class="input-estilizado" 
-                           placeholder="Ex: Portuguesa, Italiana, Africana">
-                </div>
-                
-                <div class="grupo-input">
-                    <label for="alimentacao">🍽️ Tipo de Alimentação</label>
-                    <select id="alimentacao" class="input-estilizado select-estilizado">
-                        <option value="Onívoro">Onívoro</option>
-                        <option value="Vegetariano">Vegetariano</option>
-                        <option value="Vegano">Vegano</option>
-                        <option value="Pescetariano">Pescetariano</option>
-                        <option value="Outro">Outro</option>
-                    </select>
+                    <label for="email_contato">📧 Seu E-mail</label>
+                    <input type="email" id="email_contato" class="input-estilizado" placeholder="email@exemplo.com" required>
+                    <div class="info-ajuda">Essencial para retorno e envio da análise</div>
                 </div>
             </div>
             
             <div class="sistema-numerologico">
-                <h3><span class="emoji-titulo">🔮</span> Sistema Numerológico</h3>
+                <h3><span style="font-size:1.5rem">🔮</span> Sistema Numerológico</h3>
                 <p style="color: #b9b9ff; margin-bottom: 20px;">Escolha o sistema para análise (pode selecionar múltiplos):</p>
                 
                 <div class="grid-sistemas" id="grid-sistemas">
@@ -544,34 +410,24 @@
                         <div class="sistema-nome">Chinês</div>
                     </div>
                 </div>
-                
                 <input type="hidden" id="sistema_numerologico">
             </div>
             
             <div class="botoes-acoes">
-                <button type="button" class="btn-estilizado btn-secundario" onclick="visualizarDados()">
-                    👁️ Visualizar Dados
+                <button type="button" class="btn-estilizado btn-secundario" onclick="window.location.href='/'">
+                    🏠 Voltar ao Início
                 </button>
-                <button type="button" class="btn-estilizado btn-primario" onclick="gerarJSON()">
-                    💾 Gerar JSON
+                <button type="button" class="btn-estilizado btn-primario" onclick="enviarDados()">
+                    🚀 Enviar Dados e Prosseguir
                 </button>
             </div>
         </form>
-        
-        <div class="preview-dados" id="preview-dados">
-            <h3><span class="emoji-titulo">📋</span> Dados Gerados</h3>
-            <p style="color: #b9b9ff; margin-bottom: 15px;">Copie os dados abaixo e cole no AlmaFluxo:</p>
-            <div class="dados-json" id="dados-json"></div>
-            <button type="button" class="btn-estilizado btn-primario" onclick="copiarJSON()" style="margin-top: 20px;">
-                📋 Copiar JSON
-            </button>
-        </div>
     </div>
     
     <div class="modal-mensagem" id="modal-sucesso">
         <div class="modal-conteudo">
-            <h3>✅ Dados Gerados com Sucesso!</h3>
-            <p>Os dados foram copiados para a área de transferência. Agora volte ao AlmaFluxo e cole na seção de importação.</p>
+            <h3 id="modal-titulo">✅ Dados Enviados!</h3>
+            <p id="modal-texto">Seus dados foram enviados com sucesso. Você será redirecionado para a página de pagamento.</p>
             <button type="button" class="btn-modal" onclick="fecharModal()">OK</button>
         </div>
     </div>
@@ -594,131 +450,132 @@
                     this.classList.add('selecionado');
                 }
                 
-                // Atualizar input oculto
                 inputSistema.value = Array.from(sistemasSelecionados).join(', ');
             });
         });
         
-        // Preencher data atual como padrão
         document.getElementById('data_nascimento').valueAsDate = new Date();
-        
-        // Função para visualizar dados
-        function visualizarDados() {
-            const dados = coletarDados();
-            const preview = document.getElementById('preview-dados');
-            const jsonElement = document.getElementById('dados-json');
+
+        // Função principal: coleta dados, envia por e-mail e redireciona
+        // Função principal: coleta dados, envia por e-mail e redireciona
+        function enviarDados() {
+            // Validações
+            const nome = document.getElementById('nome_completo').value.trim();
+            const email = document.getElementById('email_contato').value.trim();
+            const local = document.getElementById('local_nascimento').value.trim();
             
-            jsonElement.textContent = JSON.stringify(dados, null, 2);
-            preview.classList.add('mostrar');
-            
-            // Rolar até o preview
-            preview.scrollIntoView({ behavior: 'smooth' });
-        }
-        
-        // Função para coletar dados do formulário
-        function coletarDados() {
-            const nome = document.getElementById('nome_completo').value;
-            const data = document.getElementById('data_nascimento').value;
-            const hora = document.getElementById('hora_nascimento').value;
-            const local = document.getElementById('local_nascimento').value;
-            const tipoSanguineo = document.getElementById('tipo_sanguineo').value;
-            const corFavorita = document.getElementById('cor_favorita').value;
-            const ancestralidade = document.getElementById('ancestralidade').value;
-            const alimentacao = document.getElementById('alimentacao').value;
-            const sistemas = inputSistema.value;
-            
-            // Formatar data para YYYY-MM-DD
-            const dataFormatada = data;
-            
-            // Formatar hora para HH:MM
-            const horaFormatada = hora;
-            
-            return {
-                nome_completo: nome,
-                data_nascimento: dataFormatada,
-                hora_nascimento: horaFormatada,
-                local_nascimento: local,
-                tipo_sanguineo: tipoSanguineo,
-                cor_favorita: corFavorita,
-                ancestralidade: ancestralidade,
-                alimentacao: alimentacao,
-                sistema_numerologico: sistemas
-            };
-        }
-        
-        // Função para gerar e copiar JSON
-        function gerarJSON() {
-            // Validar campos obrigatórios
-            const nome = document.getElementById('nome_completo').value;
-            const local = document.getElementById('local_nascimento').value;
-            
-            if (!nome || !local) {
-                alert('Por favor, preencha pelo menos o nome completo e local de nascimento.');
+            if (!nome) {
+                alert('Por favor, informe seu nome completo.');
                 return;
             }
-            
+            if (!email) {
+                alert('Por favor, informe seu e-mail para contato.');
+                return;
+            }
+            if (!local) {
+                alert('Por favor, informe seu local de nascimento.');
+                return;
+            }
             if (sistemasSelecionados.size === 0) {
                 alert('Por favor, selecione pelo menos um sistema numerológico.');
                 return;
             }
-            
-            const dados = coletarDados();
-            const jsonString = JSON.stringify(dados, null, 2);
-            
-            // Copiar para área de transferência
-            navigator.clipboard.writeText(jsonString).then(() => {
-                // Mostrar modal de sucesso
-                document.getElementById('modal-sucesso').classList.add('mostrar');
-            }).catch(err => {
-                console.error('Erro ao copiar: ', err);
-                alert('Erro ao copiar dados. Por favor, copie manualmente.');
+
+            const dados = {
+                nome_completo: nome,
+                data_nascimento: document.getElementById('data_nascimento').value,
+                hora_nascimento: document.getElementById('hora_nascimento').value,
+                local_nascimento: local,
+                email_contato: email,
+                sistema_numerologico: inputSistema.value
+            };
+
+            // ⚡ CORREÇÃO: Cada civilização custa R$ 100
+            const valorPorSistema = 100;
+            const quantidadeSistemas = sistemasSelecionados.size;
+            const valorTotal = quantidadeSistemas * valorPorSistema;
+
+            // Constrói a mensagem formatada para o e-mail
+            const mensagem = `
+            ═══════════════════════════════════════
+            NOVA SOLICITAÇÃO DE ANÁLISE NUMEROLÓGICA
+            ═══════════════════════════════════════
+
+            👤 Nome: ${dados.nome_completo}
+            📧 E-mail: ${dados.email_contato}
+            📅 Nascimento: ${dados.data_nascimento} às ${dados.hora_nascimento}
+            📍 Local: ${dados.local_nascimento}
+            🔮 Sistemas Selecionados (${quantidadeSistemas}): ${dados.sistema_numerologico}
+            💰 Valor Total: R$ ${valorTotal},00 (${quantidadeSistemas} x R$ ${valorPorSistema},00)
+
+            ═══════════════════════════════════════
+            Encaminhado automaticamente via AlmaFluxo Quântico
+            `;
+
+            // Envia para o Web3Forms (substitua pela SUA access_key do contato.html)
+            const formData = new FormData();
+            formData.append('access_key', 'eb4edc0c-b94c-4287-83bf-6f2e05f65774'); // MESMA CHAVE DO CONTATO.HTML
+            formData.append('subject', `Análise Numerológica - ${dados.nome_completo} (${quantidadeSistemas} sistemas · R$ ${valorTotal})`);
+            formData.append('from_name', 'AlmaFluxo Quântico');
+            formData.append('name', dados.nome_completo);
+            formData.append('email', dados.email_contato);
+            formData.append('message', mensagem);
+            // Campo anti-bot
+            formData.append('botcheck', '');
+
+            // Feedback visual
+            const btn = document.querySelector('.btn-primario');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⏳ Enviando...';
+            btn.disabled = true;
+
+            fetch('https://api.web3forms.com/submit', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Sucesso!
+                    document.getElementById('modal-titulo').textContent = '✅ Dados Enviados com Sucesso!';
+                    document.getElementById('modal-texto').innerHTML = `
+                        Seus dados foram encaminhados para nossa equipe.<br><br>
+                        <strong>Sistemas selecionados:</strong> ${quantidadeSistemas} (${dados.sistema_numerologico})<br>
+                        <strong>Valor total:</strong> R$ ${valorTotal},00<br><br>
+                        <strong>Próximo passo:</strong> Você será redirecionado para a página de pagamento.
+                    `;
+                    document.getElementById('modal-sucesso').classList.add('mostrar');
+                    
+                    // ⚡ CORREÇÃO: URL de pagamento com valor correto
+                    const urlPagamento = `https://tchelojc.github.io/links/pagamento.html?` +
+                        `nome=${encodeURIComponent(dados.nome_completo)}` +
+                        `&email=${encodeURIComponent(dados.email_contato)}` +
+                        `&servico=${encodeURIComponent('Mapa do Próprio Destino')}` +
+                        `&civilizacoes=${encodeURIComponent(dados.sistema_numerologico)}` +
+                        `&tipo=numerologia` +
+                        `&valor=${valorTotal}`;
+
+                    // Redireciona após 3 segundos
+                    setTimeout(() => {
+                        window.location.href = urlPagamento;
+                    }, 3000);
+                } else {
+                    throw new Error('Falha no envio');
+                }
+            })
+            .catch(error => {
+                alert('Erro ao enviar os dados. Por favor, tente novamente ou entre em contato por e-mail: almafluxo@almafluxo.uk');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
             });
-            
-            // Também mostrar no preview
-            visualizarDados();
         }
         
-        // Função para copiar JSON manualmente
-        function copiarJSON() {
-            const jsonText = document.getElementById('dados-json').textContent;
-            navigator.clipboard.writeText(jsonText).then(() => {
-                alert('JSON copiado para a área de transferência!');
-            });
-        }
-        
-        // Função para fechar modal
         function fecharModal() {
             document.getElementById('modal-sucesso').classList.remove('mostrar');
         }
-        
-        // Fechar modal ao clicar fora
+
         document.getElementById('modal-sucesso').addEventListener('click', function(e) {
-            if (e.target === this) {
-                fecharModal();
-            }
-        });
-        
-        // Validação em tempo real
-        document.querySelectorAll('.input-estilizado').forEach(input => {
-            input.addEventListener('input', function() {
-                if (this.value.trim()) {
-                    this.style.borderColor = '#4CAF50';
-                } else {
-                    this.style.borderColor = 'rgba(110, 140, 255, 0.3)';
-                }
-            });
-        });
-        
-        // Inicializar com alguns sistemas pré-selecionados
-        window.addEventListener('DOMContentLoaded', () => {
-            // Selecionar Inca e Chinês por padrão
-            const sistemasPadrao = ['INCA', 'CHINÊS'];
-            opcoesSistemas.forEach(opcao => {
-                const sistema = opcao.getAttribute('data-sistema');
-                if (sistemasPadrao.includes(sistema)) {
-                    opcao.click(); // Simula clique para selecionar
-                }
-            });
+            if (e.target === this) fecharModal();
         });
     </script>
 </body>
