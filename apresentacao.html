@@ -1,1567 +1,270 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>Almafluxo — Proposta de Parceria Estratégica</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,200..1000;1,9..40,200..1000&family=Inter:opsz,wght@14..32,300;400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#8b5cf6',
-                        secondary: '#d4a853',
-                        success: '#10b981',
-                        warning: '#f59e0b',
-                    },
-                    fontFamily: {
-                        'display': ['"Cormorant Garamond"', 'serif'],
-                        'body': ['"DM Sans"', 'sans-serif'],
-                        'mono': ['"JetBrains Mono"', 'monospace'],
-                    },
-                }
-            }
-        }
-    </script>
-    <style>
-        :root {
-            --bg: #0f0f1a;
-            --card-bg: #1a1a2e;
-            --primary: #8b5cf6;
-            --secondary: #d4a853;
-            --text: #e2e2e2;
-            --subtext: #a0a0b0;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --border: #2a2a3a;
-            --font: 'Inter', 'DM Sans', system-ui, -apple-system, sans-serif;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background: var(--bg);
-            font-family: var(--font);
-            color: var(--text);
-            overflow-x: hidden;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            background-image: 
-                radial-gradient(circle at 20% 20%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(212, 168, 83, 0.08) 0%, transparent 50%);
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-            50% { opacity: 0.8; box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
-        }
-
-        @keyframes shimmer {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-
-        @keyframes gradientShift {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-
-        .reveal {
-            opacity: 0;
-            transform: translateY(24px);
-            transition: opacity 0.7s ease, transform 0.7s ease;
-        }
-
-        .reveal.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .reveal-delay-1 { transition-delay: 0.15s; }
-        .reveal-delay-2 { transition-delay: 0.3s; }
-        .reveal-delay-3 { transition-delay: 0.45s; }
-        .reveal-delay-4 { transition-delay: 0.6s; }
-
-        /* MAIN CARD */
-        .main-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 2.5rem;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .main-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--primary));
-            background-size: 200% 100%;
-            animation: gradientShift 3s ease-in-out infinite;
-        }
-
-        /* CARD HEADER */
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .logo-area {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .logo-icon {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg, var(--primary), #6d28d9);
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: white;
-            flex-shrink: 0;
-        }
-
-        .logo-text h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: white;
-            letter-spacing: -0.5px;
-        }
-
-        .logo-text span {
-            font-size: 0.85rem;
-            color: var(--subtext);
-        }
-
-        .status-badge {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: rgba(16, 185, 129, 0.15);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            padding: 0.5rem 1rem;
-            border-radius: 25px;
-            font-size: 0.85rem;
-            color: var(--success);
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            background: var(--success);
-            border-radius: 50%;
-            animation: pulse 2s ease-in-out infinite;
-            flex-shrink: 0;
-        }
-
-        /* METRIC BOX */
-        .metrics-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .metric-box {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 1.5rem;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .metric-box:hover {
-            background: rgba(255, 255, 255, 0.06);
-            border-color: var(--primary);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.15);
-        }
-
-        .metric-label {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--subtext);
-            margin-bottom: 0.5rem;
-            line-height: 1.3;
-        }
-
-        .metric-value {
-            font-size: clamp(1.6rem, 3vw, 2rem);
-            font-weight: 700;
-            color: white;
-            line-height: 1.2;
-        }
-
-        .metric-value.primary {
-            background: linear-gradient(135deg, var(--primary), #c084fc);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .metric-value.secondary {
-            background: linear-gradient(135deg, var(--secondary), #fbbf24);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .metric-sub {
-            font-size: 0.7rem;
-            color: var(--subtext);
-            margin-top: 0.25rem;
-            line-height: 1.4;
-        }
-
-        /* CHARTS */
-        .charts-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .chart-box {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 1.5rem;
-            overflow-x: auto;
-        }
-
-        .chart-title {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--subtext);
-            margin-bottom: 1rem;
-            text-align: center;
-        }
-
-        /* PIE CHART */
-        .pie-chart-container {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .pie-chart {
-            width: clamp(120px, 20vw, 160px);
-            height: clamp(120px, 20vw, 160px);
-            border-radius: 50%;
-            background: conic-gradient(
-                #8b5cf6 0% 45%,
-                #d4a853 45% 70%,
-                #10b981 70% 90%,
-                #ef4444 90% 100%
-            );
-            position: relative;
-            flex-shrink: 0;
-        }
-
-        .pie-chart::after {
-            content: '';
-            position: absolute;
-            width: 45%;
-            height: 45%;
-            background: var(--card-bg);
-            border-radius: 50%;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        .pie-legend {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.75rem;
-            color: var(--subtext);
-        }
-
-        .legend-color {
-            width: 12px;
-            height: 12px;
-            border-radius: 3px;
-            flex-shrink: 0;
-        }
-
-        /* BAR CHART */
-        .bar-chart {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .bar-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            flex-wrap: wrap;
-        }
-
-        .bar-label {
-            width: 70px;
-            font-size: 0.75rem;
-            color: var(--subtext);
-            text-align: right;
-            flex-shrink: 0;
-        }
-
-        .bar-track {
-            flex: 1;
-            min-width: 100px;
-            height: 28px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 14px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .bar-fill {
-            height: 100%;
-            border-radius: 14px;
-            transition: width 1.5s ease-in-out;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding-right: 12px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: white;
-            white-space: nowrap;
-        }
-
-        .bar-fill.purple { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
-        .bar-fill.gold { background: linear-gradient(90deg, #d4a853, #fbbf24); color: #1a1a1a; }
-        .bar-fill.green { background: linear-gradient(90deg, #10b981, #34d399); }
-
-        .bar-amount {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: white;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-
-        /* GROWTH BAR */
-        .growth-bar {
-            height: 100%;
-            border-radius: 8px;
-            transition: width 2s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-        }
-        .growth-bar::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            animation: shimmer 3s ease-in-out infinite;
-            background-size: 200% 100%;
-        }
-
-        /* SYSTEM SECTION */
-        .system-section {
-            background: rgba(139, 92, 246, 0.05);
-            border: 1px solid rgba(139, 92, 246, 0.2);
-            border-radius: 16px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .system-title {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--primary);
-            margin-bottom: 1rem;
-            text-align: center;
-        }
-
-        .flow-diagram {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .flow-step {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 0.6rem 1rem;
-            font-size: 0.75rem;
-            color: var(--text);
-            text-align: center;
-            min-width: 90px;
-            transition: all 0.3s ease;
-        }
-
-        .flow-step:hover {
-            border-color: var(--secondary);
-            background: rgba(212, 168, 83, 0.05);
-        }
-
-        .flow-arrow {
-            color: var(--primary);
-            font-size: 1rem;
-            font-weight: bold;
-            flex-shrink: 0;
-        }
-
-        /* TRUST BADGE */
-        .trust-badge {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: rgba(16, 185, 129, 0.08);
-            border: 1px solid rgba(16, 185, 129, 0.25);
-            padding: 0.75rem 1.25rem;
-            border-radius: 30px;
-            font-size: 0.8rem;
-            color: var(--success);
-            width: fit-content;
-            margin: 0 auto;
-            transition: all 0.3s ease;
-            text-align: center;
-        }
-
-        .trust-badge:hover {
-            background: rgba(16, 185, 129, 0.15);
-            border-color: rgba(16, 185, 129, 0.4);
-        }
-
-        .trust-icon {
-            font-size: 1rem;
-            flex-shrink: 0;
-        }
-
-        /* CARD FOOTER */
-        .card-footer {
-            text-align: center;
-            margin-top: 1rem;
-            color: var(--subtext);
-            font-size: 0.75rem;
-        }
-
-        .card-footer a {
-            color: var(--primary);
-            text-decoration: none;
-        }
-
-        .card-footer a:hover {
-            text-decoration: underline;
-        }
-
-        /* SECTION DIVIDER */
-        .section-divider {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 0 1.5rem;
-        }
-        .section-divider .divider-line {
-            height: 1px;
-            background: linear-gradient(to right, transparent, rgba(139, 92, 246, 0.3), transparent);
-        }
-
-        /* PREVIEW CARD */
-        .preview-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .preview-card:hover {
-            border-color: var(--secondary);
-            box-shadow: 0 10px 40px rgba(212, 168, 83, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .preview-visual {
-            background: rgba(255, 255, 255, 0.02);
-            height: 11rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-
-        .preview-badge {
-            position: absolute;
-            top: 0.5rem;
-            right: 0.5rem;
-            background: rgba(16, 185, 129, 0.15);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            border-radius: 25px;
-            padding: 0.2rem 0.6rem;
-            font-size: 0.6rem;
-            color: var(--success);
-        }
-
-        .preview-body {
-            padding: 1rem;
-        }
-
-        .preview-body h4 {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: white;
-            margin-bottom: 0.5rem;
-        }
-
-        .preview-body p {
-            font-size: 0.75rem;
-            color: var(--subtext);
-            line-height: 1.5;
-            margin-bottom: 0.75rem;
-        }
-
-        .tag {
-            display: inline-block;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 20px;
-            padding: 0.2rem 0.6rem;
-            font-size: 0.6rem;
-            color: var(--subtext);
-            margin-right: 0.25rem;
-            margin-bottom: 0.25rem;
-        }
-
-        /* HERO */
-        .hero-section {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 6rem 1.5rem 3rem;
-            position: relative;
-        }
-
-        .hero-glow {
-            position: absolute;
-            top: 30%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 600px;
-            height: 400px;
-            background: radial-gradient(circle, rgba(139, 92, 246, 0.08), transparent);
-            pointer-events: none;
-        }
-
-        .section-header {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .section-header span:first-child {
-            font-size: 0.65rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: var(--primary);
-            white-space: nowrap;
-        }
-
-        .section-header .header-line {
-            flex: 1;
-            height: 1px;
-            background: linear-gradient(to right, rgba(139, 92, 246, 0.3), transparent);
-        }
-
-        /* GLOW BORDER */
-        @keyframes borderGlow {
-            0%, 100% { border-color: rgba(212, 168, 83, 0.2); box-shadow: 0 0 20px rgba(212, 168, 83, 0.05); }
-            50% { border-color: rgba(212, 168, 83, 0.5); box-shadow: 0 0 35px rgba(212, 168, 83, 0.15); }
-        }
-
-        .glow-border {
-            animation: borderGlow 3s ease-in-out infinite;
-        }
-
-        /* NAV */
-        .nav-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 50;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0.75rem 1.5rem;
-            background: rgba(15, 15, 26, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(212, 168, 83, 0.2);
-        }
-
-        /* RESPONSIVE */
-        @media (max-width: 768px) {
-            .charts-row { grid-template-columns: 1fr; }
-            .flow-diagram { gap: 0.4rem; }
-            .flow-arrow { font-size: 0.9rem; }
-            .flow-step { min-width: 70px; padding: 0.5rem 0.75rem; font-size: 0.7rem; }
-            .main-card { padding: 1.5rem; border-radius: 16px; }
-            .pie-chart-container { flex-direction: column; align-items: center; }
-            .hero-section { padding: 5rem 1rem 2rem; min-height: auto; }
-            .hero-glow { width: 300px; height: 200px; }
-            .bar-item { gap: 0.5rem; }
-            .bar-label { width: 55px; font-size: 0.7rem; }
-            .bar-amount { font-size: 0.7rem; min-width: 70px; }
-            .metric-box { padding: 1.2rem; }
-            .section-header { gap: 0.5rem; }
-            .section-header span:first-child { font-size: 0.6rem; letter-spacing: 1px; }
-            .nav-bar { padding: 0.6rem 1rem; }
-            .logo-icon { width: 38px; height: 38px; font-size: 1.2rem; border-radius: 10px; }
-            .logo-text h1 { font-size: 1.2rem; }
-            .status-badge { padding: 0.4rem 0.75rem; font-size: 0.75rem; }
-            div[style*="grid-template-columns:repeat(auto-fit, minmax(280px, 1fr))"] {
-                grid-template-columns: 1fr !important;
-            }
-            .chart-box table { font-size: 0.65rem; }
-            .chart-box th, .chart-box td { padding: 0.5rem 0.6rem; }
-        }
-
-        @media (max-width: 480px) {
-            .metrics-row { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
-            .metric-box { padding: 1rem; }
-            .metric-value { font-size: 1.4rem; }
-            .metric-label { font-size: 0.65rem; letter-spacing: 0.5px; }
-            .metric-sub { font-size: 0.65rem; }
-            .hero-section { padding: 4rem 0.75rem 1.5rem; }
-            .main-card { padding: 1.2rem; }
-            .preview-visual { height: 8rem; }
-            .flow-diagram { flex-direction: column; }
-            .flow-arrow { transform: rotate(90deg); font-size: 0.8rem; }
-            .trust-badge { font-size: 0.7rem; padding: 0.6rem 1rem; }
-            .section-header span:first-child { font-size: 0.55rem; }
-            .nav-bar { padding: 0.5rem 0.75rem; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Conteúdo Blindado</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:radial-gradient(circle at 20% 30%,#0a0f1a,#030507);
+  font-family:"Segoe UI","Courier New",monospace;
+  min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px
+}
+.container{
+  background:rgba(10,20,30,.9);backdrop-filter:blur(14px);
+  border-radius:32px;border:1px solid rgba(0,255,255,.35);
+  box-shadow:0 20px 48px rgba(0,0,0,.55),0 0 24px rgba(0,255,255,.18);
+  padding:2rem;width:100%;max-width:500px;text-align:center
+}
+.top-bar{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:1.5rem;flex-wrap:wrap;gap:.5rem}
+.title{font-size:1.2rem;background:linear-gradient(135deg,#0ff,#0f0);-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:1px}
+.cd-info{font-size:.8rem;color:#4cc;display:flex;gap:.5rem;align-items:baseline}
+.cd-info .value{font-family:monospace;font-weight:bold;color:#0f0}
+.cd-info.urgente .value{color:#f55;animation:piscar 1s infinite}
+@keyframes piscar{50%{opacity:.4}}
+input[type=text]{
+  background:#0a121c;border:2px solid #2a6a6a;border-radius:48px;
+  padding:12px 20px;width:100%;color:#0ff;font-size:1rem;
+  font-family:monospace;text-align:center;letter-spacing:3px;
+  outline:none;transition:.2s;margin-bottom:12px
+}
+input:focus{border-color:#0ff;box-shadow:0 0 18px rgba(0,255,255,.2)}
+button{
+  background:linear-gradient(95deg,#0a2a2a,#0a3a3a);border:none;
+  border-radius:48px;padding:10px 24px;width:100%;font-size:1rem;
+  font-weight:bold;color:#0ff;cursor:pointer;transition:.2s
+}
+button:hover{background:linear-gradient(95deg,#0c3c3c,#0e5e5e);color:#fff;box-shadow:0 0 14px rgba(0,255,255,.3);transform:scale(1.02)}
+button:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.erro{color:#f66;margin-top:10px;font-size:.8rem;display:none;padding:6px 12px;background:#1a0505;border-radius:10px;border:1px solid #5a1a1a}
+footer{margin-top:1.5rem;font-size:.7rem;color:#2a6a6a}
+.loader{display:inline-block;width:14px;height:14px;border:2px solid #0ff;border-top:2px solid transparent;border-radius:50%;animation:spin .8s linear infinite;margin-left:8px;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
 </head>
 <body>
-    <!-- ═══════════════════════ NAVEGAÇÃO ═══════════════════════ -->
-    <nav class="nav-bar">
-        <div class="logo-area">
-            <div class="logo-icon">✧</div>
-            <div class="logo-text">
-                <h1>Almafluxo</h1>
-            </div>
-        </div>
-        <div class="flex items-center gap-4">
-            <div class="status-badge">
-                <span class="status-dot"></span>
-                Plataforma Ativa
-            </div>
-        </div>
-    </nav>
+<div class="container" id="loginContainer">
+  <div class="top-bar">
+    <div class="title">⚡ CONTEÚDO BLINDADO</div>
+    <div class="cd-info" id="cdInfo">
+      <span>🕒</span><span class="value" id="countdown">--:--:--</span>
+    </div>
+  </div>
+  <input type="text" id="senha" placeholder="INSIRA A SENHA DO PERÍODO" autocomplete="off" maxlength="11">
+  <button id="btnDesbloquear">🔓 DESBLOQUEAR</button>
+  <div class="erro" id="erro"></div>
+  <footer>© UNIVERSO ÁUREO · 3·6·9 · Protegido via APPSCRIPT</footer>
+</div>
 
-    <!-- ═══════════════════════ HERO SECTION ═══════════════════════ -->
-    <section class="hero-section">
-        <div class="hero-glow"></div>
-        <p style="font-size:0.75rem; letter-spacing:0.35em; color:var(--secondary); text-transform:uppercase; margin-bottom:1.5rem; animation: fadeUp 0.8s ease 0.2s forwards; opacity:0;">
-            Proposta de Parceria Estratégica
-        </p>
-        <h1 style="font-family:'Inter', 'DM Sans', system-ui, sans-serif; font-size:clamp(2.2rem,5vw,3.8rem); font-weight:700; text-align:center; max-width:850px; line-height:1.15; margin-bottom:1rem; animation: fadeUp 0.9s ease 0.4s forwards; opacity:0; color:white; letter-spacing:-0.02em;">
-            O mercado está pronto.<br>
-            <span style="background:linear-gradient(135deg, var(--secondary), #fbbf24); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">A plataforma já está rodando.</span>
-        </h1>
-        <p style="color:var(--subtext); text-align:center; max-width:520px; font-size:0.95rem; line-height:1.6; margin-bottom:3rem; animation: fadeUp 0.9s ease 0.6s forwards; opacity:0; font-family:'Inter', 'DM Sans', system-ui, sans-serif;">
-            Quem entrar agora, define o tamanho disso.
-        </p>
-        <div style="width:1px; height:3.5rem; background:linear-gradient(to bottom, transparent, var(--secondary), transparent); margin-bottom:3rem; animation: fadeUp 1s ease 0.8s forwards; opacity:0;"></div>
-        <!-- Métricas — 4 cards -->
-        <div class="metrics-row" style="width:100%; max-width:1000px; animation: fadeUp 0.9s ease 1s forwards; opacity:0;">
-            <div class="metric-box">
-                <div class="metric-label">Mercado combinado · 4 setores</div>
-                <div class="metric-value secondary">R$200Bi+</div>
-                <div class="metric-sub">Sem player digital dominante</div>
-            </div>
-            <div class="metric-box">
-                <div class="metric-label">Receita projetada · 5 Anos</div>
-                <div class="metric-value primary">R$22M</div>
-                <div class="metric-sub">Margem média de 65%+</div>
-            </div>
-            <div class="metric-box">
-                <div class="metric-label">Estágio atual</div>
-                <div class="metric-value primary">Early Stage</div>
-                <div class="metric-sub">Plataforma funcional · Zero investimento externo</div>
-            </div>
-            <div class="metric-box">
-                <div class="metric-label">Participação societária</div>
-                <div class="metric-value secondary">30%</div>
-                <div class="metric-sub">Sócio operacional — administração e expansão</div>
-            </div>
-        </div>
-    </section>
+<script>
+// ========== CONFIGURAÇÃO ==========
+const URL_BACKEND = "https://script.google.com/macros/s/AKfycbzq5ab31Zst_DaI_wDKQPvEImh1qcAzR3x_ya6cOZw_ivwwCJc3Np84P2WB23f1F7Vg8w/exec";
+const TIMEOUT_MS = 15000;  // 15 segundos
+let isProcessing = false;   // Evita múltiplas requisições
+let cdInterval = null;
 
-    <div class="section-divider"><div class="divider-line"></div></div>
-
-    <!-- ═══════════════════════ SEÇÃO: PROVA VISUAL ═══════════════════════ -->
-    <section style="padding:5rem 1.5rem;">
-        <div style="max-width:1100px; margin:0 auto;">
-            <div class="section-header reveal">
-                <span>Sistema Rodando — Prova Visual</span>
-                <span class="header-line"></span>
-            </div>
-
-            <div style="text-align:center; margin-bottom:2.5rem;" class="reveal reveal-delay-1">
-                <h2 style="font-family:'Cormorant Garamond',serif; font-size:2.5rem; color:white; margin-bottom:1rem;">Não é conceito. <span style="color:var(--secondary);">É produção.</span></h2>
-                <p style="color:var(--subtext); max-width:600px; margin:0 auto; font-size:0.9rem; line-height:1.6;">
-                    Abaixo estão as interfaces reais do ecossistema Almafluxo — cada tela representa um pilar de receita ativo. O investidor rompe a barreira entre o usuário e o consumo. Sem ruído. Sem intermediário.
-                </p>
-            </div>
-
-            <!-- GRID DE PREVIEWS -->
-            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1.5rem; margin-bottom:2.5rem;">
-
-                <!-- CARD 1: Portal -->
-                <div class="preview-card reveal reveal-delay-1">
-                    <div class="preview-visual">
-                        <a href="https://almafluxo.uk" target="_blank" style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-decoration:none; cursor:pointer; transition:background 0.3s;" onmouseover="this.style.background='rgba(139,92,246,0.03)'" onmouseout="this.style.background='transparent'">
-                            <div style="width:6rem; height:6rem; border-radius:50%; background:rgba(139,92,246,0.2); border:2px solid rgba(139,92,246,0.4); display:flex; align-items:center; justify-content:center; margin-bottom:0.75rem; transition:all 0.3s;">
-                                <span style="font-size:2rem;">🌀</span>
-                            </div>
-                            <span style="font-size:0.75rem; color:var(--subtext); text-transform:uppercase; letter-spacing:0.1em;">Portal ALMAFLUXO</span>
-                            <span style="font-size:0.7rem; color:var(--success); margin-top:0.25rem;">almafluxo.uk · Online</span>
-                        </a>
-                    </div>
-                    <div class="preview-body">
-                        <h4>🧠 Navegação do Ecossistema</h4>
-                        <p>Portal central com acesso a todos os módulos: Universo Áureo, Trading, Livros, Ferramentas. Navegação em grupos expansíveis com 20+ plataformas integradas.</p>
-                        <div>
-                            <span class="tag">🌌 Universo</span>
-                            <span class="tag">📈 Trading</span>
-                            <span class="tag">📖 Livros</span>
-                            <span class="tag">🔧 Ferramentas</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- CARD 2: Trading -->
-                <div class="preview-card reveal reveal-delay-2">
-                    <div class="preview-visual" style="flex-direction:column; gap:0.5rem; padding:1rem;">
-                        <div style="display:flex; justify-content:space-between; width:100%;">
-                            <span style="font-size:0.65rem; color:#2dd4bf; text-transform:uppercase; letter-spacing:0.1em;">Operador Trading</span>
-                            <span style="width:0.5rem; height:0.5rem; border-radius:50%; background:#2dd4bf;"></span>
-                        </div>
-                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.25rem; flex:1; width:100%;">
-                            <div style="background:rgba(255,255,255,0.03); border-radius:0.5rem; padding:0.5rem; text-align:center;">
-                                <span style="font-size:0.6rem; color:var(--subtext);">Odds</span><br>
-                                <span style="font-size:0.8rem; color:white; font-family:monospace;">2.10</span>
-                            </div>
-                            <div style="background:rgba(255,255,255,0.03); border-radius:0.5rem; padding:0.5rem; text-align:center;">
-                                <span style="font-size:0.6rem; color:var(--subtext);">Stake</span><br>
-                                <span style="font-size:0.8rem; color:white; font-family:monospace;">R$50</span>
-                            </div>
-                            <div style="background:rgba(255,255,255,0.03); border-radius:0.5rem; padding:0.5rem; text-align:center;">
-                                <span style="font-size:0.6rem; color:var(--subtext);">Retorno</span><br>
-                                <span style="font-size:0.8rem; color:var(--success); font-family:monospace;">R$105</span>
-                            </div>
-                        </div>
-                        <div style="background:rgba(255,255,255,0.03); border-radius:0.5rem; padding:0.5rem; display:flex; justify-content:space-between; width:100%;">
-                            <span style="font-size:0.6rem; color:var(--subtext);">Âncora Adaptativa</span>
-                            <span style="font-size:0.6rem; color:#2dd4bf;">Ativa</span>
-                        </div>
-                    </div>
-                    <div class="preview-body">
-                        <h4>⚽ Trading com Hedge Multi-cenário</h4>
-                        <p>Interface do operador com âncora adaptativa, distribuição proporcional de stakes e proteção cruzada. Retorno garantido em 2 de 3 cenários.</p>
-                        <div>
-                            <span class="tag">Futebol</span>
-                            <span class="tag">Basquete</span>
-                            <span class="tag">Multi</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- CARD 3: Marido de Aluguel -->
-                <div class="preview-card reveal reveal-delay-3">
-                    <div class="preview-visual" style="flex-direction:column; gap:0.5rem; padding:1rem;">
-                        <div style="display:flex; justify-content:space-between; width:100%;">
-                            <span style="font-size:0.65rem; color:var(--success); text-transform:uppercase; letter-spacing:0.1em;">Marido de Aluguel</span>
-                            <span style="font-size:0.55rem; color:var(--subtext);">60 serviços · 17 categorias</span>
-                        </div>
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.25rem; flex:1; width:100%;">
-                            <div style="background:rgba(255,255,255,0.03); border-radius:0.5rem; padding:0.5rem; display:flex; align-items:center; gap:0.25rem;"><span>🔧</span><span style="font-size:0.65rem; color:#d1d5db;">Reparos</span></div>
-                            <div style="background:rgba(255,255,255,0.03); border-radius:0.5rem; padding:0.5rem; display:flex; align-items:center; gap:0.25rem;"><span>🎨</span><span style="font-size:0.65rem; color:#d1d5db;">Pintura</span></div>
-                            <div style="background:rgba(255,255,255,0.03); border-radius:0.5rem; padding:0.5rem; display:flex; align-items:center; gap:0.25rem;"><span>🪴</span><span style="font-size:0.65rem; color:#d1d5db;">Jardinagem</span></div>
-                            <div style="background:rgba(255,255,255,0.03); border-radius:0.5rem; padding:0.5rem; display:flex; align-items:center; gap:0.25rem;"><span>💡</span><span style="font-size:0.65rem; color:#d1d5db;">Elétrica</span></div>
-                        </div>
-                        <div style="background:rgba(16,185,129,0.06); border:1px solid rgba(16,185,129,0.25); border-radius:0.5rem; padding:0.5rem; display:flex; align-items:center; gap:0.25rem; width:100%;">
-                            <span>🛡️</span><span style="font-size:0.55rem; color:var(--success);">Pagamento via Token Alma · Escrow seguro</span>
-                        </div>
-                    </div>
-                    <div class="preview-body">
-                        <h4>🛠️ Marketplace de Serviços Domésticos</h4>
-                        <p>Profissionais verificados. Pré-pagamento com custódia. Liberação só após confirmação do serviço. Segurança para os dois lados.</p>
-                        <div>
-                            <span class="tag">17 categorias</span>
-                            <span class="tag">60 serviços</span>
-                            <span class="tag">Token Alma</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Jornada do Usuário -->
-            <div class="main-card reveal reveal-delay-4">
-                <p style="font-size:0.7rem; letter-spacing:0.15em; color:var(--subtext); text-transform:uppercase; margin-bottom:1rem; text-align:center;">Jornada do usuário — sem ruído, direto ao consumo</p>
-                <div class="flow-diagram" style="margin-bottom:1.5rem;">
-                    <div class="flow-step">🔍 Descobre</div>
-                    <span class="flow-arrow">→</span>
-                    <div class="flow-step">🧠 Navega</div>
-                    <span class="flow-arrow">→</span>
-                    <div class="flow-step">💳 Paga</div>
-                    <span class="flow-arrow">→</span>
-                    <div class="flow-step">✅ Consome</div>
-                    <span class="flow-arrow">→</span>
-                    <div class="flow-step" style="background:rgba(212,168,83,0.08); border-color:rgba(212,168,83,0.3); color:var(--secondary);">💰 Receita direta</div>
-                </div>
-                <div class="trust-badge" style="margin-bottom:1rem;">
-                    <span class="trust-icon">🛡️</span>
-                    Todos os serviços respeitam a imagem do parceiro — Conteúdo ético e não denigre a marca
-                </div>
-                <p style="font-size:0.8rem; color:var(--subtext); text-align:center; max-width:600px; margin:0 auto; line-height:1.6;">
-                    <strong style="color:white;">O investidor é a ponte.</strong> Não há ruído de marketing, não há competição por atenção em redes sociais. O ecossistema já está rodando. A parceria coloca a plataforma diretamente na frente de quem consome — sem intermediários, sem algoritmos, sem espera.
-                </p>
-            </div>
-        </div>
-    </section>
-
-
-    <div class="section-divider"><div class="divider-line"></div></div>
-
-    <!-- ═══════════════════════ SEÇÃO: A LACUNA DE MERCADO ═══════════════════════ -->
-    <section style="padding:5rem 1.5rem; background:rgba(139,92,246,0.02);">
-        <div style="max-width:1100px; margin:0 auto;">
-            <div class="section-header reveal">
-                <span>01 — A Lacuna de Mercado</span>
-                <span class="header-line"></span>
-            </div>
-
-            <div class="metrics-row reveal reveal-delay-1">
-                <div class="metric-box">
-                    <div class="metric-label">Mercado mundial de numerologia</div>
-                    <div class="metric-value primary">US$ 2 Bi</div>
-                    <div class="metric-sub">75% da China já opera com numerologia para negócios, casamentos e decisões de vida. Um mercado milenar ainda sem plataforma digital dominante — a Almafluxo já está posicionada.</div>
-                </div>
-                <div class="metric-box">
-                    <div class="metric-label">Mercado de apostas no Brasil</div>
-                    <div class="metric-value secondary">R$38,8Bi</div>
-                    <div class="metric-sub">Crescimento de 35% ao ano. Nosso sistema de hedge opera com proteção multi-cenário — não é aposta, é operação estruturada.</div>
-                </div>
-                <div class="metric-box">
-                    <div class="metric-label">Players digitais dominantes</div>
-                    <div class="metric-value primary">0</div>
-                    <div class="metric-sub">Três mercados bilionários sem liderança digital. Nenhuma plataforma une numerologia, trading esportivo e marketplace de serviços. A Almafluxo ocupa essa posição agora.</div>
-                </div>
-            </div>
-
-            <!-- Gráficos -->
-            <div class="charts-row reveal reveal-delay-2">
-                <div class="chart-box">
-                    <div class="chart-title">📊 Distribuição por Nicho de Atuação</div>
-                    <div class="pie-chart-container">
-                        <div class="pie-chart"></div>
-                        <div class="pie-legend">
-                            <div class="legend-item"><span class="legend-color" style="background:#8b5cf6;"></span> Numerologia Chinesa (45%)</div>
-                            <div class="legend-item"><span class="legend-color" style="background:#d4a853;"></span> Astrologia Ocidental (25%)</div>
-                            <div class="legend-item"><span class="legend-color" style="background:#10b981;"></span> Feng Shui & Outros (20%)</div>
-                            <div class="legend-item"><span class="legend-color" style="background:#ef4444;"></span> I Ching & Tarot (10%)</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="chart-box">
-                    <div class="chart-title">💰 Projeção de Receita × Captura de Mercado</div>
-                    <div class="bar-chart">
-                        <div class="bar-item">
-                            <span class="bar-label">1% Market</span>
-                            <div class="bar-track"><div class="bar-fill purple" style="width:20%;">1%</div></div>
-                            <span class="bar-amount">R$200M/ano</span>
-                        </div>
-                        <div class="bar-item">
-                            <span class="bar-label">3% Market</span>
-                            <div class="bar-track"><div class="bar-fill gold" style="width:45%;">3%</div></div>
-                            <span class="bar-amount">R$600M/ano</span>
-                        </div>
-                        <div class="bar-item">
-                            <span class="bar-label">5% Market</span>
-                            <div class="bar-track"><div class="bar-fill green" style="width:75%;">5%</div></div>
-                            <span class="bar-amount">R$1Bi/ano</span>
-                        </div>
-                    </div>
-                    <p style="font-size:0.7rem; color:var(--subtext); margin-top:1rem; text-align:center;">Mercado global estimado: US$ 2 bilhões (Industry Reports 2024)</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <div class="section-divider"><div class="divider-line"></div></div>
-
-    <!-- ═══════════════════════ SEÇÃO: 4 PILARES ═══════════════════════ -->
-    <section style="padding:5rem 1.5rem;">
-        <div style="max-width:1100px; margin:0 auto;">
-            <div class="section-header reveal">
-                <span>02 — Ecossistema de Receita</span>
-                <span class="header-line"></span>
-            </div>
-
-            <!-- Destaque Open Source -->
-            <div class="main-card reveal reveal-delay-1" style="margin-bottom:2rem;">
-                <div style="display:flex; align-items:flex-start; gap:1rem; flex-wrap:wrap;">
-                    <div class="logo-icon">🇧🇷</div>
-                    <div>
-                        <h3 style="font-family:'Cormorant Garamond',serif; font-size:1.3rem; color:var(--warning); margin-bottom:0.5rem;">Primeira Startup Brasileira com Sistema Próprio Open Source</h3>
-                        <p style="font-size:0.9rem; color:var(--subtext); line-height:1.6;">
-                            Não consumimos tecnologia de terceiros — <strong style="color:white;">a Almafluxo produz e distribui seu próprio sistema</strong>. Código aberto, auditável, escalável. Isso atrai desenvolvedores, patrocinadores e acelera todos os outros pilares. <strong style="color:var(--warning);">Somos infraestrutura, não apenas mais uma plataforma.</strong>
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1.5rem;">
-                <!-- PILAR 1 -->
-                <div class="main-card reveal reveal-delay-1" style="padding:1.5rem;">
-                    <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
-                        <span style="font-size:2rem;">🔮</span>
-                        <div>
-                            <h3 style="font-family:'Cormorant Garamond',serif; font-size:1.2rem; color:#a78bfa;">Numerologia & Espiritualidade</h3>
-                            <p style="font-size:0.7rem; color:var(--subtext);">Mercado Global: <strong style="color:var(--secondary);">US$ 2 Bilhões</strong></p>
-                        </div>
-                    </div>
-                    <div style="display:flex; flex-direction:column; gap:0.75rem;">
-                        <div style="display:flex; align-items:center; gap:0.75rem;">
-                            <span style="font-size:0.7rem; color:var(--subtext); width:5rem;">China (75%)</span>
-                            <div style="flex:1; height:1.5rem; background:rgba(255,255,255,0.05); border-radius:1rem; overflow:hidden;">
-                                <div class="growth-bar" style="width:75%; background:linear-gradient(90deg,#8b5cf6,#a78bfa);"></div>
-                            </div>
-                            <span style="font-size:0.7rem; color:white; font-weight:500;">1,4 Bi</span>
-                        </div>
-                        <div style="display:flex; align-items:center; gap:0.75rem;">
-                            <span style="font-size:0.7rem; color:var(--subtext); width:5rem;">Ocidental</span>
-                            <div style="flex:1; height:1.5rem; background:rgba(255,255,255,0.05); border-radius:1rem; overflow:hidden;">
-                                <div class="growth-bar" style="width:45%; background:linear-gradient(90deg,#8b5cf6,#a78bfa); opacity:0.7;"></div>
-                            </div>
-                            <span style="font-size:0.7rem; color:white; font-weight:500;">US$ 900M</span>
-                        </div>
-                        <p style="font-size:0.7rem; color:var(--subtext); margin-top:0.5rem;">Mapa do Destino (R$100) · Sintesia Humana (R$/h) · Universo Áureo (Assinatura) · 38 idiomas</p>
-                    </div>
-                </div>
-
-                <!-- PILAR 2 -->
-                <div class="main-card reveal reveal-delay-2" style="padding:1.5rem;">
-                    <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
-                        <span style="font-size:2rem;">⚽</span>
-                        <div>
-                            <h3 style="font-family:'Cormorant Garamond',serif; font-size:1.2rem; color:#2dd4bf;">Sistema Hedge Esportivo</h3>
-                            <p style="font-size:0.7rem; color:var(--subtext);">Mercado Brasil: <strong style="color:var(--secondary);">R$ 38,8 Bilhões</strong></p>
-                        </div>
-                    </div>
-                    <div style="display:flex; flex-direction:column; gap:0.75rem;">
-                        <div style="display:flex; align-items:center; gap:0.75rem;">
-                            <span style="font-size:0.7rem; color:var(--subtext); width:5rem;">Apostadores</span>
-                            <div style="flex:1; height:1.5rem; background:rgba(255,255,255,0.05); border-radius:1rem; overflow:hidden;">
-                                <div class="growth-bar" style="width:52%; background:linear-gradient(90deg,#2dd4bf,#4ade80);"></div>
-                            </div>
-                            <span style="font-size:0.7rem; color:white; font-weight:500;">52 Mi</span>
-                        </div>
-                        <div style="display:flex; align-items:center; gap:0.75rem;">
-                            <span style="font-size:0.7rem; color:var(--subtext); width:5rem;">Crescimento</span>
-                            <div style="flex:1; height:1.5rem; background:rgba(255,255,255,0.05); border-radius:1rem; overflow:hidden;">
-                                <div class="growth-bar" style="width:35%; background:linear-gradient(90deg,#2dd4bf,#4ade80); opacity:0.7;"></div>
-                            </div>
-                            <span style="font-size:0.7rem; color:white; font-weight:500;">35% a.a.</span>
-                        </div>
-                        <p style="font-size:0.7rem; color:var(--subtext); margin-top:0.5rem;">Operador Trading (R$10/dia) · Âncora Adaptativa · Hedge multi-cenário · Retorno em 2 de 3 cenários</p>
-                    </div>
-                </div>
-
-                <!-- PILAR 3 -->
-                <div class="main-card reveal reveal-delay-3" style="padding:1.5rem;">
-                    <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
-                        <span style="font-size:2rem;">🛠️</span>
-                        <div>
-                            <h3 style="font-family:'Cormorant Garamond',serif; font-size:1.2rem; color:var(--success);">Marido de Aluguel</h3>
-                            <p style="font-size:0.7rem; color:var(--subtext);">Mercado Brasil: <strong style="color:var(--secondary);">R$ 45 Bilhões</strong></p>
-                        </div>
-                    </div>
-                    <div style="display:flex; flex-direction:column; gap:0.75rem;">
-                        <div style="display:flex; align-items:center; gap:0.75rem;">
-                            <span style="font-size:0.7rem; color:var(--subtext); width:5rem;">Categorias</span>
-                            <div style="flex:1; height:1.5rem; background:rgba(255,255,255,0.05); border-radius:1rem; overflow:hidden;">
-                                <div class="growth-bar" style="width:24%; background:linear-gradient(90deg,#10b981,#34d399);"></div>
-                            </div>
-                            <span style="font-size:0.7rem; color:white; font-weight:500;">60 serviços</span>
-                        </div>
-                        <div style="display:flex; align-items:center; gap:0.75rem;">
-                            <span style="font-size:0.7rem; color:var(--subtext); width:5rem;">Projeção</span>
-                            <div style="flex:1; height:1.5rem; background:rgba(255,255,255,0.05); border-radius:1rem; overflow:hidden;">
-                                <div class="growth-bar" style="width:50%; background:linear-gradient(90deg,#10b981,#34d399); opacity:0.7;"></div>
-                            </div>
-                            <span style="font-size:0.7rem; color:white; font-weight:500;">50k (24m)</span>
-                        </div>
-                        <div style="background:rgba(245,158,11,0.05); border:1px solid rgba(245,158,11,0.2); border-radius:0.75rem; padding:1rem; margin-top:0.5rem;">
-                            <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
-                                <span>🤝</span>
-                                <span style="font-size:0.75rem; font-weight:600; color:var(--warning);">Receita Recorrente: Parcerias com Distribuidoras</span>
-                            </div>
-                            <p style="font-size:0.7rem; color:var(--subtext); line-height:1.5;">
-                                Profissionais compram materiais com <strong style="color:white;">preços exclusivos</strong> em lojas parceiras. A plataforma intermedia e recebe comissão sobre o volume transacionado. <strong style="color:var(--success);">Nova linha de receita já mapeada.</strong>
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- PILAR 4 -->
-                <div class="main-card reveal reveal-delay-4 glow-border" style="padding:1.5rem;">
-                    <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
-                        <span style="font-size:2rem;">💻</span>
-                        <div>
-                            <h3 style="font-family:'Cormorant Garamond',serif; font-size:1.2rem; color:var(--warning);">Motor Tecnológico Próprio</h3>
-                            <p style="font-size:0.7rem; color:var(--subtext);">Diferencial competitivo: <strong style="color:var(--secondary);">Patrocinadores Tech</strong></p>
-                        </div>
-                    </div>
-                    <div style="display:flex; flex-direction:column; gap:0.75rem;">
-                        <div style="display:flex; align-items:center; gap:0.75rem;">
-                            <span style="font-size:0.7rem; color:var(--subtext); width:5rem;">Código</span>
-                            <div style="flex:1; height:1.5rem; background:rgba(255,255,255,0.05); border-radius:1rem; overflow:hidden;">
-                                <div class="growth-bar" style="width:46%; background:linear-gradient(90deg,#f59e0b,#fbbf24);"></div>
-                            </div>
-                            <span style="font-size:0.7rem; color:white; font-weight:500;">46k+ linhas</span>
-                        </div>
-                        <div style="display:flex; align-items:center; gap:0.75rem;">
-                            <span style="font-size:0.7rem; color:var(--subtext); width:5rem;">Módulos</span>
-                            <div style="flex:1; height:1.5rem; background:rgba(255,255,255,0.05); border-radius:1rem; overflow:hidden;">
-                                <div class="growth-bar" style="width:7%; background:linear-gradient(90deg,#f59e0b,#fbbf24); opacity:0.7;"></div>
-                            </div>
-                            <span style="font-size:0.7rem; color:white; font-weight:500;">7 submódulos</span>
-                        </div>
-                    </div>
-                    <div style="background:rgba(245,158,11,0.05); border:1px solid rgba(245,158,11,0.2); border-radius:0.75rem; padding:1rem; margin-top:0.75rem;">
-                        <p style="font-size:0.7rem; color:var(--subtext); line-height:1.5; margin-bottom:0.75rem;">
-                            <strong style="color:var(--warning);">Vantagem Competitiva Definitiva:</strong> Nenhuma startup brasileira tem <strong style="color:white;">seu próprio motor tecnológico open source</strong>.
-                        </p>
-                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.5rem; margin-bottom:0.75rem;">
-                            <div style="background:rgba(255,255,255,0.03); border-radius:0.5rem; padding:0.5rem; text-align:center;"><span style="font-size:1rem;">🧑‍💻</span><br><span style="font-size:0.6rem; color:var(--subtext);">Comunidade</span></div>
-                            <div style="background:rgba(255,255,255,0.03); border-radius:0.5rem; padding:0.5rem; text-align:center;"><span style="font-size:1rem;">🏢</span><br><span style="font-size:0.6rem; color:var(--subtext);">Patrocinadores</span></div>
-                            <div style="background:rgba(255,255,255,0.03); border-radius:0.5rem; padding:0.5rem; text-align:center;"><span style="font-size:1rem;">🚀</span><br><span style="font-size:0.6rem; color:var(--subtext);">Novos Produtos</span></div>
-                        </div>
-                        <p style="font-size:0.7rem; color:var(--subtext); line-height:1.5;">
-                            <strong style="color:var(--warning);">Patrocinadores em potencial:</strong> AWS, Google Cloud, Microsoft Azure, Vercel, Netlify, GitHub Sponsors, Intel, AMD, NVIDIA e fundos de investimento tech.
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Fluxo de Liberação -->
-            <div class="system-section reveal reveal-delay-2" style="margin-top:2rem;">
-                <div class="system-title">⚙️ Sistema de Liberação de Serviços & Pagamentos</div>
-                <div class="flow-diagram">
-                    <div class="flow-step">👤 Usuário Solicita</div>
-                    <span class="flow-arrow">→</span>
-                    <div class="flow-step">💳 Pagamento Processado</div>
-                    <span class="flow-arrow">→</span>
-                    <div class="flow-step" style="background:rgba(212,168,83,0.08); border-color:rgba(212,168,83,0.3);">🔍 Aprovação Humana</div>
-                    <span class="flow-arrow">→</span>
-                    <div class="flow-step">✅ Acesso Liberado</div>
-                    <span class="flow-arrow">→</span>
-                    <div class="flow-step">🤖 IA Automatiza*</div>
-                </div>
-                <p style="font-size:0.7rem; color:var(--subtext); margin-top:1rem; text-align:center;">* Próxima fase: automação via webhook/VM com análise IA — sem perder controle de qualidade</p>
-            </div>
-        </div>
-    </section>
-
-    <div class="section-divider"><div class="divider-line"></div></div>
-
-    <!-- ═══════════════════════ SEÇÃO: PROJEÇÃO FINANCEIRA ═══════════════════════ -->
-    <section style="padding:5rem 1.5rem; background:rgba(139,92,246,0.02);">
-        <div style="max-width:1100px; margin:0 auto;">
-            <div class="section-header reveal">
-                <span>03 — Projeção Financeira</span>
-                <span class="header-line"></span>
-            </div>
-
-            <!-- Gráfico Chart.js -->
-            <div class="chart-box reveal reveal-delay-1" style="margin-bottom:1.5rem;">
-                <h3 style="font-family:'Cormorant Garamond',serif; font-size:1.1rem; color:white; margin-bottom:1rem;">📈 Receita Projetada — 4 Pilares (R$ mil)</h3>
-                <div style="width:100%; height:20rem;">
-                    <canvas id="chartReceitaConsolidada"></canvas>
-                </div>
-                <p style="font-size:0.7rem; color:var(--subtext); margin-top:1rem; text-align:center;">Projeção conservadora. Open Source gera receita indireta via patrocínios e aceleração dos outros pilares.</p>
-            </div>
-
-            <!-- Tabela -->
-            <div class="chart-box reveal reveal-delay-2" style="margin-bottom:1.5rem; overflow-x:auto;">
-                <h3 style="font-family:'Cormorant Garamond',serif; font-size:1.1rem; color:white; margin-bottom:1rem;">📊 Detalhamento — Ano 5</h3>
-                <table style="width:100%; font-size:0.8rem; border-collapse:collapse;">
-                    <thead>
-                        <tr style="border-bottom:1px solid rgba(255,255,255,0.1); text-align:left;">
-                            <th style="padding:0.75rem 1rem; font-size:0.7rem; color:var(--subtext); text-transform:uppercase; letter-spacing:0.05em;">Pilar</th>
-                            <th style="padding:0.75rem 1rem; font-size:0.7rem; color:var(--subtext); text-transform:uppercase; letter-spacing:0.05em;">Mercado Total</th>
-                            <th style="padding:0.75rem 1rem; font-size:0.7rem; color:var(--subtext); text-transform:uppercase; letter-spacing:0.05em;">Captura</th>
-                            <th style="padding:0.75rem 1rem; font-size:0.7rem; color:var(--subtext); text-transform:uppercase; letter-spacing:0.05em;">Receita Ano 5</th>
-                            <th style="padding:0.75rem 1rem; font-size:0.7rem; color:var(--subtext); text-transform:uppercase; letter-spacing:0.05em;">Margem</th>
-                            <th style="padding:0.75rem 1rem; font-size:0.7rem; color:var(--subtext); text-transform:uppercase; letter-spacing:0.05em;">Lucro</th>
-                        </tr>
-                    </thead>
-                    <tbody style="color:#d1d5db;">
-                        <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
-                            <td style="padding:0.75rem 1rem;"><span style="color:#a78bfa;">🔮</span> Numerologia</td>
-                            <td style="padding:0.75rem 1rem; font-family:monospace; font-size:0.7rem;">US$ 2 Bi</td>
-                            <td style="padding:0.75rem 1rem; color:var(--secondary);">0,4%</td>
-                            <td style="padding:0.75rem 1rem; font-family:monospace; color:var(--secondary);">R$ 8M</td>
-                            <td style="padding:0.75rem 1rem; color:var(--success);">72%</td>
-                            <td style="padding:0.75rem 1rem; font-family:monospace; color:var(--success);">R$ 5,8M</td>
-                        </tr>
-                        <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
-                            <td style="padding:0.75rem 1rem;"><span style="color:#2dd4bf;">⚽</span> Trading Esportivo</td>
-                            <td style="padding:0.75rem 1rem; font-family:monospace; font-size:0.7rem;">R$ 38,8 Bi</td>
-                            <td style="padding:0.75rem 1rem; color:var(--secondary);">0,02%</td>
-                            <td style="padding:0.75rem 1rem; font-family:monospace; color:var(--secondary);">R$ 7M</td>
-                            <td style="padding:0.75rem 1rem; color:var(--success);">65%</td>
-                            <td style="padding:0.75rem 1rem; font-family:monospace; color:var(--success);">R$ 4,6M</td>
-                        </tr>
-                        <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
-                            <td style="padding:0.75rem 1rem;"><span style="color:var(--success);">🛠️</span> Marido de Aluguel</td>
-                            <td style="padding:0.75rem 1rem; font-family:monospace; font-size:0.7rem;">R$ 45 Bi</td>
-                            <td style="padding:0.75rem 1rem; color:var(--secondary);">0,01%</td>
-                            <td style="padding:0.75rem 1rem; font-family:monospace; color:var(--secondary);">R$ 5M</td>
-                            <td style="padding:0.75rem 1rem; color:var(--success);">30%</td>
-                            <td style="padding:0.75rem 1rem; font-family:monospace; color:var(--success);">R$ 1,5M</td>
-                        </tr>
-                        <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
-                            <td style="padding:0.75rem 1rem;"><span style="color:var(--warning);">💻</span> Open Source</td>
-                            <td style="padding:0.75rem 1rem; font-family:monospace; font-size:0.7rem;">Indireto</td>
-                            <td style="padding:0.75rem 1rem; color:var(--secondary);">—</td>
-                            <td style="padding:0.75rem 1rem; font-family:monospace; color:var(--secondary);">R$ 2M</td>
-                            <td style="padding:0.75rem 1rem; color:var(--success);">95%</td>
-                            <td style="padding:0.75rem 1rem; font-family:monospace; color:var(--success);">R$ 1,9M</td>
-                        </tr>
-                        <tr style="background:rgba(212,168,83,0.05);">
-                            <td style="padding:1rem; font-weight:700; color:white;">TOTAL</td>
-                            <td style="padding:1rem;"></td>
-                            <td style="padding:1rem;"></td>
-                            <td style="padding:1rem; font-family:monospace; font-size:1.2rem; color:var(--secondary); font-weight:700;">R$ 22M</td>
-                            <td style="padding:1rem;"></td>
-                            <td style="padding:1rem; font-family:monospace; font-size:1.2rem; color:var(--success); font-weight:700;">R$ 13,8M</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Barras de progresso -->
-            <div class="chart-box reveal reveal-delay-3" style="margin-bottom:1.5rem;">
-                <h3 style="font-family:'Cormorant Garamond',serif; font-size:1.1rem; color:white; margin-bottom:1rem;">📈 Trajetória de Receita Combinada</h3>
-                <div style="display:flex; flex-direction:column; gap:1rem;">
-                    <div class="bar-item">
-                        <span class="bar-label">Ano 1</span>
-                        <div class="bar-track"><div class="growth-bar" style="width:12%; background:linear-gradient(90deg,#8b5cf6,#a78bfa);"></div></div>
-                        <span class="bar-amount">R$430k</span>
-                    </div>
-                    <div class="bar-item">
-                        <span class="bar-label">Ano 2</span>
-                        <div class="bar-track"><div class="growth-bar" style="width:28%; background:linear-gradient(90deg,#2dd4bf,#4ade80);"></div></div>
-                        <span class="bar-amount">R$1,68M</span>
-                    </div>
-                    <div class="bar-item">
-                        <span class="bar-label">Ano 3</span>
-                        <div class="bar-track"><div class="growth-bar" style="width:48%; background:linear-gradient(90deg,#d4a853,#fbbf24);"></div></div>
-                        <span class="bar-amount">R$5,7M</span>
-                    </div>
-                    <div class="bar-item">
-                        <span class="bar-label">Ano 5</span>
-                        <div class="bar-track"><div class="growth-bar" style="width:100%; background:linear-gradient(90deg,#10b981,#34d399);"></div></div>
-                        <span class="bar-amount">R$22M</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Ciclo Virtuoso -->
-            <div class="main-card reveal reveal-delay-4">
-                <h3 style="font-family:'Cormorant Garamond',serif; font-size:1.1rem; color:var(--warning); margin-bottom:1rem;">🔄 Ciclo Virtuoso — Tecnologia Própria</h3>
-                <div class="metrics-row" style="margin-bottom:1rem;">
-                    <div class="metric-box"><div style="font-size:1.5rem; margin-bottom:0.5rem;">📂</div><div style="font-size:0.8rem; color:white; font-weight:600; margin-bottom:0.25rem;">Código Aberto</div><p style="font-size:0.65rem; color:var(--subtext);">Disponível. Auditável. Expansível.</p></div>
-                    <div class="metric-box"><div style="font-size:1.5rem; margin-bottom:0.5rem;">👥</div><div style="font-size:0.8rem; color:white; font-weight:600; margin-bottom:0.25rem;">Comunidade</div><p style="font-size:0.65rem; color:var(--subtext);">Desenvolvedores encontram base para criar.</p></div>
-                    <div class="metric-box"><div style="font-size:1.5rem; margin-bottom:0.5rem;">💼</div><div style="font-size:0.8rem; color:white; font-weight:600; margin-bottom:0.25rem;">Patrocinadores</div><p style="font-size:0.65rem; color:var(--subtext);">Empresas tech investem no ecossistema.</p></div>
-                    <div class="metric-box"><div style="font-size:1.5rem; margin-bottom:0.5rem;">🚀</div><div style="font-size:0.8rem; color:white; font-weight:600; margin-bottom:0.25rem;">Novos Produtos</div><p style="font-size:0.65rem; color:var(--subtext);">Cada módulo gera novas receitas.</p></div>
-                </div>
-                <p style="font-size:0.8rem; color:var(--subtext); text-align:center; line-height:1.6;">
-                    <strong style="color:var(--warning);">Diferencial definitivo:</strong> A Almafluxo não compete no mercado de serviços. Ela <strong style="color:white;">cria o próprio mercado de tecnologia</strong>. Primeira startup brasileira que produz, distribui e monetiza seu próprio sistema operacional de negócios.
-                </p>
-            </div>
-        </div>
-    </section>
-
-    <div class="section-divider"><div class="divider-line"></div></div>
-
-    <!-- ═══════════════════════ SEÇÃO: SEGURANÇA DE MARCA ═══════════════════════ -->
-    <section style="padding:5rem 1.5rem;">
-        <div style="max-width:1100px; margin:0 auto;">
-            <div class="section-header reveal">
-                <span>04 — Segurança de Marca</span>
-                <span class="header-line"></span>
-            </div>
-            <div class="main-card reveal reveal-delay-1">
-                <div style="display:flex; align-items:flex-start; gap:1.5rem; flex-wrap:wrap;">
-                    <div style="width:3rem; height:3rem; border:1px solid var(--secondary); border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4a853" stroke-width="1.5"><path d="M12 2l8 4v6c0 5-4 9-8 10-4-1-8-5-8-10V6l8-4z"/></svg>
-                    </div>
-                    <div>
-                        <h2 style="font-family:'Cormorant Garamond',serif; font-size:1.3rem; color:white; margin-bottom:0.75rem;">Nenhum serviço compromete a imagem do parceiro.</h2>
-                        <p style="font-size:0.85rem; color:var(--subtext); line-height:1.6; margin-bottom:1rem;">Todo o ecossistema opera com aprovação manual, verificação de identidade e transparência via código aberto. Trading é hedge financeiro estruturado — não aposta. Marketplace com triagem de profissionais. Sem conteúdo de risco. Sem associação predatória.</p>
-                        <div style="display:flex; flex-wrap:wrap; gap:0.5rem;">
-                            <span class="tag">Conteúdo Educacional</span>
-                            <span class="tag">Aprovação Manual</span>
-                            <span class="tag">Triagem de Perfil</span>
-                            <span class="tag">Hedge — Não Aposta</span>
-                            <span class="tag">Código Aberto</span>
-                            <span class="tag">Zero Conteúdo Adulto</span>
-                            <span class="tag">Zero Substâncias</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <div class="section-divider"><div class="divider-line"></div></div>
-
-    <!-- ═══════════════════════ SEÇÃO: PREÇO JUSTO — IMPACTO FAMILIAR ═══════════════════════ -->
-    <section style="padding:5rem 1.5rem; background:linear-gradient(135deg, rgba(0,132,61,0.03), rgba(255,209,0,0.03));">
-        <div style="max-width:1100px; margin:0 auto;">
-            <div class="section-header reveal">
-                <span style="color:#00843D;">Preço Justo · Alimentação Acessível</span>
-                <span class="header-line" style="background:linear-gradient(to right, rgba(0,132,61,0.4), transparent);"></span>
-            </div>
-
-            <!-- HEADLINE EMOCIONAL -->
-            <div style="text-align:center; margin-bottom:2.5rem;" class="reveal reveal-delay-1">
-                <h2 style="font-family:'Cormorant Garamond',serif; font-size:clamp(2rem,4vw,3rem); color:white; margin-bottom:1rem;">
-                    Comida mais barata <span style="color:#00843D;">começa com quem se importa.</span>
-                </h2>
-                <p style="color:var(--subtext); max-width:650px; margin:0 auto; font-size:0.95rem; line-height:1.7;">
-                    Toda família merece acesso ao melhor alimento pelo menor preço — <strong style="color:white;">sem pagar nada por isso.</strong> O Preço Justo é a plataforma gratuita onde vizinhos ajudam vizinhos a encontrar onde comprar mais barato.
-                </p>
-            </div>
-
-            <!-- MÉTRICAS DO PREÇO JUSTO -->
-            <div class="metrics-row reveal reveal-delay-2">
-                <div class="metric-box" style="border-left:4px solid #00843D;">
-                    <div class="metric-label">Plataforma</div>
-                    <div class="metric-value" style="background:linear-gradient(135deg, #00843D, #00a651); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">Grátis</div>
-                    <div class="metric-sub">Para todas as famílias</div>
-                </div>
-                <div class="metric-box" style="border-left:4px solid #FFD100;">
-                    <div class="metric-label">Quem Alimenta</div>
-                    <div class="metric-value secondary">Comunidade</div>
-                    <div class="metric-sub">Vizinhos ajudando vizinhos</div>
-                </div>
-                <div class="metric-box" style="border-left:4px solid #E31E26;">
-                    <div class="metric-label">Propósito</div>
-                    <div class="metric-value primary">Família</div>
-                    <div class="metric-sub">Cada refeição importa</div>
-                </div>
-                <div class="metric-box" style="border-left:4px solid #0066CC;">
-                    <div class="metric-label">Alcance</div>
-                    <div class="metric-value" style="background:linear-gradient(135deg, #0066CC, #4da6ff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">7 Redes</div>
-                    <div class="metric-sub">Mercados monitorados</div>
-                </div>
-            </div>
-
-            <!-- COMO FUNCIONA — VISUAL -->
-            <div class="main-card reveal reveal-delay-3" style="margin-bottom:2rem;">
-                <p style="font-size:0.7rem; letter-spacing:0.15em; color:var(--subtext); text-transform:uppercase; margin-bottom:1.5rem; text-align:center;">Como uma dona de casa economiza sem sair de casa</p>
-                <div class="flow-diagram" style="margin-bottom:1.5rem;">
-                    <div class="flow-step">📱 Abre o site</div>
-                    <span class="flow-arrow" style="color:#00843D;">→</span>
-                    <div class="flow-step">🔍 Busca o produto</div>
-                    <span class="flow-arrow" style="color:#00843D;">→</span>
-                    <div class="flow-step" style="background:rgba(0,132,61,0.08); border-color:rgba(0,132,61,0.3);">💰 Vê o menor preço</div>
-                    <span class="flow-arrow" style="color:#00843D;">→</span>
-                    <div class="flow-step">🛒 Vai ao mercado certo</div>
-                    <span class="flow-arrow" style="color:#00843D;">→</span>
-                    <div class="flow-step" style="background:rgba(227,30,38,0.08); border-color:rgba(227,30,38,0.3);">❤️ Alimenta a família</div>
-                </div>
-            </div>
-
-            <!-- DEPOIMENTO EMOCIONAL + GRATIDÃO -->
-            <div class="main-card reveal reveal-delay-4" style="border-left:8px solid #FFD100; background:linear-gradient(135deg, rgba(255,209,0,0.04), rgba(0,132,61,0.02));">
-                <div style="display:flex; align-items:flex-start; gap:1.5rem; flex-wrap:wrap;">
-                    <div style="font-size:3rem; flex-shrink:0;">🛒</div>
-                    <div>
-                        <h3 style="font-family:'Cormorant Garamond',serif; font-size:1.5rem; color:white; margin-bottom:1rem;">
-                            "Minha mãe não precisa mais andar 3 mercados."
-                        </h3>
-                        <p style="font-size:0.9rem; color:var(--subtext); line-height:1.7; margin-bottom:1.5rem;">
-                            <strong style="color:white;">O Preço Justo nasceu da realidade de quem cuida da casa.</strong> Cada preço enviado por um vizinho é um gesto de cuidado com outra família. Quando você tira uma foto da etiqueta e compartilha, está ajudando uma mãe, um avô, um pai de família a colocar o melhor alimento na mesa — <strong style="color:#00843D;">sem precisar gastar mais por isso.</strong>
-                        </p>
-                        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:1rem;">
-                            <div class="metric-box" style="text-align:left; padding:1rem;">
-                                <div style="font-size:1.2rem; margin-bottom:0.5rem;">📸</div>
-                                <div style="font-size:0.8rem; color:white; font-weight:600; margin-bottom:0.25rem;">Tire a foto</div>
-                                <p style="font-size:0.7rem; color:var(--subtext);">Da etiqueta no mercado</p>
-                            </div>
-                            <div class="metric-box" style="text-align:left; padding:1rem;">
-                                <div style="font-size:1.2rem; margin-bottom:0.5rem;">📤</div>
-                                <div style="font-size:0.8rem; color:white; font-weight:600; margin-bottom:0.25rem;">Envie o preço</div>
-                                <p style="font-size:0.7rem; color:var(--subtext);">Em menos de 30 segundos</p>
-                            </div>
-                            <div class="metric-box" style="text-align:left; padding:1rem;">
-                                <div style="font-size:1.2rem; margin-bottom:0.5rem;">❤️</div>
-                                <div style="font-size:0.8rem; color:white; font-weight:600; margin-bottom:0.25rem;">Ajude de graça</div>
-                                <p style="font-size:0.7rem; color:var(--subtext);">Ninguém paga nada</p>
-                            </div>
-                            <div class="metric-box" style="text-align:left; padding:1rem;">
-                                <div style="font-size:1.2rem; margin-bottom:0.5rem;">🏠</div>
-                                <div style="font-size:0.8rem; color:white; font-weight:600; margin-bottom:0.25rem;">Sua família come bem</div>
-                                <p style="font-size:0.7rem; color:var(--subtext);">Pelo menor preço</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-    <div class="section-divider"><div class="divider-line"></div></div>
-
-    <!-- ═══════════════════════ SEÇÃO: A PROPOSTA ═══════════════════════ -->
-    <section style="padding:5rem 1.5rem; background:rgba(139,92,246,0.02);">
-        <div style="max-width:1100px; margin:0 auto;">
-            <div class="section-header reveal">
-                <span>05 — A Proposta</span>
-                <span class="header-line"></span>
-            </div>
-
-            <!-- Headline da proposta -->
-            <div style="text-align:center; margin-bottom:2.5rem;" class="reveal reveal-delay-1">
-                <h2 style="font-family:'Cormorant Garamond',serif; font-size:clamp(1.8rem,3.5vw,2.8rem); color:white; margin-bottom:1rem;">
-                    Não é investimento. <span style="color:var(--secondary);">É sociedade.</span>
-                </h2>
-                <p style="color:var(--subtext); max-width:580px; margin:0 auto; font-size:0.9rem; line-height:1.7;">
-                    Nenhum dos dois entra com capital. Os dois entram com o que têm de mais valioso: <strong style="color:white;">expertise e dedicação</strong>. O risco é compartilhado porque a construção também é.
-                </p>
-            </div>
-
-            <div style="display:grid; grid-template-columns:3fr 2fr; gap:1.5rem;" class="reveal reveal-delay-2">
-                <div class="main-card" style="display:flex; flex-direction:column; justify-content:center;">
-                    <div style="font-family:'Cormorant Garamond',serif; font-size:6rem; font-weight:300; color:var(--secondary); line-height:1; margin-bottom:0.5rem;">30<span style="font-size:3rem;">%</span></div>
-                    <div style="font-size:0.8rem; letter-spacing:0.15em; color:var(--subtext); text-transform:uppercase; margin-bottom:1rem;">Participação societária — Sócio Fundador</div>
-                    <p style="font-size:0.85rem; color:var(--subtext); line-height:1.6;">
-                        Uma sociedade construída sobre <strong style="color:white; font-weight:500;">dois pilares de mão de obra</strong> — sem aporte financeiro de nenhum dos lados. Cada sócio carrega a sua parte. Cada sócio colhe proporcionalmente.<br><br>
-                        <strong style="color:white; font-weight:500;">Ele traz:</strong> toda a estrutura jurídica, fiscal, tributária e financeira — CNPJ, contratos, gestão de impostos, conformidade legal e expansão comercial.<br><br>
-                        <strong style="color:white; font-weight:500;">Marcelo traz:</strong> o ecossistema completo já construído — tecnologia, plataformas, conteúdo, manutenção e evolução contínua.<br><br>
-                        Se o negócio cresce, os dois ganham. Se trava, os dois ajustam. O risco é igual porque o comprometimento é igual.
-                    </p>
-                </div>
-                <div style="display:flex; flex-direction:column; gap:1rem;">
-                    <div class="metric-box" style="text-align:left;">
-                        <div class="metric-label">Ele entrega</div>
-                        <p style="font-size:0.85rem; color:white; line-height:1.5;">Estrutura jurídica e societária. Gestão fiscal e tributária. Contratos com operadores e parceiros. Conformidade legal completa.</p>
-                    </div>
-                    <div class="metric-box" style="text-align:left;">
-                        <div class="metric-label">Marcelo entrega</div>
-                        <p style="font-size:0.85rem; color:white; line-height:1.5;">Ecossistema digital com 20+ plataformas. Tecnologia proprietária. Conteúdo e manutenção contínuos. Evolução do produto.</p>
-                    </div>
-                    <div class="metric-box" style="text-align:left; border-color:rgba(212,168,83,0.3);">
-                        <div class="metric-label">Retorno compartilhado</div>
-                        <p style="font-size:0.85rem; color:white; line-height:1.5;">30% de um ecossistema com mercado combinado de R$200Bi — com receita estrutural através dos operadores.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- FAQ -->
-            <div class="section-header reveal" style="margin-top:3rem;">
-                <span>Perguntas e Respostas</span>
-                <span class="header-line"></span>
-            </div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;" class="reveal reveal-delay-2">
-                <div class="metric-box" style="text-align:left;">
-                    <p style="font-size:0.75rem; color:var(--subtext); font-style:italic; margin-bottom:0.75rem;">"Qual o retorno concreto?"</p>
-                    <p style="font-size:0.85rem; color:white; line-height:1.5;"><strong style="color:var(--secondary); font-weight:500;">Participação societária real com receita estrutural.</strong> Quatro pilares de receita. Upside exponencial.</p>
-                </div>
-                <div class="metric-box" style="text-align:left;">
-                    <p style="font-size:0.75rem; color:var(--subtext); font-style:italic; margin-bottom:0.75rem;">"Qual é o meu risco?"</p>
-                    <p style="font-size:0.85rem; color:white; line-height:1.5;">O mesmo de Marcelo — <strong style="color:var(--secondary); font-weight:500;">tempo e dedicação</strong>. Não há aporte financeiro exigido. O risco é proporcional ao comprometimento de cada lado. Simétrico por definição.</p>
-                </div>
-                <div class="metric-box" style="text-align:left;">
-                    <p style="font-size:0.75rem; color:var(--subtext); font-style:italic; margin-bottom:0.75rem;">"Por que a Almafluxo?"</p>
-                    <p style="font-size:0.85rem; color:white; line-height:1.5;"><strong style="color:var(--secondary); font-weight:500;">Único ecossistema</strong> que une numerologia, trading esportivo, marketplace de serviços e tecnologia open source. Sem competidor direto. Já construído e rodando.</p>
-                </div>
-                <div class="metric-box" style="text-align:left;">
-                    <p style="font-size:0.75rem; color:var(--subtext); font-style:italic; margin-bottom:0.75rem;">"E o risco de imagem?"</p>
-                    <p style="font-size:0.85rem; color:white; line-height:1.5;"><strong style="color:var(--secondary); font-weight:500;">Aprovação manual de cada usuário.</strong> Hedge estruturado, não aposta. Marketplace com verificação de identidade. Código aberto. Transparência total.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <div class="section-divider"><div class="divider-line"></div></div>
-
-    <!-- ═══════════════════════ SEÇÃO: PRÓXIMOS PASSOS ═══════════════════════ -->
-    <section style="padding:5rem 1.5rem;">
-        <div style="max-width:1100px; margin:0 auto;">
-            <div class="section-header reveal">
-                <span>06 — Próximos Passos</span>
-                <span class="header-line"></span>
-            </div>
-            <div class="metrics-row reveal reveal-delay-1">
-                <div class="metric-box">
-                    <div style="font-family:'Cormorant Garamond',serif; font-size:2.5rem; color:var(--secondary); font-weight:300; margin-bottom:0.5rem;">01</div>
-                    <div style="font-size:0.9rem; color:white; font-weight:500; margin-bottom:0.25rem;">Alinhamento</div>
-                    <p style="font-size:0.75rem; color:var(--subtext);">Apresentação ao time. Respostas em 24h.</p>
-                </div>
-                <div class="metric-box">
-                    <div style="font-family:'Cormorant Garamond',serif; font-size:2.5rem; color:var(--secondary); font-weight:300; margin-bottom:0.5rem;">02</div>
-                    <div style="font-size:0.9rem; color:white; font-weight:500; margin-bottom:0.25rem;">Startup ao Vivo</div>
-                    <p style="font-size:0.75rem; color:var(--subtext);">Acesso à plataforma em almafluxo.uk.</p>
-                </div>
-                <div class="metric-box">
-                    <div style="font-family:'Cormorant Garamond',serif; font-size:2.5rem; color:var(--secondary); font-weight:300; margin-bottom:0.5rem;">03</div>
-                    <div style="font-size:0.9rem; color:white; font-weight:500; margin-bottom:0.25rem;">Formalização</div>
-                    <p style="font-size:0.75rem; color:var(--subtext);">Contrato simples de sociedade.</p>
-                </div>
-                <div class="metric-box">
-                    <div style="font-family:'Cormorant Garamond',serif; font-size:2.5rem; color:var(--secondary); font-weight:300; margin-bottom:0.5rem;">04</div>
-                    <div style="font-size:0.9rem; color:white; font-weight:500; margin-bottom:0.25rem;">Escala</div>
-                    <p style="font-size:0.75rem; color:var(--subtext);">Anúncio oficial + plataforma absorvendo audiência.</p>
-                </div>
-            </div>
-
-            <!-- CTA Final -->
-            <div class="main-card reveal reveal-delay-2">
-                <div style="display:flex; align-items:center; justify-content:space-between; gap:1.5rem; flex-wrap:wrap;">
-                    <div>
-                        <h2 style="font-family:'Cormorant Garamond',serif; font-size:1.5rem; color:white; margin-bottom:0.5rem;">Entrar antes do pico.</h2>
-                        <p style="font-size:0.85rem; color:var(--subtext); max-width:500px; line-height:1.6;">Quatro mercados bilionários sem player digital dominante. A Almafluxo é o único ecossistema que os une — com o sócio certo administrando desde o começo.</p>
-                    </div>
-                    <div style="display:flex; flex-direction:column; gap:0.75rem;">
-                        <div style="display:flex; align-items:center; gap:0.5rem;">
-                            <span style="font-size:0.65rem; color:var(--subtext); text-transform:uppercase; width:5rem;">Plataforma</span>
-                            <a href="https://almafluxo.uk" target="_blank" style="color:var(--secondary); text-decoration:none;">almafluxo.uk</a>
-                        </div>
-                        <div style="display:flex; align-items:center; gap:0.5rem;">
-                            <span style="font-size:0.65rem; color:var(--subtext); text-transform:uppercase; width:5rem;">Email</span>
-                            <span style="color:var(--secondary);">tchelojc@gmail.com</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ═══════════════════════ FOOTER ═══════════════════════ -->
-    <footer style="max-width:1100px; margin:0 auto; padding:1rem 1.5rem 3rem;">
-        <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; padding-top:1.5rem; border-top:1px solid rgba(255,255,255,0.05); flex-wrap:wrap;">
-            <span style="font-family:'Cormorant Garamond',serif; font-size:0.85rem; font-style:italic; color:var(--subtext);">"Não sou o Nada e não sou o Tudo. Sou o Trajeto."</span>
-            <span style="font-size:0.65rem; letter-spacing:0.1em; color:var(--subtext); text-transform:uppercase;">Almafluxo · 2026</span>
-        </div>
-    </footer>
-
-    <!-- ═══════════════════════ SCRIPTS ═══════════════════════ -->
-    <script>
-        const revealEls = document.querySelectorAll('.reveal');
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) entry.target.classList.add('visible');
-            });
-        }, { threshold: 0.08 });
-        revealEls.forEach(el => observer.observe(el));
-
-        const ctxReceita = document.getElementById('chartReceitaConsolidada');
-        if (ctxReceita) {
-            new Chart(ctxReceita.getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: ['Ano 1', 'Ano 2', 'Ano 3', 'Ano 4', 'Ano 5'],
-                    datasets: [
-                        { label: 'Numerologia', data: [120, 480, 1800, 4500, 8000], backgroundColor: '#8b5cf6', borderRadius: 4 },
-                        { label: 'Trading Esportivo', data: [180, 600, 2000, 4800, 7000], backgroundColor: '#2dd4bf', borderRadius: 4 },
-                        { label: 'Marido de Aluguel', data: [80, 350, 1200, 3200, 5000], backgroundColor: '#10b981', borderRadius: 4 },
-                        { label: 'Open Source / Patrocínios', data: [50, 250, 700, 1400, 2000], backgroundColor: '#f59e0b', borderRadius: 4 }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: { color: '#a0a0b0', font: { size: 10 }, padding: 15, usePointStyle: true }
-                        },
-                        tooltip: { callbacks: { label: (ctx) => ' ' + ctx.dataset.label + ': R$ ' + ctx.parsed.y + 'k' } }
-                    },
-                    scales: {
-                        x: { stacked: true, ticks: { color: '#a0a0b0', font: { size: 10 } }, grid: { display: false } },
-                        y: {
-                            stacked: true,
-                            ticks: { color: '#a0a0b0', font: { size: 10 }, callback: (v) => 'R$' + (v >= 1000 ? (v / 1000).toFixed(1) + 'M' : v + 'k') },
-                            grid: { color: 'rgba(255,255,255,0.04)' }
-                        }
-                    }
-                }
-            });
+// ========== AUTO-RELANÇAMENTO PARA FILE:// ==========
+(function() {
+    if (location.protocol !== "file:") return;
+    console.log("🔁 Protocolo file:// detectado, relançando via Blob...");
+    const req = new XMLHttpRequest();
+    req.open("GET", location.href, true);
+    req.responseType = "blob";
+    req.onload = function() {
+        const url = URL.createObjectURL(new Blob([req.response], {type:"text/html"}));
+        const opened = window.open(url, "_self");
+        if (!opened || opened === window) {
+            document.body.innerHTML =
+                "<div style='position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#030507;font-family:monospace;gap:20px'>"
+              + "<div style='color:#0ff;font-size:1.2rem;letter-spacing:3px'>⚡ UNIVERSO ÁUREO</div>"
+              + "<div style='color:#8cc;font-size:.85rem;text-align:center;max-width:380px;line-height:1.6'>Para conexão segura com o servidor,<br>abra o arquivo pelo link abaixo:</div>"
+              + "<a href='" + url + "' style='background:linear-gradient(95deg,#0a3a3a,#0e5e5e);color:#0ff;padding:12px 32px;border-radius:48px;text-decoration:none;font-weight:bold;font-size:1rem;letter-spacing:2px'>🔓 ABRIR CONECTADO</a>"
+              + "<div style='color:#2a6a6a;font-size:.65rem'>© UNIVERSO ÁUREO · 3·6·9</div></div>";
         }
+    };
+    req.onerror = function() { console.error("❌ Falha no auto-relançamento"); };
+    req.send();
+})();
 
-        setTimeout(() => {
-            document.querySelectorAll('.growth-bar').forEach(bar => {
-                const targetWidth = bar.style.width;
-                bar.style.width = '0%';
-                setTimeout(() => { bar.style.width = targetWidth; }, 200);
+// ========== TESTE DE CONECTIVIDADE (opcional) ==========
+async function testarBackend() {
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+        const url = `${URL_BACKEND}?action=debug`;
+        const r = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const data = await r.json();
+        console.log("🔍 Debug backend:", data);
+        if (data.ok === false) console.warn("⚠️ Backend retornou erro:", data.error);
+        else console.log("✅ Backend online, JSON presente:", data.jsonEncontrado);
+    } catch(e) {
+        console.error("❌ Teste de conectividade falhou:", e.message);
+    }
+}
+
+// ========== FUNÇÕES AUXILIARES ==========
+function mostrarErro(msg) {
+    console.error("❌", msg);
+    const el = document.getElementById("erro");
+    el.textContent = "❌ " + msg;
+    el.style.display = "block";
+    setTimeout(() => el.style.display = "none", 6000);
+}
+
+function pad(n) { return String(n).padStart(2, "0"); }
+
+function fmtContagem(ms) {
+    if (ms <= 0) return "00:00:00";
+    const s = Math.floor(ms / 1000);
+    const hh = Math.floor(s / 3600);
+    const mm = Math.floor((s % 3600) / 60);
+    const ss = s % 60;
+    return `${pad(hh)}:${pad(mm)}:${pad(ss)}`;
+}
+
+function atualizarContagem() {
+    const agora = new Date();
+    const amanha = new Date(Date.UTC(agora.getUTCFullYear(), agora.getUTCMonth(), agora.getUTCDate() + 1));
+    const ms = amanha - agora;
+    const el = document.getElementById("countdown");
+    if (el) el.textContent = fmtContagem(ms);
+    const cdInfo = document.getElementById("cdInfo");
+    if (cdInfo) cdInfo.classList.toggle("urgente", ms < 3600000);
+}
+
+// ========== COMUNICAÇÃO COM O BACKEND (prioriza GET, fallback POST) ==========
+async function obterChave(senha) {
+    // Tenta primeiro via GET (evita CORS)
+    const getUrl = `${URL_BACKEND}?action=getKeyWithPassword&password=${encodeURIComponent(senha)}`;
+    console.log("📡 GET para:", getUrl);
+    
+    let response;
+    let errorMsg = "";
+    
+    // Tentativa com GET
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+        response = await fetch(getUrl, { signal: controller.signal });
+        clearTimeout(timeoutId);
+    } catch(e) {
+        errorMsg = e.message;
+        console.warn("GET falhou, tentando POST...", errorMsg);
+        // Fallback para POST
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+            response = await fetch(URL_BACKEND, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "getKeyWithPassword", password: senha }),
+                signal: controller.signal
             });
-        }, 500);
-    </script>
+            clearTimeout(timeoutId);
+        } catch(e2) {
+            throw new Error(`GET e POST falharam: ${e2.message}`);
+        }
+    }
+    
+    if (!response.ok) throw new Error(`Backend retornou ${response.status}`);
+    const data = await response.json();
+    if (!data.ok) throw new Error(data.error || "Resposta inválida do servidor");
+    if (!data.chaveMestra) throw new Error("Chave mestra ausente na resposta");
+    if (!data.nonce || !data.tag || !data.data) throw new Error("Dados do conteúdo incompletos");
+    
+    const keyBytes = Uint8Array.from(atob(data.chaveMestra), c => c.charCodeAt(0));
+    if (keyBytes.length !== 32) throw new Error(`Chave inválida: ${keyBytes.length} bytes (esperado 32)`);
+    
+    console.log("✅ Chave obtida com sucesso");
+    return {
+        chaveMestra: data.chaveMestra,
+        conteudo: { nonce: data.nonce, tag: data.tag, data: data.data }
+    };
+}
+
+async function aesDecrypt(obj, keyB64) {
+    const keyBytes = Uint8Array.from(atob(keyB64), c => c.charCodeAt(0));
+    const cryptoKey = await crypto.subtle.importKey("raw", keyBytes, "AES-GCM", false, ["decrypt"]);
+    const iv = Uint8Array.from(atob(obj.nonce), c => c.charCodeAt(0));
+    const tag = Uint8Array.from(atob(obj.tag), c => c.charCodeAt(0));
+    const data = Uint8Array.from(atob(obj.data), c => c.charCodeAt(0));
+    const ciphertextWithTag = new Uint8Array([...data, ...tag]);
+    return await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: iv, tagLength: 128 },
+        cryptoKey,
+        ciphertextWithTag
+    );
+}
+
+function exibirConteudo(html) {
+    const txt = html.trim();
+    console.log("📄 Exibindo conteúdo, tamanho:", txt.length);
+    if (txt.toLowerCase().startsWith("<!doctype") || txt.startsWith("<html")) {
+        const iframe = document.createElement("iframe");
+        iframe.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:9999";
+        iframe.srcdoc = txt;
+        document.body.innerHTML = "";
+        document.body.appendChild(iframe);
+        document.body.style.cssText = "margin:0;padding:0;overflow:hidden";
+    } else {
+        const div = document.createElement("div");
+        div.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;background:#0a121c;overflow:auto";
+        const pre = document.createElement("pre");
+        pre.textContent = txt;
+        pre.style.cssText = "padding:1rem;margin:0;color:#0ff;font-family:monospace;font-size:.9rem;white-space:pre-wrap";
+        div.appendChild(pre);
+        document.body.innerHTML = "";
+        document.body.appendChild(div);
+        document.body.style.cssText = "margin:0;padding:0";
+    }
+}
+
+// ========== EVENTO PRINCIPAL ==========
+document.getElementById("btnDesbloquear").onclick = async () => {
+    if (isProcessing) return;
+    const senhaInput = document.getElementById("senha");
+    const senha = senhaInput.value.trim().toUpperCase();
+    if (!senha) {
+        mostrarErro("Digite a senha do período.");
+        return;
+    }
+    
+    isProcessing = true;
+    const btn = document.getElementById("btnDesbloquear");
+    const txtOriginal = btn.innerText;
+    btn.innerText = "🔐 VERIFICANDO";
+    btn.disabled = true;
+    const loaderSpan = document.createElement("span");
+    loaderSpan.className = "loader";
+    btn.appendChild(loaderSpan);
+    
+    try {
+        const { chaveMestra, conteudo } = await obterChave(senha);
+        const buf = await aesDecrypt(conteudo, chaveMestra);
+        const txt = new TextDecoder().decode(buf);
+        exibirConteudo(txt);
+    } catch(e) {
+        console.error("Erro durante desbloqueio:", e);
+        mostrarErro(e.message);
+        btn.innerText = txtOriginal;
+        btn.disabled = false;
+        if (loaderSpan.parentNode) loaderSpan.remove();
+        isProcessing = false;
+    }
+};
+
+document.getElementById("senha").addEventListener("keypress", e => {
+    if (e.key === "Enter") document.getElementById("btnDesbloquear").click();
+});
+
+// ========== INICIALIZAÇÃO ==========
+atualizarContagem();
+cdInterval = setInterval(atualizarContagem, 1000);
+testarBackend(); // Testa conectividade silenciosamente (exibe no console)
+console.log("🚀 Gateway temporal inicializado. Backend:", URL_BACKEND);
+</script>
 </body>
 </html>
