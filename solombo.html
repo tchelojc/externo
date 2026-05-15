@@ -70,6 +70,7 @@
     }
     .numerology-card h3 span {
       color: var(--rosa);
+      font-style: italic;
     }
     .numerology-card .rule {
       color: #ffb74d;
@@ -793,11 +794,10 @@
     </div>
   </div>
 
-  <!-- ═══════════ CARD NUMEROLOGIA ═══════════ -->
   <div class="section">
     <div class="numerology-card">
-      <h3>🔮 <span>Numerologia</span> Sôlombo</h3>
-      <p class="rule">A cada 20 pedidos cadastrados, o cliente ganha uma numerologia grátis!</p>
+      <h3>🔮 <span>Sô</span>lombo Numerologia</h3>
+      <p class="rule">A cada 20 pedidos, o cliente ganha uma numerologia grátis!</p>
       
       <div class="counter-box">
         <span class="counter-number" id="pedidosCount">0</span>
@@ -806,14 +806,14 @@
 
       <div class="input-group">
         <input type="text" id="clienteNome" placeholder="Seu nome completo">
-        <input type="text" id="numeroPedido" placeholder="Nº do pedido (ex: SMB-202605-1437825)">
+        <input type="text" id="numeroPedido" placeholder="Nº do pedido (ex: SMB-20260515-143025782)">
       </div>
 
       <button class="btn-cadastrar" onclick="cadastrarPedido()">📦 Cadastrar Pedido</button>
       <div id="mensagemCadastro" class="message" style="display:none;"></div>
     </div>
   </div>
-
+  
   <footer  <footer>
     <!-- IMAGEM 4 — só a logo centralizada -->
     <div class="section" style="display:flex; align-items:center; justify-content:center;">
@@ -933,6 +933,11 @@
         <label class="molho-opcao sem-molho">
           <input type="radio" name="molho" value="Sem molho" onchange="atualizarPrecoMolho()"> ✖️ Sem molho <span class="preco-molho grátis">Grátis</span>
         </label>
+      </div>
+
+      <!-- Nome do cliente -->
+      <div id="nome-cliente-pedido" style="margin: 8px 0;">
+        <input type="text" id="nomeClientePedido" placeholder="Seu nome" style="width:100%; background:#0d0400; border:1px solid rgba(192,0,107,0.35); border-radius:30px; padding:0.8rem 1.2rem; color:#fff; font-family:'Nunito',sans-serif; font-size:0.9rem; outline:none;">
       </div>
 
       <!-- Resumo do pedido -->
@@ -1118,6 +1123,7 @@
     }
 
     // Enviar pedido pelo WhatsApp (NÚMERO SÓ APARECE NO WHATSAPP)
+    // Enviar pedido pelo WhatsApp (COM NOME DO CLIENTE)
     function enviarPedido() {
         const qtdTrad = parseInt(document.getElementById('qtd-tradicional').textContent) || 0;
         const qtdQueijo = parseInt(document.getElementById('qtd-queijo').textContent) || 0;
@@ -1125,11 +1131,22 @@
         if (!molhoRadio) return;
         const molhoSelecionado = molhoRadio.value;
         const aviso = document.getElementById('aviso-qtd');
+        
+        // Pega o nome do cliente
+        const nomeInput = document.getElementById('nomeClientePedido');
+        const nomeCliente = nomeInput ? nomeInput.value.trim() : '';
 
         if (qtdTrad === 0 && qtdQueijo === 0) {
             aviso.style.display = 'block';
             return;
         }
+        
+        if (!nomeCliente) {
+            aviso.style.display = 'block';
+            aviso.textContent = '⚠️ Digite seu nome!';
+            return;
+        }
+        
         aviso.style.display = 'none';
 
         // GERA O NÚMERO DO PEDIDO
@@ -1142,8 +1159,9 @@
         const precoMolho = getPrecoMolho(molhoSelecionado);
         const total = subtotalPacotes + precoMolho;
 
-        // Salva como pendente no localStorage
+        // Salva como pendente no localStorage COM O NOME DO CLIENTE
         salvarPedidoPendente(numeroPedido, {
+            nome: nomeCliente,  // ← NOME CORRETO AQUI
             itens: { tradicional: qtdTrad, queijoCoalho: qtdQueijo },
             total: total,
             molho: molhoSelecionado
@@ -1151,6 +1169,7 @@
 
         // Monta mensagem para o WhatsApp
         let mensagem = `🔥 *SÔLOMBO - NOVO PEDIDO* 🔥%0A%0A`;
+        mensagem += `👤 *Cliente:* ${encodeURIComponent(nomeCliente)}%0A`;
         mensagem += `📦 *Nº do Pedido:* ${numeroPedido}%0A%0A`;
         mensagem += `*Itens:*%0A`;
 
@@ -1181,10 +1200,11 @@
         const url = `https://wa.me/5521981533928?text=${mensagem}`;
         window.open(url, '_blank');
 
-        // Fecha o modal após enviar
+        // Limpa o nome e fecha o modal
+        if (nomeInput) nomeInput.value = '';
         closeModal('modal-pedido');
     }
-    
+
     // ═══════════ MODAL DE SUGESTÕES ═══════════
     function atualizarSugestoes() {
         const legumesCheck = document.querySelector('#modal-sugestoes input[value="Legumes Defumados"]');
@@ -1442,10 +1462,18 @@
         if (!nomeCliente) { mostrarMensagem('❌ Digite seu nome completo.', 'error'); if(inputNome) inputNome.focus(); return; }
         if (!numeroPedido) { mostrarMensagem('❌ Digite o número do pedido.', 'error'); if(inputNumero) inputNumero.focus(); return; }
 
-        // Validação anti-fraude: verifica se o código existe no localStorage
+        // Validação anti-fraude: verifica se o código existe E se o nome confere
         const pedidos = getPedidosGerados();
-        if (!pedidos[numeroPedido]) {
+        const pedido = pedidos[numeroPedido];
+        
+        if (!pedido) {
             mostrarMensagem('❌ Código de pedido inválido! Use o código gerado pelo Sôlombo.', 'error');
+            return;
+        }
+        
+        // Verifica se o nome confere (case insensitive)
+        if (pedido.nome && pedido.nome.toLowerCase() !== nomeCliente.toLowerCase()) {
+            mostrarMensagem(`❌ O nome não confere com o pedido! O pedido ${numeroPedido} pertence a "${pedido.nome}".`, 'error');
             return;
         }
 
