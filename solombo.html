@@ -1221,8 +1221,7 @@
         localStorage.setItem('solombo_pedidos_gerados', JSON.stringify(pedidos));
     }
 
-    // Enviar pedido pelo WhatsApp (NÚMERO SÓ APARECE NO WHATSAPP)
-    // Enviar pedido pelo WhatsApp (COM NOME DO CLIENTE)
+    // Enviar pedido pelo WhatsApp (COM CHAVE PIX E COMPROVANTE)
     function enviarPedido() {
         const qtdTrad = parseInt(document.getElementById('qtd-tradicional').textContent) || 0;
         const qtdQueijo = parseInt(document.getElementById('qtd-queijo').textContent) || 0;
@@ -1237,6 +1236,7 @@
 
         if (qtdTrad === 0 && qtdQueijo === 0) {
             aviso.style.display = 'block';
+            aviso.textContent = '⚠️ Selecione ao menos um bolinho!';
             return;
         }
         
@@ -1258,9 +1258,12 @@
         const precoMolho = getPrecoMolho(molhoSelecionado);
         const total = subtotalPacotes + precoMolho;
 
+        // Chave Pix
+        const chavePix = 'f1461640-6c03-4298-8c28-f1119c968612';
+
         // Salva como pendente no localStorage COM O NOME DO CLIENTE
         salvarPedidoPendente(numeroPedido, {
-            nome: nomeCliente,  // ← NOME CORRETO AQUI
+            nome: nomeCliente,
             itens: { tradicional: qtdTrad, queijoCoalho: qtdQueijo },
             total: total,
             molho: molhoSelecionado
@@ -1292,7 +1295,12 @@
         }
 
         mensagem += `%0A💰 *Total: R$ ${total.toFixed(2).replace('.', ',')}*%0A`;
-        mensagem += `%0A🔮 Após confirmar o pagamento, acesse o site e cadastre o número *${numeroPedido}* para concorrer à Numerologia Grátis!%0A`;
+        mensagem += `%0A═══════════════════════════%0A`;
+        mensagem += `💳 *PAGAMENTO VIA PIX*%0A`;
+        mensagem += `📋 Chave Pix: *${chavePix}*%0A`;
+        mensagem += `%0A⚠️ *Após o pagamento, envie o comprovante por aqui mesmo no WhatsApp!*%0A`;
+        mensagem += `%0A═══════════════════════════%0A`;
+        mensagem += `%0A🔮 Após a confirmação, acesse o site e cadastre o número *${numeroPedido}* para concorrer à Numerologia Grátis!%0A`;
         mensagem += `%0A🔥 *Sôlombo - Comida Defumada com Amor*`;
 
         // Abre WhatsApp
@@ -1303,7 +1311,7 @@
         if (nomeInput) nomeInput.value = '';
         closeModal('modal-pedido');
     }
-
+    
     // ═══════════ MODAL DE SUGESTÕES ═══════════
     function atualizarSugestoes() {
         const legumesCheck = document.querySelector('#modal-sugestoes input[value="Legumes Defumados"]');
