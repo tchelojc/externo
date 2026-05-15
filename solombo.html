@@ -1265,28 +1265,37 @@
         // Monta itens
         let itensMsg = '';
         if (qtdTrad > 0) {
-            itensMsg += `🌿 ${qtdTrad}x Tradicional (${qtdTrad * UNIDADE_POR_PACOTE} bolinhos) - R$${(qtdTrad * PRECO_PACOTE).toFixed(2)}%0A`;
+            const subtradStr = (qtdTrad * PRECO_PACOTE).toFixed(2).replace('.', ',');
+            itensMsg += `🌿 ${qtdTrad}x Pacote(s) Tradicional = ${qtdTrad * UNIDADE_POR_PACOTE} bolinhos (bacon, salsa, alho e cebola) - R$ ${subtradStr}%0A`;
         }
         if (qtdQueijo > 0) {
-            itensMsg += `🧀 ${qtdQueijo}x Queijo Coalho (${qtdQueijo * UNIDADE_POR_PACOTE} bolinhos) - R$${(qtdQueijo * PRECO_PACOTE).toFixed(2)}%0A`;
+            const subqueijoStr = (qtdQueijo * PRECO_PACOTE).toFixed(2).replace('.', ',');
+            itensMsg += `🧀 ${qtdQueijo}x Pacote(s) Queijo Coalho = ${qtdQueijo * UNIDADE_POR_PACOTE} bolinhos - R$ ${subqueijoStr}%0A`;
         }
+
+        const totalPacotesMsg = qtdTrad + qtdQueijo;
+        const totalUnidadesMsg = totalPacotesMsg * UNIDADE_POR_PACOTE;
 
         // Monta molho
         let molhoMsg = '';
-        if (molhoSelecionado === 'Ambos') molhoMsg = 'Mostarda & Mel + Heinz Bacon (+R$60,00)';
-        else if (molhoSelecionado === 'Sem molho') molhoMsg = 'Sem molho';
-        else molhoMsg = `${molhoSelecionado} (+R$30,00)`;
+        if (molhoSelecionado === 'Ambos') molhoMsg = 'Mostarda & Mel + Heinz Bacon (+R$ 60,00)';
+        else if (molhoSelecionado === 'Sem molho') molhoMsg = 'Sem molho (Grátis)';
+        else molhoMsg = `${molhoSelecionado} (+R$ 30,00)`;
 
-        // Mensagem final (ENXUTA)
-        let mensagem = `🔥*SÔLOMBO-PEDIDO*🔥%0A`;
-        mensagem += `👤${encodeURIComponent(nomeCliente)}%0A`;
-        mensagem += `📦${numeroPedido}%0A%0A`;
+        const totalStr = total.toFixed(2).replace('.', ',');
+
+        // Mensagem final
+        let mensagem = `🔥 *SÔLOMBO - NOVO PEDIDO* 🔥%0A`;
+        mensagem += `👤 *Cliente:* ${encodeURIComponent(nomeCliente)}%0A`;
+        mensagem += `📦 *Nº do Pedido:* ${numeroPedido}%0A`;
+        mensagem += `%0A*Itens:*%0A`;
         mensagem += `${itensMsg}`;
-        mensagem += `%0A🍶${molhoMsg}%0A`;
-        mensagem += `💰Total:R$${total.toFixed(2)}%0A`;
-        mensagem += `%0A💳PIX:${chavePix}%0A`;
-        mensagem += `⚠️Envie o comprovante aqui!%0A`;
-        mensagem += `%0A🔮Cadastre ${numeroPedido} no site!`;
+        mensagem += `📦 Total: ${totalPacotesMsg} pacote(s) = *${totalUnidadesMsg} bolinhos*%0A`;
+        mensagem += `🍶 Molho: ${molhoMsg}%0A`;
+        mensagem += `%0A💰 *Total: R$ ${totalStr}*%0A`;
+        mensagem += `%0A💳 *PIX:* ${chavePix}%0A`;
+        mensagem += `⚠️ Envie o comprovante aqui após o pagamento!%0A`;
+        mensagem += `%0A🔮 Cadastre o código *${numeroPedido}* no site para concorrer à Numerologia Grátis!`;
 
         const url = `https://wa.me/5521981533928?text=${mensagem}`;
         window.open(url, '_blank');
