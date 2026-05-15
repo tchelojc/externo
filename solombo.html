@@ -797,7 +797,7 @@
   <div class="section">
     <div class="numerology-card">
       <h3>🔮 <span>Numerologia</span> Sôlombo</h3>
-      <p class="rule">A cada 10 pedidos cadastrados, o cliente ganha uma numerologia grátis!</p>
+      <p class="rule">A cada 20 pedidos cadastrados, o cliente ganha uma numerologia grátis!</p>
       
       <div class="counter-box">
         <span class="counter-number" id="pedidosCount">0</span>
@@ -895,7 +895,7 @@
         <div class="produto-item">
           <div class="produto-info">
             <span class="produto-nome">🌿 Tradicional</span>
-            <span class="produto-desc">Bacon, salsa, alho e cebola</span>
+            <span class="produto-desc">Pacote com 5 unidades • Bacon, salsa, alho e cebola</span>
           </div>
           <div class="quantidade">
             <button type="button" onclick="alterarQtd('tradicional', -1)">−</button>
@@ -908,7 +908,7 @@
         <div class="produto-item">
           <div class="produto-info">
             <span class="produto-nome">🧀 Queijo Coalho</span>
-            <span class="produto-desc">Bacon e queijo coalho ralado</span>
+            <span class="produto-desc">Pacote com 5 unidades • Bacon e queijo coalho ralado</span>
           </div>
           <div class="quantidade">
             <button type="button" onclick="alterarQtd('queijo', -1)">−</button>
@@ -1010,12 +1010,26 @@
   <!-- ═══════════ SCRIPTS ═══════════ -->
   <script>
     // ═══════════ MODAIS ═══════════
+    // ═══════════ MODAIS (COM VERIFICAÇÃO DE SEGURANÇA) ═══════════
     function openModal(id) {
-        document.getElementById(id).classList.add('open');
+        const modal = document.getElementById(id);
+        if (!modal) {
+            console.error('❌ Modal não encontrado:', id);
+            return;
+        }
+        modal.classList.add('open');
     }
+    
     function closeModal(id) {
-        document.getElementById(id).classList.remove('open');
+        const modal = document.getElementById(id);
+        if (!modal) {
+            console.error('❌ Modal não encontrado:', id);
+            return;
+        }
+        modal.classList.remove('open');
     }
+    
+    // Fechar modal ao clicar fora
     document.querySelectorAll('.modal-backdrop').forEach(function(b) {
         b.addEventListener('click', function(e) {
             if (e.target === b) b.classList.remove('open');
@@ -1025,7 +1039,8 @@
     // ═══════════ PEDIDO DE BOLINHOS ═══════════
 
     // ═══════════ PREÇOS ═══════════
-    const PRECO_BOLINHO = 20;   // R$ 20,00 cada unidade
+    const PRECO_PACOTE = 20;    // R$ 20,00 por pacote (5 unidades)
+    const UNIDADE_POR_PACOTE = 5;
     const PRECO_MOLHO = 30;     // R$ 30,00 cada molho unitário
     // "Ambos" = 2 molhos = R$ 60,00
 
@@ -1046,16 +1061,17 @@
     function atualizarPrecoMolho() {
         const qtdTrad = parseInt(document.getElementById('qtd-tradicional').textContent) || 0;
         const qtdQueijo = parseInt(document.getElementById('qtd-queijo').textContent) || 0;
-        const totalBolinho = qtdTrad + qtdQueijo;
+        const totalPacotes = qtdTrad + qtdQueijo;
         const molhoRadio = document.querySelector('#modal-pedido input[name="molho"]:checked');
         const molho = molhoRadio ? molhoRadio.value : 'Ambos';
 
-        if (totalBolinho > 0) {
-            const subtotalBolinho = totalBolinho * PRECO_BOLINHO;
+        if (totalPacotes > 0) {
+            const totalUnidades = totalPacotes * UNIDADE_POR_PACOTE;
+            const subtotalPacotes = totalPacotes * PRECO_PACOTE;
             const precoMolho = getPrecoMolho(molho);
-            const total = subtotalBolinho + precoMolho;
+            const total = subtotalPacotes + precoMolho;
 
-            let resumo = `${totalBolinho}x Bolinho(s) (R$ ${PRECO_BOLINHO.toFixed(2).replace('.', ',')} cada): <strong>R$ ${subtotalBolinho.toFixed(2).replace('.', ',')}</strong><br>`;
+            let resumo = `${totalPacotes}x Pacote(s) = <strong>${totalUnidades} bolinhos</strong> (R$ ${PRECO_PACOTE.toFixed(2).replace('.', ',')} cada pacote com ${UNIDADE_POR_PACOTE} unid.): <strong>R$ ${subtotalPacotes.toFixed(2).replace('.', ',')}</strong><br>`;
 
             if (molho === 'Ambos') {
                 resumo += `Molho (Mostarda & Mel + Heinz Bacon): <strong>+R$ ${precoMolho.toFixed(2).replace('.', ',')}</strong><br>`;
@@ -1120,10 +1136,11 @@
         const numeroPedido = gerarNumeroPedido();
 
         // Calcula totais
-        const totalBolinho = qtdTrad + qtdQueijo;
-        const subtotalBolinho = totalBolinho * PRECO_BOLINHO;
+        const totalPacotes = qtdTrad + qtdQueijo;
+        const totalUnidades = totalPacotes * UNIDADE_POR_PACOTE;
+        const subtotalPacotes = totalPacotes * PRECO_PACOTE;
         const precoMolho = getPrecoMolho(molhoSelecionado);
-        const total = subtotalBolinho + precoMolho;
+        const total = subtotalPacotes + precoMolho;
 
         // Salva como pendente no localStorage
         salvarPedidoPendente(numeroPedido, {
@@ -1132,17 +1149,21 @@
             molho: molhoSelecionado
         });
 
-        // Monta mensagem para o WhatsApp (NÚMERO AQUI)
+        // Monta mensagem para o WhatsApp
         let mensagem = `🔥 *SÔLOMBO - NOVO PEDIDO* 🔥%0A%0A`;
         mensagem += `📦 *Nº do Pedido:* ${numeroPedido}%0A%0A`;
         mensagem += `*Itens:*%0A`;
 
         if (qtdTrad > 0) {
-            mensagem += `🌿 ${qtdTrad}x Tradicional (bacon, salsa, alho e cebola) - R$ ${(qtdTrad * PRECO_BOLINHO).toFixed(2).replace('.', ',')}%0A`;
+            const uniTrad = qtdTrad * UNIDADE_POR_PACOTE;
+            mensagem += `🌿 ${qtdTrad}x Pacote(s) Tradicional = ${uniTrad} bolinhos (bacon, salsa, alho e cebola) - R$ ${(qtdTrad * PRECO_PACOTE).toFixed(2).replace('.', ',')}%0A`;
         }
         if (qtdQueijo > 0) {
-            mensagem += `🧀 ${qtdQueijo}x Queijo Coalho (bacon e queijo coalho) - R$ ${(qtdQueijo * PRECO_BOLINHO).toFixed(2).replace('.', ',')}%0A`;
+            const uniQueijo = qtdQueijo * UNIDADE_POR_PACOTE;
+            mensagem += `🧀 ${qtdQueijo}x Pacote(s) Queijo Coalho = ${uniQueijo} bolinhos (bacon e queijo coalho) - R$ ${(qtdQueijo * PRECO_PACOTE).toFixed(2).replace('.', ',')}%0A`;
         }
+
+        mensagem += `%0A📦 Total: ${totalPacotes} pacote(s) = *${totalUnidades} bolinhos*%0A`;
 
         if (molhoSelecionado === 'Ambos') {
             mensagem += `%0A🍶 Molho: Mostarda & Mel + Heinz Bacon (+R$ 60,00)%0A`;
@@ -1163,7 +1184,7 @@
         // Fecha o modal após enviar
         closeModal('modal-pedido');
     }
-
+    
     // ═══════════ MODAL DE SUGESTÕES ═══════════
     function atualizarSugestoes() {
         const legumesCheck = document.querySelector('#modal-sugestoes input[value="Legumes Defumados"]');
