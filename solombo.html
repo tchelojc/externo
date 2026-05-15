@@ -1503,20 +1503,26 @@
 
     window.jsonpCallback = function(data) {
         console.log('Resposta recebida:', data);
+        
+        // Atualiza o total de pedidos
         if (data.acao === 'total' && data.total !== undefined) {
             totalPedidosAtual = data.total;
             const countEl = document.getElementById('pedidosCount');
             if (countEl) countEl.innerText = totalPedidosAtual;
         }
+        
+        // Processa cadastro
         if (data.acao === 'cadastrar') {
             const btn = document.querySelector('.btn-cadastrar');
             if (btn) { btn.disabled = false; btn.innerText = '📦 Cadastrar Pedido'; }
+            
             if (data.status === 'sucesso') {
-                totalPedidosAtual = data.totalPedidos;
+                // Mostra o total DO CLIENTE, não o total geral
+                totalPedidosAtual = data.totalCliente || data.totalPedidos;
                 const countEl = document.getElementById('pedidosCount');
                 if (countEl) countEl.innerText = totalPedidosAtual;
                 
-                // ═══════════ ENVIA NOTIFICAÇÃO POR E-MAIL (SILENCIOSO) ═══════════
+                // Envia notificação por e-mail (silencioso)
                 enviarNotificacaoEmail({
                     cliente: data.nome,
                     numeroPedido: data.numero,
@@ -1524,20 +1530,21 @@
                     numerologiaLiberada: data.numerologiaLiberada || false,
                     faltam: data.faltam || 0
                 });
-                // ═══════════ FIM DA NOTIFICAÇÃO ═══════════
                 
                 if (data.numerologiaLiberada) {
-                    // Se liberou a numerologia, abre WhatsApp para você enviar o link
-                    const mensagemWhatsApp = `🎉 *SÔLOMBO - NUMEROLOGIA DISPONÍVEL!* 🎉%0a%0a👤 *Cliente:* ${data.nome}%0a📦 *Pedido Nº:* ${data.numero}%0a📊 *Total de pedidos cadastrados:* ${totalPedidosAtual}%0a%0a🔮 *Envie o link da numerologia para o cliente agora mesmo!*%0a%0aLink: https://seudominio.com/numerologia/%0a%0a🔥 *Sôlombo - Comida Defumada com Amor*`;
+                    const mensagemWhatsApp = `🎉 *SÔLOMBO - NUMEROLOGIA DISPONÍVEL!* 🎉%0a%0a👤 *Cliente:* ${data.nome}%0a📦 *Pedido Nº:* ${data.numero}%0a📊 *Total de pedidos:* ${totalPedidosAtual}%0a%0a🔮 *Envie o link da numerologia para o cliente agora mesmo!*%0a%0aLink: https://seudominio.com/numerologia/%0a%0a🔥 *Sôlombo - Comida Defumada com Amor*`;
                     window.open(`https://wa.me/5521981533928?text=${mensagemWhatsApp}`, '_blank');
                     mostrarMensagem(`🎉 PARABÉNS ${data.nome}! Você atingiu ${totalPedidosAtual} pedidos! 🎉`, 'success');
                 } else {
                     mostrarMensagem(`✅ Olá ${data.nome}, pedido Nº ${data.numero} cadastrado! Faltam ${data.faltam} pedido(s).`, 'success');
                 }
+                
+                // Limpa os inputs
                 const inputNome = document.getElementById('clienteNome');
                 const inputNumero = document.getElementById('numeroPedido');
                 if (inputNome) inputNome.value = '';
                 if (inputNumero) inputNumero.value = '';
+                
             } else if (data.status === 'duplicado') {
                 mostrarMensagem(`⚠️ Pedido Nº ${data.numero} já foi cadastrado!`, 'warning');
             } else {
@@ -1545,7 +1552,7 @@
             }
         }
     };
-
+    
     function carregarTotalPedidos() {
         const script = document.createElement('script');
         script.src = `${API_URL}?acao=total&callback=jsonpCallback&t=${Date.now()}`;
