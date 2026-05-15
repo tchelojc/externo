@@ -1221,7 +1221,7 @@
         localStorage.setItem('solombo_pedidos_gerados', JSON.stringify(pedidos));
     }
 
-    // Enviar pedido pelo WhatsApp (COM CHAVE PIX E COMPROVANTE)
+    // Enviar pedido pelo WhatsApp (VERSÃO ENCURTADA)
     function enviarPedido() {
         const qtdTrad = parseInt(document.getElementById('qtd-tradicional').textContent) || 0;
         const qtdQueijo = parseInt(document.getElementById('qtd-queijo').textContent) || 0;
@@ -1230,7 +1230,6 @@
         const molhoSelecionado = molhoRadio.value;
         const aviso = document.getElementById('aviso-qtd');
         
-        // Pega o nome do cliente
         const nomeInput = document.getElementById('nomeClientePedido');
         const nomeCliente = nomeInput ? nomeInput.value.trim() : '';
 
@@ -1248,20 +1247,14 @@
         
         aviso.style.display = 'none';
 
-        // GERA O NÚMERO DO PEDIDO
         const numeroPedido = gerarNumeroPedido();
-
-        // Calcula totais
         const totalPacotes = qtdTrad + qtdQueijo;
         const totalUnidades = totalPacotes * UNIDADE_POR_PACOTE;
         const subtotalPacotes = totalPacotes * PRECO_PACOTE;
         const precoMolho = getPrecoMolho(molhoSelecionado);
         const total = subtotalPacotes + precoMolho;
-
-        // Chave Pix
         const chavePix = 'f1461640-6c03-4298-8c28-f1119c968612';
 
-        // Salva como pendente no localStorage COM O NOME DO CLIENTE
         salvarPedidoPendente(numeroPedido, {
             nome: nomeCliente,
             itens: { tradicional: qtdTrad, queijoCoalho: qtdQueijo },
@@ -1269,49 +1262,38 @@
             molho: molhoSelecionado
         });
 
-        // Monta mensagem para o WhatsApp
-        let mensagem = `🔥 *SÔLOMBO - NOVO PEDIDO* 🔥%0A%0A`;
-        mensagem += `👤 *Cliente:* ${encodeURIComponent(nomeCliente)}%0A`;
-        mensagem += `📦 *Nº do Pedido:* ${numeroPedido}%0A%0A`;
-        mensagem += `*Itens:*%0A`;
-
+        // Monta itens
+        let itensMsg = '';
         if (qtdTrad > 0) {
-            const uniTrad = qtdTrad * UNIDADE_POR_PACOTE;
-            mensagem += `🌿 ${qtdTrad}x Pacote(s) Tradicional = ${uniTrad} bolinhos (bacon, salsa, alho e cebola) - R$ ${(qtdTrad * PRECO_PACOTE).toFixed(2).replace('.', ',')}%0A`;
+            itensMsg += `🌿 ${qtdTrad}x Tradicional (${qtdTrad * UNIDADE_POR_PACOTE} bolinhos) - R$${(qtdTrad * PRECO_PACOTE).toFixed(2)}%0A`;
         }
         if (qtdQueijo > 0) {
-            const uniQueijo = qtdQueijo * UNIDADE_POR_PACOTE;
-            mensagem += `🧀 ${qtdQueijo}x Pacote(s) Queijo Coalho = ${uniQueijo} bolinhos (bacon e queijo coalho) - R$ ${(qtdQueijo * PRECO_PACOTE).toFixed(2).replace('.', ',')}%0A`;
+            itensMsg += `🧀 ${qtdQueijo}x Queijo Coalho (${qtdQueijo * UNIDADE_POR_PACOTE} bolinhos) - R$${(qtdQueijo * PRECO_PACOTE).toFixed(2)}%0A`;
         }
 
-        mensagem += `%0A📦 Total: ${totalPacotes} pacote(s) = *${totalUnidades} bolinhos*%0A`;
+        // Monta molho
+        let molhoMsg = '';
+        if (molhoSelecionado === 'Ambos') molhoMsg = 'Mostarda & Mel + Heinz Bacon (+R$60,00)';
+        else if (molhoSelecionado === 'Sem molho') molhoMsg = 'Sem molho';
+        else molhoMsg = `${molhoSelecionado} (+R$30,00)`;
 
-        if (molhoSelecionado === 'Ambos') {
-            mensagem += `%0A🍶 Molho: Mostarda & Mel + Heinz Bacon (+R$ 60,00)%0A`;
-        } else if (molhoSelecionado === 'Sem molho') {
-            mensagem += `%0A🍶 Molho: Sem molho%0A`;
-        } else {
-            mensagem += `%0A🍶 Molho: ${molhoSelecionado} (+R$ 30,00)%0A`;
-        }
+        // Mensagem final (ENXUTA)
+        let mensagem = `🔥*SÔLOMBO-PEDIDO*🔥%0A`;
+        mensagem += `👤${encodeURIComponent(nomeCliente)}%0A`;
+        mensagem += `📦${numeroPedido}%0A%0A`;
+        mensagem += `${itensMsg}`;
+        mensagem += `%0A🍶${molhoMsg}%0A`;
+        mensagem += `💰Total:R$${total.toFixed(2)}%0A`;
+        mensagem += `%0A💳PIX:${chavePix}%0A`;
+        mensagem += `⚠️Envie o comprovante aqui!%0A`;
+        mensagem += `%0A🔮Cadastre ${numeroPedido} no site!`;
 
-        mensagem += `%0A💰 *Total: R$ ${total.toFixed(2).replace('.', ',')}*%0A`;
-        mensagem += `%0A═══════════════════════════%0A`;
-        mensagem += `💳 *PAGAMENTO VIA PIX*%0A`;
-        mensagem += `📋 Chave Pix: *${chavePix}*%0A`;
-        mensagem += `%0A⚠️ *Após o pagamento, envie o comprovante por aqui mesmo no WhatsApp!*%0A`;
-        mensagem += `%0A═══════════════════════════%0A`;
-        mensagem += `%0A🔮 Após a confirmação, acesse o site e cadastre o número *${numeroPedido}* para concorrer à Numerologia Grátis!%0A`;
-        mensagem += `%0A🔥 *Sôlombo - Comida Defumada com Amor*`;
-
-        // Abre WhatsApp
         const url = `https://wa.me/5521981533928?text=${mensagem}`;
         window.open(url, '_blank');
 
-        // Limpa o nome e fecha o modal
         if (nomeInput) nomeInput.value = '';
         closeModal('modal-pedido');
-    }
-    
+    }    
     // ═══════════ MODAL DE SUGESTÕES ═══════════
     function atualizarSugestoes() {
         const legumesCheck = document.querySelector('#modal-sugestoes input[value="Legumes Defumados"]');
