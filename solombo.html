@@ -1266,11 +1266,11 @@
         let itensMsg = '';
         if (qtdTrad > 0) {
             const subtradStr = (qtdTrad * PRECO_PACOTE).toFixed(2).replace('.', ',');
-            itensMsg += `🌿 ${qtdTrad}x Pacote(s) Tradicional = ${qtdTrad * UNIDADE_POR_PACOTE} bolinhos (bacon, salsa, alho e cebola) - R$ ${subtradStr}%0A`;
+            itensMsg += `🌿 ${qtdTrad}x Pacote(s) Tradicional = ${qtdTrad * UNIDADE_POR_PACOTE} bolinhos (bacon, salsa, alho e cebola) - R$ ${subtradStr}\n`;
         }
         if (qtdQueijo > 0) {
             const subqueijoStr = (qtdQueijo * PRECO_PACOTE).toFixed(2).replace('.', ',');
-            itensMsg += `🧀 ${qtdQueijo}x Pacote(s) Queijo Coalho = ${qtdQueijo * UNIDADE_POR_PACOTE} bolinhos - R$ ${subqueijoStr}%0A`;
+            itensMsg += `🧀 ${qtdQueijo}x Pacote(s) Queijo Coalho = ${qtdQueijo * UNIDADE_POR_PACOTE} bolinhos - R$ ${subqueijoStr}\n`;
         }
 
         const totalPacotesMsg = qtdTrad + qtdQueijo;
@@ -1284,20 +1284,20 @@
 
         const totalStr = total.toFixed(2).replace('.', ',');
 
-        // Mensagem final
-        let mensagem = `🔥 *SÔLOMBO - NOVO PEDIDO* 🔥%0A`;
-        mensagem += `👤 *Cliente:* ${encodeURIComponent(nomeCliente)}%0A`;
-        mensagem += `📦 *Nº do Pedido:* ${numeroPedido}%0A`;
-        mensagem += `%0A*Itens:*%0A`;
-        mensagem += `${itensMsg}`;
-        mensagem += `📦 Total: ${totalPacotesMsg} pacote(s) = *${totalUnidadesMsg} bolinhos*%0A`;
-        mensagem += `🍶 Molho: ${molhoMsg}%0A`;
-        mensagem += `%0A💰 *Total: R$ ${totalStr}*%0A`;
-        mensagem += `%0A💳 *PIX:* ${chavePix}%0A`;
-        mensagem += `⚠️ Envie o comprovante aqui após o pagamento!%0A`;
-        mensagem += `%0A🔮 Cadastre o código *${numeroPedido}* no site para concorrer à Numerologia Grátis!`;
+        // Mensagem final — texto puro, encodeURIComponent no final
+        let textoPedido = `🔥 *SÔLOMBO - NOVO PEDIDO* 🔥\n`;
+        textoPedido += `👤 *Cliente:* ${nomeCliente}\n`;
+        textoPedido += `📦 *Nº do Pedido:* ${numeroPedido}\n`;
+        textoPedido += `\n*Itens:*\n`;
+        textoPedido += itensMsg;
+        textoPedido += `📦 Total: ${totalPacotesMsg} pacote(s) = *${totalUnidadesMsg} bolinhos*\n`;
+        textoPedido += `🍶 Molho: ${molhoMsg}\n`;
+        textoPedido += `\n💰 *Total: R$ ${totalStr}*\n`;
+        textoPedido += `\n💳 *PIX:* ${chavePix}\n`;
+        textoPedido += `⚠️ Envie o comprovante aqui após o pagamento!\n`;
+        textoPedido += `\n🔮 Cadastre o código *${numeroPedido}* no site para concorrer à Numerologia Grátis!`;
 
-        const url = `https://wa.me/5521981533928?text=${mensagem}`;
+        const url = `https://wa.me/5521981533928?text=${encodeURIComponent(textoPedido)}`;
         window.open(url, '_blank');
 
         if (nomeInput) nomeInput.value = '';
