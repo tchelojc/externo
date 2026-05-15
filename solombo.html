@@ -163,28 +163,47 @@
       position: fixed; inset: 0;
       background: rgba(0,0,0,0.78);
       z-index: 1000;
-      align-items: center;
+      align-items: flex-start;      /* Alinha no topo em vez de centro */
       justify-content: center;
+      overflow-y: auto;             /* Permite scroll no backdrop */
+      -webkit-overflow-scrolling: touch; /* Scroll suave no iOS */
+      padding: 1rem;                /* Espaço nas bordas */
+      touch-action: auto; 
     }
     .modal-backdrop.open { display: flex; }
     .modal {
       background: #1a0a00;
       border: 2px solid var(--rosa);
       border-radius: 20px;
-      padding: 2.5rem 2rem;
+      padding: 1.5rem 1.2rem;      /* Padding reduzido no mobile */
       max-width: 420px;
-      width: 90%;
+      width: 94%;
+      max-height: 90vh;             /* Altura máxima = 90% da tela */
+      overflow-y: auto;             /* Scroll interno se conteúdo maior */
       text-align: center;
       position: relative;
       animation: fadeUp 0.3s ease;
+      margin: auto 0;               /* Centraliza verticalmente com scroll */
+      -webkit-overflow-scrolling: touch;
+      touch-action: auto;
     }
     .modal h2 { font-family: 'Playfair Display', serif; color: var(--creme); font-size: 1.8rem; margin-bottom: 0.5rem; }
     .modal p { color: #ffb74d; margin-bottom: 1.5rem; font-size: 0.95rem; line-height: 1.6; }
     .modal .wpp-btn:hover { background: #1ebe5d; transform: scale(1.04); }
     .modal .close-btn {
-      position: absolute; top: 0.8rem; right: 1rem;
-      background: none; border: none; color: #aaa;
-      font-size: 1.6rem; cursor: pointer; line-height: 1;
+      position: sticky;              /* Fixo no topo ao scrollar */
+      float: right;
+      top: 0;
+      z-index: 10;
+      background: #1a0a00;
+      border: none; 
+      color: #aaa;
+      font-size: 1.6rem; 
+      cursor: pointer; 
+      line-height: 1;
+      padding: 0.3rem 0.5rem;
+      border-radius: 50%;
+      margin: -0.5rem -0.5rem 0 0;
     }
     .modal .close-btn:hover { color: #fff; }
 
@@ -194,6 +213,9 @@
     /* ═══ MODAL DE PEDIDO — TEMA SÔLOMBO ═══ */
     .modal-pedido {
       max-width: 460px;
+      max-height: 85vh;            /* Um pouco menor para caber o botão */
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     .produtos-pedido {
@@ -241,16 +263,34 @@
       background: var(--rosa);
       color: white;
       border: none;
-      width: 32px;
-      height: 32px;
+      width: 36px;                  /* Aumentado de 32px */
+      height: 36px;                 /* Aumentado de 32px */
+      min-width: 36px;              /* Garante tamanho mínimo */
+      min-height: 36px;             /* Garante tamanho mínimo */
       border-radius: 50%;
-      font-size: 1.2rem;
+      font-size: 1.3rem;            /* Aumentado de 1.2rem */
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: background 0.2s, transform 0.1s;
       font-weight: 700;
+      -webkit-tap-highlight-color: transparent; /* Remove highlight no iOS */
+    }
+
+    /* ── MELHOR ACESSIBILIDADE PARA TOQUE ── */
+    @media (pointer: coarse) {
+      /* Dispositivos com touch (dedo, não mouse) */
+      button, 
+      label,
+      input[type="radio"],
+      input[type="checkbox"],
+      .molho-opcao,
+      .sugestao-item {
+        min-height: 40px;           /* Mínimo recomendado para dedos */
+        padding-top: 8px;
+        padding-bottom: 8px;
+      }
     }
 
     .quantidade button:hover {
@@ -345,6 +385,9 @@
     .modal-sugestoes {
       max-width: 500px;
       text-align: left;
+      max-height: 85vh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     .modal-sugestoes h2 {
@@ -482,6 +525,9 @@
     /* Modal Gerador */
     .modal-gerador {
       max-width: 480px;
+      max-height: 85vh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     .gerador-box {
@@ -604,9 +650,11 @@
       color: #fff;
     }
 
-    /* Modal Verificar */
     .modal-verificar {
       max-width: 460px;
+      max-height: 85vh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     .verificar-box {
@@ -707,6 +755,57 @@
 
     #resumo-texto strong {
       color: var(--rosa);
+    }
+
+    /* ── AJUSTES PARA MOBILE PEQUENO ── */
+    @media (max-width: 400px) {
+      .modal {
+        padding: 1.2rem 0.8rem;
+        width: 96%;
+        max-height: 85vh;
+      }
+      
+      .modal h2 {
+        font-size: 1.4rem;
+      }
+      
+      .produto-item {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+      }
+      
+      .quantidade {
+        align-self: center;
+      }
+      
+      .molho-opcao {
+        font-size: 0.8rem;
+      }
+      
+      .modal .wpp-btn,
+      #btn-enviar-pedido {
+        font-size: 0.9rem;
+        padding: 0.8rem 1.5rem;
+      }
+
+      .wpp-float {
+        width: 50px;
+        height: 50px;
+        font-size: 1.6rem;
+        bottom: 1rem;
+        right: 1rem;
+      }
+    }
+    /* ── IMPEDE ZOOM AUTOMÁTICO DO iOS NOS INPUTS ── */
+    @media (max-width: 768px) {
+      input[type="text"],
+      input[type="number"],
+      input[type="email"],
+      input[type="tel"],
+      input[type="search"] {
+        font-size: 16px !important;  /* Mínimo para iOS não dar zoom automático */
+      }
     }
 
   </style>
