@@ -179,14 +179,6 @@
     }
     .modal h2 { font-family: 'Playfair Display', serif; color: var(--creme); font-size: 1.8rem; margin-bottom: 0.5rem; }
     .modal p { color: #ffb74d; margin-bottom: 1.5rem; font-size: 0.95rem; line-height: 1.6; }
-    .modal .wpp-btn {
-      display: inline-flex; align-items: center; gap: 0.6rem;
-      background: #25d366; color: #fff;
-      font-family: 'Nunito', sans-serif; font-weight: 800;
-      font-size: 1rem; padding: 0.9rem 2rem;
-      border-radius: 50px; text-decoration: none;
-      transition: background 0.2s, transform 0.15s;
-    }
     .modal .wpp-btn:hover { background: #1ebe5d; transform: scale(1.04); }
     .modal .close-btn {
       position: absolute; top: 0.8rem; right: 1rem;
@@ -195,17 +187,301 @@
     }
     .modal .close-btn:hover { color: #fff; }
 
-    .sug-list { list-style: none; text-align: left; margin-bottom: 1.5rem; }
-    .sug-list li {
-      display: flex; align-items: center; gap: 0.7rem;
-      color: var(--creme); font-size: 0.95rem;
-      padding: 0.55rem 0; border-bottom: 1px solid rgba(255,255,255,0.08);
-    }
-    .sug-list li:last-child { border-bottom: none; }
-    .sug-list li .ico { font-size: 1.3rem; }
-
     .wpp-float { position: fixed; bottom: 1.5rem; right: 1.5rem; background: #25d366; color: #fff; width: 58px; height: 58px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.9rem; box-shadow: 0 4px 20px rgba(0,0,0,0.45); text-decoration: none; z-index: 999; animation: pulse 2.2s ease-in-out infinite; }
     @keyframes pulse { 0%, 100% { box-shadow: 0 4px 20px rgba(37,211,102,0.4); } 50% { box-shadow: 0 4px 32px rgba(37,211,102,0.8); } }
+
+    /* ═══ MODAL DE PEDIDO — TEMA SÔLOMBO ═══ */
+    .modal-pedido {
+      max-width: 460px;
+    }
+
+    .produtos-pedido {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .produto-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #0d0400;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(192,0,107,0.25);
+      transition: border-color 0.2s;
+    }
+
+    .produto-item:hover {
+      border-color: rgba(192,0,107,0.6);
+    }
+
+    .produto-nome {
+      font-weight: 800;
+      display: block;
+      color: var(--creme);
+      font-size: 1rem;
+    }
+
+    .produto-desc {
+      font-size: 0.8rem;
+      color: #c0a080;
+      margin-top: 2px;
+    }
+
+    .quantidade {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .quantidade button {
+      background: var(--rosa);
+      color: white;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, transform 0.1s;
+      font-weight: 700;
+    }
+
+    .quantidade button:hover {
+      background: #a00058;
+      transform: scale(1.08);
+    }
+
+    .quantidade button:active {
+      transform: scale(0.95);
+    }
+
+    .quantidade span {
+      font-size: 1.15rem;
+      font-weight: 800;
+      min-width: 22px;
+      text-align: center;
+      color: var(--creme);
+    }
+
+    .molho-pedido {
+      background: #0d0400;
+      padding: 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(192,0,107,0.25);
+      margin: 12px 0 4px 0;
+    }
+
+    .molho-pedido p {
+      margin: 0 0 10px 0;
+      font-weight: 700;
+      color: var(--creme);
+      font-size: 0.95rem;
+    }
+
+    .molho-opcao {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 0;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: #e0d0c0;
+      transition: color 0.15s;
+    }
+
+    .molho-opcao:hover {
+      color: #fff;
+    }
+
+    .molho-opcao input[type="radio"] {
+      accent-color: var(--rosa);
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    /* Botão de envio WhatsApp (unificado) */
+    .modal .wpp-btn,
+    #btn-enviar-pedido {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      width: 100%;
+      background: #25d366;
+      color: #fff;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 1rem;
+      padding: 0.9rem 2rem;
+      border-radius: 50px;
+      border: none;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      margin-top: 8px;
+    }
+
+    .modal .wpp-btn:hover,
+    #btn-enviar-pedido:hover {
+      background: #1ebe5d;
+      transform: scale(1.02);
+    }
+
+    #btn-enviar-pedido:hover {
+      background: #1ebe5d;
+      transform: scale(1.02);
+    }
+
+    #aviso-qtd {
+      color: #ffb3b3;
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+      display: none;
+    }
+  
+    .modal-sugestoes {
+      max-width: 500px;
+      text-align: left;
+    }
+
+    .modal-sugestoes h2 {
+      text-align: center;
+    }
+
+    .modal-sugestoes > p {
+      text-align: center;
+      color: #c0a080;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin-bottom: 1.2rem;
+    }
+
+    .sugestoes-form {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .sugestao-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: #0d0400;
+      border: 1px solid rgba(192,0,107,0.2);
+      border-radius: 12px;
+      cursor: pointer;
+      color: var(--creme);
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .sugestao-item:hover {
+      border-color: rgba(192,0,107,0.5);
+      background: #140800;
+    }
+
+    .sugestao-item input[type="checkbox"] {
+      accent-color: var(--rosa);
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .sugestao-detalhe {
+      margin-left: 28px;
+      padding: 8px 0 4px 0;
+    }
+
+    .sugestao-detalhe input[type="text"] {
+      width: 100%;
+      background: #0d0400;
+      border: 1px solid rgba(192,0,107,0.35);
+      border-radius: 30px;
+      padding: 0.7rem 1.2rem;
+      color: #fff;
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.85rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .sugestao-detalhe input[type="text"]:focus {
+      border-color: var(--rosa);
+      box-shadow: 0 0 6px rgba(192,0,107,0.3);
+    }
+
+    .sugestao-detalhe input[type="text"]::placeholder {
+      color: #7a6a5c;
+      font-style: italic;
+    }
+
+    .radio-costela {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-right: 14px;
+      color: #c0a080;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .radio-costela input[type="radio"] {
+      accent-color: var(--rosa);
+      cursor: pointer;
+    }
+
+    .sugestao-livre {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 6px;
+      background: transparent;
+      border: 1px dashed rgba(192,0,107,0.3);
+      cursor: default;
+      margin-top: 4px;
+    }
+
+    .sugestao-livre:hover {
+      background: transparent;
+      border-color: rgba(192,0,107,0.5);
+    }
+
+    .sugestao-livre span {
+      color: #ffb74d;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .sugestao-livre input[type="text"] {
+      width: 100%;
+      background: #0d0400;
+      border: 1px solid rgba(192,0,107,0.35);
+      border-radius: 30px;
+      padding: 0.7rem 1.2rem;
+      color: #fff;
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    .sugestao-livre input[type="text"]:focus {
+      border-color: var(--rosa);
+    }
+
+    .sugestao-livre input[type="text"]::placeholder {
+      color: #7a6a5c;
+      font-style: italic;
+    }
   </style>
 </head>
 <body>
@@ -286,41 +562,132 @@
     </div>
     Comida feita com carinho, paixão e muita dedicação 🔥
   </footer>
+  <a class="wpp-float" href="#" onclick="event.preventDefault(); openModal('modal-pedido');" title="Fazer pedido">💬</a>
 
-  <a class="wpp-float" href="https://wa.me/5521981533928" target="_blank">💬</a>
-
-  <!-- MODAL FAZER PEDIDO -->
+  <!-- ═══════════ MODAL DE PEDIDO ═══════════ -->
   <div class="modal-backdrop" id="modal-pedido">
-    <div class="modal">
+    <div class="modal modal-pedido">
       <button class="close-btn" onclick="closeModal('modal-pedido')">✕</button>
-      <h2>🛒 Fazer Pedido</h2>
-      <p>Pronto para experimentar a comida defumada feita com amor?<br>Fale direto com a gente pelo WhatsApp!</p>
-      <a class="wpp-btn" href="https://wa.me/5521981533928?text=Olá!%20Quero%20fazer%20um%20pedido%20no%20Sôlombo%20🔥" target="_blank">
-        💬 Pedir pelo WhatsApp
-      </a>
+      <h2>🛒 Monte seu pedido</h2>
+      <p>Escolha seus bolinhos defumados no Sabor da Terra:</p>
+
+      <!-- Seleção de Bolinhos -->
+      <div class="produtos-pedido">
+        <!-- Bolinho Tradicional -->
+        <div class="produto-item">
+          <div class="produto-info">
+            <span class="produto-nome">🌿 Tradicional</span>
+            <span class="produto-desc">Bacon, salsa, alho e cebola</span>
+          </div>
+          <div class="quantidade">
+            <button type="button" onclick="alterarQtd('tradicional', -1)">−</button>
+            <span id="qtd-tradicional">0</span>
+            <button type="button" onclick="alterarQtd('tradicional', 1)">+</button>
+          </div>
+        </div>
+
+        <!-- Bolinho Queijo Coalho -->
+        <div class="produto-item">
+          <div class="produto-info">
+            <span class="produto-nome">🧀 Queijo Coalho</span>
+            <span class="produto-desc">Bacon e queijo coalho ralado</span>
+          </div>
+          <div class="quantidade">
+            <button type="button" onclick="alterarQtd('queijo', -1)">−</button>
+            <span id="qtd-queijo">0</span>
+            <button type="button" onclick="alterarQtd('queijo', 1)">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Seleção de Molho -->
+      <div class="molho-pedido">
+        <p>🍶 Escolha o molho:</p>
+        <label class="molho-opcao">
+          <input type="radio" name="molho" value="Mostarda & Mel Cerpa"> 🍯 Mostarda & Mel Cerpa
+        </label>
+        <label class="molho-opcao">
+          <input type="radio" name="molho" value="Heinz Bacon com Cebola Caramelizada"> 🧅 Heinz Bacon com Cebola Caramelizada
+        </label>
+        <label class="molho-opcao">
+          <input type="radio" name="molho" value="Ambos" checked> 🍯🧅 Quero os dois!
+        </label>
+      </div>
+
+      <button class="wpp-btn" onclick="enviarPedido()" id="btn-enviar" style="width:100%; margin-top:8px; background:#25d366; border:none; border-radius:50px; padding:0.9rem 2rem; font-family:'Nunito',sans-serif; font-weight:800; font-size:1rem; color:#fff; cursor:pointer; transition:background 0.2s, transform 0.15s;">
+        💬 Enviar pedido pelo WhatsApp
+      </button>
+      <p id="aviso-qtd" style="color: #ffb3b3; font-size: 0.85rem; margin-top: 0.5rem; display: none;">⚠️ Selecione ao menos um bolinho!</p>
     </div>
   </div>
 
-  <!-- MODAL SUGESTÕES -->
+  <!-- ═══════════ MODAL SUGESTÕES — CONSTRUA O CARDÁPIO ═══════════ -->
   <div class="modal-backdrop" id="modal-sugestoes">
-    <div class="modal">
+    <div class="modal modal-sugestoes">
       <button class="close-btn" onclick="closeModal('modal-sugestoes')">✕</button>
-      <h2>🍖 Sugestões</h2>
-      <p>Os melhores cortes selecionados a dedo, defumados na medida certa:</p>
-      <ul class="sug-list">
-        <li><span class="ico">🔥</span> Lombo Defumado Especial</li>
-        <li><span class="ico">🥩</span> Costelinha na Brasa</li>
-        <li><span class="ico">🌿</span> Legumes Defumados da Estação</li>
-        <li><span class="ico">🐷</span> Pernil ao Molho da Casa</li>
-        <li><span class="ico">🍗</span> Frango Caipira Defumado</li>
-      </ul>
-      <a class="wpp-btn" href="https://wa.me/5521981533928?text=Olá!%20Vi%20as%20sugestões%20e%20quero%20fazer%20um%20pedido%20no%20Sôlombo%20🔥" target="_blank">
-        💬 Pedir pelo WhatsApp
-      </a>
+      <h2>🔥 Monte o futuro cardápio</h2>
+      <p>O Sôlombo nasceu artesanal, e o cardápio vai crescer com a sua voz. Escolha o que você gostaria de ver defumado no Sabor da Terra:</p>
+
+      <div class="sugestoes-form">
+        <!-- Peixe Defumado -->
+        <label class="sugestao-item">
+          <input type="checkbox" name="sugestao" value="Peixe Defumado" onchange="atualizarSugestoes()"> 🐟 Peixe Defumado
+        </label>
+
+        <!-- Filé Mignon Suíno Defumado -->
+        <label class="sugestao-item">
+          <input type="checkbox" name="sugestao" value="Filé Mignon Suíno Defumado" onchange="atualizarSugestoes()"> 🥩 Filé Mignon Suíno Defumado
+        </label>
+
+        <!-- Legumes Defumados -->
+        <label class="sugestao-item">
+          <input type="checkbox" name="sugestao" value="Legumes Defumados" onchange="atualizarSugestoes()"> 🌿 Legumes Defumados
+        </label>
+        <div class="sugestao-detalhe" id="detalhe-legumes" style="display:none;">
+          <input type="text" id="quaisLegumes" placeholder="Quais legumes? Ex: abobrinha, berinjela, pimentão..." oninput="atualizarSugestoes()">
+        </div>
+
+        <!-- Queijo Defumado -->
+        <label class="sugestao-item">
+          <input type="checkbox" name="sugestao" value="Queijo Defumado" onchange="atualizarSugestoes()"> 🧀 Queijo Defumado
+        </label>
+        <div class="sugestao-detalhe" id="detalhe-queijo" style="display:none;">
+          <input type="text" id="tipoQueijo" placeholder="Qual tipo de queijo? Ex: gouda, provolone, coalho..." oninput="atualizarSugestoes()">
+        </div>
+
+        <!-- Costela Defumada -->
+        <label class="sugestao-item">
+          <input type="checkbox" name="sugestao" value="Costela Defumada" onchange="atualizarSugestoes()"> 🍖 Costela Defumada
+        </label>
+        <div class="sugestao-detalhe" id="detalhe-costela" style="display:none;">
+          <label class="radio-costela">
+            <input type="radio" name="tipoCostela" value="Suína" onchange="atualizarSugestoes()"> 🐷 Suína
+          </label>
+          <label class="radio-costela">
+            <input type="radio" name="tipoCostela" value="Bovina" onchange="atualizarSugestoes()"> 🐮 Bovina
+          </label>
+          <label class="radio-costela">
+            <input type="radio" name="tipoCostela" value="Ambas" onchange="atualizarSugestoes()"> 🐷🐮 Ambas
+          </label>
+        </div>
+
+        <!-- Campo livre para sugestão extra -->
+        <label class="sugestao-item sugestao-livre">
+          <span>💡 Outra ideia:</span>
+          <input type="text" id="sugestaoLivre" placeholder="Descreva sua sugestão aqui..." oninput="atualizarSugestoes()">
+        </label>
+      </div>
+
+      <p id="aviso-sugestao" style="color: #ffb3b3; font-size: 0.8rem; margin-top: 0.5rem; display: none;">⚠️ Selecione ao menos uma opção ou descreva sua ideia!</p>
+
+      <button class="wpp-btn" onclick="enviarSugestoes()" id="btn-enviar-sugestao" style="width:100%; margin-top:12px; background:#25d366; border:none; border-radius:50px; padding:0.9rem 2rem; font-family:'Nunito',sans-serif; font-weight:800; font-size:1rem; color:#fff; cursor:pointer; transition:background 0.2s, transform 0.15s;">
+        💬 Enviar minhas sugestões
+      </button>
     </div>
   </div>
-
-<script>
+  <!-- ═══════════ SCRIPTS ═══════════ -->
+  <script>
+    // Abrir/Fechar modais
     function openModal(id) {
         document.getElementById(id).classList.add('open');
     }
@@ -332,6 +699,119 @@
             if (e.target === b) b.classList.remove('open');
         });
     });
+
+    // Quantidade dos bolinhos
+    function alterarQtd(produto, delta) {
+        const span = document.getElementById('qtd-' + produto);
+        let qtd = parseInt(span.textContent);
+        qtd = Math.max(0, qtd + delta);
+        span.textContent = qtd;
+    }
+
+    // Enviar pedido pelo WhatsApp
+    function enviarPedido() {
+        const qtdTrad = parseInt(document.getElementById('qtd-tradicional').textContent);
+        const qtdQueijo = parseInt(document.getElementById('qtd-queijo').textContent);
+        const molhoRadio = document.querySelector('#modal-pedido input[name="molho"]:checked');
+        if (!molhoRadio) return;
+        const molhoSelecionado = molhoRadio.value;
+        const aviso = document.getElementById('aviso-qtd');
+
+        if (qtdTrad === 0 && qtdQueijo === 0) {
+            aviso.style.display = 'block';
+            return;
+        }
+        aviso.style.display = 'none';
+
+        let mensagem = 'Olá!%20Quero%20fazer%20um%20pedido%20no%20Sôlombo%20🔥%0A%0A';
+        mensagem += '*Meu pedido:*%0A';
+
+        if (qtdTrad > 0) {
+            mensagem += `🌿%20${qtdTrad}x%20Tradicional%20(bacon,%20salsa,%20alho%20e%20cebola)%0A`;
+        }
+        if (qtdQueijo > 0) {
+            mensagem += `🧀%20${qtdQueijo}x%20Queijo%20Coalho%20(bacon%20e%20queijo%20coalho)%0A`;
+        }
+
+        mensagem += `%0A🍶%20Molho:%20${encodeURIComponent(molhoSelecionado)}`;
+
+        const url = `https://wa.me/5521981533928?text=${mensagem}`;
+        window.open(url, '_blank');
+    }
+
+    // ═══════════ FUNÇÕES DO MODAL DE SUGESTÕES ═══════════
+
+    // Mostrar/esconder campos extras conforme checkbox
+    function atualizarSugestoes() {
+        const legumesCheck = document.querySelector('#modal-sugestoes input[value="Legumes Defumados"]');
+        const queijoCheck = document.querySelector('#modal-sugestoes input[value="Queijo Defumado"]');
+        const costelaCheck = document.querySelector('#modal-sugestoes input[value="Costela Defumada"]');
+
+        document.getElementById('detalhe-legumes').style.display = legumesCheck && legumesCheck.checked ? 'block' : 'none';
+        document.getElementById('detalhe-queijo').style.display = queijoCheck && queijoCheck.checked ? 'block' : 'none';
+        document.getElementById('detalhe-costela').style.display = costelaCheck && costelaCheck.checked ? 'block' : 'none';
+    }
+
+    // Enviar sugestões pelo WhatsApp
+    function enviarSugestoes() {
+        const checkboxes = document.querySelectorAll('#modal-sugestoes input[name="sugestao"]:checked');
+        const sugestaoLivre = document.getElementById('sugestaoLivre').value.trim();
+        const aviso = document.getElementById('aviso-sugestao');
+
+        if (checkboxes.length === 0 && sugestaoLivre === '') {
+            aviso.style.display = 'block';
+            return;
+        }
+        aviso.style.display = 'none';
+
+        let mensagem = 'Olá!%20Quero%20contribuir%20com%20o%20cardápio%20do%20Sôlombo%20🔥%0A%0A';
+        mensagem += '*Minhas sugestões para defumação:*%0A';
+
+        checkboxes.forEach(function(cb) {
+            if (cb.value === 'Peixe Defumado') {
+                mensagem += '🐟%20Peixe%20Defumado%0A';
+            }
+            if (cb.value === 'Filé Mignon Suíno Defumado') {
+                mensagem += '🥩%20Filé%20Mignon%20Suíno%20Defumado%0A';
+            }
+            if (cb.value === 'Legumes Defumados') {
+                const quais = document.getElementById('quaisLegumes').value.trim();
+                if (quais) {
+                    mensagem += `🌿%20Legumes%20Defumados%20(${encodeURIComponent(quais)})%0A`;
+                } else {
+                    mensagem += '🌿%20Legumes%20Defumados%0A';
+                }
+            }
+            if (cb.value === 'Queijo Defumado') {
+                const tipo = document.getElementById('tipoQueijo').value.trim();
+                if (tipo) {
+                    mensagem += `🧀%20Queijo%20Defumado%20(${encodeURIComponent(tipo)})%0A`;
+                } else {
+                    mensagem += '🧀%20Queijo%20Defumado%0A';
+                }
+            }
+            if (cb.value === 'Costela Defumada') {
+                const tipoCostela = document.querySelector('#modal-sugestoes input[name="tipoCostela"]:checked');
+                const tipo = tipoCostela ? tipoCostela.value : '';
+                if (tipo && tipo !== 'Ambas') {
+                    mensagem += `🍖%20Costela%20Defumada%20${encodeURIComponent(tipo)}%0A`;
+                } else if (tipo === 'Ambas') {
+                    mensagem += '🍖%20Costela%20Defumada%20(Suína%20e%20Bovina)%0A';
+                } else {
+                    mensagem += '🍖%20Costela%20Defumada%0A';
+                }
+            }
+        });
+
+        if (sugestaoLivre) {
+            mensagem += `%0A💡%20Outra%20ideia:%20${encodeURIComponent(sugestaoLivre)}%0A`;
+        }
+
+        mensagem += '%0A🐷 *Ajudei a construir o cardápio do Sôlombo!*';
+
+        const url = `https://wa.me/5521981533928?text=${mensagem}`;
+        window.open(url, '_blank');
+    }
 
     // ==================== SISTEMA DE NUMEROLOGIA COM GOOGLE APPS SCRIPT (JSONP) ====================
     const API_URL = 'https://script.google.com/macros/s/AKfycbxsX4Wq0GDDN-HRrCU2fNOX8-YGFQbb2pTLWDGt74CJ7uiFEU7Vab5wLzyT_TZDbO7rLQ/exec';
@@ -436,7 +916,7 @@
             if (btn.disabled) {
                 btn.disabled = false;
                 btn.innerText = '📦 Cadastrar Pedido';
-                mostrarMensagem('❌ Tempo excedido. Tente novamente.', 'error');
+                mostrarMensagem('❌ Tempo excedente. Tente novamente.', 'error');
             }
         }, 15000);
     };
@@ -445,6 +925,6 @@
     document.addEventListener('DOMContentLoaded', function() {
         carregarTotalPedidos();
     });
-</script>
+  </script>
 </body>
 </html>
