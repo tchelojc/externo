@@ -1221,7 +1221,7 @@
         localStorage.setItem('solombo_pedidos_gerados', JSON.stringify(pedidos));
     }
 
-    // Enviar pedido pelo WhatsApp (VERSÃO ENCURTADA)
+    // Enviar pedido pelo WhatsApp (COM NOME DO TITULAR DO PIX)
     function enviarPedido() {
         const qtdTrad = parseInt(document.getElementById('qtd-tradicional').textContent) || 0;
         const qtdQueijo = parseInt(document.getElementById('qtd-queijo').textContent) || 0;
@@ -1254,6 +1254,7 @@
         const precoMolho = getPrecoMolho(molhoSelecionado);
         const total = subtotalPacotes + precoMolho;
         const chavePix = 'f1461640-6c03-4298-8c28-f1119c968612';
+        const titularPix = 'Marcelo Jubilado Catharino';
 
         salvarPedidoPendente(numeroPedido, {
             nome: nomeCliente,
@@ -1284,7 +1285,7 @@
 
         const totalStr = total.toFixed(2).replace('.', ',');
 
-        // Mensagem final — texto puro, encodeURIComponent no final
+        // Mensagem final — com titular do Pix
         let textoPedido = `🔥 *SÔLOMBO - NOVO PEDIDO* 🔥\n`;
         textoPedido += `👤 *Cliente:* ${nomeCliente}\n`;
         textoPedido += `📦 *Nº do Pedido:* ${numeroPedido}\n`;
@@ -1294,6 +1295,7 @@
         textoPedido += `🍶 Molho: ${molhoMsg}\n`;
         textoPedido += `\n💰 *Total: R$ ${totalStr}*\n`;
         textoPedido += `\n💳 *PIX:* ${chavePix}\n`;
+        textoPedido += `👤 *Titular:* ${titularPix}\n`;
         textoPedido += `⚠️ Envie o comprovante aqui após o pagamento!\n`;
         textoPedido += `\n🔮 Cadastre o código *${numeroPedido}* no site para concorrer à Numerologia Grátis!`;
 
@@ -1302,7 +1304,8 @@
 
         if (nomeInput) nomeInput.value = '';
         closeModal('modal-pedido');
-    }    
+    }
+     
     // ═══════════ MODAL DE SUGESTÕES ═══════════
     function atualizarSugestoes() {
         const legumesCheck = document.querySelector('#modal-sugestoes input[value="Legumes Defumados"]');
