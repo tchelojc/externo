@@ -1501,16 +1501,12 @@
             console.log('❌ Erro ao enviar e-mail:', error);
         }
     }
-    
+
     window.jsonpCallback = function(data) {
         console.log('Resposta recebida:', data);
         
-        // Atualiza o total de pedidos (GERAL)
-        if (data.acao === 'total' && data.total !== undefined) {
-            totalPedidosAtual = data.total;
-            const countEl = document.getElementById('pedidosCount');
-            if (countEl) countEl.innerText = totalPedidosAtual;
-        }
+        // ❌ REMOVIDO: atualização do contador ao carregar
+        // O contador só atualiza quando o cliente cadastrar um pedido
         
         // Processa cadastro
         if (data.acao === 'cadastrar') {
@@ -1518,11 +1514,11 @@
             if (btn) { btn.disabled = false; btn.innerText = '📦 Cadastrar Pedido'; }
             
             if (data.status === 'sucesso') {
-                // ⚠️ USA totalCliente (pedidos DO CLIENTE), não totalPedidos (geral)
-                const totalCliente = data.totalCliente || data.totalPedidos;
-                const faltamCliente = data.faltam || 0;
+                // ⚠️ USA totalCliente (pedidos DO CLIENTE)
+                const totalCliente = data.totalCliente || 1;
+                const faltamCliente = data.faltam || 19;
                 
-                totalPedidosAtual = totalCliente;
+                // Atualiza o contador APÓS o cadastro
                 const countEl = document.getElementById('pedidosCount');
                 if (countEl) countEl.innerText = totalCliente;
                 
@@ -1530,8 +1526,8 @@
                 enviarNotificacaoEmail({
                     cliente: data.nome,
                     numeroPedido: data.numero,
-                    totalCliente: totalCliente,        // ← total do cliente
-                    faltam: faltamCliente,              // ← faltam para o cliente
+                    totalCliente: totalCliente,
+                    faltam: faltamCliente,
                     numerologiaLiberada: data.numerologiaLiberada || false
                 });
                 
@@ -1540,7 +1536,7 @@
                     window.open(`https://wa.me/5521981533928?text=${mensagemWhatsApp}`, '_blank');
                     mostrarMensagem(`🎉 PARABÉNS ${data.nome}! Você atingiu ${totalCliente} pedidos! 🎉`, 'success');
                 } else {
-                    mostrarMensagem(`✅ Olá ${data.nome}, pedido Nº ${data.numero} cadastrado! Faltam ${faltamCliente} pedido(s).`, 'success');
+                    mostrarMensagem(`✅ Olá ${data.nome}, pedido cadastrado! Faltam ${faltamCliente} pedido(s) para a numerologia.`, 'success');
                 }
                 
                 // Limpa os inputs
@@ -1556,12 +1552,6 @@
             }
         }
     };
-
-    function carregarTotalPedidos() {
-        const script = document.createElement('script');
-        script.src = `${API_URL}?acao=total&callback=jsonpCallback&t=${Date.now()}`;
-        document.head.appendChild(script);
-    }
 
     window.cadastrarPedido = function() {
         const inputNome = document.getElementById('clienteNome');
@@ -1601,8 +1591,9 @@
 
     // Eventos ao carregar
     document.addEventListener('DOMContentLoaded', function() {
-        carregarTotalPedidos();
-
+        // ❌ REMOVIDO: carregarTotalPedidos();
+        // O contador começa em 0 e só atualiza quando o cliente cadastrar
+        
         const modalVerificar = document.getElementById('modal-verificar');
         if (modalVerificar) {
             modalVerificar.addEventListener('click', function(e) {
