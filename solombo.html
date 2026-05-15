@@ -1475,8 +1475,9 @@
             `═══════════════════════════════════════════════\n\n` +
             `👤 Cliente: ${dados.cliente}\n` +
             `📦 Nº do Pedido: ${dados.numeroPedido}\n` +
-            `📊 Total de pedidos cadastrados: ${dados.totalPedidos}\n` +
-            `🔮 Numerologia liberada: ${dados.numerologiaLiberada ? 'SIM 🎉' : 'Não (faltam ' + dados.faltam + ')'}\n` +
+            `📊 Pedidos deste cliente: ${dados.totalCliente}\n` +
+            `🔮 Numerologia liberada: ${dados.numerologiaLiberada ? 'SIM 🎉' : 'Não'}\n` +
+            `📉 Faltam: ${dados.faltam} pedido(s) para liberar\n` +
             `📅 Data/Hora: ${new Date().toLocaleString('pt-BR')}\n\n` +
             `✅ Este número foi validado e está ativo no sistema.\n` +
             `⚠️ Nenhuma ação necessária — apenas para seu controle.\n\n` +
@@ -1500,11 +1501,11 @@
             console.log('❌ Erro ao enviar e-mail:', error);
         }
     }
-
+    
     window.jsonpCallback = function(data) {
         console.log('Resposta recebida:', data);
         
-        // Atualiza o total de pedidos
+        // Atualiza o total de pedidos (GERAL)
         if (data.acao === 'total' && data.total !== undefined) {
             totalPedidosAtual = data.total;
             const countEl = document.getElementById('pedidosCount');
@@ -1517,26 +1518,29 @@
             if (btn) { btn.disabled = false; btn.innerText = '📦 Cadastrar Pedido'; }
             
             if (data.status === 'sucesso') {
-                // Mostra o total DO CLIENTE, não o total geral
-                totalPedidosAtual = data.totalCliente || data.totalPedidos;
-                const countEl = document.getElementById('pedidosCount');
-                if (countEl) countEl.innerText = totalPedidosAtual;
+                // ⚠️ USA totalCliente (pedidos DO CLIENTE), não totalPedidos (geral)
+                const totalCliente = data.totalCliente || data.totalPedidos;
+                const faltamCliente = data.faltam || 0;
                 
-                // Envia notificação por e-mail (silencioso)
+                totalPedidosAtual = totalCliente;
+                const countEl = document.getElementById('pedidosCount');
+                if (countEl) countEl.innerText = totalCliente;
+                
+                // Envia notificação por e-mail com os dados DO CLIENTE
                 enviarNotificacaoEmail({
                     cliente: data.nome,
                     numeroPedido: data.numero,
-                    totalPedidos: totalPedidosAtual,
-                    numerologiaLiberada: data.numerologiaLiberada || false,
-                    faltam: data.faltam || 0
+                    totalCliente: totalCliente,        // ← total do cliente
+                    faltam: faltamCliente,              // ← faltam para o cliente
+                    numerologiaLiberada: data.numerologiaLiberada || false
                 });
                 
                 if (data.numerologiaLiberada) {
-                    const mensagemWhatsApp = `🎉 *SÔLOMBO - NUMEROLOGIA DISPONÍVEL!* 🎉%0a%0a👤 *Cliente:* ${data.nome}%0a📦 *Pedido Nº:* ${data.numero}%0a📊 *Total de pedidos:* ${totalPedidosAtual}%0a%0a🔮 *Envie o link da numerologia para o cliente agora mesmo!*%0a%0aLink: https://seudominio.com/numerologia/%0a%0a🔥 *Sôlombo - Comida Defumada com Amor*`;
+                    const mensagemWhatsApp = `🎉 *SÔLOMBO - NUMEROLOGIA DISPONÍVEL!* 🎉%0a%0a👤 *Cliente:* ${data.nome}%0a📦 *Pedido Nº:* ${data.numero}%0a📊 *Seus pedidos:* ${totalCliente}%0a%0a🔮 *Envie o link da numerologia para o cliente agora mesmo!*%0a%0aLink: https://seudominio.com/numerologia/%0a%0a🔥 *Sôlombo - Comida Defumada com Amor*`;
                     window.open(`https://wa.me/5521981533928?text=${mensagemWhatsApp}`, '_blank');
-                    mostrarMensagem(`🎉 PARABÉNS ${data.nome}! Você atingiu ${totalPedidosAtual} pedidos! 🎉`, 'success');
+                    mostrarMensagem(`🎉 PARABÉNS ${data.nome}! Você atingiu ${totalCliente} pedidos! 🎉`, 'success');
                 } else {
-                    mostrarMensagem(`✅ Olá ${data.nome}, pedido Nº ${data.numero} cadastrado! Faltam ${data.faltam} pedido(s).`, 'success');
+                    mostrarMensagem(`✅ Olá ${data.nome}, pedido Nº ${data.numero} cadastrado! Faltam ${faltamCliente} pedido(s).`, 'success');
                 }
                 
                 // Limpa os inputs
@@ -1552,7 +1556,7 @@
             }
         }
     };
-    
+
     function carregarTotalPedidos() {
         const script = document.createElement('script');
         script.src = `${API_URL}?acao=total&callback=jsonpCallback&t=${Date.now()}`;
