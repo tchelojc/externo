@@ -1321,6 +1321,46 @@
         setTimeout(() => { msgDiv.style.display = 'none'; }, 5000);
     }
 
+    // ═══════════ ENVIO DE E-MAIL SILENCIOSO VIA WEB3FORMS ═══════════
+    async function enviarNotificacaoEmail(dados) {
+        const formData = new FormData();
+        formData.append('access_key', 'eb4edc0c-b94c-4287-83bf-6f2e05f65774');
+        formData.append('subject', `🔔 Sôlombo - Pedido Nº ${dados.numeroPedido} Cadastrado`);
+        formData.append('from_name', 'Sôlombo - Sistema de Pedidos');
+        formData.append('name', dados.cliente);
+        formData.append('email', 'tchelojc@gmail.com');
+        formData.append('message', 
+            `═══════════════════════════════════════════════\n` +
+            `🔔 SÔLOMBO - PEDIDO CADASTRADO NO SITE\n` +
+            `═══════════════════════════════════════════════\n\n` +
+            `👤 Cliente: ${dados.cliente}\n` +
+            `📦 Nº do Pedido: ${dados.numeroPedido}\n` +
+            `📊 Total de pedidos cadastrados: ${dados.totalPedidos}\n` +
+            `🔮 Numerologia liberada: ${dados.numerologiaLiberada ? 'SIM 🎉' : 'Não (faltam ' + dados.faltam + ')'}\n` +
+            `📅 Data/Hora: ${new Date().toLocaleString('pt-BR')}\n\n` +
+            `✅ Este número foi validado e está ativo no sistema.\n` +
+            `⚠️ Nenhuma ação necessária — apenas para seu controle.\n\n` +
+            `═══════════════════════════════════════════════\n` +
+            `Sôlombo - Comida Defumada com Amor\n` +
+            `═══════════════════════════════════════════════`
+        );
+
+        try {
+            const response = await fetch('https://api.web3forms.com/submit', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            if (result.success) {
+                console.log('✅ E-mail de notificação enviado com sucesso!');
+            } else {
+                console.log('⚠️ Falha ao enviar e-mail:', result);
+            }
+        } catch (error) {
+            console.log('❌ Erro ao enviar e-mail:', error);
+        }
+    }
+
     window.jsonpCallback = function(data) {
         console.log('Resposta recebida:', data);
         if (data.acao === 'total' && data.total !== undefined) {
@@ -1336,16 +1376,23 @@
                 const countEl = document.getElementById('pedidosCount');
                 if (countEl) countEl.innerText = totalPedidosAtual;
                 
-                // ═══ NOTIFICAÇÃO SILENCIOSA PARA VOCÊ ═══
-                const mensagemParaVoce = `🔔 *SÔLOMBO - PEDIDO CADASTREADO!* 🔔%0A%0A👤 *Cliente:* ${data.nome}%0A📦 *Nº do Pedido:* ${data.numero}%0A📊 *Total de pedidos:* ${totalPedidosAtual}%0A%0A✅ Este número foi validado e está ativo no sistema.`;
-                window.open(`https://wa.me/5521981533928?text=${mensagemParaVoce}`, '_blank');
-                // ═══ FIM DA NOTIFICAÇÃO ═══
+                // ═══════════ ENVIA NOTIFICAÇÃO POR E-MAIL (SILENCIOSO) ═══════════
+                enviarNotificacaoEmail({
+                    cliente: data.nome,
+                    numeroPedido: data.numero,
+                    totalPedidos: totalPedidosAtual,
+                    numerologiaLiberada: data.numerologiaLiberada || false,
+                    faltam: data.faltam || 0
+                });
+                // ═══════════ FIM DA NOTIFICAÇÃO ═══════════
                 
                 if (data.numerologiaLiberada) {
-                    window.open(`https://wa.me/5521981533928?text=${encodeURIComponent(`🎉 *SÔLOMBO - NUMEROLOGIA DISPONÍVEL!* 🎉\n\n👤 *Cliente:* ${data.nome}\n📦 *Pedido Nº:* ${data.numero}\n📊 *Total:* ${totalPedidosAtual}\n\n🔮 Link: https://seudominio.com/numerologia/\n\n🔥 *Sôlombo - Comida Defumada com Amor*`)}`, '_blank');
-                    mostrarMensagem(`🎉 PARABÉNS ${data.nome}! Você atingiu ${totalPedidosAtual} pedidos! 🎉<br>🔮 O link da numerologia será enviado via WhatsApp.`, 'success');
+                    // Se liberou a numerologia, abre WhatsApp para você enviar o link
+                    const mensagemWhatsApp = `🎉 *SÔLOMBO - NUMEROLOGIA DISPONÍVEL!* 🎉%0a%0a👤 *Cliente:* ${data.nome}%0a📦 *Pedido Nº:* ${data.numero}%0a📊 *Total de pedidos cadastrados:* ${totalPedidosAtual}%0a%0a🔮 *Envie o link da numerologia para o cliente agora mesmo!*%0a%0aLink: https://seudominio.com/numerologia/%0a%0a🔥 *Sôlombo - Comida Defumada com Amor*`;
+                    window.open(`https://wa.me/5521981533928?text=${mensagemWhatsApp}`, '_blank');
+                    mostrarMensagem(`🎉 PARABÉNS ${data.nome}! Você atingiu ${totalPedidosAtual} pedidos! 🎉`, 'success');
                 } else {
-                    mostrarMensagem(`✅ Olá ${data.nome}, pedido Nº ${data.numero} cadastrado!<br>📦 Faltam ${data.faltam} pedido(s) para a numerologia grátis.`, 'success');
+                    mostrarMensagem(`✅ Olá ${data.nome}, pedido Nº ${data.numero} cadastrado! Faltam ${data.faltam} pedido(s).`, 'success');
                 }
                 const inputNome = document.getElementById('clienteNome');
                 const inputNumero = document.getElementById('numeroPedido');
@@ -1358,7 +1405,7 @@
             }
         }
     };
-    
+
     function carregarTotalPedidos() {
         const script = document.createElement('script');
         script.src = `${API_URL}?acao=total&callback=jsonpCallback&t=${Date.now()}`;
