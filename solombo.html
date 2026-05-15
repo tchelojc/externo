@@ -334,11 +334,6 @@
       transform: scale(1.02);
     }
 
-    #btn-enviar-pedido:hover {
-      background: #1ebe5d;
-      transform: scale(1.02);
-    }
-
     #aviso-qtd {
       color: #ffb3b3;
       font-size: 0.85rem;
@@ -482,6 +477,210 @@
       color: #7a6a5c;
       font-style: italic;
     }
+
+    /* Modal Gerador */
+    .modal-gerador {
+      max-width: 480px;
+    }
+
+    .gerador-box {
+      background: #0d0400;
+      border: 1px solid rgba(192,0,107,0.3);
+      border-radius: 16px;
+      padding: 1.5rem;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .pedido-gerado {
+      background: #000;
+      border: 2px dashed var(--rosa);
+      border-radius: 12px;
+      padding: 1.5rem 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .label-pedido {
+      display: block;
+      color: #c0a080;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      margin-bottom: 0.5rem;
+    }
+
+    .numero-pedido {
+      display: block;
+      font-family: 'Courier New', monospace;
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--rosa);
+      letter-spacing: 0.08em;
+    }
+
+    .btn-gerar {
+      background: var(--rosa);
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      padding: 0.8rem 2rem;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      width: 100%;
+    }
+
+    .btn-gerar:hover {
+      background: #a00058;
+      transform: scale(1.02);
+    }
+
+    .info-cliente {
+      margin: 0.8rem 0;
+    }
+
+    .info-cliente input {
+      width: 100%;
+      background: #0d0400;
+      border: 1px solid rgba(192,0,107,0.35);
+      border-radius: 30px;
+      padding: 0.8rem 1.2rem;
+      color: #fff;
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    .info-cliente input:focus {
+      border-color: var(--rosa);
+      box-shadow: 0 0 6px rgba(192,0,107,0.3);
+    }
+
+    .info-cliente input::placeholder {
+      color: #7a6a5c;
+    }
+
+    .divisor-pedido {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+
+    .divisor-pedido::before,
+    .divisor-pedido::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(192,0,107,0.2);
+    }
+
+    .divisor-pedido span {
+      color: #7a6a5c;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+    }
+
+    .btn-verificar {
+      width: 100%;
+      background: transparent;
+      border: 1px solid var(--rosa);
+      border-radius: 50px;
+      padding: 0.8rem 2rem;
+      color: var(--rosa);
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      margin-top: 0.5rem;
+    }
+
+    .btn-verificar:hover {
+      background: var(--rosa);
+      color: #fff;
+    }
+
+    /* Modal Verificar */
+    .modal-verificar {
+      max-width: 460px;
+    }
+
+    .verificar-box {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .verificar-box input {
+      width: 100%;
+      background: #0d0400;
+      border: 1px solid rgba(192,0,107,0.35);
+      border-radius: 30px;
+      padding: 0.9rem 1.5rem;
+      color: #fff;
+      font-family: 'Nunito', sans-serif;
+      font-size: 1rem;
+      text-align: center;
+      letter-spacing: 0.08em;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .verificar-box input:focus {
+      border-color: var(--rosa);
+      box-shadow: 0 0 8px rgba(192,0,107,0.4);
+    }
+
+    .verificar-box input::placeholder {
+      color: #7a6a5c;
+      letter-spacing: 0;
+    }
+
+    .btn-verificar-agora {
+      background: var(--rosa);
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      padding: 0.9rem 2rem;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      width: 100%;
+    }
+
+    .btn-verificar-agora:hover {
+      background: #a00058;
+      transform: scale(1.02);
+    }
+
+    .resultado-valido {
+      background: #1e4620;
+      color: #b9f6ca;
+      padding: 1rem;
+      border-radius: 12px;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .resultado-invalido {
+      background: #8b0000;
+      color: #ffb3b3;
+      padding: 1rem;
+      border-radius: 12px;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .resultado-info {
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+      opacity: 0.8;
+    }
   </style>
 </head>
 <body>
@@ -531,28 +730,63 @@
 
   <div class="sep"><span class="sep-icon">❤️</span></div>
 
-  <!-- NOVO CARD - GANHE UMA NUMEROLOGIA -->
-  <div class="section">
-      <div class="numerology-card">
-          <h3>🔮 Ganhe uma <span>Numerologia</span> Grátis!</h3>
-          <p class="rule">A cada <strong>20 pacotes Sôlombo</strong> comprados, você ganha uma numerologia personalizada!</p>
-          
-          <div class="counter-box">
-              <span class="counter-number" id="pedidosCount">0</span>
-              <span class="counter-label">Pedidos Válidos Acumulados</span>
-          </div>
-          
-          <div class="input-group" style="flex-direction: column; align-items: center; gap: 0.8rem;">
-              <input type="text" id="clienteNome" placeholder="Seu nome completo" autocomplete="off" style="width: 280px;">
-              <input type="text" id="numeroPedido" placeholder="Número do seu pedido" autocomplete="off" style="width: 280px;">
-              <button class="btn-cadastrar" onclick="cadastrarPedido()">📦 Cadastrar Pedido</button>
-          </div>
-          
-          <div id="mensagemCadastro" class="message" style="display: none;"></div>
-          <p style="font-size: 0.8rem; color: #aaa; margin-top: 1rem;">✅ Guarde seus comprovantes! A cada 20 pedidos, você concorre a uma numerologia exclusiva.</p>
+  <!-- ═══════════ MODAL GERADOR DE PEDIDO ═══════════ -->
+  <div class="modal-backdrop" id="modal-gerador">
+    <div class="modal modal-gerador">
+      <button class="close-btn" onclick="closeModal('modal-gerador')">✕</button>
+      <h2>🔢 Gerar Número do Pedido</h2>
+      <p>Gere um código único para o pedido do cliente e compartilhe via WhatsApp.</p>
+
+      <div class="gerador-box">
+        <div class="pedido-gerado" id="pedidoGerado">
+          <span class="label-pedido">PEDIDO Nº</span>
+          <span class="numero-pedido" id="numeroPedidoGerado">----</span>
+        </div>
+        <button class="btn-gerar" onclick="gerarPedido()">
+          🎲 Gerar Novo Pedido
+        </button>
       </div>
+
+      <div class="info-cliente" id="infoCliente" style="display:none;">
+        <input type="text" id="nomeClienteGerado" placeholder="Nome do cliente">
+      </div>
+
+      <button class="wpp-btn" onclick="compartilharPedido()" id="btn-compartilhar" style="display:none;">
+        💬 Compartilhar código com cliente
+      </button>
+
+      <div class="divisor-pedido">
+        <span>ou</span>
+      </div>
+
+      <p style="font-size: 0.85rem; color: #c0a080;">Já tem um número de pedido?</p>
+      <button class="btn-verificar" onclick="closeModal('modal-gerador'); openModal('modal-verificar');">
+        🔍 Verificar Pedido
+      </button>
+    </div>
   </div>
 
+  <!-- ═══════════ CARD NUMEROLOGIA ═══════════ -->
+  <div class="section">
+    <div class="numerology-card">
+      <h3>🔮 <span>Numerologia</span> Sôlombo</h3>
+      <p class="rule">A cada 10 pedidos cadastrados, o cliente ganha uma numerologia grátis!</p>
+      
+      <div class="counter-box">
+        <span class="counter-number" id="pedidosCount">0</span>
+        <span class="counter-label">pedidos cadastrados</span>
+      </div>
+
+      <div class="input-group">
+        <input type="text" id="clienteNome" placeholder="Seu nome completo">
+        <input type="text" id="numeroPedido" placeholder="Nº do pedido (ex: SMB-202605-1437825)">
+      </div>
+
+      <button class="btn-cadastrar" onclick="cadastrarPedido()">📦 Cadastrar Pedido</button>
+      <div id="mensagemCadastro" class="message" style="display:none;"></div>
+    </div>
+  </div>
+  
   <footer  <footer>
     <!-- IMAGEM 4 — só a logo centralizada -->
     <div class="section" style="display:flex; align-items:center; justify-content:center;">
@@ -563,6 +797,63 @@
     Comida feita com carinho, paixão e muita dedicação 🔥
   </footer>
   <a class="wpp-float" href="#" onclick="event.preventDefault(); openModal('modal-pedido');" title="Fazer pedido">💬</a>
+
+  <!-- ═══════════ BOTÃO FLUTUANTE WHATSAPP ═══════════ -->
+  <a class="wpp-float" href="#" onclick="event.preventDefault(); openModal('modal-pedido');" title="Fazer pedido">💬</a>
+
+  <!-- ═══════════ MODAL GERADOR DE PEDIDO ═══════════ -->
+  <div class="modal-backdrop" id="modal-gerador">
+    <div class="modal modal-gerador">
+      <button class="close-btn" onclick="closeModal('modal-gerador')">✕</button>
+      <h2>🔢 Gerar Número do Pedido</h2>
+      <p>Gere um código único para o pedido do cliente e compartilhe via WhatsApp.</p>
+
+      <div class="gerador-box">
+        <div class="pedido-gerado" id="pedidoGerado">
+          <span class="label-pedido">PEDIDO Nº</span>
+          <span class="numero-pedido" id="numeroPedidoGerado">----</span>
+        </div>
+        <button class="btn-gerar" onclick="gerarPedido()">
+          🎲 Gerar Novo Pedido
+        </button>
+      </div>
+
+      <div class="info-cliente" id="infoCliente" style="display:none;">
+        <input type="text" id="nomeClienteGerado" placeholder="Nome do cliente">
+      </div>
+
+      <button class="wpp-btn" onclick="compartilharPedido()" id="btn-compartilhar" style="display:none;">
+        💬 Compartilhar código com cliente
+      </button>
+
+      <div class="divisor-pedido">
+        <span>ou</span>
+      </div>
+
+      <p style="font-size: 0.85rem; color: #c0a080;">Já tem um número de pedido?</p>
+      <button class="btn-verificar" onclick="closeModal('modal-gerador'); openModal('modal-verificar');">
+        🔍 Verificar Pedido
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════ MODAL VERIFICAR PEDIDO ═══════════ -->
+  <div class="modal-backdrop" id="modal-verificar">
+    <div class="modal modal-verificar">
+      <button class="close-btn" onclick="closeModal('modal-verificar')">✕</button>
+      <h2>🔍 Verificar Pedido</h2>
+      <p>Digite o número do pedido para conferir se ele é válido.</p>
+
+      <div class="verificar-box">
+        <input type="text" id="codigoVerificar" placeholder="Ex: SMB-202605-1437825" maxlength="25">
+        <button class="btn-verificar-agora" onclick="verificarPedido()">
+          🔍 Verificar
+        </button>
+      </div>
+
+      <div id="resultadoVerificacao" style="display:none; margin-top: 1rem;"></div>
+    </div>
+  </div>
 
   <!-- ═══════════ MODAL DE PEDIDO ═══════════ -->
   <div class="modal-backdrop" id="modal-pedido">
@@ -614,7 +905,7 @@
         </label>
       </div>
 
-      <button class="wpp-btn" onclick="enviarPedido()" id="btn-enviar" style="width:100%; margin-top:8px; background:#25d366; border:none; border-radius:50px; padding:0.9rem 2rem; font-family:'Nunito',sans-serif; font-weight:800; font-size:1rem; color:#fff; cursor:pointer; transition:background 0.2s, transform 0.15s;">
+      <button class="wpp-btn" onclick="enviarPedido()" id="btn-enviar-pedido">
         💬 Enviar pedido pelo WhatsApp
       </button>
       <p id="aviso-qtd" style="color: #ffb3b3; font-size: 0.85rem; margin-top: 0.5rem; display: none;">⚠️ Selecione ao menos um bolinho!</p>
@@ -629,17 +920,14 @@
       <p>O Sôlombo nasceu artesanal, e o cardápio vai crescer com a sua voz. Escolha o que você gostaria de ver defumado no Sabor da Terra:</p>
 
       <div class="sugestoes-form">
-        <!-- Peixe Defumado -->
         <label class="sugestao-item">
           <input type="checkbox" name="sugestao" value="Peixe Defumado" onchange="atualizarSugestoes()"> 🐟 Peixe Defumado
         </label>
 
-        <!-- Filé Mignon Suíno Defumado -->
         <label class="sugestao-item">
           <input type="checkbox" name="sugestao" value="Filé Mignon Suíno Defumado" onchange="atualizarSugestoes()"> 🥩 Filé Mignon Suíno Defumado
         </label>
 
-        <!-- Legumes Defumados -->
         <label class="sugestao-item">
           <input type="checkbox" name="sugestao" value="Legumes Defumados" onchange="atualizarSugestoes()"> 🌿 Legumes Defumados
         </label>
@@ -647,7 +935,6 @@
           <input type="text" id="quaisLegumes" placeholder="Quais legumes? Ex: abobrinha, berinjela, pimentão..." oninput="atualizarSugestoes()">
         </div>
 
-        <!-- Queijo Defumado -->
         <label class="sugestao-item">
           <input type="checkbox" name="sugestao" value="Queijo Defumado" onchange="atualizarSugestoes()"> 🧀 Queijo Defumado
         </label>
@@ -655,7 +942,6 @@
           <input type="text" id="tipoQueijo" placeholder="Qual tipo de queijo? Ex: gouda, provolone, coalho..." oninput="atualizarSugestoes()">
         </div>
 
-        <!-- Costela Defumada -->
         <label class="sugestao-item">
           <input type="checkbox" name="sugestao" value="Costela Defumada" onchange="atualizarSugestoes()"> 🍖 Costela Defumada
         </label>
@@ -671,7 +957,6 @@
           </label>
         </div>
 
-        <!-- Campo livre para sugestão extra -->
         <label class="sugestao-item sugestao-livre">
           <span>💡 Outra ideia:</span>
           <input type="text" id="sugestaoLivre" placeholder="Descreva sua sugestão aqui..." oninput="atualizarSugestoes()">
@@ -685,9 +970,10 @@
       </button>
     </div>
   </div>
+
   <!-- ═══════════ SCRIPTS ═══════════ -->
   <script>
-    // Abrir/Fechar modais
+    // ═══════════ MODAIS ═══════════
     function openModal(id) {
         document.getElementById(id).classList.add('open');
     }
@@ -700,7 +986,7 @@
         });
     });
 
-    // Quantidade dos bolinhos
+    // ═══════════ PEDIDO DE BOLINHOS ═══════════
     function alterarQtd(produto, delta) {
         const span = document.getElementById('qtd-' + produto);
         let qtd = parseInt(span.textContent);
@@ -708,7 +994,6 @@
         span.textContent = qtd;
     }
 
-    // Enviar pedido pelo WhatsApp
     function enviarPedido() {
         const qtdTrad = parseInt(document.getElementById('qtd-tradicional').textContent);
         const qtdQueijo = parseInt(document.getElementById('qtd-queijo').textContent);
@@ -739,191 +1024,244 @@
         window.open(url, '_blank');
     }
 
-    // ═══════════ FUNÇÕES DO MODAL DE SUGESTÕES ═══════════
-
-    // Mostrar/esconder campos extras conforme checkbox
+    // ═══════════ MODAL DE SUGESTÕES ═══════════
     function atualizarSugestoes() {
         const legumesCheck = document.querySelector('#modal-sugestoes input[value="Legumes Defumados"]');
         const queijoCheck = document.querySelector('#modal-sugestoes input[value="Queijo Defumado"]');
         const costelaCheck = document.querySelector('#modal-sugestoes input[value="Costela Defumada"]');
 
-        document.getElementById('detalhe-legumes').style.display = legumesCheck && legumesCheck.checked ? 'block' : 'none';
-        document.getElementById('detalhe-queijo').style.display = queijoCheck && queijoCheck.checked ? 'block' : 'none';
-        document.getElementById('detalhe-costela').style.display = costelaCheck && costelaCheck.checked ? 'block' : 'none';
+        const dLegumes = document.getElementById('detalhe-legumes');
+        const dQueijo = document.getElementById('detalhe-queijo');
+        const dCostela = document.getElementById('detalhe-costela');
+
+        if (dLegumes) dLegumes.style.display = legumesCheck && legumesCheck.checked ? 'block' : 'none';
+        if (dQueijo) dQueijo.style.display = queijoCheck && queijoCheck.checked ? 'block' : 'none';
+        if (dCostela) dCostela.style.display = costelaCheck && costelaCheck.checked ? 'block' : 'none';
     }
 
-    // Enviar sugestões pelo WhatsApp
     function enviarSugestoes() {
         const checkboxes = document.querySelectorAll('#modal-sugestoes input[name="sugestao"]:checked');
-        const sugestaoLivre = document.getElementById('sugestaoLivre').value.trim();
+        const sugestaoLivre = document.getElementById('sugestaoLivre');
+        const sugestaoLivreValor = sugestaoLivre ? sugestaoLivre.value.trim() : '';
         const aviso = document.getElementById('aviso-sugestao');
 
-        if (checkboxes.length === 0 && sugestaoLivre === '') {
-            aviso.style.display = 'block';
+        if (checkboxes.length === 0 && sugestaoLivreValor === '') {
+            if (aviso) aviso.style.display = 'block';
             return;
         }
-        aviso.style.display = 'none';
+        if (aviso) aviso.style.display = 'none';
 
         let mensagem = 'Olá!%20Quero%20contribuir%20com%20o%20cardápio%20do%20Sôlombo%20🔥%0A%0A';
         mensagem += '*Minhas sugestões para defumação:*%0A';
 
         checkboxes.forEach(function(cb) {
-            if (cb.value === 'Peixe Defumado') {
-                mensagem += '🐟%20Peixe%20Defumado%0A';
-            }
-            if (cb.value === 'Filé Mignon Suíno Defumado') {
-                mensagem += '🥩%20Filé%20Mignon%20Suíno%20Defumado%0A';
-            }
+            if (cb.value === 'Peixe Defumado') mensagem += '🐟%20Peixe%20Defumado%0A';
+            if (cb.value === 'Filé Mignon Suíno Defumado') mensagem += '🥩%20Filé%20Mignon%20Suíno%20Defumado%0A';
             if (cb.value === 'Legumes Defumados') {
-                const quais = document.getElementById('quaisLegumes').value.trim();
-                if (quais) {
-                    mensagem += `🌿%20Legumes%20Defumados%20(${encodeURIComponent(quais)})%0A`;
-                } else {
-                    mensagem += '🌿%20Legumes%20Defumados%0A';
-                }
+                const quais = document.getElementById('quaisLegumes');
+                const q = quais ? quais.value.trim() : '';
+                mensagem += q ? `🌿%20Legumes%20Defumados%20(${encodeURIComponent(q)})%0A` : '🌿%20Legumes%20Defumados%0A';
             }
             if (cb.value === 'Queijo Defumado') {
-                const tipo = document.getElementById('tipoQueijo').value.trim();
-                if (tipo) {
-                    mensagem += `🧀%20Queijo%20Defumado%20(${encodeURIComponent(tipo)})%0A`;
-                } else {
-                    mensagem += '🧀%20Queijo%20Defumado%0A';
-                }
+                const tipo = document.getElementById('tipoQueijo');
+                const t = tipo ? tipo.value.trim() : '';
+                mensagem += t ? `🧀%20Queijo%20Defumado%20(${encodeURIComponent(t)})%0A` : '🧀%20Queijo%20Defumado%0A';
             }
             if (cb.value === 'Costela Defumada') {
                 const tipoCostela = document.querySelector('#modal-sugestoes input[name="tipoCostela"]:checked');
                 const tipo = tipoCostela ? tipoCostela.value : '';
-                if (tipo && tipo !== 'Ambas') {
-                    mensagem += `🍖%20Costela%20Defumada%20${encodeURIComponent(tipo)}%0A`;
-                } else if (tipo === 'Ambas') {
-                    mensagem += '🍖%20Costela%20Defumada%20(Suína%20e%20Bovina)%0A';
-                } else {
-                    mensagem += '🍖%20Costela%20Defumada%0A';
-                }
+                if (tipo === 'Suína') mensagem += '🍖%20Costela%20Defumada%20Suína%0A';
+                else if (tipo === 'Bovina') mensagem += '🍖%20Costela%20Defumada%20Bovina%0A';
+                else if (tipo === 'Ambas') mensagem += '🍖%20Costela%20Defumada%20(Suína%20e%20Bovina)%0A';
+                else mensagem += '🍖%20Costela%20Defumada%0A';
             }
         });
 
-        if (sugestaoLivre) {
-            mensagem += `%0A💡%20Outra%20ideia:%20${encodeURIComponent(sugestaoLivre)}%0A`;
-        }
-
+        if (sugestaoLivreValor) mensagem += `%0A💡%20Outra%20ideia:%20${encodeURIComponent(sugestaoLivreValor)}%0A`;
         mensagem += '%0A🐷 *Ajudei a construir o cardápio do Sôlombo!*';
 
-        const url = `https://wa.me/5521981533928?text=${mensagem}`;
-        window.open(url, '_blank');
+        window.open(`https://wa.me/5521981533928?text=${mensagem}`, '_blank');
     }
 
-    // ==================== SISTEMA DE NUMEROLOGIA COM GOOGLE APPS SCRIPT (JSONP) ====================
-    const API_URL = 'https://script.google.com/macros/s/AKfycbxsX4Wq0GDDN-HRrCU2fNOX8-YGFQbb2pTLWDGt74CJ7uiFEU7Vab5wLzyT_TZDbO7rLQ/exec';
+    // ═══════════ GERADOR DE PEDIDO (ANTI-FRAUDE) ═══════════
+    function getPedidosGerados() {
+        try {
+            const dados = localStorage.getItem('solombo_pedidos_gerados');
+            return dados ? JSON.parse(dados) : {};
+        } catch(e) { return {}; }
+    }
 
+    function salvarPedidoGerado(codigo, nome) {
+        const pedidos = getPedidosGerados();
+        pedidos[codigo] = {
+            nome: nome || 'Cliente',
+            data: new Date().toISOString(),
+            status: 'valido'
+        };
+        localStorage.setItem('solombo_pedidos_gerados', JSON.stringify(pedidos));
+    }
+
+    function gerarPedido() {
+        const agora = new Date();
+        const ano = agora.getFullYear();
+        const mes = String(agora.getMonth() + 1).padStart(2, '0');
+        const hora = String(agora.getHours()).padStart(2, '0');
+        const min = String(agora.getMinutes()).padStart(2, '0');
+        const aleatorio = String(Math.floor(Math.random() * 900) + 100);
+        const codigo = `SMB-${ano}${mes}-${hora}${min}${aleatorio}`;
+
+        const numEl = document.getElementById('numeroPedidoGerado');
+        const infoCliente = document.getElementById('infoCliente');
+        const btnCompartilhar = document.getElementById('btn-compartilhar');
+
+        if (numEl) numEl.textContent = codigo;
+        if (infoCliente) infoCliente.style.display = 'block';
+        if (btnCompartilhar) btnCompartilhar.style.display = 'block';
+
+        if (numEl) {
+            numEl.style.transform = 'scale(1.2)';
+            setTimeout(() => { numEl.style.transform = 'scale(1)'; }, 200);
+        }
+    }
+
+    function compartilharPedido() {
+        const numEl = document.getElementById('numeroPedidoGerado');
+        const nomeInput = document.getElementById('nomeClienteGerado');
+        if (!numEl) return;
+        const codigo = numEl.textContent;
+        const nome = nomeInput ? nomeInput.value.trim() : '';
+
+        if (codigo === '----') { alert('Gere um número de pedido primeiro!'); return; }
+
+        salvarPedidoGerado(codigo, nome);
+
+        let mensagem = `🎉 *SÔLOMBO - PEDIDO GERADO!* 🎉%0A%0A📦 *Nº do Pedido:* ${codigo}%0A`;
+        if (nome) mensagem += `👤 *Cliente:* ${encodeURIComponent(nome)}%0A`;
+        mensagem += `%0A🔮 Guarde este código! Acesse o site e cadastre seu pedido para concorrer à Numerologia Grátis.%0A%0A🔥 *Sôlombo - Comida Defumada com Amor*`;
+
+        window.open(`https://wa.me/5521981533928?text=${mensagem}`, '_blank');
+    }
+
+    function verificarPedido() {
+        const inputCodigo = document.getElementById('codigoVerificar');
+        const resultadoDiv = document.getElementById('resultadoVerificacao');
+        if (!inputCodigo || !resultadoDiv) return;
+
+        const codigo = inputCodigo.value.trim().toUpperCase();
+        if (!codigo) {
+            resultadoDiv.style.display = 'block';
+            resultadoDiv.innerHTML = '<div class="resultado-invalido">⚠️ Digite um código de pedido.</div>';
+            return;
+        }
+
+        const pedidos = getPedidosGerados();
+        if (pedidos[codigo]) {
+            const p = pedidos[codigo];
+            const dataPedido = new Date(p.data);
+            const df = dataPedido.toLocaleDateString('pt-BR');
+            const hf = dataPedido.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+            resultadoDiv.style.display = 'block';
+            resultadoDiv.innerHTML = `<div class="resultado-valido">✅ *Pedido Válido!*<br>📦 Código: ${codigo}<br>👤 Cliente: ${p.nome}<br>📅 Gerado em: ${df} às ${hf}<div class="resultado-info">Este pedido está ativo e pode ser cadastrado na numerologia.</div></div>`;
+        } else {
+            resultadoDiv.style.display = 'block';
+            resultadoDiv.innerHTML = '<div class="resultado-invalido">❌ Código não encontrado.<br><span style="font-size:0.85rem;">Verifique se digitou corretamente ou gere um novo pedido.</span></div>';
+        }
+    }
+
+    // ═══════════ SISTEMA DE NUMEROLOGIA COM GOOGLE APPS SCRIPT (JSONP) ═══════════
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxsX4Wq0GDDN-HRrCU2fNOX8-YGFQbb2pTLWDGt74CJ7uiFEU7Vab5wLzyT_TZDbO7rLQ/exec';
     let totalPedidosAtual = 0;
 
     function mostrarMensagem(texto, tipo) {
         const msgDiv = document.getElementById('mensagemCadastro');
+        if (!msgDiv) return;
         msgDiv.className = `message ${tipo}`;
         msgDiv.innerHTML = texto;
         msgDiv.style.display = 'block';
-        setTimeout(() => {
-            msgDiv.style.display = 'none';
-        }, 5000);
+        setTimeout(() => { msgDiv.style.display = 'none'; }, 5000);
     }
 
-    // Função chamada pelo callback JSONP
     window.jsonpCallback = function(data) {
         console.log('Resposta recebida:', data);
-        
-        if (data.acao === 'total') {
-            if (data.total !== undefined) {
-                totalPedidosAtual = data.total;
-                document.getElementById('pedidosCount').innerText = totalPedidosAtual;
-                console.log(`Total de pedidos carregado: ${totalPedidosAtual}`);
-            }
+        if (data.acao === 'total' && data.total !== undefined) {
+            totalPedidosAtual = data.total;
+            const countEl = document.getElementById('pedidosCount');
+            if (countEl) countEl.innerText = totalPedidosAtual;
         }
-        
         if (data.acao === 'cadastrar') {
             const btn = document.querySelector('.btn-cadastrar');
-            btn.disabled = false;
-            btn.innerText = '📦 Cadastrar Pedido';
-            
+            if (btn) { btn.disabled = false; btn.innerText = '📦 Cadastrar Pedido'; }
             if (data.status === 'sucesso') {
                 totalPedidosAtual = data.totalPedidos;
-                document.getElementById('pedidosCount').innerText = totalPedidosAtual;
-                
+                const countEl = document.getElementById('pedidosCount');
+                if (countEl) countEl.innerText = totalPedidosAtual;
                 if (data.numerologiaLiberada) {
-                    const mensagemWhatsApp = `🎉 *SÔLOMBO - NUMEROLOGIA DISPONÍVEL!* 🎉%0a%0a👤 *Cliente:* ${data.nome}%0a📦 *Pedido Nº:* ${data.numero}%0a📊 *Total de pedidos cadastrados:* ${totalPedidosAtual}%0a%0a🔮 *Envie o link da numerologia para o cliente agora mesmo!*%0a%0aLink: https://seudominio.com/numerologia/%0a%0a🔥 *Sôlombo - Comida Defumada com Amor*`;
-                    window.open(`https://wa.me/5521981533928?text=${mensagemWhatsApp}`, '_blank');
+                    window.open(`https://wa.me/5521981533928?text=${encodeURIComponent(`🎉 *SÔLOMBO - NUMEROLOGIA DISPONÍVEL!* 🎉\n\n👤 *Cliente:* ${data.nome}\n📦 *Pedido Nº:* ${data.numero}\n📊 *Total:* ${totalPedidosAtual}\n\n🔮 Link: https://seudominio.com/numerologia/\n\n🔥 *Sôlombo - Comida Defumada com Amor*`)}`, '_blank');
                     mostrarMensagem(`🎉 PARABÉNS ${data.nome}! Você atingiu ${totalPedidosAtual} pedidos! 🎉<br>🔮 O link da numerologia será enviado via WhatsApp.`, 'success');
                 } else {
-                    mostrarMensagem(`✅ Olá ${data.nome}, pedido Nº ${data.numero} cadastrado com sucesso!<br>📦 Faltam ${data.faltam} pedido(s) para você ganhar sua numerologia grátis.`, 'success');
+                    mostrarMensagem(`✅ Olá ${data.nome}, pedido Nº ${data.numero} cadastrado!<br>📦 Faltam ${data.faltam} pedido(s) para a numerologia grátis.`, 'success');
                 }
-                
-                // Limpa os inputs
                 const inputNome = document.getElementById('clienteNome');
                 const inputNumero = document.getElementById('numeroPedido');
                 if (inputNome) inputNome.value = '';
                 if (inputNumero) inputNumero.value = '';
-                
             } else if (data.status === 'duplicado') {
-                mostrarMensagem(`⚠️ Pedido Nº ${data.numero} já foi cadastrado anteriormente!`, 'warning');
+                mostrarMensagem(`⚠️ Pedido Nº ${data.numero} já foi cadastrado!`, 'warning');
             } else {
-                mostrarMensagem(`❌ ${data.mensagem || 'Erro ao cadastrar. Tente novamente.'}`, 'error');
+                mostrarMensagem(`❌ ${data.mensagem || 'Erro ao cadastrar.'}`, 'error');
             }
         }
     };
 
-    // Carrega o total de pedidos do servidor via JSONP
     function carregarTotalPedidos() {
         const script = document.createElement('script');
         script.src = `${API_URL}?acao=total&callback=jsonpCallback&t=${Date.now()}`;
         document.head.appendChild(script);
-        console.log('Requisição JSONP de total enviada');
     }
 
-    // Função principal de cadastro via JSONP
     window.cadastrarPedido = function() {
         const inputNome = document.getElementById('clienteNome');
         const inputNumero = document.getElementById('numeroPedido');
         const nomeCliente = inputNome ? inputNome.value.trim() : '';
         const numeroPedido = inputNumero ? inputNumero.value.trim() : '';
 
-        // Validação dos campos
-        if (!nomeCliente) {
-            mostrarMensagem('❌ Por favor, digite o seu nome completo.', 'error');
-            if (inputNome) inputNome.focus();
+        if (!nomeCliente) { mostrarMensagem('❌ Digite seu nome completo.', 'error'); if(inputNome) inputNome.focus(); return; }
+        if (!numeroPedido) { mostrarMensagem('❌ Digite o número do pedido.', 'error'); if(inputNumero) inputNumero.focus(); return; }
+
+        // Validação anti-fraude: verifica se o código existe no localStorage
+        const pedidos = getPedidosGerados();
+        if (!pedidos[numeroPedido]) {
+            mostrarMensagem('❌ Código de pedido inválido! Use o código gerado pelo Sôlombo.', 'error');
             return;
         }
 
-        if (!numeroPedido) {
-            mostrarMensagem('❌ Por favor, digite o número do seu pedido.', 'error');
-            if (inputNumero) inputNumero.focus();
-            return;
-        }
-
-        // Desabilita o botão durante o envio
         const btn = document.querySelector('.btn-cadastrar');
-        btn.disabled = true;
-        btn.innerText = '⏳ Cadastrando...';
+        if (btn) { btn.disabled = true; btn.innerText = '⏳ Cadastrando...'; }
 
-        // Envia via JSONP
         const script = document.createElement('script');
         script.src = `${API_URL}?acao=cadastrar&numero=${encodeURIComponent(numeroPedido)}&nome=${encodeURIComponent(nomeCliente)}&callback=jsonpCallback&t=${Date.now()}`;
         document.head.appendChild(script);
-        
-        console.log(`Requisição JSONP de cadastro enviada para ${numeroPedido}`);
-        
-        // Timeout de segurança (caso o script demore muito)
+
         setTimeout(() => {
-            if (btn.disabled) {
-                btn.disabled = false;
-                btn.innerText = '📦 Cadastrar Pedido';
-                mostrarMensagem('❌ Tempo excedente. Tente novamente.', 'error');
-            }
+            if (btn && btn.disabled) { btn.disabled = false; btn.innerText = '📦 Cadastrar Pedido'; mostrarMensagem('❌ Tempo excedente.', 'error'); }
         }, 15000);
     };
 
-    // Inicializa o contador quando a página carregar
+    // Eventos ao carregar
     document.addEventListener('DOMContentLoaded', function() {
         carregarTotalPedidos();
+
+        const modalVerificar = document.getElementById('modal-verificar');
+        if (modalVerificar) {
+            modalVerificar.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    const resultadoDiv = document.getElementById('resultadoVerificacao');
+                    const inputCodigo = document.getElementById('codigoVerificar');
+                    if (resultadoDiv) resultadoDiv.style.display = 'none';
+                    if (inputCodigo) inputCodigo.value = '';
+                }
+            });
+        }
     });
   </script>
 </body>
