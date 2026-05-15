@@ -681,6 +681,33 @@
       margin-top: 0.5rem;
       opacity: 0.8;
     }
+
+    .preco-molho {
+      margin-left: auto;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #ffb74d;
+      white-space: nowrap;
+    }
+
+    .preco-molho.grátis {
+      color: #4caf50;
+    }
+
+    .sem-molho {
+      border-top: 1px dashed rgba(192,0,107,0.2);
+      margin-top: 4px;
+      padding-top: 10px;
+    }
+
+    #resumo-texto {
+      line-height: 1.6;
+    }
+
+    #resumo-texto strong {
+      color: var(--rosa);
+    }
+
   </style>
 </head>
 <body>
@@ -786,7 +813,7 @@
       <div id="mensagemCadastro" class="message" style="display:none;"></div>
     </div>
   </div>
-  
+
   <footer  <footer>
     <!-- IMAGEM 4 — só a logo centralizada -->
     <div class="section" style="display:flex; align-items:center; justify-content:center;">
@@ -895,14 +922,23 @@
       <div class="molho-pedido">
         <p>🍶 Escolha o molho:</p>
         <label class="molho-opcao">
-          <input type="radio" name="molho" value="Mostarda & Mel Cerpa"> 🍯 Mostarda & Mel Cerpa
+          <input type="radio" name="molho" value="Mostarda & Mel Cerpa" onchange="atualizarPrecoMolho()"> 🍯 Mostarda & Mel Cerpa <span class="preco-molho">+R$ 30,00</span>
         </label>
         <label class="molho-opcao">
-          <input type="radio" name="molho" value="Heinz Bacon com Cebola Caramelizada"> 🧅 Heinz Bacon com Cebola Caramelizada
+          <input type="radio" name="molho" value="Heinz Bacon com Cebola Caramelizada" onchange="atualizarPrecoMolho()"> 🧅 Heinz Bacon & Cebola Caramelizada <span class="preco-molho">+R$ 30,00</span>
         </label>
         <label class="molho-opcao">
-          <input type="radio" name="molho" value="Ambos" checked> 🍯🧅 Quero os dois!
+          <input type="radio" name="molho" value="Ambos" checked onchange="atualizarPrecoMolho()"> 🍯🧅 Quero os dois! <span class="preco-molho">+R$ 60,00</span>
         </label>
+        <label class="molho-opcao sem-molho">
+          <input type="radio" name="molho" value="Sem molho" onchange="atualizarPrecoMolho()"> ✖️ Sem molho <span class="preco-molho grátis">Grátis</span>
+        </label>
+      </div>
+
+      <!-- Resumo do pedido -->
+      <div id="resumo-pedido" style="display:none; background:#0d0400; border:1px solid rgba(192,0,107,0.3); border-radius:12px; padding:12px 16px; margin-top:12px; text-align:left; color:var(--creme); font-size:0.9rem;">
+        <p style="margin:0 0 6px 0; font-weight:700; color:#ffb74d;">💰 Resumo:</p>
+        <span id="resumo-texto"></span>
       </div>
 
       <button class="wpp-btn" onclick="enviarPedido()" id="btn-enviar-pedido">
@@ -987,16 +1023,60 @@
     });
 
     // ═══════════ PEDIDO DE BOLINHOS ═══════════
+
+    // ═══════════ PREÇOS ═══════════
+    const PRECO_BOLINHO = 20;   // R$ 20,00 cada unidade
+    const PRECO_MOLHO = 30;     // R$ 30,00 cada molho unitário
+    // "Ambos" = 2 molhos = R$ 60,00
+
+    function getPrecoMolho(molho) {
+        if (molho === 'Ambos') return PRECO_MOLHO * 2;  // R$ 60,00
+        if (molho === 'Sem molho') return 0;             // Grátis
+        return PRECO_MOLHO;                               // R$ 30,00
+    }
+
     function alterarQtd(produto, delta) {
         const span = document.getElementById('qtd-' + produto);
         let qtd = parseInt(span.textContent);
         qtd = Math.max(0, qtd + delta);
         span.textContent = qtd;
+        atualizarPrecoMolho(); // Atualiza o resumo automaticamente
+    }
+
+    function atualizarPrecoMolho() {
+        const qtdTrad = parseInt(document.getElementById('qtd-tradicional').textContent) || 0;
+        const qtdQueijo = parseInt(document.getElementById('qtd-queijo').textContent) || 0;
+        const totalBolinho = qtdTrad + qtdQueijo;
+        const molhoRadio = document.querySelector('#modal-pedido input[name="molho"]:checked');
+        const molho = molhoRadio ? molhoRadio.value : 'Ambos';
+
+        if (totalBolinho > 0) {
+            const subtotalBolinho = totalBolinho * PRECO_BOLINHO;
+            const precoMolho = getPrecoMolho(molho);
+            const total = subtotalBolinho + precoMolho;
+
+            let resumo = `${totalBolinho}x Bolinho(s) (R$ ${PRECO_BOLINHO.toFixed(2).replace('.', ',')} cada): <strong>R$ ${subtotalBolinho.toFixed(2).replace('.', ',')}</strong><br>`;
+
+            if (molho === 'Ambos') {
+                resumo += `Molho (Mostarda & Mel + Heinz Bacon): <strong>+R$ ${precoMolho.toFixed(2).replace('.', ',')}</strong><br>`;
+            } else if (molho === 'Sem molho') {
+                resumo += `Molho: <strong style="color:#4caf50;">Grátis</strong><br>`;
+            } else {
+                resumo += `Molho (${molho}): <strong>+R$ ${precoMolho.toFixed(2).replace('.', ',')}</strong><br>`;
+            }
+
+            resumo += `<strong>Total: R$ ${total.toFixed(2).replace('.', ',')}</strong>`;
+
+            document.getElementById('resumo-texto').innerHTML = resumo;
+            document.getElementById('resumo-pedido').style.display = 'block';
+        } else {
+            document.getElementById('resumo-pedido').style.display = 'none';
+        }
     }
 
     function enviarPedido() {
-        const qtdTrad = parseInt(document.getElementById('qtd-tradicional').textContent);
-        const qtdQueijo = parseInt(document.getElementById('qtd-queijo').textContent);
+        const qtdTrad = parseInt(document.getElementById('qtd-tradicional').textContent) || 0;
+        const qtdQueijo = parseInt(document.getElementById('qtd-queijo').textContent) || 0;
         const molhoRadio = document.querySelector('#modal-pedido input[name="molho"]:checked');
         if (!molhoRadio) return;
         const molhoSelecionado = molhoRadio.value;
@@ -1008,17 +1088,30 @@
         }
         aviso.style.display = 'none';
 
+        const totalBolinho = qtdTrad + qtdQueijo;
+        const subtotalBolinho = totalBolinho * PRECO_BOLINHO;
+        const precoMolho = getPrecoMolho(molhoSelecionado);
+        const total = subtotalBolinho + precoMolho;
+
         let mensagem = 'Olá!%20Quero%20fazer%20um%20pedido%20no%20Sôlombo%20🔥%0A%0A';
         mensagem += '*Meu pedido:*%0A';
 
         if (qtdTrad > 0) {
-            mensagem += `🌿%20${qtdTrad}x%20Tradicional%20(bacon,%20salsa,%20alho%20e%20cebola)%0A`;
+            mensagem += `🌿%20${qtdTrad}x%20Tradicional%20(bacon,%20salsa,%20alho%20e%20cebola)%20-%20R$%20${(qtdTrad * PRECO_BOLINHO).toFixed(2).replace('.', ',')}%0A`;
         }
         if (qtdQueijo > 0) {
-            mensagem += `🧀%20${qtdQueijo}x%20Queijo%20Coalho%20(bacon%20e%20queijo%20coalho)%0A`;
+            mensagem += `🧀%20${qtdQueijo}x%20Queijo%20Coalho%20(bacon%20e%20queijo%20coalho)%20-%20R$%20${(qtdQueijo * PRECO_BOLINHO).toFixed(2).replace('.', ',')}%0A`;
         }
 
-        mensagem += `%0A🍶%20Molho:%20${encodeURIComponent(molhoSelecionado)}`;
+        if (molhoSelecionado === 'Ambos') {
+            mensagem += `%0A🍶%20Molho:%20Mostarda%20&%20Mel%20+%20Heinz%20Bacon%20com%20Cebola%20Caramelizada%20(+R$%2060,00)%0A`;
+        } else if (molhoSelecionado === 'Sem molho') {
+            mensagem += '%0A🍶%20Molho:%20Sem%20molho%0A';
+        } else {
+            mensagem += `%0A🍶%20Molho:%20${encodeURIComponent(molhoSelecionado)}%20(+R$%2030,00)%0A`;
+        }
+
+        mensagem += `%0A💰%20*Total:%20R$%20${total.toFixed(2).replace('.', ',')}*`;
 
         const url = `https://wa.me/5521981533928?text=${mensagem}`;
         window.open(url, '_blank');
