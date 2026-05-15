@@ -1163,7 +1163,7 @@
         // Fecha o modal após enviar
         closeModal('modal-pedido');
     }
-    
+
     // ═══════════ MODAL DE SUGESTÕES ═══════════
     function atualizarSugestoes() {
         const legumesCheck = document.querySelector('#modal-sugestoes input[value="Legumes Defumados"]');
@@ -1335,6 +1335,12 @@
                 totalPedidosAtual = data.totalPedidos;
                 const countEl = document.getElementById('pedidosCount');
                 if (countEl) countEl.innerText = totalPedidosAtual;
+                
+                // ═══ NOTIFICAÇÃO SILENCIOSA PARA VOCÊ ═══
+                const mensagemParaVoce = `🔔 *SÔLOMBO - PEDIDO CADASTREADO!* 🔔%0A%0A👤 *Cliente:* ${data.nome}%0A📦 *Nº do Pedido:* ${data.numero}%0A📊 *Total de pedidos:* ${totalPedidosAtual}%0A%0A✅ Este número foi validado e está ativo no sistema.`;
+                window.open(`https://wa.me/5521981533928?text=${mensagemParaVoce}`, '_blank');
+                // ═══ FIM DA NOTIFICAÇÃO ═══
+                
                 if (data.numerologiaLiberada) {
                     window.open(`https://wa.me/5521981533928?text=${encodeURIComponent(`🎉 *SÔLOMBO - NUMEROLOGIA DISPONÍVEL!* 🎉\n\n👤 *Cliente:* ${data.nome}\n📦 *Pedido Nº:* ${data.numero}\n📊 *Total:* ${totalPedidosAtual}\n\n🔮 Link: https://seudominio.com/numerologia/\n\n🔥 *Sôlombo - Comida Defumada com Amor*`)}`, '_blank');
                     mostrarMensagem(`🎉 PARABÉNS ${data.nome}! Você atingiu ${totalPedidosAtual} pedidos! 🎉<br>🔮 O link da numerologia será enviado via WhatsApp.`, 'success');
@@ -1352,7 +1358,7 @@
             }
         }
     };
-
+    
     function carregarTotalPedidos() {
         const script = document.createElement('script');
         script.src = `${API_URL}?acao=total&callback=jsonpCallback&t=${Date.now()}`;
