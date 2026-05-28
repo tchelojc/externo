@@ -918,6 +918,166 @@
       color: #ffb74d;
     }
 
+    /* ===== NAVEGAÇÃO ENTRE ABAS (rodapé de cada aba) ===== */
+    .tab-nav-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(192,0,107,0.25);
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .tab-nav-footer .tab-nav-label {
+      font-size: 0.75rem;
+      color: #7a6a5c;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .btn-tab-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(192,0,107,0.15);
+      border: 1px solid rgba(192,0,107,0.5);
+      color: #ffb74d;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 0.85rem;
+      padding: 10px 20px;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    .btn-tab-nav:hover {
+      background: #c0006b;
+      color: white;
+      border-color: #c0006b;
+      transform: translateY(-1px);
+    }
+    .btn-tab-nav.next { margin-left: auto; }
+    .tab-nav-info {
+      color: #7a6a5c;
+      font-size: 0.78rem;
+      text-align: center;
+      flex: 1;
+    }
+
+    /* ===== MODO DE PREPARO CARD ===== */
+    .preparo-section { margin-top: 30px; }
+    .preparo-section h3 { color: #fff8f0; margin: 0 0 15px 0; font-size: 1.4rem; }
+    .preparo-produtos-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 600px) {
+      .preparo-produtos-grid { grid-template-columns: 1fr; }
+    }
+    .preparo-card {
+      background: #0d0400;
+      border-radius: 16px;
+      border: 1px solid rgba(192,0,107,0.35);
+      overflow: hidden;
+    }
+    .preparo-card-header {
+      background: linear-gradient(135deg, #c0006b 0%, #7a003f 100%);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .preparo-card-header span { font-size: 1.4rem; }
+    .preparo-card-header h4 {
+      margin: 0;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 800;
+    }
+    .preparo-card-header small {
+      display: block;
+      color: rgba(255,255,255,0.75);
+      font-size: 0.75rem;
+      font-weight: 400;
+      margin-top: 2px;
+    }
+    .preparo-metodos { padding: 14px 16px; }
+    .preparo-metodo {
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(192,0,107,0.15);
+    }
+    .preparo-metodo:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+    .preparo-metodo-titulo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      font-weight: 800;
+      color: #ffb74d;
+      font-size: 0.9rem;
+    }
+    .preparo-rows { display: flex; flex-direction: column; gap: 6px; }
+    .preparo-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #1a0a00;
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-size: 0.82rem;
+    }
+    .preparo-row .qtd { color: #c0a080; }
+    .preparo-row .tempo {
+      color: #fff8f0;
+      font-weight: 800;
+      background: rgba(192,0,107,0.2);
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+    .preparo-nota {
+      background: #2a0f05;
+      border-left: 3px solid #ffb74d;
+      border-radius: 0 8px 8px 0;
+      padding: 8px 12px;
+      font-size: 0.8rem;
+      color: #ffb74d;
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+    .preparo-aviso-vacuo {
+      background: linear-gradient(135deg, rgba(192,0,107,0.2), rgba(120,0,60,0.2));
+      border: 1px solid rgba(192,0,107,0.5);
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .preparo-aviso-vacuo p {
+      color: var(--creme);
+      font-weight: 700;
+      font-size: 0.95rem;
+      margin: 0;
+    }
+    .preparo-aviso-vacuo small {
+      display: block;
+      color: #c0a080;
+      font-size: 0.8rem;
+      margin-top: 4px;
+    }
+    .preparo-tabela-rapida {
+      margin-top: 20px;
+    }
+    .preparo-tabela-rapida h4 {
+      color: #ffb74d;
+      font-size: 1rem;
+      margin-bottom: 10px;
+    }
+
     .processo-step {
       display: flex;
       gap: 20px;
@@ -1169,7 +1329,67 @@
       margin: 1rem 0;
       color: #ffb74d;
     }
-    
+    /* Clarear texto da aba de preparo */
+    #preparo-full,
+    #preparo-full h2,
+    #preparo-full h3,
+    #preparo-full h4,
+    #preparo-full p,
+    #preparo-full li,
+    #preparo-full ol,
+    #preparo-full ul,
+    #preparo-full strong,
+    #preparo-full em,
+    #preparo-full span:not(.obs-note) {
+        color: #fff5e6 !important; /* Creme bem claro */
+    }
+
+    /* Títulos com destaque dourado */
+    #preparo-full h2 {
+        color: #ffb74d !important;
+    }
+
+    #preparo-full h3 {
+        color: #ffcc80 !important;
+    }
+
+    #preparo-full h4 {
+        color: #ffe0b2 !important;
+    }
+
+    /* Texto em itálico */
+    #preparo-full em {
+        color: #ffdead !important;
+    }
+
+    /* Listas */
+    #preparo-full li {
+        color: #fff5e6 !important;
+        line-height: 1.6;
+    }
+
+    /* Linha separadora */
+    #preparo-full hr {
+        border-color: rgba(255, 183, 77, 0.3) !important;
+    }
+
+    /* Tabela dentro do preparo */
+    #preparo-full table.info-table-full th {
+        background: rgba(255, 107, 53, 0.6) !important;
+        color: #fff !important;
+    }
+
+    #preparo-full table.info-table-full td {
+        color: #fff5e6 !important;
+        background: rgba(13, 4, 0, 0.7) !important;
+    }
+
+    /* Obs note dentro do preparo */
+    #preparo-full .obs-note {
+        background: rgba(192, 0, 107, 0.15) !important;
+        border-left: 3px solid #ffb74d !important;
+        color: #ffe0b2 !important;
+    }
   </style>
 </head>
 <body>
@@ -1457,10 +1677,12 @@
 
         <!-- NAVEGAÇÃO POR TABS -->
         <div class="fullscreen-tabs">
-          <button class="tab-btn-full active" onclick="showFullTab('quem-somos-full')">🔥 Quem Somos</button>
-          <button class="tab-btn-full" onclick="showFullTab('nutricao-full')">🥗 Tabela Nutricional</button>
-          <button class="tab-btn-full" onclick="showFullTab('processo-full')">🏭 Processo de Produção</button>
-          <button class="tab-btn-full" onclick="showFullTab('parceria-full')">🤝 Seja um Parceiro</button>
+          <button class="tab-btn-full" data-tab="quem-somos-full" onclick="showFullTab('quem-somos-full')">🔥 Quem Somos</button>
+          <button class="tab-btn-full" data-tab="nutricao-full" onclick="showFullTab('nutricao-full')">🥗 Tabela Nutricional</button>
+          <!-- NOVO BOTÃO ADICIONADO AQUI: -->
+          <button class="tab-btn-full" data-tab="preparo-full" onclick="showFullTab('preparo-full')">👨‍🍳 Modo de Preparo</button>
+          <button class="tab-btn-full" data-tab="processo-full" onclick="showFullTab('processo-full')">🏭 Processo de Produção</button>
+          <button class="tab-btn-full" data-tab="parceria-full" onclick="showFullTab('parceria-full')">🤝 Seja um Parceiro</button>
         </div>
 
         <!-- CONTEÚDO DAS ABAS -->
@@ -1554,6 +1776,110 @@
             </table>
 
             <div class="obs-note">* %VD com base em dieta de 2.000 kcal. Gorduras trans não requer %VD (RDC 429/2020)</div>
+          </div>
+        </div>
+
+        <!-- ABA 3: MODO DE PREPARO -->
+        <div id="preparo-full" class="full-tab-content">
+          <div class="full-section">
+            <h2>👨‍🍳 Modo de Preparo</h2>
+            <p>Nossos bolinhos já são defumados e cozidos. Você só precisa aquecer!</p>
+            <div class="obs-note" style="margin-bottom: 20px;">⚠️ <strong>Atenção:</strong> Retire sempre da embalagem a vácuo antes de aquecer.</div>
+
+            <!-- BOLINHO DE QUEIJO COALHO -->
+            <h3>🧀 Bolinho de Queijo Coalho com Bacon</h3>
+            <p><em>A textura perfeita fica por conta da casquinha crocante!</em></p>
+
+            <h4>☢️ Micro-ondas (rápido e prático)</h4>
+            <ol>
+              <li>Coloque a porção desejada em um pote próprio para micro-ondas e tampe.</li>
+              <li>Aqueça na potência <strong>ALTA</strong>:
+                <ul>
+                  <li><strong>1 unidade:</strong> 1 minuto a 1 min e 15 segundos.</li>
+                  <li><strong>Pacote inteiro (5 unid.):</strong> 3 a 4 minutos.</li>
+                </ul>
+              </li>
+              <li>Espere 1 minutinho antes de abrir. Cuidado, está quente e cremoso por dentro!</li>
+            </ol>
+
+            <h4>🔥 Nossa dica de ouro (Airfryer / Forno / Churrasqueira)</h4>
+            <p>Pré-aqueça a Airfryer ou Forno a <strong>200°C</strong>. Disponha os bolinhos congelados e aqueça por <strong>8 a 12 minutos</strong>, virando na metade do tempo, até dourar. O resultado é uma casquinha crocante e recheio suculento. Perfeito também para finalizar na brasa da churrasqueira.</p>
+
+            <hr style="margin: 25px 0; border-color: #e0e0e0;">
+
+            <!-- BOLINHO TEMPERO -->
+            <h3>🌿 Bolinho Tempero (Alho, Cebola e Salsa)</h3>
+            <p><em>Sabor delicado que derrete na boca. Aqueça com carinho para não ressecar!</em></p>
+
+            <h4>☢️ Micro-ondas (aquecimento suave)</h4>
+            <ol>
+              <li>Coloque a porção desejada em um pote próprio para micro-ondas e tampe.</li>
+              <li>Aqueça na potência <strong>ALTA</strong>:
+                <ul>
+                  <li><strong>1 unidade:</strong> 45 segundos a 1 minuto. Comece com 45s para não desmanchar!</li>
+                  <li><strong>Pacote inteiro (5 unid.):</strong> 2 a 3 minutos.</li>
+                </ul>
+              </li>
+              <li>Aguarde 1 minuto antes de abrir. Ele fica extremamente macio. Pegue com cuidado!</li>
+            </ol>
+
+            <h4>🔥 Airfryer / Forno / Churrasqueira (atenção redobrada)</h4>
+            <p>Pré-aqueça a Airfryer a <strong>180°C</strong> (temperatura mais baixa). Aqueça por <strong>6 a 10 minutos</strong>, verificando sempre. Por ser um bolinho de temperos mais sensível, ele pode queimar ou ressecar mais rápido que o de queijo. O ponto ideal é quando estiver aquecido por dentro, mas ainda macio.</p>
+
+            <!-- TABELA RÁPIDA -->
+            <h3 style="margin-top: 30px;">📋 Tabela Rápida de Tempos</h3>
+            <table class="info-table-full">
+              <thead>
+                <tr>
+                  <th>Modo de Preparo</th>
+                  <th>Produto</th>
+                  <th>Quantidade</th>
+                  <th>Tempo (Pot. Alta)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Micro-ondas</strong></td>
+                  <td>🧀 Queijo Coalho</td>
+                  <td>1 unid.</td>
+                  <td>1:00 – 1:15</td>
+                </tr>
+                <tr>
+                  <td><strong>Micro-ondas</strong></td>
+                  <td>🧀 Queijo Coalho</td>
+                  <td>5 unid.</td>
+                  <td>3:00 – 4:00</td>
+                </tr>
+                <tr>
+                  <td><strong>Micro-ondas</strong></td>
+                  <td>🌿 Temperos</td>
+                  <td>1 unid.</td>
+                  <td>0:45 – 1:00</td>
+                </tr>
+                <tr>
+                  <td><strong>Micro-ondas</strong></td>
+                  <td>🌿 Temperos</td>
+                  <td>5 unid.</td>
+                  <td>2:00 – 3:00</td>
+                </tr>
+                <tr>
+                  <td><strong>Airfryer (200°C)</strong></td>
+                  <td>🧀 Queijo Coalho</td>
+                  <td>À vontade</td>
+                  <td>8 – 12 min</td>
+                </tr>
+                <tr>
+                  <td><strong>Airfryer (180°C)</strong></td>
+                  <td>🌿 Temperos</td>
+                  <td>À vontade</td>
+                  <td>6 – 10 min</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="obs-note" style="margin-top: 20px;">
+              💡 <strong>Dica:</strong> Os tempos podem variar conforme a potência do seu aparelho. Na dúvida, comece com o tempo menor e aumente aos poucos até encontrar o ponto ideal.
+            </div>
           </div>
         </div>
 
@@ -2059,7 +2385,7 @@
     }
 
     // Função para alternar abas no modal tela cheia
-    function showFullTab(tabId, event) {
+    function showFullTab(tabId) {
         // Esconde todos os conteúdos
         document.querySelectorAll('.full-tab-content').forEach(tab => {
             tab.classList.remove('active');
@@ -2069,9 +2395,15 @@
             btn.classList.remove('active');
         });
         // Mostra a aba selecionada
-        document.getElementById(tabId).classList.add('active');
-        // Marca o botão correspondente como ativo
-        event.target.classList.add('active');
+        const targetTab = document.getElementById(tabId);
+        if (targetTab) targetTab.classList.add('active');
+        // Marca o botão correspondente como ativo (via data-tab attribute)
+        document.querySelectorAll('.tab-btn-full').forEach(btn => {
+            if (btn.dataset.tab === tabId) btn.classList.add('active');
+        });
+        // Rola para o topo do conteúdo
+        const modal = document.querySelector('.modal-fullscreen');
+        if (modal) modal.scrollTo({ top: 0, behavior: 'smooth' });
     }
         
     // ═══════════ MODAL DE SUGESTÕES ═══════════
