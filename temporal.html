@@ -122,7 +122,7 @@ footer{margin-top:1.5rem;font-size:.7rem;color:#2a6a6a}
 <script>
 // ═══════════════ CONFIGURAÇÃO ═══════════════
 const _TK = "ALMA369UA";
-const URL_BACKEND = "https://script.google.com/macros/s/AKfycbwTQRuvCNOQncr1RXTvH1gdjAGpEpEcdm5LPEy3iGXjt_oEghlXlOQTOEOrGojgAywmNw/exec";
+const URL_BACKEND = "https://script.google.com/macros/s/AKfycbz9cZpVlIiYtn_IBHDmj6yAgQP8re7Mld6pNH4tSeM1lqiMZzY9PEF5oaIYEAnq-gq8ww/exec";
 const TIMEOUT_MS = 15000;
 let isProcessing = false;
 let emailUsuario = "";
@@ -383,14 +383,14 @@ document.getElementById("btnVerificarAcesso").onclick = async () => {
         cupomUsuario = cupom || respEmail.cupom || "";
         tipoAcesso = respEmail.tipo || "acesso";
 
-        // NOVO: Verificar compatibilidade com o método escolhido
+        // Verificar compatibilidade: biometria = permanente (acesso/influencer), pin = temporario
         if (metodoVerificacao === "biometria") {
-            if (tipoAcesso !== "acesso" && tipoAcesso !== "influencer") {
-                throw new Error("Este email não é uma licença permanente. Use o PIN para acesso temporário.");
+            if (tipoAcesso === "temporario") {
+                throw new Error("Este email é de acesso temporário. Use o PIN para entrar.");
             }
         } else if (metodoVerificacao === "pin") {
-            if (tipoAcesso !== "temporario") {
-                throw new Error("Este email não é temporário. Use a Biometria para acesso permanente.");
+            if (tipoAcesso === "acesso" || tipoAcesso === "influencer") {
+                throw new Error("Este email tem acesso permanente. Use a Biometria para entrar.");
             }
         }
 
@@ -502,8 +502,9 @@ function exibirConteudo(html) {
 async function registrarAcessoNoDrive(email, cupom, tipo, fingerprintParam) {
   const emailFinal = email || (typeof emailUsuario !== 'undefined' ? emailUsuario : "");
   const cupomFinal = cupom || (typeof cupomUsuario !== 'undefined' ? cupomUsuario : "");
-  // 🔽 Correção: mapeia o tipo real do usuário para o tipo de registro de acesso
-  const tipoFinal = tipo || (tipoAcesso === "temporario" ? "temporario" : "permanente");
+  // Envia o tipo exato do usuário: "temporario", "acesso" ou "influencer"
+  // O GAS decide o arquivo destino com base nesse valor
+  const tipoFinal = tipo || (typeof tipoAcesso !== 'undefined' ? tipoAcesso : "temporario");
   const urlFinal = typeof URL_BACKEND !== 'undefined' ? URL_BACKEND : _URL_GS;
 
   if (!emailFinal) return;
@@ -518,7 +519,7 @@ async function registrarAcessoNoDrive(email, cupom, tipo, fingerprintParam) {
       licenca_id: "",
       cupom: cupomFinal,
       fingerprint: fp,
-      extra: "Rastreio de acesso manual"
+      extra: "Acesso via arquivo blindado"
     };
 
     const response = await fetch(urlFinal, {
@@ -529,7 +530,7 @@ async function registrarAcessoNoDrive(email, cupom, tipo, fingerprintParam) {
     });
     const data = await response.json();
     if (data.ok) {
-      console.log("📡 Rastreio: Acesso registrado com sucesso!");
+      console.log("📡 Rastreio: Acesso registrado com sucesso! Tipo:", tipoFinal);
     } else {
       console.error("❌ Erro no rastreio:", data.error);
     }
