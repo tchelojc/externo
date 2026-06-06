@@ -122,7 +122,7 @@ footer{margin-top:1.5rem;font-size:.7rem;color:#2a6a6a}
 <script>
 // ═══════════════ CONFIGURAÇÃO ═══════════════
 const _TK = "ALMA369UA";
-const URL_BACKEND = "https://script.google.com/macros/s/AKfycbz9cZpVlIiYtn_IBHDmj6yAgQP8re7Mld6pNH4tSeM1lqiMZzY9PEF5oaIYEAnq-gq8ww/exec";
+const URL_BACKEND = "https://script.google.com/macros/s/AKfycbxVuVq23TgWpjPszOjTzsq7wZBqWLqz4mJ54lzO2pI3bpP-R5PjEh1Npsw3R5ozK134YA/exec";
 const TIMEOUT_MS = 15000;
 let isProcessing = false;
 let emailUsuario = "";
@@ -290,24 +290,8 @@ btnBiometria.onclick = async () => {
     }
 };
 
-// ═══════════ FUNÇÕES DE BACKEND ═══════════
-async function verificarEmailBackend(email) {
-    const resp = await fetch(`${URL_BACKEND}?action=verificarEmail&email=${encodeURIComponent(email)}&tk=${_TK}`);
-    return await resp.json();
-}
-async function verificarAcessoTemporario(email) {
-    const resp = await fetch(`${URL_BACKEND}?action=verificarAcessoTemporario&email=${encodeURIComponent(email)}&tk=${_TK}`);
-    return await resp.json();
-}
-async function cadastrarEmailBackend(email, nome, tipo, cupom) {
-    const fp = await fingerprint();
-    const resp = await fetch(URL_BACKEND, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain" },
-        body: JSON.stringify({ action: "cadastrarEmail", email, nome, tipo, cupom, fingerprint: fp, tk: _TK })
-    });
-    return await resp.json();
-}
+// ═══════════ FUNÇÕES DE BACKEND — ROTAS SEPARADAS ═══════════
+
 async function fingerprint() {
     const data = [
         navigator.userAgent, navigator.language,
@@ -321,7 +305,30 @@ async function fingerprint() {
     return Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2,"0")).join("");
 }
 
-// ═══════════ CADASTRO GRÁTIS (temporário) ═══════════
+// ── BIOMETRIA: verifica em licencas_permanentes.json ──
+async function verificarEmailPermanenteBackend(email) {
+    const resp = await fetch(`${URL_BACKEND}?action=verificarEmailPermanente&email=${encodeURIComponent(email)}&tk=${_TK}`);
+    return await resp.json();
+}
+
+// ── PIN: verifica em emails_temporarios.json (já checa cooldown de 1h) ──
+async function verificarEmailTemporarioBackend(email) {
+    const resp = await fetch(`${URL_BACKEND}?action=verificarEmailTemporario&email=${encodeURIComponent(email)}&tk=${_TK}`);
+    return await resp.json();
+}
+
+// ── CADASTRO GRÁTIS: salva em emails_temporarios.json ──
+async function cadastrarEmailTemporarioBackend(email, nome, cupom) {
+    const fp = await fingerprint();
+    const resp = await fetch(URL_BACKEND, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({ action: "cadastrarEmailTemporario", email, nome, cupom, fingerprint: fp, tk: _TK })
+    });
+    return await resp.json();
+}
+
+// ═══════════ CADASTRO GRÁTIS → emails_temporarios.json ═══════════
 document.getElementById("btnMostrarCadastro").onclick = () => {
     document.getElementById("blocoCadastro").style.display = "block";
     document.getElementById("btnMostrarCadastro").style.display = "none";
@@ -339,19 +346,17 @@ document.getElementById("btnRegistrar").onclick = async () => {
     btn.disabled = true;
     btn.innerHTML = '💾 REGISTRANDO... <span class="loader"></span>';
     try {
-        const resp = await cadastrarEmailBackend(email, nome, "temporario", cupom);
+        // Cadastra direto em emails_temporarios.json
+        const resp = await cadastrarEmailTemporarioBackend(email, nome, cupom);
         if (!resp.ok) {
             throw new Error(resp.error || "Erro ao registrar.");
         }
         mostrarSucesso(document.getElementById("sucessoReg"),
-            resp.novo === false
-                ? "ℹ️ Email já cadastrado. Use o PIN para continuar."
-                : "✅ Cadastro realizado! Use o PIN de acesso para entrar."
-        );
+            "✅ Cadastro realizado! Use o PIN de acesso para entrar.");
         document.getElementById("regNome").value = "";
         document.getElementById("regEmail").value = "";
         document.getElementById("regCupom").value = "";
-        // Após 2s leva direto para tela de PIN
+        // Após 2s direciona para PIN
         setTimeout(() => showPIN(), 2000);
     } catch(e) {
         mostrarErro(erroBio, e.message);
@@ -361,7 +366,7 @@ document.getElementById("btnRegistrar").onclick = async () => {
     }
 };
 
-// ═══════════ VERIFICAÇÃO DE ACESSO (após PIN ou biometria) ═══════════
+// ═══════════ VERIFICAÇÃO DE ACESSO — ROTA POR MÉTODO ═══════════
 document.getElementById("btnVerificarAcesso").onclick = async () => {
     if (isProcessing) return;
     const email = document.getElementById("emailAcesso").value.trim().toLowerCase();
@@ -376,36 +381,33 @@ document.getElementById("btnVerificarAcesso").onclick = async () => {
     btn.innerHTML = '🔍 VERIFICANDO... <span class="loader"></span>';
 
     try {
-        const respEmail = await verificarEmailBackend(email);
-        if (!respEmail.ok || !respEmail.cadastrado) {
-            mostrarErro(erroId, "Email não cadastrado. Faça o cadastro grátis primeiro.");
-            btn.disabled = false;
-            btn.innerHTML = '🔍 VERIFICAR ACESSO';
-            isProcessing = false;
-            return;
+        let respEmail;
+
+        if (metodoVerificacao === "biometria") {
+            // ── Rota permanente: lê licencas_permanentes.json ──
+            respEmail = await verificarEmailPermanenteBackend(email);
+            if (!respEmail.ok || !respEmail.cadastrado) {
+                throw new Error(respEmail.error || "Email não encontrado em licenças permanentes. Acesse com PIN ou faça o cadastro grátis.");
+            }
+            tipoAcesso = respEmail.tipo || "acesso";
+
+        } else if (metodoVerificacao === "pin") {
+            // ── Rota temporária: lê emails_temporarios.json + checa cooldown 1h ──
+            respEmail = await verificarEmailTemporarioBackend(email);
+            if (!respEmail.ok) {
+                if (respEmail.bloqueado) {
+                    throw new Error(respEmail.error || "Acesso temporário já utilizado. Aguarde 1 hora.");
+                }
+                throw new Error(respEmail.error || "Email não cadastrado. Faça o cadastro grátis primeiro.");
+            }
+            tipoAcesso = "temporario";
+
+        } else {
+            throw new Error("Método de verificação não definido. Volte e escolha Biometria ou PIN.");
         }
+
         emailUsuario = email;
         cupomUsuario = cupom || respEmail.cupom || "";
-        tipoAcesso = respEmail.tipo || "acesso";
-
-        // Biometria = permanente (acesso/influencer) | PIN = temporario
-        if (metodoVerificacao === "biometria") {
-            if (tipoAcesso === "temporario") {
-                throw new Error("Este email é de acesso temporário. Use o PIN para entrar.");
-            }
-        } else if (metodoVerificacao === "pin") {
-            if (tipoAcesso === "acesso" || tipoAcesso === "influencer") {
-                throw new Error("Este email tem acesso permanente. Use a Biometria para entrar.");
-            }
-        }
-
-        // Verificação de 1 hora apenas para temporários
-        if (tipoAcesso === "temporario") {
-            const respTemp = await verificarAcessoTemporario(email);
-            if (!respTemp.ok) {
-                throw new Error(respTemp.error || "Acesso temporário já utilizado. Aguarde 1 hora.");
-            }
-        }
 
         avancarParaSenha();
     } catch(e) {
@@ -507,10 +509,8 @@ function exibirConteudo(html) {
 async function registrarAcessoNoDrive(email, cupom, tipo, fingerprintParam) {
   const emailFinal = email || (typeof emailUsuario !== 'undefined' ? emailUsuario : "");
   const cupomFinal = cupom || (typeof cupomUsuario !== 'undefined' ? cupomUsuario : "");
-  // Envia o tipo exato: "temporario", "acesso" ou "influencer"
-  // O GAS roteia para o arquivo correto com base nesse valor
+  // Envia o tipoAcesso exato — GAS decide o arquivo destino
   const tipoFinal = tipo || (typeof tipoAcesso !== 'undefined' ? tipoAcesso : "temporario");
-  const urlFinal = typeof URL_BACKEND !== 'undefined' ? URL_BACKEND : _URL_GS;
 
   if (!emailFinal) return;
 
@@ -527,9 +527,8 @@ async function registrarAcessoNoDrive(email, cupom, tipo, fingerprintParam) {
       extra: "Acesso via arquivo blindado"
     };
 
-    const response = await fetch(urlFinal, {
+    const response = await fetch(URL_BACKEND, {
       method: "POST",
-      mode: "cors",
       headers: { "Content-Type": "text/plain" },
       body: JSON.stringify(payload)
     });
