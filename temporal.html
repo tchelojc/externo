@@ -17,13 +17,14 @@ body{
   box-shadow:0 20px 48px rgba(0,0,0,.55),0 0 24px rgba(0,255,255,.18);
   padding:2rem;width:100%;max-width:500px;text-align:center
 }
+#containerSenha, #containerId, #containerBio { display:none; }
 .top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:.5rem}
 .title{font-size:1.2rem;background:linear-gradient(135deg,#0ff,#0f0);-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:1px}
 .cd-info{font-size:.8rem;color:#4cc;display:flex;gap:.5rem;align-items:center}
 .cd-info .value{font-family:monospace;font-weight:bold;color:#0f0}
 .cd-info.urgente .value{color:#f55;animation:piscar 1s infinite}
 @keyframes piscar{50%{opacity:.4}}
-input[type=text]{
+input[type=text], input[type=email]{
   background:#0a121c;border:2px solid #2a6a6a;border-radius:48px;
   padding:12px 20px;width:100%;color:#0ff;font-size:1rem;
   font-family:monospace;text-align:center;letter-spacing:3px;
@@ -33,18 +34,66 @@ input:focus{border-color:#0ff;box-shadow:0 0 18px rgba(0,255,255,.2)}
 button{
   background:linear-gradient(95deg,#0a2a2a,#0a3a3a);border:none;
   border-radius:48px;padding:10px 24px;width:100%;font-size:1rem;
-  font-weight:bold;color:#0ff;cursor:pointer;transition:.2s
+  font-weight:bold;color:#0ff;cursor:pointer;transition:.2s;
+  margin-bottom:8px
 }
 button:hover{background:linear-gradient(95deg,#0c3c3c,#0e5e5e);color:#fff;box-shadow:0 0 14px rgba(0,255,255,.3);transform:scale(1.02)}
 button:disabled{opacity:.5;cursor:not-allowed;transform:none}
 .erro{color:#f66;margin-top:10px;font-size:.8rem;display:none;padding:6px 12px;background:#1a0505;border-radius:10px;border:1px solid #5a1a1a}
+.sucesso{color:#0f0;margin-top:10px;font-size:.8rem;display:none;padding:6px 12px;background:#030f06;border-radius:10px;border:1px solid #0f5a3a}
 footer{margin-top:1.5rem;font-size:.7rem;color:#2a6a6a}
 .loader{display:inline-block;width:14px;height:14px;border:2px solid #0ff;border-top:2px solid transparent;border-radius:50%;animation:spin .8s linear infinite;margin-left:8px;vertical-align:middle}
 @keyframes spin{to{transform:rotate(360deg)}}
+.bloco-cadastro{
+  margin-top:16px;padding:16px;background:#030f06;
+  border:1px solid #0f5a3a;border-radius:20px;display:none;
+}
 </style>
 </head>
 <body>
-<div class="container">
+<!-- Tela biométrica (inicial) -->
+<div id="containerBio" class="container">
+  <div class="top-bar">
+    <div class="title">🔐 VERIFICAÇÃO DE IDENTIDADE</div>
+  </div>
+  <p style="color:#8cc;font-size:.85rem;margin-bottom:1.5rem">
+    Use sua digital, Face ID ou senha do dispositivo para confirmar que é você.
+  </p>
+  <button id="btnBiometria">🖐️ VERIFICAR IDENTIDADE</button>
+  <div class="erro" id="erroBio"></div>
+
+  <div style="margin:20px 0;color:#2a6a6a">ou</div>
+
+  <!-- Botão para mostrar cadastro grátis -->
+  <button id="btnMostrarCadastro" style="background:#2a1a0a;border:1px solid #ffd70055;color:#ffd700">🎁 CADASTRO GRÁTIS (apenas registrar email)</button>
+
+  <!-- Bloco de cadastro grátis (oculto até clicar) -->
+  <div id="blocoCadastro" class="bloco-cadastro">
+    <p style="color:#ffd700;font-size:.8rem;margin-bottom:8px">📋 Registre seu email para acesso temporário (1 hora)</p>
+    <input type="text" id="regNome" placeholder="Seu nome completo">
+    <input type="email" id="regEmail" placeholder="seu@email.com">
+    <input type="text" id="regCupom" placeholder="CUPOM (opcional)" style="text-transform:uppercase">
+    <button id="btnRegistrar" class="btn-gratis" style="background:#4a3000;color:#ffd700">💾 REGISTRAR</button>
+    <div class="sucesso" id="sucessoReg"></div>
+  </div>
+
+  <footer>© UNIVERSO ÁUREO · 3·6·9</footer>
+</div>
+
+<!-- Tela de identificação (após biometria) -->
+<div id="containerId" class="container">
+  <div class="top-bar">
+    <div class="title">📧 IDENTIFICAÇÃO</div>
+  </div>
+  <input type="email" id="emailAcesso" placeholder="seu@email.com" autocomplete="email">
+  <input type="text" id="cupomAcesso" placeholder="CUPOM (opcional)" style="text-transform:uppercase">
+  <button id="btnVerificarAcesso">🔍 VERIFICAR ACESSO</button>
+  <div class="erro" id="erroId"></div>
+  <footer>© UNIVERSO ÁUREO · 3·6·9</footer>
+</div>
+
+<!-- Tela da senha -->
+<div id="containerSenha" class="container">
   <div class="top-bar">
     <div class="title">⚡ CONTEÚDO BLINDADO</div>
     <div class="cd-info" id="cdInfo">
@@ -58,35 +107,236 @@ footer{margin-top:1.5rem;font-size:.7rem;color:#2a6a6a}
 </div>
 
 <script>
-// ═══════════════════════════════════
-// CONFIGURAÇÃO BLINDADA
-// ═══════════════════════════════════
+// ═══════════════ CONFIGURAÇÃO ═══════════════
 const _TK = "ALMA369UA";
-const URL_BACKEND = "https://script.google.com/macros/s/AKfycbwQgYvi1-I-Z3MfUTl5eTcD3JgTtXw3RpeQGe91ymB82X-ouc53eXev4mu2XuLZCn41fw/exec";
+const URL_BACKEND = "https://script.google.com/macros/s/AKfycbwRKA3U3Qs01vSzZCndCXIradDyukx71zgItt7H_QfKh6deJo7SPzL8u85YNQo9hVda5g/exec";
 const TIMEOUT_MS = 15000;
 let isProcessing = false;
+let emailUsuario = "";
+let cupomUsuario = "";
+let tipoAcesso = "temporario";
 
-// Auto-relançamento para file://
-(function() {
-    if (location.protocol !== "file:") return;
-    const req = new XMLHttpRequest();
-    req.open("GET", location.href, true);
-    req.responseType = "blob";
-    req.onload = function() {
-        const url = URL.createObjectURL(new Blob([req.response], {type:"text/html"}));
-        window.open(url, "_self");
+// Elementos
+const containerBio = document.getElementById("containerBio");
+const containerId = document.getElementById("containerId");
+const containerSenha = document.getElementById("containerSenha");
+const btnBiometria = document.getElementById("btnBiometria");
+const erroBio = document.getElementById("erroBio");
+const erroId = document.getElementById("erroId");
+const sucessoId = document.getElementById("sucessoId");
+
+// Inicialização: verifica suporte biométrico e exibe tela adequada
+function suporteBiometria() {
+    return window.PublicKeyCredential && navigator.credentials && !!navigator.credentials.create;
+}
+
+if (!suporteBiometria()) {
+    containerBio.style.display = "none";
+    containerId.style.display = "block";
+} else {
+    containerBio.style.display = "block";
+}
+
+// ═══════════ CONTROLE DO BLOCO DE CADASTRO GRÁTIS ═══════════
+document.getElementById("btnMostrarCadastro").onclick = () => {
+    document.getElementById("blocoCadastro").style.display = "block";
+    document.getElementById("btnMostrarCadastro").style.display = "none";
+};
+
+// ═══════════ BIOMETRIA ═══════════
+function arrayBufferToBase64url(buffer) {
+    return btoa(String.fromCharCode(...new Uint8Array(buffer)))
+        .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function base64urlToArrayBuffer(base64url) {
+    const base64 = base64url.replace(/-/g, "+").replace(/_/g, "/");
+    const raw = atob(base64);
+    const buffer = new ArrayBuffer(raw.length);
+    const view = new Uint8Array(buffer);
+    for (let i = 0; i < raw.length; i++) view[i] = raw.charCodeAt(i);
+    return buffer;
+}
+function gerarChallenge() { return crypto.getRandomValues(new Uint8Array(32)); }
+
+async function registrarBiometria() {
+    const publicKey = {
+        challenge: gerarChallenge(),
+        rp: { name: "Universo Aureo", id: window.location.hostname || "localhost" },
+        user: { id: crypto.getRandomValues(new Uint8Array(16)), name: "user@universo.com", displayName: "Usuário UA" },
+        pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }],
+        authenticatorSelection: { residentKey: "required", userVerification: "required" },
+        attestation: "none", timeout: 60000
     };
-    req.send();
-})();
+    const credential = await navigator.credentials.create({ publicKey });
+    localStorage.setItem("ua_biometric_id", arrayBufferToBase64url(credential.rawId));
+}
 
+async function autenticarBiometria(credentialIdB64) {
+    const publicKey = {
+        challenge: gerarChallenge(),
+        allowCredentials: [{ type: "public-key", id: base64urlToArrayBuffer(credentialIdB64) }],
+        userVerification: "required", timeout: 60000
+    };
+    await navigator.credentials.get({ publicKey });
+}
+
+async function verificarBiometria() {
+    if (!suporteBiometria()) throw new Error("Biometria não suportada");
+    const credentialId = localStorage.getItem("ua_biometric_id");
+    if (credentialId) await autenticarBiometria(credentialId);
+    else await registrarBiometria();
+}
+
+btnBiometria.onclick = async () => {
+    if (isProcessing) return;
+    isProcessing = true;
+    btnBiometria.disabled = true;
+    btnBiometria.innerHTML = '🔐 VERIFICANDO... <span class="loader"></span>';
+    try {
+        await verificarBiometria();
+        containerBio.style.display = "none";
+        containerId.style.display = "block";
+        document.getElementById("emailAcesso").focus();
+        isProcessing = false;
+    } catch(e) {
+        let msg = "Falha na verificação.";
+        if (e.name === "NotAllowedError") msg = "Autenticação cancelada ou tempo esgotado.";
+        else if (e.name === "NotSupportedError") msg = "Biometria não suportada.";
+        mostrarErro(erroBio, msg);
+        btnBiometria.innerHTML = '🖐️ VERIFICAR IDENTIDADE';
+        btnBiometria.disabled = false;
+        isProcessing = false;
+    }
+};
+
+// ═══════════ FUNÇÕES DE BACKEND ═══════════
+async function verificarEmailBackend(email) {
+    const resp = await fetch(`${URL_BACKEND}?action=verificarEmail&email=${encodeURIComponent(email)}&tk=${_TK}`);
+    return await resp.json();
+}
+async function verificarAcessoTemporario(email) {
+    const resp = await fetch(`${URL_BACKEND}?action=verificarAcessoTemporario&email=${encodeURIComponent(email)}&tk=${_TK}`);
+    return await resp.json();
+}
+async function cadastrarEmailBackend(email, nome, tipo, cupom) {
+    const fp = await fingerprint();
+    const resp = await fetch(URL_BACKEND, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "cadastrarEmail", email, nome, tipo, cupom, fingerprint: fp, tk: _TK })
+    });
+    return await resp.json();
+}
+async function fingerprint() {
+    const data = [
+        navigator.userAgent, navigator.language,
+        screen.width, screen.height, screen.colorDepth,
+        new Date().getTimezoneOffset(),
+        navigator.hardwareConcurrency || "?", navigator.deviceMemory || "?",
+        navigator.platform || "?"
+    ];
+    const enc = new TextEncoder();
+    const h = await crypto.subtle.digest("SHA-256", enc.encode(data.join("|")));
+    return Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2,"0")).join("");
+}
+
+// ═══════════ CADASTRO GRÁTIS (apenas registra) ═══════════
+document.getElementById("btnRegistrar").onclick = async () => {
+    if (isProcessing) return;
+    const nome = document.getElementById("regNome").value.trim();
+    const email = document.getElementById("regEmail").value.trim().toLowerCase();
+    const cupom = document.getElementById("regCupom").value.trim().toUpperCase();
+    if (!nome) { mostrarErro(erroBio, "Informe seu nome."); return; }
+    if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) { mostrarErro(erroBio, "Informe um e‑mail válido."); return; }
+
+    const btn = document.getElementById("btnRegistrar");
+    btn.disabled = true;
+    btn.innerHTML = '💾 REGISTRANDO... <span class="loader"></span>';
+    try {
+        const resp = await cadastrarEmailBackend(email, nome, "acesso", cupom);
+        if (!resp.ok) {
+            throw new Error(resp.error || "Erro ao registrar.");
+        }
+        mostrarSucesso(document.getElementById("sucessoReg"), "✅ Email registrado com sucesso! Agora você pode usar a verificação biométrica para acessar.");
+        document.getElementById("regNome").value = "";
+        document.getElementById("regEmail").value = "";
+        document.getElementById("regCupom").value = "";
+    } catch(e) {
+        mostrarErro(erroBio, e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '💾 REGISTRAR';
+    }
+};
+
+// ═══════════ VERIFICAÇÃO DE ACESSO (após biometria) ═══════════
+document.getElementById("btnVerificarAcesso").onclick = async () => {
+    if (isProcessing) return;
+    const email = document.getElementById("emailAcesso").value.trim().toLowerCase();
+    const cupom = document.getElementById("cupomAcesso").value.trim().toUpperCase();
+    if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) {
+        mostrarErro(erroId, "Informe um e‑mail válido.");
+        return;
+    }
+    isProcessing = true;
+    const btn = document.getElementById("btnVerificarAcesso");
+    btn.disabled = true;
+    btn.innerHTML = '🔍 VERIFICANDO... <span class="loader"></span>';
+
+    try {
+        const respEmail = await verificarEmailBackend(email);
+        if (!respEmail.ok || !respEmail.cadastrado) {
+            mostrarErro(erroId, "Email não cadastrado. Faça o cadastro grátis primeiro.");
+            btn.disabled = false;
+            btn.innerHTML = '🔍 VERIFICAR ACESSO';
+            isProcessing = false;
+            return;
+        }
+        emailUsuario = email;
+        cupomUsuario = cupom || respEmail.cupom || "";
+        tipoAcesso = respEmail.tipo || "acesso";
+
+        if (tipoAcesso === "permanente") {
+            avancarParaSenha();
+        } else {
+            const respTemp = await verificarAcessoTemporario(email);
+            if (!respTemp.ok) {
+                throw new Error(respTemp.error || "Acesso temporário já utilizado. Aguarde 1 hora.");
+            }
+            avancarParaSenha();
+        }
+    } catch(e) {
+        mostrarErro(erroId, e.message);
+        btn.disabled = false;
+        btn.innerHTML = '🔍 VERIFICAR ACESSO';
+        isProcessing = false;
+    }
+};
+
+function avancarParaSenha() {
+    containerId.style.display = "none";
+    containerSenha.style.display = "block";
+    iniciarContagem();
+    isProcessing = false;
+}
+
+// ═══════════ SENHA E DESCRIPTOGRAFIA ═══════════
 function pad(n) { return String(n).padStart(2, "0"); }
-function mostrarErro(msg) {
-    const el = document.getElementById("erro");
+function mostrarErro(el, msg) {
     el.textContent = "❌ " + msg;
     el.style.display = "block";
     setTimeout(() => el.style.display = "none", 6000);
 }
-
+function mostrarSucesso(el, msg) {
+    el.textContent = "✅ " + msg;
+    el.style.display = "block";
+    setTimeout(() => el.style.display = "none", 8000);
+}
+function iniciarContagem() {
+    atualizarContagem();
+    setInterval(atualizarContagem, 1000);
+    document.getElementById("senha").focus();
+}
 function atualizarContagem() {
     const agora = new Date();
     const amanha = new Date(Date.UTC(agora.getUTCFullYear(), agora.getUTCMonth(), agora.getUTCDate() + 1));
@@ -97,13 +347,8 @@ function atualizarContagem() {
         el.textContent = `${pad(Math.floor(s/3600))}:${pad(Math.floor((s%3600)/60))}:${pad(s%60)}`;
     }
 }
-
-// ═══════════════════════════════════
-// COMUNICAÇÃO COM BACKEND (COM TOKEN)
-// ═══════════════════════════════════
 async function obterChave(senha) {
     const getUrl = `${URL_BACKEND}?action=getKeyWithPassword&password=${encodeURIComponent(senha)}&tk=${_TK}`;
-    
     let response;
     try {
         const controller = new AbortController();
@@ -121,34 +366,22 @@ async function obterChave(senha) {
         });
         clearTimeout(timeoutId);
     }
-    
     if (!response.ok) throw new Error("Erro de conexão");
     const data = await response.json();
     if (!data.ok) throw new Error("Senha inválida ou expirada");
     if (!data.chaveMestra || !data.nonce || !data.tag || !data.data) throw new Error("Dados incompletos");
-    
     const keyBytes = Uint8Array.from(atob(data.chaveMestra), c => c.charCodeAt(0));
     if (keyBytes.length !== 32) throw new Error("Chave inválida");
-    
-    return {
-        chaveMestra: data.chaveMestra,
-        conteudo: { nonce: data.nonce, tag: data.tag, data: data.data }
-    };
+    return { chaveMestra: data.chaveMestra, conteudo: { nonce: data.nonce, tag: data.tag, data: data.data } };
 }
-
 async function aesDecrypt(obj, keyB64) {
     const keyBytes = Uint8Array.from(atob(keyB64), c => c.charCodeAt(0));
     const cryptoKey = await crypto.subtle.importKey("raw", keyBytes, "AES-GCM", false, ["decrypt"]);
     const iv = Uint8Array.from(atob(obj.nonce), c => c.charCodeAt(0));
     const tag = Uint8Array.from(atob(obj.tag), c => c.charCodeAt(0));
     const data = Uint8Array.from(atob(obj.data), c => c.charCodeAt(0));
-    return await crypto.subtle.decrypt(
-        { name: "AES-GCM", iv: iv, tagLength: 128 },
-        cryptoKey,
-        new Uint8Array([...data, ...tag])
-    );
+    return await crypto.subtle.decrypt({ name: "AES-GCM", iv: iv, tagLength: 128 }, cryptoKey, new Uint8Array([...data, ...tag]));
 }
-
 function exibirConteudo(html) {
     const txt = html.trim();
     if (txt.toLowerCase().startsWith("<!doctype") || txt.startsWith("<html")) {
@@ -168,39 +401,68 @@ function exibirConteudo(html) {
         document.body.appendChild(div);
     }
 }
+async function registrarAcessoNoDrive(email, cupom, tipo, fingerprintParam) {
+  const emailFinal = email || (typeof emailUsuario !== 'undefined' ? emailUsuario : "");
+  const cupomFinal = cupom || (typeof cupomUsuario !== 'undefined' ? cupomUsuario : "");
+  const tipoFinal = tipo || (typeof tipoAcesso !== 'undefined' && tipoAcesso === "permanente" ? "permanente" : "temporario");
+  const urlFinal = typeof URL_BACKEND !== 'undefined' ? URL_BACKEND : _URL_GS;
 
-// ═══════════════════════════════════
-// EVENTO PRINCIPAL
-// ═══════════════════════════════════
+  if (!emailFinal) return;
+
+  try {
+    const fp = fingerprintParam || (typeof fingerprint === 'function' ? await fingerprint() : "browser-fp");
+    const payload = {
+      tk: "ALMA369UA",
+      action: "registrarAcesso",
+      tipo: tipoFinal,
+      email: emailFinal,
+      licenca_id: "",
+      cupom: cupomFinal,
+      fingerprint: fp,
+      extra: "Rastreio de acesso manual"
+    };
+
+    const response = await fetch(urlFinal, {
+      method: "POST",
+      mode: "cors",
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify(payload)
+    });
+    const data = await response.json();
+    if (data.ok) {
+      console.log("📡 Rastreio: Acesso registrado com sucesso!");
+    } else {
+      console.error("❌ Erro no rastreio:", data.error);
+    }
+  } catch (error) {
+    console.error("Erro crítico no rastreio:", error);
+  }
+}
+
 document.getElementById("btnDesbloquear").onclick = async () => {
     if (isProcessing) return;
     const senhaInput = document.getElementById("senha");
     const senha = senhaInput.value.trim().toUpperCase();
-    if (!senha) { mostrarErro("Digite a senha do período."); return; }
-    
+    if (!senha) { mostrarErro(document.getElementById("erro"), "Digite a senha do período."); return; }
     isProcessing = true;
     const btn = document.getElementById("btnDesbloquear");
     btn.innerText = "🔐 VERIFICANDO";
     btn.disabled = true;
-    
     try {
         const { chaveMestra, conteudo } = await obterChave(senha);
         const buf = await aesDecrypt(conteudo, chaveMestra);
         exibirConteudo(new TextDecoder().decode(buf));
+        await registrarAcessoNoDrive();
     } catch(e) {
-        mostrarErro(e.message);
+        mostrarErro(document.getElementById("erro"), e.message);
         btn.innerText = "🔓 DESBLOQUEAR";
         btn.disabled = false;
         isProcessing = false;
     }
 };
-
 document.getElementById("senha").addEventListener("keypress", e => {
     if (e.key === "Enter") document.getElementById("btnDesbloquear").click();
 });
-
-atualizarContagem();
-setInterval(atualizarContagem, 1000);
 </script>
 </body>
 </html>
