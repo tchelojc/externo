@@ -17,14 +17,14 @@ body{
   box-shadow:0 20px 48px rgba(0,0,0,.55),0 0 24px rgba(0,255,255,.18);
   padding:2rem;width:100%;max-width:500px;text-align:center
 }
-#containerSenha, #containerId, #containerBio { display:none; }
+#containerSenha, #containerId, #containerBio, #containerPIN { display:none; }
 .top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:.5rem}
 .title{font-size:1.2rem;background:linear-gradient(135deg,#0ff,#0f0);-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:1px}
 .cd-info{font-size:.8rem;color:#4cc;display:flex;gap:.5rem;align-items:center}
 .cd-info .value{font-family:monospace;font-weight:bold;color:#0f0}
 .cd-info.urgente .value{color:#f55;animation:piscar 1s infinite}
 @keyframes piscar{50%{opacity:.4}}
-input[type=text], input[type=email]{
+input[type=text], input[type=email], input[type=password]{
   background:#0a121c;border:2px solid #2a6a6a;border-radius:48px;
   padding:12px 20px;width:100%;color:#0ff;font-size:1rem;
   font-family:monospace;text-align:center;letter-spacing:3px;
@@ -48,26 +48,25 @@ footer{margin-top:1.5rem;font-size:.7rem;color:#2a6a6a}
   margin-top:16px;padding:16px;background:#030f06;
   border:1px solid #0f5a3a;border-radius:20px;display:none;
 }
+.pin-buttons { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:10px; }
 </style>
 </head>
 <body>
-<!-- Tela biométrica (inicial) -->
+<!-- Tela de seleção de método de verificação (sempre visível) -->
 <div id="containerBio" class="container">
   <div class="top-bar">
     <div class="title">🔐 VERIFICAÇÃO DE IDENTIDADE</div>
   </div>
   <p style="color:#8cc;font-size:.85rem;margin-bottom:1.5rem">
-    Use sua digital, Face ID ou senha do dispositivo para confirmar que é você.
+    Escolha como deseja confirmar sua identidade:
   </p>
-  <button id="btnBiometria">🖐️ VERIFICAR IDENTIDADE</button>
+  <div class="pin-buttons">
+    <button id="btnBiometria" style="flex:1;">🖐️ Biometria / Windows Hello</button>
+    <button id="btnPIN" style="flex:1;">🔢 Usar PIN de acesso</button>
+  </div>
   <div class="erro" id="erroBio"></div>
-
   <div style="margin:20px 0;color:#2a6a6a">ou</div>
-
-  <!-- Botão para mostrar cadastro grátis -->
   <button id="btnMostrarCadastro" style="background:#2a1a0a;border:1px solid #ffd70055;color:#ffd700">🎁 CADASTRO GRÁTIS (apenas registrar email)</button>
-
-  <!-- Bloco de cadastro grátis (oculto até clicar) -->
   <div id="blocoCadastro" class="bloco-cadastro">
     <p style="color:#ffd700;font-size:.8rem;margin-bottom:8px">📋 Registre seu email para acesso temporário (1 hora)</p>
     <input type="text" id="regNome" placeholder="Seu nome completo">
@@ -76,11 +75,25 @@ footer{margin-top:1.5rem;font-size:.7rem;color:#2a6a6a}
     <button id="btnRegistrar" class="btn-gratis" style="background:#4a3000;color:#ffd700">💾 REGISTRAR</button>
     <div class="sucesso" id="sucessoReg"></div>
   </div>
-
   <footer>© UNIVERSO ÁUREO · 3·6·9</footer>
 </div>
 
-<!-- Tela de identificação (após biometria) -->
+<!-- Tela de PIN -->
+<div id="containerPIN" class="container">
+  <div class="top-bar">
+    <div class="title">🔢 ACESSO POR PIN</div>
+  </div>
+  <p style="color:#8cc;font-size:.85rem;margin-bottom:1rem" id="pinMessage">
+    Digite seu PIN de acesso (mínimo 4 dígitos).
+  </p>
+  <input type="password" id="pinInput" placeholder="PIN" maxlength="12" inputmode="numeric">
+  <button id="btnConfirmarPIN">🔓 CONFIRMAR</button>
+  <button id="btnVoltarPIN" style="background:transparent;border:1px solid #2a6a6a;color:#4cc">← Voltar</button>
+  <div class="erro" id="erroPIN"></div>
+  <footer>© UNIVERSO ÁUREO · 3·6·9</footer>
+</div>
+
+<!-- Tela de identificação (após verificação) -->
 <div id="containerId" class="container">
   <div class="top-bar">
     <div class="title">📧 IDENTIFICAÇÃO</div>
@@ -92,7 +105,7 @@ footer{margin-top:1.5rem;font-size:.7rem;color:#2a6a6a}
   <footer>© UNIVERSO ÁUREO · 3·6·9</footer>
 </div>
 
-<!-- Tela da senha -->
+<!-- Tela da senha temporal -->
 <div id="containerSenha" class="container">
   <div class="top-bar">
     <div class="title">⚡ CONTEÚDO BLINDADO</div>
@@ -109,7 +122,7 @@ footer{margin-top:1.5rem;font-size:.7rem;color:#2a6a6a}
 <script>
 // ═══════════════ CONFIGURAÇÃO ═══════════════
 const _TK = "ALMA369UA";
-const URL_BACKEND = "https://script.google.com/macros/s/AKfycbwRKA3U3Qs01vSzZCndCXIradDyukx71zgItt7H_QfKh6deJo7SPzL8u85YNQo9hVda5g/exec";
+const URL_BACKEND = "https://script.google.com/macros/s/AKfycbwjOQVT0-Fqhu-7QqYsKTe6GY4vMSV7bOq7pCV7dfE8SNWcw6qWgTFIfjtjOjUFx4Lryw/exec";
 const TIMEOUT_MS = 15000;
 let isProcessing = false;
 let emailUsuario = "";
@@ -118,32 +131,94 @@ let tipoAcesso = "temporario";
 
 // Elementos
 const containerBio = document.getElementById("containerBio");
+const containerPIN = document.getElementById("containerPIN");
 const containerId = document.getElementById("containerId");
 const containerSenha = document.getElementById("containerSenha");
 const btnBiometria = document.getElementById("btnBiometria");
+const btnPIN = document.getElementById("btnPIN");
 const erroBio = document.getElementById("erroBio");
 const erroId = document.getElementById("erroId");
-const sucessoId = document.getElementById("sucessoId");
+const erroPIN = document.getElementById("erroPIN");
 
-// Inicialização: verifica suporte biométrico e exibe tela adequada
+// Sempre inicia na tela de escolha
+containerBio.style.display = "block";
+
+// ============== PIN LOCAL ==============
+let pinHashed = null;
+const PIN_KEY = "ua_pin_hash";
+
+async function hashPIN(pin) {
+  const enc = new TextEncoder();
+  const hashBuffer = await crypto.subtle.digest("SHA-256", enc.encode(pin));
+  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,"0")).join("");
+}
+
+function showPIN() {
+  containerBio.style.display = "none";
+  containerPIN.style.display = "block";
+  document.getElementById("pinInput").value = "";
+  erroPIN.style.display = "none";
+  pinHashed = localStorage.getItem(PIN_KEY);
+  if (!pinHashed) {
+    document.getElementById("pinMessage").textContent = "Crie um PIN de acesso (mínimo 4 dígitos).";
+    document.getElementById("btnConfirmarPIN").textContent = "💾 CRIAR PIN";
+  } else {
+    document.getElementById("pinMessage").textContent = "Digite seu PIN de acesso.";
+    document.getElementById("btnConfirmarPIN").textContent = "🔓 CONFIRMAR";
+  }
+}
+
+document.getElementById("btnPIN").onclick = showPIN;
+
+document.getElementById("btnVoltarPIN").onclick = () => {
+  containerPIN.style.display = "none";
+  containerBio.style.display = "block";
+};
+
+document.getElementById("btnConfirmarPIN").onclick = async () => {
+  const pin = document.getElementById("pinInput").value.trim();
+  if (!pin || pin.length < 4) {
+    erroPIN.textContent = "❌ PIN deve ter no mínimo 4 caracteres.";
+    erroPIN.style.display = "block";
+    return;
+  }
+
+  const currentHash = await hashPIN(pin);
+  const storedHash = localStorage.getItem(PIN_KEY);
+
+  if (!storedHash) {
+    // Primeiro acesso: salva o PIN
+    localStorage.setItem(PIN_KEY, currentHash);
+    erroPIN.style.display = "none";
+    containerPIN.style.display = "none";
+    containerId.style.display = "block";
+    document.getElementById("emailAcesso").focus();
+  } else {
+    // Verifica PIN
+    if (currentHash === storedHash) {
+      erroPIN.style.display = "none";
+      containerPIN.style.display = "none";
+      containerId.style.display = "block";
+      document.getElementById("emailAcesso").focus();
+    } else {
+      erroPIN.textContent = "❌ PIN incorreto.";
+      erroPIN.style.display = "block";
+    }
+  }
+};
+
+// ============== BIOMETRIA (WebAuthn) ==============
 function suporteBiometria() {
     return window.PublicKeyCredential && navigator.credentials && !!navigator.credentials.create;
 }
 
+// Desabilita botão se não houver suporte
 if (!suporteBiometria()) {
-    containerBio.style.display = "none";
-    containerId.style.display = "block";
-} else {
-    containerBio.style.display = "block";
+    btnBiometria.disabled = true;
+    btnBiometria.textContent = "⚠️ Não suportado neste dispositivo";
+    btnBiometria.style.opacity = "0.6";
 }
 
-// ═══════════ CONTROLE DO BLOCO DE CADASTRO GRÁTIS ═══════════
-document.getElementById("btnMostrarCadastro").onclick = () => {
-    document.getElementById("blocoCadastro").style.display = "block";
-    document.getElementById("btnMostrarCadastro").style.display = "none";
-};
-
-// ═══════════ BIOMETRIA ═══════════
 function arrayBufferToBase64url(buffer) {
     return btoa(String.fromCharCode(...new Uint8Array(buffer)))
         .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
@@ -183,8 +258,11 @@ async function autenticarBiometria(credentialIdB64) {
 async function verificarBiometria() {
     if (!suporteBiometria()) throw new Error("Biometria não suportada");
     const credentialId = localStorage.getItem("ua_biometric_id");
-    if (credentialId) await autenticarBiometria(credentialId);
-    else await registrarBiometria();
+    if (credentialId) {
+        await autenticarBiometria(credentialId);
+    } else {
+        await registrarBiometria();
+    }
 }
 
 btnBiometria.onclick = async () => {
@@ -201,9 +279,9 @@ btnBiometria.onclick = async () => {
     } catch(e) {
         let msg = "Falha na verificação.";
         if (e.name === "NotAllowedError") msg = "Autenticação cancelada ou tempo esgotado.";
-        else if (e.name === "NotSupportedError") msg = "Biometria não suportada.";
+        else if (e.name === "NotSupportedError") msg = "Biometria não suportada. Use o PIN.";
         mostrarErro(erroBio, msg);
-        btnBiometria.innerHTML = '🖐️ VERIFICAR IDENTIDADE';
+        btnBiometria.innerHTML = '🖐️ Biometria / Windows Hello';
         btnBiometria.disabled = false;
         isProcessing = false;
     }
@@ -241,6 +319,11 @@ async function fingerprint() {
 }
 
 // ═══════════ CADASTRO GRÁTIS (apenas registra) ═══════════
+document.getElementById("btnMostrarCadastro").onclick = () => {
+    document.getElementById("blocoCadastro").style.display = "block";
+    document.getElementById("btnMostrarCadastro").style.display = "none";
+};
+
 document.getElementById("btnRegistrar").onclick = async () => {
     if (isProcessing) return;
     const nome = document.getElementById("regNome").value.trim();
@@ -269,7 +352,7 @@ document.getElementById("btnRegistrar").onclick = async () => {
     }
 };
 
-// ═══════════ VERIFICAÇÃO DE ACESSO (após biometria) ═══════════
+// ═══════════ VERIFICAÇÃO DE ACESSO (após PIN ou biometria) ═══════════
 document.getElementById("btnVerificarAcesso").onclick = async () => {
     if (isProcessing) return;
     const email = document.getElementById("emailAcesso").value.trim().toLowerCase();
