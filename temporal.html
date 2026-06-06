@@ -61,8 +61,8 @@ footer{margin-top:1.5rem;font-size:.7rem;color:#2a6a6a}
     Escolha como deseja confirmar sua identidade:
   </p>
   <div class="pin-buttons">
-    <button id="btnBiometria" style="flex:1;">🖐️ Biometria / Windows Hello</button>
-    <button id="btnPIN" style="flex:1;">🔢 Usar PIN de acesso</button>
+    <button id="btnBiometria" style="flex:1;">🖐️ Biometria / Windows Hello<br><small style="color:#aaa">(Acesso Permanente)</small></button>
+    <button id="btnPIN" style="flex:1;">🔢 Usar PIN de acesso<br><small style="color:#aaa">(Acesso Temporário)</small></button>
   </div>
   <div class="erro" id="erroBio"></div>
   <div style="margin:20px 0;color:#2a6a6a">ou</div>
@@ -128,6 +128,7 @@ let isProcessing = false;
 let emailUsuario = "";
 let cupomUsuario = "";
 let tipoAcesso = "temporario";
+let metodoVerificacao = "";   // NOVO: "biometria" ou "pin"
 
 // Elementos
 const containerBio = document.getElementById("containerBio");
@@ -143,7 +144,7 @@ const erroPIN = document.getElementById("erroPIN");
 // Sempre inicia na tela de escolha
 containerBio.style.display = "block";
 
-// ============== PIN LOCAL ==============
+// ============== PIN LOCAL (apenas para temporários) ==============
 let pinHashed = null;
 const PIN_KEY = "ua_pin_hash";
 
@@ -154,6 +155,7 @@ async function hashPIN(pin) {
 }
 
 function showPIN() {
+  metodoVerificacao = "pin";   // NOVO
   containerBio.style.display = "none";
   containerPIN.style.display = "block";
   document.getElementById("pinInput").value = "";
@@ -207,7 +209,7 @@ document.getElementById("btnConfirmarPIN").onclick = async () => {
   }
 };
 
-// ============== BIOMETRIA (WebAuthn) ==============
+// ============== BIOMETRIA (WebAuthn) – apenas para permanentes ==============
 function suporteBiometria() {
     return window.PublicKeyCredential && navigator.credentials && !!navigator.credentials.create;
 }
@@ -267,6 +269,7 @@ async function verificarBiometria() {
 
 btnBiometria.onclick = async () => {
     if (isProcessing) return;
+    metodoVerificacao = "biometria";   // NOVO
     isProcessing = true;
     btnBiometria.disabled = true;
     btnBiometria.innerHTML = '🔐 VERIFICANDO... <span class="loader"></span>';
@@ -300,7 +303,7 @@ async function cadastrarEmailBackend(email, nome, tipo, cupom) {
     const fp = await fingerprint();
     const resp = await fetch(URL_BACKEND, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "text/plain" },
         body: JSON.stringify({ action: "cadastrarEmail", email, nome, tipo, cupom, fingerprint: fp, tk: _TK })
     });
     return await resp.json();
@@ -318,7 +321,7 @@ async function fingerprint() {
     return Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2,"0")).join("");
 }
 
-// ═══════════ CADASTRO GRÁTIS (apenas registra) ═══════════
+// ═══════════ CADASTRO GRÁTIS (temporário) ═══════════
 document.getElementById("btnMostrarCadastro").onclick = () => {
     document.getElementById("blocoCadastro").style.display = "block";
     document.getElementById("btnMostrarCadastro").style.display = "none";
@@ -336,7 +339,8 @@ document.getElementById("btnRegistrar").onclick = async () => {
     btn.disabled = true;
     btn.innerHTML = '💾 REGISTRANDO... <span class="loader"></span>';
     try {
-        const resp = await cadastrarEmailBackend(email, nome, "acesso", cupom);
+        // NOVO: cadastra como tipo "temporario"
+        const resp = await cadastrarEmailBackend(email, nome, "temporario", cupom);
         if (!resp.ok) {
             throw new Error(resp.error || "Erro ao registrar.");
         }
@@ -379,15 +383,26 @@ document.getElementById("btnVerificarAcesso").onclick = async () => {
         cupomUsuario = cupom || respEmail.cupom || "";
         tipoAcesso = respEmail.tipo || "acesso";
 
-        if (tipoAcesso === "permanente") {
-            avancarParaSenha();
-        } else {
+        // NOVO: Verificar compatibilidade com o método escolhido
+        if (metodoVerificacao === "biometria") {
+            if (tipoAcesso !== "acesso" && tipoAcesso !== "influencer") {
+                throw new Error("Este email não é uma licença permanente. Use o PIN para acesso temporário.");
+            }
+        } else if (metodoVerificacao === "pin") {
+            if (tipoAcesso !== "temporario") {
+                throw new Error("Este email não é temporário. Use a Biometria para acesso permanente.");
+            }
+        }
+
+        // Verificação de 1 hora apenas para temporários
+        if (tipoAcesso === "temporario") {
             const respTemp = await verificarAcessoTemporario(email);
             if (!respTemp.ok) {
                 throw new Error(respTemp.error || "Acesso temporário já utilizado. Aguarde 1 hora.");
             }
-            avancarParaSenha();
         }
+
+        avancarParaSenha();
     } catch(e) {
         mostrarErro(erroId, e.message);
         btn.disabled = false;
@@ -403,7 +418,7 @@ function avancarParaSenha() {
     isProcessing = false;
 }
 
-// ═══════════ SENHA E DESCRIPTOGRAFIA ═══════════
+// ═══════════ SENHA E DESCRIPTOGRAFIA (mantido igual) ═══════════
 function pad(n) { return String(n).padStart(2, "0"); }
 function mostrarErro(el, msg) {
     el.textContent = "❌ " + msg;
@@ -443,7 +458,7 @@ async function obterChave(senha) {
         const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
         response = await fetch(URL_BACKEND, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "text/plain" },
             body: JSON.stringify({ action: "getKeyWithPassword", password: senha, tk: _TK }),
             signal: controller.signal
         });
