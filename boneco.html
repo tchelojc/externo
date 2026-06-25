@@ -258,6 +258,7 @@ button{ font-family:inherit; }
   position:relative;
   top:22px;
   box-shadow:0 6px 14px rgba(0,0,0,0.4);
+  transition:top 0.25s ease;
 }
 #hero-doll-svg{ width:130px; z-index:1; filter:drop-shadow(0 10px 14px rgba(0,0,0,0.4)); }
 .showcase-base{
@@ -424,6 +425,114 @@ button{ font-family:inherit; }
 .camera-hint b{ color:var(--amarelo); }
 canvas{ display:none; }
 
+.modo-captura{
+  display:flex;
+  gap:0.5rem;
+  margin-bottom:1.2rem;
+  background:#04130a;
+  border-radius:14px;
+  padding:0.3rem;
+  border:1px solid var(--linha);
+}
+.modo-btn{
+  flex:1;
+  background:transparent;
+  border:none;
+  color:var(--texto2);
+  padding:0.65rem 0.5rem;
+  border-radius:10px;
+  font-weight:700;
+  font-size:0.85rem;
+  cursor:pointer;
+  font-family:var(--tecnico);
+  transition:0.2s;
+}
+.modo-btn.active{
+  background:var(--verde);
+  color:#fff;
+}
+
+#upload-container{
+  position:relative;
+  width:100%;
+  max-width:320px;
+  border-radius:50%;
+  overflow:hidden;
+  background:#000;
+  aspect-ratio:1/1;
+  box-shadow:0 0 0 4px var(--amarelo), 0 0 0 8px var(--verde);
+  margin:0 auto;
+  cursor:grab;
+  touch-action:none;
+}
+#upload-container.arrastando{ cursor:grabbing; }
+#upload-img{
+  position:absolute;
+  top:50%; left:50%;
+  max-width:none;
+  transform-origin:center center;
+  user-select:none;
+  -webkit-user-drag:none;
+  pointer-events:none;
+}
+#upload-overlay{
+  position:absolute;
+  top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  width:70%; height:70%;
+  border:3px dashed var(--amarelo);
+  border-radius:50%;
+  pointer-events:none;
+  box-shadow:0 0 18px rgba(255,204,41,0.5);
+}
+#upload-vazio, #upload-editor{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:1rem;
+  width:100%;
+}
+
+.zoom-control{
+  width:100%;
+  max-width:320px;
+  display:flex;
+  align-items:center;
+  gap:0.7rem;
+}
+.zoom-control label{
+  font-family:var(--tecnico);
+  font-weight:700;
+  color:var(--texto2);
+  font-size:0.78rem;
+  white-space:nowrap;
+}
+.zoom-control input[type="range"]{
+  flex:1;
+  -webkit-appearance:none;
+  appearance:none;
+  height:6px;
+  border-radius:10px;
+  background:var(--linha);
+  outline:none;
+  cursor:pointer;
+}
+.zoom-control input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:20px; height:20px;
+  border-radius:50%;
+  background:var(--amarelo);
+  border:2px solid #0a140f;
+  cursor:pointer;
+}
+.zoom-control input[type="range"]::-moz-range-thumb{
+  width:20px; height:20px;
+  border-radius:50%;
+  background:var(--amarelo);
+  border:2px solid #0a140f;
+  cursor:pointer;
+}
+
 .btn-capturar{
   background:var(--amarelo);
   color:#0a140f;
@@ -553,6 +662,7 @@ input[type="color"]{
   position:relative;
   top:24px;
   box-shadow:0 5px 12px rgba(0,0,0,0.4);
+  transition:top 0.25s ease;
 }
 #doll-svg{ width:138px; z-index:1; filter:drop-shadow(0 8px 10px rgba(0,0,0,0.35)); }
 .preview-nome{
@@ -903,7 +1013,7 @@ footer{
       <div class="showcase-doll">
         <img id="hero-rosto" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Ccircle cx='60' cy='60' r='60' fill='%230a8a3f'/%3E%3Ctext x='60' y='72' text-anchor='middle' fill='white' font-size='48'%3E😃%3C/text%3E%3C/svg%3E" alt="rosto" />
         <svg id="hero-doll-svg" viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
-          <rect x="50" y="25" width="20" height="15" fill="#f1c27d" />
+          <g id="hero-svg-pescoco"><rect x="50" y="25" width="20" height="15" fill="#f1c27d" /></g>
           <path id="hero-svg-camisa" d="M30,35 Q60,10 90,35 L110,75 L90,85 L85,110 L35,110 L30,85 L10,75 Z" fill="#ffcc29" />
           <path d="M50,35 L70,35 L60,45 Z" fill="rgba(0,0,0,0.18)" />
           <path id="hero-svg-calcao" d="M35,110 L85,110 L95,140 L70,135 L60,120 L50,135 L25,140 Z" fill="#1b3fa0" />
@@ -964,15 +1074,49 @@ footer{
     <div>
       <div class="config-card">
         <h3><span class="chip-num">1</span> Capture seu rosto</h3>
-        <div class="camera-box">
+
+        <div class="modo-captura">
+          <button type="button" class="modo-btn active" id="modo-camera-btn">📷 Usar câmera</button>
+          <button type="button" class="modo-btn" id="modo-upload-btn">🖼️ Enviar foto</button>
+        </div>
+
+        <!-- MODO CÂMERA -->
+        <div class="camera-box" id="bloco-camera">
           <div id="camera-container">
             <video id="video" autoplay playsinline></video>
             <div id="face-overlay"></div>
           </div>
           <button id="capture-btn" class="btn-capturar">📷 Tirar foto</button>
-          <canvas id="canvas"></canvas>
           <div class="camera-hint">⚠️ Regra do vestiário: <b>tire os óculos</b> antes da foto.</div>
         </div>
+
+        <!-- MODO UPLOAD -->
+        <div class="camera-box" id="bloco-upload" style="display:none;">
+          <input type="file" id="foto-input" accept="image/*" style="display:none;">
+
+          <div id="upload-vazio">
+            <button type="button" class="btn-capturar" id="escolher-foto-btn">🖼️ Escolher foto da galeria</button>
+            <div class="camera-hint">📐 Ideal pra fotos de corpo inteiro — depois de enviar, dá pra arrastar e dar zoom até o rosto encaixar no círculo.</div>
+          </div>
+
+          <div id="upload-editor" style="display:none;">
+            <div id="upload-container">
+              <img id="upload-img" src="" alt="foto enviada" draggable="false">
+              <div id="upload-overlay"></div>
+            </div>
+            <div class="zoom-control">
+              <label for="zoom-range">🔍 Zoom</label>
+              <input type="range" id="zoom-range" min="1" max="4" step="0.05" value="1">
+            </div>
+            <div class="camera-hint">✋ Arraste a foto pra centralizar o rosto e use o zoom pra ajustar o enquadramento.</div>
+            <div style="display:flex; gap:0.6rem; width:100%;">
+              <button id="trocar-foto-btn" class="btn-capturar" style="flex:1; background:transparent; color:var(--texto); border:1px solid var(--linha); box-shadow:none;">↺ Trocar foto</button>
+              <button id="confirmar-foto-btn" class="btn-capturar" style="flex:1;">✅ Confirmar enquadramento</button>
+            </div>
+          </div>
+        </div>
+
+        <canvas id="canvas"></canvas>
       </div>
 
       <div class="config-card" style="margin-top:1.6rem;">
@@ -1030,7 +1174,7 @@ footer{
         <div class="doll-preview">
           <img id="simulacao-rosto" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Ccircle cx='60' cy='60' r='60' fill='%230a8a3f'/%3E%3Ctext x='60' y='72' text-anchor='middle' fill='white' font-size='48'%3E😃%3C/text%3E%3C/svg%3E" alt="rosto capturado">
           <svg id="doll-svg" viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
-            <rect x="50" y="25" width="20" height="15" fill="#f1c27d" />
+            <g id="svg-pescoco"><rect x="50" y="25" width="20" height="15" fill="#f1c27d" /></g>
             <path id="svg-camisa" d="M30,35 Q60,10 90,35 L110,75 L90,85 L85,110 L35,110 L30,85 L10,75 Z" fill="#FFCC29" />
             <path d="M50,35 L70,35 L60,45 Z" fill="rgba(0,0,0,0.18)" />
             <path id="svg-calcao" d="M35,110 L85,110 L95,140 L70,135 L60,120 L50,135 L25,140 Z" fill="#1B3FA0" />
@@ -1061,6 +1205,7 @@ footer{
           <a href="https://openai.com/dall-e-3" target="_blank" class="ia-link">🖼️ DALL·E 3</a>
           <a href="https://leonardo.ai" target="_blank" class="ia-link">🦾 Leonardo AI</a>
           <a href="https://www.bing.com/images/create" target="_blank" class="ia-link">🔍 Bing Image Creator</a>
+          <a href="https://gemini.google.com" target="_blank" class="ia-link">✨ Gemini</a>
         </div>
 
         <div class="alerta-box">📲 Depois de gerar a arte, envie pra gente pelo WhatsApp que entramos na produção.</div>
@@ -1166,6 +1311,7 @@ footer{
   // Elementos DOM
   const video = document.getElementById('video');
   const captureBtn = document.getElementById('capture-btn');
+  const zoomRange = document.getElementById('zoom-range');
   const canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
   const faceOverlay = document.getElementById('face-overlay');
@@ -1196,6 +1342,7 @@ footer{
   const svgMeiaoDir = document.getElementById('svg-meiao-dir');
   const svgChuteiraEsq = document.getElementById('svg-chuteira-esq');
   const svgChuteiraDir = document.getElementById('svg-chuteira-dir');
+  const svgPescoco = document.getElementById('svg-pescoco');
 
   // SVG da vitrine (hero) — espelha as mesmas cores
   const heroRosto = document.getElementById('hero-rosto');
@@ -1205,6 +1352,7 @@ footer{
   const heroSvgMeiaoDir = document.getElementById('hero-svg-meiao-dir');
   const heroSvgChuteiraEsq = document.getElementById('hero-svg-chuteira-esq');
   const heroSvgChuteiraDir = document.getElementById('hero-svg-chuteira-dir');
+  const heroSvgPescoco = document.getElementById('hero-svg-pescoco');
   const heroMetaEstilo = document.getElementById('hero-meta-estilo');
 
   const NUMERO_WHATSAPP = '5521981762110';
@@ -1247,6 +1395,25 @@ footer{
     input.addEventListener('input', atualizarCoresSimulacao);
   });
 
+  // Pescoço: reto por padrão (pelada/filho) — só vira "mola" de balanço no estilo carro
+  const PESCOCO_RETO = '<rect x="50" y="25" width="20" height="15" fill="#f1c27d" />';
+  const PESCOCO_MOLA = `
+    <path d="M50,24 L70,24 L68,28 L52,28 Z" fill="#888" />
+    <path d="M51,28 Q60,32 69,28 Q60,24 51,28" fill="none" stroke="#999" stroke-width="2.2" />
+    <path d="M51,32 Q60,36 69,32 Q60,28 51,32" fill="none" stroke="#999" stroke-width="2.2" />
+    <path d="M51,36 Q60,40 69,36 Q60,32 51,36" fill="none" stroke="#999" stroke-width="2.2" />
+    <rect x="52" y="37" width="16" height="6" fill="#f1c27d" />
+  `;
+  function atualizarPescoco() {
+    const isCarro = estiloBoneco.value === 'carro';
+    const html = isCarro ? PESCOCO_MOLA : PESCOCO_RETO;
+    svgPescoco.innerHTML = html;
+    heroSvgPescoco.innerHTML = html;
+    // Com mola, o pescoço é mais longo — sobe o rosto pra mola ficar visível abaixo dele
+    simulacaoRosto.style.top = isCarro ? '8px' : '24px';
+    heroRosto.style.top = isCarro ? '6px' : '22px';
+  }
+
   // Nome na base
   nomeBase.addEventListener('input', () => {
     simulacaoNomeBase.textContent = nomeBase.value.trim().toUpperCase() || "NOME NA BASE";
@@ -1264,19 +1431,42 @@ footer{
     }
   });
 
-  // Estilo do boneco → atualiza meta da vitrine + preço
+  // Estilo do boneco → atualiza meta da vitrine + preço + formato do pescoço
   estiloBoneco.addEventListener('change', () => {
     heroMetaEstilo.textContent = nomesEstilo[estiloBoneco.value] || 'Cartoon';
+    atualizarPescoco();
   });
 
   // Atalho dos cards de estilo
   window.selecionarEstilo = function(valor) {
     estiloBoneco.value = valor;
     heroMetaEstilo.textContent = nomesEstilo[valor] || 'Cartoon';
+    atualizarPescoco();
     precoFinal.textContent = `R$ ${calcularPreco()}`;
     if (precoNav) precoNav.textContent = `A partir de R$ ${calcularPreco()}`;
     document.getElementById('config').scrollIntoView({ behavior: 'smooth' });
   };
+
+  // ======================================================
+  // ALTERNÂNCIA DE MODO: CÂMERA x ENVIAR FOTO
+  // ======================================================
+  const modoCameraBtn = document.getElementById('modo-camera-btn');
+  const modoUploadBtn = document.getElementById('modo-upload-btn');
+  const blocoCamera = document.getElementById('bloco-camera');
+  const blocoUpload = document.getElementById('bloco-upload');
+
+  modoCameraBtn.addEventListener('click', () => {
+    modoCameraBtn.classList.add('active');
+    modoUploadBtn.classList.remove('active');
+    blocoCamera.style.display = 'flex';
+    blocoUpload.style.display = 'none';
+  });
+  modoUploadBtn.addEventListener('click', () => {
+    modoUploadBtn.classList.add('active');
+    modoCameraBtn.classList.remove('active');
+    blocoUpload.style.display = 'flex';
+    blocoCamera.style.display = 'none';
+  });
 
   // Acesso à câmera
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -1286,17 +1476,14 @@ footer{
         video.play();
       })
       .catch(err => {
-        alert("📵 Não foi possível acessar a câmera. Verifique a permissão ou use um dispositivo compatível.");
         console.error(err);
       });
-  } else {
-    alert("📵 Seu navegador não suporta acesso à câmera.");
   }
 
-  // Captura e recorte do rosto
+  // Captura via câmera ao vivo (sem zoom — usuário se ajusta fisicamente)
   captureBtn.addEventListener('click', () => {
     if (!video.srcObject) {
-      alert("🎥 Câmera ainda não está ativa. Aguarde ou recarregue.");
+      alert("🎥 Câmera ainda não está ativa. Verifique a permissão ou tente o modo \"Enviar foto\".");
       return;
     }
     canvas.width = video.videoWidth;
@@ -1325,7 +1512,146 @@ footer{
     croppedCtx.drawImage(canvas, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
 
     imagemRostoBase64 = croppedCanvas.toDataURL('image/jpeg', 0.9);
+    simulacaoRosto.src = imagemRostoBase64;
+    heroRosto.src = imagemRostoBase64;
 
+    document.getElementById('config').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+
+  // ======================================================
+  // MODO UPLOAD: enviar foto + arrastar + zoom até encaixar o rosto
+  // ======================================================
+  const fotoInput = document.getElementById('foto-input');
+  const escolherFotoBtn = document.getElementById('escolher-foto-btn');
+  const uploadVazio = document.getElementById('upload-vazio');
+  const uploadEditor = document.getElementById('upload-editor');
+  const uploadContainer = document.getElementById('upload-container');
+  const uploadImg = document.getElementById('upload-img');
+  const trocarFotoBtn = document.getElementById('trocar-foto-btn');
+  const confirmarFotoBtn = document.getElementById('confirmar-foto-btn');
+
+  // Estado da imagem enviada: escala, posição (arraste) e tamanho natural
+  let imgEstado = { scale: 1, offsetX: 0, offsetY: 0, naturalW: 0, naturalH: 0, baseScale: 1 };
+  let arrastando = false;
+  let arrastoInicio = { x: 0, y: 0, offsetX: 0, offsetY: 0 };
+
+  escolherFotoBtn.addEventListener('click', () => fotoInput.click());
+
+  fotoInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        imgEstado.naturalW = img.naturalWidth;
+        imgEstado.naturalH = img.naturalHeight;
+        // baseScale: cobre o círculo (320px) inteiro com a menor dimensão da imagem
+        const tamanhoContainer = uploadContainer.clientWidth || 320;
+        imgEstado.baseScale = tamanhoContainer / Math.min(img.naturalWidth, img.naturalHeight);
+        imgEstado.scale = 1;
+        imgEstado.offsetX = 0;
+        imgEstado.offsetY = 0;
+        zoomRange.value = 1;
+        uploadImg.src = ev.target.result;
+        aplicarTransformUpload();
+
+        uploadVazio.style.display = 'none';
+        uploadEditor.style.display = 'flex';
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  function aplicarTransformUpload() {
+    const escalaFinal = imgEstado.baseScale * imgEstado.scale;
+    uploadImg.style.width = imgEstado.naturalW + 'px';
+    uploadImg.style.height = imgEstado.naturalH + 'px';
+    uploadImg.style.transform =
+      `translate(-50%, -50%) translate(${imgEstado.offsetX}px, ${imgEstado.offsetY}px) scale(${escalaFinal})`;
+  }
+
+  // Zoom (slider) — também usado no editor de upload
+  zoomRange.addEventListener('input', () => {
+    imgEstado.scale = parseFloat(zoomRange.value);
+    aplicarTransformUpload();
+  });
+
+  // Arraste — mouse
+  uploadContainer.addEventListener('mousedown', (e) => {
+    if (uploadEditor.style.display === 'none') return;
+    arrastando = true;
+    uploadContainer.classList.add('arrastando');
+    arrastoInicio = { x: e.clientX, y: e.clientY, offsetX: imgEstado.offsetX, offsetY: imgEstado.offsetY };
+  });
+  window.addEventListener('mousemove', (e) => {
+    if (!arrastando) return;
+    imgEstado.offsetX = arrastoInicio.offsetX + (e.clientX - arrastoInicio.x);
+    imgEstado.offsetY = arrastoInicio.offsetY + (e.clientY - arrastoInicio.y);
+    aplicarTransformUpload();
+  });
+  window.addEventListener('mouseup', () => {
+    arrastando = false;
+    uploadContainer.classList.remove('arrastando');
+  });
+
+  // Arraste — touch (celular)
+  uploadContainer.addEventListener('touchstart', (e) => {
+    if (uploadEditor.style.display === 'none') return;
+    const t = e.touches[0];
+    arrastando = true;
+    arrastoInicio = { x: t.clientX, y: t.clientY, offsetX: imgEstado.offsetX, offsetY: imgEstado.offsetY };
+  }, { passive: true });
+  uploadContainer.addEventListener('touchmove', (e) => {
+    if (!arrastando) return;
+    const t = e.touches[0];
+    imgEstado.offsetX = arrastoInicio.offsetX + (t.clientX - arrastoInicio.x);
+    imgEstado.offsetY = arrastoInicio.offsetY + (t.clientY - arrastoInicio.y);
+    aplicarTransformUpload();
+  }, { passive: true });
+  uploadContainer.addEventListener('touchend', () => { arrastando = false; });
+
+  trocarFotoBtn.addEventListener('click', () => {
+    fotoInput.value = '';
+    uploadEditor.style.display = 'none';
+    uploadVazio.style.display = 'flex';
+  });
+
+  // Confirma o enquadramento: recorta exatamente o que está dentro do círculo-guia
+  confirmarFotoBtn.addEventListener('click', () => {
+    const tamanhoContainer = uploadContainer.clientWidth;
+    const escalaFinal = imgEstado.baseScale * imgEstado.scale;
+
+    // Posição do centro da imagem dentro do container, considerando o arraste
+    const centroX = tamanhoContainer / 2 + imgEstado.offsetX;
+    const centroY = tamanhoContainer / 2 + imgEstado.offsetY;
+
+    // Região do círculo-guia (70% central, igual ao overlay) em coordenadas do container
+    const guiaTamanho = tamanhoContainer * 0.7;
+    const guiaLeft = (tamanhoContainer - guiaTamanho) / 2;
+    const guiaTop = (tamanhoContainer - guiaTamanho) / 2;
+
+    // Converte a região da guia para coordenadas da imagem ORIGINAL (antes da escala)
+    const imgLeftNaTela = centroX - (imgEstado.naturalW * escalaFinal) / 2;
+    const imgTopNaTela = centroY - (imgEstado.naturalH * escalaFinal) / 2;
+
+    const sx = (guiaLeft - imgLeftNaTela) / escalaFinal;
+    const sy = (guiaTop - imgTopNaTela) / escalaFinal;
+    const sSize = guiaTamanho / escalaFinal;
+
+    if (sSize <= 0) {
+      alert("Erro ao calcular o recorte. Ajuste o zoom e tente novamente.");
+      return;
+    }
+
+    const croppedCanvas = document.createElement('canvas');
+    croppedCanvas.width = 400;
+    croppedCanvas.height = 400;
+    const croppedCtx = croppedCanvas.getContext('2d');
+    croppedCtx.drawImage(uploadImg, sx, sy, sSize, sSize, 0, 0, 400, 400);
+
+    imagemRostoBase64 = croppedCanvas.toDataURL('image/jpeg', 0.92);
     simulacaoRosto.src = imagemRostoBase64;
     heroRosto.src = imagemRostoBase64;
 
@@ -1346,8 +1672,7 @@ footer{
     if (precoNav) precoNav.textContent = `A partir de R$ ${preco}`;
   }));
   precoFinal.textContent = `R$ ${calcularPreco()}`;
-
-  // Gerar prompt
+  atualizarPescoco();
   gerarPromptBtn.addEventListener('click', () => {
     if (!imagemRostoBase64) {
       alert("📸 Primeiro tire a foto do rosto!");
@@ -1357,13 +1682,27 @@ footer{
     const nome = nomeBase.value.trim() || "CRAQUE";
     const frase = fraseZoeira.value || nome;
     const estilo = estiloBoneco.value;
-    let contextoEstilo = "";
-    if (estilo === 'carro') contextoEstilo = "com mola para painel de carro, cabeça balançando";
-    else if (estilo === 'filho') contextoEstilo = "infantil, pose de futuro craque, sorriso contagiante";
-    else contextoEstilo = "pose de troféu de pelada, expressão de zoeira";
 
-    const prompt = `A clean, stylized 3D cartoon collectible bobblehead figure in the "Mini Craque" vintage Brazilian football toy style.
-The figure has a large wobbling head with simplified, expressive facial features directly based on the provided face photo (preserve essence, eyes, mouth shape, skin tone, hair, but in a cute cartoon vinyl toy aesthetic).
+    const isCarro = estilo === 'carro';
+    let tipoFigura, contextoEstilo, descricaoPescoco;
+
+    if (isCarro) {
+      tipoFigura = "bobblehead";
+      contextoEstilo = "pose de craque equilibrado, cabeça pronta para balançar";
+      descricaoPescoco = "The head is mounted on a thin spring/coil neck (classic bobblehead spring mechanism), allowing the head to wobble and bounce.";
+    } else if (estilo === 'filho') {
+      tipoFigura = "vinyl toy figure";
+      contextoEstilo = "infantil, pose de futuro craque, sorriso contagiante";
+      descricaoPescoco = "The head is attached directly to the body on a short, solid, fixed neck — a single rigid piece, like a regular static collectible statue.";
+    } else {
+      tipoFigura = "vinyl toy figure";
+      contextoEstilo = "pose de troféu de pelada, expressão de zoeira";
+      descricaoPescoco = "The head is attached directly to the body on a short, solid, fixed neck — a single rigid piece, like a regular static collectible statue.";
+    }
+
+    const prompt = `A clean, stylized 3D cartoon collectible ${tipoFigura} in the "Mini Craque" vintage Brazilian football toy style.
+The figure has a large head with simplified, expressive facial features directly based on the provided face photo (preserve essence, eyes, mouth shape, skin tone, hair, but in a cute cartoon vinyl toy aesthetic).
+${descricaoPescoco}
 NO glasses.
 The body wears a custom football kit: jersey color ${corCamisa.value}, shorts ${corCalcao.value}, socks ${corMeiao.value}, cleats ${corChuteira.value}.
 Visible seams and fabric texture like a designer toy.
@@ -1371,7 +1710,7 @@ The name "${nome}" is engraved in bold white letters on the front of a round mat
 The figure stands with one foot on a mini soccer ball, ${contextoEstilo}.
 Background: blurred football stadium at golden hour, cinematic lighting.
 Style: solid colors, clean lines, low-poly or smooth vinyl toy look, easy to paint and reproduce.
-Prompt for AI image generation (Midjourney/DALL-E/Leonardo).`;
+Prompt for AI image generation (Midjourney/DALL-E/Leonardo/Gemini).`;
 
     promptTexto.textContent = prompt;
     promptArea.style.display = 'block';
