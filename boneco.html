@@ -1165,6 +1165,7 @@ footer{
       <div class="preview-ficha">
         <div class="doll-preview">
           <img id="simulacao-rosto" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Ccircle cx='60' cy='60' r='60' fill='%230a8a3f'/%3E%3Ctext x='60' y='72' text-anchor='middle' fill='white' font-size='48'%3E😃%3C/text%3E%3C/svg%3E" alt="rosto capturado">
+          <button id="baixar-foto-btn" type="button" style="margin-top:0.5rem; background:transparent; border:1px solid var(--amarelo); color:var(--amarelo); padding:0.4rem 1rem; border-radius:20px; font-size:0.8rem; cursor:pointer; display:none;">💾 Baixar foto do rosto</button>
           <svg id="doll-svg" viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
             <g id="svg-pescoco"><rect x="50" y="25" width="20" height="15" fill="#f1c27d" /></g>
             <path id="svg-camisa" d="M30,35 Q60,10 90,35 L110,75 L90,85 L85,110 L35,110 L30,85 L10,75 Z" fill="#FFCC29" />
@@ -1346,9 +1347,11 @@ footer{
   const heroSvgChuteiraDir = document.getElementById('hero-svg-chuteira-dir');
   const heroSvgPescoco = document.getElementById('hero-svg-pescoco');
   const heroMetaEstilo = document.getElementById('hero-meta-estilo');
+  const baixarFotoBtn = document.getElementById('baixar-foto-btn');
 
   const NUMERO_WHATSAPP = '5521981762110';
   let imagemRostoBase64 = null;
+  let imagemRostoBlob = null;
 
   // Mapeamento times
   const timesCores = {
@@ -1533,11 +1536,12 @@ footer{
     croppedCtx.drawImage(canvas, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
 
     imagemRostoBase64 = croppedCanvas.toDataURL('image/jpeg', 0.9);
+    croppedCanvas.toBlob(blob => { imagemRostoBlob = blob; }, 'image/jpeg', 0.9);
     // Dentro do evento captureBtn, após:
     simulacaoRosto.src = imagemRostoBase64;
     if (heroRosto) heroRosto.src = imagemRostoBase64; // <-- adicione este if
     mostrarToast('✅ Foto capturada com sucesso!');
-
+    if (baixarFotoBtn) baixarFotoBtn.style.display = 'inline-block';
     document.getElementById('config').scrollIntoView({ behavior: 'smooth', block: 'center' });
   });
 
@@ -1675,10 +1679,11 @@ footer{
     croppedCtx.drawImage(uploadImg, sx, sy, sSize, sSize, 0, 0, 400, 400);
 
     imagemRostoBase64 = croppedCanvas.toDataURL('image/jpeg', 0.92);
+    croppedCanvas.toBlob(blob => { imagemRostoBlob = blob; }, 'image/jpeg', 0.92);
     simulacaoRosto.src = imagemRostoBase64;
     if (heroRosto) heroRosto.src = imagemRostoBase64; // <-- adicione este if
     mostrarToast('✅ Enquadramento confirmado!');
-
+    if (baixarFotoBtn) baixarFotoBtn.style.display = 'inline-block';
     document.getElementById('config').scrollIntoView({ behavior: 'smooth', block: 'center' });
   });
 
@@ -1744,13 +1749,60 @@ Prompt for AI image generation (Midjourney/DALL-E/Leonardo/Gemini).`;
     whatsappLink.href = `https://wa.me/${NUMERO_WHATSAPP}?text=${msgWhats}`;
   });
 
+  whatsappLink.addEventListener('click', (e) => {
+    const texto = whatsappLink.href.includes('?text=') 
+      ? decodeURIComponent(whatsappLink.href.split('?text=')[1]) 
+      : '';
+
+    // Tenta compartilhar via Web Share API (imagem + texto)
+    if (navigator.share && imagemRostoBase64) {
+      e.preventDefault();
+      // Converte base64 para Blob de forma síncrona
+      const byteString = atob(imagemRostoBase64.split(',')[1]);
+      const mimeString = imagemRostoBase64.split(',')[0].split(':')[1].split(';')[0];
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+      const blob = new Blob([ab], { type: mimeString });
+      const file = new File([blob], 'rosto-craque.jpg', { type: mimeString });
+      
+      navigator.share({
+        title: 'Mini Craque FC - Arte do boneco',
+        text: texto,
+        files: [file]
+      }).then(() => {
+        mostrarToast('📲 Compartilhado com sucesso!');
+      }).catch((err) => {
+        // Se falhar, abre o link normal (só texto)
+        window.open(whatsappLink.href, '_blank');
+        mostrarToast('📋 Não foi possível anexar a imagem automaticamente. Envie a foto manualmente.');
+      });
+    } else if (!imagemRostoBase64) {
+      // Se não houver foto, abre normalmente
+      // (o link já está correto)
+    }
+  });
+
   // Copiar prompt
   copiarPrompt.addEventListener('click', () => {
     navigator.clipboard.writeText(promptTexto.textContent).then(() => {
-      alert("📋 Prompt copiado! Cole em uma IA de imagem.");
+      mostrarToast('📋 Prompt copiado! Baixe a foto e envie ambos para a IA.');
     }).catch(() => alert("Erro ao copiar. Selecione e copie manualmente."));
   });
 
+  baixarFotoBtn.addEventListener('click', () => {
+    if (!imagemRostoBase64) {
+      mostrarToast('⚠️ Nenhuma foto capturada ainda.');
+      return;
+    }
+    const link = document.createElement('a');
+    link.download = 'meu-rosto-craque.jpg';
+    link.href = imagemRostoBase64;
+    link.click();
+    mostrarToast('📸 Foto baixada! Agora envie para a IA junto com o prompt.');
+  });
   // Links padrão de WhatsApp (antes de gerar prompt)
   const msgPadrao = `Olá!%20Quero%20criar%20meu%20boneco%20personalizado.`;
   whatsappLink.href = `https://wa.me/${NUMERO_WHATSAPP}?text=${msgPadrao}`;
