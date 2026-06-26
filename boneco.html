@@ -974,6 +974,10 @@ footer{
   .passos-grid{ grid-template-columns:1fr; }
   .color-picker-group{ grid-template-columns:repeat(2,1fr); }
 }
+@keyframes fadeInUp {
+  from { opacity:0; transform: translate(-50%, 20px); }
+  to { opacity:1; transform: translate(-50%, 0); }
+}
 </style>
 </head>
 <body>
@@ -1323,7 +1327,7 @@ footer{
   const whatsFloat = document.getElementById('whats-float');
   const footerWhats = document.getElementById('footer-whats');
 
-  // SVG da prévia (configurador)
+  // SVG da prévia (configurador) – sempre existem
   const svgCamisa = document.getElementById('svg-camisa');
   const svgCalcao = document.getElementById('svg-calcao');
   const svgMeiaoEsq = document.getElementById('svg-meiao-esq');
@@ -1332,7 +1336,7 @@ footer{
   const svgChuteiraDir = document.getElementById('svg-chuteira-dir');
   const svgPescoco = document.getElementById('svg-pescoco');
 
-  // SVG da vitrine (hero) — espelha as mesmas cores
+  // Hero – podem não existir mais
   const heroRosto = document.getElementById('hero-rosto');
   const heroSvgCamisa = document.getElementById('hero-svg-camisa');
   const heroSvgCalcao = document.getElementById('hero-svg-calcao');
@@ -1344,7 +1348,6 @@ footer{
   const heroMetaEstilo = document.getElementById('hero-meta-estilo');
 
   const NUMERO_WHATSAPP = '5521981762110';
-
   let imagemRostoBase64 = null;
 
   // Mapeamento times
@@ -1362,8 +1365,32 @@ footer{
 
   const nomesEstilo = { pelada: 'Troféu da Pelada', carro: 'Craque do Painel', filho: 'Mini-Craque' };
 
+  function mostrarToast(mensagem) {
+    const toast = document.createElement('div');
+    toast.textContent = mensagem;
+    toast.style.position = 'fixed';
+    toast.style.bottom = '30px';
+    toast.style.left = '50%';
+    toast.style.transform = 'translateX(-50%)';
+    toast.style.background = 'var(--verde)';
+    toast.style.color = '#fff';
+    toast.style.padding = '14px 28px';
+    toast.style.borderRadius = '40px';
+    toast.style.fontWeight = '800';
+    toast.style.fontFamily = 'var(--tecnico)';
+    toast.style.zIndex = '99999';
+    toast.style.boxShadow = '0 8px 24px rgba(0,0,0,0.5)';
+    toast.style.animation = 'fadeInUp 0.3s ease';
+    document.body.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transition = 'opacity 0.4s';
+      setTimeout(() => toast.remove(), 400);
+    }, 2500);
+  }
   // Atualiza cores no SVG da prévia + espelha na vitrine do hero
   function atualizarCoresSimulacao() {
+    // SVG da prévia (sempre existem, pois estão no configurador)
     svgCamisa.setAttribute('fill', corCamisa.value);
     svgCalcao.setAttribute('fill', corCalcao.value);
     svgMeiaoEsq.setAttribute('fill', corMeiao.value);
@@ -1371,12 +1398,13 @@ footer{
     svgChuteiraEsq.setAttribute('fill', corChuteira.value);
     svgChuteiraDir.setAttribute('fill', corChuteira.value);
 
-    heroSvgCamisa.setAttribute('fill', corCamisa.value);
-    heroSvgCalcao.setAttribute('fill', corCalcao.value);
-    heroSvgMeiaoEsq.setAttribute('fill', corMeiao.value);
-    heroSvgMeiaoDir.setAttribute('fill', corMeiao.value);
-    heroSvgChuteiraEsq.setAttribute('fill', corChuteira.value);
-    heroSvgChuteiraDir.setAttribute('fill', corChuteira.value);
+    // Hero (pode não existir)
+    if (heroSvgCamisa) heroSvgCamisa.setAttribute('fill', corCamisa.value);
+    if (heroSvgCalcao) heroSvgCalcao.setAttribute('fill', corCalcao.value);
+    if (heroSvgMeiaoEsq) heroSvgMeiaoEsq.setAttribute('fill', corMeiao.value);
+    if (heroSvgMeiaoDir) heroSvgMeiaoDir.setAttribute('fill', corMeiao.value);
+    if (heroSvgChuteiraEsq) heroSvgChuteiraEsq.setAttribute('fill', corChuteira.value);
+    if (heroSvgChuteiraDir) heroSvgChuteiraDir.setAttribute('fill', corChuteira.value);
   }
 
   [corCamisa, corCalcao, corMeiao, corChuteira].forEach(input => {
@@ -1395,11 +1423,16 @@ footer{
   function atualizarPescoco() {
     const isCarro = estiloBoneco.value === 'carro';
     const html = isCarro ? PESCOCO_MOLA : PESCOCO_RETO;
+    
+    // SVG da prévia (sempre existe)
     svgPescoco.innerHTML = html;
-    heroSvgPescoco.innerHTML = html;
-    // Com mola, o pescoço é mais longo — sobe o rosto pra mola ficar visível abaixo dele
+    
+    // Hero (pode não existir)
+    if (heroSvgPescoco) heroSvgPescoco.innerHTML = html;
+    if (heroRosto) heroRosto.style.top = isCarro ? '6px' : '22px';
+    
+    // Simulação de rosto no configurador
     simulacaoRosto.style.top = isCarro ? '8px' : '24px';
-    heroRosto.style.top = isCarro ? '6px' : '22px';
   }
 
   // Nome na base
@@ -1500,8 +1533,10 @@ footer{
     croppedCtx.drawImage(canvas, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
 
     imagemRostoBase64 = croppedCanvas.toDataURL('image/jpeg', 0.9);
+    // Dentro do evento captureBtn, após:
     simulacaoRosto.src = imagemRostoBase64;
-    heroRosto.src = imagemRostoBase64;
+    if (heroRosto) heroRosto.src = imagemRostoBase64; // <-- adicione este if
+    mostrarToast('✅ Foto capturada com sucesso!');
 
     document.getElementById('config').scrollIntoView({ behavior: 'smooth', block: 'center' });
   });
@@ -1641,7 +1676,8 @@ footer{
 
     imagemRostoBase64 = croppedCanvas.toDataURL('image/jpeg', 0.92);
     simulacaoRosto.src = imagemRostoBase64;
-    heroRosto.src = imagemRostoBase64;
+    if (heroRosto) heroRosto.src = imagemRostoBase64; // <-- adicione este if
+    mostrarToast('✅ Enquadramento confirmado!');
 
     document.getElementById('config').scrollIntoView({ behavior: 'smooth', block: 'center' });
   });
