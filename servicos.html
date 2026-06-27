@@ -1,871 +1,826 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Conteúdo Blindado · ALMAFLUXO</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hub de Acesso | ALMAFLUXO</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
 <style>
+/* ============================
+   RESET & VARIÁVEIS — herdadas do index.html (Olho De Deus)
+   ============================ */
 *{margin:0;padding:0;box-sizing:border-box}
-html{font-size:16px}
+:root{
+  --ciano:#00e5ff;
+  --dourado:#ffd700;
+  --verde:#00e676;
+  --vermelho:#ff5a5a;
+  --bg:#030508;
+  --panel:#0a0e17;
+  --panel2:#060a12;
+  --texto:#e0e0e0;
+  --texto2:#888;
+  --border:#1a1a2e;
+  --font:'Inter',sans-serif;
+  --body:'Nunito',sans-serif;
+}
+html{scroll-behavior:smooth}
 body{
-  background:radial-gradient(ellipse at 20% 30%,#0a0f1a,#030507);
-  font-family:"Segoe UI","Courier New",monospace;
-  min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px
+  font-family:var(--body);background:var(--bg);color:var(--texto);
+  overflow-x:hidden;padding-top:60px;line-height:1.5
 }
-.container{
-  background:rgba(10,20,30,.92);backdrop-filter:blur(14px);
-  border-radius:32px;border:1px solid rgba(0,255,255,.25);
-  box-shadow:0 20px 48px rgba(0,0,0,.55),0 0 24px rgba(0,255,255,.12);
-  padding:2rem;width:100%;max-width:560px;
-  animation:fadeUp .5s ease
+a{text-decoration:none;color:inherit}
+.container{max-width:1200px;margin:0 auto;padding:0 1.5rem}
+
+/* ============================
+   NAVBAR
+   ============================ */
+#app-nav{
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(3,5,8,.92);backdrop-filter:blur(14px);
+  padding:.7rem 2rem;border-bottom:1px solid rgba(0,229,255,.08);
+  position:fixed;top:0;left:0;width:100%;z-index:9999
 }
-@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.nav-brand{font-family:var(--font);font-weight:800;color:var(--ciano);font-size:1.2rem;letter-spacing:.5px}
+.nav-brand span{color:#fff;font-weight:400}
+.nav-actions{display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.token-display{
+  background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.2);
+  color:var(--dourado);padding:.3rem 1.2rem;border-radius:30px;
+  font-weight:700;font-size:.85rem;font-family:var(--font);white-space:nowrap;
+  cursor:pointer;transition:.2s
+}
+.token-display:hover{background:rgba(255,215,0,.1);box-shadow:0 0 16px rgba(255,215,0,.12)}
+.btn-nav{
+  background:var(--ciano);color:#000;border:none;padding:.5rem 1.6rem;
+  border-radius:30px;font-weight:800;font-size:.9rem;cursor:pointer;
+  transition:.25s;font-family:var(--font);white-space:nowrap
+}
+.btn-nav:hover{box-shadow:0 0 24px rgba(0,229,255,.35);transform:scale(1.03)}
+.btn-nav-outline{background:transparent;border:1px solid rgba(255,215,0,.3);color:var(--dourado)}
+.btn-nav-outline:hover{background:rgba(255,215,0,.05);box-shadow:0 0 20px rgba(255,215,0,.1)}
 
-/* ── TOP BAR ── */
-.top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.4rem;flex-wrap:wrap;gap:.6rem}
-.logo{font-size:1.1rem;background:linear-gradient(135deg,#0ff,#0f9);-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:1.5px;font-weight:700;text-shadow:none}
-.cd-info{font-size:.8rem;color:#4cc;display:flex;gap:.5rem;align-items:center;background:rgba(0,0,0,.3);padding:6px 14px;border-radius:48px;border:1px solid rgba(0,255,255,.12)}
-.cd-info .value{font-family:monospace;font-weight:700;color:#0f0;font-size:.85rem}
-.cd-info.urgente .value{color:#f44;animation:piscar .8s infinite}
-@keyframes piscar{50%{opacity:.3}}
+/* ============================
+   HERO
+   ============================ */
+.hero{
+  max-width:900px;margin:2.5rem auto 0;padding:0 1.5rem 2.5rem;
+  text-align:center
+}
+.hero-badge{
+  display:inline-block;background:rgba(0,229,255,.06);padding:.3rem 1.2rem;
+  border-radius:30px;font-size:.75rem;color:var(--ciano);border:1px solid rgba(0,229,255,.12);
+  font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:1.2rem
+}
+.hero h1{
+  font-family:var(--font);font-size:clamp(2rem,4.5vw,3.2rem);font-weight:900;
+  line-height:1.1;color:#fff;margin-bottom:1rem
+}
+.hero h1 .destaque{color:var(--dourado)}
+.hero p{font-size:1.05rem;color:var(--texto2);max-width:560px;margin:0 auto 2rem;line-height:1.7}
 
-/* ── PROPAGANDA ── */
-.propa-section{margin-bottom:1.6rem}
+/* ============================
+   FEATURES — explicação do sistema (clicáveis)
+   ============================ */
+.features-section{
+  padding:2rem 1.5rem 3.5rem;background:var(--panel2);
+  border-top:1px solid var(--border);border-bottom:1px solid var(--border)
+}
+.features-section .section-title{
+  text-align:center;font-family:var(--font);font-size:1.5rem;font-weight:800;
+  color:#fff;margin-bottom:.4rem
+}
+.features-section .section-sub{
+  text-align:center;color:var(--texto2);font-size:.92rem;margin-bottom:2.2rem
+}
+.features-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:1.2rem;max-width:1100px;margin:0 auto
+}
+.feature-card{
+  background:var(--panel);border:1px solid var(--border);border-radius:16px;
+  padding:1.8rem 1.2rem;text-align:center;transition:.25s;cursor:pointer;
+}
+.feature-card:hover{border-color:rgba(0,229,255,.35);transform:translateY(-3px);box-shadow:0 8px 28px rgba(0,229,255,.08)}
+.feature-icon{font-size:2.4rem;margin-bottom:.6rem;display:block}
+.feature-card h4{font-family:var(--font);font-weight:700;color:#fff;font-size:.95rem;letter-spacing:.3px;margin-bottom:.4rem}
+.feature-card p{font-size:.76rem;color:var(--texto2);line-height:1.5}
+
+/* ============================
+   PLATAFORMAS (PROPAGANDA) — VS, operadores, pilares
+   ============================ */
+.propa-section{max-width:900px;margin:0 auto;padding:3.5rem 1.5rem 1rem}
 .propa-headline{
-  font-size:1.5rem;font-weight:900;line-height:1.15;
-  background:linear-gradient(135deg,#0ff 0%,#0f9 55%,#ffd700 100%);
+  font-size:clamp(1.6rem,3.4vw,2.3rem);font-weight:900;line-height:1.15;
+  background:linear-gradient(135deg,var(--ciano) 0%,var(--verde) 55%,var(--dourado) 100%);
   -webkit-background-clip:text;background-clip:text;color:transparent;
-  text-align:center;margin-bottom:.4rem;letter-spacing:.5px
+  text-align:center;margin-bottom:.6rem;letter-spacing:.3px
 }
-.propa-sub{
-  font-size:.78rem;color:#6aa;text-align:center;margin-bottom:1.2rem;line-height:1.7
-}
-.propa-sub em{color:#ffd700;font-style:normal;font-weight:700}
-.vs-box{
-  display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.2rem
-}
-.vs-col{border-radius:14px;padding:12px 14px;transition:transform .2s}
-.vs-col:hover{transform:translateY(-2px)}
-.vs-col.bad{background:rgba(255,60,60,.06);border:1px solid rgba(255,60,60,.18)}
-.vs-col.good{background:rgba(0,255,160,.06);border:1px solid rgba(0,255,160,.18)}
-.vs-col-title{font-size:.72rem;font-weight:700;letter-spacing:1.5px;margin-bottom:8px;text-transform:uppercase}
-.vs-col.bad .vs-col-title{color:#f66}
-.vs-col.good .vs-col-title{color:#0fa}
-.vs-item{font-size:.74rem;line-height:1.6;color:rgba(255,255,255,.72);padding:3px 0;border-bottom:1px solid rgba(255,255,255,.03)}
-.vs-item:last-child{border-bottom:none}
-.vs-item span{margin-right:5px;font-size:.8rem}
-.operadores-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.2rem}
-.op-card{
-  background:rgba(0,0,0,.25);border:1px solid rgba(0,255,255,.1);
-  border-radius:14px;padding:12px 14px;cursor:default;transition:all .2s
-}
-.op-card:hover{border-color:rgba(0,255,255,.3);background:rgba(0,255,255,.04);transform:translateY(-1px)}
-.op-icon{font-size:1.5rem;display:block;margin-bottom:6px}
-.op-nome{font-size:.82rem;font-weight:700;color:#0ff;margin-bottom:4px}
-.op-desc{font-size:.69rem;color:#4cc;line-height:1.5}
-.pilares-row{display:flex;gap:8px;margin-bottom:1.2rem;flex-wrap:wrap}
-.pilar{
-  flex:1;min-width:90px;background:rgba(0,0,0,.2);border:1px solid rgba(255,215,0,.12);
-  border-radius:12px;padding:10px 12px;text-align:center;transition:all .2s
-}
-.pilar:hover{border-color:rgba(255,215,0,.3);background:rgba(255,215,0,.04)}
-.pilar-icone{font-size:1.4rem;display:block;margin-bottom:6px}
-.pilar-title{font-size:.7rem;font-weight:700;color:#ffd700;margin-bottom:4px;letter-spacing:1px;text-transform:uppercase}
-.pilar-desc{font-size:.65rem;color:#7aa;line-height:1.5}
-.propa-frase{
-  background:rgba(0,255,255,.04);border:1px solid rgba(0,255,255,.15);
-  border-left:3px solid #0ff;border-radius:10px;padding:12px 16px;
-  font-size:.82rem;color:rgba(255,255,255,.85);line-height:1.8;
-  margin-bottom:1.2rem;font-style:italic;letter-spacing:.2px
-}
-.propa-frase strong{color:#0ff;font-style:normal;font-weight:700}
-.propa-divider{
-  display:flex;align-items:center;gap:12px;margin-bottom:1.2rem
-}
-.propa-divider::before,.propa-divider::after{
-  content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(0,255,255,.2),transparent)
-}
-.propa-divider span{font-size:.68rem;color:#2a8a8a;letter-spacing:3px;white-space:nowrap;text-transform:uppercase;font-weight:600}
+.propa-sub{font-size:.92rem;color:var(--texto2);text-align:center;margin-bottom:2rem;line-height:1.8}
+.propa-sub em{color:var(--dourado);font-style:normal;font-weight:700}
 
-/* ── BADGE DE PLATAFORMA ── */
-.plat-badge{
-  display:flex;align-items:center;gap:12px;
-  background:rgba(0,0,0,.35);border:1px solid rgba(0,255,255,.18);
-  border-radius:18px;padding:12px 16px;margin-bottom:1.4rem;cursor:pointer;
-  transition:all .25s;min-height:60px
+.vs-box{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:1.8rem}
+.vs-col{border-radius:16px;padding:18px 20px;transition:transform .2s}
+.vs-col:hover{transform:translateY(-2px)}
+.vs-col.bad{background:rgba(255,90,90,.05);border:1px solid rgba(255,90,90,.18)}
+.vs-col.good{background:rgba(0,230,118,.05);border:1px solid rgba(0,230,118,.18)}
+.vs-col-title{font-size:.78rem;font-weight:800;letter-spacing:1.5px;margin-bottom:10px;text-transform:uppercase;font-family:var(--font)}
+.vs-col.bad .vs-col-title{color:var(--vermelho)}
+.vs-col.good .vs-col-title{color:var(--verde)}
+.vs-item{font-size:.82rem;line-height:1.8;color:rgba(255,255,255,.72);padding:4px 0;border-bottom:1px solid rgba(255,255,255,.03)}
+.vs-item:last-child{border-bottom:none}
+.vs-item span{margin-right:6px}
+
+.operadores-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:1.8rem}
+.op-card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:16px 18px;transition:all .2s}
+.op-card:hover{border-color:rgba(0,229,255,.3);background:rgba(0,229,255,.03);transform:translateY(-2px)}
+.op-icon{font-size:1.8rem;display:block;margin-bottom:8px}
+.op-nome{font-size:.92rem;font-weight:700;color:var(--ciano);margin-bottom:5px;font-family:var(--font)}
+.op-desc{font-size:.76rem;color:var(--texto2);line-height:1.6}
+
+.pilares-row{display:flex;gap:10px;margin-bottom:1.8rem;flex-wrap:wrap}
+.pilar{
+  flex:1;min-width:130px;background:var(--panel);border:1px solid rgba(255,215,0,.12);
+  border-radius:14px;padding:16px 14px;text-align:center;transition:all .2s
 }
-.plat-badge:hover{background:rgba(0,255,255,.05);border-color:rgba(0,255,255,.35);box-shadow:0 0 20px rgba(0,255,255,.08)}
-.plat-badge:active{transform:scale(.98)}
-.plat-icon{font-size:1.8rem;flex-shrink:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:rgba(0,255,255,.06);border-radius:50%}
+.pilar:hover{border-color:rgba(255,215,0,.3);background:rgba(255,215,0,.03)}
+.pilar-icone{font-size:1.7rem;display:block;margin-bottom:8px}
+.pilar-title{font-size:.74rem;font-weight:800;color:var(--dourado);margin-bottom:5px;letter-spacing:1px;text-transform:uppercase;font-family:var(--font)}
+.pilar-desc{font-size:.74rem;color:var(--texto2);line-height:1.6}
+
+.propa-frase{
+  background:rgba(0,229,255,.04);border:1px solid rgba(0,229,255,.15);
+  border-left:3px solid var(--ciano);border-radius:12px;padding:18px 22px;
+  font-size:.95rem;color:rgba(255,255,255,.85);line-height:1.8;
+  margin-bottom:2rem;font-style:italic;letter-spacing:.2px;text-align:center
+}
+.propa-frase strong{color:var(--ciano);font-style:normal;font-weight:700}
+
+/* ============================
+   COUNTDOWN / TOP STATUS
+   ============================ */
+.status-bar{
+  display:flex;justify-content:center;align-items:center;gap:.6rem;
+  margin:1rem auto 0;max-width:320px;background:rgba(0,0,0,.3);
+  padding:8px 18px;border-radius:48px;border:1px solid rgba(0,229,255,.12);
+  font-size:.82rem;color:#4cc
+}
+.status-bar .value{font-family:monospace;font-weight:700;color:var(--verde);font-size:.88rem}
+.status-bar.urgente .value{color:var(--vermelho);animation:piscar 1s infinite}
+@keyframes piscar{50%{opacity:.4}}
+
+/* ============================
+   HUB DE ACESSO — seleção de plataforma + token
+   ============================ */
+.hub-section{max-width:760px;margin:0 auto;padding:2.5rem 1.5rem 1rem}
+.hub-card{
+  background:var(--panel);border:1px solid var(--border);border-radius:24px;
+  padding:2rem;box-shadow:0 20px 48px rgba(0,0,0,.4)
+}
+
+/* Badge da plataforma selecionada */
+.plat-badge{
+  display:flex;align-items:center;gap:14px;
+  background:rgba(0,0,0,.3);border:1px solid rgba(0,229,255,.18);
+  border-radius:18px;padding:14px 18px;margin-bottom:1.4rem;cursor:pointer;
+  transition:all .25s
+}
+.plat-badge:hover{background:rgba(0,229,255,.05);border-color:rgba(0,229,255,.35);box-shadow:0 0 20px rgba(0,229,255,.08)}
+.plat-badge:active{transform:scale(.99)}
+.plat-icon{font-size:1.8rem;flex-shrink:0;width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:rgba(0,229,255,.06);border-radius:50%}
 .plat-info{flex:1;min-width:0}
-.plat-nome{font-size:.95rem;font-weight:700;color:#0ff;letter-spacing:.5px;line-height:1.3}
-.plat-desc{font-size:.72rem;color:#4cc;margin-top:3px;line-height:1.5}
-.plat-seta{font-size:.85rem;color:#4cc;flex-shrink:0;transition:transform .2s}
+.plat-nome{font-size:1rem;font-weight:700;color:var(--ciano);letter-spacing:.3px;font-family:var(--font)}
+.plat-desc{font-size:.78rem;color:var(--texto2);margin-top:3px;line-height:1.5}
+.plat-seta{font-size:.85rem;color:var(--texto2);flex-shrink:0;transition:transform .2s}
 .plat-badge:hover .plat-seta{transform:translateY(2px)}
 
-/* ── MODAL DE SELEÇÃO DE PLATAFORMA ── */
+/* Modal seleção de plataforma */
 .modal-overlay{
-  position:fixed;top:0;left:0;width:100%;height:100%;
-  background:rgba(0,0,0,.8);backdrop-filter:blur(6px);
-  z-index:9999;display:none;justify-content:center;align-items:center;padding:20px
+  position:fixed;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(10px);
+  z-index:10000;display:none;align-items:center;justify-content:center;padding:1.5rem
 }
 .modal-overlay.active{display:flex;animation:fadeIn .25s ease}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-.modal-plat{
-  background:linear-gradient(145deg,#0a1525,#0c1a2a);
-  border:1px solid rgba(0,255,255,.3);
-  border-radius:24px;padding:1.5rem;max-width:480px;width:100%;
-  box-shadow:0 30px 60px rgba(0,0,0,.7),0 0 30px rgba(0,255,255,.1);
-  animation:slideUp .3s ease
+.modal{
+  background:var(--panel);border:1px solid var(--border);border-radius:24px;
+  padding:1.8rem;max-width:480px;width:100%;animation:fadeUp .3s ease;
+  box-shadow:0 30px 60px rgba(0,0,0,.6)
 }
-@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
-.modal-plat h3{font-size:1.05rem;color:#0ff;letter-spacing:1px;margin-bottom:4px}
-.modal-plat .subtitulo{font-size:.74rem;color:#4cc;margin-bottom:16px;line-height:1.5}
-.plat-lista{display:flex;flex-direction:column;gap:8px;max-height:60vh;overflow-y:auto;padding-right:4px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.modal .close-btn{float:right;background:transparent;border:none;color:var(--texto2);font-size:1.8rem;cursor:pointer;line-height:1;transition:.2s}
+.modal .close-btn:hover{color:#fff}
+.modal h2,.modal h3{font-family:var(--font);color:#fff;text-align:center;font-weight:800;margin-bottom:.4rem;font-size:1.3rem}
+.modal .subtitulo{font-size:.82rem;color:var(--texto2);text-align:center;margin-bottom:1.4rem;line-height:1.5}
+
+.plat-lista{display:flex;flex-direction:column;gap:8px;max-height:58vh;overflow-y:auto;padding-right:4px}
 .plat-lista::-webkit-scrollbar{width:4px}
 .plat-lista::-webkit-scrollbar-track{background:transparent}
-.plat-lista::-webkit-scrollbar-thumb{background:rgba(0,255,255,.2);border-radius:4px}
+.plat-lista::-webkit-scrollbar-thumb{background:rgba(0,229,255,.2);border-radius:4px}
 .plat-item{
-  display:flex;align-items:center;gap:12px;
-  padding:12px 16px;border-radius:14px;cursor:pointer;transition:all .2s;
-  border:1px solid rgba(255,255,255,.05);background:rgba(0,0,0,.2);
-  min-height:56px
+  display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:14px;
+  cursor:pointer;transition:all .2s;border:1px solid rgba(255,255,255,.05);
+  background:rgba(0,0,0,.2);min-height:56px
 }
-.plat-item:hover{background:rgba(0,255,255,.06);border-color:rgba(0,255,255,.2)}
-.plat-item.sel{background:rgba(0,255,255,.1);border-color:#0ff;box-shadow:0 0 16px rgba(0,255,255,.1)}
-.plat-item:active{transform:scale(.98)}
-.plat-item-icone{font-size:1.6rem;flex-shrink:0;width:42px;height:42px;display:flex;align-items:center;justify-content:center;background:rgba(0,255,255,.05);border-radius:50%}
+.plat-item:hover{background:rgba(0,229,255,.06);border-color:rgba(0,229,255,.2)}
+.plat-item.sel{background:rgba(0,229,255,.1);border-color:var(--ciano);box-shadow:0 0 16px rgba(0,229,255,.1)}
+.plat-item-icone{font-size:1.6rem;flex-shrink:0;width:42px;height:42px;display:flex;align-items:center;justify-content:center;background:rgba(0,229,255,.05);border-radius:50%}
 .plat-item-info{flex:1;min-width:0}
-.plat-item-nome{font-size:.85rem;font-weight:700;color:#cef;line-height:1.3}
-.plat-item-desc{font-size:.7rem;color:#5aa;line-height:1.4;margin-top:2px}
-.plat-item-check{color:#0ff;font-size:.95rem;flex-shrink:0;opacity:0;transition:all .2s}
+.plat-item-nome{font-size:.88rem;font-weight:700;color:#cef;line-height:1.3}
+.plat-item-desc{font-size:.72rem;color:var(--texto2);line-height:1.4;margin-top:2px}
+.plat-item-check{color:var(--ciano);font-size:.95rem;flex-shrink:0;opacity:0;transition:all .2s}
 .plat-item.sel .plat-item-check{opacity:1}
 .modal-fechar{
-  display:block;width:100%;margin-top:16px;padding:12px;
-  border-radius:48px;border:1px solid rgba(0,255,255,.2);
-  background:rgba(0,0,0,.3);color:#4cc;cursor:pointer;
-  font-size:.82rem;font-weight:600;text-align:center;transition:all .2s;letter-spacing:1px
+  display:block;width:100%;margin-top:16px;padding:12px;border-radius:48px;
+  border:1px solid rgba(0,229,255,.2);background:rgba(0,0,0,.3);color:var(--texto2);
+  cursor:pointer;font-size:.84rem;font-weight:600;text-align:center;transition:all .2s
 }
-.modal-fechar:hover{background:rgba(0,255,255,.08);color:#0ff;border-color:rgba(0,255,255,.35)}
-.modal-fechar:active{transform:scale(.97)}
+.modal-fechar:hover{background:rgba(0,229,255,.08);color:var(--ciano);border-color:rgba(0,229,255,.35)}
 
-/* ── ABAS ── */
-.tabs{display:flex;gap:0;margin-bottom:1.5rem;border-radius:48px;overflow:hidden;border:1px solid rgba(0,255,255,.2);background:rgba(0,0,0,.3)}
-.tab{flex:1;padding:12px 0;text-align:center;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .25s;color:#4cc;background:transparent;letter-spacing:.5px;user-select:none;min-height:48px;display:flex;align-items:center;justify-content:center}
-.tab:first-child{border-right:1px solid rgba(0,255,255,.15)}
-.tab.active{background:linear-gradient(95deg,#0a2a2a,#0a3a3a);color:#0ff;box-shadow:inset 0 0 16px rgba(0,255,255,.1)}
-.tab:hover:not(.active){background:rgba(0,255,255,.04);color:#8ff}
+/* ============================
+   ABAS
+   ============================ */
+.tabs{display:flex;gap:0;margin-bottom:1.6rem;border-radius:48px;overflow:hidden;border:1px solid rgba(0,229,255,.2);background:rgba(0,0,0,.3)}
+.tab{flex:1;padding:13px 0;text-align:center;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .25s;color:var(--texto2);background:transparent;letter-spacing:.4px;user-select:none}
+.tab:first-child{border-right:1px solid rgba(0,229,255,.15)}
+.tab.active{background:linear-gradient(95deg,rgba(0,229,255,.12),rgba(0,229,255,.18));color:var(--ciano);box-shadow:inset 0 0 16px rgba(0,229,255,.08)}
+.tab:hover:not(.active){background:rgba(0,229,255,.04);color:#8ff}
 
-/* ── PAINÉIS ── */
 .panel{display:none;animation:fadeIn .3s ease}
 .panel.active{display:block}
 
-/* ── INPUTS ── */
+/* ============================
+   INPUTS / BOTÕES
+   ============================ */
 input[type=text],input[type=email],input[type=number],select,textarea{
-  background:#0a121c;border:1px solid #2a6a6a;border-radius:14px;
-  padding:12px 16px;width:100%;color:#cef;font-size:.9rem;
-  font-family:inherit;outline:none;transition:all .25s;margin-bottom:12px;
+  background:#0d1220;border:1px solid var(--border);border-radius:14px;
+  padding:13px 16px;width:100%;color:#fff;font-size:.92rem;
+  font-family:var(--body);outline:none;transition:all .25s;margin-bottom:12px;
   -webkit-appearance:none;appearance:none
 }
-input[type=text]:focus,input[type=email]:focus,input[type=number]:focus,select:focus,textarea:focus{
-  border-color:#0ff;box-shadow:0 0 18px rgba(0,255,255,.12)
-}
-input::placeholder,textarea::placeholder{color:#2a7a7a;font-size:.85rem}
+input:focus,select:focus,textarea:focus{border-color:var(--ciano);box-shadow:0 0 18px rgba(0,229,255,.12)}
+input::placeholder,textarea::placeholder{color:#445}
 select{
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234cc' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2300e5ff' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:right 14px center;padding-right:36px
 }
-select option{background:#0a121c;color:#cef}
-#senhaInput{border-radius:48px;text-align:center;letter-spacing:4px;font-size:1.05rem;color:#0ff;margin-bottom:14px;font-weight:700;padding:14px}
+select option{background:#0d1220;color:#fff}
+#tokenInput{border-radius:48px;text-align:center;letter-spacing:3px;font-size:1.05rem;color:var(--ciano);margin-bottom:14px;font-weight:700;padding:15px;text-transform:uppercase}
 
-/* ── BOTÕES ── */
 .btn{
-  background:linear-gradient(95deg,#0a2a2a,#0a3a3a);border:none;
-  border-radius:48px;padding:13px 24px;width:100%;font-size:.95rem;
-  font-weight:700;color:#0ff;cursor:pointer;transition:all .25s;margin-top:6px;
-  letter-spacing:.5px;min-height:50px
+  background:var(--ciano);color:#000;border:none;border-radius:48px;
+  padding:14px 24px;width:100%;font-size:.95rem;font-weight:800;
+  cursor:pointer;transition:all .25s;margin-top:6px;letter-spacing:.4px;
+  font-family:var(--font)
 }
-.btn:hover{background:linear-gradient(95deg,#0c3c3c,#0e5e5e);color:#fff;box-shadow:0 0 18px rgba(0,255,255,.25);transform:translateY(-1px)}
-.btn:active{transform:scale(.97)}
+.btn:hover{box-shadow:0 0 24px rgba(0,229,255,.3);transform:translateY(-1px)}
+.btn:active{transform:scale(.98)}
 .btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
-.btn-green{background:linear-gradient(95deg,#0a2a15,#0a3a1a);color:#0f9}
-.btn-green:hover{background:linear-gradient(95deg,#0c3c1c,#0e5e28);color:#fff;box-shadow:0 0 18px rgba(0,255,100,.25)}
-.btn-ghost{background:linear-gradient(95deg,#0a1a2a,#0a2a3a);color:#4cf}
-.btn-ghost:hover{background:linear-gradient(95deg,#0c2c3c,#0e3e4e);color:#fff;box-shadow:0 0 18px rgba(74,111,255,.25)}
+.btn-dourado{background:var(--dourado)}
+.btn-dourado:hover{box-shadow:0 0 24px rgba(255,215,0,.3)}
+.btn-ghost{background:transparent;color:var(--ciano);border:1px solid rgba(0,229,255,.3)}
+.btn-ghost:hover{background:rgba(0,229,255,.05);box-shadow:none}
 
-/* ── LABELS / SEÇÕES ── */
-.lbl{display:block;font-size:.78rem;color:#4cc;margin-bottom:5px;margin-top:6px;letter-spacing:.5px;font-weight:600}
-.sect{font-size:.82rem;font-weight:700;color:#0ff;letter-spacing:1px;margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid rgba(0,255,255,.12)}
+.lbl{display:block;font-size:.8rem;color:#9ad;margin-bottom:5px;margin-top:8px;letter-spacing:.3px;font-weight:600}
+.sect{font-size:.85rem;font-weight:800;color:var(--ciano);letter-spacing:1px;margin:20px 0 12px;padding-bottom:6px;border-bottom:1px solid rgba(0,229,255,.12);font-family:var(--font)}
 
-/* ── RADIO / CHECKBOX ── */
 .radio-group{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
-.radio-group label{display:flex;align-items:flex-start;gap:10px;font-size:.82rem;color:#9cc;cursor:pointer;padding:10px 14px;border-radius:12px;transition:all .2s;border:1px solid transparent;line-height:1.4}
-.radio-group label:hover{background:rgba(0,255,255,.04);border-color:rgba(0,255,255,.1)}
-.radio-group input[type=radio],.radio-group input[type=checkbox]{width:18px;height:18px;accent-color:#0ff;flex-shrink:0;margin-top:1px;padding:0}
+.radio-group label{display:flex;align-items:flex-start;gap:10px;font-size:.84rem;color:#bcd;cursor:pointer;padding:11px 14px;border-radius:12px;transition:all .2s;border:1px solid transparent;line-height:1.4}
+.radio-group label:hover{background:rgba(0,229,255,.04);border-color:rgba(0,229,255,.1)}
+.radio-group input[type=radio],.radio-group input[type=checkbox]{width:18px;height:18px;accent-color:var(--ciano);flex-shrink:0;margin-top:1px}
 
-/* ── TIPO SERVIÇO ── */
-.tipo-btn-row{display:flex;gap:10px;margin-bottom:14px}
-.tipo-btn{flex:1;padding:12px 0;border-radius:14px;font-size:.82rem;font-weight:700;cursor:pointer;border:1px solid #2a6a6a;background:rgba(0,0,0,.3);color:#4cc;transition:all .25s;text-align:center;letter-spacing:.5px;min-height:48px;display:flex;align-items:center;justify-content:center}
-.tipo-btn.sel{background:rgba(0,255,255,.1);border-color:#0ff;color:#0ff;box-shadow:0 0 14px rgba(0,255,255,.12)}
-.tipo-btn:hover:not(.sel){background:rgba(0,255,255,.04);color:#8ff;border-color:rgba(0,255,255,.2)}
-.tipo-btn:active{transform:scale(.96)}
+.tipo-btn-row{display:flex;gap:10px;margin-bottom:16px}
+.tipo-btn{flex:1;padding:13px 0;border-radius:14px;font-size:.84rem;font-weight:700;cursor:pointer;border:1px solid var(--border);background:rgba(0,0,0,.3);color:var(--texto2);transition:all .25s;text-align:center}
+.tipo-btn.sel{background:rgba(0,229,255,.1);border-color:var(--ciano);color:var(--ciano);box-shadow:0 0 14px rgba(0,229,255,.12)}
+.tipo-btn:hover:not(.sel){background:rgba(0,229,255,.04);color:#8ff}
 
-/* ── AVISO ── */
-.aviso{background:rgba(255,193,7,.06);border:1px solid rgba(255,193,7,.25);border-radius:12px;padding:12px 16px;font-size:.78rem;color:rgba(255,255,255,.8);line-height:1.7;margin-bottom:14px}
-.aviso strong{color:#ffd700;font-weight:700}
+.aviso{background:rgba(255,215,0,.05);border:1px solid rgba(255,215,0,.2);border-radius:12px;padding:14px 18px;font-size:.82rem;color:rgba(255,255,255,.8);line-height:1.7;margin-bottom:16px}
+.aviso strong{color:var(--dourado);font-weight:700}
 
-/* ── TOTAL ── */
-.valor-total{text-align:center;font-size:1.1rem;font-weight:700;color:#ffd700;padding:10px;background:rgba(255,215,0,.06);border-radius:12px;margin:10px 0 14px;display:none;border:1px solid rgba(255,215,0,.15)}
+/* Planos de preço (hora / dia / mês) */
+.planos-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:1rem}
+.plano-card{
+  background:rgba(0,0,0,.25);border:2px solid var(--border);border-radius:16px;
+  padding:16px 12px;text-align:center;cursor:pointer;transition:all .2s
+}
+.plano-card:hover{border-color:rgba(0,229,255,.3)}
+.plano-card.sel{border-color:var(--ciano);background:rgba(0,229,255,.06);box-shadow:0 0 18px rgba(0,229,255,.1)}
+.plano-nome{font-size:.78rem;font-weight:700;color:var(--texto2);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;font-family:var(--font)}
+.plano-card.sel .plano-nome{color:var(--ciano)}
+.plano-preco{font-size:1.4rem;font-weight:800;color:var(--dourado);font-family:var(--font)}
+.plano-preco span{font-size:.7rem;color:var(--texto2);font-weight:400;display:block}
 
-/* ── CIVILIZAÇÕES ── */
+.valor-total{text-align:center;font-size:1.1rem;font-weight:800;color:var(--dourado);padding:12px;background:rgba(255,215,0,.06);border-radius:12px;margin:12px 0 16px;display:none;border:1px solid rgba(255,215,0,.15);font-family:var(--font)}
+
 .civs-block{background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:14px;margin-bottom:12px;display:none}
 .civs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-top:10px}
 .civs-grid label{font-size:.8rem;color:#9cc;padding:8px 12px;border-radius:10px;transition:all .2s;border:1px solid transparent;cursor:pointer;display:flex;align-items:center;gap:8px}
-.civs-grid label:hover{background:rgba(0,255,255,.04);border-color:rgba(0,255,255,.1)}
-.civs-grid input[type=checkbox]{width:16px;height:16px;accent-color:#ffd700;flex-shrink:0;margin:0;padding:0}
-.civ-total{margin-top:10px;font-weight:700;color:#ffd700;font-size:.82rem;text-align:right}
+.civs-grid label:hover{background:rgba(0,229,255,.04);border-color:rgba(0,229,255,.1)}
+.civs-grid input[type=checkbox]{width:16px;height:16px;accent-color:var(--dourado);flex-shrink:0}
+.civ-total{margin-top:10px;font-weight:700;color:var(--dourado);font-size:.84rem;text-align:right}
 
-/* ── MAPA PANEL ── */
-.mapa-panel{
-  background:rgba(0,0,0,.25);border:1px solid rgba(255,215,0,.2);
-  border-radius:20px;padding:1.5rem;text-align:center;animation:fadeIn .4s ease
-}
+.mapa-panel{background:rgba(0,0,0,.25);border:1px solid rgba(255,215,0,.2);border-radius:20px;padding:1.8rem;text-align:center}
 .mapa-panel .mapa-icone{font-size:3rem;display:block;margin-bottom:.8rem}
-.mapa-panel .mapa-titulo{font-size:1.05rem;font-weight:700;color:#ffd700;letter-spacing:.5px;margin-bottom:.5rem;line-height:1.3}
-.mapa-panel .mapa-desc{font-size:.76rem;color:#8aa;line-height:1.8;margin-bottom:1.2rem}
-.mapa-panel .mapa-rota{background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.18);border-radius:12px;padding:1rem 1.2rem;margin-bottom:1.2rem;font-size:.76rem;color:rgba(255,255,255,.8);line-height:1.8;text-align:left}
-.mapa-panel .mapa-rota strong{color:#ffd700}
-.btn-mapa{
-  background:linear-gradient(95deg,#2a1a00,#3a2a00);border:1px solid rgba(255,215,0,.35);
-  border-radius:48px;padding:14px 24px;width:100%;font-size:.95rem;
-  font-weight:700;color:#ffd700;cursor:pointer;transition:all .25s;text-decoration:none;
-  display:block;letter-spacing:.5px;min-height:50px;display:flex;align-items:center;justify-content:center
-}
-.btn-mapa:hover{background:linear-gradient(95deg,#3a2800,#5a4000);box-shadow:0 0 18px rgba(255,215,0,.2);transform:translateY(-1px)}
-.btn-mapa:active{transform:scale(.97)}
+.mapa-panel .mapa-titulo{font-size:1.1rem;font-weight:700;color:var(--dourado);letter-spacing:.3px;margin-bottom:.5rem;line-height:1.3;font-family:var(--font)}
+.mapa-panel .mapa-desc{font-size:.82rem;color:#aab;line-height:1.8;margin-bottom:1.4rem}
+.mapa-panel .mapa-rota{background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.18);border-radius:12px;padding:1rem 1.2rem;margin-bottom:1.4rem;font-size:.8rem;color:rgba(255,255,255,.8);line-height:1.8;text-align:left}
+.mapa-panel .mapa-rota strong{color:var(--dourado)}
 
-/* ── MENSAGENS ── */
-.msg{display:none;border-radius:12px;padding:12px 16px;font-size:.8rem;margin-top:10px;line-height:1.6}
-.msg.ok{background:rgba(0,255,100,.08);border:1px solid rgba(0,200,80,.35);color:#7fd}
-.msg.err{background:rgba(255,60,60,.08);border:1px solid rgba(200,50,50,.35);color:#f88}
-.msg.info{background:rgba(74,111,165,.12);border:1px solid rgba(74,111,165,.35);color:#aaccff}
+.msg{display:none;border-radius:12px;padding:13px 16px;font-size:.84rem;margin-top:10px;line-height:1.6}
+.msg.ok{background:rgba(0,230,118,.08);border:1px solid rgba(0,200,80,.35);color:#7fd}
+.msg.err{background:rgba(255,90,90,.08);border:1px solid rgba(200,50,50,.35);color:#f88}
+.msg.info{background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.3);color:#aef}
 
-/* ── LOADER ── */
-.loader{display:inline-block;width:14px;height:14px;border:2px solid #0ff;border-top:2px solid transparent;border-radius:50%;animation:spin .7s linear infinite;margin-left:10px;vertical-align:middle}
+.loader{display:inline-block;width:14px;height:14px;border:2px solid #000;border-top:2px solid transparent;border-radius:50%;animation:spin .7s linear infinite;margin-left:10px;vertical-align:middle}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* ── SEPARADOR / LINK ── */
-.div-sep{border:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,255,255,.12),transparent);margin:16px 0}
-.link-switch{font-size:.76rem;color:#4cc;text-align:center;margin-top:12px;line-height:1.7}
-.link-switch span{color:#0ff;cursor:pointer;text-decoration:underline;font-weight:600;transition:color .2s}
+.div-sep{border:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,229,255,.12),transparent);margin:18px 0}
+.link-switch{font-size:.8rem;color:var(--texto2);text-align:center;margin-top:14px;line-height:1.7}
+.link-switch span{color:var(--ciano);cursor:pointer;text-decoration:underline;font-weight:600;transition:color .2s}
 .link-switch span:hover{color:#fff}
 
-footer{margin-top:1.6rem;text-align:center;font-size:.65rem;color:#2a6a6a;letter-spacing:.5px}
+/* ============================
+   FOOTER
+   ============================ */
+footer{padding:2.5rem 1.5rem;background:var(--panel2);border-top:1px solid var(--border);text-align:center;color:var(--texto2);font-size:.85rem;margin-top:2rem}
+.footer-links{display:flex;justify-content:center;gap:2rem;flex-wrap:wrap;margin-bottom:1.2rem}
+.footer-links a{color:var(--texto2);transition:.2s;font-weight:600}
+.footer-links a:hover{color:var(--ciano)}
 
-/* ── RESPONSIVIDADE MOBILE ── */
-@media(max-width:480px){
-  .container{padding:1.4rem;border-radius:24px}
-  .propa-headline{font-size:1.3rem}
-  .propa-sub{font-size:.74rem}
-  .vs-box{gap:7px}
-  .vs-col{padding:10px 12px}
-  .vs-item{font-size:.7rem}
-  .operadores-row{gap:6px}
-  .op-card{padding:10px 12px}
-  .op-nome{font-size:.76rem}
-  .op-desc{font-size:.65rem}
-  .pilares-row{gap:6px}
-  .pilar{padding:8px 10px;min-width:75px}
-  .pilar-title{font-size:.65rem}
-  .pilar-desc{font-size:.62rem}
-  .propa-frase{font-size:.76rem;padding:10px 14px}
-  .tab{font-size:.76rem;padding:10px 0;min-height:44px}
-  .btn,.btn-mapa{font-size:.9rem;padding:12px 20px;min-height:46px}
-  .tipo-btn{font-size:.78rem;padding:10px 0;min-height:44px}
-  .plat-badge{padding:10px 14px;border-radius:16px}
-  .plat-icon{width:38px;height:38px;font-size:1.5rem}
-  .plat-nome{font-size:.88rem}
-  .plat-desc{font-size:.68rem}
-  .modal-plat{padding:1.2rem;border-radius:20px}
-  .plat-item{padding:10px 14px;min-height:50px}
-  .plat-item-icone{width:36px;height:36px;font-size:1.4rem}
-  .plat-item-nome{font-size:.8rem}
-  input[type=text],input[type=email],input[type=number],select,textarea{padding:10px 14px;font-size:.85rem}
-}
+/* ============================
+   MODAL DETALHE DE FEATURE / PLATAFORMA
+   ============================ */
+.feature-detalhe-body{font-size:.88rem;color:#bcd;line-height:1.8;text-align:left}
+.feature-detalhe-body ul{margin:10px 0 10px 18px}
+.feature-detalhe-body li{margin-bottom:6px}
 
-@media(max-width:360px){
-  .container{padding:1rem;border-radius:20px}
-  .propa-headline{font-size:1.15rem}
+/* ============================
+   RESPONSIVO
+   ============================ */
+@media(max-width:600px){
+  .hero h1{font-size:1.8rem}
+  #app-nav{padding:.7rem 1rem}
+  .btn-nav{padding:.4rem 1.2rem;font-size:.8rem}
+  .nav-actions .token-display{display:none}
+  .features-grid{grid-template-columns:1fr 1fr}
   .vs-box{grid-template-columns:1fr}
-  .operadores-row{grid-template-columns:1fr}
   .pilares-row{flex-direction:column}
-  .tabs{border-radius:36px}
-  .tab{font-size:.72rem;padding:10px 0;min-height:40px}
+  .hub-card{padding:1.4rem;border-radius:20px}
+  .planos-grid{grid-template-columns:1fr}
+  .modal{padding:1.4rem}
+}
+@media(max-width:420px){
+  .features-grid{grid-template-columns:1fr}
 }
 </style>
 </head>
 <body>
-<div class="container">
 
-  <!-- TOP BAR -->
-  <div class="top-bar">
-    <div class="logo">⚡ UNIVERSO ÁUREO</div>
-    <div class="cd-info" id="cdInfo">
-      <span>🕒</span><span class="value" id="countdown">--:--:--</span>
+<!-- ===== NAVBAR ===== -->
+<nav id="app-nav">
+  <div class="nav-brand">ALMAFLUXO <span>| Hub de Acesso</span></div>
+  <div class="nav-actions">
+    <div class="token-display" id="tokenDisplay" onclick="switchTab('senha')">🔑 Consultar Token</div>
+    <button class="btn-nav" onclick="document.getElementById('hub').scrollIntoView({behavior:'smooth'})">⚡ Acessar Plataforma</button>
+  </div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <div class="hero-badge">⚡ Universo Áureo · 3·6·9</div>
+  <h1>Todas as suas plataformas,<br /><span class="destaque">um único acesso</span></h1>
+  <p>
+    Trading, esportes e autoconhecimento reunidos em um só lugar. Compre seu token,
+    receba por e-mail e desbloqueie qualquer plataforma ALMAFLUXO em segundos.
+  </p>
+  <div class="status-bar" id="statusBar">
+    <span>🕒</span><span class="value" id="countdown">--:--:--</span>
+  </div>
+</section>
+
+<!-- ===== FEATURES — explicação do sistema (clicáveis) ===== -->
+<section class="features-section" id="features">
+  <div class="section-title">Como o ALMAFLUXO funciona</div>
+  <div class="section-sub">Toque em cada módulo para entender o que ele faz</div>
+  <div class="features-grid">
+    <div class="feature-card" onclick="abrirDetalheFeature('entropia')">
+      <span class="feature-icon">🌌</span>
+      <h4>Motor de Entropia</h4>
+      <p>Cálculo das constantes que orientam cada decisão</p>
+    </div>
+    <div class="feature-card" onclick="abrirDetalheFeature('oraculo')">
+      <span class="feature-icon">📐</span>
+      <h4>Oráculo &amp; Constantes</h4>
+      <p>φ, MARC, JUBILO, DEUS — a base matemática do sistema</p>
+    </div>
+    <div class="feature-card" onclick="abrirDetalheFeature('gps')">
+      <span class="feature-icon">🧭</span>
+      <h4>Mesa GPS</h4>
+      <p>Orientação de posicionamento em tempo real</p>
+    </div>
+    <div class="feature-card" onclick="abrirDetalheFeature('blindado')">
+      <span class="feature-icon">🔐</span>
+      <h4>Acesso Blindado</h4>
+      <p>Token único, criptografia de ponta a ponta</p>
+    </div>
+    <div class="feature-card" onclick="abrirDetalheFeature('analise')">
+      <span class="feature-icon">⚽</span>
+      <h4>Análise de Partidas</h4>
+      <p>Projeções ao vivo para futebol, basquete e mais</p>
+    </div>
+    <div class="feature-card" onclick="abrirDetalheFeature('narracao')">
+      <span class="feature-icon">🎙️</span>
+      <h4>Narração em Áudio</h4>
+      <p>Acompanhamento sonoro dos eventos em operação</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== MODAL DETALHE DE FEATURE ===== -->
+<div class="modal-overlay" id="modalFeatureDetalhe">
+  <div class="modal">
+    <button class="close-btn" onclick="fecharDetalheFeature()">✕</button>
+    <h3 id="featureDetalheTitulo">Módulo</h3>
+    <div class="feature-detalhe-body" id="featureDetalheCorpo"></div>
+    <button class="modal-fechar" onclick="fecharDetalheFeature()" style="margin-top:1.4rem">Entendi</button>
+  </div>
+</div>
+
+<!-- ===== PROPAGANDA — MÉTODO ALMAFLUXO ===== -->
+<section class="propa-section">
+  <div class="propa-headline">Pare de torcer.<br>Comece a operar.</div>
+  <div class="propa-sub">
+    Aposta tradicional tem <em>3 resultados</em> — 2 contra você.<br>
+    Aqui você opera com <em>2 saídas</em>. Ambas cobertas. Matematicamente.
+  </div>
+
+  <div class="vs-box">
+    <div class="vs-col bad">
+      <div class="vs-col-title">❌ Torcedor</div>
+      <div class="vs-item"><span>⚠️</span>3 resultados possíveis</div>
+      <div class="vs-item"><span>⚠️</span>Empate zera a banca</div>
+      <div class="vs-item"><span>⚠️</span>Errou — acabou</div>
+      <div class="vs-item"><span>⚠️</span>Emoção decide</div>
+      <div class="vs-item"><span>⚠️</span>100% exposto</div>
+    </div>
+    <div class="vs-col good">
+      <div class="vs-col-title">✅ Operador</div>
+      <div class="vs-item"><span>⚡</span>2 saídas cobertas</div>
+      <div class="vs-item"><span>⚡</span>Empate não te afeta</div>
+      <div class="vs-item"><span>⚡</span>Errou — recupera parte</div>
+      <div class="vs-item"><span>⚡</span>Cálculo decide</div>
+      <div class="vs-item"><span>⚡</span>Capital distribuído</div>
     </div>
   </div>
 
-  <!-- ══ PROPAGANDA — MÉTODO ALMAFLUXO ══ -->
-  <div class="propa-section">
-
-    <div class="propa-headline">Pare de torcer.<br>Comece a operar.</div>
-    <div class="propa-sub">
-      Aposta tradicional tem <em>3 resultados</em> — 2 contra você.<br>
-      Aqui você opera com <em>2 saídas</em>. Ambas cobertas. Matematicamente.
+  <div class="operadores-row">
+    <div class="op-card">
+      <span class="op-icon">⚽</span>
+      <div class="op-nome">Futebol</div>
+      <div class="op-desc">Ambas marcam · Over/Under · Handicap · 23 mercados cobertos</div>
     </div>
-
-    <!-- VS: Torcedor x Operador -->
-    <div class="vs-box">
-      <div class="vs-col bad">
-        <div class="vs-col-title">❌ Torcedor</div>
-        <div class="vs-item"><span>⚠️</span>3 resultados possíveis</div>
-        <div class="vs-item"><span>⚠️</span>Empate zera a banca</div>
-        <div class="vs-item"><span>⚠️</span>Errou — acabou</div>
-        <div class="vs-item"><span>⚠️</span>Emoção decide</div>
-        <div class="vs-item"><span>⚠️</span>100% exposto</div>
-      </div>
-      <div class="vs-col good">
-        <div class="vs-col-title">✅ Operador</div>
-        <div class="vs-item"><span>⚡</span>2 saídas cobertas</div>
-        <div class="vs-item"><span>⚡</span>Empate não te afeta</div>
-        <div class="vs-item"><span>⚡</span>Errou — recupera parte</div>
-        <div class="vs-item"><span>⚡</span>Cálculo decide</div>
-        <div class="vs-item"><span>⚡</span>Capital distribuído</div>
-      </div>
+    <div class="op-card">
+      <span class="op-icon">🏀</span>
+      <div class="op-nome">Basquete</div>
+      <div class="op-desc">Diferença de pontos · Handicap · Par/Ímpar · 4 quartos operados</div>
     </div>
-
-    <!-- Os 4 operadores -->
-    <div class="operadores-row">
-      <div class="op-card">
-        <span class="op-icon">⚽</span>
-        <div class="op-nome">Futebol</div>
-        <div class="op-desc">Ambas marcam · Over/Under · Handicap · 23 mercados cobertos</div>
-      </div>
-      <div class="op-card">
-        <span class="op-icon">🏀</span>
-        <div class="op-nome">Basquete</div>
-        <div class="op-desc">Diferença de pontos · Handicap · Par/Ímpar · 4 quartos operados</div>
-      </div>
-      <div class="op-card">
-        <span class="op-icon">🎾</span>
-        <div class="op-nome">Multiesportes</div>
-        <div class="op-desc">Vôlei · Tênis · MMA — 1 método, 3 esportes, 0 torcida</div>
-      </div>
-      <div class="op-card">
-        <span class="op-icon">📈</span>
-        <div class="op-nome">Day Trade</div>
-        <div class="op-desc">Até 10 ativos · Correlação negativa · Escala automática · A partir de R$100</div>
-      </div>
+    <div class="op-card">
+      <span class="op-icon">🎾</span>
+      <div class="op-nome">Multiesportes</div>
+      <div class="op-desc">Vôlei · Tênis · MMA — 1 método, 3 esportes, 0 torcida</div>
     </div>
-
-    <!-- 3 Pilares -->
-    <div class="pilares-row">
-      <div class="pilar">
-        <span class="pilar-icone">🛡️</span>
-        <div class="pilar-title">PROTEÇÃO</div>
-        <div class="pilar-desc">Erro está precificado no hedge. Não é ruína — é recuo tático.</div>
-      </div>
-      <div class="pilar">
-        <span class="pilar-icone">🧮</span>
-        <div class="pilar-title">CÁLCULO</div>
-        <div class="pilar-desc">Distribuição pré-operação. Capital alocado antes do apito.</div>
-      </div>
-      <div class="pilar">
-        <span class="pilar-icone">🔄</span>
-        <div class="pilar-title">CONTROLE</div>
-        <div class="pilar-desc">Break-even garantido. Reposicionamento ao vivo em qualquer cenário.</div>
-      </div>
-    </div>
-
-    <div class="propa-frase">
-      "Se acertar, leva o lucro.<br>
-      Se errar, recupera parte.<br>
-      <strong>Isso não é aposta. É hedge esportivo.</strong>"
-    </div>
-
-    <div class="propa-divider"><span>⚡ acesse abaixo ⚡</span></div>
-
-  </div><!-- /propa-section -->
-
-  <!-- BADGE DA PLATAFORMA (CLICÁVEL PARA TROCAR) -->
-  <div class="plat-badge" id="platBadge" onclick="abrirModalPlataformas()" title="Clique para selecionar a plataforma">
-    <div class="plat-icon" id="platIcon">⚡</div>
-    <div class="plat-info">
-      <div class="plat-nome" id="platNome">Carregando...</div>
-      <div class="plat-desc" id="platDesc">Identificando plataforma...</div>
-    </div>
-    <div class="plat-seta">▼</div>
-  </div>
-
-  <!-- MODAL DE SELEÇÃO DE PLATAFORMA -->
-  <div class="modal-overlay" id="modalPlataformas">
-    <div class="modal-plat">
-      <h3>🔮 Selecione a Plataforma</h3>
-      <p class="subtitulo">Escolha qual plataforma deseja acessar ou solicitar</p>
-      <div class="plat-lista" id="platLista">
-        <!-- Preenchido via JS -->
-      </div>
-      <button class="modal-fechar" onclick="fecharModalPlataformas()">✓ Confirmar seleção</button>
+    <div class="op-card">
+      <span class="op-icon">📈</span>
+      <div class="op-nome">Day Trade</div>
+      <div class="op-desc">Até 10 ativos · Correlação negativa · Escala automática · A partir de R$100</div>
     </div>
   </div>
 
-  <!-- ABAS -->
-  <div class="tabs">
-    <div class="tab active" id="tab-senha" onclick="switchTab('senha')">🔓 Já tenho senha</div>
-    <div class="tab" id="tab-acesso" onclick="switchTab('acesso')">🚀 Quero acesso</div>
-  </div>
-
-  <!-- ══ PAINEL: JÁ TENHO SENHA ══ -->
-  <div class="panel active" id="panel-senha">
-    <input type="text" id="senhaInput" placeholder="INSIRA A SENHA DO PERÍODO" autocomplete="off" maxlength="11">
-    <button class="btn" id="btnDesbloquear">🔓 DESBLOQUEAR</button>
-    <div class="msg err" id="erroSenha"></div>
-    <hr class="div-sep" style="margin-top:14px">
-    <div class="link-switch">
-      Não tem senha ainda?<br>
-      <span onclick="switchTab('acesso')">Clique aqui para solicitar acesso →</span>
+  <div class="pilares-row">
+    <div class="pilar">
+      <span class="pilar-icone">🛡️</span>
+      <div class="pilar-title">PROTEÇÃO</div>
+      <div class="pilar-desc">Erro está precificado no hedge. Não é ruína — é recuo tático.</div>
+    </div>
+    <div class="pilar">
+      <span class="pilar-icone">🧮</span>
+      <div class="pilar-title">CÁLCULO</div>
+      <div class="pilar-desc">Distribuição pré-operação. Capital alocado antes do apito.</div>
+    </div>
+    <div class="pilar">
+      <span class="pilar-icone">🔄</span>
+      <div class="pilar-title">CONTROLE</div>
+      <div class="pilar-desc">Break-even garantido. Reposicionamento ao vivo em qualquer cenário.</div>
     </div>
   </div>
 
-  <!-- ══ PAINEL: MAPA DO PRÓPRIO DESTINO ══ -->
-  <div id="panel-mapa" style="display:none">
-    <div class="mapa-panel">
-      <span class="mapa-icone">🧭</span>
-      <div class="mapa-titulo">Mapa do Próprio Destino — R$ 100,00</div>
-      <div class="mapa-desc">
-        Análise numerológica personalizada com 7 civilizações ancestrais.<br>
-        O preenchimento dos dados e o pagamento são feitos diretamente na plataforma dedicada.
+  <div class="propa-frase">
+    "Se acertar, leva o lucro.<br>
+    Se errar, recupera parte.<br>
+    <strong>Isso não é aposta. É hedge esportivo.</strong>"
+  </div>
+</section>
+
+<!-- ===== HUB DE ACESSO ===== -->
+<section class="hub-section" id="hub">
+  <div class="hub-card">
+
+    <!-- BADGE DA PLATAFORMA SELECIONADA -->
+    <div class="plat-badge" id="platBadge" onclick="abrirModalPlataformas()" title="Clique para selecionar a plataforma">
+      <div class="plat-icon" id="platIcon">⚡</div>
+      <div class="plat-info">
+        <div class="plat-nome" id="platNome">Carregando...</div>
+        <div class="plat-desc" id="platDesc">Identificando plataforma...</div>
       </div>
-      <div class="mapa-rota">
-        <strong>📍 Rota para acesso:</strong><br><br>
-        1. Clique no botão abaixo<br>
-        2. Você será direcionado para <strong>almafluxo.uk/Dados</strong><br>
-        3. Preencha seus dados pessoais para a análise<br>
-        4. O pagamento e o envio do relatório são feitos nessa página
+      <div class="plat-seta">▼</div>
+    </div>
+
+    <!-- ABAS -->
+    <div class="tabs">
+      <div class="tab active" id="tab-senha" onclick="switchTab('senha')">🔓 Já tenho token</div>
+      <div class="tab" id="tab-acesso" onclick="switchTab('acesso')">🚀 Quero acesso</div>
+    </div>
+
+    <!-- ══ PAINEL: JÁ TENHO TOKEN ══ -->
+    <div class="panel active" id="panel-senha">
+      <input type="text" id="tokenInput" placeholder="INSIRA SEU TOKEN" autocomplete="off" maxlength="20">
+      <button class="btn" id="btnDesbloquear">🔓 DESBLOQUEAR ACESSO</button>
+      <div class="msg err" id="erroToken"></div>
+      <div class="msg info" id="infoSaldo"></div>
+      <hr class="div-sep" style="margin-top:14px">
+      <div class="link-switch">
+        Ainda não tem um token?<br>
+        <span onclick="switchTab('acesso')">Clique aqui para comprar acesso →</span>
       </div>
-      <a href="https://almafluxo.uk/Dados" target="_blank" class="btn-mapa">
-        🧭 Ir para almafluxo.uk/Dados →
-      </a>
-    </div>
-  </div>
-
-  <!-- ══ PAINEL: QUERO ACESSO ══ -->
-  <div class="panel" id="panel-acesso">
-
-    <div class="aviso">🔒 <strong>Acesso Restrito e Controlado</strong><br>
-    Para <strong>Trading</strong> é obrigatório preencher o questionário de perfil.<br>
-    Para <strong>Autoconhecimento &amp; Numerologia</strong> basta nome e e-mail.</div>
-
-    <!-- TIPO DE SERVIÇO -->
-    <div class="sect">🔮 Tipo de serviço</div>
-    <div class="tipo-btn-row">
-      <div class="tipo-btn sel" id="btn-trading" onclick="setTipo('trading')">📈 Trading</div>
-      <div class="tipo-btn" id="btn-numerologia" onclick="setTipo('numerologia')">🌌 Numerologia</div>
     </div>
 
-    <form id="quizForm">
-      <input type="hidden" name="access_key" value="eb4edc0c-b94c-4287-83bf-6f2e05f65774">
-      <input type="hidden" name="subject" id="dynamicSubject" value="">
-      <input type="hidden" name="from_name" id="dynamicFromName" value="Sistema ALMAFLUXO">
-      <input type="hidden" name="plataforma_origem" id="platOrigemInput" value="">
-      <input type="checkbox" name="botcheck" style="display:none">
+    <!-- ══ PAINEL: MAPA DO PRÓPRIO DESTINO ══ -->
+    <div id="panel-mapa" style="display:none">
+      <div class="mapa-panel">
+        <span class="mapa-icone">🧭</span>
+        <div class="mapa-titulo">Mapa do Próprio Destino — R$ 100,00</div>
+        <div class="mapa-desc">
+          Análise numerológica personalizada com 7 civilizações ancestrais.<br>
+          O preenchimento dos dados e o pagamento são feitos diretamente na plataforma dedicada.
+        </div>
+        <div class="mapa-rota">
+          <strong>📍 Rota para acesso:</strong><br><br>
+          1. Clique no botão abaixo<br>
+          2. Você será direcionado para <strong>almafluxo.uk/Dados</strong><br>
+          3. Preencha seus dados pessoais para a análise<br>
+          4. O pagamento e o envio do relatório são feitos nessa página
+        </div>
+        <a href="https://almafluxo.uk/Dados" target="_blank" class="btn" style="display:flex;align-items:center;justify-content:center;background:var(--dourado)">
+          🧭 Ir para almafluxo.uk/Dados →
+        </a>
+      </div>
+    </div>
+
+    <!-- ══ PAINEL: QUERO ACESSO (compra de token) ══ -->
+    <div class="panel" id="panel-acesso">
+
+      <div class="aviso">💳 <strong>Pagamento automático com token por e-mail</strong><br>
+      Escolha a plataforma e o plano. Após o pagamento confirmado, seu token chega
+      automaticamente no e-mail informado — sem espera de aprovação manual.</div>
 
       <label class="lbl">Nome completo</label>
-      <input type="text" name="nome" placeholder="Seu nome completo" required>
-      <label class="lbl">E-mail para resposta</label>
-      <input type="email" name="email_resposta" placeholder="seuemail@exemplo.com" required>
+      <input type="text" id="compraNome" placeholder="Seu nome completo" required>
+      <label class="lbl">E-mail (onde você receberá o token)</label>
+      <input type="email" id="compraEmail" placeholder="seuemail@exemplo.com" required>
 
-      <!-- TRADING -->
-      <div id="tradingSection">
-        <div class="sect">📋 Questionário — Trading</div>
-        <label class="lbl">Dias de acesso desejados (R$ 10,00/dia)</label>
-        <input type="number" id="dias" name="dias" min="1" max="365" value="1" step="1" oninput="calcTotal()">
-
-        <div class="sect">📊 Perfil do Operador</div>
-
-        <label class="lbl">1. Por qual motivo deseja acessar a plataforma?</label>
-        <div class="radio-group">
-          <label><input type="radio" name="motivo" value="Trabalho profissional" required> Trabalho profissional</label>
-          <label><input type="radio" name="motivo" value="Uso particular / pessoal"> Uso particular / pessoal</label>
-          <label><input type="radio" name="motivo" value="Estudo e aprendizado"> Estudo e aprendizado</label>
-          <label><input type="radio" name="motivo" value="Renda complementar"> Renda complementar</label>
-        </div>
-
-        <label class="lbl">2. Quantas horas por dia pretende operar?</label>
-        <select name="horas_dia" required>
-          <option value="" disabled selected>Selecione</option>
-          <option>1 hora</option><option>2 horas</option><option>3 horas</option><option>4 horas</option>
-          <option>5 horas</option><option>6 horas</option><option>7 horas</option><option>8 horas</option>
-          <option>9 horas</option><option>10 horas</option><option>11 horas</option><option>12 horas</option>
-          <option>13 horas</option><option>14 horas</option>
-        </select>
-
-        <label class="lbl">3. Você conversa com outras pessoas sobre apostas?</label>
-        <div class="radio-group">
-          <label><input type="radio" name="social_apostas" value="Converso abertamente sobre apostas" required> Converso abertamente</label>
-          <label><input type="radio" name="social_apostas" value="Converso apenas com pessoas próximas"> Só com pessoas próximas</label>
-          <label><input type="radio" name="social_apostas" value="Prefiro manter em privado"> Prefiro manter em privado</label>
-          <label><input type="radio" name="social_apostas" value="Tenho vergonha de falar sobre o assunto"> Tenho certo receio / vergonha</label>
-        </div>
-
-        <label class="lbl">4. Você se considera impulsivo ou controlado?</label>
-        <div class="radio-group">
-          <label><input type="radio" name="perfil_decisao" value="Muito controlada — analiso antes de agir" required> Muito controlado</label>
-          <label><input type="radio" name="perfil_decisao" value="Equilibrada — às vezes analiso, às vezes ajo rápido"> Equilibrado</label>
-          <label><input type="radio" name="perfil_decisao" value="Um pouco impulsiva — já me arrependi de decisões rápidas"> Um pouco impulsivo</label>
-          <label><input type="radio" name="perfil_decisao" value="Muito impulsiva — costuma agir por emoção"> Muito impulsivo</label>
-        </div>
-
-        <label class="lbl">5. Quando criança, como se imaginava adulto?</label>
-        <div class="radio-group">
-          <label><input type="radio" name="realizacao_pessoal" value="Estou próximo — realizei grande parte do que imaginava" required> Estou próximo — realizei muito</label>
-          <label><input type="radio" name="realizacao_pessoal" value="Estou no caminho — progredindo gradualmente"> Estou no caminho</label>
-          <label><input type="radio" name="realizacao_pessoal" value="Distante ainda — mas buscando alcançar"> Distante, mas buscando</label>
-          <label><input type="radio" name="realizacao_pessoal" value="Mudei completamente de perspectiva — não me identifico mais com aquela visão"> Mudei completamente</label>
-        </div>
-
-        <label class="lbl">Observações (opcional)</label>
-        <textarea name="observacoes" placeholder="Algo mais que queira compartilhar..." rows="3"></textarea>
-      </div>
-
-      <!-- NUMEROLOGIA -->
-      <div id="numerologiaSection" style="display:none">
-        <div class="sect">🌌 Serviço de Autoconhecimento</div>
-        <div class="radio-group">
-          <label><input type="radio" name="servico_numerologia" value="Sintesia Humana" data-preco="10" onchange="toggleCivs()"> 🧬 Sintesia Humana — R$ 10,00/hora</label>
-        </div>
-        <div class="civs-block" id="civsBl">
-          <label style="color:#aaccff;font-weight:600;font-size:.8rem;display:block;margin-bottom:2px">Selecione as civilizações (R$ 100 cada):</label>
-          <div class="civs-grid">
-            <label><input type="checkbox" name="civilizacao" value="Inca"    data-preco="100" onchange="calcTotal()"> 🏔️ Inca</label>
-            <label><input type="checkbox" name="civilizacao" value="Chinês"  data-preco="100" onchange="calcTotal()"> 🐉 Chinês</label>
-            <label><input type="checkbox" name="civilizacao" value="Maia"    data-preco="100" onchange="calcTotal()"> 🌙 Maia</label>
-            <label><input type="checkbox" name="civilizacao" value="Egípcio" data-preco="100" onchange="calcTotal()"> ☥ Egípcio</label>
-            <label><input type="checkbox" name="civilizacao" value="Sumério" data-preco="100" onchange="calcTotal()"> 𒀭 Sumério</label>
-            <label><input type="checkbox" name="civilizacao" value="Asteca"  data-preco="100" onchange="calcTotal()"> 🗿 Asteca</label>
-            <label><input type="checkbox" name="civilizacao" value="Cabala"  data-preco="100" onchange="calcTotal()"> 🔯 Cabala</label>
-          </div>
-          <div class="civ-total" id="civTotal">Total civilizações: R$ 0,00</div>
-        </div>
+      <div class="sect" id="planosSectTitle">💰 Escolha o plano</div>
+      <div class="planos-grid" id="planosGrid">
+        <!-- Preenchido via JS conforme a plataforma selecionada -->
       </div>
 
       <div class="valor-total" id="valorTotal">💰 Valor total: R$ 0,00</div>
-      <button type="submit" class="btn btn-green" id="quizBtn">🚀 Enviar solicitação para análise</button>
-    </form>
+      <button class="btn btn-dourado" id="btnComprar">💳 Gerar Link de Pagamento</button>
 
-    <div class="msg ok"  id="quizSuccess">✅ Solicitação enviada! Nossa equipe retornará em até 48h. Se aprovado, você recebe os dados de pagamento via PIX no e-mail.</div>
-    <div class="msg err" id="quizError">❌ Erro ao enviar. Tente novamente ou escreva para almafluxo@almafluxo.uk</div>
+      <div class="msg ok"  id="compraSuccess"></div>
+      <div class="msg err" id="compraError"></div>
+      <div class="msg info" id="compraInfo"></div>
 
-    <hr class="div-sep">
-
-    <!-- TESTE GRÁTIS -->
-    <div id="secaoTesteGratis">
-      <div class="sect">⏱️ Teste Grátis — 1 Hora</div>
-      <p style="font-size:.77rem;color:#8cc;margin-bottom:4px;line-height:1.5">Conheça a plataforma antes de contratar. Solicite a senha temporária e use assim que receber o e-mail.</p>
-      <p style="font-size:.74rem;color:rgba(255,193,7,.8);margin-bottom:10px" id="avisoSintesia">⚠️ Sintesia Humana não possui teste gratuito.</p>
-
-      <form id="freeTrialForm">
-        <input type="hidden" name="access_key" value="eb4edc0c-b94c-4287-83bf-6f2e05f65774">
-        <input type="hidden" name="subject" value="⚡ ALMAFLUXO — Solicitação de Teste Grátis (1 Hora)">
-        <input type="hidden" name="from_name" id="trialFromName" value="Sistema ALMAFLUXO">
-        <input type="hidden" name="plataforma_origem" id="trialOrigem" value="">
-        <input type="checkbox" name="botcheck" style="display:none">
-
-        <label class="lbl">Plataforma para testar</label>
-        <select name="plataforma_teste" id="trialPlataformaSelect" required>
-          <option value="" disabled>Selecione a plataforma</option>
-          <option value="Operador">⚙️ Operador (trading)</option>
-          <option value="Hedge Basquete">🏀 Hedge Dinâmico – Basquete</option>
-          <option value="Hedge Futebol">⚽ Hedge Dinâmico – Futebol</option>
-          <option value="Hedge Multiesportes">🎾 Hedge Multiesportes (Vôlei / Tênis / Lutas)</option>
-        </select>
-
-        <label class="lbl">Nome completo</label>
-        <input type="text" name="nome_teste" placeholder="Seu nome completo" required>
-        <label class="lbl">E-mail</label>
-        <input type="email" name="email_teste" placeholder="Seu e-mail" required>
-
-        <button type="submit" class="btn btn-ghost" id="trialBtn">⏱️ Solicitar 1 Hora Grátis</button>
-      </form>
-
-      <div class="msg info" id="trialGithubStatus"></div>
-      <div class="msg ok"  id="trialSuccess">✅ Solicitação enviada! Em breve você recebe a senha de teste no seu e-mail.</div>
-      <div class="msg err" id="trialError">❌ Erro ao enviar. Tente novamente.</div>
+      <hr class="div-sep">
+      <div class="link-switch">
+        Já tem seu token? <span onclick="switchTab('senha')">← Ir para desbloqueio</span>
+      </div>
     </div>
 
-    <hr class="div-sep">
-    <div class="link-switch">
-      Já tem sua senha? <span onclick="switchTab('senha')">← Ir para desbloqueio</span>
-    </div>
   </div>
+</section>
 
-  <footer>© UNIVERSO ÁUREO · ALMAFLUXO · 3·6·9 · Protegido via APPSCRIPT</footer>
+<!-- ===== MODAL DE SELEÇÃO DE PLATAFORMA ===== -->
+<div class="modal-overlay" id="modalPlataformas">
+  <div class="modal">
+    <h3>🔮 Selecione a Plataforma</h3>
+    <p class="subtitulo">Escolha qual plataforma deseja acessar ou comprar</p>
+    <div class="plat-lista" id="platLista">
+      <!-- Preenchido via JS -->
+    </div>
+    <button class="modal-fechar" onclick="fecharModalPlataformas()">✓ Confirmar seleção</button>
+  </div>
 </div>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="footer-links">
+    <a href="#hub">Acessar</a>
+    <a href="#features">Como funciona</a>
+    <a href="mailto:almafluxo@almafluxo.uk">Suporte</a>
+    <a href="#">Termos</a>
+  </div>
+  <span>ALMAFLUXO © 2026 – Universo Áureo. Todos os direitos reservados.</span>
+</footer>
 
 <script>
 // ═══════════════════════════════════════════════════════
+// CONFIGURAÇÃO GERAL
+// ═══════════════════════════════════════════════════════
+const BACKEND_URL = "https://script.google.com/macros/s/AKfycbwZ9cFSOE4O1kRyYQVmQaBTtFZQviau5Je8XlfgsmLsds0mHucZL8j3XM51ffGwwJ7kSQ/exec";
+const TOKEN_INTERNO = "ALMA369UA"; // idêntico ao TOKEN_INTERNO do central.gs
+const TIMEOUT_MS = 15000;
+let isProcessing = false;
+
+// ═══════════════════════════════════════════════════════
 // MAPA DE PLATAFORMAS
-// Chave = identificador interno
-// Cada entrada define: nome, ícone, descrição curta,
-//   backendUrl (AppScript da plataforma específica),
-//   trialKey (valor para o select do teste grátis),
-//   ehTrading (boolean — mostra questionário ou não)
+// Preços: hora/dia/mês conforme definido — sintesia só tem "hora" (R$10)
+// mapa é pagamento único de R$100 feito em página externa (não usa token aqui)
 // ═══════════════════════════════════════════════════════
 const PLATAFORMAS = {
   futebol: {
-    id:         "futebol",
-    nome:       "Hedge Dinâmico – Futebol",
-    icone:      "⚽",
-    desc:       "Mercados de gols, ambas marcam, handicaps e proteção automática",
-    backendUrl: "https://script.google.com/macros/s/AKfycbz0sRsN6P1O-25U1yBpXhDE6Nf3nhwFaiTAID89forCuryMzlrxwmczZ-DHPbJyEi-0/exec",
-    trialKey:   "Hedge Futebol",
-    ehTrading:  true
+    id: "futebol", nome: "Hedge Dinâmico – Futebol", icone: "⚽",
+    desc: "Mercados de gols, ambas marcam, handicaps e proteção automática",
+    planos: { hora: 1, dia: 10, mes: 200 }
   },
   basquete: {
-    id:         "basquete",
-    nome:       "Hedge Dinâmico – Basquete",
-    icone:      "🏀",
-    desc:       "Distribuição proporcional, odds ao vivo e cenários de hedge para basquete",
-    backendUrl: "https://script.google.com/macros/s/AKfycbzwRoO4uyFPIZqQ5tsbNlP_qT2SV9Rs87CYpTUitGzdTXSYpz5Pdtm6BF-20KP-IGKA6w/exec",
-    trialKey:   "Hedge Basquete",
-    ehTrading:  true
+    id: "basquete", nome: "Hedge Dinâmico – Basquete", icone: "🏀",
+    desc: "Distribuição proporcional, odds ao vivo e cenários de hedge para basquete",
+    planos: { hora: 1, dia: 10, mes: 200 }
   },
   operador: {
-    id:         "operador",
-    nome:       "Interface OPERADOR",
-    icone:      "📈",
-    desc:       "Day trade com visualização em tempo real e controle avançado de ordens",
-    backendUrl: "https://script.google.com/macros/s/AKfycbxzlUafILiC6i63d_6gHqoY0HPYywcELk2mKy5cMGS8VwUwxonE5Q--2v2XhXO0CuT4/exec",
-    trialKey:   "Operador",
-    ehTrading:  true
+    id: "operador", nome: "Interface OPERADOR", icone: "📈",
+    desc: "Day trade com visualização em tempo real e controle avançado de ordens",
+    planos: { hora: 1, dia: 10, mes: 200 }
   },
   multiesportes: {
-    id:         "multiesportes",
-    nome:       "Hedge Multiesportes",
-    icone:      "🎾",
-    desc:       "Vôlei, Tênis e Lutas — estratégias por sets/rounds e operação ao vivo",
-    backendUrl: "https://script.google.com/macros/s/AKfycbwFUoRMj5mwadOVguI5zSBMWqij5mdefLTHiRqyolcXEF8VXRY4rdyI5i8ak3EJ8zxjUg/exec",
-    trialKey:   "Hedge Multiesportes",
-    ehTrading:  true
+    id: "multiesportes", nome: "Hedge Multiesportes", icone: "🎾",
+    desc: "Vôlei, Tênis e Lutas — estratégias por sets/rounds e operação ao vivo",
+    planos: { hora: 1, dia: 10, mes: 200 }
   },
   sintesia: {
-    id:         "sintesia",
-    nome:       "Sintesia Humana",
-    icone:      "🧬",
-    desc:       "Autoconhecimento diário: humor, saúde, fluxo quântico e alinhamentos",
-    backendUrl: "https://script.google.com/macros/s/AKfycbwfAhVWNp8Fk70col5jxauCEtxKsEKIQ_891f-CKamC0MxTh-OjCKup6_NOhICz4mOd/exec",
-    trialKey:   null,
-    ehTrading:  false
+    id: "sintesia", nome: "Sintesia Humana", icone: "🧬",
+    desc: "Autoconhecimento diário: humor, saúde, fluxo quântico e alinhamentos",
+    planos: { hora: 10 }
   },
   mapa: {
-    id:         "mapa",
-    nome:       "Mapa do Próprio Destino",
-    icone:      "🧭",
-    desc:       "Análise numerológica com 7 civilizações ancestrais — relatório personalizado",
-    backendUrl: "https://script.google.com/macros/s/AKfycbzvd8W2dtHgpGcDQi5o1llvNe9yjkQhunD585pceK8vaeXww-sHT-PKESoQntwNKDrv/exec",
-    trialKey:   null,
-    ehTrading:  false
+    id: "mapa", nome: "Mapa do Próprio Destino", icone: "🧭",
+    desc: "Análise numerológica com 7 civilizações ancestrais — relatório personalizado",
+    planos: {}, externo: true
+  }
+};
+const ORDEM_PLATAFORMAS = ["futebol", "basquete", "operador", "multiesportes", "sintesia", "mapa"];
+const PLAT_DESCONHECIDA = PLATAFORMAS.basquete;
+
+let PLAT = PLAT_DESCONHECIDA;
+let planoSelecionado = null;
+
+// ═══════════════════════════════════════════════════════
+// DETALHES DOS MÓDULOS (feature cards explicativos)
+// ═══════════════════════════════════════════════════════
+const DETALHES_FEATURE = {
+  entropia: {
+    titulo: "🌌 Motor de Entropia",
+    corpo: "<p>Lê o cenário de cada operação (esportiva ou de trading) e calcula o grau de desordem do sistema no momento da decisão.</p><ul><li>Atualiza em tempo real conforme novos dados chegam</li><li>Serve de base para todas as outras camadas do método</li><li>Reduz decisões puramente emocionais</li></ul>"
+  },
+  oraculo: {
+    titulo: "📐 Oráculo & Constantes",
+    corpo: "<p>Conjunto de constantes matemáticas fixas (φ, MARC, JUBILO, DEUS, GRATIDÃO, CICLO) que orientam o cálculo de cada cenário.</p><ul><li>Mesma base matemática usada em todas as plataformas</li><li>Garante consistência entre Trading e Esportes</li><li>Não muda — é o alicerce do sistema</li></ul>"
+  },
+  gps: {
+    titulo: "🧭 Mesa GPS",
+    corpo: "<p>Painel de orientação que mostra onde você está dentro do cenário operado — como um mapa de posicionamento de capital ou de mercado.</p><ul><li>Visualização clara do ponto de equilíbrio (break-even)</li><li>Ajuda no reposicionamento ao vivo</li></ul>"
+  },
+  blindado: {
+    titulo: "🔐 Acesso Blindado",
+    corpo: "<p>Cada plataforma fica protegida por criptografia (AES-256-GCM) e só é liberada com um token válido — gerado automaticamente após o pagamento.</p><ul><li>1 token = 1 plataforma + 1 plano (hora/dia/mês)</li><li>Token chega por e-mail, sem espera manual</li><li>Conteúdo nunca fica exposto sem token ativo</li></ul>"
+  },
+  analise: {
+    titulo: "⚽ Análise de Partidas",
+    corpo: "<p>Projeta cenários de jogo (gols, pontos, handicaps) usando os dados ao vivo da partida combinados às constantes do Oráculo.</p><ul><li>Futebol, Basquete e Multiesportes (Vôlei, Tênis, MMA)</li><li>Atualização contínua durante o evento</li></ul>"
+  },
+  narracao: {
+    titulo: "🎙️ Narração em Áudio",
+    corpo: "<p>Acompanhamento sonoro dos eventos em operação, narrando mudanças relevantes de cenário sem que você precise manter os olhos na tela o tempo todo.</p>"
   }
 };
 
-// Fallback genérico (nenhum parâmetro informado)
-const PLAT_DESCONHECIDA = {
-  id:         "desconhecida",
-  nome:       "Plataforma ALMAFLUXO",
-  icone:      "⚡",
-  desc:       "Acesso via UNIVERSO ÁUREO · Senha de período",
-  backendUrl: "https://script.google.com/macros/s/AKfycbzvd8W2dtHgpGcDQi5o1llvNe9yjkQhunD585pceK8vaeXww-sHT-PKESoQntwNKDrv/exec",
-  trialKey:   null,
-  ehTrading:  true
-};
-
-const PROXY_URL  = "https://script.google.com/macros/s/AKfycbzrFAyavdgf_hYx5rtuslBttkFnoJ4WEEGS7ps-tPV-TJ7p8kG3Hd6oJXjPpckTPcqO/exec";
-const TIMEOUT_MS = 15000;
-let isProcessing = false;
-let PLAT = PLAT_DESCONHECIDA;   // Preenchido após detectar URL ou seleção manual
-
-// ═══════════════════════════════════
-// DEVICE ID (FNV-1a)
-// ═══════════════════════════════════
-const _DK = 'alma_device_id';
-function _fnv(raw) {
-  let h = 2166136261;
-  for (let i=0; i<raw.length; i++) { h ^= raw.charCodeAt(i); h=(h*16777619)>>>0; }
-  return 'dev_'+h.toString(36);
+function abrirDetalheFeature(chave) {
+  const d = DETALHES_FEATURE[chave];
+  if (!d) return;
+  document.getElementById('featureDetalheTitulo').textContent = d.titulo;
+  document.getElementById('featureDetalheCorpo').innerHTML = d.corpo;
+  document.getElementById('modalFeatureDetalhe').classList.add('active');
 }
-function _deviceId() {
-  const raw=[navigator.userAgent,navigator.language||'',
-    (Intl.DateTimeFormat().resolvedOptions().timeZone||''),
-    navigator.hardwareConcurrency||0,navigator.deviceMemory||0,
-    screen.width+'x'+screen.height,screen.colorDepth||0].join('|');
-  return _fnv(raw);
+function fecharDetalheFeature() {
+  document.getElementById('modalFeatureDetalhe').classList.remove('active');
 }
-const DEVICE_ID=(()=>{
-  try{let id=localStorage.getItem(_DK);if(!id){id=_deviceId();localStorage.setItem(_DK,id);}return id;}
-  catch(_){return _deviceId();}
-})();
+document.getElementById('modalFeatureDetalhe').addEventListener('click', function (e) {
+  if (e.target === this) fecharDetalheFeature();
+});
 
-// ═══════════════════════════════════
-// AUTO-RELANÇAMENTO FILE://
-// ═══════════════════════════════════
-(function(){
-  if(location.protocol!=="file:") return;
-  const req=new XMLHttpRequest();
-  req.open("GET",location.href,true);req.responseType="blob";
-  req.onload=function(){
-    const url=URL.createObjectURL(new Blob([req.response],{type:"text/html"}));
-    const opened=window.open(url,"_self");
-    if(!opened||opened===window){
-      document.body.innerHTML="<div style='position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#030507;font-family:monospace;gap:20px'>"
-        +"<div style='color:#0ff;font-size:1.2rem;letter-spacing:3px'>⚡ UNIVERSO ÁUREO</div>"
-        +"<a href='"+url+"' style='background:linear-gradient(95deg,#0a3a3a,#0e5e5e);color:#0ff;padding:12px 32px;border-radius:48px;text-decoration:none;font-weight:bold;font-size:1rem;letter-spacing:2px'>🔓 ABRIR CONECTADO</a>"
-        +"<div style='color:#2a6a6a;font-size:.65rem'>© UNIVERSO ÁUREO · 3·6·9</div></div>";
+// ═══════════════════════════════════════════════════════
+// AUTO-RELANÇAMENTO PARA file://
+// ═══════════════════════════════════════════════════════
+(function () {
+  if (location.protocol !== "file:") return;
+  const req = new XMLHttpRequest();
+  req.open("GET", location.href, true);
+  req.responseType = "blob";
+  req.onload = function () {
+    const url = URL.createObjectURL(new Blob([req.response], { type: "text/html" }));
+    const opened = window.open(url, "_self");
+    if (!opened || opened === window) {
+      document.body.innerHTML =
+        "<div style='position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#030508;font-family:Inter,sans-serif;gap:20px'>" +
+        "<div style='color:#00e5ff;font-size:1.2rem;letter-spacing:3px;font-weight:800'>⚡ ALMAFLUXO</div>" +
+        "<a href='" + url + "' style='background:#00e5ff;color:#000;padding:12px 32px;border-radius:48px;text-decoration:none;font-weight:800;font-size:1rem'>🔓 ABRIR CONECTADO</a>" +
+        "</div>";
     }
   };
-  req.onerror=function(){console.error("❌ Falha no auto-relançamento");};
   req.send();
 })();
 
-// ═══════════════════════════════════
-// COUNTDOWN
-// ═══════════════════════════════════
-function pad(n){return String(n).padStart(2,"0");}
-function fmtContagem(ms){
-  if(ms<=0)return"00:00:00";
-  const s=Math.floor(ms/1000);
-  return `${pad(Math.floor(s/3600))}:${pad(Math.floor((s%3600)/60))}:${pad(s%60)}`;
+// ═══════════════════════════════════════════════════════
+// COUNTDOWN (referência diária, decorativo/visual — herdado do sistema anterior)
+// ═══════════════════════════════════════════════════════
+function pad(n) { return String(n).padStart(2, "0"); }
+function fmtContagem(ms) {
+  if (ms <= 0) return "00:00:00";
+  const s = Math.floor(ms / 1000);
+  return `${pad(Math.floor(s / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
 }
-function atualizarContagem(){
-  const agora=new Date();
-  const amanha=new Date(Date.UTC(agora.getUTCFullYear(),agora.getUTCMonth(),agora.getUTCDate()+1));
-  const ms=amanha-agora;
-  const el=document.getElementById("countdown");
-  if(el)el.textContent=fmtContagem(ms);
-  const ci=document.getElementById("cdInfo");
-  if(ci)ci.classList.toggle("urgente",ms<3600000);
+function atualizarContagem() {
+  const agora = new Date();
+  const amanha = new Date(Date.UTC(agora.getUTCFullYear(), agora.getUTCMonth(), agora.getUTCDate() + 1));
+  const ms = amanha - agora;
+  const el = document.getElementById("countdown");
+  if (el) el.textContent = fmtContagem(ms);
+  const bar = document.getElementById("statusBar");
+  if (bar) bar.classList.toggle("urgente", ms < 3600000);
 }
 atualizarContagem();
-setInterval(atualizarContagem,1000);
+setInterval(atualizarContagem, 1000);
 
-// ═══════════════════════════════════
-// DETECÇÃO DE PLATAFORMA VIA URL + SELEÇÃO MANUAL
-// ═══════════════════════════════════
-function detectarPlataforma(chaveForcada){
+// ═══════════════════════════════════════════════════════
+// SELEÇÃO / DETECÇÃO DE PLATAFORMA
+// ═══════════════════════════════════════════════════════
+function detectarPlataforma(chaveForcada) {
   let chave;
-  
-  // Se foi forçada (seleção manual), usa essa
-  if(chaveForcada && PLATAFORMAS[chaveForcada]){
+  if (chaveForcada && PLATAFORMAS[chaveForcada]) {
     chave = chaveForcada;
   } else {
-    // Tenta detectar via URL (?p= ou ?plataforma=)
-    const params=new URLSearchParams(location.search);
-    chave=(params.get('p')||params.get('plataforma')||'').toLowerCase().trim();
+    const params = new URLSearchParams(location.search);
+    chave = (params.get('p') || params.get('plataforma') || '').toLowerCase().trim();
   }
-  
   PLAT = PLATAFORMAS[chave] || PLAT_DESCONHECIDA;
+  planoSelecionado = null;
 
-  // Plataforma Mapa: esconde abas normais, mostra painel dedicado
-  const ehMapa = PLAT.id === 'mapa';
-  document.querySelector('.tabs').style.display        = ehMapa ? 'none' : '';
-  document.getElementById('panel-senha').style.display = ehMapa ? 'none' : '';
-  document.getElementById('panel-acesso').style.display= ehMapa ? 'none' : '';
-  document.getElementById('panel-mapa').style.display  = ehMapa ? 'block' : 'none';
+  const ehMapa = !!PLAT.externo;
+  document.querySelector('.tabs').style.display         = ehMapa ? 'none' : '';
+  document.getElementById('panel-senha').style.display   = ehMapa ? 'none' : '';
+  document.getElementById('panel-acesso').style.display   = ehMapa ? 'none' : '';
+  document.getElementById('panel-mapa').style.display    = ehMapa ? 'block' : 'none';
 
-  // Atualiza badge
   document.getElementById('platIcon').textContent = PLAT.icone;
   document.getElementById('platNome').textContent  = PLAT.nome;
   document.getElementById('platDesc').textContent  = PLAT.desc;
 
-  // Título do e-mail e from_name carregam a plataforma
-  document.getElementById('dynamicSubject').value  =
-    `⚡ ALMAFLUXO — Nova Solicitação de Acesso (${PLAT.nome})`;
-  document.getElementById('dynamicFromName').value =
-    `Sistema ALMAFLUXO · ${PLAT.nome}`;
-  document.getElementById('platOrigemInput').value = PLAT.nome;
-  document.getElementById('trialFromName').value   =
-    `Sistema ALMAFLUXO · ${PLAT.nome}`;
-  document.getElementById('trialOrigem').value     = PLAT.nome;
-
-  // Pré-seleciona a plataforma no select do teste grátis
-  if(PLAT.trialKey){
-    const sel=document.getElementById('trialPlataformaSelect');
-    for(let i=0;i<sel.options.length;i++){
-      if(sel.options[i].value===PLAT.trialKey){sel.selectedIndex=i;break;}
-    }
-    // Mostra seção de teste grátis
-    document.getElementById('secaoTesteGratis').style.display = 'block';
-    document.getElementById('avisoSintesia').style.display = 'block';
-  } else {
-    // Sem teste grátis (Sintesia, Mapa)
-    document.getElementById('secaoTesteGratis').style.display = 'none';
-  }
-
-  // Se for plataforma de autoconhecimento → pré-seleciona numerologia
-  if(!PLAT.ehTrading){
-    setTipo('numerologia');
-  } else {
-    setTipo('trading');
-  }
-
-  // Atualiza seleção visual no modal
+  construirPlanos();
   atualizarSelecaoModal();
-  
   document.title = `${PLAT.nome} · ALMAFLUXO`;
-  console.log(`🎯 Plataforma ativa: ${PLAT.nome} [id: ${PLAT.id}]`);
 }
 
-// ═══════════════════════════════════
-// MODAL DE SELEÇÃO DE PLATAFORMA
-// ═══════════════════════════════════
-function abrirModalPlataformas(){
+function abrirModalPlataformas() {
   document.getElementById('modalPlataformas').classList.add('active');
-  // Marca a plataforma atualmente selecionada
   atualizarSelecaoModal();
 }
-
-function fecharModalPlataformas(){
+function fecharModalPlataformas() {
   document.getElementById('modalPlataformas').classList.remove('active');
 }
-
-function selecionarPlataforma(chave){
+function selecionarPlataforma(chave) {
   detectarPlataforma(chave);
   fecharModalPlataformas();
-  calcTotal();
 }
-
-function atualizarSelecaoModal(){
-  const itens = document.querySelectorAll('.plat-item');
-  itens.forEach(item => {
-    const chaveItem = item.getAttribute('data-plat');
-    if(chaveItem === PLAT.id){
-      item.classList.add('sel');
-    } else {
-      item.classList.remove('sel');
-    }
+function atualizarSelecaoModal() {
+  document.querySelectorAll('.plat-item').forEach(item => {
+    item.classList.toggle('sel', item.getAttribute('data-plat') === PLAT.id);
   });
 }
-
-// Constrói a lista de plataformas no modal
-function construirListaPlataformas(){
+function construirListaPlataformas() {
   const container = document.getElementById('platLista');
   let html = '';
-  
-  // Ordem desejada
-  const ordem = ['futebol', 'basquete', 'operador', 'multiesportes', 'sintesia', 'mapa'];
-  
-  ordem.forEach(chave => {
+  ORDEM_PLATAFORMAS.forEach(chave => {
     const p = PLATAFORMAS[chave];
-    if(!p) return;
+    if (!p) return;
     html += `
       <div class="plat-item" data-plat="${p.id}" onclick="selecionarPlataforma('${p.id}')">
         <div class="plat-item-icone">${p.icone}</div>
@@ -874,286 +829,219 @@ function construirListaPlataformas(){
           <div class="plat-item-desc">${p.desc}</div>
         </div>
         <div class="plat-item-check">✓</div>
-      </div>
-    `;
+      </div>`;
   });
-  
   container.innerHTML = html;
 }
+document.getElementById('modalPlataformas').addEventListener('click', function (e) {
+  if (e.target === this) fecharModalPlataformas();
+});
 
-// ═══════════════════════════════════
+// ═══════════════════════════════════════════════════════
 // ABAS
-// ═══════════════════════════════════
-function switchTab(t){
-  document.querySelectorAll('.tab').forEach(e=>e.classList.remove('active'));
-  document.querySelectorAll('.panel').forEach(e=>e.classList.remove('active'));
-  document.getElementById('tab-'+t).classList.add('active');
-  document.getElementById('panel-'+t).classList.add('active');
+// ═══════════════════════════════════════════════════════
+function switchTab(t) {
+  document.querySelectorAll('.tab').forEach(e => e.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(e => e.classList.remove('active'));
+  document.getElementById('tab-' + t).classList.add('active');
+  document.getElementById('panel-' + t).classList.add('active');
 }
 
-// ═══════════════════════════════════
-// TIPO DE SERVIÇO
-// ═══════════════════════════════════
-let tipoAtual='trading';
-function setTipo(t){
-  tipoAtual=t;
-  document.getElementById('btn-trading').classList.toggle('sel',t==='trading');
-  document.getElementById('btn-numerologia').classList.toggle('sel',t==='numerologia');
-  document.getElementById('tradingSection').style.display    = t==='trading'    ?'block':'none';
-  document.getElementById('numerologiaSection').style.display = t==='numerologia'?'block':'none';
-  document.getElementById('dynamicSubject').value =
-    `⚡ ALMAFLUXO — Nova Solicitação de Acesso (${PLAT.nome})`;
-  if(t==='trading'){
-    document.querySelectorAll('#numerologiaSection [required]').forEach(e=>e.removeAttribute('required'));
-    document.querySelectorAll('#tradingSection input[type=radio]').forEach(e=>e.setAttribute('required',''));
-    document.querySelectorAll('input[name="servico_numerologia"]').forEach(r=>r.checked=false);
-    toggleCivs();
-  } else {
-    document.querySelectorAll('#tradingSection [required]').forEach(e=>e.removeAttribute('required'));
-  }
+// ═══════════════════════════════════════════════════════
+// PLANOS (HORA / DIA / MÊS) — construídos conforme a plataforma
+// ═══════════════════════════════════════════════════════
+const LABEL_PLANO = { hora: ['⏱️ Hora', '/ hora'], dia: ['📆 Dia', '/ dia'], mes: ['📆 Mês', '/ mês'] };
+
+function construirPlanos() {
+  const grid = document.getElementById('planosGrid');
+  const planos = PLAT.planos || {};
+  let html = '';
+  Object.keys(planos).forEach(chave => {
+    const preco = planos[chave];
+    const [nome, sufixo] = LABEL_PLANO[chave] || [chave, ''];
+    html += `
+      <div class="plano-card" data-plano="${chave}" onclick="selecionarPlano('${chave}')">
+        <div class="plano-nome">${nome}</div>
+        <div class="plano-preco">R$ ${preco}<span>${sufixo}</span></div>
+      </div>`;
+  });
+  grid.innerHTML = html;
   calcTotal();
 }
 
-function toggleCivs(){
-  const r=document.querySelector('input[name="servico_numerologia"]:checked');
-  document.getElementById('civsBl').style.display=(r&&r.value==='Mapa do Próprio Destino')?'block':'none';
-  if(!r||r.value!=='Mapa do Próprio Destino')
-    document.querySelectorAll('input[name="civilizacao"]').forEach(cb=>cb.checked=false);
+function selecionarPlano(chave) {
+  planoSelecionado = chave;
+  document.querySelectorAll('.plano-card').forEach(c => {
+    c.classList.toggle('sel', c.getAttribute('data-plano') === chave);
+  });
   calcTotal();
 }
 
-function calcTotal(){
-  let total=0;
-  if(tipoAtual==='trading'){
-    total=(parseInt(document.getElementById('dias').value)||0)*10;
-  } else {
-    const r=document.querySelector('input[name="servico_numerologia"]:checked');
-    if(r) total+=parseInt(r.getAttribute('data-preco'))||0;
-    if(r&&r.value==='Mapa do Próprio Destino'){
-      let tc=0;
-      document.querySelectorAll('input[name="civilizacao"]:checked').forEach(cb=>tc+=parseInt(cb.getAttribute('data-preco')||0));
-      document.getElementById('civTotal').innerHTML=`Total civilizações: R$ ${tc},00`;
-      total+=tc;
-    }
+function calcTotal() {
+  const el = document.getElementById('valorTotal');
+  if (!planoSelecionado || !PLAT.planos[planoSelecionado]) {
+    el.style.display = 'none';
+    return 0;
   }
-  const el=document.getElementById('valorTotal');
-  el.style.display=total>0?'block':'none';
-  el.innerHTML=`💰 Valor total: R$ ${total},00`;
+  const total = PLAT.planos[planoSelecionado];
+  el.style.display = 'block';
+  el.innerHTML = `💰 Valor total: R$ ${total},00`;
   return total;
 }
 
-// ═══════════════════════════════════
-// DESBLOQUEIO COM SENHA
-// ═══════════════════════════════════
-const _TK = "ALMA369UA";   // Token interno — deve ser idêntico ao TOKEN_INTERNO do AppScript
-
-async function obterChave(senha){
-  const backendUrl = PLAT.backendUrl;
-  console.log(`🔑 Tentando desbloquear em: ${PLAT.nome} → ${backendUrl}`);
-  
-  const getUrl=`${backendUrl}?action=getKeyWithPassword&password=${encodeURIComponent(senha)}&tk=${_TK}`;
+// ═══════════════════════════════════════════════════════
+// COMPRA — GERA LINK DE PAGAMENTO (Mercado Pago / PagBank via backend)
+// ═══════════════════════════════════════════════════════
+async function chamarBackend(action, dados) {
+  const body = Object.assign({ action, tk: TOKEN_INTERNO }, dados);
+  const c = new AbortController();
+  const t = setTimeout(() => c.abort(), TIMEOUT_MS);
   let response;
-  try{
-    const c=new AbortController();const t=setTimeout(()=>c.abort(),TIMEOUT_MS);
-    response=await fetch(getUrl,{signal:c.signal});clearTimeout(t);
-  }catch(e){
-    const c=new AbortController();const t=setTimeout(()=>c.abort(),TIMEOUT_MS);
-    response=await fetch(backendUrl,{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({action:'getKeyWithPassword',password:senha,tk:_TK}),signal:c.signal
-    });clearTimeout(t);
+  try {
+    response = await fetch(BACKEND_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: c.signal
+    });
+  } finally {
+    clearTimeout(t);
   }
-  if(!response.ok) throw new Error(`Backend retornou ${response.status}`);
-  const data=await response.json();
-  if(!data.ok) throw new Error(data.error||'Senha inválida ou expirada');
-  if(!data.chaveMestra) throw new Error('Chave mestra ausente');
-  if(!data.nonce||!data.tag||!data.data) throw new Error('Dados do conteúdo incompletos');
-  const keyBytes=Uint8Array.from(atob(data.chaveMestra),c=>c.charCodeAt(0));
-  if(keyBytes.length!==32) throw new Error(`Chave inválida: ${keyBytes.length} bytes`);
-  return{chaveMestra:data.chaveMestra,conteudo:{nonce:data.nonce,tag:data.tag,data:data.data}};
+  if (!response.ok) throw new Error(`Backend retornou ${response.status}`);
+  const data = await response.json();
+  if (!data.ok) throw new Error(data.error || 'Erro desconhecido');
+  return data;
 }
 
-async function aesDecrypt(obj,keyB64){
-  const keyBytes=Uint8Array.from(atob(keyB64),c=>c.charCodeAt(0));
-  const cryptoKey=await crypto.subtle.importKey('raw',keyBytes,'AES-GCM',false,['decrypt']);
-  const iv=Uint8Array.from(atob(obj.nonce),c=>c.charCodeAt(0));
-  const tag=Uint8Array.from(atob(obj.tag),c=>c.charCodeAt(0));
-  const data=Uint8Array.from(atob(obj.data),c=>c.charCodeAt(0));
-  return await crypto.subtle.decrypt(
-    {name:'AES-GCM',iv:iv,tagLength:128},cryptoKey,new Uint8Array([...data,...tag])
-  );
-}
+document.getElementById('btnComprar').onclick = async () => {
+  if (isProcessing) return;
+  const nome = document.getElementById('compraNome').value.trim();
+  const email = document.getElementById('compraEmail').value.trim();
+  const okEl = document.getElementById('compraSuccess');
+  const errEl = document.getElementById('compraError');
+  const infoEl = document.getElementById('compraInfo');
+  okEl.style.display = errEl.style.display = infoEl.style.display = 'none';
 
-function exibirConteudo(html){
-  const txt=html.trim();
-  if(txt.toLowerCase().startsWith('<!doctype')||txt.startsWith('<html')){
-    const iframe=document.createElement('iframe');
-    iframe.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:9999';
-    iframe.srcdoc=txt;
-    document.body.innerHTML='';document.body.appendChild(iframe);
-    document.body.style.cssText='margin:0;padding:0;overflow:hidden';
-  } else {
-    const div=document.createElement('div');
-    div.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;background:#0a121c;overflow:auto';
-    const pre=document.createElement('pre');
-    pre.textContent=txt;pre.style.cssText='padding:1rem;margin:0;color:#0ff;font-family:monospace;font-size:.9rem;white-space:pre-wrap';
-    div.appendChild(pre);document.body.innerHTML='';document.body.appendChild(div);
-    document.body.style.cssText='margin:0;padding:0';
-  }
-}
+  if (!nome) { errEl.textContent = '❌ Informe seu nome completo.'; errEl.style.display = 'block'; return; }
+  if (!email || !email.includes('@')) { errEl.textContent = '❌ Informe um e-mail válido.'; errEl.style.display = 'block'; return; }
+  if (!planoSelecionado) { errEl.textContent = '❌ Selecione um plano antes de continuar.'; errEl.style.display = 'block'; return; }
 
-function mostrarErroBloqueio(msg){
-  const el=document.getElementById('erroSenha');
-  el.textContent='❌ '+msg;el.style.display='block';
-  setTimeout(()=>el.style.display='none',6000);
-}
+  isProcessing = true;
+  const btn = document.getElementById('btnComprar');
+  const orig = btn.innerText;
+  btn.innerText = '⏳ Gerando link...'; btn.disabled = true;
 
-document.getElementById('btnDesbloquear').onclick=async()=>{
-  if(isProcessing)return;
-  const senha=document.getElementById('senhaInput').value.trim().toUpperCase();
-  if(!senha){mostrarErroBloqueio('Digite a senha do período.');return;}
-  if(!PLAT.backendUrl){mostrarErroBloqueio('Selecione uma plataforma primeiro.');return;}
-  
-  isProcessing=true;
-  const btn=document.getElementById('btnDesbloquear');
-  const orig=btn.innerText;
-  btn.innerText='🔐 VERIFICANDO';btn.disabled=true;
-  const sp=document.createElement('span');sp.className='loader';btn.appendChild(sp);
-  try{
-    const{chaveMestra,conteudo}=await obterChave(senha);
-    const buf=await aesDecrypt(conteudo,chaveMestra);
-    exibirConteudo(new TextDecoder().decode(buf));
-  }catch(e){
-    mostrarErroBloqueio(e.message);
-    btn.innerText=orig;btn.disabled=false;
-    if(sp.parentNode)sp.remove();
-    isProcessing=false;
+  try {
+    const data = await chamarBackend('criarPagamento', {
+      plataforma: PLAT.id, plano: planoSelecionado, email, nome
+    });
+    infoEl.innerHTML = `✅ Link de pagamento gerado! Você será redirecionado.<br><small>Após a confirmação, seu token chega no e-mail <strong>${email}</strong>.</small>`;
+    infoEl.style.display = 'block';
+    setTimeout(() => { window.location.href = data.linkPagamento; }, 1500);
+  } catch (e) {
+    errEl.textContent = '❌ ' + e.message;
+    errEl.style.display = 'block';
+  } finally {
+    btn.innerText = orig; btn.disabled = false;
+    isProcessing = false;
   }
 };
-document.getElementById('senhaInput').addEventListener('keypress',e=>{
-  if(e.key==='Enter')document.getElementById('btnDesbloquear').click();
-});
 
-// ═══════════════════════════════════
-// FORMULÁRIO DE SOLICITAÇÃO
-// ═══════════════════════════════════
-document.getElementById('quizForm').addEventListener('submit',async function(e){
-  e.preventDefault();
-  const btn=document.getElementById('quizBtn');
-  const ok=document.getElementById('quizSuccess');
-  const err=document.getElementById('quizError');
-  btn.textContent='⏳ Enviando...';btn.disabled=true;
-  ok.style.display=err.style.display='none';
+// ═══════════════════════════════════════════════════════
+// DESBLOQUEIO COM TOKEN
+// ═══════════════════════════════════════════════════════
+async function obterChavePorToken(token) {
+  const data = await chamarBackend('getKeyWithToken', { token, plataforma: PLAT.id });
+  const keyBytes = Uint8Array.from(atob(data.chaveMestra), c => c.charCodeAt(0));
+  if (keyBytes.length !== 32) throw new Error('Chave inválida');
+  return { chaveMestra: data.chaveMestra, conteudo: { nonce: data.nonce, tag: data.tag, data: data.data } };
+}
 
-  const fd=new FormData(this);
-  const nome=fd.get('nome');
-  const email=fd.get('email_resposta');
-  const dataHora=new Date().toLocaleString('pt-BR');
-  let corpo='',redirectUrl='';
+async function aesDecrypt(obj, keyB64) {
+  const keyBytes = Uint8Array.from(atob(keyB64), c => c.charCodeAt(0));
+  const cryptoKey = await crypto.subtle.importKey('raw', keyBytes, 'AES-GCM', false, ['decrypt']);
+  const iv = Uint8Array.from(atob(obj.nonce), c => c.charCodeAt(0));
+  const tag = Uint8Array.from(atob(obj.tag), c => c.charCodeAt(0));
+  const data = Uint8Array.from(atob(obj.data), c => c.charCodeAt(0));
+  return await crypto.subtle.decrypt({ name: 'AES-GCM', iv, tagLength: 128 }, cryptoKey, new Uint8Array([...data, ...tag]));
+}
 
-  if(tipoAtual==='trading'){
-    const dias=fd.get('dias')||1;
-    const total=parseInt(dias)*10;
-    corpo=`═══ SOLICITAÇÃO TRADING ═══\nPlataforma: ${PLAT.nome}\nNome: ${nome}\nE-mail: ${email}\n`
-         +`Dias: ${dias} (R$ ${total},00)\nData: ${dataHora}\nDevice: ${DEVICE_ID}\n\n`
-         +`1. ${fd.get('motivo')||'-'}\n2. ${fd.get('horas_dia')||'-'}\n`
-         +`3. ${fd.get('social_apostas')||'-'}\n4. ${fd.get('perfil_decisao')||'-'}\n`
-         +`5. ${fd.get('realizacao_pessoal')||'-'}\nObs: ${fd.get('observacoes')||'-'}`;
-    redirectUrl=`https://tchelojc.github.io/links/pagamento.html?valor=${total}&nome=${encodeURIComponent(nome)}&email=${encodeURIComponent(email)}&dias=${dias}&tipo=trading&plataforma=${encodeURIComponent(PLAT.nome)}&device=${encodeURIComponent(DEVICE_ID)}`;
+function exibirConteudo(html) {
+  const txt = html.trim();
+  if (txt.toLowerCase().startsWith('<!doctype') || txt.startsWith('<html')) {
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:9999';
+    iframe.srcdoc = txt;
+    document.body.innerHTML = '';
+    document.body.appendChild(iframe);
+    document.body.style.cssText = 'margin:0;padding:0;overflow:hidden';
   } else {
-    const serv=fd.get('servico_numerologia')||'Nenhum';
-    const preco=serv==='Mapa do Próprio Destino'?100:serv==='Sintesia Humana'?10:0;
-    const civs=Array.from(document.querySelectorAll('input[name="civilizacao"]:checked')).map(c=>c.value);
-    const total=preco+civs.length*100;
-    corpo=`═══ SOLICITAÇÃO NUMEROLOGIA ═══\nPlataforma: ${PLAT.nome}\nNome: ${nome}\nE-mail: ${email}\n`
-         +`Serviço: ${serv} (R$ ${preco},00)\nCivilizações: ${civs.join(', ')||'Nenhuma'}\n`
-         +`Total: R$ ${total},00\nData: ${dataHora}\nDevice: ${DEVICE_ID}`;
-    redirectUrl=`https://almafluxo.uk/Dados?nome=${encodeURIComponent(nome)}&email=${encodeURIComponent(email)}&servico=${encodeURIComponent(serv)}&civilizacoes=${encodeURIComponent(civs.join(','))}&total=${total}`;
-  }
-  fd.set('message',corpo);
-
-  try{
-    const r=await fetch('https://api.web3forms.com/submit',{method:'POST',body:fd});
-    const d=await r.json();
-    if(d.success){
-      ok.style.display='block';
-      this.reset();setTipo(PLAT.ehTrading?'trading':'numerologia');calcTotal();
-      setTimeout(()=>{window.location.href=redirectUrl;},2000);
-    } else throw new Error();
-  }catch{err.style.display='block';}
-  finally{btn.textContent='🚀 Enviar solicitação para análise';btn.disabled=false;}
-});
-
-// ═══════════════════════════════════
-// TESTE GRÁTIS
-// ═══════════════════════════════════
-async function chamarProxy(action,dados={}){
-  const response=await fetch(PROXY_URL,{
-    method:'POST',headers:{'Content-Type':'text/plain'},
-    body:JSON.stringify({action,...dados})
-  });
-  const text=await response.text();
-  if(!response.ok) throw new Error(`HTTP ${response.status}`);
-  const result=JSON.parse(text);
-  if(!result.ok) throw new Error(result.error||'Erro desconhecido');
-  return result;
-}
-
-async function registrarTrial(email,plataforma,nome){
-  const statusEl=document.getElementById('trialGithubStatus');
-  statusEl.className='msg info';statusEl.style.display='block';
-  statusEl.textContent='🔄 Registrando licença temporária…';
-  try{
-    const result=await chamarProxy('register_trial',{
-      email:email.toLowerCase(),plataforma,nome,deviceId:DEVICE_ID,collection:'gratis'
-    });
-    const expiraStr=new Date(result.expira).toLocaleTimeString('pt-BR');
-    statusEl.innerHTML=`✅ <strong>Licença temporária ativada!</strong><br><small>🆔 ${result.id} · ${plataforma} · Expira às ${expiraStr}</small>`;
-    return true;
-  }catch(err){
-    statusEl.innerHTML=`⚠️ ${err.message}<br><small>O e-mail será enviado normalmente.</small>`;
-    return false;
+    const div = document.createElement('div');
+    div.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;background:#0a0e17;overflow:auto';
+    const pre = document.createElement('pre');
+    pre.textContent = txt;
+    pre.style.cssText = 'padding:1rem;margin:0;color:#00e5ff;font-family:monospace;font-size:.9rem;white-space:pre-wrap';
+    div.appendChild(pre);
+    document.body.innerHTML = '';
+    document.body.appendChild(div);
   }
 }
 
-document.getElementById('freeTrialForm').addEventListener('submit',async function(e){
-  e.preventDefault();
-  const btn=document.getElementById('trialBtn');
-  const ok=document.getElementById('trialSuccess');
-  const err=document.getElementById('trialError');
-  btn.textContent='⏳ Processando...';btn.disabled=true;
-  ok.style.display=err.style.display='none';
-  document.getElementById('trialGithubStatus').style.display='none';
+document.getElementById('btnDesbloquear').onclick = async () => {
+  if (isProcessing) return;
+  const token = document.getElementById('tokenInput').value.trim().toUpperCase();
+  const errEl = document.getElementById('erroToken');
+  errEl.style.display = 'none';
+  if (!token) { errEl.textContent = '❌ Digite seu token de acesso.'; errEl.style.display = 'block'; return; }
 
-  const fd=new FormData(this);
-  const nome=fd.get('nome_teste');
-  const email=fd.get('email_teste');
-  const plataforma=fd.get('plataforma_teste');
-  const dataHora=new Date().toLocaleString('pt-BR');
+  isProcessing = true;
+  const btn = document.getElementById('btnDesbloquear');
+  const orig = btn.innerText;
+  btn.innerText = '🔐 VERIFICANDO'; btn.disabled = true;
+  const sp = document.createElement('span'); sp.className = 'loader'; btn.appendChild(sp);
 
-  const sucesso=await registrarTrial(email,plataforma,nome);
-  fd.set('message',
-    `═══ TESTE GRÁTIS ═══\nOrigem: ${PLAT.nome}\nPlataforma testada: ${plataforma}\n`
-   +`Nome: ${nome}\nE-mail: ${email}\nDevice: ${DEVICE_ID}\nData: ${dataHora}\n`
-   +`Status proxy: ${sucesso?'✅ Gravado':'⚠️ Falhou — gravar manualmente'}`
-  );
+  try {
+    const { chaveMestra, conteudo } = await obterChavePorToken(token);
+    const buf = await aesDecrypt(conteudo, chaveMestra);
+    exibirConteudo(new TextDecoder().decode(buf));
+  } catch (e) {
+    errEl.textContent = '❌ ' + e.message;
+    errEl.style.display = 'block';
+    btn.innerText = orig; btn.disabled = false;
+    if (sp.parentNode) sp.remove();
+    isProcessing = false;
+  }
+};
 
-  try{
-    const r=await fetch('https://api.web3forms.com/submit',{method:'POST',body:fd});
-    const d=await r.json();
-    if(d.success){ok.style.display='block';this.reset();}
-    else throw new Error();
-  }catch{err.style.display='block';}
-  finally{btn.textContent='⏱️ Solicitar 1 Hora Grátis';btn.disabled=false;}
+document.getElementById('tokenInput').addEventListener('keypress', e => {
+  if (e.key === 'Enter') document.getElementById('btnDesbloquear').click();
 });
 
-// ═══════════════════════════════════
+// Consulta de saldo (sem desbloquear conteúdo) — usada pelo botão "Consultar Token" da navbar
+async function consultarSaldoToken() {
+  const token = document.getElementById('tokenInput').value.trim().toUpperCase();
+  const infoEl = document.getElementById('infoSaldo');
+  if (!token) return;
+  try {
+    const data = await chamarBackend('consultarSaldo', { token });
+    const restanteMin = Math.floor(data.restanteMs / 60000);
+    infoEl.innerHTML = data.expirado
+      ? '⚠️ Este token está expirado.'
+      : `✅ Token válido para <strong>${PLATAFORMAS[data.plataforma]?.nome || data.plataforma}</strong> · plano ${data.plano} · expira em ~${restanteMin} min`;
+    infoEl.style.display = 'block';
+  } catch (e) {
+    infoEl.textContent = '❌ ' + e.message;
+    infoEl.style.display = 'block';
+  }
+}
+document.getElementById('tokenInput').addEventListener('blur', consultarSaldoToken);
+
+// ═══════════════════════════════════════════════════════
 // INICIALIZAÇÃO
-// ═══════════════════════════════════
+// ═══════════════════════════════════════════════════════
 construirListaPlataformas();
 detectarPlataforma();
-calcTotal();
-console.log("🚀 ALMAFLUXO Blindado Universal v4 · Plataforma:",PLAT.nome);
+console.log("🚀 ALMAFLUXO Hub de Acesso · Plataforma ativa:", PLAT.nome);
 </script>
 </body>
 </html>
