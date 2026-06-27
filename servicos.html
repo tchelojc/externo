@@ -379,7 +379,7 @@ footer{padding:2.5rem 1.5rem;background:var(--panel2);border-top:1px solid var(-
 <nav id="app-nav">
   <div class="nav-brand">ALMAFLUXO <span>| Hub de Acesso</span></div>
   <div class="nav-actions">
-    <div class="token-display" id="tokenDisplay" onclick="switchTab('senha')">🔑 Consultar Token</div>
+    <div class="token-display" id="tokenDisplay" onclick="abrirModalConsulta()">🔑 Consultar Token</div>
     <button class="btn-nav" onclick="document.getElementById('hub').scrollIntoView({behavior:'smooth'})">⚡ Acessar Plataforma</button>
   </div>
 </nav>
@@ -609,6 +609,21 @@ footer{padding:2.5rem 1.5rem;background:var(--panel2);border-top:1px solid var(-
     <button class="modal-fechar" onclick="fecharModalPlataformas()">✓ Confirmar seleção</button>
   </div>
 </div>
+<!-- ═══ MODAL CONSULTAR TOKEN ═══ -->
+<div class="modal-overlay" id="modalConsultaToken">
+  <div class="modal">
+    <button class="close-btn" onclick="fecharModalConsulta()">✕</button>
+    <h2>🔑 Consultar Token</h2>
+    <p class="subtitulo">Informe seu e‑mail e autentique‑se para recuperar seu token.</p>
+    <form id="formConsultaToken" onsubmit="iniciarConsulta(event)">
+      <label for="consultaEmail">E‑mail cadastrado</label>
+      <input type="email" id="consultaEmail" placeholder="seuemail@exemplo.com" required />
+      <button type="submit" class="btn-pagar" style="background:var(--ciano);color:#000;">🔍 Buscar Token</button>
+    </form>
+    <div class="status-msg" id="consultaStatus"></div>
+    <p class="modal-footnote">🔒 Seus dados biométricos permanecem no dispositivo.</p>
+  </div>
+</div>
 
 <!-- ===== FOOTER ===== -->
 <footer>
@@ -625,7 +640,7 @@ footer{padding:2.5rem 1.5rem;background:var(--panel2);border-top:1px solid var(-
 // ═══════════════════════════════════════════════════════
 // CONFIGURAÇÃO GERAL
 // ═══════════════════════════════════════════════════════
-const BACKEND_URL = "https://script.google.com/macros/s/AKfycbyhY2egkTp5jdfxMZZsJR2Gj1xSFs_RBwvKm5HXcdz6rXk5B-n8_18UR4rU_M-XCmVkjg/exec";
+const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxxB0X-jLA-8b66Rf_Jf438C_1Bo4YG4kJ-S4WmhPG_WAB9wsdbiDFIpOdRZ8rvuYh8rQ/exec";
 const TOKEN_INTERNO = "ALMA369UA"; // idêntico ao TOKEN_INTERNO do central.gs
 const TIMEOUT_MS = 15000;
 let isProcessing = false;
@@ -975,6 +990,119 @@ function exibirConteudo(html) {
     document.body.innerHTML = '';
     document.body.appendChild(div);
   }
+}
+// ═══════════════════════════════════════════════════════
+// CONSULTA DE TOKEN COM BIOMETRIA
+// ═══════════════════════════════════════════════════════
+
+function abrirModalConsulta() {
+  document.getElementById('modalConsultaToken').classList.add('active');
+  document.getElementById('consultaStatus').textContent = '';
+  document.getElementById('consultaEmail').value = '';
+}
+
+function fecharModalConsulta() {
+  document.getElementById('modalConsultaToken').classList.remove('active');
+}
+
+// Fechar ao clicar fora
+document.getElementById('modalConsultaToken').addEventListener('click', function(e) {
+  if (e.target === this) fecharModalConsulta();
+});
+
+async function iniciarConsulta(e) {
+  e.preventDefault();
+  const email = document.getElementById('consultaEmail').value.trim().toLowerCase();
+  const statusEl = document.getElementById('consultaStatus');
+
+  if (!email || !email.includes('@')) {
+    statusEl.textContent = '⚠️ Informe um e‑mail válido.';
+    statusEl.style.color = '#ff6b6b';
+    return;
+  }
+
+  // ── Etapa 1: Autenticação biométrica ──
+  statusEl.textContent = '🔐 Autentique sua identidade...';
+  statusEl.style.color = 'var(--ciano)';
+
+  const autenticado = await autenticarBiometria();
+  if (!autenticado) {
+    statusEl.textContent = '❌ Autenticação falhou ou foi cancelada.';
+    statusEl.style.color = '#ff6b6b';
+    return;
+  }
+
+  // ── Etapa 2: Consultar tokens do e‑mail ──
+  statusEl.textContent = '⏳ Buscando tokens...';
+  try {
+    const resposta = await fetch(BACKEND_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'listarTokensPorEmail',
+        email: email,
+        tk: TOKEN_INTERNO
+      })
+    });
+    const data = await resposta.json();
+
+    if (!data.ok) throw new Error(data.error || 'Erro na consulta');
+
+    if (data.tokens && data.tokens.length > 0) {
+      let html = '<div style="text-align:left;max-height:200px;overflow-y:auto;margin-top:10px">';
+      data.tokens.forEach(t => {
+        const restante = t.expiraEm ? Math.max(0, Math.floor((t.expiraEm - Date.now()) / 60000)) : 0;
+        const status = t.expirado ? '❌ Expirado' : (restante > 0 ? `✅ ${restante} min restantes` : '⚠️ Quase expirado');
+        html += `<div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:10px;margin-bottom:8px">
+          <strong>${t.token}</strong><br>
+          <small>Plataforma: ${t.plataforma} · Plano: ${t.plano}</small><br>
+          <small style="color:${t.expirado ? '#ff6b6b' : '#4caf50'}">${status}</small>
+        </div>`;
+      });
+      html += '</div>';
+      statusEl.innerHTML = html;
+    } else {
+      statusEl.innerHTML = '⚠️ Nenhum token encontrado para este e‑mail.';
+      statusEl.style.color = '#ffd700';
+    }
+  } catch (erro) {
+    statusEl.textContent = '❌ ' + erro.message;
+    statusEl.style.color = '#ff6b6b';
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// AUTENTICAÇÃO BIOMÉTRICA (WebAuthn)
+// ═══════════════════════════════════════════════════════
+async function autenticarBiometria() {
+  if (!window.PublicKeyCredential) {
+    return await fallbackSenhaDispositivo();
+  }
+
+  try {
+    // Tenta autenticação com biometria local (platform authenticator)
+    const credential = await navigator.credentials.get({
+      publicKey: {
+        challenge: crypto.getRandomValues(new Uint8Array(32)),
+        rpId: window.location.hostname,
+        userVerification: 'required',
+        timeout: 60000,
+        allowCredentials: [] // vazio = aceita qualquer credencial do rpId
+      }
+    });
+    return !!credential;
+  } catch (err) {
+    console.log('Biometria falhou ou indisponível:', err.name);
+    return await fallbackSenhaDispositivo();
+  }
+}
+
+async function fallbackSenhaDispositivo() {
+  // Pede uma senha fixa (definida por você) como fallback
+  const senha = prompt('🔐 Biometria indisponível. Digite sua senha de acesso:');
+  // Senha definida por você (pode ser trocada)
+  const SENHA_FALLBACK = '369ALMA';
+  return senha === SENHA_FALLBACK;
 }
 
 document.getElementById('btnDesbloquear').onclick = async () => {
