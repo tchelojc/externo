@@ -686,6 +686,7 @@
             </p>
             <div class="hero-buttons">
                 <button class="btn-primary" onclick="abrirModal()">▶ Acessar com Tokens</button>
+                <button class="btn-primary" onclick="acessarConteudo()">🔓 Acessar Plataforma</button>
                 <button class="btn-secondary" onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})">▶ Explorar</button>
             </div>
         </div>
@@ -849,7 +850,7 @@
         // ======================================================
         // CONFIGURAÇÃO – SUBSTITUA PELA URL DO SEU WORKER
         // ======================================================
-        const API_URL = 'https://api.almafluxo.com'; // URL do seu Cloudflare Worker
+        const API_URL = 'https://script.google.com/macros/s/AKfycbyhY2egkTp5jdfxMZZsJR2Gj1xSFs_RBwvKm5HXcdz6rXk5B-n8_18UR4rU_M-XCmVkjg/exec';
         const CHECKOUT_URL = 'https://checkout.almafluxo.com'; // URL da página de checkout (ou gateway de pagamento)
 
         // ======================================================
@@ -893,9 +894,9 @@
         // ======================================================
         // COMPRA – REDIRECIONA PARA O CHECKOUT (NÃO CRIA CHAVE)
         // ======================================================
-        function iniciarCheckout(e) {
+        async function iniciarCheckout(e) {
             e.preventDefault();
-            const plano = document.getElementById('plano').value;
+            const planoVal = document.getElementById('plano').value;
             const email = document.getElementById('emailCheckout').value.trim();
             const statusEl = document.getElementById('checkoutStatus');
 
@@ -905,99 +906,135 @@
                 return;
             }
 
-            // Cria um link de pagamento com os parâmetros (exemplo)
-            // Em produção, você geraria um link de checkout no seu backend
-            const params = new URLSearchParams({
-                email: email,
-                tokens: parseInt(plano, 10),
-                plan: plano === '5' ? 'hora' : (plano === '25' ? 'dia' : 'mes')
-            });
+            // Mapeia o valor do select para o plano do backend
+            const planoMap = { '5': 'hora', '25': 'dia', '150': 'mes' };
+            const plano = planoMap[planoVal] || 'hora';
 
-            // Redireciona para o checkout (pode ser uma página hospedada separadamente ou um gateway)
-            // Por enquanto, apenas simula com um alert
-            statusEl.textContent = '⏳ Redirecionando para o pagamento...';
+            statusEl.textContent = '⏳ Gerando link de pagamento...';
             statusEl.style.color = 'var(--ciano)';
 
-            // SIMULAÇÃO: em produção, substitua pelo redirecionamento real
-            // window.location.href = `${CHECKOUT_URL}?${params.toString()}`;
-
-            // 🔴 REMOVA ESTE BLOCO EM PRODUÇÃO – é apenas para demonstração
-            setTimeout(() => {
-                alert(
-                    '✅ SIMULAÇÃO DE COMPRA\n\n' +
-                    'Plano: ' + plano + ' tokens\n' +
-                    'E-mail: ' + email + '\n\n' +
-                    'Em produção, você seria redirecionado para o checkout.\n' +
-                    'A chave seria gerada APÓS a confirmação do pagamento.'
-                );
-                statusEl.textContent = '✅ Compra simulada. Verifique seu e-mail (demo).';
-                statusEl.style.color = '#4caf50';
-                document.getElementById('formCompra').reset();
-                setTimeout(() => fecharModal(), 2000);
-            }, 1000);
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'criarPagamento',
+                        plataforma: 'olhodedus',
+                        plano: plano,
+                        email: email,
+                        nome: '',
+                        tk: 'ALMA369UA'
+                    })
+                });
+                const data = await response.json();
+                if (data.ok && data.linkPagamento) {
+                    window.location.href = data.linkPagamento;
+                } else {
+                    throw new Error(data.error || 'Erro ao gerar pagamento');
+                }
+            } catch (erro) {
+                statusEl.textContent = '❌ ' + erro.message;
+                statusEl.style.color = '#ff6b6b';
+            }
         }
 
         // ======================================================
         // VALIDAÇÃO DE CHAVE (GET)
         // ======================================================
         async function validarChave(e) {
-            e.preventDefault();
-            const chave = document.getElementById('chaveInput').value.trim().toUpperCase();
-            const statusEl = document.getElementById('chaveStatus');
+        e.preventDefault();
+        const chave = document.getElementById('chaveInput').value.trim().toUpperCase();
+        const statusEl = document.getElementById('chaveStatus');
+        if (!chave) {
+            statusEl.textContent = '⚠️ Insira uma chave.';
+            statusEl.style.color = '#ff6b6b';
+            return;
+        }
+        statusEl.textContent = '⏳ Validando...';
+        statusEl.style.color = 'var(--ciano)';
 
-            if (!chave) {
-                statusEl.textContent = '⚠️ Insira uma chave válida.';
-                statusEl.style.color = '#ff6b6b';
-                return;
+        try {
+            const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'validarChaveOlhoDeus', chave })
+            });
+            const data = await response.json();
+            if (data.ok) {
+            localStorage.setItem('olho_chave', chave);
+            document.getElementById('tokenDisplay').textContent = `⚡ ${data.saldo} Tokens`;
+            statusEl.textContent = '✅ Chave validada!';
+            statusEl.style.color = '#4caf50';
+            setTimeout(fecharModalChave, 1500);
+            } else {
+            statusEl.textContent = '❌ ' + data.error;
+            statusEl.style.color = '#ff6b6b';
             }
-
-            statusEl.textContent = '⏳ Validando...';
-            statusEl.style.color = 'var(--ciano)';
-
-            try {
-                const response = await fetch(`${API_URL}/validar?chave=${encodeURIComponent(chave)}`);
-                const dados = await response.json();
-
-                if (dados.status === 'ok' && dados.saldo !== undefined) {
-                    localStorage.setItem('almafluxo_chave', chave);
-                    document.getElementById('tokenDisplay').textContent = `⚡ ${dados.saldo} Tokens`;
-                    statusEl.textContent = '✅ Chave validada com sucesso!';
-                    statusEl.style.color = '#4caf50';
-                    fecharModalChave();
-                } else {
-                    statusEl.textContent = '❌ Chave inválida ou sem saldo.';
-                    statusEl.style.color = '#ff6b6b';
-                }
-            } catch (erro) {
-                console.error(erro);
-                statusEl.textContent = '⚠️ Erro ao validar. Tente novamente.';
-                statusEl.style.color = '#ff6b6b';
-            }
+        } catch (erro) {
+            statusEl.textContent = '⚠️ Erro de conexão.';
+            statusEl.style.color = '#ff6b6b';
+        }
         }
 
         // ======================================================
         // CARREGAR CHAVE SALVA AO INICIAR
         // ======================================================
         async function carregarChaveSalva() {
-            const chaveSalva = localStorage.getItem('almafluxo_chave');
-            if (!chaveSalva) {
-                document.getElementById('tokenDisplay').textContent = '⚡ 0 Tokens';
+        const chaveSalva = localStorage.getItem('olho_chave');
+        if (!chaveSalva) {
+            document.getElementById('tokenDisplay').textContent = '⚡ 0 Tokens';
+            return;
+        }
+        try {
+            const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'validarChaveOlhoDeus', chave: chaveSalva })
+            });
+            const data = await response.json();
+            if (data.ok) {
+            document.getElementById('tokenDisplay').textContent = `⚡ ${data.saldo} Tokens`;
+            } else {
+            localStorage.removeItem('olho_chave');
+            document.getElementById('tokenDisplay').textContent = '⚡ 0 Tokens';
+            }
+        } catch (e) {
+            console.error(e);
+        }
+        }
+        async function acessarConteudo() {
+            const chave = localStorage.getItem('olho_chave');
+            if (!chave) {
+                alert('Valide sua chave primeiro.');
                 return;
             }
-
             try {
-                const response = await fetch(`${API_URL}/validar?chave=${encodeURIComponent(chaveSalva)}`);
-                const dados = await response.json();
-
-                if (dados.status === 'ok' && dados.saldo !== undefined) {
-                    document.getElementById('tokenDisplay').textContent = `⚡ ${dados.saldo} Tokens`;
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'getConteudoOlhoDeus', chave })
+                });
+                const data = await response.json();
+                if (data.ok) {
+                    // Descriptografar AES-GCM (igual ao hub.html)
+                    const keyBytes = Uint8Array.from(atob(data.chaveMestra), c => c.charCodeAt(0));
+                    const cryptoKey = await crypto.subtle.importKey('raw', keyBytes, 'AES-GCM', false, ['decrypt']);
+                    const iv = Uint8Array.from(atob(data.nonce), c => c.charCodeAt(0));
+                    const tag = Uint8Array.from(atob(data.tag), c => c.charCodeAt(0));
+                    const ct = Uint8Array.from(atob(data.data), c => c.charCodeAt(0));
+                    const buf = await crypto.subtle.decrypt(
+                        { name: 'AES-GCM', iv, tagLength: 128 },
+                        cryptoKey,
+                        new Uint8Array([...ct, ...tag])
+                    );
+                    const html = new TextDecoder().decode(buf);
+                    // Exibe o conteúdo descriptografado
+                    document.body.innerHTML = html;
                 } else {
-                    localStorage.removeItem('almafluxo_chave');
-                    document.getElementById('tokenDisplay').textContent = '⚡ 0 Tokens';
+                    alert(data.error || 'Erro ao acessar conteúdo');
                 }
-            } catch (erro) {
-                console.error('Erro ao carregar chave:', erro);
-                document.getElementById('tokenDisplay').textContent = '⚡ 0 Tokens';
+            } catch (e) {
+                alert('Erro ao acessar: ' + e.message);
             }
         }
 
