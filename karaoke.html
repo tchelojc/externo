@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Conteúdo Blindado</title>
+<title>Karaokê Fluxo — Acesso</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{
@@ -15,464 +15,113 @@ body{
   background:rgba(10,20,30,.9);backdrop-filter:blur(14px);
   border-radius:32px;border:1px solid rgba(0,255,255,.35);
   box-shadow:0 20px 48px rgba(0,0,0,.55),0 0 24px rgba(0,255,255,.18);
-  padding:2rem;width:100%;max-width:500px;text-align:center
+  padding:2rem;width:100%;max-width:440px;text-align:center
 }
-#containerSenha, #containerId, #containerBio, #containerPIN, #containerLoja, #containerToken { display:none; }
-.top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:.5rem}
+#containerEmail, #containerSenha { display:none; }
+.top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;flex-wrap:wrap;gap:.5rem}
 .title{font-size:1.2rem;background:linear-gradient(135deg,#0ff,#0f0);-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:1px}
+.subtitulo{color:#8cc;font-size:.85rem;margin-bottom:1.4rem;line-height:1.5}
 .cd-info{font-size:.8rem;color:#4cc;display:flex;gap:.5rem;align-items:center}
 .cd-info .value{font-family:monospace;font-weight:bold;color:#0f0}
-.cd-info.urgente .value{color:#f55;animation:piscar 1s infinite}
-@keyframes piscar{50%{opacity:.4}}
-input[type=text], input[type=email], input[type=password]{
+input[type=text], input[type=email]{
   background:#0a121c;border:2px solid #2a6a6a;border-radius:48px;
   padding:12px 20px;width:100%;color:#0ff;font-size:1rem;
-  font-family:monospace;text-align:center;letter-spacing:3px;
+  font-family:monospace;text-align:center;letter-spacing:1px;
   outline:none;transition:.2s;margin-bottom:12px
 }
 input:focus{border-color:#0ff;box-shadow:0 0 18px rgba(0,255,255,.2)}
 button{
   background:linear-gradient(95deg,#0a2a2a,#0a3a3a);border:none;
-  border-radius:48px;padding:10px 24px;width:100%;font-size:1rem;
+  border-radius:48px;padding:12px 24px;width:100%;font-size:1rem;
   font-weight:bold;color:#0ff;cursor:pointer;transition:.2s;
   margin-bottom:8px
 }
 button:hover{background:linear-gradient(95deg,#0c3c3c,#0e5e5e);color:#fff;box-shadow:0 0 14px rgba(0,255,255,.3);transform:scale(1.02)}
 button:disabled{opacity:.5;cursor:not-allowed;transform:none}
-.erro{color:#f66;margin-top:10px;font-size:.8rem;display:none;padding:6px 12px;background:#1a0505;border-radius:10px;border:1px solid #5a1a1a}
-.sucesso{color:#0f0;margin-top:10px;font-size:.8rem;display:none;padding:6px 12px;background:#030f06;border-radius:10px;border:1px solid #0f5a3a}
-footer{margin-top:1.5rem;font-size:.7rem;color:#2a6a6a}
+.btn-auto{
+  background:linear-gradient(95deg,#1a3a1a,#0a5a2a);
+  border:1px solid rgba(0,255,0,.2);
+  color:#0f0;
+  font-size:.85rem;
+  padding:10px 20px;
+}
+.btn-auto:hover{
+  background:linear-gradient(95deg,#2a4a2a,#1a6a3a);
+  box-shadow:0 0 14px rgba(0,255,0,.2);
+}
+.erro{color:#f66;margin-top:10px;font-size:.8rem;display:none;padding:8px 14px;background:#1a0505;border-radius:10px;border:1px solid #5a1a1a}
+.sucesso{color:#0f0;margin-top:10px;font-size:.8rem;display:none;padding:8px 14px;background:#030f06;border-radius:10px;border:1px solid #0f5a3a}
+footer{margin-top:1.4rem;font-size:.7rem;color:#2a6a6a}
 .loader{display:inline-block;width:14px;height:14px;border:2px solid #0ff;border-top:2px solid transparent;border-radius:50%;animation:spin .8s linear infinite;margin-left:8px;vertical-align:middle}
 @keyframes spin{to{transform:rotate(360deg)}}
-.bloco-cadastro, .pix-detalhes{
-  margin-top:16px;padding:16px;background:#030f06;
-  border:1px solid #0f5a3a;border-radius:20px;display:none;
-}
-.pin-buttons { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:10px; }
-.plano-card{
-  background:#0a121c;border:1px solid #2a6a6a;border-radius:20px;
-  padding:16px;margin:10px 0;text-align:left;
-}
-.plano-nome{color:#ffd700;font-weight:bold;font-size:1rem}
-.plano-desc{color:#8cc;font-size:.8rem;margin:6px 0}
-.plano-preco{color:#0f0;font-size:1.2rem;font-weight:bold}
-.chave-pix{background:#020a08;padding:8px;border-radius:8px;word-break:break-all;font-family:monospace;color:#0f0;font-size:.85rem}
 </style>
 </head>
 <body>
 
-<!-- Tela de seleção de método de verificação (sempre visível) -->
-<div id="containerBio" class="container">
+<!-- ═══ TELA 1 — só o e-mail, sem burocracia ═══ -->
+<div id="containerEmail" class="container">
   <div class="top-bar">
-    <div class="title">🔐 VERIFICAÇÃO DE IDENTIDADE</div>
+    <div class="title">🎤 KARAOKÊ FLUXO</div>
   </div>
-  <p style="color:#8cc;font-size:.85rem;margin-bottom:1.5rem">
-    Escolha como deseja confirmar sua identidade:
-  </p>
-  <div class="pin-buttons">
-    <button id="btnBiometria" style="flex:1;">🖐️ Biometria / Windows Hello<br><small style="color:#aaa">(Acesso Permanente)</small></button>
-    <button id="btnPIN" style="flex:1;">🔢 Usar PIN de acesso<br><small style="color:#aaa">(Acesso Temporário)</small></button>
-  </div>
-  <div class="erro" id="erroBio"></div>
-  <div style="margin:20px 0;color:#2a6a6a">ou</div>
-  <button id="btnMostrarCadastro" style="background:#2a1a0a;border:1px solid #ffd70055;color:#ffd700">🎁 CADASTRO GRÁTIS (1h)</button>
-  <button id="btnMostrarLoja" style="background:#1a2a0a;border:1px solid #ffd70055;color:#ffd700">🛒 LOJA DE TOKENS</button>
-  <button id="btnTokenDireto" style="background:#0a1a2a;border:1px solid #00ffff55;color:#0ff">🔑 JÁ TENHO UM TOKEN</button>
-  <div id="blocoCadastro" class="bloco-cadastro">
-    <p style="color:#ffd700;font-size:.8rem;margin-bottom:8px">📋 Registre seu email para acesso temporário (1 hora)</p>
-    <input type="text" id="regNome" placeholder="Seu nome completo">
-    <input type="email" id="regEmail" placeholder="seu@email.com">
-    <input type="text" id="regCupom" placeholder="CUPOM (opcional)" style="text-transform:uppercase">
-    <button id="btnRegistrar" class="btn-gratis" style="background:#4a3000;color:#ffd700">💾 REGISTRAR</button>
-    <div class="sucesso" id="sucessoReg"></div>
-  </div>
-  <footer>© UNIVERSO ÁUREO · 3·6·9</footer>
-</div>
-
-<!-- Tela da Loja -->
-<div id="containerLoja" class="container">
-  <div class="top-bar">
-    <div class="title">🛒 LOJA DE TOKENS</div>
-  </div>
-  <p style="color:#8cc;font-size:.85rem;margin-bottom:1rem">Adquira tokens e use como senha de acesso.</p>
-  
-  <div class="plano-card">
-    <div class="plano-nome">💎 Básico</div>
-    <div class="plano-desc">10 TK · 12 horas de acesso</div>
-    <div class="plano-preco">R$ 10,00</div>
-    <button onclick="mostrarPix("basico")" style="background:#4a3000;color:#ffd700;margin-top:8px">Comprar via PIX</button>
-    <div id="pix-basico" class="pix-detalhes">
-      <p style="color:#0f0">Chave PIX (única):</p><div class="chave-pix" onclick="copiarPix()">tchelojc@gmail.com</div><p style="color:#aaa;font-size:.7rem;margin-top:5px">Após o pagamento, clique abaixo para falar com o suporte e receber seu token.</p><button onclick="whatsappPedido('Básico 12h')" style="background:#25D366;color:#fff">💬 Solicitar token via WhatsApp</button>
-    </div>
-  </div>
-
-  <div class="plano-card">
-    <div class="plano-nome">💎💎 Premium</div>
-    <div class="plano-desc">55 TK · 66 horas de acesso</div>
-    <div class="plano-preco">R$ 50,00</div>
-    <button onclick="mostrarPix("premium")" style="background:#4a3000;color:#ffd700;margin-top:8px">Comprar via PIX</button>
-    <div id="pix-premium" class="pix-detalhes">
-      <p style="color:#0f0">Chave PIX (única):</p>
-      <div class="chave-pix" onclick="copiarPix()" title="Clique para copiar">tchelojc@gmail.com</div>
-      <p style="color:#aaa;font-size:.7rem;margin-top:5px">Após o pagamento, clique abaixo para falar com o suporte e receber seu token.</p>
-      <button onclick="whatsappPedido('Premium 66h')" style="background:#25D366;color:#fff">💬 Solicitar token via WhatsApp</button>
-    </div>
-  </div>
-
-  <div class="plano-card">
-    <div class="plano-nome">💎💎💎 Master</div>
-    <div class="plano-desc">120 TK · 144 horas de acesso</div>
-    <div class="plano-preco">R$ 100,00</div>
-    <button onclick="mostrarPix("master")" style="background:#4a3000;color:#ffd700;margin-top:8px">Comprar via PIX</button>
-    <div id="pix-master" class="pix-detalhes">
-      <p style="color:#0f0">Chave PIX (única):</p>
-      <div class="chave-pix" onclick="copiarPix()" title="Clique para copiar">tchelojc@gmail.com</div>
-      <p style="color:#aaa;font-size:.7rem;margin-top:5px">Após o pagamento, clique abaixo para falar com o suporte e receber seu token.</p>
-      <button onclick="whatsappPedido('Master 144h')" style="background:#25D366;color:#fff">💬 Solicitar token via WhatsApp</button>
-    </div>
-  </div>
-
-  <button id="btnVoltarLoja" style="background:transparent;border:1px solid #2a6a6a;color:#4cc">← Voltar</button>
-  <footer>© UNIVERSO ÁUREO · 3·6·9</footer>
-</div>
-
-<!-- Tela para quem já tem token -->
-<div id="containerToken" class="container">
-  <div class="top-bar">
-    <div class="title">🔑 TOKEN DE ACESSO</div>
-  </div>
-  <p style="color:#8cc;font-size:.85rem;margin-bottom:1rem">Digite o token adquirido (ex: UA-XXXXXXXX).</p>
-  <input type="text" id="tokenInput" placeholder="UA-XXXXXXXX" autocomplete="off">
-  <button id="btnValidarToken">🔓 ACESSAR</button>
-  <button id="btnVoltarToken" style="background:transparent;border:1px solid #2a6a6a;color:#4cc">← Voltar</button>
-  <div class="erro" id="erroToken"></div>
-  <footer>© UNIVERSO ÁUREO · 3·6·9</footer>
-</div>
-
-<!-- Tela de PIN -->
-<div id="containerPIN" class="container">
-  <div class="top-bar">
-    <div class="title">🔢 ACESSO POR PIN</div>
-  </div>
-  <p style="color:#8cc;font-size:.85rem;margin-bottom:1rem" id="pinMessage">
-    Digite seu PIN de acesso (mínimo 4 dígitos).
-  </p>
-  <input type="password" id="pinInput" placeholder="PIN" maxlength="12" inputmode="numeric">
-  <button id="btnConfirmarPIN">🔓 CONFIRMAR</button>
-  <button id="btnVoltarPIN" style="background:transparent;border:1px solid #2a6a6a;color:#4cc">← Voltar</button>
-  <div class="erro" id="erroPIN"></div>
-  <footer>© UNIVERSO ÁUREO · 3·6·9</footer>
-</div>
-
-<!-- Tela de identificação (após verificação) -->
-<div id="containerId" class="container">
-  <div class="top-bar">
-    <div class="title">📧 IDENTIFICAÇÃO</div>
-  </div>
+  <p class="subtitulo">Digite seu e-mail para liberar 1 hora de acesso. sem cadastro complicado.</p>
   <input type="email" id="emailAcesso" placeholder="seu@email.com" autocomplete="email">
-  <input type="text" id="cupomAcesso" placeholder="CUPOM (opcional)" style="text-transform:uppercase">
-  <button id="btnVerificarAcesso">🔍 VERIFICAR ACESSO</button>
-  <div class="erro" id="erroId"></div>
-  <footer>© UNIVERSO ÁUREO · 3·6·9</footer>
+  <button id="btnLiberarAcesso">🎬 LIBERAR ACESSO (1h)</button>
+  <div class="erro" id="erroEmail"></div>
+  <div class="sucesso" id="sucessoEmail"></div>
+  <footer>© ALMAFLUXO · Karaokê Fluxo · 3·6·9</footer>
 </div>
 
-<!-- Tela da senha / token (modificada) -->
+<!-- ═══ TELA 2 — senha do período (com atalho de um clique) ═══ -->
 <div id="containerSenha" class="container">
   <div class="top-bar">
-    <div class="title">⚡ CONTEÚDO BLINDADO</div>
+    <div class="title">⚡ SEU ACESSO ESTÁ LIBERADO</div>
     <div class="cd-info" id="cdInfo">
       <span>🕒</span><span class="value" id="countdown">--:--:--</span>
     </div>
   </div>
-  <div style="margin-bottom:10px">
-    <label style="color:#4cc;font-size:.8rem;margin-right:10px"><input type="radio" name="modoAcesso" value="senha" checked onchange="alternarModoAcesso()"> Senha do período</label>
-    <label style="color:#ffd700;font-size:.8rem"><input type="radio" name="modoAcesso" value="token" onchange="alternarModoAcesso()"> Token de acesso</label>
-  </div>
-  <input type="text" id="senha" placeholder="INSIRA A SENHA DO PERÍODO" autocomplete="off" maxlength="11">
-  <input type="text" id="tokenAcesso" placeholder="INSIRA O TOKEN (UA-...)" autocomplete="off" maxlength="20" style="display:none">
-  <button id="btnDesbloquear">🔓 DESBLOQUEAR</button>
-  <div class="erro" id="erro"></div>
-  <footer>© UNIVERSO ÁUREO · 3·6·9 · Protegido via APPSCRIPT</footer>
+  <p class="subtitulo">Digite a senha do período para entrar no Karaokê Fluxo.</p>
+  <input type="text" id="senha" placeholder="SENHA DO PERÍODO" autocomplete="off" maxlength="20">
+
+  <!-- NOVO: botão de atalho que preenche e envia a senha fixa -->
+  <button class="btn-auto" id="btnAcessoAutomatico">⚡ ACESSAR COM SENHA PADRÃO (B2-G7-G7-H8)</button>
+
+  <button id="btnDesbloquear">🔓 ENTRAR NO KARAOKÊ</button>
+  <div class="erro" id="erroSenha"></div>
+  <footer>© ALMAFLUXO · Karaokê Fluxo · 3·6·9 · Protegido via APPSCRIPT</footer>
 </div>
 
 <script>
 // ═══════════════ CONFIGURAÇÃO ═══════════════
 const _TK = "ALMA369UA";
 const URL_BACKEND = "https://script.google.com/macros/s/AKfycbzcFPQlX22EYFaptdgFPL-wH1jFrqR8uYiPlQSZfohWadc3Z9ginNiicPd7eh6-mNi1/exec";
-const API_BASE_URL = "";
-const PIX_AUTO = false;
-const CANAL_ENTREGA = "E‑mail";
 const TIMEOUT_MS = 15000;
+
 let isProcessing = false;
 let emailUsuario = "";
-let cupomUsuario = "";
-let tipoAcesso = "temporario";
-let metodoVerificacao = "";   // "biometria" ou "pin"
+const tipoAcesso = "temporario";
 
-// Elementos
-const containerBio = document.getElementById("containerBio");
-const containerPIN = document.getElementById("containerPIN");
-const containerId = document.getElementById("containerId");
+const containerEmail = document.getElementById("containerEmail");
 const containerSenha = document.getElementById("containerSenha");
-const containerLoja = document.getElementById("containerLoja");
-const containerToken = document.getElementById("containerToken");
-const btnBiometria = document.getElementById("btnBiometria");
-const btnPIN = document.getElementById("btnPIN");
-const erroBio = document.getElementById("erroBio");
-const erroId = document.getElementById("erroId");
-const erroPIN = document.getElementById("erroPIN");
+const erroEmail = document.getElementById("erroEmail");
+const sucessoEmail = document.getElementById("sucessoEmail");
+const erroSenha = document.getElementById("erroSenha");
 
-// Sempre inicia na tela de escolha
-containerBio.style.display = "block";
+containerEmail.style.display = "block";
 
-// ============== LOJA ==============
-document.getElementById("btnMostrarLoja").onclick = () => {
-  containerBio.style.display = "none";
-  containerLoja.style.display = "block";
-};
-document.getElementById("btnVoltarLoja").onclick = () => {
-  containerLoja.style.display = "none";
-  containerBio.style.display = "block";
-};
-function mostrarPix(plano) {
-  document.querySelectorAll('.pix-detalhes').forEach(el => el.style.display = 'none');
-  const el = document.getElementById('pix-' + plano);
-  if (el) el.style.display = 'block';
+// ═══════════ HELPERS ═══════════
+function mostrarErro(el, msg) {
+    el.textContent = "❌ " + msg;
+    el.style.display = "block";
+    setTimeout(() => el.style.display = "none", 6000);
 }
-function copiarPix() {
-  const chave = document.querySelector('.chave-pix').textContent;
-  navigator.clipboard.writeText(chave).then(() => alert('Chave PIX copiada!'));
+function mostrarSucesso(el, msg) {
+    el.textContent = "✅ " + msg;
+    el.style.display = "block";
+    setTimeout(() => el.style.display = "none", 8000);
 }
-function whatsappPedido(plano) {
-  const msg = encodeURIComponent("Olá! Gostaria de adquirir o plano " + plano + " da Universo Áureo. Já realizei o PIX.");
-  window.open("https://wa.me/55XXXXXXXXXXX?text=" + msg, "_blank");
-}
-async function iniciarCompra(plano) {
-    if (!PIX_AUTO) {
-        // Se o pagamento automático não estiver ativo, chama o método antigo
-        mostrarPix(plano);
-        return;
-    }
-    if (!emailUsuario) {
-        alert("Por favor, informe seu e‑mail na tela de identificação primeiro.");
-        return;
-    }
-    const resp = await fetch(`${API_BASE_URL}/api/payment/init`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            plano: plano,
-            email: emailUsuario,
-            canal: CANAL_ENTREGA
-        })
-    });
-    const data = await resp.json();
-    if (data.ok) {
-        const pixDiv = document.getElementById(`pix-${plano}`);
-        pixDiv.innerHTML = `
-            <p style="color:#0f0">Escaneie o QR Code ou copie o código:</p>
-            <img src="data:image/png;base64,${data.qr_code_base64}" style="max-width:200px"/>
-            <div class="chave-pix" onclick="navigator.clipboard.writeText('${data.copia_cola}')">${data.copia_cola}</div>
-            <p style="color:#aaa;font-size:.7rem;margin-top:5px">Aguardando confirmação... você receberá o token automaticamente.</p>
-        `;
-        pixDiv.style.display = 'block';
-    } else {
-        alert('Erro ao gerar pagamento: ' + (data.error || ''));
-    }
-}
-// ============== TOKEN DIRETO ==============
-document.getElementById("btnTokenDireto").onclick = () => {
-  containerBio.style.display = "none";
-  containerToken.style.display = "block";
-  document.getElementById("tokenInput").focus();
-};
-document.getElementById("btnVoltarToken").onclick = () => {
-  containerToken.style.display = "none";
-  containerBio.style.display = "block";
-};
-document.getElementById("btnValidarToken").onclick = async () => {
-  if (isProcessing) return;
-  const token = document.getElementById("tokenInput").value.trim().toUpperCase();
-  if (!token) { mostrarErro(document.getElementById("erroToken"), "Digite o token."); return; }
-  emailUsuario = "token-" + token.substring(0,8);
-  tipoAcesso = "token";
-  isProcessing = true;
-  const btn = document.getElementById("btnValidarToken");
-  btn.disabled = true;
-  btn.innerHTML = '🔐 VERIFICANDO... <span class="loader"></span>';
-  try {
-    const resp = await fetch(URL_BACKEND, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain" },
-      body: JSON.stringify({ action: "validarTokenAcesso", token, tk: _TK })
-    });
-    const data = await resp.json();
-    if (!data.ok) throw new Error(data.error || "Token inválido ou expirado.");
-    const chaveMestra = data.chaveMestra;
-    const conteudo = data.conteudoPrincipal;
-    const buf = await aesDecrypt(conteudo, chaveMestra);
-    exibirConteudo(new TextDecoder().decode(buf));
-    await registrarAcessoNoDrive(emailUsuario, "", tipoAcesso);
-  } catch(e) {
-    mostrarErro(document.getElementById("erroToken"), e.message);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '🔓 ACESSAR';
-    isProcessing = false;
-  }
-};
+function pad(n) { return String(n).padStart(2, "0"); }
 
-// ============== MODO DE ACESSO (SENHA OU TOKEN) ==============
-function alternarModoAcesso() {
-  const modo = document.querySelector('input[name="modoAcesso"]:checked').value;
-  document.getElementById("senha").style.display = (modo === "senha") ? "" : "none";
-  document.getElementById("tokenAcesso").style.display = (modo === "token") ? "" : "none";
-  if (modo === "senha") iniciarContagem(); else document.getElementById("countdown").textContent = "--:--:--";
-}
-
-// ============== PIN LOCAL (apenas para temporários) ==============
-let pinHashed = null;
-const PIN_KEY = "ua_pin_hash";
-
-async function hashPIN(pin) {
-  const enc = new TextEncoder();
-  const hashBuffer = await crypto.subtle.digest("SHA-256", enc.encode(pin));
-  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,"0")).join("");
-}
-
-function showPIN() {
-  metodoVerificacao = "pin";
-  containerBio.style.display = "none";
-  containerPIN.style.display = "block";
-  document.getElementById("pinInput").value = "";
-  erroPIN.style.display = "none";
-  pinHashed = localStorage.getItem(PIN_KEY);
-  if (!pinHashed) {
-    document.getElementById("pinMessage").textContent = "Crie um PIN de acesso (mínimo 4 dígitos).";
-    document.getElementById("btnConfirmarPIN").textContent = "💾 CRIAR PIN";
-  } else {
-    document.getElementById("pinMessage").textContent = "Digite seu PIN de acesso.";
-    document.getElementById("btnConfirmarPIN").textContent = "🔓 CONFIRMAR";
-  }
-}
-
-document.getElementById("btnPIN").onclick = showPIN;
-
-document.getElementById("btnVoltarPIN").onclick = () => {
-  containerPIN.style.display = "none";
-  containerBio.style.display = "block";
-};
-
-document.getElementById("btnConfirmarPIN").onclick = async () => {
-  const pin = document.getElementById("pinInput").value.trim();
-  if (!pin || pin.length < 4) {
-    erroPIN.textContent = "❌ PIN deve ter no mínimo 4 caracteres.";
-    erroPIN.style.display = "block";
-    return;
-  }
-  const currentHash = await hashPIN(pin);
-  const storedHash = localStorage.getItem(PIN_KEY);
-  if (!storedHash) {
-    localStorage.setItem(PIN_KEY, currentHash);
-    erroPIN.style.display = "none";
-    containerPIN.style.display = "none";
-    containerId.style.display = "block";
-    document.getElementById("emailAcesso").focus();
-  } else {
-    if (currentHash === storedHash) {
-      erroPIN.style.display = "none";
-      containerPIN.style.display = "none";
-      containerId.style.display = "block";
-      document.getElementById("emailAcesso").focus();
-    } else {
-      erroPIN.textContent = "❌ PIN incorreto.";
-      erroPIN.style.display = "block";
-    }
-  }
-};
-
-// ============== BIOMETRIA (WebAuthn) – apenas para permanentes ==============
-function suporteBiometria() {
-    return window.PublicKeyCredential && navigator.credentials && !!navigator.credentials.create;
-}
-
-if (!suporteBiometria()) {
-    btnBiometria.disabled = true;
-    btnBiometria.textContent = "⚠️ Não suportado neste dispositivo";
-    btnBiometria.style.opacity = "0.6";
-}
-
-function arrayBufferToBase64url(buffer) {
-    return btoa(String.fromCharCode(...new Uint8Array(buffer)))
-        .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-function base64urlToArrayBuffer(base64url) {
-    const base64 = base64url.replace(/-/g, "+").replace(/_/g, "/");
-    const raw = atob(base64);
-    const buffer = new ArrayBuffer(raw.length);
-    const view = new Uint8Array(buffer);
-    for (let i = 0; i < raw.length; i++) view[i] = raw.charCodeAt(i);
-    return buffer;
-}
-function gerarChallenge() { return crypto.getRandomValues(new Uint8Array(32)); }
-
-async function registrarBiometria() {
-    const publicKey = {
-        challenge: gerarChallenge(),
-        rp: { name: "Universo Aureo", id: window.location.hostname || "localhost" },
-        user: { id: crypto.getRandomValues(new Uint8Array(16)), name: "user@universo.com", displayName: "Usuário UA" },
-        pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }],
-        authenticatorSelection: { residentKey: "required", userVerification: "required" },
-        attestation: "none", timeout: 60000
-    };
-    const credential = await navigator.credentials.create({ publicKey });
-    localStorage.setItem("ua_biometric_id", arrayBufferToBase64url(credential.rawId));
-}
-
-async function autenticarBiometria(credentialIdB64) {
-    const publicKey = {
-        challenge: gerarChallenge(),
-        allowCredentials: [{ type: "public-key", id: base64urlToArrayBuffer(credentialIdB64) }],
-        userVerification: "required", timeout: 60000
-    };
-    await navigator.credentials.get({ publicKey });
-}
-
-async function verificarBiometria() {
-    if (!suporteBiometria()) throw new Error("Biometria não suportada");
-    const credentialId = localStorage.getItem("ua_biometric_id");
-    if (credentialId) {
-        await autenticarBiometria(credentialId);
-    } else {
-        await registrarBiometria();
-    }
-}
-
-btnBiometria.onclick = async () => {
-    if (isProcessing) return;
-    metodoVerificacao = "biometria";
-    isProcessing = true;
-    btnBiometria.disabled = true;
-    btnBiometria.innerHTML = '🔐 VERIFICANDO... <span class="loader"></span>';
-    try {
-        await verificarBiometria();
-        containerBio.style.display = "none";
-        containerId.style.display = "block";
-        document.getElementById("emailAcesso").focus();
-        isProcessing = false;
-    } catch(e) {
-        let msg = "Falha na verificação.";
-        if (e.name === "NotAllowedError") msg = "Autenticação cancelada ou tempo esgotado.";
-        else if (e.name === "NotSupportedError") msg = "Biometria não suportada. Use o PIN.";
-        mostrarErro(erroBio, msg);
-        btnBiometria.innerHTML = '🖐️ Biometria / Windows Hello';
-        btnBiometria.disabled = false;
-        isProcessing = false;
-    }
-};
-
-// ═══════════ FUNÇÕES DE BACKEND — ROTAS SEPARADAS ═══════════
-
+// ═══════════ FINGERPRINT ═══════════
 async function fingerprint() {
     const data = [
         navigator.userAgent, navigator.language,
@@ -486,136 +135,67 @@ async function fingerprint() {
     return Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2,"0")).join("");
 }
 
-// ── BIOMETRIA: verifica em licencas_permanentes.json ──
-async function verificarEmailPermanenteBackend(email) {
-    const resp = await fetch(`${URL_BACKEND}?action=verificarEmailPermanente&email=${encodeURIComponent(email)}&tk=${_TK}`);
-    return await resp.json();
-}
-
-// ── PIN: verifica em emails_temporarios.json (já checa cooldown de 1h) ──
-async function verificarEmailTemporarioBackend(email) {
-    const resp = await fetch(`${URL_BACKEND}?action=verificarEmailTemporario&email=${encodeURIComponent(email)}&tk=${_TK}`);
-    return await resp.json();
-}
-
-// ── CADASTRO GRÁTIS: salva em emails_temporarios.json ──
-async function cadastrarEmailTemporarioBackend(email, nome, cupom) {
+// ═══════════ PASSO 1 — CADASTRA E-MAIL ═══════════
+async function cadastrarEmailTemporarioBackend(email) {
     const fp = await fingerprint();
     const resp = await fetch(URL_BACKEND, {
         method: "POST",
         headers: { "Content-Type": "text/plain" },
-        body: JSON.stringify({ action: "cadastrarEmailTemporario", email, nome, cupom, fingerprint: fp, tk: _TK })
+        body: JSON.stringify({
+            action: "cadastrarEmailTemporario",
+            email,
+            nome: "",
+            cupom: "",
+            fingerprint: fp,
+            tk: _TK
+        })
     });
     return await resp.json();
 }
 
-// ═══════════ CADASTRO GRÁTIS → emails_temporarios.json ═══════════
-document.getElementById("btnMostrarCadastro").onclick = () => {
-    document.getElementById("blocoCadastro").style.display = "block";
-    document.getElementById("btnMostrarCadastro").style.display = "none";
-};
-
-document.getElementById("btnRegistrar").onclick = async () => {
-    if (isProcessing) return;
-    const nome = document.getElementById("regNome").value.trim();
-    const email = document.getElementById("regEmail").value.trim().toLowerCase();
-    const cupom = document.getElementById("regCupom").value.trim().toUpperCase();
-    if (!nome) { mostrarErro(erroBio, "Informe seu nome."); return; }
-    if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) { mostrarErro(erroBio, "Informe um e‑mail válido."); return; }
-
-    const btn = document.getElementById("btnRegistrar");
-    btn.disabled = true;
-    btn.innerHTML = '💾 REGISTRANDO... <span class="loader"></span>';
-    try {
-        const resp = await cadastrarEmailTemporarioBackend(email, nome, cupom);
-        if (!resp.ok) {
-            throw new Error(resp.error || "Erro ao registrar.");
-        }
-        mostrarSucesso(document.getElementById("sucessoReg"),
-            "✅ Cadastro realizado! Use o PIN de acesso para entrar.");
-        document.getElementById("regNome").value = "";
-        document.getElementById("regEmail").value = "";
-        document.getElementById("regCupom").value = "";
-        setTimeout(() => showPIN(), 2000);
-    } catch(e) {
-        mostrarErro(erroBio, e.message);
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = '💾 REGISTRAR';
-    }
-};
-
-// ═══════════ VERIFICAÇÃO DE ACESSO — ROTA POR MÉTODO ═══════════
-document.getElementById("btnVerificarAcesso").onclick = async () => {
+document.getElementById("btnLiberarAcesso").onclick = async () => {
     if (isProcessing) return;
     const email = document.getElementById("emailAcesso").value.trim().toLowerCase();
-    const cupom = document.getElementById("cupomAcesso").value.trim().toUpperCase();
     if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) {
-        mostrarErro(erroId, "Informe um e‑mail válido.");
+        mostrarErro(erroEmail, "Informe um e-mail válido.");
         return;
     }
+
     isProcessing = true;
-    const btn = document.getElementById("btnVerificarAcesso");
+    const btn = document.getElementById("btnLiberarAcesso");
     btn.disabled = true;
-    btn.innerHTML = '🔍 VERIFICANDO... <span class="loader"></span>';
+    btn.innerHTML = '🎬 LIBERANDO... <span class="loader"></span>';
 
     try {
-        let respEmail;
-
-        if (metodoVerificacao === "biometria") {
-            respEmail = await verificarEmailPermanenteBackend(email);
-            if (!respEmail.ok || !respEmail.cadastrado) {
-                throw new Error(respEmail.error || "Email não encontrado em licenças permanentes. Acesse com PIN ou faça o cadastro grátis.");
-            }
-            tipoAcesso = respEmail.tipo || "acesso";
-        } else if (metodoVerificacao === "pin") {
-            respEmail = await verificarEmailTemporarioBackend(email);
-            if (!respEmail.ok) {
-                if (respEmail.bloqueado) {
-                    throw new Error(respEmail.error || "Acesso temporário já utilizado. Aguarde 1 hora.");
-                }
-                throw new Error(respEmail.error || "Email não cadastrado. Faça o cadastro grátis primeiro.");
-            }
-            tipoAcesso = "temporario";
-        } else {
-            throw new Error("Método de verificação não definido. Volte e escolha Biometria ou PIN.");
+        const resp = await cadastrarEmailTemporarioBackend(email);
+        if (!resp.ok) {
+            throw new Error(resp.error || "Não foi possível liberar o acesso agora.");
         }
-
         emailUsuario = email;
-        cupomUsuario = cupom || respEmail.cupom || "";
-
-        avancarParaSenha();
-    } catch(e) {
-        mostrarErro(erroId, e.message);
+        mostrarSucesso(sucessoEmail, "Acesso liberado por 1 hora! Avançando...");
+        setTimeout(() => {
+            containerEmail.style.display = "none";
+            containerSenha.style.display = "block";
+            iniciarContagem();
+            document.getElementById("senha").focus();
+        }, 900);
+    } catch (e) {
+        mostrarErro(erroEmail, e.message);
+    } finally {
         btn.disabled = false;
-        btn.innerHTML = '🔍 VERIFICAR ACESSO';
+        btn.innerHTML = '🎬 LIBERAR ACESSO (1h)';
         isProcessing = false;
     }
 };
 
-function avancarParaSenha() {
-    containerId.style.display = "none";
-    containerSenha.style.display = "block";
-    iniciarContagem();
-    isProcessing = false;
-}
+document.getElementById("emailAcesso").addEventListener("keypress", e => {
+    if (e.key === "Enter") document.getElementById("btnLiberarAcesso").click();
+});
 
-// ═══════════ SENHA E DESCRIPTOGRAFIA ═══════════
-function pad(n) { return String(n).padStart(2, "0"); }
-function mostrarErro(el, msg) {
-    el.textContent = "❌ " + msg;
-    el.style.display = "block";
-    setTimeout(() => el.style.display = "none", 6000);
-}
-function mostrarSucesso(el, msg) {
-    el.textContent = "✅ " + msg;
-    el.style.display = "block";
-    setTimeout(() => el.style.display = "none", 8000);
-}
+// ═══════════ CONTAGEM REGRESSIVA ═══════════
 function iniciarContagem() {
     atualizarContagem();
     setInterval(atualizarContagem, 1000);
-    document.getElementById("senha").focus();
 }
 function atualizarContagem() {
     const agora = new Date();
@@ -627,6 +207,8 @@ function atualizarContagem() {
         el.textContent = `${pad(Math.floor(s/3600))}:${pad(Math.floor((s%3600)/60))}:${pad(s%60)}`;
     }
 }
+
+// ═══════════ PASSO 2 — SENHA DO PERÍODO (busca e descriptografa) ═══════════
 async function obterChave(senha) {
     const getUrl = `${URL_BACKEND}?action=getKeyWithPassword&password=${encodeURIComponent(senha)}&tk=${_TK}`;
     let response;
@@ -635,7 +217,7 @@ async function obterChave(senha) {
         const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
         response = await fetch(getUrl, { signal: controller.signal });
         clearTimeout(timeoutId);
-    } catch(e) {
+    } catch (e) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
         response = await fetch(URL_BACKEND, {
@@ -654,6 +236,7 @@ async function obterChave(senha) {
     if (keyBytes.length !== 32) throw new Error("Chave inválida");
     return { chaveMestra: data.chaveMestra, conteudo: { nonce: data.nonce, tag: data.tag, data: data.data } };
 }
+
 async function aesDecrypt(obj, keyB64) {
     const keyBytes = Uint8Array.from(atob(keyB64), c => c.charCodeAt(0));
     const cryptoKey = await crypto.subtle.importKey("raw", keyBytes, "AES-GCM", false, ["decrypt"]);
@@ -662,6 +245,7 @@ async function aesDecrypt(obj, keyB64) {
     const data = Uint8Array.from(atob(obj.data), c => c.charCodeAt(0));
     return await crypto.subtle.decrypt({ name: "AES-GCM", iv: iv, tagLength: 128 }, cryptoKey, new Uint8Array([...data, ...tag]));
 }
+
 function exibirConteudo(html) {
     const txt = html.trim();
     if (txt.toLowerCase().startsWith("<!doctype") || txt.startsWith("<html")) {
@@ -681,101 +265,72 @@ function exibirConteudo(html) {
         document.body.appendChild(div);
     }
 }
-async function registrarAcessoNoDrive(email, cupom, tipo, fingerprintParam) {
-  const emailFinal = email || (typeof emailUsuario !== 'undefined' ? emailUsuario : "");
-  const cupomFinal = cupom || (typeof cupomUsuario !== 'undefined' ? cupomUsuario : "");
-  const tipoFinal = tipo || (typeof tipoAcesso !== 'undefined' ? tipoAcesso : "temporario");
 
-  if (!emailFinal) return;
-
-  try {
-    const fp = fingerprintParam || (typeof fingerprint === 'function' ? await fingerprint() : "browser-fp");
-    const payload = {
-      tk: "ALMA369UA",
-      action: "registrarAcesso",
-      tipo: tipoFinal,
-      email: emailFinal,
-      licenca_id: "",
-      cupom: cupomFinal,
-      fingerprint: fp,
-      extra: "Acesso via arquivo blindado"
-    };
-
-    const response = await fetch(URL_BACKEND, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain" },
-      body: JSON.stringify(payload)
-    });
-    const data = await response.json();
-    if (data.ok) {
-      console.log("📡 Rastreio OK. Tipo:", tipoFinal);
-    } else {
-      console.error("❌ Erro no rastreio:", data.error);
+// ═══════════ RASTREIO DE ACESSO ═══════════
+async function registrarAcessoNoDrive() {
+    if (!emailUsuario) return;
+    try {
+        const fp = await fingerprint();
+        const payload = {
+            tk: _TK,
+            action: "registrarAcesso",
+            tipo: tipoAcesso,
+            email: emailUsuario,
+            licenca_id: "",
+            cupom: "",
+            fingerprint: fp,
+            extra: "Acesso via Karaokê Fluxo (rota simplificada)"
+        };
+        const response = await fetch(URL_BACKEND, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        if (data.ok) console.log("📡 Rastreio OK.");
+        else console.error("❌ Erro no rastreio:", data.error);
+    } catch (error) {
+        console.error("Erro crítico no rastreio:", error);
     }
-  } catch (error) {
-    console.error("Erro crítico no rastreio:", error);
-  }
 }
 
-// ═══════════ BOTÃO DESBLOQUEAR (SENHA OU TOKEN) ═══════════
+// ═══════════ BOTÃO PRINCIPAL (digitação manual) ═══════════
 document.getElementById("btnDesbloquear").onclick = async () => {
     if (isProcessing) return;
-    const modo = document.querySelector('input[name="modoAcesso"]:checked').value;
-    if (modo === "senha") {
-        const senhaInput = document.getElementById("senha");
-        const senha = senhaInput.value.trim().toUpperCase();
-        if (!senha) { mostrarErro(document.getElementById("erro"), "Digite a senha do período."); return; }
-        isProcessing = true;
-        const btn = document.getElementById("btnDesbloquear");
-        btn.innerText = "🔐 VERIFICANDO";
-        btn.disabled = true;
-        try {
-            const { chaveMestra, conteudo } = await obterChave(senha);
-            const buf = await aesDecrypt(conteudo, chaveMestra);
-            exibirConteudo(new TextDecoder().decode(buf));
-            await registrarAcessoNoDrive();
-        } catch(e) {
-            mostrarErro(document.getElementById("erro"), e.message);
-            btn.innerText = "🔓 DESBLOQUEAR";
-            btn.disabled = false;
-            isProcessing = false;
-        }
-    } else { // token
-        const tokenInput = document.getElementById("tokenAcesso");
-        const token = tokenInput.value.trim().toUpperCase();
-        if (!token) { mostrarErro(document.getElementById("erro"), "Digite o token adquirido."); return; }
-        isProcessing = true;
-        const btn = document.getElementById("btnDesbloquear");
-        btn.innerText = "🔐 VERIFICANDO TOKEN";
-        btn.disabled = true;
-        try {
-            const resp = await fetch(URL_BACKEND, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain" },
-                body: JSON.stringify({ action: "validarTokenAcesso", token, email: emailUsuario, tk: _TK })
-            });
-            const data = await resp.json();
-            if (!data.ok) throw new Error(data.error || "Token inválido ou expirado.");
-            const chaveMestra = data.chaveMestra;
-            const conteudo = data.conteudoPrincipal;
-            const buf = await aesDecrypt(conteudo, chaveMestra);
-            exibirConteudo(new TextDecoder().decode(buf));
-            await registrarAcessoNoDrive(emailUsuario, cupomUsuario, "token");
-        } catch(e) {
-            mostrarErro(document.getElementById("erro"), e.message);
-            btn.innerText = "🔓 DESBLOQUEAR";
-            btn.disabled = false;
-            isProcessing = false;
-        }
+    const senha = document.getElementById("senha").value.trim().toUpperCase();
+    if (!senha) { mostrarErro(erroSenha, "Digite a senha do período."); return; }
+
+    isProcessing = true;
+    const btn = document.getElementById("btnDesbloquear");
+    btn.innerText = "🔐 VERIFICANDO";
+    btn.disabled = true;
+
+    try {
+        const { chaveMestra, conteudo } = await obterChave(senha);
+        const buf = await aesDecrypt(conteudo, chaveMestra);
+        exibirConteudo(new TextDecoder().decode(buf));
+        await registrarAcessoNoDrive();
+    } catch (e) {
+        mostrarErro(erroSenha, e.message);
+        btn.innerText = "🔓 ENTRAR NO KARAOKÊ";
+        btn.disabled = false;
+        isProcessing = false;
     }
 };
 
 document.getElementById("senha").addEventListener("keypress", e => {
     if (e.key === "Enter") document.getElementById("btnDesbloquear").click();
 });
-document.getElementById("tokenAcesso").addEventListener("keypress", e => {
-    if (e.key === "Enter") document.getElementById("btnDesbloquear").click();
-});
+
+// ═══════════ NOVO: BOTÃO DE ATALHO — PREENCHE E ENVIA A SENHA FIXA ═══════════
+document.getElementById("btnAcessoAutomatico").onclick = async () => {
+    if (isProcessing) return;
+    const senhaFixa = "B2-G7-G7-H8";
+    // Preenche o campo de senha (opcional, mas útil para feedback visual)
+    document.getElementById("senha").value = senhaFixa;
+    // Dispara o clique no botão principal
+    document.getElementById("btnDesbloquear").click();
+};
 </script>
 </body>
 </html>
