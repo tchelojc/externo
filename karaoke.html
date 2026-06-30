@@ -877,8 +877,8 @@
                     email,
                     nome: "",
                     cupom: "",
-                    fingerprint: fp,
-                    tk: _TK
+                    fingerprint: fp
+                    // sem tk
                 })
             });
             return await resp.json();
@@ -1057,7 +1057,7 @@
         // ═══════════ CONTADOR DE ACESSOS (usa action EXISTENTE: resumoAdmin) ═══════════
         async function carregarContador() {
             try {
-                const resp = await fetch(`${URL_BACKEND}?action=resumoAdmin&tk=${_TK}`);
+                const resp = await fetch(`${URL_BACKEND}?action=resumoAdmin`);
                 const data = await resp.json();
                 if (data.ok) {
                     const total = (data.totalTemporarios || 0) + (data.totalPermanentes || 0);
