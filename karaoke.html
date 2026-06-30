@@ -798,282 +798,276 @@
         </div>
     </div>
 
-    <script>
-        // ═══════════════ CONFIGURAÇÃO ═══════════════
+<script>
+    // ═══════════════ CONFIGURAÇÃO (sem token) ═══════════════
+    const URL_BACKEND = "https://almafluxo.uk/proxy";
+    const TIMEOUT_MS = 15000;
+
+    // ═══════════ HELPERS ═══════════
+    function mostrarErro(el, msg) {
+        el.textContent = "❌ " + msg;
+        el.style.display = "block";
+        setTimeout(() => el.style.display = "none", 6000);
+    }
+    function mostrarSucesso(el, msg) {
+        el.textContent = "✅ " + msg;
+        el.style.display = "block";
+        setTimeout(() => el.style.display = "none", 8000);
+    }
+    function pad(n) { return String(n).padStart(2, "0"); }
+
+    // ═══════════ FINGERPRINT ═══════════
+    async function fingerprint() {
+        const data = [
+            navigator.userAgent, navigator.language,
+            screen.width, screen.height, screen.colorDepth,
+            new Date().getTimezoneOffset(),
+            navigator.hardwareConcurrency || "?", navigator.deviceMemory || "?",
+            navigator.platform || "?"
+        ];
+        const enc = new TextEncoder();
+        const h = await crypto.subtle.digest("SHA-256", enc.encode(data.join("|")));
+        return Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2,"0")).join("");
+    }
+
+    // ═══════════ MODAL ═══════════
+    function abrirModalAcesso() {
+        document.getElementById('modalAcesso').classList.add('active');
+        document.body.style.overflow = 'hidden';
+        document.getElementById('stageEmail').classList.add('active');
+        document.getElementById('stageSenha').classList.remove('active');
+        document.getElementById('emailAcesso').value = '';
+        document.getElementById('senha').value = '';
+        document.getElementById('erroEmail').style.display = 'none';
+        document.getElementById('sucessoEmail').style.display = 'none';
+        document.getElementById('erroSenha').style.display = 'none';
+        document.getElementById('btnLiberarAcesso').disabled = false;
+        document.getElementById('btnLiberarAcesso').innerHTML = '🎬 LIBERAR ACESSO (1h)';
+    }
+    function fecharModalAcesso() {
+        document.getElementById('modalAcesso').classList.remove('active');
+        document.body.style.overflow = '';
+    }
+    document.getElementById('modalAcesso').addEventListener('click', function(e) {
+        if (e.target === this) fecharModalAcesso();
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && document.getElementById('modalAcesso').classList.contains('active')) fecharModalAcesso();
+    });
+
+    // ═══════════ PASSO 1 — CADASTRA E-MAIL ═══════════
+    let emailUsuario = "";
+    const tipoAcesso = "temporario";
+    let isProcessing = false;
+
+    async function cadastrarEmailTemporarioBackend(email) {
+        const fp = await fingerprint();
         const resp = await fetch(URL_BACKEND, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain" },
-        body: JSON.stringify({ 
-            action: "validarTokenAcesso", 
-            token, 
-            email   // ✅ sem tk
-        })
+            method: "POST",
+            headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify({
+                action: "cadastrarEmailTemporario",
+                email,
+                nome: "",
+                cupom: "",
+                fingerprint: fp
+                // sem tk
+            })
         });
+        return await resp.json();
+    }
 
-        // ═══════════ HELPERS ═══════════
-        function mostrarErro(el, msg) {
-            el.textContent = "❌ " + msg;
-            el.style.display = "block";
-            setTimeout(() => el.style.display = "none", 6000);
+    document.getElementById("btnLiberarAcesso").onclick = async () => {
+        if (isProcessing) return;
+        const email = document.getElementById("emailAcesso").value.trim().toLowerCase();
+        if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) {
+            mostrarErro(document.getElementById("erroEmail"), "Informe um e-mail válido.");
+            return;
         }
-        function mostrarSucesso(el, msg) {
-            el.textContent = "✅ " + msg;
-            el.style.display = "block";
-            setTimeout(() => el.style.display = "none", 8000);
-        }
-        function pad(n) { return String(n).padStart(2, "0"); }
+        isProcessing = true;
+        const btn = document.getElementById("btnLiberarAcesso");
+        btn.disabled = true;
+        btn.innerHTML = '🎬 LIBERANDO... <span class="loader"></span>';
 
-        // ═══════════ FINGERPRINT ═══════════
-        async function fingerprint() {
-            const data = [
-                navigator.userAgent, navigator.language,
-                screen.width, screen.height, screen.colorDepth,
-                new Date().getTimezoneOffset(),
-                navigator.hardwareConcurrency || "?", navigator.deviceMemory || "?",
-                navigator.platform || "?"
-            ];
-            const enc = new TextEncoder();
-            const h = await crypto.subtle.digest("SHA-256", enc.encode(data.join("|")));
-            return Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2,"0")).join("");
+        try {
+            const resp = await cadastrarEmailTemporarioBackend(email);
+            if (!resp.ok) throw new Error(resp.error || "Não foi possível liberar o acesso agora.");
+            emailUsuario = email;
+            mostrarSucesso(document.getElementById("sucessoEmail"), "Acesso liberado por 1 hora! Avançando...");
+            setTimeout(() => {
+                document.getElementById("stageEmail").classList.remove("active");
+                document.getElementById("stageSenha").classList.add("active");
+                iniciarContagem();
+                document.getElementById("senha").focus();
+            }, 900);
+        } catch (e) {
+            mostrarErro(document.getElementById("erroEmail"), e.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '🎬 LIBERAR ACESSO (1h)';
+            isProcessing = false;
         }
+    };
 
-        // ═══════════ MODAL ═══════════
-        function abrirModalAcesso() {
-            document.getElementById('modalAcesso').classList.add('active');
-            document.body.style.overflow = 'hidden';
-            document.getElementById('stageEmail').classList.add('active');
-            document.getElementById('stageSenha').classList.remove('active');
-            document.getElementById('emailAcesso').value = '';
-            document.getElementById('senha').value = '';
-            document.getElementById('erroEmail').style.display = 'none';
-            document.getElementById('sucessoEmail').style.display = 'none';
-            document.getElementById('erroSenha').style.display = 'none';
-            document.getElementById('btnLiberarAcesso').disabled = false;
-            document.getElementById('btnLiberarAcesso').innerHTML = '🎬 LIBERAR ACESSO (1h)';
+    document.getElementById("emailAcesso").addEventListener("keypress", e => {
+        if (e.key === "Enter") document.getElementById("btnLiberarAcesso").click();
+    });
+
+    // ═══════════ CONTAGEM REGRESSIVA ═══════════
+    function iniciarContagem() {
+        atualizarContagem();
+        setInterval(atualizarContagem, 1000);
+    }
+    function atualizarContagem() {
+        const agora = new Date();
+        const amanha = new Date(Date.UTC(agora.getUTCFullYear(), agora.getUTCMonth(), agora.getUTCDate() + 1));
+        const ms = amanha - agora;
+        const el = document.getElementById("countdown");
+        if (el) {
+            const s = Math.floor(ms / 1000);
+            el.textContent = `${pad(Math.floor(s/3600))}:${pad(Math.floor((s%3600)/60))}:${pad(s%60)}`;
         }
-        function fecharModalAcesso() {
-            document.getElementById('modalAcesso').classList.remove('active');
-            document.body.style.overflow = '';
-        }
-        document.getElementById('modalAcesso').addEventListener('click', function(e) {
-            if (e.target === this) fecharModalAcesso();
-        });
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && document.getElementById('modalAcesso').classList.contains('active')) fecharModalAcesso();
-        });
+    }
 
-        // ═══════════ PASSO 1 — CADASTRA E-MAIL ═══════════
-        let emailUsuario = "";
-        const tipoAcesso = "temporario";
-        let isProcessing = false;
-
-        async function cadastrarEmailTemporarioBackend(email) {
-            const fp = await fingerprint();
-            const resp = await fetch(URL_BACKEND, {
+    // ═══════════ PASSO 2 — SENHA DO PERÍODO ═══════════
+    async function obterChave(senha) {
+        // GET sem tk
+        const getUrl = `${URL_BACKEND}?action=getKeyWithPassword&password=${encodeURIComponent(senha)}`;
+        let response;
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+            response = await fetch(getUrl, { signal: controller.signal });
+            clearTimeout(timeoutId);
+        } catch (e) {
+            // Fallback para POST sem tk
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+            response = await fetch(URL_BACKEND, {
                 method: "POST",
                 headers: { "Content-Type": "text/plain" },
-                body: JSON.stringify({
-                    action: "cadastrarEmailTemporario",
-                    email,
-                    nome: "",
-                    cupom: "",
-                    fingerprint: fp
-                    // sem tk
-                })
+                body: JSON.stringify({ action: "getKeyWithPassword", password: senha }),
+                signal: controller.signal
             });
-            return await resp.json();
+            clearTimeout(timeoutId);
         }
+        if (!response.ok) throw new Error("Erro de conexão");
+        const data = await response.json();
+        if (!data.ok) throw new Error("Senha inválida ou expirada");
+        if (!data.chaveMestra || !data.nonce || !data.tag || !data.data) throw new Error("Dados incompletos");
+        const keyBytes = Uint8Array.from(atob(data.chaveMestra), c => c.charCodeAt(0));
+        if (keyBytes.length !== 32) throw new Error("Chave inválida");
+        return { chaveMestra: data.chaveMestra, conteudo: { nonce: data.nonce, tag: data.tag, data: data.data } };
+    }
 
-        document.getElementById("btnLiberarAcesso").onclick = async () => {
-            if (isProcessing) return;
-            const email = document.getElementById("emailAcesso").value.trim().toLowerCase();
-            if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) {
-                mostrarErro(document.getElementById("erroEmail"), "Informe um e-mail válido.");
-                return;
-            }
-            isProcessing = true;
-            const btn = document.getElementById("btnLiberarAcesso");
-            btn.disabled = true;
-            btn.innerHTML = '🎬 LIBERANDO... <span class="loader"></span>';
+    async function aesDecrypt(obj, keyB64) {
+        const keyBytes = Uint8Array.from(atob(keyB64), c => c.charCodeAt(0));
+        const cryptoKey = await crypto.subtle.importKey("raw", keyBytes, "AES-GCM", false, ["decrypt"]);
+        const iv = Uint8Array.from(atob(obj.nonce), c => c.charCodeAt(0));
+        const tag = Uint8Array.from(atob(obj.tag), c => c.charCodeAt(0));
+        const data = Uint8Array.from(atob(obj.data), c => c.charCodeAt(0));
+        return await crypto.subtle.decrypt({ name: "AES-GCM", iv: iv, tagLength: 128 }, cryptoKey, new Uint8Array([...data, ...tag]));
+    }
 
-            try {
-                const resp = await cadastrarEmailTemporarioBackend(email);
-                if (!resp.ok) throw new Error(resp.error || "Não foi possível liberar o acesso agora.");
-                emailUsuario = email;
-                mostrarSucesso(document.getElementById("sucessoEmail"), "Acesso liberado por 1 hora! Avançando...");
-                setTimeout(() => {
-                    document.getElementById("stageEmail").classList.remove("active");
-                    document.getElementById("stageSenha").classList.add("active");
-                    iniciarContagem();
-                    document.getElementById("senha").focus();
-                }, 900);
-            } catch (e) {
-                mostrarErro(document.getElementById("erroEmail"), e.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '🎬 LIBERAR ACESSO (1h)';
-                isProcessing = false;
-            }
-        };
-
-        document.getElementById("emailAcesso").addEventListener("keypress", e => {
-            if (e.key === "Enter") document.getElementById("btnLiberarAcesso").click();
-        });
-
-        // ═══════════ CONTAGEM REGRESSIVA ═══════════
-        function iniciarContagem() {
-            atualizarContagem();
-            setInterval(atualizarContagem, 1000);
+    function exibirConteudo(html) {
+        const txt = html.trim();
+        if (txt.toLowerCase().startsWith("<!doctype") || txt.startsWith("<html")) {
+            const iframe = document.createElement("iframe");
+            iframe.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:9999";
+            iframe.srcdoc = txt;
+            document.body.innerHTML = "";
+            document.body.appendChild(iframe);
+        } else {
+            const div = document.createElement("div");
+            div.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;background:#0a121c;overflow:auto";
+            const pre = document.createElement("pre");
+            pre.textContent = txt;
+            pre.style.cssText = "padding:1rem;margin:0;color:#0ff;font-family:monospace;font-size:.9rem;white-space:pre-wrap";
+            div.appendChild(pre);
+            document.body.innerHTML = "";
+            document.body.appendChild(div);
         }
-        function atualizarContagem() {
-            const agora = new Date();
-            const amanha = new Date(Date.UTC(agora.getUTCFullYear(), agora.getUTCMonth(), agora.getUTCDate() + 1));
-            const ms = amanha - agora;
-            const el = document.getElementById("countdown");
-            if (el) {
-                const s = Math.floor(ms / 1000);
-                el.textContent = `${pad(Math.floor(s/3600))}:${pad(Math.floor((s%3600)/60))}:${pad(s%60)}`;
-            }
-        }
+    }
 
-        // ═══════════ PASSO 2 — SENHA DO PERÍODO ═══════════
-        async function obterChave(senha) {
-            const getUrl = `${URL_BACKEND}?action=getKeyWithPassword&password=${encodeURIComponent(senha)}&tk=${_TK}`;
-            let response;
-            try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
-                response = await fetch(getUrl, { signal: controller.signal });
-                clearTimeout(timeoutId);
-            } catch (e) {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
-                response = await fetch(URL_BACKEND, {
-                    method: "POST",
-                    headers: { "Content-Type": "text/plain" },
-                    body: JSON.stringify({ action: "getKeyWithPassword", password: senha, tk: _TK }),
-                    signal: controller.signal
-                });
-                clearTimeout(timeoutId);
-            }
-            if (!response.ok) throw new Error("Erro de conexão");
+    // ═══════════ RASTREIO DE ACESSO (sem tk) ═══════════
+    async function registrarAcessoNoDrive() {
+        if (!emailUsuario) return;
+        try {
+            const fp = await fingerprint();
+            const payload = {
+                action: "registrarAcesso",
+                tipo: tipoAcesso,
+                email: emailUsuario,
+                licenca_id: "",
+                cupom: "",
+                fingerprint: fp,
+                extra: "Acesso via Karaokê Fluxo (home)"
+            };
+            const response = await fetch(URL_BACKEND, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain" },
+                body: JSON.stringify(payload)
+            });
             const data = await response.json();
-            if (!data.ok) throw new Error("Senha inválida ou expirada");
-            if (!data.chaveMestra || !data.nonce || !data.tag || !data.data) throw new Error("Dados incompletos");
-            const keyBytes = Uint8Array.from(atob(data.chaveMestra), c => c.charCodeAt(0));
-            if (keyBytes.length !== 32) throw new Error("Chave inválida");
-            return { chaveMestra: data.chaveMestra, conteudo: { nonce: data.nonce, tag: data.tag, data: data.data } };
+            if (data.ok) console.log("📡 Rastreio OK.");
+            else console.error("❌ Erro no rastreio:", data.error);
+        } catch (error) {
+            console.error("Erro crítico no rastreio:", error);
         }
+    }
 
-        async function aesDecrypt(obj, keyB64) {
-            const keyBytes = Uint8Array.from(atob(keyB64), c => c.charCodeAt(0));
-            const cryptoKey = await crypto.subtle.importKey("raw", keyBytes, "AES-GCM", false, ["decrypt"]);
-            const iv = Uint8Array.from(atob(obj.nonce), c => c.charCodeAt(0));
-            const tag = Uint8Array.from(atob(obj.tag), c => c.charCodeAt(0));
-            const data = Uint8Array.from(atob(obj.data), c => c.charCodeAt(0));
-            return await crypto.subtle.decrypt({ name: "AES-GCM", iv: iv, tagLength: 128 }, cryptoKey, new Uint8Array([...data, ...tag]));
+    document.getElementById("btnDesbloquear").onclick = async () => {
+        if (isProcessing) return;
+        const senha = document.getElementById("senha").value.trim().toUpperCase();
+        if (!senha) { mostrarErro(document.getElementById("erroSenha"), "Digite a senha do período."); return; }
+        isProcessing = true;
+        const btn = document.getElementById("btnDesbloquear");
+        btn.innerText = "🔐 VERIFICANDO";
+        btn.disabled = true;
+        try {
+            const { chaveMestra, conteudo } = await obterChave(senha);
+            const buf = await aesDecrypt(conteudo, chaveMestra);
+            exibirConteudo(new TextDecoder().decode(buf));
+            await registrarAcessoNoDrive();
+        } catch (e) {
+            mostrarErro(document.getElementById("erroSenha"), e.message);
+            btn.innerText = "🔓 ENTRAR NO KARAOKÊ";
+            btn.disabled = false;
+            isProcessing = false;
         }
+    };
 
-        function exibirConteudo(html) {
-            const txt = html.trim();
-            if (txt.toLowerCase().startsWith("<!doctype") || txt.startsWith("<html")) {
-                const iframe = document.createElement("iframe");
-                iframe.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:9999";
-                iframe.srcdoc = txt;
-                document.body.innerHTML = "";
-                document.body.appendChild(iframe);
+    document.getElementById("senha").addEventListener("keypress", e => {
+        if (e.key === "Enter") document.getElementById("btnDesbloquear").click();
+    });
+
+    document.getElementById("btnAcessoAutomatico").onclick = async () => {
+        if (isProcessing) return;
+        const senhaFixa = "B2-G7-G7-H8";
+        document.getElementById("senha").value = senhaFixa;
+        document.getElementById("btnDesbloquear").click();
+    };
+
+    // ═══════════ CONTADOR DE ACESSOS (sem tk) ═══════════
+    async function carregarContador() {
+        try {
+            const resp = await fetch(`${URL_BACKEND}?action=resumoAdmin`);
+            const data = await resp.json();
+            if (data.ok) {
+                const total = (data.totalTemporarios || 0) + (data.totalPermanentes || 0);
+                document.getElementById("contadorDisplay").textContent = `🎵 ${total} acessos`;
             } else {
-                const div = document.createElement("div");
-                div.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;background:#0a121c;overflow:auto";
-                const pre = document.createElement("pre");
-                pre.textContent = txt;
-                pre.style.cssText = "padding:1rem;margin:0;color:#0ff;font-family:monospace;font-size:.9rem;white-space:pre-wrap";
-                div.appendChild(pre);
-                document.body.innerHTML = "";
-                document.body.appendChild(div);
+                document.getElementById("contadorDisplay").textContent = '🎵 ...';
             }
+        } catch (e) {
+            document.getElementById("contadorDisplay").textContent = '🎵 offline';
         }
+    }
 
-        // ═══════════ RASTREIO DE ACESSO (action EXISTENTE: registrarAcesso) ═══════════
-        async function registrarAcessoNoDrive() {
-            if (!emailUsuario) return;
-            try {
-                const fp = await fingerprint();
-                const payload = {
-                    tk: _TK,
-                    action: "registrarAcesso",
-                    tipo: tipoAcesso,
-                    email: emailUsuario,
-                    licenca_id: "",
-                    cupom: "",
-                    fingerprint: fp,
-                    extra: "Acesso via Karaokê Fluxo (home)"
-                };
-                const response = await fetch(URL_BACKEND, {
-                    method: "POST",
-                    headers: { "Content-Type": "text/plain" },
-                    body: JSON.stringify(payload)
-                });
-                const data = await response.json();
-                if (data.ok) console.log("📡 Rastreio OK.");
-                else console.error("❌ Erro no rastreio:", data.error);
-            } catch (error) {
-                console.error("Erro crítico no rastreio:", error);
-            }
-        }
-
-        document.getElementById("btnDesbloquear").onclick = async () => {
-            if (isProcessing) return;
-            const senha = document.getElementById("senha").value.trim().toUpperCase();
-            if (!senha) { mostrarErro(document.getElementById("erroSenha"), "Digite a senha do período."); return; }
-            isProcessing = true;
-            const btn = document.getElementById("btnDesbloquear");
-            btn.innerText = "🔐 VERIFICANDO";
-            btn.disabled = true;
-            try {
-                const { chaveMestra, conteudo } = await obterChave(senha);
-                const buf = await aesDecrypt(conteudo, chaveMestra);
-                exibirConteudo(new TextDecoder().decode(buf));
-                await registrarAcessoNoDrive();
-            } catch (e) {
-                mostrarErro(document.getElementById("erroSenha"), e.message);
-                btn.innerText = "🔓 ENTRAR NO KARAOKÊ";
-                btn.disabled = false;
-                isProcessing = false;
-            }
-        };
-
-        document.getElementById("senha").addEventListener("keypress", e => {
-            if (e.key === "Enter") document.getElementById("btnDesbloquear").click();
-        });
-
-        document.getElementById("btnAcessoAutomatico").onclick = async () => {
-            if (isProcessing) return;
-            const senhaFixa = "B2-G7-G7-H8";
-            document.getElementById("senha").value = senhaFixa;
-            document.getElementById("btnDesbloquear").click();
-        };
-
-        // ═══════════ CONTADOR DE ACESSOS (usa action EXISTENTE: resumoAdmin) ═══════════
-        async function carregarContador() {
-            try {
-                const resp = await fetch(`${URL_BACKEND}?action=resumoAdmin`);
-                const data = await resp.json();
-                if (data.ok) {
-                    const total = (data.totalTemporarios || 0) + (data.totalPermanentes || 0);
-                    document.getElementById("contadorDisplay").textContent = `🎵 ${total} acessos`;
-                } else {
-                    document.getElementById("contadorDisplay").textContent = '🎵 ...';
-                }
-            } catch (e) {
-                document.getElementById("contadorDisplay").textContent = '🎵 offline';
-            }
-        }
-
-        // ═══════════ INICIALIZAÇÃO ═══════════
-        document.addEventListener('DOMContentLoaded', () => {
-            carregarContador();
-        });
-    </script>
+    // ═══════════ INICIALIZAÇÃO ═══════════
+    document.addEventListener('DOMContentLoaded', () => {
+        carregarContador();
+    });
+</script>
 </body>
 </html>
