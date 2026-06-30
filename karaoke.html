@@ -800,9 +800,15 @@
 
     <script>
         // ═══════════════ CONFIGURAÇÃO ═══════════════
-        const _TK = "ALMA369UA";
-        const URL_BACKEND = "https://script.google.com/macros/s/AKfycbzcFPQlX22EYFaptdgFPL-wH1jFrqR8uYiPlQSZfohWadc3Z9ginNiicPd7eh6-mNi1/exec";
-        const TIMEOUT_MS = 15000;
+        const resp = await fetch(URL_BACKEND, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({ 
+            action: "validarTokenAcesso", 
+            token, 
+            email   // ✅ sem tk
+        })
+        });
 
         // ═══════════ HELPERS ═══════════
         function mostrarErro(el, msg) {
