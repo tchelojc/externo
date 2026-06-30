@@ -850,7 +850,15 @@
         // ======================================================
         // CONFIGURAÇÃO – SUBSTITUA PELA URL DO SEU WORKER
         // ======================================================
-        const API_URL = 'https://script.google.com/macros/s/AKfycbyN9IQB75ySoEk1U2DdY1-uJ-EdK_Rj9DA93oNnROYGjgs1FLFBjAmXU64XvLOMLSozxw/exec';
+        const resp = await fetch(URL_BACKEND, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({ 
+            action: "validarTokenAcesso", 
+            token, 
+            email   // ✅ sem tk
+        })
+        });
         const CHECKOUT_URL = 'https://checkout.almafluxo.com'; // URL da página de checkout (ou gateway de pagamento)
 
         // ======================================================
