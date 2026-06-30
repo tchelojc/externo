@@ -61,10 +61,15 @@ footer{margin-top:1.5rem;font-size:.7rem;color:#2a6a6a}
 // ═══════════════════════════════════
 // CONFIGURAÇÃO BLINDADA
 // ═══════════════════════════════════
-const _TK = "ALMA369UA";
-const URL_BACKEND = "https://script.google.com/macros/s/AKfycbypByQ8hs3ORvjXcbdSrZ8xQ-Ojeoj5M8w__STMZzHDx-l9HHpX17ahUe71y1nnH5sG/exec";
-const TIMEOUT_MS = 15000;
-let isProcessing = false;
+const resp = await fetch(URL_BACKEND, {
+  method: "POST",
+  headers: { "Content-Type": "text/plain" },
+  body: JSON.stringify({ 
+    action: "validarTokenAcesso", 
+    token, 
+    email   // ✅ sem tk
+  })
+});
 
 // Auto-relançamento para file://
 (function() {
