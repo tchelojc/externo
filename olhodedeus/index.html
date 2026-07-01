@@ -850,15 +850,12 @@
         // ======================================================
         // CONFIGURAÇÃO – SUBSTITUA PELA URL DO SEU WORKER
         // ======================================================
-        const resp = await fetch(URL_BACKEND, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain" },
-        body: JSON.stringify({ 
-            action: "validarTokenAcesso", 
-            token, 
-            email   // ✅ sem tk
-        })
-        });
+
+        const URL_BACKEND = "hub";
+        
+        const TIMEOUT_MS = 15000;
+        
+        let isProcessing = false;
         const CHECKOUT_URL = 'https://checkout.almafluxo.com'; // URL da página de checkout (ou gateway de pagamento)
 
         // ======================================================
