@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Conteúdo Blindado</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:radial-gradient(circle at 20% 30%,#0a0f1a,#030507);
+  font-family:"Segoe UI","Courier New",monospace;
+  min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px
+}
+.container{
+  background:rgba(10,20,30,.9);backdrop-filter:blur(14px);
+  border-radius:32px;border:1px solid rgba(0,255,255,.35);
+  box-shadow:0 20px 48px rgba(0,0,0,.55),0 0 24px rgba(0,255,255,.18);
+  padding:2rem;width:100%;max-width:500px;text-align:center
+}
+.top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:.5rem}
+.title{font-size:1.2rem;background:linear-gradient(135deg,#0ff,#0f0);-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:1px}
+.cd-info{font-size:.8rem;color:#4cc;display:flex;gap:.5rem;align-items:center}
+.cd-info .value{font-family:monospace;font-weight:bold;color:#0f0}
+.cd-info.urgente .value{color:#f55;animation:piscar 1s infinite}
+@keyframes piscar{50%{opacity:.4}}
+input[type=text]{
+  background:#0a121c;border:2px solid #2a6a6a;border-radius:48px;
+  padding:12px 20px;width:100%;color:#0ff;font-size:1rem;
+  font-family:monospace;text-align:center;letter-spacing:3px;
+  outline:none;transition:.2s;margin-bottom:12px
+}
+input:focus{border-color:#0ff;box-shadow:0 0 18px rgba(0,255,255,.2)}
+button{
+  background:linear-gradient(95deg,#0a2a2a,#0a3a3a);border:none;
+  border-radius:48px;padding:10px 24px;width:100%;font-size:1rem;
+  font-weight:bold;color:#0ff;cursor:pointer;transition:.2s
+}
+button:hover{background:linear-gradient(95deg,#0c3c3c,#0e5e5e);color:#fff;box-shadow:0 0 14px rgba(0,255,255,.3);transform:scale(1.02)}
+button:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.erro{color:#f66;margin-top:10px;font-size:.8rem;display:none;padding:6px 12px;background:#1a0505;border-radius:10px;border:1px solid #5a1a1a}
+footer{margin-top:1.5rem;font-size:.7rem;color:#2a6a6a}
+.loader{display:inline-block;width:14px;height:14px;border:2px solid #0ff;border-top:2px solid transparent;border-radius:50%;animation:spin .8s linear infinite;margin-left:8px;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="top-bar">
+    <div class="title">⚡ CONTEÚDO BLINDADO</div>
+    <div class="cd-info" id="cdInfo">
+      <span>🕒</span><span class="value" id="countdown">--:--:--</span>
+    </div>
+  </div>
+  <input type="text" id="senha" placeholder="INSIRA A SENHA DO PERÍODO" autocomplete="off" maxlength="11">
+  <button id="btnDesbloquear">🔓 DESBLOQUEAR</button>
+  <div class="erro" id="erro"></div>
+  <footer>© UNIVERSO ÁUREO · 3·6·9 · Protegido via APPSCRIPT</footer>
+</div>
+
+<script>
+// ═══════════════════════════════════
+// CONFIGURAÇÃO BLINDADA
+// ═══════════════════════════════════
+const URL_BACKEND = "/proxy/soma";
+
+const TIMEOUT_MS = 15000;
+
+let isProcessing = false;
+
+// Auto-relançamento para file://
+(function() {
+    if (location.protocol !== "file:") return;
+    const req = new XMLHttpRequest();
+    req.open("GET", location.href, true);
+    req.responseType = "blob";
+    req.onload = function() {
+        const url = URL.createObjectURL(new Blob([req.response], {type:"text/html"}));
+        window.open(url, "_self");
+    };
+    req.send();
+})();
+
+function pad(n) { return String(n).padStart(2, "0"); }
+function mostrarErro(msg) {
+    const el = document.getElementById("erro");
+    el.textContent = "❌ " + msg;
+    el.style.display = "block";
+    setTimeout(() => el.style.display = "none", 6000);
+}
+
+function atualizarContagem() {
+    const agora = new Date();
+    const amanha = new Date(Date.UTC(agora.getUTCFullYear(), agora.getUTCMonth(), agora.getUTCDate() + 1));
+    const ms = amanha - agora;
+    const el = document.getElementById("countdown");
+    if (el) {
+        const s = Math.floor(ms / 1000);
+        el.textContent = `${pad(Math.floor(s/3600))}:${pad(Math.floor((s%3600)/60))}:${pad(s%60)}`;
+    }
+}
+
+// ═══════════════════════════════════
+// COMUNICAÇÃO COM BACKEND (COM TOKEN)
+// ═══════════════════════════════════
+async function obterChave(senha) {
+    const getUrl = `${URL_BACKEND}?action=getKeyWithPassword&password=${encodeURIComponent(senha)}`;
+    
+    let response;
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+        response = await fetch(getUrl, { signal: controller.signal });
+        clearTimeout(timeoutId);
+    } catch(e) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+        response = await fetch(URL_BACKEND, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "getKeyWithPassword", password: senha }),
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+    }
+    
+    if (!response.ok) throw new Error("Erro de conexão");
+    const data = await response.json();
+    if (!data.ok) throw new Error("Senha inválida ou expirada");
+    if (!data.chaveMestra || !data.nonce || !data.tag || !data.data) throw new Error("Dados incompletos");
+    
+    const keyBytes = Uint8Array.from(atob(data.chaveMestra), c => c.charCodeAt(0));
+    if (keyBytes.length !== 32) throw new Error("Chave inválida");
+    
+    return {
+        chaveMestra: data.chaveMestra,
+        conteudo: { nonce: data.nonce, tag: data.tag, data: data.data }
+    };
+}
+
+async function aesDecrypt(obj, keyB64) {
+    const keyBytes = Uint8Array.from(atob(keyB64), c => c.charCodeAt(0));
+    const cryptoKey = await crypto.subtle.importKey("raw", keyBytes, "AES-GCM", false, ["decrypt"]);
+    const iv = Uint8Array.from(atob(obj.nonce), c => c.charCodeAt(0));
+    const tag = Uint8Array.from(atob(obj.tag), c => c.charCodeAt(0));
+    const data = Uint8Array.from(atob(obj.data), c => c.charCodeAt(0));
+    return await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: iv, tagLength: 128 },
+        cryptoKey,
+        new Uint8Array([...data, ...tag])
+    );
+}
+
+function exibirConteudo(html) {
+    const txt = html.trim();
+    if (txt.toLowerCase().startsWith("<!doctype") || txt.startsWith("<html")) {
+        const iframe = document.createElement("iframe");
+        iframe.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:9999";
+        iframe.srcdoc = txt;
+        document.body.innerHTML = "";
+        document.body.appendChild(iframe);
+    } else {
+        const div = document.createElement("div");
+        div.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;background:#0a121c;overflow:auto";
+        const pre = document.createElement("pre");
+        pre.textContent = txt;
+        pre.style.cssText = "padding:1rem;margin:0;color:#0ff;font-family:monospace;font-size:.9rem;white-space:pre-wrap";
+        div.appendChild(pre);
+        document.body.innerHTML = "";
+        document.body.appendChild(div);
+    }
+}
+
+// ═══════════════════════════════════
+// EVENTO PRINCIPAL
+// ═══════════════════════════════════
+document.getElementById("btnDesbloquear").onclick = async () => {
+    if (isProcessing) return;
+    const senhaInput = document.getElementById("senha");
+    const senha = senhaInput.value.trim().toUpperCase();
+    if (!senha) { mostrarErro("Digite a senha do período."); return; }
+    
+    isProcessing = true;
+    const btn = document.getElementById("btnDesbloquear");
+    btn.innerText = "🔐 VERIFICANDO";
+    btn.disabled = true;
+    
+    try {
+        const { chaveMestra, conteudo } = await obterChave(senha);
+        const buf = await aesDecrypt(conteudo, chaveMestra);
+        exibirConteudo(new TextDecoder().decode(buf));
+    } catch(e) {
+        mostrarErro(e.message);
+        btn.innerText = "🔓 DESBLOQUEAR";
+        btn.disabled = false;
+        isProcessing = false;
+    }
+};
+
+document.getElementById("senha").addEventListener("keypress", e => {
+    if (e.key === "Enter") document.getElementById("btnDesbloquear").click();
+});
+
+atualizarContagem();
+setInterval(atualizarContagem, 1000);
+</script>
+</body>
+</html>
