@@ -104,8 +104,7 @@ function atualizarContagem() {
 // COMUNICAÇÃO COM BACKEND (COM TOKEN)
 // ═══════════════════════════════════
 async function obterChave(senha) {
-    const getUrl = `${URL_BACKEND}?action=getKeyWithPassword&password=${encodeURIComponent(senha)}&tk=${_TK}`;
-    
+    const getUrl = `${URL_BACKEND}?action=getKeyWithPassword&password=${encodeURIComponent(senha)}`;
     let response;
     try {
         const controller = new AbortController();
@@ -118,7 +117,7 @@ async function obterChave(senha) {
         response = await fetch(URL_BACKEND, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "getKeyWithPassword", password: senha, tk: _TK }),
+            body: JSON.stringify({ action: "getKeyWithPassword", password: senha }),
             signal: controller.signal
         });
         clearTimeout(timeoutId);
