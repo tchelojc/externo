@@ -235,6 +235,9 @@
     <h2 class="panel-title">Pagamento ainda não confirmado</h2>
     <p class="panel-desc" id="pendingMsg">O Mercado Pago pode levar alguns instantes para aprovar. Você pode aguardar ou tentar novamente.</p>
     <button class="btn btn-primary" id="retryVerifyBtn" type="button">Verificar novamente</button>
+    <p class="field-hint" style="text-align:center;margin-top:14px;">
+      Já pagou e o acesso não chegou? <a id="pendingSuporteLink" href="#" target="_blank" rel="noopener">Fale com a equipe técnica →</a>
+    </p>
   </section>
 
   <!-- ═══ ESTADO: login manual (padrão) ═══ -->
@@ -287,6 +290,7 @@
 <footer>
   <p class="tagline">"Não sou o Nada e não sou o Tudo. Sou o Trajeto."</p>
   <p class="footnote">ALMAFLUXO · nenhuma senha ou chave mestra fica armazenada neste arquivo —<br>toda validação acontece no backend, através da rota protegida.</p>
+  <p class="footnote" style="margin-top:10px;">Precisa de ajuda? <a id="footerSuporteLink" href="#" target="_blank" rel="noopener">Fale com a equipe técnica</a></p>
 </footer>
 
 <script>
@@ -294,13 +298,16 @@
   "use strict";
 
   // ═══════════════════════════════════════════════════════════════
-  // CONFIGURAÇÃO
+  // CONFIGURAÇÃO — ajuste estes pontos antes de publicar
   // ═══════════════════════════════════════════════════════════════
   const CONFIG = {
-    // Worker que encaminha para o central.gs (rota "hub")
-    BACKEND_URL: "https://almafluxo.uk/proxy/hub",
+    // Rota do Worker (proxy-ua) que encaminha para o central.gs.
+    // Aponte para a entrada do SCRIT_MAP que hoje serve o Hub / central.gs.
+    PROXY_BASE: "https://almafluxo.uk/proxy",
+    PROXY_ROUTE: "hub",
 
-    // Destinos de cada plataforma após desbloqueio
+    // Para onde o usuário é levado depois de desbloquear cada plataforma.
+    // Ajuste os caminhos conforme a estrutura real do seu GitHub Pages.
     DESTINOS: {
       futebol:       "/futebol/",
       basquete:      "/basquete/",
@@ -311,9 +318,21 @@
       mapa:          "https://almafluxo.uk/Dados"
     },
 
+    // Quantas vezes tentar confirmar o pagamento automaticamente antes de
+    // cair no estado "pendente", e o intervalo entre tentativas.
     POLL_TENTATIVAS: 6,
-    POLL_INTERVALO_MS: 3500
+    POLL_INTERVALO_MS: 3500,
+
+    // Contato de suporte exibido quando algo falha (pagamento pendente,
+    // token inválido, etc). Ajuste para o canal que preferir.
+    SUPORTE_WHATSAPP: "5521981762110",
+    SUPORTE_TEXTO_PADRAO: "Olá! Fiz um pagamento no ALMAFLUXO e preciso de ajuda com o meu acesso."
   };
+
+  function linkSuporte(contexto){
+    const msg = encodeURIComponent(CONFIG.SUPORTE_TEXTO_PADRAO + (contexto ? " (" + contexto + ")" : ""));
+    return "https://wa.me/" + CONFIG.SUPORTE_WHATSAPP + "?text=" + msg;
+  }
 
   const PLATAFORMAS = [
     { id:"futebol",       nome:"Hedge Dinâmico — Futebol",        tipo:"temporal" },
@@ -326,17 +345,18 @@
   ];
 
   let plataformaSelecionada = null;
-  let previewPendente = null;
+  let previewPendente = null; // guarda os dados já verificados, aguardando confirmação final
 
-  // ── Helpers de UI ────────────────────────────────────────────
+  // ── Helpers de estado visual ─────────────────────────────────
   const panels = ["stateVerifying","stateSuccess","statePending","stateLogin","stateLookup"];
   function mostrarPainel(id){
     panels.forEach(p => document.getElementById(p).hidden = (p !== id));
   }
 
-  // ── Rede ──────────────────────────────────────────────────────
+  // ── Helpers de rede ──────────────────────────────────────────
   async function chamarBackend(action, params){
-    const res = await fetch(CONFIG.BACKEND_URL, {
+    const url = CONFIG.PROXY_BASE.replace(/\/$/,"") + "/" + CONFIG.PROXY_ROUTE;
+    const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(Object.assign({ action }, params || {}))
@@ -345,7 +365,7 @@
     return res.json();
   }
 
-  // ── Criptografia ──────────────────────────────────────────────
+  // ── Base64 <-> bytes ─────────────────────────────────────────
   function b64ToBytes(b64){
     const bin = atob(b64);
     const out = new Uint8Array(bin.length);
@@ -353,6 +373,10 @@
     return out;
   }
 
+  // ── Desbloqueio do conteúdo (AES-256-GCM via WebCrypto) ───────
+  // Assume chaveMestra (32 bytes), nonce (12 bytes) e tag (16 bytes) em
+  // base64, com o payload cifrado em `data`. Se o esquema de cifragem
+  // original usar outro formato de nonce/tag, ajuste aqui.
   async function desbloquearConteudo(pacote){
     const chaveBytes = b64ToBytes(pacote.chaveMestra);
     const ivBytes     = b64ToBytes(pacote.nonce);
@@ -368,62 +392,23 @@
     return new TextDecoder().decode(buffer);
   }
 
-  // ── Redirecionamento para a plataforma ────────────────────────
+  // ── Handoff para a página da plataforma ────────────────────────
   function entregarEEntrar(plataformaId, conteudo, meta){
     try {
       sessionStorage.setItem("almafluxo_acesso_" + plataformaId, JSON.stringify({
         conteudo: conteudo || null,
-        email: meta?.email || "",
-        token: meta?.token || "",
+        email: meta && meta.email || "",
+        token: meta && meta.token || "",
         geradoEm: Date.now()
       }));
-    } catch (e) { /* silencioso */ }
+    } catch (e) {
+      console.error("Não foi possível gravar sessionStorage:", e);
+    }
     window.location.href = CONFIG.DESTINOS[plataformaId] || "/";
   }
 
   // ═══════════════════════════════════════════════════════════════
-  // ACESSO AUTOMÁTICO PÓS‑PAGAMENTO (NOVO)
-  // ═══════════════════════════════════════════════════════════════
-  async function acessarAutomaticamente(dadosPagamento){
-    const plataforma = dadosPagamento.plataforma;
-    const token = dadosPagamento.token || dadosPagamento.chave;
-    const email = dadosPagamento.email;
-
-    // Se for o Mapa, redireciona direto
-    if (plataforma === "mapa"){
-      entregarEEntrar("mapa", null, { token, email });
-      return true;
-    }
-
-    try {
-      if (dadosPagamento.chave && dadosPagamento.plataforma === "olhodedus"){
-        // Olho De Deus – consome tokens e obtém conteúdo
-        const resp = await chamarBackend("getConteudoOlhoDeus", { chave: token });
-        if (!resp.ok) throw new Error(resp.error);
-        const conteudo = await desbloquearConteudo(resp);
-        entregarEEntrar("olhodedus", conteudo, { token, email });
-        return true;
-      } else if (dadosPagamento.token){
-        // Token ALMA-XXXXXX – obtém chave mestra e descriptografa
-        const resp = await chamarBackend("getKeyWithToken", {
-          token: token,
-          plataforma: plataforma,
-          email: email
-        });
-        if (!resp.ok) throw new Error(resp.error);
-        const conteudo = await desbloquearConteudo(resp);
-        entregarEEntrar(plataforma, conteudo, { token, email });
-        return true;
-      }
-    } catch (e){
-      console.error("Acesso automático falhou:", e.message);
-      return false;
-    }
-    return false;
-  }
-
-  // ═══════════════════════════════════════════════════════════════
-  // SEALS DAS PLATAFORMAS
+  // Seals de plataforma
   // ═══════════════════════════════════════════════════════════════
   function renderSeals(){
     const wrap = document.getElementById("platformSeals");
@@ -457,13 +442,14 @@
     btn.dataset.mode = "verificar";
   }
 
-  function mostrarErro(msg){
+  function mostrarErro(msg, contexto){
     document.getElementById("errorSlot").innerHTML =
-      '<div class="error-note">' + msg + '</div>';
+      '<div class="error-note">' + msg +
+      '<br><a href="' + linkSuporte(contexto || msg) + '" target="_blank" rel="noopener" style="color:inherit;">Falar com a equipe técnica →</a></div>';
   }
 
   // ═══════════════════════════════════════════════════════════════
-  // FLUXO DE LOGIN MANUAL
+  // Fluxo de login — 2 passos: verificar (preview) → confirmar (desbloquear)
   // ═══════════════════════════════════════════════════════════════
   const form = document.getElementById("loginForm");
   const inputToken = document.getElementById("inputToken");
@@ -562,6 +548,7 @@
         return;
       }
 
+      // plataforma "mapa" é externa: não há conteúdo cifrado para abrir aqui
       if (previewPendente.plataforma === "mapa"){
         entregarEEntrar("mapa", null, { token: previewPendente.token, email: previewPendente.email });
         return;
@@ -583,7 +570,7 @@
   }
 
   // ═══════════════════════════════════════════════════════════════
-  // BUSCA POR E-MAIL
+  // Busca por e-mail ("não sei qual token tenho")
   // ═══════════════════════════════════════════════════════════════
   document.getElementById("toggleLookupBtn").addEventListener("click", () => mostrarPainel("stateLookup"));
   document.getElementById("backToLoginBtn").addEventListener("click", () => mostrarPainel("stateLogin"));
@@ -627,7 +614,7 @@
   });
 
   // ═══════════════════════════════════════════════════════════════
-  // CÓPIA DO TOKEN
+  // Copiar token
   // ═══════════════════════════════════════════════════════════════
   document.getElementById("copyTokenBtn").addEventListener("click", () => {
     const txt = document.getElementById("successToken").textContent;
@@ -640,7 +627,11 @@
   });
 
   // ═══════════════════════════════════════════════════════════════
-  // VERIFICAÇÃO DE PAGAMENTO
+  // Confirmação automática pós-pagamento (redirect do Mercado Pago)
+  //
+  // ⚠️ Depende de uma ação `validarRedirecionamento` no central.gs que
+  // ainda não existe no backend atual — precisa ser adicionada (ver
+  // explicação enviada junto com este arquivo).
   // ═══════════════════════════════════════════════════════════════
   let successState = null;
 
@@ -653,12 +644,7 @@
     try {
       const resp = await chamarBackend("validarRedirecionamento", { external_reference: referencia });
 
-      if (resp.ok && (resp.token || resp.chave)){
-        // Tenta acesso automático
-        const ok = await acessarAutomaticamente(resp);
-        if (ok) return; // redirecionou
-
-        // Fallback: mostra token manualmente
+      if (resp.ok && resp.token){
         exibirSucesso(resp);
         return;
       }
@@ -695,6 +681,7 @@
 
   function exibirPendente(msg){
     document.getElementById("pendingMsg").textContent = msg;
+    document.getElementById("pendingSuporteLink").href = linkSuporte(msg);
     mostrarPainel("statePending");
   }
 
@@ -705,7 +692,8 @@
 
   document.getElementById("enterFromSuccessBtn").addEventListener("click", () => {
     if (!successState) return;
-    // Fallback manual: preenche os campos e vai para o login
+    // O token/chave já veio pronto; leva o usuário direto para a plataforma
+    // para completar o desbloqueio de conteúdo por lá (fluxo de login normal).
     if (successState.plataforma){
       selecionarPlataforma(successState.plataforma);
       document.getElementById("inputToken").value = successState.token || successState.chave || "";
@@ -716,10 +704,11 @@
   });
 
   // ═══════════════════════════════════════════════════════════════
-  // INICIALIZAÇÃO
+  // Inicialização
   // ═══════════════════════════════════════════════════════════════
   function init(){
     renderSeals();
+    document.getElementById("footerSuporteLink").href = linkSuporte("");
     const params = new URLSearchParams(window.location.search);
     const ref = params.get("external_reference") || params.get("preference_id");
     if (ref){
