@@ -209,6 +209,78 @@
             background: rgba(10, 102, 194, 0.2);
         }
 
+        /* ARQUITETURA - FLUXO */
+        .arch-flow {
+            display: flex;
+            align-items: stretch;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            margin: 1.5rem 0;
+        }
+        .arch-node {
+            flex: 1;
+            min-width: 200px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 1.3rem 1.1rem;
+            text-align: center;
+            transition: border-color var(--transition);
+        }
+        .arch-node:hover {
+            border-color: var(--primary);
+        }
+        .arch-node .icon {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        .arch-node h4 {
+            font-size: 0.92rem;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+        .arch-node p {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            line-height: 1.55;
+        }
+        .arch-node .tag {
+            display: inline-block;
+            margin-top: 0.6rem;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: var(--accent);
+        }
+        .arch-arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-light);
+            font-size: 1.4rem;
+            font-weight: 700;
+            min-width: 24px;
+        }
+        .arch-branch {
+            background: rgba(233, 177, 59, 0.06);
+            border: 1px dashed var(--accent);
+            border-radius: var(--radius-sm);
+            padding: 1rem 1.3rem;
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        .arch-branch strong {
+            color: var(--accent);
+        }
+        @media (max-width: 760px) {
+            .arch-flow { flex-direction: column; }
+            .arch-arrow { transform: rotate(90deg); padding: 0.2rem 0; }
+        }
+
         /* PROJECT CARDS */
         .projects-grid {
             display: grid;
@@ -384,6 +456,7 @@
             <div class="nav-links">
                 <a href="#sobre">Sobre</a>
                 <a href="#skills">Skills</a>
+                <a href="#arquitetura">Arquitetura</a>
                 <a href="#projetos">Projetos</a>
                 <a href="#servicos">Serviços</a>
                 <a href="#recomendacoes">Recomendações IA</a>
@@ -444,6 +517,46 @@
                 <span class="skill-tag">UI/UX Design</span>
                 <span class="skill-tag">Automação</span>
                 <span class="skill-tag">Sistemas Preditivos</span>
+            </div>
+        </section>
+
+        <!-- ARQUITETURA -->
+        <section class="section" id="arquitetura">
+            <h2 class="section-title">Como a Arquitetura se Comunica</h2>
+            <div class="about-text">
+                <p>Cada plataforma do ecossistema segue o mesmo desenho de comunicação — pensado pra rodar com custo quase zero, sem servidor próprio e sem expor nenhuma credencial no navegador do usuário.</p>
+            </div>
+            <div class="arch-flow">
+                <div class="arch-node">
+                    <span class="icon">🌐</span>
+                    <h4>GitHub Pages</h4>
+                    <p>Frontend estático (HTML/JS) de cada plataforma, servido via CDN, sem custo de hospedagem.</p>
+                    <span class="tag">Camada 1 · Interface</span>
+                </div>
+                <div class="arch-arrow">→</div>
+                <div class="arch-node">
+                    <span class="icon">☁️</span>
+                    <h4>Cloudflare Workers</h4>
+                    <p>Proxy que intermedia toda chamada: esconde a URL real do backend, controla timeout, resolve CORS e decide pra onde a requisição vai.</p>
+                    <span class="tag">Camada 2 · Segurança</span>
+                </div>
+                <div class="arch-arrow">→</div>
+                <div class="arch-node">
+                    <span class="icon">⚙️</span>
+                    <h4>Google Apps Script</h4>
+                    <p>Motor de regra de negócio centralizado — senha temporal, validação de pagamento, processamento de pedido.</p>
+                    <span class="tag">Camada 3 · Lógica</span>
+                </div>
+                <div class="arch-arrow">→</div>
+                <div class="arch-node">
+                    <span class="icon">🗄️</span>
+                    <h4>Google Drive</h4>
+                    <p>Armazenamento persistente, organizado em pastas isoladas por plataforma — histórico, comprovante, mídia.</p>
+                    <span class="tag">Camada 4 · Dados</span>
+                </div>
+            </div>
+            <div class="arch-branch">
+                🔀 <strong>Ramificação inteligente:</strong> nem toda chamada percorre as quatro camadas. Pra dado temporário ou de resposta rápida — senha por slot, bloqueio temporal, sessão — o Worker resolve direto no <strong>Cloudflare D1</strong>, o banco de dados serverless do próprio Cloudflare, sem acionar o Google. O Apps Script e o Drive entram só quando a operação exige lógica de negócio mais pesada ou persistência de longo prazo. Isso reduz latência nos módulos mais usados e mantém tudo funcionando com zero infraestrutura própria.
             </div>
         </section>
 
