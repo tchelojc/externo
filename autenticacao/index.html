@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ALMAFLUXO · Autenticação</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0A0C;
+    --bg-alt:#0D0C10;
+    --surface:#141319;
+    --surface-2:#1B1922;
+    --line:#2A2830;
+    --line-soft:#211F27;
+    --gold:#B9945C;
+    --gold-bright:#E8C87E;
+    --gold-dim:#7A6440;
+    --copper:#9C6B45;
+    --ok:#6B9B7C;
+    --ok-bright:#8FC49F;
+    --err:#C06868;
+    --text:#F0EAD9;
+    --text-dim:#9C9587;
+    --text-faint:#5C5850;
+    --radius:16px;
+    --radius-sm:10px;
+    --serif:'Cormorant Garamond', serif;
+    --sans:'Manrope', sans-serif;
+    --mono:'JetBrains Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse 900px 600px at 50% -10%, rgba(185,148,92,0.10), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 90% 100%, rgba(156,107,69,0.06), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:56px 20px 40px;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--gold-dim);color:var(--text);}
+  a{color:var(--gold-bright);}
+  :focus-visible{outline:2px solid var(--gold-bright);outline-offset:3px;border-radius:4px;}
+
+  /* ── Brand / hero ─────────────────────────────────────── */
+  .brand{display:flex;flex-direction:column;align-items:center;text-align:center;margin-bottom:34px;max-width:440px;}
+  .glyph{width:88px;height:88px;margin-bottom:14px;}
+  .glyph path{fill:none;stroke:url(#glyphGrad);stroke-width:1.6;stroke-linecap:round;}
+  .glyph-spin{animation:spin 90s linear infinite;transform-origin:110px 110px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.22em;color:var(--gold);text-transform:uppercase;margin-bottom:10px;}
+  h1{font-family:var(--serif);font-weight:600;font-size:34px;line-height:1.1;margin:0 0 10px;color:var(--text);}
+  .subtitle{font-size:14px;line-height:1.55;color:var(--text-dim);margin:0;}
+
+  /* ── Vault card ────────────────────────────────────────── */
+  .vault-wrap{width:100%;max-width:440px;}
+  .panel{
+    background:linear-gradient(180deg, var(--surface), var(--bg-alt));
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:28px 26px;
+    box-shadow:0 30px 60px -30px rgba(0,0,0,0.6);
+  }
+  .panel + .panel{margin-top:16px;}
+  .panel[hidden]{display:none;}
+  .panel-title{font-family:var(--serif);font-size:21px;font-weight:600;margin:0 0 6px;}
+  .panel-desc{font-size:13px;color:var(--text-dim);line-height:1.55;margin:0 0 20px;}
+
+  /* ── Platform seals ───────────────────────────────────── */
+  .seals{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px;}
+  .seal{
+    display:flex;align-items:center;gap:7px;
+    background:var(--surface-2);border:1px solid var(--line);
+    border-radius:999px;padding:7px 13px 7px 9px;
+    font-family:var(--sans);font-size:12.5px;font-weight:600;color:var(--text-dim);
+    cursor:pointer;transition:border-color .15s, color .15s, transform .15s;
+  }
+  .seal:hover{border-color:var(--gold-dim);color:var(--text);transform:translateY(-1px);}
+  .seal[aria-pressed="true"]{border-color:var(--gold);color:var(--gold-bright);background:rgba(185,148,92,0.08);}
+  .seal-dot{width:6px;height:6px;border-radius:50%;background:var(--gold-dim);flex:none;}
+  .seal[aria-pressed="true"] .seal-dot{background:var(--gold-bright);}
+
+  /* ── Form ─────────────────────────────────────────────── */
+  label{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-faint);margin-bottom:6px;}
+  .field{margin-bottom:16px;}
+  .field-hint{font-size:11.5px;color:var(--text-faint);margin-top:6px;line-height:1.5;}
+  input[type=text], input[type=email]{
+    width:100%;background:var(--surface-2);border:1px solid var(--line);color:var(--text);
+    font-family:var(--mono);font-size:14.5px;padding:12px 13px;border-radius:var(--radius-sm);
+    letter-spacing:.02em;
+  }
+  input::placeholder{color:var(--text-faint);font-family:var(--sans);}
+  input:focus{border-color:var(--gold-dim);}
+  .btn{
+    width:100%;border:none;border-radius:var(--radius-sm);padding:13px 16px;
+    font-family:var(--sans);font-weight:700;font-size:14px;letter-spacing:.01em;
+    cursor:pointer;transition:filter .15s, transform .1s;
+  }
+  .btn:active{transform:translateY(1px);}
+  .btn-primary{background:linear-gradient(180deg, var(--gold-bright), var(--gold));color:#1A140A;}
+  .btn-primary:hover{filter:brightness(1.08);}
+  .btn-primary:disabled{opacity:.45;cursor:not-allowed;filter:none;}
+  .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--text-dim);}
+  .btn-ghost:hover{border-color:var(--gold-dim);color:var(--text);}
+  .link-btn{
+    background:none;border:none;color:var(--gold);font-family:var(--sans);font-size:12.5px;
+    font-weight:600;cursor:pointer;padding:4px 0;text-decoration:underline;text-underline-offset:3px;
+  }
+  .row{display:flex;gap:10px;}
+  .row .btn{flex:1;}
+
+  /* ── Preview / status boxes ──────────────────────────── */
+  .preview{
+    background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-sm);
+    padding:14px 15px;margin:4px 0 18px;font-size:13px;line-height:1.7;
+  }
+  .preview dt{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint);}
+  .preview dd{margin:0 0 8px;color:var(--text);}
+  .preview dd:last-child{margin-bottom:0;}
+  .warn-note{
+    display:flex;gap:9px;background:rgba(156,107,69,0.10);border:1px solid rgba(156,107,69,0.35);
+    border-radius:var(--radius-sm);padding:11px 13px;font-size:12.5px;color:var(--text-dim);line-height:1.55;margin-bottom:18px;
+  }
+  .error-note{
+    background:rgba(192,104,104,0.10);border:1px solid rgba(192,104,104,0.35);
+    border-radius:var(--radius-sm);padding:11px 13px;font-size:12.5px;color:#E3B4B4;line-height:1.55;margin-bottom:16px;
+  }
+
+  /* ── Token reveal ─────────────────────────────────────── */
+  .token-box{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:var(--surface-2);border:1px solid var(--gold-dim);border-radius:var(--radius-sm);
+    padding:14px 15px;margin-bottom:18px;
+  }
+  .token-box code{font-family:var(--mono);font-size:15px;color:var(--gold-bright);letter-spacing:.03em;word-break:break-all;}
+  .copy-btn{
+    flex:none;background:none;border:1px solid var(--line);color:var(--text-dim);border-radius:8px;
+    padding:7px 10px;font-size:11px;font-family:var(--sans);font-weight:600;cursor:pointer;
+  }
+  .copy-btn:hover{border-color:var(--gold-dim);color:var(--text);}
+
+  /* ── Loader (verifying) ───────────────────────────────── */
+  .loader-wrap{display:flex;flex-direction:column;align-items:center;padding:14px 0 6px;}
+  .loader{width:80px;height:80px;margin-bottom:18px;}
+  .loader path{fill:none;stroke:var(--gold);stroke-width:2.2;stroke-linecap:round;}
+  .loader-spin{animation:spin 2.4s linear infinite;transform-origin:40px 40px;}
+  .loader-text{font-family:var(--mono);font-size:12px;color:var(--text-dim);letter-spacing:.03em;}
+  .dots span{animation:blink 1.4s infinite;opacity:.2;}
+  .dots span:nth-child(2){animation-delay:.25s;}
+  .dots span:nth-child(3){animation-delay:.5s;}
+  @keyframes blink{0%,80%,100%{opacity:.2;}40%{opacity:1;}}
+
+  /* ── Lookup results ───────────────────────────────────── */
+  .lookup-list{display:flex;flex-direction:column;gap:8px;margin-bottom:6px;}
+  .lookup-row{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-sm);
+    padding:11px 13px;
+  }
+  .lookup-row .lr-name{font-size:13px;font-weight:700;}
+  .lookup-row .lr-meta{font-family:var(--mono);font-size:11px;color:var(--text-faint);}
+  .lookup-row button{flex:none;}
+
+  /* ── Footer ───────────────────────────────────────────── */
+  footer{margin-top:38px;text-align:center;max-width:420px;}
+  .tagline{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--text-dim);margin:0 0 10px;}
+  .footnote{font-family:var(--mono);font-size:10.5px;color:var(--text-faint);line-height:1.7;}
+
+  @media (max-width:480px){
+    h1{font-size:28px;}
+    .panel{padding:22px 18px;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .glyph-spin, .loader-spin{animation:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="brand">
+  <svg class="glyph" viewBox="0 0 220 220" aria-hidden="true">
+    <defs>
+      <linearGradient id="glyphGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#E8C87E"/>
+        <stop offset="100%" stop-color="#7A6440"/>
+      </linearGradient>
+    </defs>
+    <g class="glyph-spin">
+      <path d="M 110.46,110.00 L 110.48,110.06 L 110.48,110.12 L 110.48,110.19 L 110.47,110.25 L 110.46,110.32 L 110.43,110.39 L 110.39,110.46 L 110.34,110.52 L 110.29,110.58 L 110.22,110.64 L 110.15,110.68 L 110.07,110.72 L 109.97,110.76 L 109.88,110.78 L 109.77,110.78 L 109.67,110.78 L 109.56,110.76 L 109.45,110.73 L 109.34,110.68 L 109.23,110.61 L 109.13,110.53 L 109.03,110.44 L 108.95,110.33 L 108.87,110.20 L 108.81,110.07 L 108.77,109.92 L 108.74,109.76 L 108.73,109.59 L 108.75,109.41 L 108.78,109.24 L 108.84,109.06 L 108.93,108.88 L 109.04,108.71 L 109.17,108.55 L 109.34,108.40 L 109.52,108.26 L 109.73,108.15 L 109.96,108.06 L 110.20,107.99 L 110.47,107.95 L 110.74,107.95 L 111.03,107.98 L 111.32,108.05 L 111.61,108.16 L 111.89,108.31 L 112.16,108.50 L 112.42,108.73 L 112.66,109.00 L 112.87,109.31 L 113.04,109.66 L 113.18,110.04 L 113.27,110.44 L 113.32,110.88 L 113.31,111.33 L 113.24,111.79 L 113.11,112.26 L 112.91,112.72 L 112.66,113.18 L 112.33,113.62 L 111.94,114.03 L 111.48,114.40 L 110.97,114.72 L 110.39,114.99 L 109.77,115.19 L 109.10,115.32 L 108.39,115.37 L 107.65,115.33 L 106.90,115.19 L 106.14,114.95 L 105.39,114.61 L 104.66,114.16 L 103.96,113.61 L 103.32,112.95 L 102.73,112.18 L 102.23,111.32 L 101.83,110.37 L 101.53,109.33 L 101.35,108.23 L 101.32,107.07 L 101.42,105.87 L 101.69,104.65 L 102.12,103.42 L 102.72,102.21 L 103.49,101.04 L 104.44,99.94 L 105.55,98.92 L 106.83,98.01 L 108.27,97.24 L 109.85,96.62 L 111.56,96.20 L 113.37,95.97 L 115.26,95.97 L 117.22,96.22 L 119.20,96.72 L 121.18,97.49 L 123.13,98.53 L 124.99,99.86 L 126.75,101.47 L 128.35,103.35 L 129.77,105.49 L 130.95,107.88 L 131.86,110.49 L 132.47,113.30 L 132.74,116.27 L 132.63,119.37 L 132.12,122.55 L 131.20,125.77 L 129.83,128.96 L 128.01,132.08 L 125.74,135.06 L 123.02,137.84 L 119.86,140.35 L 116.28,142.55 L 112.32,144.35 L 108.00,145.69 L 103.37,146.53 L 98.50,146.80 L 93.44,146.46 L 88.27,145.46 L 83.07,143.77 L 77.93,141.36 L 72.94,138.22 L 68.19,134.35 L 63.80,129.75 L 59.86,124.44 L 56.48,118.48 L 53.76,111.89 L 51.79,104.76 L 50.68,97.16 L 50.50,89.18 L 51.34,80.94 L 53.26,72.55 L 56.31,64.14 L 60.53,55.88 L 65.93,47.89 L 72.52,40.36 L 80.28,33.43 L 89.16,27.29 L 99.09,22.09 L 110.00,18.00"/>
+    </g>
+  </svg>
+  <div class="eyebrow">ALMAFLUXO · 3·6·9</div>
+  <h1>Portal de Autenticação</h1>
+  <p class="subtitle">Confirme seu pagamento ou entre com seu token para desbloquear o conteúdo da sua plataforma.</p>
+</div>
+
+<div class="vault-wrap">
+
+  <!-- ═══ ESTADO: verificando pagamento (auto, via redirect do Mercado Pago) ═══ -->
+  <section id="stateVerifying" class="panel" hidden aria-live="polite">
+    <div class="loader-wrap">
+      <svg class="loader" viewBox="0 0 80 80" aria-hidden="true">
+        <g class="loader-spin">
+          <path d="M 42.30,40.00 L 42.38,40.35 L 42.41,40.73 L 42.38,41.12 L 42.29,41.52 L 42.14,41.92 L 41.92,42.32 L 41.63,42.69 L 41.27,43.03 L 40.86,43.33 L 40.38,43.58 L 39.84,43.76 L 39.26,43.87 L 38.65,43.89 L 38.00,43.82 L 37.35,43.64 L 36.70,43.37 L 36.07,42.98 L 35.48,42.48 L 34.95,41.88 L 34.48,41.17 L 34.11,40.37 L 33.85,39.48 L 33.72,38.53 L 33.72,37.52 L 33.89,36.47 L 34.21,35.41 L 34.71,34.37 L 35.39,33.37 L 36.24,32.43 L 37.27,31.60 L 38.46,30.89 L 39.80,30.33 L 41.27,29.97 L 42.84,29.81 L 44.50,29.89 L 46.20,30.23 L 47.91,30.84 L 49.58,31.73 L 51.18,32.91 L 52.65,34.37 L 53.95,36.11 L 55.03,38.10 L 55.84,40.33 L 56.34,42.76 L 56.49,45.36 L 56.24,48.06 L 55.57,50.82 L 54.46,53.58 L 52.89,56.26 L 50.85,58.79 L 48.35,61.10 L 45.42,63.11 L 42.08,64.74 L 38.37,65.92 L 34.35,66.57 L 30.10,66.63 L 25.69,66.04 L 21.21,64.76 L 16.77,62.74 L 12.49,59.98"/>
+        </g>
+      </svg>
+      <div class="loader-text" id="verifyingText">Confirmando pagamento junto ao Mercado Pago<span class="dots"><span>.</span><span>.</span><span>.</span></span></div>
+    </div>
+  </section>
+
+  <!-- ═══ ESTADO: acesso liberado ═══ -->
+  <section id="stateSuccess" class="panel" hidden aria-live="polite">
+    <h2 class="panel-title">Acesso liberado</h2>
+    <p class="panel-desc" id="successPlataforma">Pagamento confirmado.</p>
+    <div class="token-box">
+      <code id="successToken">—</code>
+      <button class="copy-btn" id="copyTokenBtn" type="button">Copiar</button>
+    </div>
+    <button class="btn btn-primary" id="enterFromSuccessBtn" type="button">Entrar agora →</button>
+    <p class="field-hint">Este código também foi enviado para o seu e‑mail. Guarde‑o: ele é sua chave de acesso enquanto durar o plano.</p>
+  </section>
+
+  <!-- ═══ ESTADO: pagamento pendente / erro na confirmação automática ═══ -->
+  <section id="statePending" class="panel" hidden aria-live="polite">
+    <h2 class="panel-title">Pagamento ainda não confirmado</h2>
+    <p class="panel-desc" id="pendingMsg">O Mercado Pago pode levar alguns instantes para aprovar. Você pode aguardar ou tentar novamente.</p>
+    <button class="btn btn-primary" id="retryVerifyBtn" type="button">Verificar novamente</button>
+  </section>
+
+  <!-- ═══ ESTADO: login manual (padrão) ═══ -->
+  <section id="stateLogin" class="panel">
+    <h2 class="panel-title">Entrar com token</h2>
+    <p class="panel-desc">Escolha a plataforma e informe os dados recebidos na confirmação de compra.</p>
+
+    <div class="seals" id="platformSeals" role="group" aria-label="Escolha a plataforma"></div>
+
+    <form id="loginForm" novalidate>
+      <div class="field" id="emailField">
+        <label for="inputEmail">E‑mail da compra</label>
+        <input type="email" id="inputEmail" autocomplete="email" placeholder="voce@exemplo.com">
+      </div>
+      <div class="field">
+        <label for="inputToken">Token ou chave de acesso</label>
+        <input type="text" id="inputToken" autocomplete="off" spellcheck="false" placeholder="ALMA-XXXXXX-XXXXXX ou OLHO-XXXXXX-XXXXXX">
+        <p class="field-hint">Tokens <strong>ALMA‑</strong> abrem as plataformas do Hub por tempo de acesso. Chaves <strong>OLHO‑</strong> são o saldo consumível do Olho De Deus.</p>
+      </div>
+
+      <div id="errorSlot"></div>
+      <div id="previewSlot"></div>
+
+      <button class="btn btn-primary" id="verifyBtn" type="submit">Verificar acesso</button>
+    </form>
+
+    <div style="text-align:center;margin-top:16px;">
+      <button class="link-btn" id="toggleLookupBtn" type="button">Não sei qual token tenho →</button>
+    </div>
+  </section>
+
+  <!-- ═══ ESTADO: busca por e‑mail ═══ -->
+  <section id="stateLookup" class="panel" hidden>
+    <h2 class="panel-title">Buscar pelo e‑mail</h2>
+    <p class="panel-desc">Mostramos todos os tokens e chaves associados a este e‑mail, com seus prazos.</p>
+    <div class="field">
+      <label for="lookupEmail">E‑mail da compra</label>
+      <input type="email" id="lookupEmail" autocomplete="email" placeholder="voce@exemplo.com">
+    </div>
+    <div id="lookupError"></div>
+    <button class="btn btn-primary" id="lookupBtn" type="button">Buscar</button>
+    <div class="lookup-list" id="lookupResults" style="margin-top:16px;"></div>
+    <div style="text-align:center;margin-top:14px;">
+      <button class="link-btn" id="backToLoginBtn" type="button">← Voltar</button>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <p class="tagline">"Não sou o Nada e não sou o Tudo. Sou o Trajeto."</p>
+  <p class="footnote">ALMAFLUXO · nenhuma senha ou chave mestra fica armazenada neste arquivo —<br>toda validação acontece no backend, através da rota protegida.</p>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  // ═══════════════════════════════════════════════════════════════
+  // CONFIGURAÇÃO
+  // ═══════════════════════════════════════════════════════════════
+  const CONFIG = {
+    // Worker que encaminha para o central.gs (rota "hub")
+    BACKEND_URL: "https://almafluxo.uk/proxy/hub",
+
+    // Destinos de cada plataforma após desbloqueio
+    DESTINOS: {
+      futebol:       "/futebol/",
+      basquete:      "/basquete/",
+      operador:      "/operador/",
+      multiesportes: "/multiesportes/",
+      sintesia:      "/sintesia/",
+      olhodedus:     "/olhodedeus/",
+      mapa:          "https://almafluxo.uk/Dados"
+    },
+
+    POLL_TENTATIVAS: 6,
+    POLL_INTERVALO_MS: 3500
+  };
+
+  const PLATAFORMAS = [
+    { id:"futebol",       nome:"Hedge Dinâmico — Futebol",        tipo:"temporal" },
+    { id:"basquete",      nome:"Hedge Dinâmico — Basquete",       tipo:"temporal" },
+    { id:"operador",      nome:"Interface OPERADOR (Day Trade)",  tipo:"temporal" },
+    { id:"multiesportes", nome:"Hedge Multiesportes",             tipo:"temporal" },
+    { id:"sintesia",      nome:"Sintesia Humana",                 tipo:"temporal" },
+    { id:"olhodedus",     nome:"Olho De Deus",                    tipo:"consumivel" },
+    { id:"mapa",          nome:"Mapa do Próprio Destino",         tipo:"externo" }
+  ];
+
+  let plataformaSelecionada = null;
+  let previewPendente = null;
+
+  // ── Helpers de UI ────────────────────────────────────────────
+  const panels = ["stateVerifying","stateSuccess","statePending","stateLogin","stateLookup"];
+  function mostrarPainel(id){
+    panels.forEach(p => document.getElementById(p).hidden = (p !== id));
+  }
+
+  // ── Rede ──────────────────────────────────────────────────────
+  async function chamarBackend(action, params){
+    const res = await fetch(CONFIG.BACKEND_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(Object.assign({ action }, params || {}))
+    });
+    if (!res.ok) throw new Error("Falha de rede (" + res.status + ")");
+    return res.json();
+  }
+
+  // ── Criptografia ──────────────────────────────────────────────
+  function b64ToBytes(b64){
+    const bin = atob(b64);
+    const out = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+
+  async function desbloquearConteudo(pacote){
+    const chaveBytes = b64ToBytes(pacote.chaveMestra);
+    const ivBytes     = b64ToBytes(pacote.nonce);
+    const dataBytes    = b64ToBytes(pacote.data);
+    const tagBytes      = b64ToBytes(pacote.tag);
+
+    const combinado = new Uint8Array(dataBytes.length + tagBytes.length);
+    combinado.set(dataBytes, 0);
+    combinado.set(tagBytes, dataBytes.length);
+
+    const chave = await crypto.subtle.importKey("raw", chaveBytes, { name: "AES-GCM" }, false, ["decrypt"]);
+    const buffer = await crypto.subtle.decrypt({ name: "AES-GCM", iv: ivBytes }, chave, combinado);
+    return new TextDecoder().decode(buffer);
+  }
+
+  // ── Redirecionamento para a plataforma ────────────────────────
+  function entregarEEntrar(plataformaId, conteudo, meta){
+    try {
+      sessionStorage.setItem("almafluxo_acesso_" + plataformaId, JSON.stringify({
+        conteudo: conteudo || null,
+        email: meta?.email || "",
+        token: meta?.token || "",
+        geradoEm: Date.now()
+      }));
+    } catch (e) { /* silencioso */ }
+    window.location.href = CONFIG.DESTINOS[plataformaId] || "/";
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // ACESSO AUTOMÁTICO PÓS‑PAGAMENTO (NOVO)
+  // ═══════════════════════════════════════════════════════════════
+  async function acessarAutomaticamente(dadosPagamento){
+    const plataforma = dadosPagamento.plataforma;
+    const token = dadosPagamento.token || dadosPagamento.chave;
+    const email = dadosPagamento.email;
+
+    // Se for o Mapa, redireciona direto
+    if (plataforma === "mapa"){
+      entregarEEntrar("mapa", null, { token, email });
+      return true;
+    }
+
+    try {
+      if (dadosPagamento.chave && dadosPagamento.plataforma === "olhodedus"){
+        // Olho De Deus – consome tokens e obtém conteúdo
+        const resp = await chamarBackend("getConteudoOlhoDeus", { chave: token });
+        if (!resp.ok) throw new Error(resp.error);
+        const conteudo = await desbloquearConteudo(resp);
+        entregarEEntrar("olhodedus", conteudo, { token, email });
+        return true;
+      } else if (dadosPagamento.token){
+        // Token ALMA-XXXXXX – obtém chave mestra e descriptografa
+        const resp = await chamarBackend("getKeyWithToken", {
+          token: token,
+          plataforma: plataforma,
+          email: email
+        });
+        if (!resp.ok) throw new Error(resp.error);
+        const conteudo = await desbloquearConteudo(resp);
+        entregarEEntrar(plataforma, conteudo, { token, email });
+        return true;
+      }
+    } catch (e){
+      console.error("Acesso automático falhou:", e.message);
+      return false;
+    }
+    return false;
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // SEALS DAS PLATAFORMAS
+  // ═══════════════════════════════════════════════════════════════
+  function renderSeals(){
+    const wrap = document.getElementById("platformSeals");
+    wrap.innerHTML = "";
+    PLATAFORMAS.forEach(p => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "seal";
+      btn.setAttribute("aria-pressed","false");
+      btn.dataset.id = p.id;
+      btn.innerHTML = '<span class="seal-dot"></span>' + p.nome;
+      btn.addEventListener("click", () => selecionarPlataforma(p.id));
+      wrap.appendChild(btn);
+    });
+  }
+
+  function selecionarPlataforma(id){
+    plataformaSelecionada = id;
+    document.querySelectorAll("#platformSeals .seal").forEach(el => {
+      el.setAttribute("aria-pressed", el.dataset.id === id ? "true" : "false");
+    });
+    limparPreview();
+  }
+
+  function limparPreview(){
+    previewPendente = null;
+    document.getElementById("previewSlot").innerHTML = "";
+    document.getElementById("errorSlot").innerHTML = "";
+    const btn = document.getElementById("verifyBtn");
+    btn.textContent = "Verificar acesso";
+    btn.dataset.mode = "verificar";
+  }
+
+  function mostrarErro(msg){
+    document.getElementById("errorSlot").innerHTML =
+      '<div class="error-note">' + msg + '</div>';
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // FLUXO DE LOGIN MANUAL
+  // ═══════════════════════════════════════════════════════════════
+  const form = document.getElementById("loginForm");
+  const inputToken = document.getElementById("inputToken");
+  const inputEmail = document.getElementById("inputEmail");
+  const emailField = document.getElementById("emailField");
+
+  inputToken.addEventListener("input", () => {
+    const v = inputToken.value.trim().toUpperCase();
+    const isOlho = v.startsWith("OLHO-");
+    emailField.style.display = isOlho ? "none" : "block";
+    if (isOlho) selecionarPlataforma("olhodedus");
+    limparPreview();
+  });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById("verifyBtn");
+    const modo = btn.dataset.mode || "verificar";
+
+    if (modo === "confirmar" && previewPendente){
+      return confirmarDesbloqueio();
+    }
+
+    const token = inputToken.value.trim().toUpperCase();
+    if (!token) return mostrarErro("Informe o token ou a chave de acesso.");
+
+    const isOlho = token.startsWith("OLHO-");
+    if (!isOlho && !plataformaSelecionada) return mostrarErro("Escolha a plataforma acima.");
+    if (!isOlho && !inputEmail.value.trim()) return mostrarErro("Informe o e‑mail usado na compra.");
+
+    document.getElementById("errorSlot").innerHTML = "";
+    btn.disabled = true; btn.textContent = "Verificando…";
+
+    try {
+      if (isOlho){
+        const resp = await chamarBackend("validarChaveOlhoDeus", { chave: token });
+        if (!resp.ok) { mostrarErro(resp.error || "Chave inválida."); return; }
+        previewPendente = { tipo:"olho", chave: token, saldo: resp.saldo, email: resp.email };
+        renderPreviewOlho(resp);
+      } else {
+        const resp = await chamarBackend("consultarSaldo", { token });
+        if (!resp.ok) { mostrarErro(resp.error || "Token inválido."); return; }
+        if (resp.plataforma !== plataformaSelecionada){
+          mostrarErro("Este token não pertence à plataforma selecionada.");
+          return;
+        }
+        previewPendente = { tipo:"hub", token, email: inputEmail.value.trim(), plataforma: plataformaSelecionada, saldoInfo: resp };
+        renderPreviewHub(resp);
+      }
+      btn.dataset.mode = "confirmar";
+      btn.textContent = "Desbloquear e entrar";
+    } catch (err){
+      mostrarErro("Não foi possível falar com o servidor. Tente novamente.");
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  function formatarRestante(ms){
+    if (ms <= 0) return "expirado";
+    const h = Math.floor(ms / 3600000);
+    const d = Math.floor(h / 24);
+    if (d >= 1) return d + " dia(s)";
+    return h + " hora(s)";
+  }
+
+  function renderPreviewHub(resp){
+    const p = PLATAFORMAS.find(x => x.id === resp.plataforma);
+    document.getElementById("previewSlot").innerHTML = `
+      <dl class="preview">
+        <dt>Plataforma</dt><dd>${p ? p.nome : resp.plataforma}</dd>
+        <dt>Plano</dt><dd>${resp.plano}</dd>
+        <dt>Status</dt><dd>${resp.expirado ? "expirado" : "ativo"}</dd>
+        <dt>Tempo restante</dt><dd>${formatarRestante(resp.restanteMs)}</dd>
+      </dl>`;
+  }
+
+  function renderPreviewOlho(resp){
+    document.getElementById("previewSlot").innerHTML = `
+      <dl class="preview">
+        <dt>Plataforma</dt><dd>Olho De Deus</dd>
+        <dt>Saldo disponível</dt><dd>${resp.saldo} tokens</dd>
+      </dl>
+      <div class="warn-note">Ao confirmar, esta ação consome <strong>5 tokens</strong> do seu saldo para gerar uma sessão de 1 hora.</div>`;
+  }
+
+  async function confirmarDesbloqueio(){
+    const btn = document.getElementById("verifyBtn");
+    btn.disabled = true; btn.textContent = "Desbloqueando…";
+    try {
+      if (previewPendente.tipo === "olho"){
+        const resp = await chamarBackend("getConteudoOlhoDeus", { chave: previewPendente.chave });
+        if (!resp.ok) { mostrarErro(resp.error || "Não foi possível desbloquear."); return; }
+        const conteudo = await desbloquearConteudo(resp);
+        entregarEEntrar("olhodedus", conteudo, { token: previewPendente.chave, email: resp.email || "" });
+        return;
+      }
+
+      if (previewPendente.plataforma === "mapa"){
+        entregarEEntrar("mapa", null, { token: previewPendente.token, email: previewPendente.email });
+        return;
+      }
+
+      const resp = await chamarBackend("getKeyWithToken", {
+        token: previewPendente.token,
+        plataforma: previewPendente.plataforma,
+        email: previewPendente.email
+      });
+      if (!resp.ok) { mostrarErro(resp.error || "Não foi possível desbloquear."); return; }
+      const conteudo = await desbloquearConteudo(resp);
+      entregarEEntrar(previewPendente.plataforma, conteudo, { token: previewPendente.token, email: previewPendente.email });
+    } catch (err){
+      mostrarErro("Falha ao desbloquear o conteúdo. Tente novamente.");
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // BUSCA POR E-MAIL
+  // ═══════════════════════════════════════════════════════════════
+  document.getElementById("toggleLookupBtn").addEventListener("click", () => mostrarPainel("stateLookup"));
+  document.getElementById("backToLoginBtn").addEventListener("click", () => mostrarPainel("stateLogin"));
+
+  document.getElementById("lookupBtn").addEventListener("click", async () => {
+    const email = document.getElementById("lookupEmail").value.trim().toLowerCase();
+    const errSlot = document.getElementById("lookupError");
+    const resultsEl = document.getElementById("lookupResults");
+    errSlot.innerHTML = ""; resultsEl.innerHTML = "";
+    if (!email) { errSlot.innerHTML = '<div class="error-note">Informe um e‑mail.</div>'; return; }
+
+    try {
+      const resp = await chamarBackend("listarTokensPorEmail", { email });
+      if (!resp.ok || !resp.tokens || !resp.tokens.length){
+        errSlot.innerHTML = '<div class="error-note">Nenhum token encontrado para este e‑mail.</div>';
+        return;
+      }
+      resp.tokens.forEach(t => {
+        const row = document.createElement("div");
+        row.className = "lookup-row";
+        const status = t.expirado ? "expirado" : "ativo";
+        row.innerHTML = `
+          <div>
+            <div class="lr-name">${t.plataforma}</div>
+            <div class="lr-meta">${t.token} · ${status}</div>
+          </div>
+          <button class="btn btn-ghost" type="button" style="width:auto;">Usar</button>`;
+        row.querySelector("button").addEventListener("click", () => {
+          document.getElementById("inputToken").value = t.token;
+          document.getElementById("inputToken").dispatchEvent(new Event("input"));
+          document.getElementById("inputEmail").value = email;
+          const plat = PLATAFORMAS.find(p => p.nome === t.plataforma || p.id === t.plataforma);
+          if (plat) selecionarPlataforma(plat.id);
+          mostrarPainel("stateLogin");
+        });
+        resultsEl.appendChild(row);
+      });
+    } catch (err){
+      errSlot.innerHTML = '<div class="error-note">Não foi possível buscar agora. Tente novamente.</div>';
+    }
+  });
+
+  // ═══════════════════════════════════════════════════════════════
+  // CÓPIA DO TOKEN
+  // ═══════════════════════════════════════════════════════════════
+  document.getElementById("copyTokenBtn").addEventListener("click", () => {
+    const txt = document.getElementById("successToken").textContent;
+    navigator.clipboard?.writeText(txt).then(() => {
+      const b = document.getElementById("copyTokenBtn");
+      const original = b.textContent;
+      b.textContent = "Copiado ✓";
+      setTimeout(() => b.textContent = original, 1600);
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════
+  // VERIFICAÇÃO DE PAGAMENTO
+  // ═══════════════════════════════════════════════════════════════
+  let successState = null;
+
+  async function verificarPagamento(referencia, tentativa){
+    tentativa = tentativa || 1;
+    document.getElementById("verifyingText").innerHTML =
+      "Confirmando pagamento junto ao Mercado Pago" +
+      '<span class="dots"><span>.</span><span>.</span><span>.</span></span>';
+
+    try {
+      const resp = await chamarBackend("validarRedirecionamento", { external_reference: referencia });
+
+      if (resp.ok && (resp.token || resp.chave)){
+        // Tenta acesso automático
+        const ok = await acessarAutomaticamente(resp);
+        if (ok) return; // redirecionou
+
+        // Fallback: mostra token manualmente
+        exibirSucesso(resp);
+        return;
+      }
+      if (resp.ok && resp.status && resp.status !== "approved"){
+        if (tentativa < CONFIG.POLL_TENTATIVAS){
+          setTimeout(() => verificarPagamento(referencia, tentativa + 1), CONFIG.POLL_INTERVALO_MS);
+        } else {
+          exibirPendente("O pagamento ainda está sendo processado. Isso pode levar alguns minutos.");
+        }
+        return;
+      }
+      if (tentativa < CONFIG.POLL_TENTATIVAS){
+        setTimeout(() => verificarPagamento(referencia, tentativa + 1), CONFIG.POLL_INTERVALO_MS);
+      } else {
+        exibirPendente(resp.error || "Não foi possível confirmar o pagamento automaticamente.");
+      }
+    } catch (err){
+      if (tentativa < CONFIG.POLL_TENTATIVAS){
+        setTimeout(() => verificarPagamento(referencia, tentativa + 1), CONFIG.POLL_INTERVALO_MS);
+      } else {
+        exibirPendente("Falha de conexão ao confirmar o pagamento.");
+      }
+    }
+  }
+
+  function exibirSucesso(resp){
+    const p = PLATAFORMAS.find(x => x.id === resp.plataforma);
+    successState = resp;
+    document.getElementById("successToken").textContent = resp.token || resp.chave || "—";
+    document.getElementById("successPlataforma").textContent =
+      "Seu acesso a " + (p ? p.nome : resp.plataforma) + " está pronto.";
+    mostrarPainel("stateSuccess");
+  }
+
+  function exibirPendente(msg){
+    document.getElementById("pendingMsg").textContent = msg;
+    mostrarPainel("statePending");
+  }
+
+  document.getElementById("retryVerifyBtn").addEventListener("click", () => {
+    const ref = new URLSearchParams(window.location.search).get("external_reference");
+    if (ref){ mostrarPainel("stateVerifying"); verificarPagamento(ref); }
+  });
+
+  document.getElementById("enterFromSuccessBtn").addEventListener("click", () => {
+    if (!successState) return;
+    // Fallback manual: preenche os campos e vai para o login
+    if (successState.plataforma){
+      selecionarPlataforma(successState.plataforma);
+      document.getElementById("inputToken").value = successState.token || successState.chave || "";
+      document.getElementById("inputToken").dispatchEvent(new Event("input"));
+      if (successState.email) document.getElementById("inputEmail").value = successState.email;
+    }
+    mostrarPainel("stateLogin");
+  });
+
+  // ═══════════════════════════════════════════════════════════════
+  // INICIALIZAÇÃO
+  // ═══════════════════════════════════════════════════════════════
+  function init(){
+    renderSeals();
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get("external_reference") || params.get("preference_id");
+    if (ref){
+      mostrarPainel("stateVerifying");
+      verificarPagamento(ref);
+    } else {
+      mostrarPainel("stateLogin");
+    }
+  }
+  init();
+})();
+</script>
+</body>
+</html>
