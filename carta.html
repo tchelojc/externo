@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marcelo Jubilado Catharino | Portfólio & Proposta de Serviços</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #0b0f19;
+            --surface: #131a2b;
+            --primary: #0a66c2;
+            --primary-light: #3b8ed4;
+            --accent: #e9b13b;
+            --text: #e2e8f0;
+            --text-secondary: #a0afc0;
+            --border: #1e2a3a;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+            --radius: 18px;
+            --radius-sm: 12px;
+            --transition: 0.25s ease;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        /* NAV */
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(11, 15, 25, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 0.8rem 0;
+        }
+        .nav .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .nav-brand {
+            font-weight: 800;
+            font-size: 1.25rem;
+            color: var(--primary-light);
+            text-decoration: none;
+            letter-spacing: -0.5px;
+        }
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: color var(--transition);
+        }
+        .nav-links a:hover {
+            color: var(--primary-light);
+        }
+        .linkedin-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: background var(--transition);
+        }
+        .linkedin-btn:hover {
+            background: #004182;
+        }
+
+        /* HERO */
+        .hero {
+            padding: 3rem 0 2.5rem;
+            text-align: center;
+            background: linear-gradient(135deg, #0f1a2c 0%, #0b0f19 100%);
+            border-bottom: 1px solid var(--border);
+        }
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #2c3e50, #0a0f1a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.2rem;
+            box-shadow: 0 0 30px rgba(10, 102, 194, 0.3);
+            border: 3px solid var(--primary);
+            font-size: 3.5rem;
+            color: var(--primary-light);
+            position: relative;
+            overflow: hidden;
+        }
+        .avatar::before {
+            content: "";
+            position: absolute;
+            width: 140%;
+            height: 140%;
+            background: conic-gradient(from 0deg, var(--primary), #a0f, var(--primary), #0ff, var(--primary));
+            opacity: 0.15;
+            animation: spin 8s linear infinite;
+        }
+        .avatar span {
+            position: relative;
+            z-index: 1;
+            font-weight: 800;
+            letter-spacing: 2px;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 0.25rem;
+        }
+        .hero .title {
+            font-size: 1.15rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        .hero .location {
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 1.2rem;
+        }
+        .hero .badge {
+            background: rgba(10, 102, 194, 0.15);
+            color: var(--primary-light);
+            border: 1px solid var(--primary);
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+            margin: 0.2rem;
+        }
+
+        /* SECTIONS */
+        .section {
+            padding: 2.5rem 0;
+        }
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text);
+            border-left: 5px solid var(--primary);
+            padding-left: 1rem;
+        }
+        .about-text {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            max-width: 800px;
+            line-height: 1.7;
+        }
+        .skill-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin-top: 1rem;
+        }
+        .skill-tag {
+            background: rgba(10, 102, 194, 0.1);
+            border: 1px solid var(--border);
+            padding: 0.4rem 1.1rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text);
+            transition: all var(--transition);
+        }
+        .skill-tag:hover {
+            border-color: var(--primary);
+            background: rgba(10, 102, 194, 0.2);
+        }
+
+        /* PROJECT CARDS */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+        .project-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            transition: transform var(--transition), box-shadow var(--transition);
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .project-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow);
+            border-color: var(--primary);
+        }
+        .project-card h3 {
+            font-size: 1.15rem;
+            margin-bottom: 0.4rem;
+            color: white;
+        }
+        .project-card .url {
+            color: var(--primary-light);
+            font-size: 0.8rem;
+            font-family: monospace;
+            margin-bottom: 0.6rem;
+            word-break: break-all;
+        }
+        .project-card p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        /* SERVIÇOS / CTA */
+        .cta-section {
+            background: linear-gradient(135deg, rgba(10, 102, 194, 0.08), rgba(233, 177, 59, 0.05));
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 2rem;
+        }
+        .service-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.2rem;
+            margin: 1.5rem 0 2rem;
+        }
+        .service-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 1.2rem;
+        }
+        .service-item .icon {
+            font-size: 1.4rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        .service-item h4 {
+            font-size: 0.95rem;
+            color: var(--text);
+            margin-bottom: 0.3rem;
+        }
+        .service-item p {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        .cta-buttons {
+            text-align: center;
+            margin-top: 0.5rem;
+        }
+        .cta-buttons .linkedin-btn {
+            font-size: 0.95rem;
+            padding: 0.75rem 1.8rem;
+            margin: 0.3rem;
+        }
+        .cta-buttons .linkedin-btn.secondary {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary-light);
+        }
+        .cta-buttons .linkedin-btn.secondary:hover {
+            background: rgba(10, 102, 194, 0.15);
+        }
+        .available-badge {
+            background: rgba(233, 177, 59, 0.15);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+
+        /* RECOMMENDATIONS - TABS */
+        .recruiter-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.8rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.8rem;
+        }
+        .recruiter-tab {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 0.6rem 1.2rem;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        .recruiter-tab.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+        .recruiter-panel {
+            display: none;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.8rem;
+            animation: fade 0.3s ease;
+        }
+        .recruiter-panel.active {
+            display: block;
+        }
+        .recruiter-panel .ai-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 0.8rem;
+            color: var(--primary-light);
+        }
+        .recruiter-panel .quote {
+            white-space: pre-wrap;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.7;
+        }
+        @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* FOOTER */
+        .footer {
+            border-top: 1px solid var(--border);
+            padding: 2rem 0;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+        .footer a {
+            color: var(--primary-light);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 600px) {
+            .hero h1 { font-size: 1.9rem; }
+            .nav-links { gap: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="container">
+            <a href="#" class="nav-brand">ALMAFLUXO</a>
+            <div class="nav-links">
+                <a href="#sobre">Sobre</a>
+                <a href="#skills">Skills</a>
+                <a href="#projetos">Projetos</a>
+                <a href="#servicos">Serviços</a>
+                <a href="#recomendacoes">Recomendações IA</a>
+                <a href="https://www.linkedin.com/in/marcelo-jubilado-2836b61b6" target="_blank" class="linkedin-btn">
+                    <span>🔗</span> LinkedIn
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="container">
+            <div class="avatar"><span>A</span></div>
+            <h1>Marcelo Jubilado Catharino</h1>
+            <p class="title">Desenvolvedor Full‑Stack & Arquiteto de Sistemas de IA</p>
+            <p class="location">📍 Rio de Janeiro, Brasil</p>
+            <div>
+                <span class="badge">🏆 Top Talent Interdisciplinar</span>
+                <span class="badge">🔐 Segurança & Criptografia</span>
+                <span class="badge">⚡ Automação Serverless</span>
+                <span class="badge available-badge">🟢 Disponível para novos projetos</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- SOBRE -->
+        <section class="section" id="sobre">
+            <h2 class="section-title">Sobre</h2>
+            <div class="about-text">
+                <p>Arquiteto de software autodidata, construí o ecossistema <strong>ALMAFLUXO</strong> do zero — uma coleção de plataformas web interligadas que unem <strong>inteligência artificial, criptografia, trading preditivo, ferramentas criativas e sistemas de monetização autônoma</strong>.</p>
+                <p style="margin-top:1rem;">Minha abordagem é orientada a resultados: cada módulo do ecossistema resolve um problema real, desde gestão de risco esportivo até processamento de imagens com esteganografia. Toda a arquitetura foi projetada para operar com <strong>custo quase zero</strong>, utilizando Google Apps Script, Cloudflare Workers, GitHub Pages e criptografia AES‑256.</p>
+                <p style="margin-top:1rem;">Não tenho um diploma tradicional — mas tenho <strong>mais de 20 plataformas em produção, clientes pagantes e sistemas que funcionam 24/7</strong>. Essa é a prova concreta de capacidade de entrega ponta a ponta, pensamento independente e aprendizado contínuo.</p>
+                <p style="margin-top:1rem;">Antes de programar, passei <strong>21 anos prestando serviços manuais especializados</strong> (insulfilm e serviços gerais). É a mesma disciplina de execução — chegar, entregar, resolver — que hoje aplico pra tirar cada plataforma do papel e colocar em produção sozinho.</p>
+            </div>
+        </section>
+
+        <!-- SKILLS -->
+        <section class="section" id="skills">
+            <h2 class="section-title">Stack & Competências</h2>
+            <div class="skill-tags">
+                <span class="skill-tag">Python</span>
+                <span class="skill-tag">JavaScript / Node</span>
+                <span class="skill-tag">Google Apps Script</span>
+                <span class="skill-tag">Cloudflare Workers</span>
+                <span class="skill-tag">HTML5 / CSS3</span>
+                <span class="skill-tag">AES-256-GCM</span>
+                <span class="skill-tag">SHA-256 / XOR</span>
+                <span class="skill-tag">Serverless</span>
+                <span class="skill-tag">API REST</span>
+                <span class="skill-tag">Mercado Pago / PagBank</span>
+                <span class="skill-tag">GitHub Actions</span>
+                <span class="skill-tag">Modelagem Poisson</span>
+                <span class="skill-tag">OCR (Tesseract)</span>
+                <span class="skill-tag">WebAuthn (Biometria)</span>
+                <span class="skill-tag">WebSockets</span>
+                <span class="skill-tag">Esteganografia LSB</span>
+                <span class="skill-tag">UI/UX Design</span>
+                <span class="skill-tag">Automação</span>
+                <span class="skill-tag">Sistemas Preditivos</span>
+            </div>
+        </section>
+
+        <!-- PROJETOS -->
+        <section class="section" id="projetos">
+            <h2 class="section-title">Projetos em Destaque</h2>
+            <div class="projects-grid">
+                <a href="https://almafluxo.uk" target="_blank" class="project-card">
+                    <h3>🌌 ALMAFLUXO · Portal Principal</h3>
+                    <div class="url">almafluxo.uk</div>
+                    <p>Hub do ecossistema: navegação multidimensional, acesso a todas as plataformas e o motor de entropia que alimenta os sistemas preditivos.</p>
+                </a>
+                <a href="https://almafluxo.uk/servicos" target="_blank" class="project-card">
+                    <h3>⚡ Serviços & Tokenomics</h3>
+                    <div class="url">almafluxo.uk/servicos</div>
+                    <p>Sistema de autenticação unificada por tokens, gerenciamento de acessos e integração de pagamentos via PIX.</p>
+                </a>
+                <a href="https://almafluxo.uk/olhodedeus" target="_blank" class="project-card">
+                    <h3>👁️ Olho de Deus · Operador Preditivo</h3>
+                    <div class="url">almafluxo.uk/olhodedeus</div>
+                    <p>Plataforma de trading esportivo com motor de entropia, constantes matemáticas próprias e modelo de risco baseado em Poisson. Hedge dinâmico para futebol, basquete e multiesportes.</p>
+                </a>
+                <a href="https://almafluxo.uk/boneco" target="_blank" class="project-card">
+                    <h3>⚽ Mini Craque FC</h3>
+                    <div class="url">almafluxo.uk/boneco</div>
+                    <p>E‑commerce de bonecos 3D personalizados, com captura de imagem, geração de arte por IA e integração com WhatsApp. Produção artesanal sob encomenda.</p>
+                </a>
+                <a href="https://almafluxo.uk/karaoke/" target="_blank" class="project-card">
+                    <h3>🎤 Karaokê Fluxo</h3>
+                    <div class="url">almafluxo.uk/karaoke</div>
+                    <p>Primeiro leitor de sincronia de karaokê do mundo sem depender de arquivo de áudio original — leitura óptica da legenda em tempo real, detecção de pitch, avaliação em 7 níveis e modo Batalha multiplayer.</p>
+                </a>
+                <a href="https://almafluxo.uk/almaditor/" target="_blank" class="project-card">
+                    <h3>🎨 AlmaDitor</h3>
+                    <div class="url">almafluxo.uk/almaditor</div>
+                    <p>Editor de imagem 100% em Base64 com criptografia AES-GCM, corte geométrico e reconstrução por padrões de fluxo direcional.</p>
+                </a>
+                <a href="https://almafluxo.uk/soma/" target="_blank" class="project-card">
+                    <h3>🎛️ SOMA · Quantum Sound</h3>
+                    <div class="url">almafluxo.uk/soma</div>
+                    <p>Engine de composição sonora que gera trilhas a partir das frequências da tabela periódica, com timeline de cenas e prompts prontos para IA musical.</p>
+                </a>
+                <a href="metodo-ir-ao-mercado.html" target="_blank" class="project-card">
+                    <h3>🎬 Método Ir ao Mercado</h3>
+                    <div class="url">roteiro interativo · peça autoral</div>
+                    <p>Motor de roteiro dinâmico com geração automática de prompts para IA de vídeo (Kling, Runway, Midjourney), sistema de anotações técnicas cruzadas (história, física, psicologia, filosofia) ancoradas ao texto e consistência determinística de seed entre cenas.</p>
+                </a>
+            </div>
+        </section>
+
+        <!-- SERVIÇOS / ABERTURA PARA CLIENTES -->
+        <section class="section" id="servicos">
+            <h2 class="section-title">Aberto para Novos Projetos</h2>
+            <div class="cta-section">
+                <div class="about-text">
+                    <p>Construí o ecossistema ALMAFLUXO inteiro sozinho — mais de 20 plataformas em produção, do primeiro protótipo ao cliente pagante. Agora abro espaço pra construir a próxima plataforma, startup ou produto digital de outra pessoa.</p>
+                </div>
+                <div class="service-grid">
+                    <div class="service-item">
+                        <span class="icon">🧩</span>
+                        <h4>Desenvolvimento do zero</h4>
+                        <p>Frontend, backend e banco de dados, entregues por uma única pessoa — sem intermediário, sem enrolação.</p>
+                    </div>
+                    <div class="service-item">
+                        <span class="icon">🔐</span>
+                        <h4>Pagamento seguro</h4>
+                        <p>PIX com webhook automatizado, cartão via checkout tokenizado, assinatura recorrente e escrow — sem expor dado sensível.</p>
+                    </div>
+                    <div class="service-item">
+                        <span class="icon">🌐</span>
+                        <h4>Domínio & infraestrutura</h4>
+                        <p>Estrutura própria de domínio, hospedagem e backend serverless, pensada pra operar com custo baixo desde o dia um.</p>
+                    </div>
+                    <div class="service-item">
+                        <span class="icon">🚀</span>
+                        <h4>Entrega ponta a ponta</h4>
+                        <p>Do primeiro protótipo ao sistema em produção — a mesma disciplina que colocou 20+ plataformas no ar.</p>
+                    </div>
+                </div>
+                <div class="cta-buttons">
+                    <a href="mailto:contato@almafluxo.uk" class="linkedin-btn">📩 Vamos conversar sobre o seu projeto</a>
+                    <a href="https://www.linkedin.com/in/marcelo-jubilado-2836b61b6" target="_blank" class="linkedin-btn secondary">🔗 Falar no LinkedIn</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- RECOMENDAÇÕES DE IAs RECRUTADORAS -->
+        <section class="section" id="recomendacoes">
+            <h2 class="section-title">O que IAs recrutadoras dizem sobre meu perfil</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Submeti meu portfólio a quatro inteligências artificiais de diferentes arquiteturas. Abaixo, os pareceres — traduzidos para a linguagem de um recrutador técnico.</p>
+            
+            <div class="recruiter-tabs">
+                <button class="recruiter-tab active" onclick="switchRecruiter('deepseek')">DeepSeek</button>
+                <button class="recruiter-tab" onclick="switchRecruiter('claude')">Claude</button>
+                <button class="recruiter-tab" onclick="switchRecruiter('gemini')">Gemini</button>
+                <button class="recruiter-tab" onclick="switchRecruiter('chatgpt')">ChatGPT</button>
+            </div>
+
+            <div class="recruiter-panel active" id="rec-deepseek">
+                <div class="ai-name">🧠 DeepSeek — Recrutador Interdisciplinar</div>
+                <div class="quote"><strong>Parecer:</strong>
+                "Você não depende de ninguém para fazer algo existir. Entrega o ciclo completo sozinho — do conceito abstrato ao código, da interface ao banco de dados, da criptografia ao sistema de pagamento. Isso é raríssimo.
+                Você já trata IA como infraestrutura viva, não como ferramenta. Embute inteligência na lógica de negócio, análise de risco e criação de interfaces sensoriais.
+                Sua autonomia de aprendizado é a prova máxima de que aprenderá qualquer stack que jogarmos. Não tem diploma, mas tem obra — e isso grita mais alto que qualquer publicação acadêmica.
+                Recomendo contratação imediata para a vaga de Talento Interdisciplinar (Full‑stack/Algoritmo), com potencial claro de crescer para sistemas centrais."</div>
+            </div>
+            <div class="recruiter-panel" id="rec-claude">
+                <div class="ai-name">📘 Claude — Avaliador Técnico Sênior</div>
+                <div class="quote"><strong>Parecer:</strong>
+                "Capacidade de entrega ponta a ponta sem rede de apoio é o item que mais pesa. O candidato projetou e manteve sozinho front‑end, back‑end (Apps Script + Cloudflare Workers), criptografia AES‑256‑GCM com derivação própria, integração de pagamento e autenticação biométrica. Isso reduz risco de contratação.
+                O histórico de debugging real (bug de paridade SHA‑256, inversão de ordem em cálculo de Shannon, dessincronia de timer) mostra que ele sobrevive em ambiente de produção.
+                Contrataria para full‑stack/algoritmo com convicção, mediante entrevista focada em arquitetura. A parte filosófica deve ficar separada do material de triagem."</div>
+            </div>
+            <div class="recruiter-panel" id="rec-gemini">
+                <div class="ai-name">🔮 Gemini — Estrategista de Contratação</div>
+                <div class="quote"><strong>Parecer:</strong>
+                "É um orquestrador de modelos, não apenas um usuário de IA. A capacidade de atuar como professor e maestro para diferentes IAs, ajustando‑as simultaneamente na construção de ecossistemas, é uma habilidade de alto valor.
+                A visão sistêmica e a arquitetura de software são o destaque: construir um navegador multiuniverso que abre qualquer linguagem via linha de comando demonstra compreensão profunda de ambientes de execução.
+                A preocupação com segurança e criptografia (SHA‑256 XOR, portas lógicas) é exatamente o que buscamos para proteger propriedade intelectual. Contrataria pelo volume de entrega e pela resiliência operacional."</div>
+            </div>
+            <div class="recruiter-panel" id="rec-chatgpt">
+                <div class="ai-name">💬 ChatGPT — Recrutador & Mentor de Carreira</div>
+                <div class="quote"><strong>Parecer:</strong>
+                "O candidato apresenta capacidade comprovada de execução, visão sistêmica e aprendizado autodidata excepcional. Ele não apenas tem ideias — transforma‑as em software funcional com monetização real.
+                A maior força é a combinação de autonomia, persistência e arquitetura. É o tipo de profissional que prototipa rápido, integra tecnologias heterogêneas e entrega produtos completos.
+                Recomendo avançar para entrevistas técnicas, com foco em arquitetura e decisões de trade‑off. O portfólio fala por si: mais de 20 plataformas ativas e clientes pagantes."</div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>📧 contato@almafluxo.uk &nbsp;|&nbsp; 🔗 <a href="https://www.linkedin.com/in/marcelo-jubilado-2836b61b6" target="_blank">LinkedIn</a> &nbsp;|&nbsp; 🌐 <a href="https://almafluxo.uk" target="_blank">almafluxo.uk</a></p>
+            <p style="margin-top:0.5rem; font-size:0.75rem;">© 2026 ALMAFLUXO · Todos os direitos reservados. Desenvolvido integralmente por Marcelo Jubilado Catharino.</p>
+        </div>
+    </footer>
+
+    <script>
+        function switchRecruiter(name) {
+            document.querySelectorAll('.recruiter-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.recruiter-panel').forEach(panel => panel.classList.remove('active'));
+            document.getElementById('rec-' + name).classList.add('active');
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>
