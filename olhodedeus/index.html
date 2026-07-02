@@ -848,15 +848,9 @@
     ============================ -->
     <script>
         // ======================================================
-        // CONFIGURAÇÃO – SUBSTITUA PELA URL DO SEU WORKER
+        // CONFIGURAÇÃO – Worker que encaminha para o Central.gs
         // ======================================================
-
-        const URL_BACKEND = "hub";
-        
-        const TIMEOUT_MS = 15000;
-        
-        let isProcessing = false;
-        const CHECKOUT_URL = 'https://checkout.almafluxo.com'; // URL da página de checkout (ou gateway de pagamento)
+        const API_URL = 'https://almafluxo.uk/proxy/hub';
 
         // ======================================================
         // GERENCIAMENTO DE MODAIS
@@ -866,25 +860,21 @@
             document.body.style.overflow = 'hidden';
             document.getElementById('checkoutStatus').textContent = '';
         }
-
         function fecharModal() {
             document.getElementById('modalCompra').classList.remove('active');
             document.body.style.overflow = '';
         }
-
         function abrirModalChave() {
             document.getElementById('modalChave').classList.add('active');
             document.body.style.overflow = 'hidden';
             document.getElementById('chaveStatus').textContent = 'Digite a chave e clique em validar.';
             document.getElementById('chaveStatus').style.color = 'var(--texto2)';
         }
-
         function fecharModalChave() {
             document.getElementById('modalChave').classList.remove('active');
             document.body.style.overflow = '';
         }
 
-        // Fechar modais ao clicar fora
         document.getElementById('modalCompra').addEventListener('click', function(e) {
             if (e.target === this) fecharModal();
         });
@@ -892,42 +882,41 @@
             if (e.target === this) fecharModalChave();
         });
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') { fecharModal();
-                fecharModalChave(); }
+            if (e.key === 'Escape') { fecharModal(); fecharModalChave(); }
         });
 
         // ======================================================
-        // COMPRA – REDIRECIONA PARA O CHECKOUT (NÃO CRIA CHAVE)
+        // COMPRA – REDIRECIONA PARA O CHECKOUT (sem expor token)
         // ======================================================
         async function iniciarCheckout(e) {
             e.preventDefault();
             const planoVal = document.getElementById('plano').value;
             const email = document.getElementById('emailCheckout').value.trim();
             const statusEl = document.getElementById('checkoutStatus');
-        
+
             if (!email || !email.includes('@')) {
                 statusEl.textContent = '⚠️ Informe um e-mail válido.';
                 statusEl.style.color = '#ff6b6b';
                 return;
             }
-        
+
             const planoMap = { '5': 'hora', '25': 'dia', '150': 'mes' };
             const plano = planoMap[planoVal] || 'hora';
-        
+
             statusEl.textContent = '⏳ Gerando link de pagamento...';
             statusEl.style.color = 'var(--ciano)';
-        
+
             try {
-                const response = await fetch(URL_BACKEND, {
+                const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    // ✅ SEM tk – o Worker injeta automaticamente
                     body: JSON.stringify({
                         action: 'criarPagamento',
                         plataforma: 'olhodedus',
                         plano: plano,
                         email: email,
                         nome: ''
-                        // ⚠️ NÃO envie tk — o Worker injeta automaticamente
                     })
                 });
                 const data = await response.json();
@@ -943,7 +932,7 @@
         }
 
         // ======================================================
-        // VALIDAÇÃO DE CHAVE (GET)
+        // VALIDAÇÃO DE CHAVE
         // ======================================================
         async function validarChave(e) {
             e.preventDefault();
@@ -956,9 +945,9 @@
             }
             statusEl.textContent = '⏳ Validando...';
             statusEl.style.color = 'var(--ciano)';
-        
+
             try {
-                const response = await fetch(URL_BACKEND, {
+                const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'validarChaveOlhoDeus', chave })
@@ -983,41 +972,33 @@
         // ======================================================
         // CARREGAR CHAVE SALVA AO INICIAR
         // ======================================================
-        async function acessarConteudo() {
-            const chave = localStorage.getItem('olho_chave');
-            if (!chave) {
-                alert('Valide sua chave primeiro.');
+        async function carregarChaveSalva() {
+            const chaveSalva = localStorage.getItem('olho_chave');
+            if (!chaveSalva) {
+                document.getElementById('tokenDisplay').textContent = '⚡ 0 Tokens';
                 return;
             }
             try {
-                const response = await fetch(URL_BACKEND, {
+                const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'getConteudoOlhoDeus', chave })
+                    body: JSON.stringify({ action: 'validarChaveOlhoDeus', chave: chaveSalva })
                 });
                 const data = await response.json();
                 if (data.ok) {
-                    // Descriptografar AES-GCM
-                    const keyBytes = Uint8Array.from(atob(data.chaveMestra), c => c.charCodeAt(0));
-                    const cryptoKey = await crypto.subtle.importKey('raw', keyBytes, 'AES-GCM', false, ['decrypt']);
-                    const iv = Uint8Array.from(atob(data.nonce), c => c.charCodeAt(0));
-                    const tag = Uint8Array.from(atob(data.tag), c => c.charCodeAt(0));
-                    const ct = Uint8Array.from(atob(data.data), c => c.charCodeAt(0));
-                    const buf = await crypto.subtle.decrypt(
-                        { name: 'AES-GCM', iv, tagLength: 128 },
-                        cryptoKey,
-                        new Uint8Array([...ct, ...tag])
-                    );
-                    const html = new TextDecoder().decode(buf);
-                    document.body.innerHTML = html;
+                    document.getElementById('tokenDisplay').textContent = `⚡ ${data.saldo} Tokens`;
                 } else {
-                    alert(data.error || 'Erro ao acessar conteúdo');
+                    localStorage.removeItem('olho_chave');
+                    document.getElementById('tokenDisplay').textContent = '⚡ 0 Tokens';
                 }
             } catch (e) {
-                alert('Erro ao acessar: ' + e.message);
+                console.error(e);
             }
         }
 
+        // ======================================================
+        // ACESSAR CONTEÚDO DO OLHO DE DEUS
+        // ======================================================
         async function acessarConteudo() {
             const chave = localStorage.getItem('olho_chave');
             if (!chave) {
@@ -1032,19 +1013,21 @@
                 });
                 const data = await response.json();
                 if (data.ok) {
-                    // Descriptografar AES-GCM (igual ao hub.html)
+                    // Descriptografar AES-GCM
                     const keyBytes = Uint8Array.from(atob(data.chaveMestra), c => c.charCodeAt(0));
                     const cryptoKey = await crypto.subtle.importKey('raw', keyBytes, 'AES-GCM', false, ['decrypt']);
                     const iv = Uint8Array.from(atob(data.nonce), c => c.charCodeAt(0));
                     const tag = Uint8Array.from(atob(data.tag), c => c.charCodeAt(0));
                     const ct = Uint8Array.from(atob(data.data), c => c.charCodeAt(0));
+                    const combined = new Uint8Array(ct.length + tag.length);
+                    combined.set(ct);
+                    combined.set(tag, ct.length);
                     const buf = await crypto.subtle.decrypt(
                         { name: 'AES-GCM', iv, tagLength: 128 },
                         cryptoKey,
-                        new Uint8Array([...ct, ...tag])
+                        combined
                     );
                     const html = new TextDecoder().decode(buf);
-                    // Exibe o conteúdo descriptografado
                     document.body.innerHTML = html;
                 } else {
                     alert(data.error || 'Erro ao acessar conteúdo');
