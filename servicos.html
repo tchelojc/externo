@@ -639,20 +639,15 @@ footer{padding:2.5rem 1.5rem;background:var(--panel2);border-top:1px solid var(-
 <script>
 // ═══════════════════════════════════════════════════════
 // CONFIGURAÇÃO GERAL
-// Comunicação via proxy-ua (Cloudflare Worker) — rota "hub",
-// que o proxy mapeia para o central.gs (pagamentos, saldo,
-// tokens). Caminho relativo: mesma origem do site (sem CORS),
-// e o cliente NUNCA conhece nem envia o token interno (tk) —
-// isso é injetado no servidor, dentro do Worker.
+// Comunicação via proxy-ua (Cloudflare Worker) — rota "hub"
+// O token interno (tk) é injetado pelo Worker, NUNCA pelo cliente
 // ═══════════════════════════════════════════════════════
-const URL_BACKEND = "/proxy/hub";
+const URL_BACKEND = "https://almafluxo.uk/proxy/hub";  // ← absoluta para funcionar em qualquer domínio
 const TIMEOUT_MS = 15000;
 let isProcessing = false;
 
 // ═══════════════════════════════════════════════════════
 // MAPA DE PLATAFORMAS
-// Preços: hora/dia/mês conforme definido — sintesia só tem "hora" (R$10)
-// mapa é pagamento único de R$100 feito em página externa (não usa token aqui)
 // ═══════════════════════════════════════════════════════
 const PLATAFORMAS = {
   futebol: {
@@ -704,10 +699,6 @@ const DETALHES_FEATURE = {
     titulo: "📐 Oráculo & Constantes",
     corpo: "<p>Conjunto de constantes matemáticas fixas (φ, MARC, JUBILO, DEUS, GRATIDÃO, CICLO) que orientam o cálculo de cada cenário.</p><ul><li>Mesma base matemática usada em todas as plataformas</li><li>Garante consistência entre Trading e Esportes</li><li>Não muda — é o alicerce do sistema</li></ul>"
   },
-  gps: {
-    titulo: "🧭 Mesa GPS",
-    corpo: "<p>Painel de orientação que mostra onde você está dentro do cenário operado — como um mapa de posicionamento de capital ou de mercado.</p><ul><li>Visualização clara do ponto de equilíbrio (break-even)</li><li>Ajuda no reposicionamento ao vivo</li></ul>"
-  },
   blindado: {
     titulo: "🔐 Acesso Blindado",
     corpo: "<p>Cada plataforma fica protegida por criptografia (AES-256-GCM) e só é liberada com um token válido — gerado automaticamente após o pagamento.</p><ul><li>1 token = 1 plataforma + 1 plano (hora/dia/mês)</li><li>Token chega por e-mail, sem espera manual</li><li>Conteúdo nunca fica exposto sem token ativo</li></ul>"
@@ -715,10 +706,6 @@ const DETALHES_FEATURE = {
   analise: {
     titulo: "⚽ Análise de Partidas",
     corpo: "<p>Projeta cenários de jogo (gols, pontos, handicaps) usando os dados ao vivo da partida combinados às constantes do Oráculo.</p><ul><li>Futebol, Basquete e Multiesportes (Vôlei, Tênis, MMA)</li><li>Atualização contínua durante o evento</li></ul>"
-  },
-  narracao: {
-    titulo: "🎙️ Narração em Áudio",
-    corpo: "<p>Acompanhamento sonoro dos eventos em operação, narrando mudanças relevantes de cenário sem que você precise manter os olhos na tela o tempo todo.</p>"
   }
 };
 
@@ -737,29 +724,7 @@ document.getElementById('modalFeatureDetalhe').addEventListener('click', functio
 });
 
 // ═══════════════════════════════════════════════════════
-// AUTO-RELANÇAMENTO PARA file://
-// ═══════════════════════════════════════════════════════
-(function () {
-  if (location.protocol !== "file:") return;
-  const req = new XMLHttpRequest();
-  req.open("GET", location.href, true);
-  req.responseType = "blob";
-  req.onload = function () {
-    const url = URL.createObjectURL(new Blob([req.response], { type: "text/html" }));
-    const opened = window.open(url, "_self");
-    if (!opened || opened === window) {
-      document.body.innerHTML =
-        "<div style='position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#030508;font-family:Inter,sans-serif;gap:20px'>" +
-        "<div style='color:#00e5ff;font-size:1.2rem;letter-spacing:3px;font-weight:800'>⚡ ALMAFLUXO</div>" +
-        "<a href='" + url + "' style='background:#00e5ff;color:#000;padding:12px 32px;border-radius:48px;text-decoration:none;font-weight:800;font-size:1rem'>🔓 ABRIR CONECTADO</a>" +
-        "</div>";
-    }
-  };
-  req.send();
-})();
-
-// ═══════════════════════════════════════════════════════
-// COUNTDOWN (referência diária, decorativo/visual — herdado do sistema anterior)
+// COUNTDOWN
 // ═══════════════════════════════════════════════════════
 function pad(n) { return String(n).padStart(2, "0"); }
 function fmtContagem(ms) {
@@ -857,7 +822,7 @@ function switchTab(t) {
 }
 
 // ═══════════════════════════════════════════════════════
-// PLANOS (HORA / DIA / MÊS) — construídos conforme a plataforma
+// PLANOS
 // ═══════════════════════════════════════════════════════
 const LABEL_PLANO = { hora: ['⏱️ Hora', '/ hora'], dia: ['📆 Dia', '/ dia'], mes: ['📆 Mês', '/ mês'] };
 
@@ -899,10 +864,10 @@ function calcTotal() {
 }
 
 // ═══════════════════════════════════════════════════════
-// COMPRA — GERA LINK DE PAGAMENTO (Mercado Pago / PagBank via backend)
+// BACKEND
 // ═══════════════════════════════════════════════════════
 async function chamarBackend(action, dados) {
-  const body = Object.assign({ action }, dados); 
+  const body = Object.assign({ action }, dados);
   const c = new AbortController();
   const t = setTimeout(() => c.abort(), TIMEOUT_MS);
   let response;
@@ -922,6 +887,9 @@ async function chamarBackend(action, dados) {
   return data;
 }
 
+// ═══════════════════════════════════════════════════════
+// COMPRA — GERA LINK DE PAGAMENTO
+// ═══════════════════════════════════════════════════════
 document.getElementById('btnComprar').onclick = async () => {
   if (isProcessing) return;
   const nome = document.getElementById('compraNome').value.trim();
@@ -957,10 +925,10 @@ document.getElementById('btnComprar').onclick = async () => {
 };
 
 // ═══════════════════════════════════════════════════════
-// DESBLOQUEIO COM TOKEN
+// DESBLOQUEIO COM TOKEN + E-MAIL (exigido pelo backend v16.0)
 // ═══════════════════════════════════════════════════════
-async function obterChavePorToken(token) {
-  const data = await chamarBackend('getKeyWithToken', { token, plataforma: PLAT.id });
+async function obterChavePorToken(token, email) {
+  const data = await chamarBackend('getKeyWithToken', { token, plataforma: PLAT.id, email });
   const keyBytes = Uint8Array.from(atob(data.chaveMestra), c => c.charCodeAt(0));
   if (keyBytes.length !== 32) throw new Error('Chave inválida');
   return { chaveMestra: data.chaveMestra, conteudo: { nonce: data.nonce, tag: data.tag, data: data.data } };
@@ -995,21 +963,68 @@ function exibirConteudo(html) {
     document.body.appendChild(div);
   }
 }
+
+document.getElementById('btnDesbloquear').onclick = async () => {
+  if (isProcessing) return;
+  const token = document.getElementById('tokenInput').value.trim().toUpperCase();
+  const email = document.getElementById('emailDesbloqueio')?.value.trim().toLowerCase() || '';
+  const errEl = document.getElementById('erroToken');
+  errEl.style.display = 'none';
+
+  if (!token) { errEl.textContent = '❌ Digite seu token de acesso.'; errEl.style.display = 'block'; return; }
+  if (!email) { errEl.textContent = '❌ Informe o e-mail usado na compra.'; errEl.style.display = 'block'; return; }
+
+  isProcessing = true;
+  const btn = document.getElementById('btnDesbloquear');
+  const orig = btn.innerText;
+  btn.innerText = '🔐 VERIFICANDO'; btn.disabled = true;
+  const sp = document.createElement('span'); sp.className = 'loader'; btn.appendChild(sp);
+
+  try {
+    const { chaveMestra, conteudo } = await obterChavePorToken(token, email);
+    const buf = await aesDecrypt(conteudo, chaveMestra);
+    exibirConteudo(new TextDecoder().decode(buf));
+  } catch (e) {
+    errEl.textContent = '❌ ' + e.message;
+    errEl.style.display = 'block';
+    btn.innerText = orig; btn.disabled = false;
+    if (sp.parentNode) sp.remove();
+    isProcessing = false;
+  }
+};
+
+// Adicionar campo de e-mail no painel de desbloqueio (via JS, para não precisar alterar o HTML)
+(function adicionarCampoEmail() {
+  const panel = document.getElementById('panel-senha');
+  if (!panel || document.getElementById('emailDesbloqueio')) return;
+
+  const label = document.createElement('label');
+  label.className = 'lbl';
+  label.textContent = 'E-mail usado na compra';
+  label.style.marginTop = '12px';
+
+  const input = document.createElement('input');
+  input.type = 'email';
+  input.id = 'emailDesbloqueio';
+  input.placeholder = 'seu@email.com';
+  input.autocomplete = 'email';
+
+  const tokenInput = document.getElementById('tokenInput');
+  tokenInput.parentNode.insertBefore(label, tokenInput.nextSibling);
+  tokenInput.parentNode.insertBefore(input, label.nextSibling);
+})();
+
 // ═══════════════════════════════════════════════════════
 // CONSULTA DE TOKEN COM BIOMETRIA
 // ═══════════════════════════════════════════════════════
-
 function abrirModalConsulta() {
   document.getElementById('modalConsultaToken').classList.add('active');
   document.getElementById('consultaStatus').textContent = '';
   document.getElementById('consultaEmail').value = '';
 }
-
 function fecharModalConsulta() {
   document.getElementById('modalConsultaToken').classList.remove('active');
 }
-
-// Fechar ao clicar fora
 document.getElementById('modalConsultaToken').addEventListener('click', function(e) {
   if (e.target === this) fecharModalConsulta();
 });
@@ -1025,7 +1040,6 @@ async function iniciarConsulta(e) {
     return;
   }
 
-  // ── Etapa 1: Autenticação biométrica ──
   statusEl.textContent = '🔐 Autentique sua identidade...';
   statusEl.style.color = 'var(--ciano)';
 
@@ -1036,17 +1050,12 @@ async function iniciarConsulta(e) {
     return;
   }
 
-  // ── Etapa 2: Consultar tokens do e‑mail ──
   statusEl.textContent = '⏳ Buscando tokens...';
   try {
     const resposta = await fetch(URL_BACKEND, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'listarTokensPorEmail',
-        email: email
-        // sem tk
-      })
+      body: JSON.stringify({ action: 'listarTokensPorEmail', email })
     });
     const data = await resposta.json();
 
@@ -1082,16 +1091,14 @@ async function autenticarBiometria() {
   if (!window.PublicKeyCredential) {
     return await fallbackSenhaDispositivo();
   }
-
   try {
-    // Tenta autenticação com biometria local (platform authenticator)
     const credential = await navigator.credentials.get({
       publicKey: {
         challenge: crypto.getRandomValues(new Uint8Array(32)),
         rpId: window.location.hostname,
         userVerification: 'required',
         timeout: 60000,
-        allowCredentials: [] // vazio = aceita qualquer credencial do rpId
+        allowCredentials: []
       }
     });
     return !!credential;
@@ -1102,61 +1109,10 @@ async function autenticarBiometria() {
 }
 
 async function fallbackSenhaDispositivo() {
-  // Pede uma senha fixa (definida por você) como fallback
   const senha = prompt('🔐 Biometria indisponível. Digite sua senha de acesso:');
-  // Senha definida por você (pode ser trocada)
   const SENHA_FALLBACK = '369ALMA';
   return senha === SENHA_FALLBACK;
 }
-
-document.getElementById('btnDesbloquear').onclick = async () => {
-  if (isProcessing) return;
-  const token = document.getElementById('tokenInput').value.trim().toUpperCase();
-  const errEl = document.getElementById('erroToken');
-  errEl.style.display = 'none';
-  if (!token) { errEl.textContent = '❌ Digite seu token de acesso.'; errEl.style.display = 'block'; return; }
-
-  isProcessing = true;
-  const btn = document.getElementById('btnDesbloquear');
-  const orig = btn.innerText;
-  btn.innerText = '🔐 VERIFICANDO'; btn.disabled = true;
-  const sp = document.createElement('span'); sp.className = 'loader'; btn.appendChild(sp);
-
-  try {
-    const { chaveMestra, conteudo } = await obterChavePorToken(token);
-    const buf = await aesDecrypt(conteudo, chaveMestra);
-    exibirConteudo(new TextDecoder().decode(buf));
-  } catch (e) {
-    errEl.textContent = '❌ ' + e.message;
-    errEl.style.display = 'block';
-    btn.innerText = orig; btn.disabled = false;
-    if (sp.parentNode) sp.remove();
-    isProcessing = false;
-  }
-};
-
-document.getElementById('tokenInput').addEventListener('keypress', e => {
-  if (e.key === 'Enter') document.getElementById('btnDesbloquear').click();
-});
-
-// Consulta de saldo (sem desbloquear conteúdo) — usada pelo botão "Consultar Token" da navbar
-async function consultarSaldoToken() {
-  const token = document.getElementById('tokenInput').value.trim().toUpperCase();
-  const infoEl = document.getElementById('infoSaldo');
-  if (!token) return;
-  try {
-    const data = await chamarBackend('consultarSaldo', { token });
-    const restanteMin = Math.floor(data.restanteMs / 60000);
-    infoEl.innerHTML = data.expirado
-      ? '⚠️ Este token está expirado.'
-      : `✅ Token válido para <strong>${PLATAFORMAS[data.plataforma]?.nome || data.plataforma}</strong> · plano ${data.plano} · expira em ~${restanteMin} min`;
-    infoEl.style.display = 'block';
-  } catch (e) {
-    infoEl.textContent = '❌ ' + e.message;
-    infoEl.style.display = 'block';
-  }
-}
-document.getElementById('tokenInput').addEventListener('blur', consultarSaldoToken);
 
 // ═══════════════════════════════════════════════════════
 // INICIALIZAÇÃO
