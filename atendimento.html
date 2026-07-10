@@ -361,18 +361,42 @@
         document.getElementById('chatSendBtn').disabled = true;
         showTyping();
         
-        // Chama o Worker (unica chamada externa)
-        const data = await callAPI('chat', { msg: pergunta, nome: '', session: sessionId }, 'GET');
+        // Envia para o Canvas (fila do servidor)
+        try {
+            await fetch(`${SERVIDOR_LOCAL}/api/canvas/enviar`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ session: sessionId, mensagem: pergunta })
+            });
+        } catch (e) {}
+        
+        // Aguarda resposta do Canvas (polling)
+        let resposta = null;
+        for (let i = 0; i < 15; i++) {
+            await new Promise(r => setTimeout(r, 1000));
+            try {
+                const resp = await fetch(`${SERVIDOR_LOCAL}/api/canvas/respostas`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session: sessionId })
+                });
+                const data = await resp.json();
+                if (data.respostas && data.respostas.length > 0) {
+                    resposta = data.respostas[data.respostas.length - 1].resposta;
+                    break;
+                }
+            } catch (e) {}
+        }
+        
+        if (!resposta) resposta = gerarRespostaLocal(pergunta);
         
         removeTyping();
-        let resposta = data.resposta || gerarRespostaLocal(pergunta);
         addMessage('ai', resposta + botoesResposta());
         
         isProcessing = false;
         document.getElementById('chatSendBtn').disabled = false;
         document.getElementById('chatInput').focus();
     }
-
     // ═══════════════ MODO ATENDENTE (VIA WORKER) ═══════════════
     async function enviarParaAtendente(mensagem) {
         isProcessing = true;
