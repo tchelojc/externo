@@ -201,551 +201,278 @@
     </div>
 
     <script>
-        // ═══════════════ CONFIGURAÇÃO ═══════════════
-        const WHATSAPP_NUMERO = "5521981533928";
-        const SERVIDOR_LOCAL = "http://localhost:8080";
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxT6e0wR0SQYKus134V7iH1i2K28DEKac7zckO2rWm2E-lFSDxNaLjkcxShzIppPAmxzA/exec";
-        
-        let isProcessing = false;
-        let sessionId = "user_" + Date.now();
-        let chatMode = "ia"; // "ia" ou "atendente"
-        let pollingInterval = null;
-        let lastAtendenteMsgTimestamp = null;
-        let unreadAtendenteMessages = 0;
+    // ═══════════════ CONFIGURACAO ═══════════════
+    const WHATSAPP = "5521981533928";
+    // Worker do Cloudflare - Unica URL usada
+    const API = "https://almafluxo.uk/proxy/r5fit";
 
-        // ═══════════════ RESPOSTAS PRONTAS (CHIPS) ═══════════════
-        const RESPOSTAS_PRONTAS = {
-            "comecar": `🎯 **Que demais! Você deu o primeiro passo!**
+    let isProcessing = false;
+    let sessionId = "user_" + Date.now();
+    let chatMode = "ia";
+    let pollingInterval = null;
+    let lastAtendenteMsgTimestamp = null;
+    let unreadAtendenteMessages = 0;
 
-Na R5 Fit, começar é muito fácil:
-1. 🆓 Agende uma **aula experimental GRÁTIS**
-2. 👋 Venha conhecer nosso espaço em Jacarepaguá
-3. 🏋️ Experimente todas as modalidades: Musculação, Magic Dance, Bike, Cross MFT
-4. 👨‍🏫 Nossos instrutores vão te avaliar e montar um plano personalizado
+    // ═══════════════ FUNCAO UNICA DE CHAMADA API ═══════════════
+    async function callAPI(action, data = {}, method = 'GET') {
+        try {
+            let url = API;
+            let options = { method, headers: { 'Content-Type': 'application/json' } };
+            
+            if (method === 'POST') {
+                options.body = JSON.stringify({ action, ...data });
+            } else {
+                url += `?action=${action}`;
+                Object.keys(data).forEach(k => url += `&${k}=${encodeURIComponent(data[k])}`);
+            }
+            
+            const resp = await fetch(url, options);
+            return await resp.json();
+        } catch (e) {
+            console.log('API offline:', e.message);
+            return { status: 'error' };
+        }
+    }
 
-Não precisa ter experiência! Aqui tem gente de todos os níveis.`,
+    // ═══════════════ RESPOSTAS PRONTAS ═══════════════
+    const RESPOSTAS_PRONTAS = {
+        "comecar": "Que demais! Na R5 Fit comecar e facil: 1. Agende aula experimental GRATIS, 2. Conheca nosso espaco em Jacarepagua, 3. Experimente Musculacao, Magic Dance, Bike, Cross MFT. Nao precisa ter experiencia!",
+        "planos": "Planos: Mensal, Trimestral, Semestral, Anual. Inclui: Acesso total, Aulas ilimitadas, Avaliacao fisica. Aula experimental GRATIS! WhatsApp: (21) 98153-3928",
+        "horarios": "Seg-Sex 6h-22h, Sab 8h-14h. Aulas: 6h, 7h, 8h, 18h, 19h, 20h. Flexivel!",
+        "aula": "Aula 100% GRATIS! Sem compromisso. Escolha o horario. Instrutor dedicado. Venha experimentar!",
+        "atendente": "Conectando ao atendente! Enquanto isso, me diga: seu nome, objetivo e horario preferido."
+    };
 
-            "planos": `💰 **Planos R5 Fit - O melhor de Jacarepaguá!**
-
-📅 **Mensal** - Ideal para começar
-📅 **Trimestral** - Desconto progressivo
-📅 **Semestral** - Melhor custo-benefício
-📅 **Anual** - Maior desconto + brindes exclusivos
-
-🎁 **Todos os planos incluem:**
-- Acesso a todas as modalidades
-- Aulas coletivas ilimitadas
-- Avaliação física
-- Cadeira de massagem
-
-💡 Aula experimental é **GRÁTIS** e sem compromisso!`,
-
-            "horarios": `🕐 **Horários Flexíveis R5 Fit:**
-
-🌅 **Manhã**: 6h às 12h - Aulas: 6h, 7h, 8h (Bike, Dance, Coletiva)
-☀️ **Meio-dia**: 12h às 14h - Treinos express de 30-45min
-🌙 **Noite**: 17h às 22h - Aulas: 18h, 19h, 20h (pico de energia!)
-📅 **Sábado**: 8h às 14h - Aulas especiais e eventos temáticos
-
-Todos os horários com instrutores disponíveis!`,
-
-            "aula": `🎯 **Aula Experimental 100% GRÁTIS!**
-
-Isso mesmo! Você pode experimentar a R5 Fit sem compromisso:
-
-✅ Totalmente gratuita
-✅ Escolha o dia e horário
-✅ Instrutor dedicado só para você
-✅ Acesso a todas as áreas
-✅ Sem fidelidade ou pressão para comprar
-
-🏋️ Venha como está. Se gostar, ficamos felizes. Se não, tudo bem também!`,
-
-            "atendente": `👋 **Você será conectado ao nosso atendente!**
-
-Um membro da equipe R5 Fit irá te atender em instantes.
-
-Enquanto isso, me conte:
-- Qual seu nome?
-- Qual seu objetivo? (emagrecer, ganhar massa, saúde...)
-- Qual horário prefere treinar?
-
-Assim o atendente já chega com tudo pronto pra você! 🚀`
-        };
-
-        // ═══════════════ INICIALIZAÇÃO ═══════════════
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('searchInput').focus();
-            document.getElementById('wppLinkBottom').href = `https://wa.me/${WHATSAPP_NUMERO}?text=Olá!%20Vim%20pela%20Central%20R5%20Fit`;
-            document.getElementById('chatOverlay').addEventListener('click', function(e) { 
-                if (e.target === this) fecharChat(); 
-            });
-
-            // ✅ Para polling ao sair da página
-            window.addEventListener('beforeunload', () => {
-                stopPolling();
-            });
-
-            // ✅ Retoma polling quando a aba volta a ficar visível
-            document.addEventListener('visibilitychange', () => {
-                if (document.hidden) {
-                    stopPolling();
-                } else if (chatMode === 'atendente' && document.getElementById('chatOverlay').classList.contains('active')) {
-                    startPolling();
-                }
-            });
+    // ═══════════════ INICIALIZACAO ═══════════════
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('searchInput').focus();
+        document.getElementById('wppLinkBottom').href = `https://wa.me/${WHATSAPP}`;
+        document.getElementById('chatOverlay').addEventListener('click', function(e) { 
+            if (e.target === this) fecharChat(); 
         });
+        window.addEventListener('beforeunload', stopPolling);
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) stopPolling();
+            else if (chatMode === 'atendente' && document.getElementById('chatOverlay').classList.contains('active')) startPolling();
+        });
+    });
 
-        // ═══════════════ MODO DO CHAT ═══════════════
-        function switchChatMode(mode) {
-            chatMode = mode;
-            unreadAtendenteMessages = 0;
-            document.getElementById('newMsgNotification').classList.remove('show');
-            
-            const chatWindow = document.getElementById('chatWindow');
-            const chatHeader = document.getElementById('chatHeader');
-            const chatAvatar = document.getElementById('chatAvatar');
-            const chatTitle = document.getElementById('chatTitle');
-            const chatSubtitle = document.getElementById('chatSubtitle');
-            const chatInput = document.getElementById('chatInput');
-            const chatSendBtn = document.getElementById('chatSendBtn');
-            const modeTabIA = document.getElementById('modeTabIA');
-            const modeTabAtendente = document.getElementById('modeTabAtendente');
-            
-            if (mode === 'ia') {
-                chatWindow.classList.remove('atendente-mode');
-                chatHeader.classList.remove('atendente-header');
-                chatAvatar.classList.remove('atendente-avatar');
-                chatAvatar.textContent = '🤖';
-                chatTitle.textContent = 'R5 Fit · Assistente IA';
-                chatSubtitle.textContent = 'IA Local · Respostas humanizadas';
-                chatInput.classList.remove('atendente-input');
-                chatInput.placeholder = 'Digite sua mensagem...';
-                chatSendBtn.classList.remove('atendente-send');
-                modeTabIA.classList.add('active-ia');
-                modeTabAtendente.classList.remove('active-atendente');
-                document.getElementById('switchToAtendenteLink').style.display = 'inline';
-                
-                // Para polling do atendente
-                stopPolling();
-                
-            } else if (mode === 'atendente') {
-                chatWindow.classList.add('atendente-mode');
-                chatHeader.classList.add('atendente-header');
-                chatAvatar.classList.add('atendente-avatar');
-                chatAvatar.textContent = '👋';
-                chatTitle.textContent = 'R5 Fit · Atendente Humano';
-                chatSubtitle.textContent = 'Equipe R5 · Jacarepaguá/RJ';
-                chatInput.classList.add('atendente-input');
-                chatInput.placeholder = 'Escreva para o atendente...';
-                chatSendBtn.classList.add('atendente-send');
-                modeTabIA.classList.remove('active-ia');
-                modeTabAtendente.classList.add('active-atendente');
-                document.getElementById('switchToAtendenteLink').style.display = 'none';
-                
-                // Inicia polling para respostas do atendente
-                startPolling();
-                
-                // Carrega histórico da conversa com atendente
-                carregarHistoricoAtendente();
-            }
-        }
-
-        // ═══════════════ RESPOSTAS PRONTAS ═══════════════
-        function respostaPronta(tipo) {
-            const resposta = RESPOSTAS_PRONTAS[tipo];
-            if (!resposta) return;
-            
-            mostrarToast("✅ Resposta carregada!");
-            
-            // Se for "atendente", muda para modo atendente
-            if (tipo === 'atendente') {
-                switchChatMode('atendente');
-            } else {
-                switchChatMode('ia');
-            }
-            
-            // Abre o chat
-            document.getElementById('chatOverlay').classList.add('active');
-            document.getElementById('homeContainer').classList.add('chat-open');
-            document.body.style.overflow = 'hidden';
-            
-            document.getElementById('chatMessages').innerHTML = '';
-            
-            if (tipo === 'atendente') {
-                // No modo atendente, mostra mensagem de boas-vindas
-                addMessage('atendente-msg', resposta);
-                
-                // Envia primeira mensagem para o atendente
-                enviarParaAtendente(resposta.replace(/\*\*/g, '').replace(/\n\n/g, ' ').substring(0, 100));
-                
-            } else {
-                // No modo IA, mostra resposta e botões
-                addMessage('ai', resposta + gerarBotoesPosResposta(tipo));
-                salvarConversaIA(tipo, resposta);
-            }
-        }
-
-        function gerarBotoesPosResposta(tipo) {
-            let botoes = `\n\n<div style="text-align:center;margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">`;
-            botoes += `<a href="https://wa.me/${WHATSAPP_NUMERO}?text=Olá!%20Vim%20pela%20Central%20R5%20Fit" target="_blank" class="wpp-btn-inline">💬 WhatsApp</a>`;
-            botoes += `<button class="switch-to-atendente-btn" onclick="switchChatMode('atendente')">👋 Falar com Atendente</button>`;
-            botoes += `</div>`;
-            return botoes;
-        }
-
-        // ═══════════════ CHAT ═══════════════
-        function iniciarJornada() {
-            const input = document.getElementById('searchInput');
-            const query = input.value.trim();
-            if (!query) { input.placeholder = '✍️ Digite sua dúvida...'; return; }
-            
-            switchChatMode('ia');
-            
-            document.getElementById('chatOverlay').classList.add('active');
-            document.getElementById('homeContainer').classList.add('chat-open');
-            document.body.style.overflow = 'hidden';
-            document.getElementById('chatMessages').innerHTML = '';
-            
-            addMessage('ai', `👋 Olá! Vi que você perguntou:\n*"${query}"*\n\nDeixa eu te ajudar...`);
-            setTimeout(() => processarPerguntaIA(query), 800);
-            input.value = '';
-        }
-
-        function fecharChat() {
-            document.getElementById('chatOverlay').classList.remove('active');
-            document.getElementById('homeContainer').classList.remove('chat-open');
-            document.body.style.overflow = '';
-            document.getElementById('searchInput').focus();
+    // ═══════════════ MODO CHAT ═══════════════
+    function switchChatMode(mode) {
+        chatMode = mode;
+        unreadAtendenteMessages = 0;
+        document.getElementById('newMsgNotification').classList.remove('show');
+        
+        const cw = document.getElementById('chatWindow');
+        const ch = document.getElementById('chatHeader');
+        const ca = document.getElementById('chatAvatar');
+        const ci = document.getElementById('chatInput');
+        const cb = document.getElementById('chatSendBtn');
+        
+        if (mode === 'ia') {
+            cw.classList.remove('atendente-mode'); ch.classList.remove('atendente-header');
+            ca.classList.remove('atendente-avatar'); ca.textContent = 'IA';
+            document.getElementById('chatTitle').textContent = 'R5 Fit - Assistente IA';
+            document.getElementById('chatSubtitle').textContent = 'Respostas inteligentes';
+            ci.classList.remove('atendente-input'); ci.placeholder = 'Digite sua mensagem...';
+            cb.classList.remove('atendente-send');
+            document.getElementById('modeTabIA').classList.add('active-ia');
+            document.getElementById('modeTabAtendente').classList.remove('active-atendente');
+            document.getElementById('switchToAtendenteLink').style.display = 'inline';
             stopPolling();
+        } else {
+            cw.classList.add('atendente-mode'); ch.classList.add('atendente-header');
+            ca.classList.add('atendente-avatar'); ca.textContent = 'EQ';
+            document.getElementById('chatTitle').textContent = 'R5 Fit - Atendente';
+            document.getElementById('chatSubtitle').textContent = 'Equipe R5 - Jacarepagua/RJ';
+            ci.classList.add('atendente-input'); ci.placeholder = 'Escreva para o atendente...';
+            cb.classList.add('atendente-send');
+            document.getElementById('modeTabIA').classList.remove('active-ia');
+            document.getElementById('modeTabAtendente').classList.add('active-atendente');
+            document.getElementById('switchToAtendenteLink').style.display = 'none';
+            startPolling();
+            carregarHistoricoAtendente();
         }
+    }
 
-        async function enviarMensagem() {
-            if (isProcessing) return;
-            const input = document.getElementById('chatInput');
-            const query = input.value.trim();
-            if (!query) return;
-            
-            addMessage('user', query);
-            input.value = '';
-            
-            if (chatMode === 'ia') {
-                await processarPerguntaIA(query);
+    // ═══════════════ RESPOSTAS PRONTAS ═══════════════
+    function respostaPronta(tipo) {
+        const resposta = RESPOSTAS_PRONTAS[tipo];
+        if (!resposta) return;
+        mostrarToast("Resposta carregada!");
+        switchChatMode(tipo === 'atendente' ? 'atendente' : 'ia');
+        abrirChat();
+        document.getElementById('chatMessages').innerHTML = '';
+        if (tipo === 'atendente') {
+            addMessage('atendente-msg', resposta);
+            enviarParaAtendente(resposta.substring(0, 100));
+        } else {
+            addMessage('ai', resposta + botoesResposta());
+        }
+    }
+
+    function botoesResposta() {
+        return `<div style="text-align:center;margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
+            <a href="https://wa.me/${WHATSAPP}" target="_blank" class="wpp-btn-inline">WhatsApp</a>
+            <button class="switch-to-atendente-btn" onclick="switchChatMode('atendente')">Falar com Atendente</button></div>`;
+    }
+
+    function abrirChat() {
+        document.getElementById('chatOverlay').classList.add('active');
+        document.getElementById('homeContainer').classList.add('chat-open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    // ═══════════════ CHAT ═══════════════
+    function iniciarJornada() {
+        const input = document.getElementById('searchInput');
+        const query = input.value.trim();
+        if (!query) { input.placeholder = 'Digite sua duvida...'; return; }
+        switchChatMode('ia');
+        abrirChat();
+        document.getElementById('chatMessages').innerHTML = '';
+        addMessage('ai', `Vi que voce perguntou: "${query}". Deixa eu te ajudar...`);
+        setTimeout(() => processarIA(query), 800);
+        input.value = '';
+    }
+
+    function fecharChat() {
+        document.getElementById('chatOverlay').classList.remove('active');
+        document.getElementById('homeContainer').classList.remove('chat-open');
+        document.body.style.overflow = '';
+        document.getElementById('searchInput').focus();
+        stopPolling();
+    }
+
+    async function enviarMensagem() {
+        if (isProcessing) return;
+        const input = document.getElementById('chatInput');
+        const query = input.value.trim();
+        if (!query) return;
+        addMessage('user', query);
+        input.value = '';
+        if (chatMode === 'ia') await processarIA(query);
+        else await enviarParaAtendente(query);
+    }
+
+    // ═══════════════ MODO IA (VIA WORKER) ═══════════════
+    async function processarIA(pergunta) {
+        isProcessing = true;
+        document.getElementById('chatSendBtn').disabled = true;
+        showTyping();
+        
+        // Chama o Worker (unica chamada externa)
+        const data = await callAPI('chat', { msg: pergunta, nome: '', session: sessionId }, 'GET');
+        
+        removeTyping();
+        let resposta = data.resposta || gerarRespostaLocal(pergunta);
+        addMessage('ai', resposta + botoesResposta());
+        
+        isProcessing = false;
+        document.getElementById('chatSendBtn').disabled = false;
+        document.getElementById('chatInput').focus();
+    }
+
+    // ═══════════════ MODO ATENDENTE (VIA WORKER) ═══════════════
+    async function enviarParaAtendente(mensagem) {
+        isProcessing = true;
+        document.getElementById('chatSendBtn').disabled = true;
+        
+        const data = await callAPI('saveChatAtendente', {
+            leadId: sessionId, nomeLead: 'Visitante', de: 'lead',
+            texto: mensagem, mensagem: mensagem
+        }, 'POST');
+        
+        if (data.result && data.result.saved) {
+            addMessage('atendente-msg', 'Mensagem enviada! Um atendente respondera em breve. Horario: Seg-Sex 6h-22h, Sab 8h-14h');
+        } else {
+            addMessage('atendente-msg', 'Erro ao enviar. Tente o WhatsApp: (21) 98153-3928');
+        }
+        
+        isProcessing = false;
+        document.getElementById('chatSendBtn').disabled = false;
+        document.getElementById('chatInput').focus();
+    }
+
+    async function carregarHistoricoAtendente() {
+        const data = await callAPI('getChatAtendente', { leadId: sessionId }, 'GET');
+        document.getElementById('chatMessages').innerHTML = '';
+        
+        if (data.conversas && data.conversas[sessionId]) {
+            const msgs = data.conversas[sessionId].mensagens || [];
+            if (msgs.length === 0) {
+                addMessage('atendente-msg', 'Ola! Equipe R5 Fit aqui. Como posso ajudar?');
             } else {
-                await enviarParaAtendente(query);
+                msgs.forEach(m => addMessage(m.de === 'atendente' ? 'atendente-msg' : 'user', m.texto));
             }
+        } else {
+            addMessage('atendente-msg', 'Ola! Equipe R5 Fit aqui. Como posso ajudar?');
         }
+    }
 
-        // ═══════════════ MODO IA ═══════════════
-        async function processarPerguntaIA(pergunta) {
-            isProcessing = true;
-            document.getElementById('chatSendBtn').disabled = true;
-            showTyping();
-            
-            let resposta = null;
-            
-            // 1. Servidor local
-            try {
-                const resp = await fetch(`${SERVIDOR_LOCAL}/api/chat`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ session: sessionId, mensagem: pergunta, nome: "" })
-                });
-                const data = await resp.json();
-                if (data.status === 'success' && data.resposta) {
-                    resposta = data.resposta;
-                }
-            } catch (e) {
-                console.log('Servidor local offline, tentando Apps Script...');
-            }
-            
-            // 2. Apps Script
-            if (!resposta) {
-                try {
-                    const resp = await fetch(`${APPS_SCRIPT_URL}?action=chat&msg=${encodeURIComponent(pergunta)}&nome=`);
-                    const data = await resp.json();
-                    if (data.status === 'success' && data.resposta) {
-                        resposta = data.resposta;
-                    }
-                } catch (e) {
-                    console.log('Apps Script offline...');
-                }
-            }
-            
-            // 3. Fallback local
-            if (!resposta) {
-                resposta = gerarRespostaLocal(pergunta);
-            }
-            
-            removeTyping();
-            
-            // Adiciona botões após a resposta
-            resposta += gerarBotoesPosResposta('chat');
-            
-            addMessage('ai', resposta);
-            salvarConversaIA('chat', resposta);
-            
-            isProcessing = false;
-            document.getElementById('chatSendBtn').disabled = false;
-            document.getElementById('chatInput').focus();
-        }
+    // ═══════════════ POLLING ═══════════════
+    function startPolling() { stopPolling(); pollingInterval = setInterval(pollAtendenteMessages, 5000); }
+    function stopPolling() { if (pollingInterval) { clearInterval(pollingInterval); pollingInterval = null; } }
 
-        async function salvarConversaIA(tipo, resposta) {
-            try {
-                await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        action: 'salvarMensagemIA', 
-                        tipo: tipo, 
-                        mensagem: resposta, 
-                        session: sessionId, 
-                        timestamp: new Date().toISOString() 
-                    })
-                });
-            } catch (e) {}
-        }
-
-        // ═══════════════ MODO ATENDENTE ═══════════════
-        async function enviarParaAtendente(mensagem) {
-            isProcessing = true;
-            document.getElementById('chatSendBtn').disabled = true;
-            
-            let enviado = false;
-            
-            // 1. Tenta enviar via servidor local (notificação em tempo real)
-            try {
-                const resp = await fetch(`${SERVIDOR_LOCAL}/api/chat-atendente/enviar`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        leadId: sessionId,
-                        mensagem: mensagem,
-                        nome: 'Visitante Site'
-                    })
-                });
-                const data = await resp.json();
-                if (data.status === 'success' && data.saved) {
-                    enviado = true;
-                    addMessage('atendente-msg', '✅ Mensagem enviada! Um atendente irá responder em breve.\n\n⏰ Horário: Seg-Sex 6h-22h, Sáb 8h-14h\n\nEnquanto isso, você pode:\n• Voltar para a IA e tirar dúvidas\n• Chamar no WhatsApp para resposta imediata');
-                }
-            } catch (e) {
-                console.log('Servidor local offline, tentando Apps Script...');
-            }
-            
-            // 2. Fallback: Apps Script direto
-            if (!enviado) {
-                try {
-                    const resp = await fetch(APPS_SCRIPT_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            action: 'saveChatAtendente',
-                            leadId: sessionId,
-                            nomeLead: 'Visitante Site',
-                            de: 'lead',
-                            texto: mensagem,
-                            mensagem: mensagem
-                        })
-                    });
-                    const data = await resp.json();
-                    
-                    if (data.result && data.result.saved) {
-                        addMessage('atendente-msg', '✅ Mensagem enviada! Um atendente irá responder em breve.\n\n⏰ Horário: Seg-Sex 6h-22h, Sáb 8h-14h');
-                    } else {
-                        addMessage('atendente-msg', '⚠️ Mensagem salva, mas o atendente pode demorar para ver. Tente o WhatsApp para resposta imediata.');
-                    }
-                } catch (e) {
-                    console.log('Erro ao enviar para atendente:', e);
-                    addMessage('atendente-msg', '❌ Erro ao enviar mensagem. Tente novamente ou chame no WhatsApp: (21) 98153-3928');
-                }
-            }
-            
-            isProcessing = false;
-            document.getElementById('chatSendBtn').disabled = false;
-            document.getElementById('chatInput').focus();
-        }
-
-        async function carregarHistoricoAtendente() {
-            try {
-                const resp = await fetch(`${APPS_SCRIPT_URL}?action=getChatAtendente&leadId=${sessionId}`);
-                const data = await resp.json();
-                
-                if (data.conversas && data.conversas[sessionId]) {
-                    const mensagens = data.conversas[sessionId].mensagens || [];
-                    
-                    // Limpa mensagens atuais
-                    document.getElementById('chatMessages').innerHTML = '';
-                    
-                    // Adiciona mensagem de boas-vindas se não houver histórico
-                    if (mensagens.length === 0) {
-                        addMessage('atendente-msg', '👋 Olá! Você está falando com a equipe R5 Fit.\n\nMe conte como posso ajudar:\n• Dúvidas sobre planos\n• Agendar aula experimental\n• Horários e modalidades\n• Ou qualquer outra coisa!\n\nEstou aqui pra isso! 😊');
-                    } else {
-                        mensagens.forEach(m => {
-                            if (m.de === 'atendente') {
-                                addMessage('atendente-msg', m.texto);
-                            } else {
-                                addMessage('user', m.texto);
-                            }
-                        });
-                    }
-                } else {
-                    // Sem histórico ainda
-                    document.getElementById('chatMessages').innerHTML = '';
-                    addMessage('atendente-msg', '👋 Olá! Você está falando com a equipe R5 Fit.\n\nMe conte como posso ajudar:\n• Dúvidas sobre planos\n• Agendar aula experimental\n• Horários e modalidades\n• Ou qualquer outra coisa!\n\nEstou aqui pra isso! 😊');
-                }
-            } catch (e) {
-                console.log('Erro ao carregar histórico:', e);
-            }
-        }
-
-        // ═══════════════ POLLING - RESPOSTAS DO ATENDENTE ═══════════════
-        function startPolling() {
-            stopPolling();
-            pollingInterval = setInterval(pollAtendenteMessages, 4000);
-            console.log('🔍 Polling iniciado - aguardando respostas do atendente...');
-        }
-
-        function stopPolling() {
-            if (pollingInterval) {
-                clearInterval(pollingInterval);
-                pollingInterval = null;
-                console.log('⏹️ Polling parado');
-            }
-        }
-
-        async function pollAtendenteMessages() {
-            if (!document.getElementById('chatOverlay').classList.contains('active')) return;
-            
-            let respostasRecebidas = false;
-            
-            // 1. Tenta servidor local primeiro (respostas em tempo real)
-            try {
-                const resp = await fetch(`${SERVIDOR_LOCAL}/api/chat-atendente/respostas?leadId=${sessionId}`);
-                const data = await resp.json();
-                
-                if (data.respostas && data.respostas.length > 0) {
-                    respostasRecebidas = true;
-                    processarNovasRespostas(data.respostas);
-                }
-            } catch (e) {
-                // Servidor offline, tenta Apps Script
-            }
-            
-            // 2. Fallback: Apps Script
-            if (!respostasRecebidas) {
-                try {
-                    const resp = await fetch(`${APPS_SCRIPT_URL}?action=getPendingMessages&leadId=${sessionId}`);
-                    const data = await resp.json();
-                    
-                    if (data.messages && data.messages.length > 0) {
-                        const mensagensFormatadas = data.messages.map(m => ({
-                            id: m.id,
-                            de: m.de || 'atendente',
-                            texto: m.texto,
-                            timestamp: m.timestamp
-                        }));
-                        processarNovasRespostas(mensagensFormatadas);
-                        
-                        // Marca como entregue
-                        await fetch(APPS_SCRIPT_URL, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ action: 'markDelivered', leadId: sessionId })
-                        });
-                    }
-                } catch (e) {
-                    // Silencioso
-                }
-            }
-        }
-
-        function processarNovasRespostas(mensagens) {
-            const novasMensagens = mensagens.filter(m => {
-                return !lastAtendenteMsgTimestamp || new Date(m.timestamp) > new Date(lastAtendenteMsgTimestamp);
-            });
-            
-            if (novasMensagens.length > 0) {
-                lastAtendenteMsgTimestamp = novasMensagens[novasMensagens.length - 1].timestamp;
-                
+    async function pollAtendenteMessages() {
+        if (!document.getElementById('chatOverlay').classList.contains('active')) return;
+        const data = await callAPI('getPendingMessages', { leadId: sessionId }, 'GET');
+        if (data.messages && data.messages.length > 0) {
+            const novas = data.messages.filter(m => !lastAtendenteMsgTimestamp || new Date(m.timestamp) > new Date(lastAtendenteMsgTimestamp));
+            if (novas.length > 0) {
+                lastAtendenteMsgTimestamp = novas[novas.length - 1].timestamp;
                 if (chatMode === 'atendente') {
-                    novasMensagens.forEach(m => {
-                        const msgExists = document.querySelector(`[data-msg-id="${m.id}"]`);
-                        if (!msgExists) {
-                            const msgDiv = addMessage('atendente-msg', m.texto);
-                            if (msgDiv) msgDiv.setAttribute('data-msg-id', m.id);
-                        }
-                    });
+                    novas.forEach(m => addMessage('atendente-msg', m.texto));
                 } else {
-                    unreadAtendenteMessages += novasMensagens.length;
+                    unreadAtendenteMessages += novas.length;
                     document.getElementById('newMsgNotification').classList.add('show');
-                    document.getElementById('newMsgNotification').textContent = 
-                        `📩 ${unreadAtendenteMessages} nova(s) resposta(s) do atendente! Clique para ver →`;
+                    document.getElementById('newMsgNotification').textContent = `${unreadAtendenteMessages} resposta(s) do atendente! Clique para ver`;
                 }
             }
         }
+    }
 
-        // ═══════════════ RESPOSTA LOCAL (FALLBACK FINAL) ═══════════════
-        function gerarRespostaLocal(p) {
-            const perg = p.toLowerCase();
-            let r = '';
-            if (perg.includes('emagrecer')||perg.includes('peso')) r='🎯 Para emagrecimento: Bike (queima 600cal) + Magic Dance + Musculação. Aula grátis!';
-            else if (perg.includes('massa')||perg.includes('músculo')) r='💪 Para ganho de massa: Musculação completa + Cross MFT. Instrutores formados!';
-            else if (perg.includes('ansiedade')||perg.includes('estresse')) r='🧘 R5 cuida da mente: meditação, yoga, comunidade acolhedora. Vem!';
-            else if (perg.includes('dança')||perg.includes('bike')) r='🕺 Magic Dance, Bike e Coletivas são nossas especialidades! Inclusas no plano.';
-            else if (perg.includes('cross')) r='⚡ Cross MFT: alta intensidade, resultados rápidos!';
-            else if (perg.includes('horário')||perg.includes('hora')) r='🕐 Seg-Sex 6h-22h, Sáb 8h-14h. Flexível!';
-            else if (perg.includes('plano')||perg.includes('preço')) r='💰 Planos Mensal, Trimestral, Semestral, Anual. Para valores: WhatsApp!';
-            else if (perg.includes('grátis')||perg.includes('experimental')) r='🎯 Aula experimental 100% GRÁTIS! Sem compromisso. Agende!';
-            else r='👋 Sou o assistente R5 Fit! Fale sobre: objetivos, modalidades, horários, planos ou aula grátis.';
-            
-            return r;
-        }
+    // ═══════════════ RESPOSTA LOCAL (FALLBACK) ═══════════════
+    function gerarRespostaLocal(p) {
+        const q = p.toLowerCase();
+        if (q.includes('emagrecer')) return 'Para emagrecimento: Bike (600cal) + Magic Dance + Musculacao. Aula gratis! WhatsApp: (21) 98153-3928';
+        if (q.includes('massa')||q.includes('musculo')) return 'Para ganho de massa: Musculacao + Cross MFT. Instrutores formados! WhatsApp: (21) 98153-3928';
+        if (q.includes('ansiedade')||q.includes('estresse')) return 'R5 cuida da mente: meditacao, yoga, comunidade. WhatsApp: (21) 98153-3928';
+        if (q.includes('danca')||q.includes('bike')) return 'Magic Dance, Bike e Coletivas! Inclusas no plano. WhatsApp: (21) 98153-3928';
+        if (q.includes('cross')) return 'Cross MFT: alta intensidade! WhatsApp: (21) 98153-3928';
+        if (q.includes('horario')||q.includes('hora')) return 'Seg-Sex 6h-22h, Sab 8h-14h. WhatsApp: (21) 98153-3928';
+        if (q.includes('plano')||q.includes('preco')) return 'Planos Mensal, Trimestral, Semestral, Anual. WhatsApp: (21) 98153-3928';
+        if (q.includes('gratis')||q.includes('experimental')) return 'Aula 100% GRATIS! Sem compromisso. WhatsApp: (21) 98153-3928';
+        if (q.includes('deepseek')) return 'O DeepSeek esta conectado ao sistema! Use o Painel Admin para interagir com ele via Canvas.';
+        return 'Sou o assistente R5 Fit! Fale sobre objetivos, modalidades, horarios, planos ou aula gratis. WhatsApp: (21) 98153-3928';
+    }
 
-        // ═══════════════ UI ═══════════════
-        function addMessage(tipo, texto) {
-            const c = document.getElementById('chatMessages');
-            const d = document.createElement('div');
-            
-            // Mapeia tipos para classes CSS
-            let classe = tipo;
-            if (tipo === 'atendente-msg') classe = 'atendente-msg';
-            else if (tipo === 'user') classe = 'user';
-            else classe = 'ai';
-            
-            d.className = `message ${classe}`;
-            texto = texto
-                .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
-                .replace(/\[(.*?)\]\((.*?)\)/g,'<a href="$2" target="_blank" style="color:var(--verde-wpp);font-weight:700;">$1</a>')
-                .replace(/\n/g,'<br>');
-            d.innerHTML = texto;
-            c.appendChild(d);
-            c.scrollTop = c.scrollHeight;
-            return d;
-        }
+    // ═══════════════ UI ═══════════════
+    function addMessage(tipo, texto) {
+        const c = document.getElementById('chatMessages');
+        const d = document.createElement('div');
+        d.className = `message ${tipo === 'atendente-msg' ? 'atendente-msg' : (tipo === 'user' ? 'user' : 'ai')}`;
+        d.innerHTML = texto.replace(/\n/g, '<br>');
+        c.appendChild(d); c.scrollTop = c.scrollHeight;
+        return d;
+    }
 
-        function showTyping() {
-            const c = document.getElementById('chatMessages');
-            const t = document.createElement('div');
-            t.className = 'message ai'; 
-            t.id = 'typingIndicator';
-            t.innerHTML = '<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
-            c.appendChild(t); 
-            c.scrollTop = c.scrollHeight;
-        }
+    function showTyping() {
+        const c = document.getElementById('chatMessages');
+        const t = document.createElement('div');
+        t.className = 'message ai'; t.id = 'typingIndicator';
+        t.innerHTML = '<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+        c.appendChild(t); c.scrollTop = c.scrollHeight;
+    }
 
-        function removeTyping() { 
-            const t = document.getElementById('typingIndicator'); 
-            if (t) t.remove(); 
-        }
+    function removeTyping() { const t = document.getElementById('typingIndicator'); if (t) t.remove(); }
 
-        function mostrarToast(msg) {
-            const t = document.createElement('div');
-            t.className = 'toast';
-            t.textContent = msg;
-            document.body.appendChild(t);
-            setTimeout(() => t.remove(), 3000);
-        }
+    function mostrarToast(msg) {
+        const t = document.createElement('div');
+        t.className = 'toast'; t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 3000);
+    }
     </script>
 </body>
 </html>
