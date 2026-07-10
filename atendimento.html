@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="pt-BR" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google" content="notranslate">
+    <title>🏋️ R5 Fit | Central de Atendimento</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --laranja: #FF4C00; --laranja-claro: #FF6B2B; --laranja-neon: #FF8C42;
+            --preto: #0A0A0A; --preto-claro: #1A1A1A; --preto-medio: #2A2A2A;
+            --branco: #FFFFFF; --cinza: #888888; --cinza-claro: #AAAAAA;
+            --border: #333333; --verde-wpp: #25D366; --azul: #4A90D9;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', 'Space Grotesk', sans-serif; background: var(--preto); color: var(--branco); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+
+        .home-container { width: 100%; max-width: 650px; text-align: center; transition: all 0.5s ease; }
+        .home-container.chat-open { transform: translateY(-20px); }
+
+        .logo-image { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--laranja); box-shadow: 0 0 40px rgba(255,76,0,0.4); margin: 0 auto 1rem; animation: logoGlow 2s infinite; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; background: var(--preto-claro); }
+        @keyframes logoGlow { 0%,100%{box-shadow:0 0 40px rgba(255,76,0,0.4);} 50%{box-shadow:0 0 60px rgba(255,140,66,0.6);} }
+        .brand-name { font-family: 'Orbitron', monospace; font-size: 2rem; font-weight: 900; background: linear-gradient(135deg, var(--laranja-neon), var(--laranja)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.3rem; }
+        .brand-subtitle { font-size: 0.85rem; color: var(--cinza); margin-bottom: 2rem; }
+        .brand-subtitle .highlight { color: var(--laranja-claro); font-weight: 700; }
+
+        .search-box { display: flex; gap: 8px; background: var(--preto-claro); border: 2px solid var(--border); border-radius: 16px; padding: 6px; transition: all 0.3s; box-shadow: 0 8px 30px rgba(0,0,0,0.5); }
+        .search-box:focus-within { border-color: var(--laranja); box-shadow: 0 0 30px rgba(255,76,0,0.25); }
+        .search-icon { display: flex; align-items: center; padding-left: 10px; font-size: 1.3rem; }
+        .search-input { flex: 1; padding: 14px 8px; background: transparent; border: none; color: var(--branco); font-family: 'Space Grotesk', sans-serif; font-size: 1rem; outline: none; }
+        .search-input::placeholder { color: var(--cinza); font-style: italic; }
+        .search-btn { padding: 12px 24px; border-radius: 12px; border: none; background: linear-gradient(135deg, var(--laranja), #E04400); color: var(--branco); font-weight: 700; cursor: pointer; white-space: nowrap; transition: all 0.3s; box-shadow: 0 4px 15px rgba(255,76,0,0.3); }
+        .search-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255,76,0,0.5); }
+        .search-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .quick-suggestions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 1.5rem; }
+        .suggestion-chip { padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border); background: var(--preto-claro); color: var(--cinza-claro); font-size: 0.8rem; cursor: pointer; transition: all 0.3s; }
+        .suggestion-chip:hover { border-color: var(--laranja); color: var(--laranja-claro); background: rgba(255,76,0,0.08); transform: translateY(-2px); }
+        .suggestion-chip.atendente-chip { border-color: var(--azul); color: var(--azul); }
+        .suggestion-chip.atendente-chip:hover { background: rgba(74,144,217,0.15); border-color: var(--azul); color: #6AB0FF; }
+
+        /* TOAST */
+        .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--preto-claro); border: 1px solid var(--laranja); color: var(--branco); padding: 12px 24px; border-radius: 50px; font-size: 0.85rem; font-weight: 600; z-index: 2000; animation: toastIn 0.3s ease, toastOut 0.3s ease 2.5s forwards; box-shadow: 0 8px 30px rgba(255,76,0,0.3); }
+        @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+        @keyframes toastOut { from { opacity: 1; } to { opacity: 0; } }
+
+        /* CHAT */
+        .chat-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 1000; align-items: center; justify-content: center; padding: 1rem; }
+        .chat-overlay.active { display: flex; }
+        .chat-window { background: var(--preto-claro); border: 2px solid var(--laranja); border-radius: 20px; width: 100%; max-width: 550px; max-height: 80vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(255,76,0,0.3); animation: slideUp 0.4s ease; }
+        .chat-window.atendente-mode { border-color: var(--azul); box-shadow: 0 20px 60px rgba(74,144,217,0.3); }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+        .chat-header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); background: linear-gradient(135deg, rgba(255,76,0,0.1), transparent); border-radius: 20px 20px 0 0; }
+        .chat-header.atendente-header { background: linear-gradient(135deg, rgba(74,144,217,0.15), transparent); }
+        .chat-header-left { display: flex; align-items: center; gap: 0.8rem; }
+        .chat-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--laranja); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; }
+        .chat-avatar.atendente-avatar { background: var(--azul); }
+        .chat-title { font-weight: 700; font-size: 0.95rem; }
+        .chat-subtitle { font-size: 0.7rem; color: var(--cinza); }
+        .chat-close { width: 35px; height: 35px; border-radius: 50%; border: 1px solid var(--border); background: transparent; color: var(--cinza); font-size: 1.2rem; cursor: pointer; transition: all 0.2s; }
+        .chat-close:hover { background: rgba(255,68,68,0.2); border-color: #FF4444; color: #FF4444; }
+
+        /* MODE SWITCHER DENTRO DO CHAT */
+        .chat-mode-switch { display: flex; gap: 0; padding: 0 1.5rem; border-bottom: 1px solid var(--border); }
+        .mode-tab { flex: 1; padding: 0.6rem; text-align: center; font-size: 0.75rem; font-weight: 600; cursor: pointer; color: var(--cinza); border-bottom: 2px solid transparent; transition: all 0.3s; background: none; border-top: none; border-left: none; border-right: none; font-family: 'Space Grotesk', sans-serif; }
+        .mode-tab.active-ia { color: var(--laranja-neon); border-bottom-color: var(--laranja); }
+        .mode-tab.active-atendente { color: #6AB0FF; border-bottom-color: var(--azul); }
+        .mode-tab:hover { color: var(--branco); }
+
+        .chat-messages { flex: 1; overflow-y: auto; padding: 1.2rem; display: flex; flex-direction: column; gap: 0.8rem; max-height: 350px; }
+        .chat-messages::-webkit-scrollbar { width: 4px; }
+        .chat-messages::-webkit-scrollbar-thumb { background: var(--laranja); border-radius: 4px; }
+        .message { padding: 0.8rem 1rem; border-radius: 14px; font-size: 0.85rem; line-height: 1.5; max-width: 85%; word-break: break-word; }
+        .message.ai { background: var(--preto-medio); border: 1px solid var(--border); align-self: flex-start; border-bottom-left-radius: 4px; }
+        .message.atendente-msg { background: rgba(74,144,217,0.15); border: 1px solid var(--azul); align-self: flex-start; border-bottom-left-radius: 4px; }
+        .message.user { background: linear-gradient(135deg, var(--laranja), #E04400); align-self: flex-end; border-bottom-right-radius: 4px; }
+        .message .wpp-btn-inline { display: inline-block; margin-top: 0.5rem; padding: 0.5rem 1rem; background: var(--verde-wpp); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-decoration: none; transition: all 0.3s; }
+        .message .wpp-btn-inline:hover { transform: scale(1.05); box-shadow: 0 4px 15px rgba(37,211,102,0.4); }
+        .message .switch-to-atendente-btn { display: inline-block; margin-top: 0.5rem; padding: 0.5rem 1rem; background: var(--azul); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 700; cursor: pointer; border: none; transition: all 0.3s; font-family: 'Space Grotesk', sans-serif; }
+        .message .switch-to-atendente-btn:hover { transform: scale(1.05); box-shadow: 0 4px 15px rgba(74,144,217,0.4); }
+
+        .typing-indicator { display: flex; gap: 4px; padding: 0.5rem 0; }
+        .typing-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--cinza); animation: bounce 1.4s infinite; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes bounce { 0%,60%,100%{transform:translateY(0);opacity:0.4;} 30%{transform:translateY(-8px);opacity:1;} }
+
+        .chat-input-area { display: flex; gap: 8px; padding: 1rem 1.2rem; border-top: 1px solid var(--border); }
+        .chat-input { flex: 1; padding: 0.8rem 1rem; border-radius: 25px; border: 1px solid var(--border); background: var(--preto); color: var(--branco); font-family: 'Space Grotesk', sans-serif; font-size: 0.85rem; outline: none; }
+        .chat-input:focus { border-color: var(--laranja); }
+        .chat-input.atendente-input:focus { border-color: var(--azul); }
+        .chat-send-btn { width: 44px; height: 44px; border-radius: 50%; border: none; background: linear-gradient(135deg, var(--laranja), #E04400); color: white; font-size: 1.2rem; cursor: pointer; flex-shrink: 0; transition: all 0.3s; }
+        .chat-send-btn:hover { transform: scale(1.1); }
+        .chat-send-btn:disabled { opacity: 0.5; }
+        .chat-send-btn.atendente-send { background: linear-gradient(135deg, var(--azul), #357ABD); }
+
+        .always-wpp { text-align: center; padding: 0.5rem; font-size: 0.75rem; color: var(--cinza); border-top: 1px solid var(--border); }
+        .always-wpp a { color: var(--verde-wpp); text-decoration: none; font-weight: 700; }
+        .status-mini { margin-top: 1.5rem; font-size: 0.7rem; color: var(--cinza); }
+        .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #4CAF50; animation: pulse 1.5s infinite; margin-right: 6px; }
+        @keyframes pulse { 0%,100%{opacity:1;box-shadow:0 0 8px #4CAF50;} 50%{opacity:0.5;} }
+
+        /* NOTIFICAÇÃO DE NOVA MENSAGEM */
+        .new-msg-notification { background: var(--azul); color: white; text-align: center; padding: 0.5rem; font-size: 0.75rem; font-weight: 700; cursor: pointer; animation: pulse 2s infinite; display: none; }
+        .new-msg-notification.show { display: block; }
+
+        @media (max-width: 480px) {
+            .brand-name { font-size: 1.5rem; }
+            .search-box { flex-direction: column; padding: 10px; }
+            .search-btn { padding: 12px; }
+            .chat-window { max-height: 90vh; }
+        }
+    </style>
+</head>
+<body translate="no">
+
+    <div class="home-container" id="homeContainer">
+        <div class="logo-image">🏋️</div>
+        <div class="brand-name">R5 FIT</div>
+        <p class="brand-subtitle"><span class="highlight">Central de Atendimento Inteligente</span><br>Dúvidas · Treinos · Planos · Conexão</p>
+
+        <div class="search-box">
+            <div class="search-icon">💬</div>
+            <input type="text" class="search-input" id="searchInput" placeholder="Tire sua dúvida, busque um plano ou fale conosco..." onkeydown="if(event.key==='Enter')iniciarJornada()" autocomplete="off" />
+            <button class="search-btn" onclick="iniciarJornada()" id="searchBtn">🚀 INICIAR JORNADA</button>
+        </div>
+
+        <div class="quick-suggestions">
+            <div class="suggestion-chip" onclick="respostaPronta('comecar')">💪 Quero começar</div>
+            <div class="suggestion-chip" onclick="respostaPronta('planos')">💰 Planos</div>
+            <div class="suggestion-chip" onclick="respostaPronta('horarios')">🕐 Horários</div>
+            <div class="suggestion-chip" onclick="respostaPronta('aula')">🎯 Aula Grátis</div>
+            <div class="suggestion-chip atendente-chip" onclick="respostaPronta('atendente')">👋 Atendente</div>
+        </div>
+
+        <div class="status-mini"><span class="status-dot"></span> Atendimento Online 24h · Jacarepaguá/RJ</div>
+    </div>
+
+    <!-- CHAT -->
+    <div class="chat-overlay" id="chatOverlay">
+        <div class="chat-window" id="chatWindow">
+            <div class="chat-header" id="chatHeader">
+                <div class="chat-header-left">
+                    <div class="chat-avatar" id="chatAvatar">🤖</div>
+                    <div>
+                        <div class="chat-title" id="chatTitle">R5 Fit · Assistente IA</div>
+                        <div class="chat-subtitle" id="chatSubtitle">IA Local · Respostas humanizadas</div>
+                    </div>
+                </div>
+                <button class="chat-close" onclick="fecharChat()">✕</button>
+            </div>
+
+            <!-- Seletor de modo -->
+            <div class="chat-mode-switch">
+                <button class="mode-tab active-ia" id="modeTabIA" onclick="switchChatMode('ia')">🤖 Falar com IA</button>
+                <button class="mode-tab" id="modeTabAtendente" onclick="switchChatMode('atendente')">👋 Falar com Atendente</button>
+            </div>
+
+            <!-- Notificação de nova mensagem do atendente -->
+            <div class="new-msg-notification" id="newMsgNotification" onclick="switchChatMode('atendente')">
+                📩 Nova resposta do atendente! Clique para ver →
+            </div>
+
+            <div class="chat-messages" id="chatMessages"></div>
+            <div class="chat-input-area">
+                <input type="text" class="chat-input" id="chatInput" placeholder="Digite sua mensagem..." onkeydown="if(event.key==='Enter')enviarMensagem()" />
+                <button class="chat-send-btn" onclick="enviarMensagem()" id="chatSendBtn">➤</button>
+            </div>
+            <div class="always-wpp">
+                💬 <a href="#" id="wppLinkBottom" target="_blank">Chamar no WhatsApp</a>
+                <span style="margin:0 8px;color:var(--border);">|</span>
+                <a href="#" id="switchToAtendenteLink" onclick="switchChatMode('atendente');return false;" style="color:var(--azul);">Falar com Atendente 👋</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ═══════════════ CONFIGURAÇÃO ═══════════════
+        const WHATSAPP_NUMERO = "5521981533928";
+        const SERVIDOR_LOCAL = "http://localhost:8080";
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyaXw9Eslv29QCGMZDOGt8LtSSIBw4JLU2trB0yU2NR_it3VtEfGBOyight7yX903UZBg/exec";
+        
+        let isProcessing = false;
+        let sessionId = "user_" + Date.now();
+        let chatMode = "ia"; // "ia" ou "atendente"
+        let pollingInterval = null;
+        let lastAtendenteMsgTimestamp = null;
+        let unreadAtendenteMessages = 0;
+
+        // ═══════════════ RESPOSTAS PRONTAS (CHIPS) ═══════════════
+        const RESPOSTAS_PRONTAS = {
+            "comecar": `🎯 **Que demais! Você deu o primeiro passo!**
+
+Na R5 Fit, começar é muito fácil:
+1. 🆓 Agende uma **aula experimental GRÁTIS**
+2. 👋 Venha conhecer nosso espaço em Jacarepaguá
+3. 🏋️ Experimente todas as modalidades: Musculação, Magic Dance, Bike, Cross MFT
+4. 👨‍🏫 Nossos instrutores vão te avaliar e montar um plano personalizado
+
+Não precisa ter experiência! Aqui tem gente de todos os níveis.`,
+
+            "planos": `💰 **Planos R5 Fit - O melhor de Jacarepaguá!**
+
+📅 **Mensal** - Ideal para começar
+📅 **Trimestral** - Desconto progressivo
+📅 **Semestral** - Melhor custo-benefício
+📅 **Anual** - Maior desconto + brindes exclusivos
+
+🎁 **Todos os planos incluem:**
+- Acesso a todas as modalidades
+- Aulas coletivas ilimitadas
+- Avaliação física
+- Cadeira de massagem
+
+💡 Aula experimental é **GRÁTIS** e sem compromisso!`,
+
+            "horarios": `🕐 **Horários Flexíveis R5 Fit:**
+
+🌅 **Manhã**: 6h às 12h - Aulas: 6h, 7h, 8h (Bike, Dance, Coletiva)
+☀️ **Meio-dia**: 12h às 14h - Treinos express de 30-45min
+🌙 **Noite**: 17h às 22h - Aulas: 18h, 19h, 20h (pico de energia!)
+📅 **Sábado**: 8h às 14h - Aulas especiais e eventos temáticos
+
+Todos os horários com instrutores disponíveis!`,
+
+            "aula": `🎯 **Aula Experimental 100% GRÁTIS!**
+
+Isso mesmo! Você pode experimentar a R5 Fit sem compromisso:
+
+✅ Totalmente gratuita
+✅ Escolha o dia e horário
+✅ Instrutor dedicado só para você
+✅ Acesso a todas as áreas
+✅ Sem fidelidade ou pressão para comprar
+
+🏋️ Venha como está. Se gostar, ficamos felizes. Se não, tudo bem também!`,
+
+            "atendente": `👋 **Você será conectado ao nosso atendente!**
+
+Um membro da equipe R5 Fit irá te atender em instantes.
+
+Enquanto isso, me conte:
+- Qual seu nome?
+- Qual seu objetivo? (emagrecer, ganhar massa, saúde...)
+- Qual horário prefere treinar?
+
+Assim o atendente já chega com tudo pronto pra você! 🚀`
+        };
+
+        // ═══════════════ INICIALIZAÇÃO ═══════════════
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('searchInput').focus();
+            document.getElementById('wppLinkBottom').href = `https://wa.me/${WHATSAPP_NUMERO}?text=Olá!%20Vim%20pela%20Central%20R5%20Fit`;
+            document.getElementById('chatOverlay').addEventListener('click', function(e) { 
+                if (e.target === this) fecharChat(); 
+            });
+
+            // ✅ Para polling ao sair da página
+            window.addEventListener('beforeunload', () => {
+                stopPolling();
+            });
+
+            // ✅ Retoma polling quando a aba volta a ficar visível
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    stopPolling();
+                } else if (chatMode === 'atendente' && document.getElementById('chatOverlay').classList.contains('active')) {
+                    startPolling();
+                }
+            });
+        });
+
+        // ═══════════════ MODO DO CHAT ═══════════════
+        function switchChatMode(mode) {
+            chatMode = mode;
+            unreadAtendenteMessages = 0;
+            document.getElementById('newMsgNotification').classList.remove('show');
+            
+            const chatWindow = document.getElementById('chatWindow');
+            const chatHeader = document.getElementById('chatHeader');
+            const chatAvatar = document.getElementById('chatAvatar');
+            const chatTitle = document.getElementById('chatTitle');
+            const chatSubtitle = document.getElementById('chatSubtitle');
+            const chatInput = document.getElementById('chatInput');
+            const chatSendBtn = document.getElementById('chatSendBtn');
+            const modeTabIA = document.getElementById('modeTabIA');
+            const modeTabAtendente = document.getElementById('modeTabAtendente');
+            
+            if (mode === 'ia') {
+                chatWindow.classList.remove('atendente-mode');
+                chatHeader.classList.remove('atendente-header');
+                chatAvatar.classList.remove('atendente-avatar');
+                chatAvatar.textContent = '🤖';
+                chatTitle.textContent = 'R5 Fit · Assistente IA';
+                chatSubtitle.textContent = 'IA Local · Respostas humanizadas';
+                chatInput.classList.remove('atendente-input');
+                chatInput.placeholder = 'Digite sua mensagem...';
+                chatSendBtn.classList.remove('atendente-send');
+                modeTabIA.classList.add('active-ia');
+                modeTabAtendente.classList.remove('active-atendente');
+                document.getElementById('switchToAtendenteLink').style.display = 'inline';
+                
+                // Para polling do atendente
+                stopPolling();
+                
+            } else if (mode === 'atendente') {
+                chatWindow.classList.add('atendente-mode');
+                chatHeader.classList.add('atendente-header');
+                chatAvatar.classList.add('atendente-avatar');
+                chatAvatar.textContent = '👋';
+                chatTitle.textContent = 'R5 Fit · Atendente Humano';
+                chatSubtitle.textContent = 'Equipe R5 · Jacarepaguá/RJ';
+                chatInput.classList.add('atendente-input');
+                chatInput.placeholder = 'Escreva para o atendente...';
+                chatSendBtn.classList.add('atendente-send');
+                modeTabIA.classList.remove('active-ia');
+                modeTabAtendente.classList.add('active-atendente');
+                document.getElementById('switchToAtendenteLink').style.display = 'none';
+                
+                // Inicia polling para respostas do atendente
+                startPolling();
+                
+                // Carrega histórico da conversa com atendente
+                carregarHistoricoAtendente();
+            }
+        }
+
+        // ═══════════════ RESPOSTAS PRONTAS ═══════════════
+        function respostaPronta(tipo) {
+            const resposta = RESPOSTAS_PRONTAS[tipo];
+            if (!resposta) return;
+            
+            mostrarToast("✅ Resposta carregada!");
+            
+            // Se for "atendente", muda para modo atendente
+            if (tipo === 'atendente') {
+                switchChatMode('atendente');
+            } else {
+                switchChatMode('ia');
+            }
+            
+            // Abre o chat
+            document.getElementById('chatOverlay').classList.add('active');
+            document.getElementById('homeContainer').classList.add('chat-open');
+            document.body.style.overflow = 'hidden';
+            
+            document.getElementById('chatMessages').innerHTML = '';
+            
+            if (tipo === 'atendente') {
+                // No modo atendente, mostra mensagem de boas-vindas
+                addMessage('atendente-msg', resposta);
+                
+                // Envia primeira mensagem para o atendente
+                enviarParaAtendente(resposta.replace(/\*\*/g, '').replace(/\n\n/g, ' ').substring(0, 100));
+                
+            } else {
+                // No modo IA, mostra resposta e botões
+                addMessage('ai', resposta + gerarBotoesPosResposta(tipo));
+                salvarConversaIA(tipo, resposta);
+            }
+        }
+
+        function gerarBotoesPosResposta(tipo) {
+            let botoes = `\n\n<div style="text-align:center;margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">`;
+            botoes += `<a href="https://wa.me/${WHATSAPP_NUMERO}?text=Olá!%20Vim%20pela%20Central%20R5%20Fit" target="_blank" class="wpp-btn-inline">💬 WhatsApp</a>`;
+            botoes += `<button class="switch-to-atendente-btn" onclick="switchChatMode('atendente')">👋 Falar com Atendente</button>`;
+            botoes += `</div>`;
+            return botoes;
+        }
+
+        // ═══════════════ CHAT ═══════════════
+        function iniciarJornada() {
+            const input = document.getElementById('searchInput');
+            const query = input.value.trim();
+            if (!query) { input.placeholder = '✍️ Digite sua dúvida...'; return; }
+            
+            switchChatMode('ia');
+            
+            document.getElementById('chatOverlay').classList.add('active');
+            document.getElementById('homeContainer').classList.add('chat-open');
+            document.body.style.overflow = 'hidden';
+            document.getElementById('chatMessages').innerHTML = '';
+            
+            addMessage('ai', `👋 Olá! Vi que você perguntou:\n*"${query}"*\n\nDeixa eu te ajudar...`);
+            setTimeout(() => processarPerguntaIA(query), 800);
+            input.value = '';
+        }
+
+        function fecharChat() {
+            document.getElementById('chatOverlay').classList.remove('active');
+            document.getElementById('homeContainer').classList.remove('chat-open');
+            document.body.style.overflow = '';
+            document.getElementById('searchInput').focus();
+            stopPolling();
+        }
+
+        async function enviarMensagem() {
+            if (isProcessing) return;
+            const input = document.getElementById('chatInput');
+            const query = input.value.trim();
+            if (!query) return;
+            
+            addMessage('user', query);
+            input.value = '';
+            
+            if (chatMode === 'ia') {
+                await processarPerguntaIA(query);
+            } else {
+                await enviarParaAtendente(query);
+            }
+        }
+
+        // ═══════════════ MODO IA ═══════════════
+        async function processarPerguntaIA(pergunta) {
+            isProcessing = true;
+            document.getElementById('chatSendBtn').disabled = true;
+            showTyping();
+            
+            let resposta = null;
+            
+            // 1. Servidor local
+            try {
+                const resp = await fetch(`${SERVIDOR_LOCAL}/api/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session: sessionId, mensagem: pergunta, nome: "" })
+                });
+                const data = await resp.json();
+                if (data.status === 'success' && data.resposta) {
+                    resposta = data.resposta;
+                }
+            } catch (e) {
+                console.log('Servidor local offline, tentando Apps Script...');
+            }
+            
+            // 2. Apps Script
+            if (!resposta) {
+                try {
+                    const resp = await fetch(`${APPS_SCRIPT_URL}?action=chat&msg=${encodeURIComponent(pergunta)}&nome=`);
+                    const data = await resp.json();
+                    if (data.status === 'success' && data.resposta) {
+                        resposta = data.resposta;
+                    }
+                } catch (e) {
+                    console.log('Apps Script offline...');
+                }
+            }
+            
+            // 3. Fallback local
+            if (!resposta) {
+                resposta = gerarRespostaLocal(pergunta);
+            }
+            
+            removeTyping();
+            
+            // Adiciona botões após a resposta
+            resposta += gerarBotoesPosResposta('chat');
+            
+            addMessage('ai', resposta);
+            salvarConversaIA('chat', resposta);
+            
+            isProcessing = false;
+            document.getElementById('chatSendBtn').disabled = false;
+            document.getElementById('chatInput').focus();
+        }
+
+        async function salvarConversaIA(tipo, resposta) {
+            try {
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        action: 'salvarMensagemIA', 
+                        tipo: tipo, 
+                        mensagem: resposta, 
+                        session: sessionId, 
+                        timestamp: new Date().toISOString() 
+                    })
+                });
+            } catch (e) {}
+        }
+
+        // ═══════════════ MODO ATENDENTE ═══════════════
+        async function enviarParaAtendente(mensagem) {
+            isProcessing = true;
+            document.getElementById('chatSendBtn').disabled = true;
+            
+            let enviado = false;
+            
+            // 1. Tenta enviar via servidor local (notificação em tempo real)
+            try {
+                const resp = await fetch(`${SERVIDOR_LOCAL}/api/chat-atendente/enviar`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        leadId: sessionId,
+                        mensagem: mensagem,
+                        nome: 'Visitante Site'
+                    })
+                });
+                const data = await resp.json();
+                if (data.status === 'success' && data.saved) {
+                    enviado = true;
+                    addMessage('atendente-msg', '✅ Mensagem enviada! Um atendente irá responder em breve.\n\n⏰ Horário: Seg-Sex 6h-22h, Sáb 8h-14h\n\nEnquanto isso, você pode:\n• Voltar para a IA e tirar dúvidas\n• Chamar no WhatsApp para resposta imediata');
+                }
+            } catch (e) {
+                console.log('Servidor local offline, tentando Apps Script...');
+            }
+            
+            // 2. Fallback: Apps Script direto
+            if (!enviado) {
+                try {
+                    const resp = await fetch(APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'saveChatAtendente',
+                            leadId: sessionId,
+                            nomeLead: 'Visitante Site',
+                            de: 'lead',
+                            texto: mensagem,
+                            mensagem: mensagem
+                        })
+                    });
+                    const data = await resp.json();
+                    
+                    if (data.result && data.result.saved) {
+                        addMessage('atendente-msg', '✅ Mensagem enviada! Um atendente irá responder em breve.\n\n⏰ Horário: Seg-Sex 6h-22h, Sáb 8h-14h');
+                    } else {
+                        addMessage('atendente-msg', '⚠️ Mensagem salva, mas o atendente pode demorar para ver. Tente o WhatsApp para resposta imediata.');
+                    }
+                } catch (e) {
+                    console.log('Erro ao enviar para atendente:', e);
+                    addMessage('atendente-msg', '❌ Erro ao enviar mensagem. Tente novamente ou chame no WhatsApp: (21) 98153-3928');
+                }
+            }
+            
+            isProcessing = false;
+            document.getElementById('chatSendBtn').disabled = false;
+            document.getElementById('chatInput').focus();
+        }
+
+        async function carregarHistoricoAtendente() {
+            try {
+                const resp = await fetch(`${APPS_SCRIPT_URL}?action=getChatAtendente&leadId=${sessionId}`);
+                const data = await resp.json();
+                
+                if (data.conversas && data.conversas[sessionId]) {
+                    const mensagens = data.conversas[sessionId].mensagens || [];
+                    
+                    // Limpa mensagens atuais
+                    document.getElementById('chatMessages').innerHTML = '';
+                    
+                    // Adiciona mensagem de boas-vindas se não houver histórico
+                    if (mensagens.length === 0) {
+                        addMessage('atendente-msg', '👋 Olá! Você está falando com a equipe R5 Fit.\n\nMe conte como posso ajudar:\n• Dúvidas sobre planos\n• Agendar aula experimental\n• Horários e modalidades\n• Ou qualquer outra coisa!\n\nEstou aqui pra isso! 😊');
+                    } else {
+                        mensagens.forEach(m => {
+                            if (m.de === 'atendente') {
+                                addMessage('atendente-msg', m.texto);
+                            } else {
+                                addMessage('user', m.texto);
+                            }
+                        });
+                    }
+                } else {
+                    // Sem histórico ainda
+                    document.getElementById('chatMessages').innerHTML = '';
+                    addMessage('atendente-msg', '👋 Olá! Você está falando com a equipe R5 Fit.\n\nMe conte como posso ajudar:\n• Dúvidas sobre planos\n• Agendar aula experimental\n• Horários e modalidades\n• Ou qualquer outra coisa!\n\nEstou aqui pra isso! 😊');
+                }
+            } catch (e) {
+                console.log('Erro ao carregar histórico:', e);
+            }
+        }
+
+        // ═══════════════ POLLING - RESPOSTAS DO ATENDENTE ═══════════════
+        function startPolling() {
+            stopPolling();
+            pollingInterval = setInterval(pollAtendenteMessages, 4000);
+            console.log('🔍 Polling iniciado - aguardando respostas do atendente...');
+        }
+
+        function stopPolling() {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+                console.log('⏹️ Polling parado');
+            }
+        }
+
+        async function pollAtendenteMessages() {
+            if (!document.getElementById('chatOverlay').classList.contains('active')) return;
+            
+            let respostasRecebidas = false;
+            
+            // 1. Tenta servidor local primeiro (respostas em tempo real)
+            try {
+                const resp = await fetch(`${SERVIDOR_LOCAL}/api/chat-atendente/respostas?leadId=${sessionId}`);
+                const data = await resp.json();
+                
+                if (data.respostas && data.respostas.length > 0) {
+                    respostasRecebidas = true;
+                    processarNovasRespostas(data.respostas);
+                }
+            } catch (e) {
+                // Servidor offline, tenta Apps Script
+            }
+            
+            // 2. Fallback: Apps Script
+            if (!respostasRecebidas) {
+                try {
+                    const resp = await fetch(`${APPS_SCRIPT_URL}?action=getPendingMessages&leadId=${sessionId}`);
+                    const data = await resp.json();
+                    
+                    if (data.messages && data.messages.length > 0) {
+                        const mensagensFormatadas = data.messages.map(m => ({
+                            id: m.id,
+                            de: m.de || 'atendente',
+                            texto: m.texto,
+                            timestamp: m.timestamp
+                        }));
+                        processarNovasRespostas(mensagensFormatadas);
+                        
+                        // Marca como entregue
+                        await fetch(APPS_SCRIPT_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ action: 'markDelivered', leadId: sessionId })
+                        });
+                    }
+                } catch (e) {
+                    // Silencioso
+                }
+            }
+        }
+
+        function processarNovasRespostas(mensagens) {
+            const novasMensagens = mensagens.filter(m => {
+                return !lastAtendenteMsgTimestamp || new Date(m.timestamp) > new Date(lastAtendenteMsgTimestamp);
+            });
+            
+            if (novasMensagens.length > 0) {
+                lastAtendenteMsgTimestamp = novasMensagens[novasMensagens.length - 1].timestamp;
+                
+                if (chatMode === 'atendente') {
+                    novasMensagens.forEach(m => {
+                        const msgExists = document.querySelector(`[data-msg-id="${m.id}"]`);
+                        if (!msgExists) {
+                            const msgDiv = addMessage('atendente-msg', m.texto);
+                            if (msgDiv) msgDiv.setAttribute('data-msg-id', m.id);
+                        }
+                    });
+                } else {
+                    unreadAtendenteMessages += novasMensagens.length;
+                    document.getElementById('newMsgNotification').classList.add('show');
+                    document.getElementById('newMsgNotification').textContent = 
+                        `📩 ${unreadAtendenteMessages} nova(s) resposta(s) do atendente! Clique para ver →`;
+                }
+            }
+        }
+
+        // ═══════════════ RESPOSTA LOCAL (FALLBACK FINAL) ═══════════════
+        function gerarRespostaLocal(p) {
+            const perg = p.toLowerCase();
+            let r = '';
+            if (perg.includes('emagrecer')||perg.includes('peso')) r='🎯 Para emagrecimento: Bike (queima 600cal) + Magic Dance + Musculação. Aula grátis!';
+            else if (perg.includes('massa')||perg.includes('músculo')) r='💪 Para ganho de massa: Musculação completa + Cross MFT. Instrutores formados!';
+            else if (perg.includes('ansiedade')||perg.includes('estresse')) r='🧘 R5 cuida da mente: meditação, yoga, comunidade acolhedora. Vem!';
+            else if (perg.includes('dança')||perg.includes('bike')) r='🕺 Magic Dance, Bike e Coletivas são nossas especialidades! Inclusas no plano.';
+            else if (perg.includes('cross')) r='⚡ Cross MFT: alta intensidade, resultados rápidos!';
+            else if (perg.includes('horário')||perg.includes('hora')) r='🕐 Seg-Sex 6h-22h, Sáb 8h-14h. Flexível!';
+            else if (perg.includes('plano')||perg.includes('preço')) r='💰 Planos Mensal, Trimestral, Semestral, Anual. Para valores: WhatsApp!';
+            else if (perg.includes('grátis')||perg.includes('experimental')) r='🎯 Aula experimental 100% GRÁTIS! Sem compromisso. Agende!';
+            else r='👋 Sou o assistente R5 Fit! Fale sobre: objetivos, modalidades, horários, planos ou aula grátis.';
+            
+            return r;
+        }
+
+        // ═══════════════ UI ═══════════════
+        function addMessage(tipo, texto) {
+            const c = document.getElementById('chatMessages');
+            const d = document.createElement('div');
+            
+            // Mapeia tipos para classes CSS
+            let classe = tipo;
+            if (tipo === 'atendente-msg') classe = 'atendente-msg';
+            else if (tipo === 'user') classe = 'user';
+            else classe = 'ai';
+            
+            d.className = `message ${classe}`;
+            texto = texto
+                .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+                .replace(/\[(.*?)\]\((.*?)\)/g,'<a href="$2" target="_blank" style="color:var(--verde-wpp);font-weight:700;">$1</a>')
+                .replace(/\n/g,'<br>');
+            d.innerHTML = texto;
+            c.appendChild(d);
+            c.scrollTop = c.scrollHeight;
+            return d;
+        }
+
+        function showTyping() {
+            const c = document.getElementById('chatMessages');
+            const t = document.createElement('div');
+            t.className = 'message ai'; 
+            t.id = 'typingIndicator';
+            t.innerHTML = '<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+            c.appendChild(t); 
+            c.scrollTop = c.scrollHeight;
+        }
+
+        function removeTyping() { 
+            const t = document.getElementById('typingIndicator'); 
+            if (t) t.remove(); 
+        }
+
+        function mostrarToast(msg) {
+            const t = document.createElement('div');
+            t.className = 'toast';
+            t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        }
+    </script>
+</body>
+</html>
