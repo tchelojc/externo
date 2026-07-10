@@ -355,34 +355,37 @@
         else await enviarParaAtendente(query);
     }
 
-    // ═══════════════ MODO IA (VIA WORKER) ═══════════════
     async function processarIA(pergunta) {
         isProcessing = true;
         document.getElementById('chatSendBtn').disabled = true;
         showTyping();
         
-        // Envia para o Canvas (fila do servidor)
+        // Envia para o Canvas via servidor local
         try {
-            await fetch(`${SERVIDOR_LOCAL}/api/canvas/enviar`, {
+            await fetch(`${SERVIDOR_LOCAL}/api/canvas/mensagem`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ session: sessionId, mensagem: pergunta })
             });
-        } catch (e) {}
+        } catch (e) {
+            console.log('Servidor local offline');
+        }
         
-        // Aguarda resposta do Canvas (polling)
+        // Aguarda resposta (polling)
         let resposta = null;
-        for (let i = 0; i < 15; i++) {
+        for (let i = 0; i < 30; i++) {
             await new Promise(r => setTimeout(r, 1000));
+            
             try {
-                const resp = await fetch(`${SERVIDOR_LOCAL}/api/canvas/respostas`, {
+                const resp = await fetch(`${SERVIDOR_LOCAL}/api/canvas/verificar`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ session: sessionId })
                 });
                 const data = await resp.json();
+                
                 if (data.respostas && data.respostas.length > 0) {
-                    resposta = data.respostas[data.respostas.length - 1].resposta;
+                    resposta = data.respostas[data.respostas.length - 1].texto;
                     break;
                 }
             } catch (e) {}
