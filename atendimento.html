@@ -360,35 +360,38 @@
         document.getElementById('chatSendBtn').disabled = true;
         showTyping();
         
-        // Envia para o Canvas via servidor local
-        try {
-            await fetch(`${SERVIDOR_LOCAL}/api/canvas/mensagem`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ session: sessionId, mensagem: pergunta })
-            });
-        } catch (e) {
-            console.log('Servidor local offline');
-        }
-        
-        // Aguarda resposta (polling)
         let resposta = null;
-        for (let i = 0; i < 30; i++) {
-            await new Promise(r => setTimeout(r, 1000));
+        
+        try {
+            // Envia pergunta pela fila (via Worker -> Apps Script)
+            const envio = await callAPI('perguntarIA', {
+                session_id: sessionId,
+                mensagem: pergunta,
+                nome: 'Visitante'
+            }, 'POST');
             
-            try {
-                const resp = await fetch(`${SERVIDOR_LOCAL}/api/canvas/verificar`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ session: sessionId })
-                });
-                const data = await resp.json();
+            if (envio.status === 'success' && envio.resposta) {
+                // Resposta imediata do Apps Script (regras básicas)
+                resposta = envio.resposta;
                 
-                if (data.respostas && data.respostas.length > 0) {
-                    resposta = data.respostas[data.respostas.length - 1].texto;
-                    break;
+                // Se ficou pendente, espera o servidor local humanizar (até 30s)
+                if (envio.aguardando_local && envio.id) {
+                    for (let i = 0; i < 30; i++) {
+                        await new Promise(r => setTimeout(r, 1000));
+                        
+                        const atualizacao = await callAPI('getRespostaAtualizada', {
+                            id: envio.id
+                        }, 'GET');
+                        
+                        if (atualizacao.status === 'success' && atualizacao.pronto) {
+                            resposta = atualizacao.resposta;
+                            break;
+                        }
+                    }
                 }
-            } catch (e) {}
+            }
+        } catch (e) {
+            console.log('Erro ao processar IA:', e.message);
         }
         
         if (!resposta) resposta = gerarRespostaLocal(pergunta);
