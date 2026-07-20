@@ -387,30 +387,32 @@
 
         // 2. Aguarda a resposta com polling
         let resposta = null;
+        let respostaEncontrada = false;
+
         for (let i = 0; i < 30; i++) {
             await new Promise(r => setTimeout(r, 2000));
             
             try {
-                // 🔥 Usa GET com o action na URL (já que o Cloudflare Worker pode não passar body corretamente)
                 const pollData = await callAPI('getChatAtendente', { leadId: sessionId }, 'GET');
                 console.log(`📡 Polling ${i+1}/30:`, pollData.status, '| sessionId:', sessionId);
                 
                 if (pollData.conversas && pollData.conversas[sessionId]) {
                     const msgs = pollData.conversas[sessionId].mensagens || [];
                     console.log(`   📨 ${msgs.length} mensagens na conversa`);
-
-                    // Procura mensagens do atendente (MAIS TOLERANTE)
-                    const novasRespostas = msgs.filter(m => {
-                        // Aceita 'atendente', 'Atendente', ou qualquer msg que não seja do 'lead'
-                        const ehResposta = m.de !== 'lead';
-                        const ehNova = !lastResponseTimestamp || new Date(m.timestamp) > new Date(lastResponseTimestamp);
-                        return ehResposta && ehNova;
+                    
+                    // 🔍 DEBUG: Mostra cada mensagem
+                    msgs.forEach((m, idx) => {
+                        console.log(`   📝 Msg ${idx+1}: de="${m.de}", texto="${m.texto?.substring(0, 40)}..."`);
                     });
-
-                    if (novasRespostas.length > 0) {
-                        resposta = novasRespostas[novasRespostas.length - 1].texto;
-                        lastResponseTimestamp = novasRespostas[novasRespostas.length - 1].timestamp;
-                        console.log('✅ Resposta encontrada! De:', novasRespostas[0].de, 'Texto:', resposta.substring(0, 50));
+                    
+                    // 🔥 CORREÇÃO: Pega a ÚLTIMA mensagem que NÃO é do lead
+                    const mensagensAtendente = msgs.filter(m => m.de !== 'lead');
+                    
+                    if (mensagensAtendente.length > 0 && !respostaEncontrada) {
+                        // Pega a última resposta do atendente
+                        resposta = mensagensAtendente[mensagensAtendente.length - 1].texto;
+                        respostaEncontrada = true;
+                        console.log('✅ Resposta encontrada! Texto:', resposta?.substring(0, 50));
                         break;
                     }
                 } else {
@@ -423,7 +425,8 @@
 
         removeTyping();
 
-        if (resposta) {
+        if (resposta && resposta.trim().length > 0) {
+            console.log('🎯 Exibindo resposta:', resposta.substring(0, 50));
             if (chatMode === 'ia') {
                 addMessage('ai', resposta + botoesResposta());
             } else {
@@ -457,23 +460,33 @@
     async function pollRespostas() {
         if (!document.getElementById('chatOverlay').classList.contains('active')) return;
         try {
-            const data = await callAPI('getChatAtendente', { leadId: sessionId }, 'GET');  // ✅ CORRIGIDO
+            const data = await callAPI('getChatAtendente', { leadId: sessionId }, 'GET');
             if (data.conversas && data.conversas[sessionId]) {
                 const msgs = data.conversas[sessionId].mensagens || [];
-                const novas = msgs.filter(m => 
-                    m.de === 'atendente' && 
-                    (!lastResponseTimestamp || new Date(m.timestamp) > new Date(lastResponseTimestamp))
-                );
-                if (novas.length > 0) {
-                    lastResponseTimestamp = novas[novas.length - 1].timestamp;
-                    novas.forEach(m => {
-                        if (chatMode === 'atendente') {
-                            addMessage('atendente-msg', m.texto);
-                        } else {
-                            document.getElementById('newMsgNotification').classList.add('show');
-                            document.getElementById('newMsgNotification').textContent = '📩 Nova resposta! Clique para ver';
+                
+                // Filtra mensagens que NÃO são do lead (são respostas)
+                const mensagensAtendente = msgs.filter(m => m.de !== 'lead');
+                
+                if (mensagensAtendente.length > 0) {
+                    const ultimaResposta = mensagensAtendente[mensagensAtendente.length - 1];
+                    
+                    if (chatMode === 'atendente') {
+                        // Verifica se já foi exibida (evita duplicação)
+                        const msgElements = document.querySelectorAll('.message.atendente-msg');
+                        let jaExibida = false;
+                        msgElements.forEach(el => {
+                            if (el.textContent?.includes(ultimaResposta.texto?.substring(0, 20))) {
+                                jaExibida = true;
+                            }
+                        });
+                        if (!jaExibida) {
+                            addMessage('atendente-msg', ultimaResposta.texto);
                         }
-                    });
+                    } else {
+                        // Modo IA: mostra notificação
+                        document.getElementById('newMsgNotification').classList.add('show');
+                        document.getElementById('newMsgNotification').textContent = '📩 Nova resposta! Clique para ver';
+                    }
                 }
             }
         } catch (e) {
