@@ -211,21 +211,36 @@
     let pollingInterval = null;
     let lastResponseTimestamp = null;
 
-    // ═══════════════ CHAMADA ÚNICA À API ═══════════════
     async function callAPI(action, data = {}, method = 'GET') {
         try {
+            // 🔥 CORREÇÃO: action vai na URL E no body para garantir
             let url = `${API}?action=${action}`;
-            let options = { method, headers: { 'Content-Type': 'application/json' } };
+            let options = { 
+                method, 
+                headers: { 'Content-Type': 'application/json' } 
+            };
+            
             if (method === 'POST') {
-                options.body = JSON.stringify(data);
+                // Inclui action no body também
+                options.body = JSON.stringify({ action, ...data });
             } else {
-                Object.keys(data).forEach(k => url += `&${k}=${encodeURIComponent(data[k])}`);
+                // GET: adiciona parâmetros na URL
+                Object.keys(data).forEach(k => {
+                    if (data[k] !== undefined && data[k] !== null) {
+                        url += `&${encodeURIComponent(k)}=${encodeURIComponent(data[k])}`;
+                    }
+                });
             }
+            
+            console.log(`📡 ${method} ${action} → ${url.substring(0, 80)}...`);
             const resp = await fetch(url, options);
-            return await resp.json();
+            const json = await resp.json();
+            console.log(`📥 Resposta ${action}:`, json.status, json.message || '');
+            return json;
+            
         } catch (e) {
-            console.log('API offline:', e.message);
-            return { status: 'error' };
+            console.warn('⚠️ API offline:', e.message);
+            return { status: 'error', message: e.message };
         }
     }
 
