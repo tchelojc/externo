@@ -201,31 +201,26 @@
     </div>
 
     <script>
-    // ═══════════════ CONFIGURACAO ═══════════════
+    // ═══════════════ CONFIGURAÇÃO ═══════════════
     const WHATSAPP = "5521981533928";
-    // Worker do Cloudflare - Unica URL usada
     const API = "https://almafluxo.uk/proxy/r5fit";
 
     let isProcessing = false;
     let sessionId = "user_" + Date.now();
     let chatMode = "ia";
     let pollingInterval = null;
-    let lastAtendenteMsgTimestamp = null;
-    let unreadAtendenteMessages = 0;
+    let lastResponseTimestamp = null;
 
-    // ═══════════════ FUNCAO UNICA DE CHAMADA API ═══════════════
+    // ═══════════════ CHAMADA ÚNICA À API ═══════════════
     async function callAPI(action, data = {}, method = 'GET') {
         try {
-            // A action DEVE ir na URL para o Apps Script capturar no e.parameter.action
             let url = `${API}?action=${action}`;
             let options = { method, headers: { 'Content-Type': 'application/json' } };
-            
             if (method === 'POST') {
                 options.body = JSON.stringify(data);
             } else {
                 Object.keys(data).forEach(k => url += `&${k}=${encodeURIComponent(data[k])}`);
             }
-            
             const resp = await fetch(url, options);
             return await resp.json();
         } catch (e) {
@@ -236,31 +231,30 @@
 
     // ═══════════════ RESPOSTAS PRONTAS ═══════════════
     const RESPOSTAS_PRONTAS = {
-        "comecar": "Que demais! Na R5 Fit comecar e facil: 1. Agende aula experimental GRATIS, 2. Conheca nosso espaco em Jacarepagua, 3. Experimente Musculacao, Magic Dance, Bike, Cross MFT. Nao precisa ter experiencia!",
-        "planos": "Planos: Mensal, Trimestral, Semestral, Anual. Inclui: Acesso total, Aulas ilimitadas, Avaliacao fisica. Aula experimental GRATIS! WhatsApp: (21) 98153-3928",
-        "horarios": "Seg-Sex 6h-22h, Sab 8h-14h. Aulas: 6h, 7h, 8h, 18h, 19h, 20h. Flexivel!",
-        "aula": "Aula 100% GRATIS! Sem compromisso. Escolha o horario. Instrutor dedicado. Venha experimentar!",
-        "atendente": "Conectando ao atendente! Enquanto isso, me diga: seu nome, objetivo e horario preferido."
+        "comecar": "Que demais! Na R5 Fit começar é fácil...",
+        "planos": "Planos: Mensal, Trimestral...",
+        "horarios": "Seg-Sex 6h-22h...",
+        "aula": "Aula 100% GRÁTIS!",
+        "atendente": "Conectando ao atendente! Me diga seu nome, objetivo e horário."
     };
 
-    // ═══════════════ INICIALIZACAO ═══════════════
+    // ═══════════════ INICIALIZAÇÃO ═══════════════
     document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('searchInput').focus();
         document.getElementById('wppLinkBottom').href = `https://wa.me/${WHATSAPP}`;
-        document.getElementById('chatOverlay').addEventListener('click', function(e) { 
-            if (e.target === this) fecharChat(); 
+        document.getElementById('chatOverlay').addEventListener('click', e => {
+            if (e.target === this) fecharChat();
         });
         window.addEventListener('beforeunload', stopPolling);
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) stopPolling();
-            else if (chatMode === 'atendente' && document.getElementById('chatOverlay').classList.contains('active')) startPolling();
+            else if (document.getElementById('chatOverlay').classList.contains('active')) startPolling();
         });
     });
 
     // ═══════════════ MODO CHAT ═══════════════
     function switchChatMode(mode) {
         chatMode = mode;
-        unreadAtendenteMessages = 0;
         document.getElementById('newMsgNotification').classList.remove('show');
         
         const cw = document.getElementById('chatWindow');
@@ -271,31 +265,29 @@
         
         if (mode === 'ia') {
             cw.classList.remove('atendente-mode'); ch.classList.remove('atendente-header');
-            ca.classList.remove('atendente-avatar'); ca.textContent = 'IA';
+            ca.classList.remove('atendente-avatar'); ca.textContent = '🤖';
             document.getElementById('chatTitle').textContent = 'R5 Fit - Assistente IA';
-            document.getElementById('chatSubtitle').textContent = 'Respostas inteligentes';
+            document.getElementById('chatSubtitle').textContent = 'Respostas inteligentes (servidor)';
             ci.classList.remove('atendente-input'); ci.placeholder = 'Digite sua mensagem...';
             cb.classList.remove('atendente-send');
             document.getElementById('modeTabIA').classList.add('active-ia');
             document.getElementById('modeTabAtendente').classList.remove('active-atendente');
             document.getElementById('switchToAtendenteLink').style.display = 'inline';
-            stopPolling();
         } else {
             cw.classList.add('atendente-mode'); ch.classList.add('atendente-header');
-            ca.classList.add('atendente-avatar'); ca.textContent = 'EQ';
+            ca.classList.add('atendente-avatar'); ca.textContent = '👋';
             document.getElementById('chatTitle').textContent = 'R5 Fit - Atendente';
-            document.getElementById('chatSubtitle').textContent = 'Equipe R5 - Jacarepagua/RJ';
+            document.getElementById('chatSubtitle').textContent = 'Equipe R5 - Jacarepaguá/RJ';
             ci.classList.add('atendente-input'); ci.placeholder = 'Escreva para o atendente...';
             cb.classList.add('atendente-send');
             document.getElementById('modeTabIA').classList.remove('active-ia');
             document.getElementById('modeTabAtendente').classList.add('active-atendente');
             document.getElementById('switchToAtendenteLink').style.display = 'none';
-            startPolling();
-            carregarHistoricoAtendente();
         }
+        startPolling();
     }
 
-    // ═══════════════ RESPOSTAS PRONTAS ═══════════════
+    // ═══════════════ RESPOSTAS PRONTAS (CHIPS) ═══════════════
     function respostaPronta(tipo) {
         const resposta = RESPOSTAS_PRONTAS[tipo];
         if (!resposta) return;
@@ -305,7 +297,7 @@
         document.getElementById('chatMessages').innerHTML = '';
         if (tipo === 'atendente') {
             addMessage('atendente-msg', resposta);
-            enviarParaAtendente(resposta.substring(0, 100));
+            enviarMensagemParaServidor(resposta);  // envia via pipeline
         } else {
             addMessage('ai', resposta + botoesResposta());
         }
@@ -327,12 +319,12 @@
     function iniciarJornada() {
         const input = document.getElementById('searchInput');
         const query = input.value.trim();
-        if (!query) { input.placeholder = 'Digite sua duvida...'; return; }
+        if (!query) { input.placeholder = 'Digite sua dúvida...'; return; }
         switchChatMode('ia');
         abrirChat();
         document.getElementById('chatMessages').innerHTML = '';
-        addMessage('ai', `Vi que voce perguntou: "${query}". Deixa eu te ajudar...`);
-        setTimeout(() => processarIA(query), 800);
+        addMessage('ai', `Vi que você perguntou: "${query}". Deixa eu te ajudar...`);
+        setTimeout(() => enviarMensagemParaServidor(query), 800);
         input.value = '';
     }
 
@@ -351,48 +343,18 @@
         if (!query) return;
         addMessage('user', query);
         input.value = '';
-        if (chatMode === 'ia') await processarIA(query);
-        else await enviarParaAtendente(query);
+        // Sempre envia pela pipeline do servidor (salvar no Drive)
+        await enviarMensagemParaServidor(query);
     }
 
-    async function processarIA(pergunta) {
+    // ═══════════════ FUNÇÃO PRINCIPAL: envia mensagem e aguarda resposta do servidor ═══════════════
+    async function enviarMensagemParaServidor(mensagem) {
         isProcessing = true;
         document.getElementById('chatSendBtn').disabled = true;
         showTyping();
         
-        let resposta = null;
-        
-        try {
-            // Action "chat" existe no doGet E doPost ✅
-            const envio = await callAPI('chat', {
-                msg: pergunta,           // ← backend espera "msg" no GET
-                mensagem: pergunta,      // ← compatibilidade POST
-                nome: 'Visitante'        // ← backend usa "nomeLead"
-            }, 'POST');
-            
-            if (envio.status === 'success' && envio.resposta) {
-                resposta = envio.resposta;
-            }
-        } catch (e) {
-            console.log('Erro ao processar IA:', e.message);
-        }
-        
-        if (!resposta) resposta = gerarRespostaLocal(pergunta);
-        
-        removeTyping();
-        addMessage('ai', resposta + botoesResposta());
-        
-        isProcessing = false;
-        document.getElementById('chatSendBtn').disabled = false;
-        document.getElementById('chatInput').focus();
-    }
-    // ═══════════════ MODO ATENDENTE (VIA WORKER) ═══════════════
-    async function enviarParaAtendente(mensagem) {
-        isProcessing = true;
-        document.getElementById('chatSendBtn').disabled = true;
-        showTyping();
-        
-        const data = await callAPI('saveChatAtendente', {
+        // 1. Salva a mensagem no Google Drive (como lead)
+        const saveData = await callAPI('saveChatAtendente', {
             leadId: sessionId,
             nomeLead: 'Visitante',
             de: 'lead',
@@ -400,86 +362,104 @@
             mensagem: mensagem
         }, 'POST');
 
+        // Atualiza o sessionId se o servidor retornou um leadId diferente
+        if (saveData.result && saveData.result.leadId && saveData.result.leadId !== sessionId) {
+            console.log('🆔 ID atualizado:', sessionId, '→', saveData.result.leadId);
+            sessionId = saveData.result.leadId;
+        }
+
+        // 2. Aguarda a resposta (polling mais rápido no início)
+        let resposta = null;
+        for (let i = 0; i < 30; i++) {  // até 60 segundos (30x2s)
+            await new Promise(r => setTimeout(r, 2000));
+            
+            const pollData = await callAPI('getChatAtendente', { leadId: sessionId }, 'GET');
+            if (pollData.conversas && pollData.conversas[sessionId]) {
+                const msgs = pollData.conversas[sessionId].mensagens || [];
+                // Procura mensagens do atendente posteriores ao envio
+                const novasRespostas = msgs.filter(m => 
+                    m.de === 'atendente' && 
+                    (!lastResponseTimestamp || new Date(m.timestamp) > new Date(lastResponseTimestamp))
+                );
+                if (novasRespostas.length > 0) {
+                    resposta = novasRespostas[novasRespostas.length - 1].texto;
+                    lastResponseTimestamp = novasRespostas[novasRespostas.length - 1].timestamp;
+                    break;
+                }
+            }
+            console.log(`⏳ Aguardando resposta... tentativa ${i+1}/30`);
+        }
+
         removeTyping();
 
-        if (data.status === 'success' && data.result && data.result.saved) {
-            // 🔥 CORREÇÃO: Atualiza sessionId com o leadId retornado pelo servidor
-            if (data.result.leadId && data.result.leadId !== sessionId) {
-                console.log('🆔 Session ID atualizado:', sessionId, '→', data.result.leadId);
-                sessionId = data.result.leadId;
+        if (resposta) {
+            // Exibe a resposta de acordo com o modo visual
+            if (chatMode === 'ia') {
+                addMessage('ai', resposta + botoesResposta());
+            } else {
+                addMessage('atendente-msg', resposta);
             }
-            addMessage('atendente-msg', '✅ Mensagem enviada! Um atendente responderá em breve. 💬');
         } else {
-            addMessage('atendente-msg', '⚠️ Erro ao enviar. Tente o WhatsApp: (21) 98153-3928');
+            // Fallback local se o servidor não responder a tempo
+            const fallback = gerarRespostaLocal(mensagem);
+            if (chatMode === 'ia') {
+                addMessage('ai', fallback + botoesResposta());
+            } else {
+                addMessage('atendente-msg', fallback);
+            }
         }
-        
+
         isProcessing = false;
         document.getElementById('chatSendBtn').disabled = false;
         document.getElementById('chatInput').focus();
     }
 
-    async function carregarHistoricoAtendente() {
-        console.log('📡 Carregando histórico para:', sessionId);
-        const data = await callAPI('getChatAtendente', { leadId: sessionId }, 'GET');
-        document.getElementById('chatMessages').innerHTML = '';
-        
-        if (data.conversas && data.conversas[sessionId]) {
-            const msgs = data.conversas[sessionId].mensagens || [];
-            if (msgs.length === 0) {
-                addMessage('atendente-msg', '👋 Olá! Equipe R5 Fit aqui. Como posso ajudar?');
-            } else {
-                msgs.forEach(m => {
-                    const tipo = m.de === 'atendente' ? 'atendente-msg' : 'user';
-                    addMessage(tipo, m.texto || '');
-                });
-            }
-        } else {
-            // Tenta buscar com o ID alternativo (anon_)
-            console.log('⚠️ Nenhuma conversa encontrada para:', sessionId);
-            addMessage('atendente-msg', '👋 Olá! Equipe R5 Fit aqui. Como posso ajudar?');
-        }
+    // ═══════════════ POLLING CONTÍNUO (modo atendente ou IA) ═══════════════
+    function startPolling() { 
+        stopPolling(); 
+        pollingInterval = setInterval(pollRespostas, 5000); 
     }
 
-    // ═══════════════ POLLING ═══════════════
-    function startPolling() { stopPolling(); pollingInterval = setInterval(pollAtendenteMessages, 5000); }
-    function stopPolling() { if (pollingInterval) { clearInterval(pollingInterval); pollingInterval = null; } }
+    function stopPolling() { 
+        if (pollingInterval) { clearInterval(pollingInterval); pollingInterval = null; } 
+    }
 
-    async function pollAtendenteMessages() {
+    async function pollRespostas() {
         if (!document.getElementById('chatOverlay').classList.contains('active')) return;
-        const data = await callAPI('getChatAtendente', { leadId: sessionId }, 'GET');
-
-        if (data.conversas && data.conversas[sessionId]) {
-            const msgs = data.conversas[sessionId].mensagens || [];
-            const novas = msgs.filter(m => 
-                m.de === 'atendente' &&  // ← backend usa "de", não "remetente"
-                (!lastAtendenteMsgTimestamp || new Date(m.timestamp) > new Date(lastAtendenteMsgTimestamp))
-            );
-            if (novas.length > 0) {
-                lastAtendenteMsgTimestamp = novas[novas.length - 1].timestamp;
-                if (chatMode === 'atendente') {
-                    novas.forEach(m => addMessage('atendente-msg', m.texto));  // ← "texto", não "content"
-                } else {
-                    unreadAtendenteMessages += novas.length;
-                    document.getElementById('newMsgNotification').classList.add('show');
-                    document.getElementById('newMsgNotification').textContent = `${unreadAtendenteMessages} resposta(s) do atendente! Clique para ver`;
+        try {
+            const data = await callAPI('getChatAtendente', { leadId: sessionId }, 'GET');
+            if (data.conversas && data.conversas[sessionId]) {
+                const msgs = data.conversas[sessionId].mensagens || [];
+                const novas = msgs.filter(m => 
+                    m.de === 'atendente' && 
+                    (!lastResponseTimestamp || new Date(m.timestamp) > new Date(lastResponseTimestamp))
+                );
+                if (novas.length > 0) {
+                    lastResponseTimestamp = novas[novas.length - 1].timestamp;
+                    novas.forEach(m => {
+                        if (chatMode === 'atendente') {
+                            addMessage('atendente-msg', m.texto);
+                        } else {
+                            // Se estava no modo IA e chegou resposta, notifica
+                            document.getElementById('newMsgNotification').classList.add('show');
+                            document.getElementById('newMsgNotification').textContent = '📩 Nova resposta! Clique para ver';
+                        }
+                    });
                 }
             }
-        }
+        } catch (e) {}
     }
 
     // ═══════════════ RESPOSTA LOCAL (FALLBACK) ═══════════════
     function gerarRespostaLocal(p) {
         const q = p.toLowerCase();
-        if (q.includes('emagrecer')) return 'Para emagrecimento: Bike (600cal) + Magic Dance + Musculacao. Aula gratis! WhatsApp: (21) 98153-3928';
-        if (q.includes('massa')||q.includes('musculo')) return 'Para ganho de massa: Musculacao + Cross MFT. Instrutores formados! WhatsApp: (21) 98153-3928';
-        if (q.includes('ansiedade')||q.includes('estresse')) return 'R5 cuida da mente: meditacao, yoga, comunidade. WhatsApp: (21) 98153-3928';
-        if (q.includes('danca')||q.includes('bike')) return 'Magic Dance, Bike e Coletivas! Inclusas no plano. WhatsApp: (21) 98153-3928';
-        if (q.includes('cross')) return 'Cross MFT: alta intensidade! WhatsApp: (21) 98153-3928';
-        if (q.includes('horario')||q.includes('hora')) return 'Seg-Sex 6h-22h, Sab 8h-14h. WhatsApp: (21) 98153-3928';
-        if (q.includes('plano')||q.includes('preco')) return 'Planos Mensal, Trimestral, Semestral, Anual. WhatsApp: (21) 98153-3928';
-        if (q.includes('gratis')||q.includes('experimental')) return 'Aula 100% GRATIS! Sem compromisso. WhatsApp: (21) 98153-3928';
-        if (q.includes('deepseek')) return 'O DeepSeek esta conectado ao sistema! Use o Painel Admin para interagir com ele via Canvas.';
-        return 'Sou o assistente R5 Fit! Fale sobre objetivos, modalidades, horarios, planos ou aula gratis. WhatsApp: (21) 98153-3928';
+        if (q.includes('emagrecer')) return 'Para emagrecimento: Bike (600cal) + Magic Dance + Musculação. WhatsApp: (21) 98153-3928';
+        if (q.includes('massa')||q.includes('musculo')) return 'Para ganho de massa: Musculação + Cross MFT. WhatsApp: (21) 98153-3928';
+        if (q.includes('ansiedade')||q.includes('estresse')) return 'R5 cuida da mente: meditação, yoga. WhatsApp: (21) 98153-3928';
+        if (q.includes('horario')||q.includes('hora')) return 'Seg-Sex 6h-22h, Sáb 8h-14h. WhatsApp: (21) 98153-3928';
+        if (q.includes('plano')||q.includes('preco')) return 'Planos Mensal, Trimestral, etc. WhatsApp: (21) 98153-3928';
+        if (q.includes('gratis')) return 'Aula 100% GRÁTIS! WhatsApp: (21) 98153-3928';
+        return 'Sou o assistente R5 Fit! Fale sobre objetivos, modalidades, horários, planos ou aula grátis. WhatsApp: (21) 98153-3928';
     }
 
     // ═══════════════ UI ═══════════════
@@ -489,7 +469,6 @@
         d.className = `message ${tipo === 'atendente-msg' ? 'atendente-msg' : (tipo === 'user' ? 'user' : 'ai')}`;
         d.innerHTML = texto.replace(/\n/g, '<br>');
         c.appendChild(d); c.scrollTop = c.scrollHeight;
-        return d;
     }
 
     function showTyping() {
