@@ -363,32 +363,15 @@
         let resposta = null;
         
         try {
-            // Envia pergunta pela fila (via Worker -> Apps Script)
-            const envio = await callAPI('perguntarIA', {
-                session_id: sessionId,
-                mensagem: pergunta,
-                nome: 'Visitante'
+            // Action "chat" existe no doGet E doPost ✅
+            const envio = await callAPI('chat', {
+                msg: pergunta,           // ← backend espera "msg" no GET
+                mensagem: pergunta,      // ← compatibilidade POST
+                nome: 'Visitante'        // ← backend usa "nomeLead"
             }, 'POST');
             
             if (envio.status === 'success' && envio.resposta) {
-                // Resposta imediata do Apps Script (regras básicas)
                 resposta = envio.resposta;
-                
-                // Se ficou pendente, espera o servidor local humanizar (até 30s)
-                if (envio.aguardando_local && envio.id) {
-                    for (let i = 0; i < 30; i++) {
-                        await new Promise(r => setTimeout(r, 1000));
-                        
-                        const atualizacao = await callAPI('getRespostaAtualizada', {
-                            id: envio.id
-                        }, 'GET');
-                        
-                        if (atualizacao.status === 'success' && atualizacao.pronto) {
-                            resposta = atualizacao.resposta;
-                            break;
-                        }
-                    }
-                }
             }
         } catch (e) {
             console.log('Erro ao processar IA:', e.message);
@@ -407,19 +390,27 @@
     async function enviarParaAtendente(mensagem) {
         isProcessing = true;
         document.getElementById('chatSendBtn').disabled = true;
+        showTyping();
         
-        // Antes: callAPI('saveChatAtendente', ...)
-        const data = await callAPI('salvarMensagem', {
-            session_id: sessionId, 
-            lead_nome: 'Visitante', 
-            remetente: 'usuario', // No backend a lógica de quem envia avalia 'usuario' ou 'atendente'
+        const data = await callAPI('saveChatAtendente', {
+            leadId: sessionId,
+            nomeLead: 'Visitante',
+            de: 'lead',
+            texto: mensagem,
             mensagem: mensagem
         }, 'POST');
 
-        if (data.status === 'success') { // Antes você verificava data.result.saved
-            addMessage('atendente-msg', 'Mensagem enviada! Um atendente responderá em breve. Horário: Seg-Sex 6h-22h, Sáb 8h-14h');
+        removeTyping();
+
+        if (data.status === 'success' && data.result && data.result.saved) {
+            // 🔥 CORREÇÃO: Atualiza sessionId com o leadId retornado pelo servidor
+            if (data.result.leadId && data.result.leadId !== sessionId) {
+                console.log('🆔 Session ID atualizado:', sessionId, '→', data.result.leadId);
+                sessionId = data.result.leadId;
+            }
+            addMessage('atendente-msg', '✅ Mensagem enviada! Um atendente responderá em breve. 💬');
         } else {
-            addMessage('atendente-msg', 'Erro ao enviar. Tente o WhatsApp: (21) 98153-3928');
+            addMessage('atendente-msg', '⚠️ Erro ao enviar. Tente o WhatsApp: (21) 98153-3928');
         }
         
         isProcessing = false;
@@ -428,18 +419,24 @@
     }
 
     async function carregarHistoricoAtendente() {
+        console.log('📡 Carregando histórico para:', sessionId);
         const data = await callAPI('getChatAtendente', { leadId: sessionId }, 'GET');
         document.getElementById('chatMessages').innerHTML = '';
         
         if (data.conversas && data.conversas[sessionId]) {
             const msgs = data.conversas[sessionId].mensagens || [];
             if (msgs.length === 0) {
-                addMessage('atendente-msg', 'Ola! Equipe R5 Fit aqui. Como posso ajudar?');
+                addMessage('atendente-msg', '👋 Olá! Equipe R5 Fit aqui. Como posso ajudar?');
             } else {
-                msgs.forEach(m => addMessage(m.de === 'atendente' ? 'atendente-msg' : 'user', m.texto));
+                msgs.forEach(m => {
+                    const tipo = m.de === 'atendente' ? 'atendente-msg' : 'user';
+                    addMessage(tipo, m.texto || '');
+                });
             }
         } else {
-            addMessage('atendente-msg', 'Ola! Equipe R5 Fit aqui. Como posso ajudar?');
+            // Tenta buscar com o ID alternativo (anon_)
+            console.log('⚠️ Nenhuma conversa encontrada para:', sessionId);
+            addMessage('atendente-msg', '👋 Olá! Equipe R5 Fit aqui. Como posso ajudar?');
         }
     }
 
@@ -449,18 +446,18 @@
 
     async function pollAtendenteMessages() {
         if (!document.getElementById('chatOverlay').classList.contains('active')) return;
-        const data = await callAPI('getChatMessages', { session: sessionId }, 'GET');
+        const data = await callAPI('getChatAtendente', { leadId: sessionId }, 'GET');
 
-        // Como o backend devolve "mensagens", temos que ajustar a leitura:
-        if (data.mensagens && data.mensagens.length > 0) {
-            const novas = data.mensagens.filter(m => 
-                m.remetente === 'atendente' && // Importante: Filtrar só as do atendente
+        if (data.conversas && data.conversas[sessionId]) {
+            const msgs = data.conversas[sessionId].mensagens || [];
+            const novas = msgs.filter(m => 
+                m.de === 'atendente' &&  // ← backend usa "de", não "remetente"
                 (!lastAtendenteMsgTimestamp || new Date(m.timestamp) > new Date(lastAtendenteMsgTimestamp))
             );
             if (novas.length > 0) {
                 lastAtendenteMsgTimestamp = novas[novas.length - 1].timestamp;
                 if (chatMode === 'atendente') {
-                    novas.forEach(m => addMessage('atendente-msg', m.texto));
+                    novas.forEach(m => addMessage('atendente-msg', m.texto));  // ← "texto", não "content"
                 } else {
                     unreadAtendenteMessages += novas.length;
                     document.getElementById('newMsgNotification').classList.add('show');
