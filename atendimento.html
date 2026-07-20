@@ -347,13 +347,13 @@
         await enviarMensagemParaServidor(query);
     }
 
-    // ═══════════════ FUNÇÃO PRINCIPAL: envia mensagem e aguarda resposta do servidor ═══════════════
     async function enviarMensagemParaServidor(mensagem) {
         isProcessing = true;
         document.getElementById('chatSendBtn').disabled = true;
         showTyping();
         
-        // 1. Salva a mensagem no Google Drive (como lead)
+        // 1. Salva a mensagem no Google Drive
+        console.log('📤 Enviando mensagem para o Drive...');
         const saveData = await callAPI('saveChatAtendente', {
             leadId: sessionId,
             nomeLead: 'Visitante',
@@ -362,45 +362,58 @@
             mensagem: mensagem
         }, 'POST');
 
-        // Atualiza o sessionId se o servidor retornou um leadId diferente
+        console.log('📥 Resposta do save:', saveData);
+
+        // Atualiza o sessionId
         if (saveData.result && saveData.result.leadId && saveData.result.leadId !== sessionId) {
             console.log('🆔 ID atualizado:', sessionId, '→', saveData.result.leadId);
             sessionId = saveData.result.leadId;
         }
 
-        // 2. Aguarda a resposta (polling mais rápido no início)
+        // 2. Aguarda a resposta com polling
         let resposta = null;
-        for (let i = 0; i < 30; i++) {  // até 60 segundos (30x2s)
+        for (let i = 0; i < 30; i++) {
             await new Promise(r => setTimeout(r, 2000));
             
-            const pollData = await callAPI('getChatAtendente', { leadId: sessionId }, 'GET');
-            if (pollData.conversas && pollData.conversas[sessionId]) {
-                const msgs = pollData.conversas[sessionId].mensagens || [];
-                // Procura mensagens do atendente posteriores ao envio
-                const novasRespostas = msgs.filter(m => 
-                    m.de === 'atendente' && 
-                    (!lastResponseTimestamp || new Date(m.timestamp) > new Date(lastResponseTimestamp))
-                );
-                if (novasRespostas.length > 0) {
-                    resposta = novasRespostas[novasRespostas.length - 1].texto;
-                    lastResponseTimestamp = novasRespostas[novasRespostas.length - 1].timestamp;
-                    break;
+            try {
+                // 🔥 Usa GET com o action na URL (já que o Cloudflare Worker pode não passar body corretamente)
+                const pollData = await callAPI('getChatAtendente', { leadId: sessionId }, 'GET');
+                console.log(`📡 Polling ${i+1}/30:`, pollData.status, '| sessionId:', sessionId);
+                
+                if (pollData.conversas && pollData.conversas[sessionId]) {
+                    const msgs = pollData.conversas[sessionId].mensagens || [];
+                    console.log(`   📨 ${msgs.length} mensagens na conversa`);
+                    
+                    // Procura mensagens do atendente
+                    const novasRespostas = msgs.filter(m => 
+                        m.de === 'atendente' && 
+                        (!lastResponseTimestamp || new Date(m.timestamp) > new Date(lastResponseTimestamp))
+                    );
+                    
+                    if (novasRespostas.length > 0) {
+                        resposta = novasRespostas[novasRespostas.length - 1].texto;
+                        lastResponseTimestamp = novasRespostas[novasRespostas.length - 1].timestamp;
+                        console.log('✅ Resposta encontrada!');
+                        break;
+                    }
+                } else {
+                    console.log('   ⚠️ Nenhuma conversa encontrada para este sessionId');
                 }
+            } catch (e) {
+                console.log('   ❌ Erro no polling:', e.message);
             }
-            console.log(`⏳ Aguardando resposta... tentativa ${i+1}/30`);
         }
 
         removeTyping();
 
         if (resposta) {
-            // Exibe a resposta de acordo com o modo visual
             if (chatMode === 'ia') {
                 addMessage('ai', resposta + botoesResposta());
             } else {
                 addMessage('atendente-msg', resposta);
             }
         } else {
-            // Fallback local se o servidor não responder a tempo
+            console.log('⚠️ Timeout - usando fallback local');
             const fallback = gerarRespostaLocal(mensagem);
             if (chatMode === 'ia') {
                 addMessage('ai', fallback + botoesResposta());
@@ -427,7 +440,7 @@
     async function pollRespostas() {
         if (!document.getElementById('chatOverlay').classList.contains('active')) return;
         try {
-            const data = await callAPI('getChatAtendente', { leadId: sessionId }, 'GET');
+            const data = await callAPI('getChatAtendente', { leadId: sessionId }, 'GET');  // ✅ CORRIGIDO
             if (data.conversas && data.conversas[sessionId]) {
                 const msgs = data.conversas[sessionId].mensagens || [];
                 const novas = msgs.filter(m => 
@@ -440,14 +453,15 @@
                         if (chatMode === 'atendente') {
                             addMessage('atendente-msg', m.texto);
                         } else {
-                            // Se estava no modo IA e chegou resposta, notifica
                             document.getElementById('newMsgNotification').classList.add('show');
                             document.getElementById('newMsgNotification').textContent = '📩 Nova resposta! Clique para ver';
                         }
                     });
                 }
             }
-        } catch (e) {}
+        } catch (e) {
+            console.log('Erro no polling:', e.message);
+        }
     }
 
     // ═══════════════ RESPOSTA LOCAL (FALLBACK) ═══════════════
