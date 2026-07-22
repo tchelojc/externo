@@ -88,7 +88,7 @@
         .mode-tab.active-atendente { color: #6AB0FF; border-bottom-color: var(--azul); }
         .mode-tab:hover { color: var(--branco); }
 
-        .chat-messages { flex: 1; overflow-y: auto; padding: 1.2rem; display: flex; flex-direction: column; gap: 0.8rem; max-height: 350px; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 1.2rem; display: flex; flex-direction: column; gap: 0.8rem; max-height: 60vh; min-height: 300px; }
         .chat-messages::-webkit-scrollbar { width: 4px; }
         .chat-messages::-webkit-scrollbar-thumb { background: var(--laranja); border-radius: 4px; }
         .message { padding: 0.8rem 1rem; border-radius: 14px; font-size: 0.85rem; line-height: 1.5; max-width: 85%; word-break: break-word; }
@@ -471,6 +471,124 @@
         .login-modal .login-error.show {
             display: block;
         }
+        /* 🔥 CONTAINER PARA PÁGINA DO GOOGLE DRIVE */
+        .drive-page-container {
+            position: fixed;
+            inset: 0;
+            z-index: 5000;
+            background: white;
+            display: none;
+        }
+        .drive-page-container.active {
+            display: flex;
+            flex-direction: column;
+        }
+        .drive-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.8rem 1.2rem;
+            background: var(--preto-claro);
+            border-bottom: 2px solid var(--laranja);
+            min-height: 56px;
+        }
+        .drive-toolbar-title {
+            color: var(--laranja-neon);
+            font-weight: 700;
+            font-size: 0.9rem;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .drive-toolbar-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--cinza);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .drive-toolbar-close:hover {
+            background: rgba(255,68,68,0.2);
+            border-color: #FF4444;
+            color: #FF4444;
+        }
+        .drive-iframe {
+            flex: 1;
+            width: 100%;
+            border: none;
+            background: white;
+        }
+        .drive-loading {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--preto);
+            z-index: 1;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .drive-loading.hidden {
+            display: none;
+        }
+        .drive-loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--border);
+            border-top-color: var(--laranja);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .drive-loading-text {
+            color: var(--cinza-claro);
+            font-size: 0.9rem;
+        }
+        .drive-error {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: var(--preto);
+            z-index: 2;
+            flex-direction: column;
+            gap: 1rem;
+            padding: 2rem;
+            text-align: center;
+        }
+        .drive-error.show {
+            display: flex;
+        }
+        .drive-error-icon {
+            font-size: 3rem;
+        }
+        .drive-error-text {
+            color: var(--cinza-claro);
+            font-size: 0.9rem;
+        }
+        .drive-error-btn {
+            padding: 10px 24px;
+            border-radius: 20px;
+            border: 1px solid var(--laranja);
+            background: transparent;
+            color: var(--laranja-claro);
+            cursor: pointer;
+            font-weight: 600;
+            font-family: 'Space Grotesk', sans-serif;
+            transition: all 0.3s;
+        }
+        .drive-error-btn:hover {
+            background: rgba(255,76,0,0.15);
+        }
     </style>
 </head>
 <body translate="no">
@@ -605,7 +723,24 @@
             </div>
         </div>
     </div>
-
+    <!-- 🔥 CONTAINER PARA PÁGINA DO GOOGLE DRIVE -->
+    <div class="drive-page-container" id="drivePageContainer">
+        <div class="drive-toolbar">
+            <span class="drive-toolbar-title">🏋️ R5 Fit · Área Restrita</span>
+            <button class="drive-toolbar-close" onclick="fecharDrivePage()" title="Voltar">✕</button>
+        </div>
+        <div class="drive-loading" id="driveLoading">
+            <div class="drive-loading-spinner"></div>
+            <div class="drive-loading-text">Carregando página interna...</div>
+        </div>
+        <div class="drive-error" id="driveError">
+            <div class="drive-error-icon">⚠️</div>
+            <div class="drive-error-text" id="driveErrorText">Não foi possível carregar a página.</div>
+            <button class="drive-error-btn" onclick="tentarNovamenteDrive()">🔄 Tentar novamente</button>
+            <button class="drive-error-btn" onclick="fecharDrivePage()" style="margin-top:8px;">⬅ Voltar ao início</button>
+        </div>
+        <iframe class="drive-iframe" id="driveIframe" src="" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"></iframe>
+    </div>
     <script>
     // ═══════════════ CONFIGURAÇÃO ═══════════════
     const WHATSAPP = "5521981533928";
@@ -689,46 +824,151 @@
         }
     }
 
+    // ═══════════════ CARREGAR PÁGINA DO GOOGLE DRIVE ═══════════════
+    let driveFileId = null;
+
     async function carregarHomePage() {
+        const container = document.getElementById('drivePageContainer');
+        const iframe = document.getElementById('driveIframe');
+        const loading = document.getElementById('driveLoading');
+        const error = document.getElementById('driveError');
+        
+        // Mostra container e loading
+        container.classList.add('active');
+        loading.classList.remove('hidden');
+        error.classList.remove('show');
+        document.getElementById('homeContainer').style.display = 'none';
+        
         try {
             mostrarToast('Carregando página interna...');
             const data = await callAPI('getHomePage', {}, 'GET');
+            console.log('📄 Dados recebidos do Drive:', data);
             
-            if (data.html) {
-                document.getElementById('homeContainer').style.display = 'none';
+            // 🔥 Tenta obter a URL de várias formas possíveis
+            let driveUrl = null;
+            
+            if (data.url) {
+                // URL direta fornecida pela API
+                driveUrl = data.url;
+            } else if (data.fileId) {
+                // ID do arquivo fornecido - monta URL de preview
+                driveFileId = data.fileId;
+                driveUrl = `https://drive.google.com/file/d/${data.fileId}/preview`;
+            } else if (data.html) {
+                // 🔥 Fallback: HTML veio direto - renderiza inline
+                loading.classList.add('hidden');
+                renderHtmlInline(data.html);
+                return;
+            }
+            
+            if (driveUrl) {
+                console.log('🔗 URL do Drive:', driveUrl);
                 
-                let homeDiv = document.getElementById('homePageContent');
-                if (!homeDiv) {
-                    homeDiv = document.createElement('div');
-                    homeDiv.id = 'homePageContent';
-                    homeDiv.style.cssText = 'width:100%;max-width:100%;min-height:100vh;padding:1rem;';
-                    document.body.insertBefore(homeDiv, document.body.firstChild);
-                }
+                // Configura o iframe
+                iframe.src = driveUrl;
                 
-                homeDiv.innerHTML = data.html;
-                homeDiv.style.display = 'block';
+                // Aguarda o iframe carregar (timeout de 15 segundos)
+                let carregado = false;
                 
-                if (document.getElementById('chatOverlay').classList.contains('active')) {
-                    fecharChat();
-                }
-                
-                const scripts = homeDiv.querySelectorAll('script');
-                scripts.forEach(script => {
-                    const newScript = document.createElement('script');
-                    newScript.textContent = script.textContent;
-                    document.body.appendChild(newScript);
+                const promise = new Promise((resolve) => {
+                    iframe.onload = () => {
+                        carregado = true;
+                        resolve();
+                    };
+                    iframe.onerror = () => resolve();
+                    setTimeout(() => resolve(), 15000);
                 });
                 
-                console.log('✅ Home page carregada com sucesso!');
-                mostrarToast('Página interna carregada!');
+                await promise;
+                
+                loading.classList.add('hidden');
+                
+                if (carregado) {
+                    console.log('✅ Página do Drive carregada com sucesso!');
+                    mostrarToast('Página interna carregada!');
+                } else {
+                    throw new Error('Timeout ao carregar iframe');
+                }
             } else {
-                mostrarToast('⚠️ Página interna não encontrada no Drive');
+                throw new Error('Nenhuma URL ou HTML retornado pela API');
             }
+            
         } catch (e) {
-            console.log('❌ Erro ao carregar home page:', e.message);
-            mostrarToast('Erro ao carregar página interna');
+            console.log('❌ Erro ao carregar página:', e.message);
+            loading.classList.add('hidden');
+            error.classList.add('show');
+            document.getElementById('driveErrorText').textContent = 
+                'Não foi possível carregar a página. Verifique se o arquivo r5fit_home.html está publicado no Google Drive.';
         }
     }
+
+    // 🔥 Renderiza HTML inline (fallback)
+    function renderHtmlInline(htmlContent) {
+        const container = document.getElementById('drivePageContainer');
+        
+        // Cria uma div para o conteúdo inline
+        let inlineDiv = document.getElementById('driveInlineContent');
+        if (!inlineDiv) {
+            inlineDiv = document.createElement('div');
+            inlineDiv.id = 'driveInlineContent';
+            inlineDiv.style.cssText = 'flex:1;overflow-y:auto;padding:1rem;background:white;';
+            container.appendChild(inlineDiv);
+        }
+        
+        inlineDiv.innerHTML = htmlContent;
+        inlineDiv.style.display = 'block';
+        document.getElementById('driveIframe').style.display = 'none';
+        
+        // Executa scripts
+        const scripts = inlineDiv.querySelectorAll('script');
+        scripts.forEach(script => {
+            const newScript = document.createElement('script');
+            newScript.textContent = script.textContent;
+            document.body.appendChild(newScript);
+        });
+        
+        console.log('✅ HTML inline renderizado com sucesso!');
+        mostrarToast('Página interna carregada!');
+    }
+
+    // 🔥 Fechar página do Drive e voltar
+    function fecharDrivePage() {
+        const container = document.getElementById('drivePageContainer');
+        const iframe = document.getElementById('driveIframe');
+        const loading = document.getElementById('driveLoading');
+        const error = document.getElementById('driveError');
+        
+        container.classList.remove('active');
+        iframe.src = '';
+        loading.classList.remove('hidden');
+        error.classList.remove('show');
+        
+        // Limpa conteúdo inline se existir
+        const inlineDiv = document.getElementById('driveInlineContent');
+        if (inlineDiv) {
+            inlineDiv.style.display = 'none';
+            inlineDiv.innerHTML = '';
+        }
+        document.getElementById('driveIframe').style.display = '';
+        
+        // Volta para home
+        document.getElementById('homeContainer').style.display = '';
+        document.body.style.overflow = '';
+        
+        console.log('🏠 Voltou para home');
+    }
+
+    // 🔥 Tentar novamente
+    function tentarNovamenteDrive() {
+        carregarHomePage();
+    }
+
+    // 🔥 Atualizar função fazerLogout para fechar Drive também
+    const fazerLogoutOriginal = fazerLogout;
+    fazerLogout = function() {
+        fecharDrivePage();
+        fazerLogoutOriginal();
+    };
 
     document.addEventListener('click', function(e) {
         const modal = document.getElementById('loginModalOverlay');
@@ -1161,26 +1401,26 @@
         let resposta = null;
         let respostaEncontrada = false;
 
-        for (let i = 0; i < 30; i++) {
+        // 🔥 Polling SEM limite - continua até encontrar resposta
+        while (!respostaEncontrada) {
             await new Promise(r => setTimeout(r, 2000));
             
             try {
                 const pollData = await callAPI('getChatAtendente', { leadId: sessionId }, 'GET');
-                console.log(`📡 Polling ${i+1}/30:`, pollData.status);
+                console.log('📡 Polling...', pollData.status);
                 
                 if (pollData.conversas && pollData.conversas[sessionId]) {
                     const msgs = pollData.conversas[sessionId].mensagens || [];
                     const mensagensAtendente = msgs.filter(m => m.de !== 'lead');
                     
-                    if (mensagensAtendente.length > 0 && !respostaEncontrada) {
+                    if (mensagensAtendente.length > 0) {
                         resposta = mensagensAtendente[mensagensAtendente.length - 1].texto;
                         respostaEncontrada = true;
                         console.log('✅ Resposta encontrada!');
-                        break;
                     }
                 }
             } catch (e) {
-                console.log('Erro no polling:', e.message);
+                console.log('⚠️ Erro no polling:', e.message);
             }
         }
 
