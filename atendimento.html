@@ -45,7 +45,6 @@
         .brand-name { font-family: 'Orbitron', monospace; font-size: 2rem; font-weight: 900; background: linear-gradient(135deg, var(--laranja-neon), var(--laranja)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.3rem; }
         .brand-subtitle { font-size: 0.85rem; color: var(--cinza); margin-bottom: 2rem; }
         .brand-subtitle .highlight { color: var(--laranja-claro); font-weight: 700; }
-
         .search-box { display: flex; gap: 8px; background: var(--preto-claro); border: 2px solid var(--border); border-radius: 16px; padding: 6px; transition: all 0.3s; box-shadow: 0 8px 30px rgba(0,0,0,0.5); }
         .search-box:focus-within { border-color: var(--laranja); box-shadow: 0 0 30px rgba(255,76,0,0.25); }
         .search-icon { display: flex; align-items: center; padding-left: 10px; font-size: 1.3rem; }
@@ -114,14 +113,109 @@
         .chat-send-btn { width: 44px; height: 44px; border-radius: 50%; border: none; background: linear-gradient(135deg, var(--laranja), #E04400); color: white; font-size: 1.2rem; cursor: pointer; flex-shrink: 0; transition: all 0.3s; }
         .chat-send-btn:hover { transform: scale(1.1); }
         .chat-send-btn:disabled { opacity: 0.5; }
-        .chat-icon-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: var(--preto); color: var(--cinza-claro); font-size: 1.05rem; cursor: pointer; flex-shrink: 0; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
-        .chat-icon-btn:hover { border-color: var(--laranja); color: var(--laranja); }
-        .chat-icon-btn.gravando { border-color: #FF4444; color: #FF4444; animation: pulseGravando 1s infinite; }
-        @keyframes pulseGravando { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
-        .img-preview-strip { display: flex; align-items: center; gap: 8px; padding: 0 1.2rem; }
-        .img-preview-strip img { height: 54px; border-radius: 8px; border: 1px solid var(--border); }
-        .img-preview-remove { background: #FF4444; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 0.7rem; cursor: pointer; line-height: 1; }
-        .message img.msg-imagem { max-width: 220px; border-radius: 10px; display: block; margin-top: 4px; }
+        
+        /* 🔥 NOVOS BOTÕES DE MICROFONE E ANEXO */
+        .chat-icon-btn { 
+            width: 40px; 
+            height: 40px; 
+            border-radius: 50%; 
+            border: 1px solid var(--border); 
+            background: var(--preto); 
+            color: var(--cinza-claro); 
+            font-size: 1.1rem; 
+            cursor: pointer; 
+            flex-shrink: 0; 
+            transition: all 0.3s; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            position: relative;
+        }
+        .chat-icon-btn:hover { 
+            border-color: var(--laranja); 
+            color: var(--laranja-neon);
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(255,76,0,0.3);
+        }
+        .chat-icon-btn.gravando { 
+            border-color: #FF4444; 
+            color: #FF4444; 
+            background: rgba(255,68,68,0.15);
+            animation: pulseGravando 1.5s infinite; 
+        }
+        @keyframes pulseGravando { 
+            0%,100% { box-shadow: 0 0 0 0 rgba(255,68,68,0.4); } 
+            50% { box-shadow: 0 0 0 8px rgba(255,68,68,0); } 
+        }
+        
+        /* Tooltip para os botões */
+        .chat-icon-btn::after {
+            content: attr(title);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--preto-medio);
+            color: var(--branco);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            margin-bottom: 4px;
+        }
+        .chat-icon-btn:hover::after {
+            opacity: 1;
+        }
+
+        .img-preview-strip { 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            padding: 0.5rem 1.2rem; 
+            background: var(--preto);
+            border-top: 1px solid var(--border);
+        }
+        .img-preview-strip img { 
+            height: 54px; 
+            border-radius: 8px; 
+            border: 1px solid var(--laranja); 
+        }
+        .img-preview-remove { 
+            background: #FF4444; 
+            color: white; 
+            border: none; 
+            border-radius: 50%; 
+            width: 22px; 
+            height: 22px; 
+            font-size: 0.7rem; 
+            cursor: pointer; 
+            line-height: 1; 
+            transition: all 0.2s;
+        }
+        .img-preview-remove:hover {
+            background: #FF0000;
+            transform: scale(1.1);
+        }
+        
+        .message img.msg-imagem { 
+            max-width: 220px; 
+            border-radius: 10px; 
+            display: block; 
+            margin-top: 4px; 
+            border: 2px solid var(--border);
+        }
+        .message .msg-documento {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            margin-top: 4px;
+        }
         .chat-send-btn.atendente-send { background: linear-gradient(135deg, var(--azul), #357ABD); }
 
         .always-wpp { text-align: center; padding: 0.5rem; font-size: 0.75rem; color: var(--cinza); border-top: 1px solid var(--border); }
@@ -139,7 +233,111 @@
             .search-box { flex-direction: column; padding: 10px; }
             .search-btn { padding: 12px; }
             .chat-window { max-height: 90vh; }
+            .chat-input-area { gap: 4px; padding: 0.8rem; }
+            .chat-icon-btn { width: 36px; height: 36px; }
         }
+
+        /* 🔥 BOTÕES DE MICROFONE E ANEXO NA HOME - CIRCULARES */
+        .search-box { 
+            display: flex;
+            flex-wrap: wrap; 
+            align-items: center; 
+            gap: 6px;
+            padding: 6px;
+        }
+        .home-mic-btn, .home-anexo-btn { 
+            width: 42px; 
+            height: 42px; 
+            min-width: 42px;
+            min-height: 42px;
+            border-radius: 50%; 
+            border: 1px solid var(--border); 
+            background: var(--preto); 
+            color: var(--cinza-claro); 
+            font-size: 1.2rem; 
+            cursor: pointer; 
+            flex-shrink: 0; 
+            transition: all 0.3s; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            padding: 0;
+            line-height: 1;
+        }
+        .home-mic-btn:hover, .home-anexo-btn:hover { 
+            border-color: var(--laranja); 
+            color: var(--laranja-neon);
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(255,76,0,0.3);
+            background: rgba(255,76,0,0.1);
+        }
+        .home-mic-btn.gravando { 
+            border-color: #FF4444; 
+            color: #FF4444; 
+            background: rgba(255,68,68,0.15);
+            animation: pulseGravando 1.5s infinite; 
+        }
+        @keyframes pulseGravando { 
+            0%,100% { box-shadow: 0 0 0 0 rgba(255,68,68,0.4); } 
+            50% { box-shadow: 0 0 0 8px rgba(255,68,68,0); } 
+        }
+        .home-preview-strip { 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            padding: 0.5rem 0; 
+            justify-content: center;
+            width: 100%;
+        }
+        .home-preview-strip img { 
+            height: 40px; 
+            width: 40px;
+            border-radius: 50%;
+            border: 2px solid var(--laranja); 
+            object-fit: cover;
+        }
+        .home-preview-name {
+            font-size: 0.75rem;
+            color: var(--cinza-claro);
+            background: var(--preto);
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+        }
+        .home-preview-remove { 
+            background: #FF4444; 
+            color: white; 
+            border: none; 
+            border-radius: 50%; 
+            width: 24px; 
+            height: 24px; 
+            font-size: 0.7rem; 
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .home-preview-remove:hover {
+            background: #FF0000;
+            transform: scale(1.1);
+        }
+
+        /* Ajuste para mobile */
+        @media (max-width: 480px) {
+            .home-mic-btn, .home-anexo-btn { 
+                width: 36px; 
+                height: 36px; 
+                min-width: 36px;
+                min-height: 36px;
+                font-size: 1rem;
+            }
+            .search-box {
+                gap: 4px;
+                padding: 4px;
+            }
+        }
+        
         /* BOTÃO DE LOGIN NO TOPO DIREITO */
         .login-btn-top {
             position: fixed;
@@ -176,8 +374,8 @@
         }
 
         .login-btn-top .btn-logout {
-            border-color: var(--vermelho);
-            color: var(--vermelho);
+            border-color: #FF4444;
+            color: #FF4444;
             font-size: 0.7rem;
             padding: 4px 10px;
         }
@@ -310,8 +508,29 @@
 
         <div class="search-box">
             <div class="search-icon">💬</div>
-            <input type="text" class="search-input" id="searchInput" placeholder="Tire sua dúvida, busque um plano ou fale conosco..." onkeydown="if(event.key==='Enter')iniciarJornada()" autocomplete="off" />
+            
+            <!-- 🔥 INPUT DE ARQUIVO OCULTO -->
+            <input type="file" id="homeFileInput" accept="image/*,.pdf,.doc,.docx,.txt,.csv,.xlsx" style="display:none" onchange="onHomeArquivoSelecionado(event)">
+            
+            <!-- 🔥 BOTÃO DE ANEXO CIRCULAR -->
+            <button class="home-anexo-btn" id="homeAnexoBtn" title="Anexar imagem ou documento" onclick="document.getElementById('homeFileInput').click()">
+                📎
+            </button>
+            
+            <!-- 🔥 BOTÃO DE MICROFONE CIRCULAR -->
+            <button class="home-mic-btn" id="homeMicBtn" title="Gravar áudio" onclick="toggleHomeMic()">
+                🎤
+            </button>
+            
+            <input type="text" class="search-input" id="searchInput" placeholder="Digite sua dúvida..." onkeydown="if(event.key==='Enter')iniciarJornada()" autocomplete="off" />
+            
             <button class="search-btn" onclick="iniciarJornada()" id="searchBtn">🚀 INICIAR JORNADA</button>
+        </div>
+
+        <!-- 🔥 PREVIEW DE ANEXO NA HOME -->
+        <div class="home-preview-strip" id="homePreviewStrip" style="display:none;">
+            <span class="home-preview-name" id="homePreviewName"></span>
+            <button class="home-preview-remove" onclick="removerHomeAnexo()">✕</button>
         </div>
 
         <div class="quick-suggestions">
@@ -351,17 +570,34 @@
             </div>
 
             <div class="chat-messages" id="chatMessages"></div>
+            
+            <!-- 🔥 PREVIEW DE IMAGEM/ARQUIVO SELECIONADO -->
             <div class="img-preview-strip" id="imgPreviewStrip" style="display:none;">
-                <img id="imgPreviewThumb" src="" alt="Imagem selecionada">
-                <button class="img-preview-remove" onclick="removerImagemStaged()">✕</button>
+                <img id="imgPreviewThumb" src="" alt="Preview">
+                <span id="imgPreviewName" style="font-size:0.75rem;color:var(--cinza-claro);"></span>
+                <button class="img-preview-remove" onclick="removerAnexoStaged()">✕</button>
             </div>
+            
+            <!-- 🔥 ÁREA DE INPUT COM BOTÕES DE MICROFONE E ANEXO -->
             <div class="chat-input-area">
-                <input type="file" id="imgInput" accept="image/*" style="display:none" onchange="onImagemSelecionada(event)">
-                <button class="chat-icon-btn" id="btnImagem" title="Enviar imagem" onclick="document.getElementById('imgInput').click()">📷</button>
-                <button class="chat-icon-btn" id="btnMic" title="Falar" onclick="toggleMic()">🎤</button>
+                <!-- Botão de Anexo (Imagem, Documento, Recibo) -->
+                <input type="file" id="fileInput" accept="image/*,.pdf,.doc,.docx,.txt,.csv,.xlsx" style="display:none" onchange="onArquivoSelecionado(event)">
+                <button class="chat-icon-btn" id="btnAnexo" title="Anexar arquivo" onclick="document.getElementById('fileInput').click()">
+                    📎
+                </button>
+                
+                <!-- Botão de Microfone (Áudio para Texto) -->
+                <button class="chat-icon-btn" id="btnMic" title="Gravar áudio" onclick="toggleMic()">
+                    🎤
+                </button>
+                
+                <!-- Campo de texto -->
                 <input type="text" class="chat-input" id="chatInput" placeholder="Digite sua mensagem..." onkeydown="if(event.key==='Enter')enviarMensagem()" />
+                
+                <!-- Botão de envio -->
                 <button class="chat-send-btn" onclick="enviarMensagem()" id="chatSendBtn">➤</button>
             </div>
+            
             <div class="always-wpp">
                 💬 <a href="#" id="wppLinkBottom" target="_blank">Chamar no WhatsApp</a>
                 <span style="margin:0 8px;color:var(--border);">|</span>
@@ -380,6 +616,12 @@
     let chatMode = "ia";
     let pollingInterval = null;
     let lastResponseTimestamp = null;
+    
+    // 🔥 VARIÁVEIS PARA MICROFONE E ANEXOS
+    let reconhecimentoVoz = null;
+    let gravandoVoz = false;
+    let arquivoStaged = null; // { base64, tipo, nome }
+    
     // ═══════════════ LOGIN ═══════════════
     let usuarioLogado = null;
 
@@ -416,21 +658,17 @@
             usuarioLogado = data.result.usuario;
             console.log('✅ Login bem-sucedido:', usuarioLogado.nome);
             
-            // Fecha o modal
             fecharModalLogin();
             
-            // Atualiza o botão no topo
             document.getElementById('btnAbrirLogin').style.display = 'none';
             document.getElementById('userNameDisplay').style.display = 'inline';
             document.getElementById('userNameDisplay').textContent = '👤 ' + usuarioLogado.nome;
             document.getElementById('btnLogout').style.display = 'inline-block';
             
-            // Carrega a home page do Drive (se existir)
             await carregarHomePage();
             
             mostrarToast(`Bem-vindo, ${usuarioLogado.nome}!`);
             
-            // Limpa os campos
             document.getElementById('loginEmail').value = '';
             document.getElementById('loginSenha').value = '';
         } else {
@@ -446,7 +684,6 @@
         document.getElementById('btnLogout').style.display = 'none';
         mostrarToast('Logout realizado!');
         
-        // Fecha o chat se estiver aberto
         if (document.getElementById('chatOverlay').classList.contains('active')) {
             fecharChat();
         }
@@ -458,10 +695,8 @@
             const data = await callAPI('getHomePage', {}, 'GET');
             
             if (data.html) {
-                // Esconde o container padrão (chat público)
                 document.getElementById('homeContainer').style.display = 'none';
                 
-                // Cria um NOVO container para a home page
                 let homeDiv = document.getElementById('homePageContent');
                 if (!homeDiv) {
                     homeDiv = document.createElement('div');
@@ -470,16 +705,13 @@
                     document.body.insertBefore(homeDiv, document.body.firstChild);
                 }
                 
-                // Substitui TODO o conteúdo pela home page do Drive
                 homeDiv.innerHTML = data.html;
                 homeDiv.style.display = 'block';
                 
-                // Esconde o chat se estiver aberto
                 if (document.getElementById('chatOverlay').classList.contains('active')) {
                     fecharChat();
                 }
                 
-                // Executa scripts que possam estar no HTML carregado
                 const scripts = homeDiv.querySelectorAll('script');
                 scripts.forEach(script => {
                     const newScript = document.createElement('script');
@@ -498,7 +730,6 @@
         }
     }
 
-    // Fecha o modal ao clicar fora dele
     document.addEventListener('click', function(e) {
         const modal = document.getElementById('loginModalOverlay');
         if (e.target === modal) {
@@ -506,7 +737,6 @@
         }
     });
 
-    // Permite Enter no modal de login
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && document.getElementById('loginModalOverlay').classList.contains('active')) {
             fazerLogin();
@@ -515,7 +745,6 @@
 
     async function callAPI(action, data = {}, method = 'GET') {
         try {
-            // 🔥 CORREÇÃO: action vai na URL E no body para garantir
             let url = `${API}?action=${action}`;
             let options = { 
                 method, 
@@ -523,10 +752,8 @@
             };
             
             if (method === 'POST') {
-                // Inclui action no body também
                 options.body = JSON.stringify({ action, ...data });
             } else {
-                // GET: adiciona parâmetros na URL
                 Object.keys(data).forEach(k => {
                     if (data[k] !== undefined && data[k] !== null) {
                         url += `&${encodeURIComponent(k)}=${encodeURIComponent(data[k])}`;
@@ -555,12 +782,95 @@
         "atendente": "Conectando ao atendente! Me diga seu nome, objetivo e horário."
     };
 
+    // ═══════════════ MICROFONE E ANEXO NA HOME ═══════════════
+    let homeArquivoStaged = null;
+    let homeGravando = false;
+    let homeReconhecimento = null;
+
+    function onHomeArquivoSelecionado(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        if (file.size > 10 * 1024 * 1024) {
+            mostrarToast('Arquivo muito grande! Máximo 10MB');
+            event.target.value = '';
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            homeArquivoStaged = {
+                base64: e.target.result,
+                tipo: file.type,
+                nome: file.name
+            };
+            document.getElementById('homePreviewName').textContent = '📎 ' + file.name;
+            document.getElementById('homePreviewStrip').style.display = 'flex';
+            mostrarToast('📎 ' + file.name + ' anexado!');
+        };
+        reader.readAsDataURL(file);
+        event.target.value = '';
+    }
+
+    function removerHomeAnexo() {
+        homeArquivoStaged = null;
+        document.getElementById('homePreviewStrip').style.display = 'none';
+        document.getElementById('homePreviewName').textContent = '';
+    }
+
+    function toggleHomeMic() {
+        const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognitionAPI) {
+            mostrarToast('Seu navegador não suporta reconhecimento de voz');
+            return;
+        }
+        const btn = document.getElementById('homeMicBtn');
+
+        if (homeGravando) {
+            homeReconhecimento && homeReconhecimento.stop();
+            return;
+        }
+
+        homeReconhecimento = new SpeechRecognitionAPI();
+        homeReconhecimento.lang = 'pt-BR';
+        homeReconhecimento.interimResults = false;
+        homeReconhecimento.maxAlternatives = 1;
+
+        homeReconhecimento.onstart = () => { 
+            homeGravando = true; 
+            btn.classList.add('gravando');
+            mostrarToast('🎤 Gravando... Fale agora!');
+        };
+        
+        homeReconhecimento.onend = () => { 
+            homeGravando = false; 
+            btn.classList.remove('gravando');
+        };
+        
+        homeReconhecimento.onerror = (event) => { 
+            homeGravando = false; 
+            btn.classList.remove('gravando');
+            if (event.error === 'not-allowed') {
+                mostrarToast('Permita o acesso ao microfone!');
+            }
+        };
+        
+        homeReconhecimento.onresult = (event) => {
+            const texto = event.results[0][0].transcript;
+            const input = document.getElementById('searchInput');
+            input.value = (input.value ? input.value + ' ' : '') + texto;
+            input.focus();
+        };
+
+        homeReconhecimento.start();
+    }
+
     // ═══════════════ INICIALIZAÇÃO ═══════════════
     document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('searchInput').focus();
         document.getElementById('wppLinkBottom').href = `https://wa.me/${WHATSAPP}`;
         document.getElementById('chatOverlay').addEventListener('click', e => {
-            if (e.target === this) fecharChat();
+            if (e.target === document.getElementById('chatOverlay')) fecharChat();
         });
         window.addEventListener('beforeunload', stopPolling);
         document.addEventListener('visibilitychange', () => {
@@ -614,7 +924,7 @@
         document.getElementById('chatMessages').innerHTML = '';
         if (tipo === 'atendente') {
             addMessage('atendente-msg', resposta);
-            enviarMensagemParaServidor(resposta);  // envia via pipeline
+            enviarMensagemParaServidor(resposta);
         } else {
             addMessage('ai', resposta + botoesResposta());
         }
@@ -636,12 +946,32 @@
     function iniciarJornada() {
         const input = document.getElementById('searchInput');
         const query = input.value.trim();
-        if (!query) { input.placeholder = 'Digite sua dúvida...'; return; }
+        const anexo = homeArquivoStaged;
+        
+        if (!query && !anexo) { 
+            input.placeholder = 'Digite sua dúvida ou anexe algo...'; 
+            return; 
+        }
+        
         switchChatMode('ia');
         abrirChat();
         document.getElementById('chatMessages').innerHTML = '';
-        addMessage('ai', `Vi que você perguntou: "${query}". Deixa eu te ajudar...`);
-        setTimeout(() => enviarMensagemParaServidor(query), 800);
+        
+        if (anexo) {
+            if (anexo.tipo.startsWith('image/')) {
+                addImageMessage('user', anexo.base64);
+            } else {
+                addDocumentMessage('user', anexo.nome);
+            }
+            homeArquivoStaged = null;
+            document.getElementById('homePreviewStrip').style.display = 'none';
+        }
+        
+        if (query) {
+            addMessage('ai', `Vi que você perguntou: "${query}". Deixa eu te ajudar...`);
+        }
+        
+        setTimeout(() => enviarMensagemParaServidor(query, anexo), 800);
         input.value = '';
     }
 
@@ -653,67 +983,52 @@
         stopPolling();
     }
 
-    let imagemStagedBase64 = null;
-
-    async function enviarMensagem() {
-        if (isProcessing) return;
-        const input = document.getElementById('chatInput');
-        const query = input.value.trim();
-        if (!query && !imagemStagedBase64) return;
-
-        if (imagemStagedBase64) addImageMessage('user', imagemStagedBase64);
-        if (query) addMessage('user', query);
-
-        input.value = '';
-        const imagemParaEnviar = imagemStagedBase64;
-        removerImagemStaged();
-        // Sempre envia pela pipeline do servidor (salvar no Drive)
-        await enviarMensagemParaServidor(query, imagemParaEnviar);
-    }
-
-    function onImagemSelecionada(event) {
+    // ═══════════════ ANEXO DE ARQUIVOS ═══════════════
+    function onArquivoSelecionado(event) {
         const file = event.target.files[0];
         if (!file) return;
-        if (!file.type.startsWith('image/')) { mostrarToast('Selecione um arquivo de imagem'); return; }
-
+        
+        // Verifica tamanho máximo (10MB)
+        if (file.size > 10 * 1024 * 1024) {
+            mostrarToast('Arquivo muito grande! Máximo 10MB');
+            event.target.value = '';
+            return;
+        }
+        
         const reader = new FileReader();
         reader.onload = (e) => {
-            const img = new Image();
-            img.onload = () => {
-                // Redimensiona/comprime no navegador antes de enviar - imagem de
-                // celular pode vir com vários MB, e isso vira base64 gigante no
-                // Drive/Apps Script sem necessidade nenhuma.
-                const MAX_LARGURA = 1000;
-                const escala = Math.min(1, MAX_LARGURA / img.width);
-                const canvas = document.createElement('canvas');
-                canvas.width = img.width * escala;
-                canvas.height = img.height * escala;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                imagemStagedBase64 = canvas.toDataURL('image/jpeg', 0.72);
-
-                document.getElementById('imgPreviewThumb').src = imagemStagedBase64;
-                document.getElementById('imgPreviewStrip').style.display = 'flex';
+            arquivoStaged = {
+                base64: e.target.result,
+                tipo: file.type,
+                nome: file.name,
+                tamanho: file.size
             };
-            img.src = e.target.result;
+            
+            // Mostra preview
+            if (file.type.startsWith('image/')) {
+                document.getElementById('imgPreviewThumb').src = e.target.result;
+                document.getElementById('imgPreviewThumb').style.display = 'block';
+                document.getElementById('imgPreviewName').textContent = file.name;
+            } else {
+                document.getElementById('imgPreviewThumb').style.display = 'none';
+                document.getElementById('imgPreviewName').textContent = `📄 ${file.name}`;
+            }
+            document.getElementById('imgPreviewStrip').style.display = 'flex';
+            
+            mostrarToast(`📎 ${file.name} anexado!`);
         };
         reader.readAsDataURL(file);
         event.target.value = '';
     }
-
-    function removerImagemStaged() {
-        imagemStagedBase64 = null;
+    
+    function removerAnexoStaged() {
+        arquivoStaged = null;
         document.getElementById('imgPreviewStrip').style.display = 'none';
         document.getElementById('imgPreviewThumb').src = '';
+        document.getElementById('imgPreviewName').textContent = '';
     }
 
-    // ═══════════ MICROFONE (fala → texto) ═══════════
-    // Transcreve no navegador e só envia TEXTO pela pipeline já existente -
-    // assim funciona com qualquer IA (DeepSeek, Dola, futuras) sem precisar
-    // que a automação de tela saiba lidar com áudio.
-    let reconhecimentoVoz = null;
-    let gravandoVoz = false;
-
+    // ═══════════════ MICROFONE (ÁUDIO → TEXTO) ═══════════════
     function toggleMic() {
         const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognitionAPI) {
@@ -723,54 +1038,126 @@
         const btn = document.getElementById('btnMic');
 
         if (gravandoVoz) {
+            // Para a gravação
             reconhecimentoVoz && reconhecimentoVoz.stop();
             return;
         }
 
+        // Inicia a gravação
         reconhecimentoVoz = new SpeechRecognitionAPI();
         reconhecimentoVoz.lang = 'pt-BR';
-        reconhecimentoVoz.interimResults = false;
+        reconhecimentoVoz.interimResults = true; // Mostra resultado parcial
         reconhecimentoVoz.maxAlternatives = 1;
+        reconhecimentoVoz.continuous = false;
 
-        reconhecimentoVoz.onstart = () => { gravandoVoz = true; btn.classList.add('gravando'); };
-        reconhecimentoVoz.onend = () => { gravandoVoz = false; btn.classList.remove('gravando'); };
-        reconhecimentoVoz.onerror = () => { gravandoVoz = false; btn.classList.remove('gravando'); };
+        reconhecimentoVoz.onstart = () => { 
+            gravandoVoz = true; 
+            btn.classList.add('gravando');
+            btn.title = 'Gravando... clique para parar';
+            mostrarToast('🎤 Gravando... Fale agora!');
+        };
+        
+        reconhecimentoVoz.onend = () => { 
+            gravandoVoz = false; 
+            btn.classList.remove('gravando');
+            btn.title = 'Gravar áudio';
+        };
+        
+        reconhecimentoVoz.onerror = (event) => { 
+            gravandoVoz = false; 
+            btn.classList.remove('gravando');
+            btn.title = 'Gravar áudio';
+            console.log('Erro no microfone:', event.error);
+            if (event.error === 'not-allowed') {
+                mostrarToast('Permita o acesso ao microfone!');
+            }
+        };
+        
         reconhecimentoVoz.onresult = (event) => {
-            const texto = event.results[0][0].transcript;
+            let texto = '';
+            // Pega todos os resultados (incluindo parciais)
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                texto += event.results[i][0].transcript;
+            }
+            
             const input = document.getElementById('chatInput');
-            input.value = (input.value ? input.value + ' ' : '') + texto;
+            // Se já tem texto, adiciona espaço
+            if (input.value && texto) {
+                input.value = input.value + ' ' + texto;
+            } else {
+                input.value = texto;
+            }
+            
+            // Se for resultado final, foca no input
+            if (event.results[0].isFinal) {
+                input.focus();
+            }
         };
 
         reconhecimentoVoz.start();
     }
 
-    async function enviarMensagemParaServidor(mensagem, imagemBase64 = null) {
+    // ═══════════════ ENVIO DE MENSAGEM ═══════════════
+    async function enviarMensagem() {
+        if (isProcessing) return;
+        const input = document.getElementById('chatInput');
+        const texto = input.value.trim();
+        
+        // Se não tem texto nem arquivo, não envia
+        if (!texto && !arquivoStaged) return;
+
+        // Mostra a mensagem no chat
+        if (arquivoStaged) {
+            if (arquivoStaged.tipo.startsWith('image/')) {
+                addImageMessage('user', arquivoStaged.base64);
+            } else {
+                addDocumentMessage('user', arquivoStaged.nome);
+            }
+        }
+        if (texto) {
+            addMessage('user', texto);
+        }
+
+        input.value = '';
+        const arquivoParaEnviar = arquivoStaged;
+        removerAnexoStaged();
+        
+        // Envia para o servidor
+        await enviarMensagemParaServidor(texto, arquivoParaEnviar);
+    }
+
+    async function enviarMensagemParaServidor(mensagem, arquivo = null) {
         isProcessing = true;
         document.getElementById('chatSendBtn').disabled = true;
         showTyping();
         
-        // 1. Salva a mensagem no Google Drive
         console.log('📤 Enviando mensagem para o Drive...');
         const payload = {
             leadId: sessionId,
-            nomeLead: 'Visitante',
+            nomeLead: usuarioLogado?.nome || 'Visitante',
             de: 'lead',
-            texto: mensagem || (imagemBase64 ? '📷 Imagem enviada' : ''),
-            mensagem: mensagem || (imagemBase64 ? '📷 Imagem enviada' : '')
+            texto: mensagem || (arquivo ? `📎 ${arquivo.nome}` : ''),
+            mensagem: mensagem || (arquivo ? `📎 ${arquivo.nome}` : '')
         };
-        if (imagemBase64) payload.imagem = imagemBase64;
+        
+        // Adiciona arquivo se existir
+        if (arquivo) {
+            payload.arquivo = {
+                base64: arquivo.base64,
+                tipo: arquivo.tipo,
+                nome: arquivo.nome
+            };
+        }
 
         const saveData = await callAPI('saveChatAtendente', payload, 'POST');
-
         console.log('📥 Resposta do save:', saveData);
 
-        // Atualiza o sessionId
         if (saveData.result && saveData.result.leadId && saveData.result.leadId !== sessionId) {
             console.log('🆔 ID atualizado:', sessionId, '→', saveData.result.leadId);
             sessionId = saveData.result.leadId;
         }
 
-        // 2. Aguarda a resposta com polling
+        // Aguarda resposta com polling
         let resposta = null;
         let respostaEncontrada = false;
 
@@ -779,39 +1166,28 @@
             
             try {
                 const pollData = await callAPI('getChatAtendente', { leadId: sessionId }, 'GET');
-                console.log(`📡 Polling ${i+1}/30:`, pollData.status, '| sessionId:', sessionId);
+                console.log(`📡 Polling ${i+1}/30:`, pollData.status);
                 
                 if (pollData.conversas && pollData.conversas[sessionId]) {
                     const msgs = pollData.conversas[sessionId].mensagens || [];
-                    console.log(`   📨 ${msgs.length} mensagens na conversa`);
-                    
-                    // 🔍 DEBUG: Mostra cada mensagem
-                    msgs.forEach((m, idx) => {
-                        console.log(`   📝 Msg ${idx+1}: de="${m.de}", texto="${m.texto?.substring(0, 40)}..."`);
-                    });
-                    
-                    // 🔥 CORREÇÃO: Pega a ÚLTIMA mensagem que NÃO é do lead
                     const mensagensAtendente = msgs.filter(m => m.de !== 'lead');
                     
                     if (mensagensAtendente.length > 0 && !respostaEncontrada) {
-                        // Pega a última resposta do atendente
                         resposta = mensagensAtendente[mensagensAtendente.length - 1].texto;
                         respostaEncontrada = true;
-                        console.log('✅ Resposta encontrada! Texto:', resposta?.substring(0, 50));
+                        console.log('✅ Resposta encontrada!');
                         break;
                     }
-                } else {
-                    console.log('   ⚠️ Nenhuma conversa encontrada para este sessionId');
                 }
             } catch (e) {
-                console.log('   ❌ Erro no polling:', e.message);
+                console.log('Erro no polling:', e.message);
             }
         }
 
         removeTyping();
 
         if (resposta && resposta.trim().length > 0) {
-            console.log('🎯 Exibindo resposta:', resposta.substring(0, 50));
+            console.log('🎯 Exibindo resposta');
             if (chatMode === 'ia') {
                 addMessage('ai', resposta + botoesResposta());
             } else {
@@ -819,7 +1195,7 @@
             }
         } else {
             console.log('⚠️ Timeout - usando fallback local');
-            const fallback = gerarRespostaLocal(mensagem);
+            const fallback = gerarRespostaLocal(mensagem || '');
             if (chatMode === 'ia') {
                 addMessage('ai', fallback + botoesResposta());
             } else {
@@ -832,7 +1208,7 @@
         document.getElementById('chatInput').focus();
     }
 
-    // ═══════════════ POLLING CONTÍNUO (modo atendente ou IA) ═══════════════
+    // ═══════════════ POLLING CONTÍNUO ═══════════════
     function startPolling() { 
         stopPolling(); 
         pollingInterval = setInterval(pollRespostas, 5000); 
@@ -848,15 +1224,12 @@
             const data = await callAPI('getChatAtendente', { leadId: sessionId }, 'GET');
             if (data.conversas && data.conversas[sessionId]) {
                 const msgs = data.conversas[sessionId].mensagens || [];
-                
-                // Filtra mensagens que NÃO são do lead (são respostas)
                 const mensagensAtendente = msgs.filter(m => m.de !== 'lead');
                 
                 if (mensagensAtendente.length > 0) {
                     const ultimaResposta = mensagensAtendente[mensagensAtendente.length - 1];
                     
                     if (chatMode === 'atendente') {
-                        // Verifica se já foi exibida (evita duplicação)
                         const msgElements = document.querySelectorAll('.message.atendente-msg');
                         let jaExibida = false;
                         msgElements.forEach(el => {
@@ -868,7 +1241,6 @@
                             addMessage('atendente-msg', ultimaResposta.texto);
                         }
                     } else {
-                        // Modo IA: mostra notificação
                         document.getElementById('newMsgNotification').classList.add('show');
                         document.getElementById('newMsgNotification').textContent = '📩 Nova resposta! Clique para ver';
                     }
@@ -908,6 +1280,14 @@
         img.className = 'msg-imagem';
         img.src = base64src;
         d.appendChild(img);
+        c.appendChild(d); c.scrollTop = c.scrollHeight;
+    }
+    
+    function addDocumentMessage(tipo, nomeArquivo) {
+        const c = document.getElementById('chatMessages');
+        const d = document.createElement('div');
+        d.className = `message ${tipo === 'atendente-msg' ? 'atendente-msg' : (tipo === 'user' ? 'user' : 'ai')}`;
+        d.innerHTML = `<div class="msg-documento">📄 ${nomeArquivo}</div>`;
         c.appendChild(d); c.scrollTop = c.scrollHeight;
     }
 
