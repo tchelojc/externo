@@ -107,13 +107,21 @@
         .typing-dot:nth-child(3) { animation-delay: 0.4s; }
         @keyframes bounce { 0%,60%,100%{transform:translateY(0);opacity:0.4;} 30%{transform:translateY(-8px);opacity:1;} }
 
-        .chat-input-area { display: flex; gap: 8px; padding: 1rem 1.2rem; border-top: 1px solid var(--border); }
+        .chat-input-area { display: flex; gap: 8px; padding: 1rem 1.2rem; border-top: 1px solid var(--border); align-items: center; }
         .chat-input { flex: 1; padding: 0.8rem 1rem; border-radius: 25px; border: 1px solid var(--border); background: var(--preto); color: var(--branco); font-family: 'Space Grotesk', sans-serif; font-size: 0.85rem; outline: none; }
         .chat-input:focus { border-color: var(--laranja); }
         .chat-input.atendente-input:focus { border-color: var(--azul); }
         .chat-send-btn { width: 44px; height: 44px; border-radius: 50%; border: none; background: linear-gradient(135deg, var(--laranja), #E04400); color: white; font-size: 1.2rem; cursor: pointer; flex-shrink: 0; transition: all 0.3s; }
         .chat-send-btn:hover { transform: scale(1.1); }
         .chat-send-btn:disabled { opacity: 0.5; }
+        .chat-icon-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: var(--preto); color: var(--cinza-claro); font-size: 1.05rem; cursor: pointer; flex-shrink: 0; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+        .chat-icon-btn:hover { border-color: var(--laranja); color: var(--laranja); }
+        .chat-icon-btn.gravando { border-color: #FF4444; color: #FF4444; animation: pulseGravando 1s infinite; }
+        @keyframes pulseGravando { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+        .img-preview-strip { display: flex; align-items: center; gap: 8px; padding: 0 1.2rem; }
+        .img-preview-strip img { height: 54px; border-radius: 8px; border: 1px solid var(--border); }
+        .img-preview-remove { background: #FF4444; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 0.7rem; cursor: pointer; line-height: 1; }
+        .message img.msg-imagem { max-width: 220px; border-radius: 10px; display: block; margin-top: 4px; }
         .chat-send-btn.atendente-send { background: linear-gradient(135deg, var(--azul), #357ABD); }
 
         .always-wpp { text-align: center; padding: 0.5rem; font-size: 0.75rem; color: var(--cinza); border-top: 1px solid var(--border); }
@@ -343,7 +351,14 @@
             </div>
 
             <div class="chat-messages" id="chatMessages"></div>
+            <div class="img-preview-strip" id="imgPreviewStrip" style="display:none;">
+                <img id="imgPreviewThumb" src="" alt="Imagem selecionada">
+                <button class="img-preview-remove" onclick="removerImagemStaged()">✕</button>
+            </div>
             <div class="chat-input-area">
+                <input type="file" id="imgInput" accept="image/*" style="display:none" onchange="onImagemSelecionada(event)">
+                <button class="chat-icon-btn" id="btnImagem" title="Enviar imagem" onclick="document.getElementById('imgInput').click()">📷</button>
+                <button class="chat-icon-btn" id="btnMic" title="Falar" onclick="toggleMic()">🎤</button>
                 <input type="text" class="chat-input" id="chatInput" placeholder="Digite sua mensagem..." onkeydown="if(event.key==='Enter')enviarMensagem()" />
                 <button class="chat-send-btn" onclick="enviarMensagem()" id="chatSendBtn">➤</button>
             </div>
@@ -638,31 +653,114 @@
         stopPolling();
     }
 
+    let imagemStagedBase64 = null;
+
     async function enviarMensagem() {
         if (isProcessing) return;
         const input = document.getElementById('chatInput');
         const query = input.value.trim();
-        if (!query) return;
-        addMessage('user', query);
+        if (!query && !imagemStagedBase64) return;
+
+        if (imagemStagedBase64) addImageMessage('user', imagemStagedBase64);
+        if (query) addMessage('user', query);
+
         input.value = '';
+        const imagemParaEnviar = imagemStagedBase64;
+        removerImagemStaged();
         // Sempre envia pela pipeline do servidor (salvar no Drive)
-        await enviarMensagemParaServidor(query);
+        await enviarMensagemParaServidor(query, imagemParaEnviar);
     }
 
-    async function enviarMensagemParaServidor(mensagem) {
+    function onImagemSelecionada(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) { mostrarToast('Selecione um arquivo de imagem'); return; }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                // Redimensiona/comprime no navegador antes de enviar - imagem de
+                // celular pode vir com vários MB, e isso vira base64 gigante no
+                // Drive/Apps Script sem necessidade nenhuma.
+                const MAX_LARGURA = 1000;
+                const escala = Math.min(1, MAX_LARGURA / img.width);
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width * escala;
+                canvas.height = img.height * escala;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                imagemStagedBase64 = canvas.toDataURL('image/jpeg', 0.72);
+
+                document.getElementById('imgPreviewThumb').src = imagemStagedBase64;
+                document.getElementById('imgPreviewStrip').style.display = 'flex';
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+        event.target.value = '';
+    }
+
+    function removerImagemStaged() {
+        imagemStagedBase64 = null;
+        document.getElementById('imgPreviewStrip').style.display = 'none';
+        document.getElementById('imgPreviewThumb').src = '';
+    }
+
+    // ═══════════ MICROFONE (fala → texto) ═══════════
+    // Transcreve no navegador e só envia TEXTO pela pipeline já existente -
+    // assim funciona com qualquer IA (DeepSeek, Dola, futuras) sem precisar
+    // que a automação de tela saiba lidar com áudio.
+    let reconhecimentoVoz = null;
+    let gravandoVoz = false;
+
+    function toggleMic() {
+        const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognitionAPI) {
+            mostrarToast('Seu navegador não suporta reconhecimento de voz');
+            return;
+        }
+        const btn = document.getElementById('btnMic');
+
+        if (gravandoVoz) {
+            reconhecimentoVoz && reconhecimentoVoz.stop();
+            return;
+        }
+
+        reconhecimentoVoz = new SpeechRecognitionAPI();
+        reconhecimentoVoz.lang = 'pt-BR';
+        reconhecimentoVoz.interimResults = false;
+        reconhecimentoVoz.maxAlternatives = 1;
+
+        reconhecimentoVoz.onstart = () => { gravandoVoz = true; btn.classList.add('gravando'); };
+        reconhecimentoVoz.onend = () => { gravandoVoz = false; btn.classList.remove('gravando'); };
+        reconhecimentoVoz.onerror = () => { gravandoVoz = false; btn.classList.remove('gravando'); };
+        reconhecimentoVoz.onresult = (event) => {
+            const texto = event.results[0][0].transcript;
+            const input = document.getElementById('chatInput');
+            input.value = (input.value ? input.value + ' ' : '') + texto;
+        };
+
+        reconhecimentoVoz.start();
+    }
+
+    async function enviarMensagemParaServidor(mensagem, imagemBase64 = null) {
         isProcessing = true;
         document.getElementById('chatSendBtn').disabled = true;
         showTyping();
         
         // 1. Salva a mensagem no Google Drive
         console.log('📤 Enviando mensagem para o Drive...');
-        const saveData = await callAPI('saveChatAtendente', {
+        const payload = {
             leadId: sessionId,
             nomeLead: 'Visitante',
             de: 'lead',
-            texto: mensagem,
-            mensagem: mensagem
-        }, 'POST');
+            texto: mensagem || (imagemBase64 ? '📷 Imagem enviada' : ''),
+            mensagem: mensagem || (imagemBase64 ? '📷 Imagem enviada' : '')
+        };
+        if (imagemBase64) payload.imagem = imagemBase64;
+
+        const saveData = await callAPI('saveChatAtendente', payload, 'POST');
 
         console.log('📥 Resposta do save:', saveData);
 
@@ -799,6 +897,17 @@
         const d = document.createElement('div');
         d.className = `message ${tipo === 'atendente-msg' ? 'atendente-msg' : (tipo === 'user' ? 'user' : 'ai')}`;
         d.innerHTML = texto.replace(/\n/g, '<br>');
+        c.appendChild(d); c.scrollTop = c.scrollHeight;
+    }
+
+    function addImageMessage(tipo, base64src) {
+        const c = document.getElementById('chatMessages');
+        const d = document.createElement('div');
+        d.className = `message ${tipo === 'atendente-msg' ? 'atendente-msg' : (tipo === 'user' ? 'user' : 'ai')}`;
+        const img = document.createElement('img');
+        img.className = 'msg-imagem';
+        img.src = base64src;
+        d.appendChild(img);
         c.appendChild(d); c.scrollTop = c.scrollHeight;
     }
 
