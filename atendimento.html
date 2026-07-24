@@ -589,6 +589,26 @@
         .drive-error-btn:hover {
             background: rgba(255,76,0,0.15);
         }
+        #driveInlineWrapper {
+            flex: 1;
+            overflow-y: auto;
+            background: #0a0a0a;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+            margin-top: 0;
+        }
+        #driveInlineContent {
+            width: 100%;
+            max-width: 680px;
+            margin: 0 auto;
+            background: transparent;
+            position: relative;
+        }
     </style>
 </head>
 <body translate="no">
@@ -739,12 +759,12 @@
             <button class="drive-error-btn" onclick="tentarNovamenteDrive()">🔄 Tentar novamente</button>
             <button class="drive-error-btn" onclick="fecharDrivePage()" style="margin-top:8px;">⬅ Voltar ao início</button>
         </div>
-        <iframe class="drive-iframe" id="driveIframe" src="" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"></iframe>
-    </div>
+        <iframe class="drive-iframe" id="driveIframe" src="" sandbox="allow-scripts allow-forms allow-popups allow-downloads allow-top-navigation"></iframe>    </div>
     <script>
     // ═══════════════ CONFIGURAÇÃO ═══════════════
     const WHATSAPP = "5521981533928";
-    const API = "https://almafluxo.uk/proxy/r5fit";
+    const API = "http://localhost:8080/api";
+    const LOCAL = "http://localhost:8080";
 
     let isProcessing = false;
     let sessionId = "user_" + Date.now();
@@ -791,6 +811,14 @@
         
         if (data.result && data.result.autenticado) {
             usuarioLogado = data.result.usuario;
+            
+            // 🔥 SALVA NO LOCALSTORAGE PARA O HOME.HTML ACESSAR
+            localStorage.setItem('r5fit_usuario', JSON.stringify({
+                id: usuarioLogado.id,
+                nome: usuarioLogado.nome,
+                email: usuarioLogado.email
+            }));
+            
             console.log('✅ Login bem-sucedido:', usuarioLogado.nome);
             
             fecharModalLogin();
@@ -813,15 +841,22 @@
     }
 
     function fazerLogout() {
+        // 🔥 LIMPA DADOS DO LOCALSTORAGE
+        localStorage.removeItem('r5fit_usuario');
+        localStorage.removeItem('rosa_cliente_data');
+        
         usuarioLogado = null;
         document.getElementById('btnAbrirLogin').style.display = 'inline-block';
         document.getElementById('userNameDisplay').style.display = 'none';
         document.getElementById('btnLogout').style.display = 'none';
-        mostrarToast('Logout realizado!');
+        
+        fecharDrivePage();
         
         if (document.getElementById('chatOverlay').classList.contains('active')) {
             fecharChat();
         }
+        
+        mostrarToast('Até logo! 👋');
     }
 
     // ═══════════════ CARREGAR PÁGINA DO GOOGLE DRIVE ═══════════════
@@ -862,107 +897,253 @@
         }
     }
 
-    // 🔥 Renderiza HTML inline com centralização e toolbar oculta
     function renderHtmlInline(htmlContent) {
         const container = document.getElementById('drivePageContainer');
         
-        // 🔥 ESCONDE A TOOLBAR quando o conteúdo inline é renderizado
+        // 🔥 ESCONDE A TOOLBAR
         const toolbar = container.querySelector('.drive-toolbar');
-        if (toolbar) {
-            toolbar.style.display = 'none';
-        }
+        if (toolbar) toolbar.style.display = 'none';
         
-        // Remove conteúdo antigo
+        // 🔥 Remove conteúdo antigo
         let inlineDiv = document.getElementById('driveInlineContent');
         if (inlineDiv) {
-            inlineDiv.remove();
+            inlineDiv.innerHTML = '';
+            inlineDiv.style.display = 'block';
+        } else {
+            let wrapper = document.getElementById('driveInlineWrapper');
+            if (!wrapper) {
+                wrapper = document.createElement('div');
+                wrapper.id = 'driveInlineWrapper';
+                wrapper.style.cssText = `
+                    position: absolute;
+                    inset: 0;
+                    overflow-y: auto;
+                    background: #0a0a0a;
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    align-items: flex-start;
+                    justify-content: center;
+                    padding: 20px;
+                    box-sizing: border-box;
+                    z-index: 10;
+                `;
+                container.appendChild(wrapper);
+            }
+            
+            inlineDiv = document.createElement('div');
+            inlineDiv.id = 'driveInlineContent';
+            inlineDiv.style.cssText = `
+                width: 100%;
+                max-width: 680px;
+                min-height: 100vh;
+                background: transparent;
+                position: relative;
+                color: #ece8f8;
+            `;
+            wrapper.appendChild(inlineDiv);
         }
         
-        // 🔥 Cria um wrapper para centralizar o conteúdo
-        const wrapper = document.createElement('div');
-        wrapper.id = 'driveInlineWrapper';
-        wrapper.style.cssText = `
-            flex:1;
-            overflow-y:auto;
-            background:#0a0a0a;
-            width:100%;
-            height:100%;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            padding:20px;
-            box-sizing:border-box;
-            margin-top:0;
-        `;
-        container.appendChild(wrapper);
-        
-        // 🔥 Cria a div do conteúdo com as mesmas dimensões do original
-        inlineDiv = document.createElement('div');
-        inlineDiv.id = 'driveInlineContent';
-        inlineDiv.style.cssText = `
-            width:100%;
-            max-width:500px;
-            margin:0 auto;
-            background:transparent;
-            position:relative;
-        `;
-        wrapper.appendChild(inlineDiv);
-        
-        // 🔥 CORREÇÃO DEFINITIVA: Limpa o HTML
+        // 🔥 LIMPA O HTML
         let htmlLimpo = htmlContent;
-        
-        // 1. Remove caracteres de escape JSON
         htmlLimpo = htmlLimpo.replace(/\\"/g, '"');
         htmlLimpo = htmlLimpo.replace(/\\'/g, "'");
         htmlLimpo = htmlLimpo.replace(/\\n/g, '\n');
         htmlLimpo = htmlLimpo.replace(/\\r/g, '');
         htmlLimpo = htmlLimpo.replace(/\\t/g, '');
         
-        // 2. 🔥 CORRIGE IMAGENS MALFORMADAS
+        // 🔥 Remove topbar duplicada
+        htmlLimpo = htmlLimpo.replace(/<div class="topbar">[\s\S]*?<\/div>/gi, '');
+        
+        // 🔥 Remove "Sair" duplicado
+        htmlLimpo = htmlLimpo.replace(/<button[^>]*onclick="logout\(\)"[^>]*>Sair<\/button>/gi, '');
+        
+        // 🔥 Corrige imagens malformadas
         htmlLimpo = htmlLimpo.replace(/<img\s+src="\s*<img\s+src="([^"]+)"[^>]*>/gi, function(match, src) {
             const base64Match = src.match(/(data:image\/[^"']+)/);
             if (base64Match) {
                 return `<img src="${base64Match[1]}" style="max-width:100%;height:auto;display:block;margin:0 auto;">`;
             }
-            return match;
+            return '';
         });
-        
-        // 3. Remove tags com src vazio
         htmlLimpo = htmlLimpo.replace(/<img[^>]*src=["']\s*["'][^>]*>/gi, '');
         htmlLimpo = htmlLimpo.replace(/<img[^>]*src=["']\s*<[^>]+>[^>]*>/gi, '');
         
-        // 4. Corrige imagens com src duplicado
-        htmlLimpo = htmlLimpo.replace(/src="\s*<img\s+src="([^"]+)"/gi, 'src="$1"');
+        // 🔥 INSERE HTML LIMPO
+        inlineDiv.innerHTML = htmlLimpo;
         
-        // 5. Remove URLs relativas
-        htmlLimpo = htmlLimpo.replace(/src=["']\/(?!\/)[^"']*["']/gi, 'src=""');
+        // 🔥 CORRIGE "guerreiro" → "atleta"
+        const welcomeEl = inlineDiv.querySelector('#welcomeName');
+        if (welcomeEl) {
+            welcomeEl.textContent = welcomeEl.textContent.replace(/guerreir[oa]/gi, 'atleta');
+        }
         
-        // 🔥 Insere o HTML limpo
-        inlineDiv.insertAdjacentHTML('beforeend', htmlLimpo);
+        // 🔥 CORRIGE "Carregando..." na topbar
+        const usuarioStorage = JSON.parse(localStorage.getItem('r5fit_usuario') || '{}');
+        const topbarUserEl = inlineDiv.querySelector('#topbarUserName');
+        if (topbarUserEl && usuarioStorage.nome) {
+            topbarUserEl.textContent = '👤 ' + usuarioStorage.nome;
+        }
         
-        // 🔥 Reexecuta scripts manualmente
+        // 🔥 Timeout de segurança para "Carregando..."
+        setTimeout(() => {
+            const topbarEl = inlineDiv.querySelector('#topbarUserName');
+            if (topbarEl && (topbarEl.textContent.includes('Carregando') || topbarEl.textContent.includes('.'))) {
+                topbarEl.textContent = '👤 ' + (usuarioStorage.nome || 'Atleta');
+            }
+        }, 5000);
+        
+        // 🔥 ADICIONA CAMPOS EDITÁVEIS
+        adicionarCamposEditaveis(inlineDiv);
+        
+        // 🔥 CORRIGE NAVEGAÇÃO
+        corrigirNavegacao(inlineDiv);
+        
+        // 🔥 REEXECUTA SCRIPTS (com proteção contra redeclaração)
         const scripts = inlineDiv.querySelectorAll('script');
         scripts.forEach(script => {
+            const scriptContent = script.textContent;
+            // Remove declarações de const/let que já existem no escopo global
+            const safeContent = scriptContent
+                .replace(/const LOCAL = ['"]http:\/\/localhost:8080['"];/g, '// LOCAL já declarado')
+                .replace(/let clienteData = null;/g, '// clienteData já declarado')
+                .replace(/let usuarioLogado = null;/g, '// usuarioLogado já declarado (reaproveita do atendimento.html)');
+            
             const newScript = document.createElement('script');
-            newScript.textContent = script.textContent;
+            newScript.textContent = safeContent;
             script.remove();
             document.body.appendChild(newScript);
             setTimeout(() => {
                 if (newScript.parentNode) newScript.remove();
-            }, 50);
+            }, 100);
         });
         
-        // Esconde o iframe
+        // Esconde iframe
         const iframe = document.getElementById('driveIframe');
-        if (iframe) {
-            iframe.style.display = 'none';
-        }
+        if (iframe) iframe.style.display = 'none';
         
-        console.log('✅ HTML inline renderizado com sucesso!');
-        mostrarToast('Página interna carregada!');
+        console.log('✅ HTML inline renderizado com correções!');
     }
 
-    // 🔥 Fechar página do Drive e voltar
+    // 🔥 Adicionar campos editáveis para dados faltantes
+    function adicionarCamposEditaveis(container) {
+        const resumoGrid = container.querySelector('#resumoGrid') || container.querySelector('.resumo-grid');
+        if (!resumoGrid) return;
+        
+        const cards = resumoGrid.querySelectorAll('.resumo-card');
+        cards.forEach(card => {
+            const valorEl = card.querySelector('.resumo-valor');
+            const labelEl = card.querySelector('.resumo-label');
+            
+            if (valorEl && (valorEl.textContent === '—' || valorEl.textContent.trim() === '')) {
+                valorEl.contentEditable = 'true';
+                valorEl.style.cursor = 'text';
+                valorEl.style.borderBottom = '1px dashed var(--gold)';
+                valorEl.style.padding = '2px 4px';
+                valorEl.title = 'Clique para editar';
+                
+                valorEl.addEventListener('blur', function() {
+                    const novoValor = this.textContent.trim();
+                    if (novoValor && novoValor !== '—') {
+                        this.style.borderBottom = '1px solid var(--verde)';
+                        this.style.color = 'var(--verde)';
+                        salvarDadoCliente(labelEl ? labelEl.textContent : '', novoValor);
+                    }
+                });
+                
+                valorEl.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        this.blur();
+                    }
+                });
+            }
+        });
+    }
+    
+    // 🔥 Salvar dado editado
+    async function salvarDadoCliente(label, valor) {
+        const usuarioStorage = JSON.parse(localStorage.getItem('r5fit_usuario') || '{}');
+        
+        const campoMap = {
+            'peso atual (kg)': 'peso_atual',
+            'tipo sanguíneo': 'tipo_sanguineo',
+            'meses de treino': 'data_inicio',
+            'objetivo': 'objetivo'
+        };
+        
+        const campo = campoMap[label.toLowerCase()] || label.toLowerCase().replace(/\s+/g, '_');
+        
+        try {
+            await fetch(`${LOCAL}/api?action=atualizarUsuario`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: usuarioStorage.id,
+                    [campo]: valor
+                })
+            });
+            mostrarToast('✅ Dado salvo!');
+        } catch (e) {
+            console.log('Salvo localmente');
+        }
+    }
+    
+    // 🔥 Corrigir navegação entre abas
+    function corrigirNavegacao(container) {
+        const links = container.querySelectorAll('a[href]');
+        links.forEach(link => {
+            const href = link.getAttribute('href');
+            if (href && !href.startsWith('http') && !href.startsWith('#') && !href.startsWith('javascript')) {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    carregarPaginaInterna(href);
+                });
+            }
+        });
+        
+        const navBtns = container.querySelectorAll('.nav-btn, [onclick]');
+        navBtns.forEach(btn => {
+            const onclickStr = btn.getAttribute('onclick') || '';
+            if (onclickStr.includes('logout')) {
+                btn.onclick = function(e) {
+                    e.preventDefault();
+                    fazerLogout();
+                };
+            } else if (onclickStr.includes('location.href') || onclickStr.includes('window.location')) {
+                const match = onclickStr.match(/['"]([^'"]+)['"]/);
+                btn.onclick = function(e) {
+                    e.preventDefault();
+                    if (match && match[1]) {
+                        carregarPaginaInterna(match[1]);
+                    }
+                };
+            }
+        });
+    }
+    
+    // 🔥 Carregar página interna mantendo contexto
+    async function carregarPaginaInterna(pagina) {
+        const loading = document.getElementById('driveLoading');
+        loading.classList.remove('hidden');
+        
+        try {
+            const response = await fetch(`http://localhost:8080/api?action=getArquivoDrive&arquivo=${encodeURIComponent(pagina)}`);
+            const data = await response.json();
+            
+            if (data.status === 'success' && data.html) {
+                loading.classList.add('hidden');
+                renderHtmlInline(data.html);
+                mostrarToast('Página carregada!');
+            } else {
+                throw new Error('Página não encontrada');
+            }
+        } catch (e) {
+            loading.classList.add('hidden');
+            mostrarToast('❌ Página não disponível');
+        }
+    }
+
     function fecharDrivePage() {
         const container = document.getElementById('drivePageContainer');
         const iframe = document.getElementById('driveIframe');
@@ -974,12 +1155,18 @@
         loading.classList.remove('hidden');
         error.classList.remove('show');
         
+        // 🔥 RESTAURA A TOOLBAR para próxima abertura
+        const toolbar = container.querySelector('.drive-toolbar');
+        if (toolbar) toolbar.style.display = 'flex';
+        
+        // Remove wrapper inline
+        const wrapper = document.getElementById('driveInlineWrapper');
+        if (wrapper) wrapper.remove();
+        
         // Limpa conteúdo inline se existir
         const inlineDiv = document.getElementById('driveInlineContent');
-        if (inlineDiv) {
-            inlineDiv.style.display = 'none';
-            inlineDiv.innerHTML = '';
-        }
+        if (inlineDiv) inlineDiv.remove();
+        
         document.getElementById('driveIframe').style.display = '';
         
         // Volta para home
@@ -993,13 +1180,6 @@
     function tentarNovamenteDrive() {
         carregarHomePage();
     }
-
-    // 🔥 Atualizar função fazerLogout para fechar Drive também
-    const fazerLogoutOriginal = fazerLogout;
-    fazerLogout = function() {
-        fecharDrivePage();
-        fazerLogoutOriginal();
-    };
 
     document.addEventListener('click', function(e) {
         const modal = document.getElementById('loginModalOverlay');
@@ -1016,7 +1196,6 @@
 
     async function callAPI(action, data = {}, method = 'GET') {
         try {
-            // 🔥 SEMPRE usa o servidor local como proxy
             const url = `http://localhost:8080/api?action=${action}`;
             let options = { 
                 method, 
@@ -1027,10 +1206,10 @@
                 options.body = JSON.stringify({ action, ...data });
             }
             
-            console.log(`📡 ${method} ${action} → ${url}`);
+            console.log(`📡 ${method} ${action} → sessionId: ${data.leadId || '?'}`);
             const resp = await fetch(url, options);
             const json = await resp.json();
-            console.log(`📥 Resposta ${action}:`, json.status, json.message || '');
+            console.log(`📥 Resposta ${action}:`, json.status);
             return json;
             
         } catch (e) {
@@ -1145,7 +1324,6 @@
         });
     });
 
-    // ═══════════════ MODO CHAT ═══════════════
     function switchChatMode(mode) {
         chatMode = mode;
         document.getElementById('newMsgNotification').classList.remove('show');
@@ -1155,13 +1333,14 @@
         const ca = document.getElementById('chatAvatar');
         const ci = document.getElementById('chatInput');
         const cb = document.getElementById('chatSendBtn');
+        const subtitle = document.getElementById('chatSubtitle');
         
         if (mode === 'ia') {
             cw.classList.remove('atendente-mode'); ch.classList.remove('atendente-header');
             ca.classList.remove('atendente-avatar'); ca.textContent = '🤖';
-            document.getElementById('chatTitle').textContent = 'R5 Fit - Assistente IA';
-            document.getElementById('chatSubtitle').textContent = 'Respostas inteligentes (servidor)';
-            ci.classList.remove('atendente-input'); ci.placeholder = 'Digite sua mensagem...';
+            document.getElementById('chatTitle').textContent = 'R5 Fit · Assistente IA';
+            subtitle.textContent = 'IA · Respostas automáticas 24h';
+            ci.classList.remove('atendente-input'); ci.placeholder = 'Digite sua dúvida...';
             cb.classList.remove('atendente-send');
             document.getElementById('modeTabIA').classList.add('active-ia');
             document.getElementById('modeTabAtendente').classList.remove('active-atendente');
@@ -1169,9 +1348,9 @@
         } else {
             cw.classList.add('atendente-mode'); ch.classList.add('atendente-header');
             ca.classList.add('atendente-avatar'); ca.textContent = '👋';
-            document.getElementById('chatTitle').textContent = 'R5 Fit - Atendente';
-            document.getElementById('chatSubtitle').textContent = 'Equipe R5 - Jacarepaguá/RJ';
-            ci.classList.add('atendente-input'); ci.placeholder = 'Escreva para o atendente...';
+            document.getElementById('chatTitle').textContent = 'R5 Fit · Atendente';
+            subtitle.textContent = '🟢 Online · Seg-Sex 6h-22h, Sáb 8h-14h';
+            ci.classList.add('atendente-input'); ci.placeholder = 'Fale diretamente com nossa equipe...';
             cb.classList.add('atendente-send');
             document.getElementById('modeTabIA').classList.remove('active-ia');
             document.getElementById('modeTabAtendente').classList.add('active-atendente');
@@ -1242,6 +1421,14 @@
     }
 
     function fecharChat() {
+        // 🔥 Confirma antes de fechar se houver conversa ativa
+        const msgCount = document.getElementById('chatMessages').children.length;
+        if (msgCount > 1) {
+            if (!confirm('Tem certeza que deseja fechar o chat? Sua conversa será salva.')) {
+                return;
+            }
+        }
+        
         document.getElementById('chatOverlay').classList.remove('active');
         document.getElementById('homeContainer').classList.remove('chat-open');
         document.body.style.overflow = '';
@@ -1397,16 +1584,18 @@
         document.getElementById('chatSendBtn').disabled = true;
         showTyping();
         
-        console.log('📤 Enviando mensagem para o Drive...');
+        console.log('📤 Enviando mensagem. SessionId:', sessionId);
+        
         const payload = {
             leadId: sessionId,
             nomeLead: usuarioLogado?.nome || 'Visitante',
             de: 'lead',
             texto: mensagem || (arquivo ? `📎 ${arquivo.nome}` : ''),
-            mensagem: mensagem || (arquivo ? `📎 ${arquivo.nome}` : '')
+            mensagem: mensagem || (arquivo ? `📎 ${arquivo.nome}` : ''),
+            respondido_por_ia: false,
+            aguardando_atendente: chatMode === 'atendente'
         };
         
-        // Adiciona arquivo se existir
         if (arquivo) {
             payload.arquivo = {
                 base64: arquivo.base64,
@@ -1415,57 +1604,78 @@
             };
         }
 
+        // 🔥 PASSO 1: Salva no Drive
         const saveData = await callAPI('saveChatAtendente', payload, 'POST');
-        console.log('📥 Resposta do save:', saveData);
+        console.log('📥 Save result:', saveData);
 
-        if (saveData.result && saveData.result.leadId && saveData.result.leadId !== sessionId) {
-            console.log('🆔 ID atualizado:', sessionId, '→', saveData.result.leadId);
+        // 🔥 IMPORTANTE: Atualiza sessionId se o servidor devolveu um novo
+        if (saveData.result && saveData.result.leadId) {
             sessionId = saveData.result.leadId;
+            console.log('🆔 SessionId atualizado:', sessionId);
         }
 
-        // Aguarda resposta com polling
+        // 🔥 PASSO 2: Polling para resposta (máximo 60s)
         let resposta = null;
-        let respostaEncontrada = false;
+        let tentativas = 0;
+        const MAX_TENTATIVAS = 30;
 
-        // 🔥 Polling SEM limite - continua até encontrar resposta
-        while (!respostaEncontrada) {
+        while (!resposta && tentativas < MAX_TENTATIVAS) {
+            tentativas++;
             await new Promise(r => setTimeout(r, 2000));
             
             try {
+                // 🔥 Verifica o Drive pela conversa completa
                 const pollData = await callAPI('getChatAtendente', { leadId: sessionId }, 'GET');
-                console.log('📡 Polling...', pollData.status);
                 
                 if (pollData.conversas && pollData.conversas[sessionId]) {
                     const msgs = pollData.conversas[sessionId].mensagens || [];
-                    const mensagensAtendente = msgs.filter(m => m.de !== 'lead');
                     
-                    if (mensagensAtendente.length > 0) {
-                        resposta = mensagensAtendente[mensagensAtendente.length - 1].texto;
-                        respostaEncontrada = true;
-                        console.log('✅ Resposta encontrada!');
+                    // Filtra mensagens que NÃO são do lead (são respostas)
+                    const respostas = msgs.filter(m => m.de !== 'lead');
+                    
+                    if (respostas.length > 0) {
+                        const ultima = respostas[respostas.length - 1];
+                        
+                        // Verifica se é uma resposta NOVA (não duplicada)
+                        const msgElements = document.querySelectorAll('.message.ai, .message.atendente-msg');
+                        let jaExibida = false;
+                        msgElements.forEach(el => {
+                            if (el.textContent?.includes(ultima.texto?.substring(0, 30))) {
+                                jaExibida = true;
+                            }
+                        });
+                        
+                        if (!jaExibida && ultima.texto && ultima.texto.trim().length > 0) {
+                            resposta = ultima;
+                            console.log('✅ Resposta encontrada! Tentativa:', tentativas);
+                        }
                     }
                 }
             } catch (e) {
                 console.log('⚠️ Erro no polling:', e.message);
             }
+            
+            if (tentativas % 5 === 0) {
+                console.log(`⏳ Aguardando resposta... (${tentativas * 2}s)`);
+            }
         }
 
         removeTyping();
 
-        if (resposta && resposta.trim().length > 0) {
+        if (resposta && resposta.texto && resposta.texto.trim().length > 0) {
             console.log('🎯 Exibindo resposta');
-            if (chatMode === 'ia') {
-                addMessage('ai', resposta + botoesResposta());
+            if (chatMode === 'ia' || resposta.respondido_por_ia) {
+                addMessage('ai', resposta.texto + botoesResposta());
             } else {
-                addMessage('atendente-msg', resposta);
+                addMessage('atendente-msg', '👤 ' + resposta.texto);
             }
         } else {
-            console.log('⚠️ Timeout - usando fallback local');
+            console.log('⚠️ Timeout - usando fallback');
             const fallback = gerarRespostaLocal(mensagem || '');
             if (chatMode === 'ia') {
                 addMessage('ai', fallback + botoesResposta());
             } else {
-                addMessage('atendente-msg', fallback);
+                addMessage('atendente-msg', '📩 Mensagem recebida! Responderemos em breve.');
             }
         }
 
@@ -1486,29 +1696,48 @@
 
     async function pollRespostas() {
         if (!document.getElementById('chatOverlay').classList.contains('active')) return;
+        if (isProcessing) return; // 🔥 Não faz polling durante envio
+        
         try {
             const data = await callAPI('getChatAtendente', { leadId: sessionId }, 'GET');
             if (data.conversas && data.conversas[sessionId]) {
                 const msgs = data.conversas[sessionId].mensagens || [];
-                const mensagensAtendente = msgs.filter(m => m.de !== 'lead');
                 
-                if (mensagensAtendente.length > 0) {
-                    const ultimaResposta = mensagensAtendente[mensagensAtendente.length - 1];
+                // 🔥 Ordena por timestamp
+                const msgsOrdenadas = [...msgs].sort((a, b) => 
+                    new Date(a.timestamp) - new Date(b.timestamp)
+                );
+                
+                // 🔥 Filtra apenas respostas (não mensagens do lead)
+                const mensagensResposta = msgsOrdenadas.filter(m => m.de !== 'lead');
+                
+                if (mensagensResposta.length > 0) {
+                    const ultimaResposta = mensagensResposta[mensagensResposta.length - 1];
                     
                     if (chatMode === 'atendente') {
-                        const msgElements = document.querySelectorAll('.message.atendente-msg');
-                        let jaExibida = false;
-                        msgElements.forEach(el => {
-                            if (el.textContent?.includes(ultimaResposta.texto?.substring(0, 20))) {
-                                jaExibida = true;
+                        // Modo atendente: mostra respostas de humanos
+                        const respostasHumanas = mensagensResposta.filter(m => !m.respondido_por_ia);
+                        respostasHumanas.forEach(m => {
+                            const msgElements = document.querySelectorAll('.message.atendente-msg');
+                            let jaExibida = false;
+                            msgElements.forEach(el => {
+                                if (el.textContent?.includes(m.texto?.substring(0, 30))) {
+                                    jaExibida = true;
+                                }
+                            });
+                            if (!jaExibida) {
+                                addMessage('atendente-msg', '👤 ' + m.texto);
                             }
                         });
-                        if (!jaExibida) {
-                            addMessage('atendente-msg', ultimaResposta.texto);
-                        }
                     } else {
-                        document.getElementById('newMsgNotification').classList.add('show');
-                        document.getElementById('newMsgNotification').textContent = '📩 Nova resposta! Clique para ver';
+                        // Modo IA: notifica se houver resposta (IA ou humana)
+                        if (ultimaResposta.respondido_por_ia) {
+                            // Resposta da IA - já foi exibida no polling do envio
+                        } else {
+                            // Resposta humana durante modo IA
+                            document.getElementById('newMsgNotification').classList.add('show');
+                            document.getElementById('newMsgNotification').textContent = '📩 Nova resposta! Clique para ver';
+                        }
                     }
                 }
             }
