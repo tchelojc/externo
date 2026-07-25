@@ -884,8 +884,9 @@
         try {
             mostrarToast('Carregando página interna...');
             
-            // 🔥 Chama o servidor local que busca do Apps Script
-            const response = await fetch(`${LOCAL}?action=getHomePage`);
+            // 🔥 CORREÇÃO: Usa o servidor local para getHomePage
+            const response = await fetch(`${LOCAL_SERVER}/api?action=getHomePage`);
+            //                          ↑↑↑ Usa localhost:8080, não o proxy
             const data = await response.json();
             console.log('📄 Dados recebidos do servidor:', data);
             
