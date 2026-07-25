@@ -884,11 +884,12 @@
         try {
             mostrarToast('Carregando página interna...');
             
-            // 🔥 CORREÇÃO: LOCAL_SERVER não existia (variável nunca declarada) -
-            // toda chamada aqui disparava ReferenceError antes mesmo do fetch
-            // sair, caindo sempre na mensagem genérica de erro. Usa LOCAL (o
-            // proxy), igual todas as outras chamadas do arquivo.
-            const response = await fetch(`${LOCAL}/api?action=getHomePage`);
+            // 🔥 CORREÇÃO: usar POST com action no body (igual ao callAPI)
+            const response = await fetch(`${LOCAL}/api`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'getHomePage' })
+            });
             const data = await response.json();
             console.log('📄 Dados recebidos do servidor:', data);
             
