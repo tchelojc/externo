@@ -763,8 +763,17 @@
     <script>
     // ═══════════════ CONFIGURAÇÃO ═══════════════
     const WHATSAPP = "5521981533928";
-    const API = "http://localhost:8080/api";
-    const LOCAL = "http://localhost:8080";
+    // 🔥 Antes apontava pra localhost:8080, que só funciona no PC onde o
+    // servidor roda. atendimento.html é o widget PÚBLICO (visitante pode
+    // estar em qualquer lugar/qualquer rede), então precisa falar com o
+    // proxy Cloudflare do ALMAFLUXO, não com o servidor local. painel.html
+    // e servidor.py continuam em localhost normalmente - só isso aqui muda.
+    const URL_BACKEND = "proxy/r5fit";
+    const LOCAL = "https://almafluxo.uk/" + URL_BACKEND;
+    // ⚠️ Assumindo que a action vai direto em "?action=", sem "/api" no
+    // meio. Se der 404, troca a linha acima por:
+    // const LOCAL = "https://almafluxo.uk/" + URL_BACKEND + "/api";
+    const API = LOCAL;
 
     let isProcessing = false;
     let sessionId = "user_" + Date.now();
@@ -876,7 +885,7 @@
             mostrarToast('Carregando página interna...');
             
             // 🔥 Chama o servidor local que busca do Apps Script
-            const response = await fetch('http://localhost:8080/api?action=getHomePage');
+            const response = await fetch(`${LOCAL}?action=getHomePage`);
             const data = await response.json();
             console.log('📄 Dados recebidos do servidor:', data);
             
@@ -994,7 +1003,12 @@
         }, 5000);
         
         // 🔥 ADICIONA CAMPOS EDITÁVEIS
-        adicionarCamposEditaveis(inlineDiv);
+        // 🔥 DESATIVADO: o r5fit_home.html já tem seu próprio sistema de
+        // campos editáveis (configurarCamposEditaveis/salvarCampoEditado),
+        // que agora roda de verdade graças ao dispatchEvent acima. Manter
+        // este aqui também causava dois listeners de "blur" disputando o
+        // mesmo campo (peso/tipo/objetivo) e dois POSTs de salvamento.
+        // adicionarCamposEditaveis(inlineDiv);
         
         // 🔥 CORRIGE NAVEGAÇÃO
         corrigirNavegacao(inlineDiv);
@@ -1007,7 +1021,7 @@
             const safeContent = scriptContent
                 .replace(/const LOCAL = ['"]http:\/\/localhost:8080['"];/g, '// LOCAL já declarado')
                 .replace(/let clienteData = null;/g, '// clienteData já declarado')
-                .replace(/let usuarioLogado = null;/g, '// usuarioLogado já declarado (reaproveita do atendimento.html)');
+                .replace(/let usuarioLogado = null;/g, '// usuarioLogado já declarado (reaproveita o do atendimento.html)');
             
             const newScript = document.createElement('script');
             newScript.textContent = safeContent;
@@ -1017,6 +1031,19 @@
                 if (newScript.parentNode) newScript.remove();
             }, 100);
         });
+        
+        // 🔥 DISPARA DOMContentLoaded MANUALMENTE
+        // O r5fit_home.html (e outras páginas injetadas assim) inicializam
+        // dentro de document.addEventListener('DOMContentLoaded', ...).
+        // Esse evento já ocorreu para atendimento.html muito antes desse
+        // HTML existir no DOM, então o listener registrado agora nunca
+        // dispararia sozinho — e por isso carregarDadosCliente() e
+        // configurarCamposEditaveis() nunca rodavam (dados não carregavam
+        // e a edição manual não era ativada). Redisparar o evento aqui
+        // aciona esse init normalmente.
+        setTimeout(() => {
+            document.dispatchEvent(new Event('DOMContentLoaded', { bubbles: true, cancelable: true }));
+        }, 50);
         
         // Esconde iframe
         const iframe = document.getElementById('driveIframe');
@@ -1128,7 +1155,7 @@
         loading.classList.remove('hidden');
         
         try {
-            const response = await fetch(`http://localhost:8080/api?action=getArquivoDrive&arquivo=${encodeURIComponent(pagina)}`);
+            const response = await fetch(`${LOCAL}?action=getArquivoDrive&arquivo=${encodeURIComponent(pagina)}`);
             const data = await response.json();
             
             if (data.status === 'success' && data.html) {
@@ -1196,7 +1223,10 @@
 
     async function callAPI(action, data = {}, method = 'GET') {
         try {
-            const url = `http://localhost:8080/api?action=${action}`;
+            // 🔥 Fala com o proxy Cloudflare público (LOCAL), não mais com
+            // um servidor local - atendimento.html é usado por visitantes
+            // de qualquer rede, não só do PC onde roda o servidor.py.
+            const url = `${LOCAL}?action=${action}`;
             let options = { 
                 method, 
                 headers: { 'Content-Type': 'application/json' } 
@@ -1206,10 +1236,10 @@
                 options.body = JSON.stringify({ action, ...data });
             }
             
-            console.log(`📡 ${method} ${action} → sessionId: ${data.leadId || '?'}`);
+            console.log(`📡 ${method} ${action} → ${url}`);
             const resp = await fetch(url, options);
             const json = await resp.json();
-            console.log(`📥 Resposta ${action}:`, json.status);
+            console.log(`📥 Resposta ${action}:`, json.status, json.message || '');
             return json;
             
         } catch (e) {
@@ -1584,7 +1614,7 @@
         document.getElementById('chatSendBtn').disabled = true;
         showTyping();
         
-        console.log('📤 Enviando mensagem. SessionId:', sessionId);
+        console.log('📤 Enviando mensagem...');
         
         const payload = {
             leadId: sessionId,
@@ -1604,51 +1634,67 @@
             };
         }
 
-        // 🔥 PASSO 1: Salva no Drive
+        // Salva no Drive
         const saveData = await callAPI('saveChatAtendente', payload, 'POST');
-        console.log('📥 Save result:', saveData);
+        console.log('📥 Mensagem salva:', saveData.status);
 
-        // 🔥 IMPORTANTE: Atualiza sessionId se o servidor devolveu um novo
-        if (saveData.result && saveData.result.leadId) {
+        if (saveData.result && saveData.result.leadId && saveData.result.leadId !== sessionId) {
             sessionId = saveData.result.leadId;
-            console.log('🆔 SessionId atualizado:', sessionId);
         }
 
-        // 🔥 PASSO 2: Polling para resposta (máximo 60s)
+        // Dispara processamento IA
+        if (chatMode === 'ia' && mensagem) {
+            try {
+                await fetch(`${LOCAL}/api/processar-pendentes`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ engine: 'deepseek' })
+                });
+                console.log('🤖 IA acionada');
+            } catch (e) {
+                console.log('⚠️ Erro ao acionar IA:', e.message);
+            }
+        }
+
+        // 🔥 Polling: verifica Drive E respostas pendentes
         let resposta = null;
+        let respostaEncontrada = false;
         let tentativas = 0;
         const MAX_TENTATIVAS = 30;
 
-        while (!resposta && tentativas < MAX_TENTATIVAS) {
+        while (!respostaEncontrada && tentativas < MAX_TENTATIVAS) {
             tentativas++;
             await new Promise(r => setTimeout(r, 2000));
             
             try {
-                // 🔥 Verifica o Drive pela conversa completa
+                // 🔥 VERIFICA PRIMEIRO as respostas pendentes (mais rápido)
+                const respPendentes = await fetch(`${LOCAL}/api/canvas/verificar`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session: sessionId })
+                });
+                const pendentesData = await respPendentes.json();
+                
+                if (pendentesData.respostas && pendentesData.respostas.length > 0) {
+                    resposta = { texto: pendentesData.respostas[pendentesData.respostas.length - 1].texto };
+                    respostaEncontrada = true;
+                    console.log('✅ Resposta encontrada nas pendentes!');
+                    break;
+                }
+                
+                // 🔥 Depois verifica no Drive
                 const pollData = await callAPI('getChatAtendente', { leadId: sessionId }, 'GET');
                 
                 if (pollData.conversas && pollData.conversas[sessionId]) {
                     const msgs = pollData.conversas[sessionId].mensagens || [];
-                    
-                    // Filtra mensagens que NÃO são do lead (são respostas)
                     const respostas = msgs.filter(m => m.de !== 'lead');
                     
                     if (respostas.length > 0) {
                         const ultima = respostas[respostas.length - 1];
-                        
-                        // Verifica se é uma resposta NOVA (não duplicada)
-                        const msgElements = document.querySelectorAll('.message.ai, .message.atendente-msg');
-                        let jaExibida = false;
-                        msgElements.forEach(el => {
-                            if (el.textContent?.includes(ultima.texto?.substring(0, 30))) {
-                                jaExibida = true;
-                            }
-                        });
-                        
-                        if (!jaExibida && ultima.texto && ultima.texto.trim().length > 0) {
-                            resposta = ultima;
-                            console.log('✅ Resposta encontrada! Tentativa:', tentativas);
-                        }
+                        resposta = ultima;
+                        respostaEncontrada = true;
+                        console.log('✅ Resposta encontrada no Drive!');
+                        break;
                     }
                 }
             } catch (e) {
@@ -1656,21 +1702,19 @@
             }
             
             if (tentativas % 5 === 0) {
-                console.log(`⏳ Aguardando resposta... (${tentativas * 2}s)`);
+                console.log(`⏳ Aguardando... (${tentativas * 2}s)`);
             }
         }
 
         removeTyping();
 
         if (resposta && resposta.texto && resposta.texto.trim().length > 0) {
-            console.log('🎯 Exibindo resposta');
-            if (chatMode === 'ia' || resposta.respondido_por_ia) {
+            if (chatMode === 'ia') {
                 addMessage('ai', resposta.texto + botoesResposta());
             } else {
                 addMessage('atendente-msg', '👤 ' + resposta.texto);
             }
         } else {
-            console.log('⚠️ Timeout - usando fallback');
             const fallback = gerarRespostaLocal(mensagem || '');
             if (chatMode === 'ia') {
                 addMessage('ai', fallback + botoesResposta());
