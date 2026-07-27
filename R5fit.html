@@ -1381,13 +1381,22 @@
     document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('searchInput').focus();
         document.getElementById('wppLinkBottom').href = `https://wa.me/${WHATSAPP}`;
+        
         document.getElementById('chatOverlay').addEventListener('click', e => {
             if (e.target === document.getElementById('chatOverlay')) fecharChat();
         });
-        window.addEventListener('beforeunload', stopPolling);
+        
+        // 🔥 CORRIGIDO: remove referência a startPolling
+        window.addEventListener('beforeunload', () => {
+            pararPollingContinuo();
+        });
+        
         document.addEventListener('visibilitychange', () => {
-            if (document.hidden) stopPolling();
-            else if (document.getElementById('chatOverlay').classList.contains('active')) startPolling();
+            if (document.hidden) {
+                pararPollingContinuo();
+            } else if (document.getElementById('chatOverlay').classList.contains('active')) {
+                iniciarPollingContinuo();
+            }
         });
     });
 
@@ -1716,48 +1725,61 @@
                 }
             }
             
-            // 🔥 PASSO 2: FALLBACK - CONSULTA O DRIVE
+            // 🔥 PASSO 2: FALLBACK - CONSULTA O SERVIDOR LOCAL (NÃO O PROXY)
             if (!respostaEncontrada) {
-                const driveData = await callAPI('getChatAtendente', { leadId: sessionId }, 'GET');
-                
-                if (driveData.conversas && driveData.conversas[sessionId]) {
-                    const mensagens = driveData.conversas[sessionId].mensagens || [];
-                    const respostas = mensagens.filter(m => m.de !== 'lead' && m.texto);
+                try {
+                    const responseLocal = await fetch(`http://localhost:8080/api/chat-atendente/mensagens?leadId=${sessionId}`, {
+                        method: 'GET',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    const localData = await responseLocal.json();
                     
-                    if (respostas.length > 0) {
-                        const ultima = respostas[respostas.length - 1];
+                    if (localData.conversas && localData.conversas[sessionId]) {
+                        const mensagens = localData.conversas[sessionId].mensagens || [];
+                        const respostas = mensagens.filter(m => m.de !== 'lead' && m.texto);
                         
-                        const msgElements = document.querySelectorAll('.message.ai, .message.atendente-msg');
-                        let jaExibida = false;
-                        msgElements.forEach(el => {
-                            if (el.textContent?.includes(ultima.texto?.substring(0, 30))) {
-                                jaExibida = true;
-                            }
-                        });
-                        
-                        if (!jaExibida && ultima.texto) {
-                            if (ultima.respondido_por_ia) {
-                                addMessage('ai', ultima.texto + botoesResposta());
-                            } else {
-                                addMessage('atendente-msg', '👤 ' + ultima.texto);
-                            }
+                        if (respostas.length > 0) {
+                            const ultima = respostas[respostas.length - 1];
                             
-                            document.getElementById('newMsgNotification').classList.add('show');
-                            document.getElementById('newMsgNotification').textContent = '📩 Nova resposta!';
-                            tocarSomNotificacao();
+                            const msgElements = document.querySelectorAll('.message.ai, .message.atendente-msg');
+                            let jaExibida = false;
+                            msgElements.forEach(el => {
+                                if (el.textContent?.includes(ultima.texto?.substring(0, 30))) {
+                                    jaExibida = true;
+                                }
+                            });
+                            
+                            if (!jaExibida && ultima.texto) {
+                                if (ultima.respondido_por_ia) {
+                                    addMessage('ai', ultima.texto + botoesResposta());
+                                } else {
+                                    addMessage('atendente-msg', '👤 ' + ultima.texto);
+                                }
+                                
+                                document.getElementById('newMsgNotification').classList.add('show');
+                                document.getElementById('newMsgNotification').textContent = '📩 Nova resposta!';
+                                tocarSomNotificacao();
+                            }
                         }
                     }
+                } catch (e) {
+                    console.log('⚠️ Erro no fallback local:', e.message);
                 }
             }
             
         } catch (e) {
             console.log('⚠️ Erro no polling contínuo:', e.message);
             
-            // 🔥 FALLBACK DIRETO NO DRIVE
+            // 🔥 FALLBACK DIRETO NO SERVIDOR LOCAL (QUANDO O PRIMEIRO FETCH FALHA)
             try {
-                const driveData = await callAPI('getChatAtendente', { leadId: sessionId }, 'GET');
-                if (driveData.conversas && driveData.conversas[sessionId]) {
-                    const mensagens = driveData.conversas[sessionId].mensagens || [];
+                const responseLocal = await fetch(`http://localhost:8080/api/chat-atendente/mensagens?leadId=${sessionId}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const localData = await responseLocal.json();
+                
+                if (localData.conversas && localData.conversas[sessionId]) {
+                    const mensagens = localData.conversas[sessionId].mensagens || [];
                     const respostas = mensagens.filter(m => m.de !== 'lead' && m.texto);
                     
                     if (respostas.length > 0) {
@@ -1785,7 +1807,7 @@
                     }
                 }
             } catch (driveError) {
-                console.log('⚠️ Fallback Drive também falhou:', driveError.message);
+                console.log('⚠️ Fallback local também falhou:', driveError.message);
             }
         }
     }
