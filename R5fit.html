@@ -813,6 +813,7 @@
         btn.disabled = true;
         btn.textContent = 'Entrando...';
         
+        // 🔥 CHAMA DIRETO O APPS SCRIPT (já está correto via callAPI)
         const data = await callAPI('login', { email, senha }, 'POST');
         
         btn.disabled = false;
@@ -821,7 +822,6 @@
         if (data.result && data.result.autenticado) {
             usuarioLogado = data.result.usuario;
             
-            // 🔥 SALVA NO LOCALSTORAGE PARA O HOME.HTML ACESSAR
             localStorage.setItem('r5fit_usuario', JSON.stringify({
                 id: usuarioLogado.id,
                 nome: usuarioLogado.nome,
@@ -837,7 +837,7 @@
             document.getElementById('userNameDisplay').textContent = '👤 ' + usuarioLogado.nome;
             document.getElementById('btnLogout').style.display = 'inline-block';
             
-            await carregarHomePage();
+            // 🔥 REMOVER: await carregarHomePage(); - não é necessário para atendimento.html
             
             mostrarToast(`Bem-vindo, ${usuarioLogado.nome}!`);
             
@@ -1226,9 +1226,6 @@
 
     async function callAPI(action, data = {}, method = 'GET') {
         try {
-            // 🔥 Fala com o proxy Cloudflare público (LOCAL), não mais com
-            // um servidor local - atendimento.html é usado por visitantes
-            // de qualquer rede, não só do PC onde roda o servidor.py.
             const url = `${LOCAL}?action=${action}`;
             let options = { 
                 method, 
@@ -1244,7 +1241,6 @@
             const json = await resp.json();
             console.log(`📥 Resposta ${action}:`, json.status, json.message || '');
             return json;
-            
         } catch (e) {
             console.warn('⚠️ API offline:', e.message);
             return { status: 'error', message: e.message };
@@ -1637,7 +1633,7 @@
             };
         }
 
-        // Salva no Drive
+        // 🔥 SALVA DIRETO NO APPS SCRIPT
         const saveData = await callAPI('saveChatAtendente', payload, 'POST');
         console.log('📥 Mensagem salva:', saveData.status);
 
@@ -1645,54 +1641,47 @@
             sessionId = saveData.result.leadId;
         }
 
-        // 🔥 CORREÇÃO: removida a chamada direta a /api/processar-pendentes.
-        // O atendimento só deve escrever no Drive (saveChatAtendente, acima)
-        // e ler do Drive (polling logo abaixo) - nunca acionar o processamento
-        // diretamente. Quem processa é o background_polling_drive() autônomo
-        // do servidor.py (a cada 15s), usando o motor ativo definido pelo
-        // painel. Essa chamada duplicava o gatilho e podia cair no mesmo
-        // lead ao mesmo tempo que o polling automático (risco já anotado
-        // no próprio servidor.py).
+        // 🔥 SE FOR MODO ATENDENTE, NÃO ESPERA RESPOSTA AUTOMÁTICA
+        if (chatMode === 'atendente') {
+            removeTyping();
+            addMessage('atendente-msg', '✅ Mensagem enviada para nossa equipe! Responderemos em breve.');
+            isProcessing = false;
+            document.getElementById('chatSendBtn').disabled = false;
+            document.getElementById('chatInput').focus();
+            return;
+        }
 
-        // 🔥 Polling: verifica Drive E respostas pendentes
+        // 🔥 BUSCA RESPOSTAS DIRETO DO APPS SCRIPT (polling simples)
         let resposta = null;
-        let respostaEncontrada = false;
         let tentativas = 0;
-        const MAX_TENTATIVAS = 30;
+        const MAX_TENTATIVAS = 25; // 25 * 2s = 50s
 
-        while (!respostaEncontrada && tentativas < MAX_TENTATIVAS) {
+        while (!resposta && tentativas < MAX_TENTATIVAS) {
             tentativas++;
             await new Promise(r => setTimeout(r, 2000));
             
             try {
-                // 🔥 VERIFICA PRIMEIRO as respostas pendentes (mais rápido)
-                const respPendentes = await fetch(`${LOCAL}/api/canvas/verificar`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ session: sessionId })
-                });
-                const pendentesData = await respPendentes.json();
-                
-                if (pendentesData.respostas && pendentesData.respostas.length > 0) {
-                    resposta = { texto: pendentesData.respostas[pendentesData.respostas.length - 1].texto };
-                    respostaEncontrada = true;
-                    console.log('✅ Resposta encontrada nas pendentes!');
-                    break;
-                }
-                
-                // 🔥 Depois verifica no Drive
                 const pollData = await callAPI('getChatAtendente', { leadId: sessionId }, 'GET');
                 
                 if (pollData.conversas && pollData.conversas[sessionId]) {
                     const msgs = pollData.conversas[sessionId].mensagens || [];
+                    // Busca respostas do atendente (não do lead)
                     const respostas = msgs.filter(m => m.de !== 'lead');
                     
                     if (respostas.length > 0) {
                         const ultima = respostas[respostas.length - 1];
-                        resposta = ultima;
-                        respostaEncontrada = true;
-                        console.log('✅ Resposta encontrada no Drive!');
-                        break;
+                        // Verifica se é nova (não foi exibida ainda)
+                        const msgElements = document.querySelectorAll('.message.ai, .message.atendente-msg');
+                        let jaExibida = false;
+                        msgElements.forEach(el => {
+                            if (el.textContent?.includes(ultima.texto?.substring(0, 30))) {
+                                jaExibida = true;
+                            }
+                        });
+                        if (!jaExibida) {
+                            resposta = ultima;
+                            break;
+                        }
                     }
                 }
             } catch (e) {
@@ -1700,24 +1689,25 @@
             }
             
             if (tentativas % 5 === 0) {
-                console.log(`⏳ Aguardando... (${tentativas * 2}s)`);
+                console.log(`⏳ Aguardando resposta... (${tentativas * 2}s)`);
             }
         }
 
         removeTyping();
 
         if (resposta && resposta.texto && resposta.texto.trim().length > 0) {
-            if (chatMode === 'ia') {
+            if (resposta.respondido_por_ia) {
                 addMessage('ai', resposta.texto + botoesResposta());
             } else {
                 addMessage('atendente-msg', '👤 ' + resposta.texto);
             }
         } else {
-            const fallback = gerarRespostaLocal(mensagem || '');
+            // Fallback
+            const fallback = '✅ Mensagem recebida! Nossa equipe irá responder em breve.';
             if (chatMode === 'ia') {
                 addMessage('ai', fallback + botoesResposta());
             } else {
-                addMessage('atendente-msg', '📩 Mensagem recebida! Responderemos em breve.');
+                addMessage('atendente-msg', fallback);
             }
         }
 
