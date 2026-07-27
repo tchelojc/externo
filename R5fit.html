@@ -891,20 +891,20 @@
         try {
             mostrarToast('Carregando página interna...');
             
-            // 🔥 CORREÇÃO: LOCAL_SERVER não existia (variável nunca declarada) -
-            // toda chamada aqui disparava ReferenceError antes mesmo do fetch
-            // sair, caindo sempre na mensagem genérica de erro. Usa LOCAL (o
-            // proxy), igual todas as outras chamadas do arquivo.
-            const response = await fetch(`${LOCAL}/api?action=getHomePage`);
+            // 🔥 CORREÇÃO: usa o proxy Cloudflare para buscar o HTML do Drive
+            const response = await fetch('https://almafluxo.uk/proxy/r5fit?action=getHomePage');
             const data = await response.json();
             console.log('📄 Dados recebidos do servidor:', data);
             
-            if (data.status === 'success' && data.html) {
+            // 🔥 VERIFICA SE VEIO HTML VÁLIDO
+            if (data.status === 'success' && data.html && data.html.length > 100) {
                 loading.classList.add('hidden');
+                
+                // 🔥 CRIA O CONTEÚDO INLINE
                 renderHtmlInline(data.html);
-                mostrarToast('Página interna carregada!');
+                mostrarToast('Página carregada com sucesso!');
             } else {
-                throw new Error(data.message || 'Nenhum HTML retornado');
+                throw new Error(data.message || 'HTML não encontrado ou vazio');
             }
             
         } catch (e) {
@@ -912,7 +912,8 @@
             loading.classList.add('hidden');
             error.classList.add('show');
             document.getElementById('driveErrorText').textContent = 
-                'Não foi possível carregar a página. Verifique se o servidor local está rodando (python servidor.py) e o arquivo r5fit_home.html está no Google Drive.';
+                'Não foi possível carregar a página. Verifique se o arquivo r5fit_home.html está no Google Drive.\n\n' +
+                'Detalhes: ' + e.message;
         }
     }
 
@@ -923,33 +924,30 @@
         const toolbar = container.querySelector('.drive-toolbar');
         if (toolbar) toolbar.style.display = 'none';
         
-        // 🔥 Remove conteúdo antigo
+        // 🔥 REMOVE CONTEÚDO ANTIGO
+        let wrapper = document.getElementById('driveInlineWrapper');
+        if (!wrapper) {
+            wrapper = document.createElement('div');
+            wrapper.id = 'driveInlineWrapper';
+            wrapper.style.cssText = `
+                position: absolute;
+                inset: 0;
+                overflow-y: auto;
+                background: #0a0a0a;
+                width: 100%;
+                height: 100%;
+                display: flex;
+                align-items: flex-start;
+                justify-content: center;
+                padding: 20px;
+                box-sizing: border-box;
+                z-index: 10;
+            `;
+            container.appendChild(wrapper);
+        }
+        
         let inlineDiv = document.getElementById('driveInlineContent');
-        if (inlineDiv) {
-            inlineDiv.innerHTML = '';
-            inlineDiv.style.display = 'block';
-        } else {
-            let wrapper = document.getElementById('driveInlineWrapper');
-            if (!wrapper) {
-                wrapper = document.createElement('div');
-                wrapper.id = 'driveInlineWrapper';
-                wrapper.style.cssText = `
-                    position: absolute;
-                    inset: 0;
-                    overflow-y: auto;
-                    background: #0a0a0a;
-                    width: 100%;
-                    height: 100%;
-                    display: flex;
-                    align-items: flex-start;
-                    justify-content: center;
-                    padding: 20px;
-                    box-sizing: border-box;
-                    z-index: 10;
-                `;
-                container.appendChild(wrapper);
-            }
-            
+        if (!inlineDiv) {
             inlineDiv = document.createElement('div');
             inlineDiv.id = 'driveInlineContent';
             inlineDiv.style.cssText = `
@@ -963,7 +961,7 @@
             wrapper.appendChild(inlineDiv);
         }
         
-        // 🔥 LIMPA O HTML
+        // 🔥 LIMPA O HTML (remove caracteres de escape)
         let htmlLimpo = htmlContent;
         htmlLimpo = htmlLimpo.replace(/\\"/g, '"');
         htmlLimpo = htmlLimpo.replace(/\\'/g, "'");
@@ -971,25 +969,21 @@
         htmlLimpo = htmlLimpo.replace(/\\r/g, '');
         htmlLimpo = htmlLimpo.replace(/\\t/g, '');
         
-        // 🔥 Remove topbar duplicada
+        // 🔥 REMOVE TOPBAR DUPLICADA
         htmlLimpo = htmlLimpo.replace(/<div class="topbar">[\s\S]*?<\/div>/gi, '');
         
-        // 🔥 Remove "Sair" duplicado
+        // 🔥 REMOVE "Sair" duplicado
         htmlLimpo = htmlLimpo.replace(/<button[^>]*onclick="logout\(\)"[^>]*>Sair<\/button>/gi, '');
         
-        // 🔥 Corrige imagens malformadas
-        htmlLimpo = htmlLimpo.replace(/<img\s+src="\s*<img\s+src="([^"]+)"[^>]*>/gi, function(match, src) {
-            const base64Match = src.match(/(data:image\/[^"']+)/);
-            if (base64Match) {
-                return `<img src="${base64Match[1]}" style="max-width:100%;height:auto;display:block;margin:0 auto;">`;
-            }
-            return '';
-        });
-        htmlLimpo = htmlLimpo.replace(/<img[^>]*src=["']\s*["'][^>]*>/gi, '');
-        htmlLimpo = htmlLimpo.replace(/<img[^>]*src=["']\s*<[^>]+>[^>]*>/gi, '');
-        
-        // 🔥 INSERE HTML LIMPO
+        // 🔥 INSERE O HTML
         inlineDiv.innerHTML = htmlLimpo;
+        
+        // 🔥 CORRIGE O NOME DO USUÁRIO
+        const usuarioStorage = JSON.parse(localStorage.getItem('r5fit_usuario') || '{}');
+        const topbarUserEl = inlineDiv.querySelector('#topbarUserName');
+        if (topbarUserEl && usuarioStorage.nome) {
+            topbarUserEl.textContent = '👤 ' + usuarioStorage.nome;
+        }
         
         // 🔥 CORRIGE "guerreiro" → "atleta"
         const welcomeEl = inlineDiv.querySelector('#welcomeName');
@@ -997,44 +991,16 @@
             welcomeEl.textContent = welcomeEl.textContent.replace(/guerreir[oa]/gi, 'atleta');
         }
         
-        // 🔥 CORRIGE "Carregando..." na topbar
-        const usuarioStorage = JSON.parse(localStorage.getItem('r5fit_usuario') || '{}');
-        const topbarUserEl = inlineDiv.querySelector('#topbarUserName');
-        if (topbarUserEl && usuarioStorage.nome) {
-            topbarUserEl.textContent = '👤 ' + usuarioStorage.nome;
-        }
-        
-        // 🔥 Timeout de segurança para "Carregando..."
-        setTimeout(() => {
-            const topbarEl = inlineDiv.querySelector('#topbarUserName');
-            if (topbarEl && (topbarEl.textContent.includes('Carregando') || topbarEl.textContent.includes('.'))) {
-                topbarEl.textContent = '👤 ' + (usuarioStorage.nome || 'Atleta');
-            }
-        }, 5000);
-        
-        // 🔥 ADICIONA CAMPOS EDITÁVEIS
-        // 🔥 DESATIVADO: o r5fit_home.html já tem seu próprio sistema de
-        // campos editáveis (configurarCamposEditaveis/salvarCampoEditado),
-        // que agora roda de verdade graças ao dispatchEvent acima. Manter
-        // este aqui também causava dois listeners de "blur" disputando o
-        // mesmo campo (peso/tipo/objetivo) e dois POSTs de salvamento.
-        // adicionarCamposEditaveis(inlineDiv);
-        
-        // 🔥 CORRIGE NAVEGAÇÃO
+        // 🔥 CORRIGE NAVEGAÇÃO INTERNA
         corrigirNavegacao(inlineDiv);
         
-        // 🔥 REEXECUTA SCRIPTS (com proteção contra redeclaração)
+        // 🔥 REEXECUTA SCRIPTS
         const scripts = inlineDiv.querySelectorAll('script');
         scripts.forEach(script => {
-            const scriptContent = script.textContent;
-            // Remove declarações de const/let que já existem no escopo global
-            const safeContent = scriptContent
-                .replace(/const LOCAL = ['"]http:\/\/localhost:8080['"];/g, '// LOCAL já declarado')
-                .replace(/let clienteData = null;/g, '// clienteData já declarado')
-                .replace(/let usuarioLogado = null;/g, '// usuarioLogado já declarado (reaproveita o do atendimento.html)');
-            
             const newScript = document.createElement('script');
-            newScript.textContent = safeContent;
+            newScript.textContent = script.textContent
+                .replace(/const LOCAL = ['"]http:\/\/localhost:8080['"];/g, '// LOCAL já declarado')
+                .replace(/let clienteData = null;/g, '// clienteData já declarado');
             script.remove();
             document.body.appendChild(newScript);
             setTimeout(() => {
@@ -1042,24 +1008,16 @@
             }, 100);
         });
         
-        // 🔥 DISPARA DOMContentLoaded MANUALMENTE
-        // O r5fit_home.html (e outras páginas injetadas assim) inicializam
-        // dentro de document.addEventListener('DOMContentLoaded', ...).
-        // Esse evento já ocorreu para atendimento.html muito antes desse
-        // HTML existir no DOM, então o listener registrado agora nunca
-        // dispararia sozinho — e por isso carregarDadosCliente() e
-        // configurarCamposEditaveis() nunca rodavam (dados não carregavam
-        // e a edição manual não era ativada). Redisparar o evento aqui
-        // aciona esse init normalmente.
+        // 🔥 DISPARA EVENTO DOMContentLoaded
         setTimeout(() => {
             document.dispatchEvent(new Event('DOMContentLoaded', { bubbles: true, cancelable: true }));
         }, 50);
         
-        // Esconde iframe
+        // 🔥 ESCONDE IFRAME
         const iframe = document.getElementById('driveIframe');
         if (iframe) iframe.style.display = 'none';
         
-        console.log('✅ HTML inline renderizado com correções!');
+        console.log('✅ HTML inline renderizado com sucesso!');
     }
 
     // 🔥 Adicionar campos editáveis para dados faltantes
@@ -1128,17 +1086,20 @@
     
     // 🔥 Corrigir navegação entre abas
     function corrigirNavegacao(container) {
+        // 🔥 CORRIGE LINKS
         const links = container.querySelectorAll('a[href]');
         links.forEach(link => {
             const href = link.getAttribute('href');
             if (href && !href.startsWith('http') && !href.startsWith('#') && !href.startsWith('javascript')) {
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
+                    // Tenta carregar a página interna
                     carregarPaginaInterna(href);
                 });
             }
         });
         
+        // 🔥 CORRIGE BOTÕES DE NAVEGAÇÃO
         const navBtns = container.querySelectorAll('.nav-btn, [onclick]');
         navBtns.forEach(btn => {
             const onclickStr = btn.getAttribute('onclick') || '';
@@ -1165,7 +1126,8 @@
         loading.classList.remove('hidden');
         
         try {
-            const response = await fetch(`${LOCAL}?action=getArquivoDrive&arquivo=${encodeURIComponent(pagina)}`);
+            // 🔥 BUSCA O ARQUIVO DO DRIVE VIA PROXY
+            const response = await fetch(`https://almafluxo.uk/proxy/r5fit?action=getArquivoDrive&arquivo=${encodeURIComponent(pagina)}`);
             const data = await response.json();
             
             if (data.status === 'success' && data.html) {
@@ -1173,11 +1135,11 @@
                 renderHtmlInline(data.html);
                 mostrarToast('Página carregada!');
             } else {
-                throw new Error('Página não encontrada');
+                throw new Error(data.message || 'Página não encontrada');
             }
         } catch (e) {
             loading.classList.add('hidden');
-            mostrarToast('❌ Página não disponível');
+            mostrarToast('❌ Página não disponível: ' + e.message);
         }
     }
 
@@ -1192,29 +1154,27 @@
         loading.classList.remove('hidden');
         error.classList.remove('show');
         
-        // 🔥 RESTAURA A TOOLBAR para próxima abertura
+        // 🔥 RESTAURA A TOOLBAR
         const toolbar = container.querySelector('.drive-toolbar');
         if (toolbar) toolbar.style.display = 'flex';
         
-        // Remove wrapper inline
+        // 🔥 REMOVE WRAPPER INLINE
         const wrapper = document.getElementById('driveInlineWrapper');
         if (wrapper) wrapper.remove();
         
-        // Limpa conteúdo inline se existir
+        // 🔥 LIMPA CONTEÚDO INLINE
         const inlineDiv = document.getElementById('driveInlineContent');
         if (inlineDiv) inlineDiv.remove();
         
         document.getElementById('driveIframe').style.display = '';
-        
-        // Volta para home
         document.getElementById('homeContainer').style.display = '';
         document.body.style.overflow = '';
         
-        console.log('🏠 Voltou para home');
+        console.log('🏠 Voltou para a home do atendimento');
     }
 
-    // 🔥 Tentar novamente
     function tentarNovamenteDrive() {
+        // 🔥 RECARREGA A PÁGINA DO DRIVE
         carregarHomePage();
     }
 
