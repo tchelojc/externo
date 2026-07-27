@@ -884,12 +884,11 @@
         try {
             mostrarToast('Carregando página interna...');
             
-            // 🔥 CORREÇÃO: usar POST com action no body (igual ao callAPI)
-            const response = await fetch(`${LOCAL}/api`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'getHomePage' })
-            });
+            // 🔥 CORREÇÃO: LOCAL_SERVER não existia (variável nunca declarada) -
+            // toda chamada aqui disparava ReferenceError antes mesmo do fetch
+            // sair, caindo sempre na mensagem genérica de erro. Usa LOCAL (o
+            // proxy), igual todas as outras chamadas do arquivo.
+            const response = await fetch(`${LOCAL}/api?action=getHomePage`);
             const data = await response.json();
             console.log('📄 Dados recebidos do servidor:', data);
             
@@ -1646,24 +1645,14 @@
             sessionId = saveData.result.leadId;
         }
 
-        // Dispara processamento IA
-        if (chatMode === 'ia' && mensagem) {
-            try {
-                // 🔥 CORREÇÃO: não força mais 'deepseek' aqui. Antes isso resetava
-                // silenciosamente o motor ativo (canvas_config.ia_atual) toda vez
-                // que um visitante mandava mensagem, mesmo com o Dola selecionado
-                // no painel - fazendo o servidor tentar clicar em coordenadas do
-                // motor errado. Sem 'engine', o servidor usa o motor já ativo.
-                await fetch(`${LOCAL}/api/processar-pendentes`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({})
-                });
-                console.log('🤖 IA acionada');
-            } catch (e) {
-                console.log('⚠️ Erro ao acionar IA:', e.message);
-            }
-        }
+        // 🔥 CORREÇÃO: removida a chamada direta a /api/processar-pendentes.
+        // O atendimento só deve escrever no Drive (saveChatAtendente, acima)
+        // e ler do Drive (polling logo abaixo) - nunca acionar o processamento
+        // diretamente. Quem processa é o background_polling_drive() autônomo
+        // do servidor.py (a cada 15s), usando o motor ativo definido pelo
+        // painel. Essa chamada duplicava o gatilho e podia cair no mesmo
+        // lead ao mesmo tempo que o polling automático (risco já anotado
+        // no próprio servidor.py).
 
         // 🔥 Polling: verifica Drive E respostas pendentes
         let resposta = null;
@@ -1857,4 +1846,4 @@
     }
     </script>
 </body>
-</html>
+</html> 
