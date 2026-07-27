@@ -894,14 +894,17 @@
         try {
             mostrarToast('Carregando página interna...');
             
-            // 🔥 GET DIRETO - NÃO USA callAPI()
+            // 🔥 FORÇA MÉTODO GET EXPLICITAMENTE
             const response = await fetch('https://almafluxo.uk/proxy/r5fit?action=getHomePage', {
                 method: 'GET',
-                headers: { 'Accept': 'application/json' }
+                headers: {
+                    'Accept': 'application/json'
+                }
             });
             const data = await response.json();
-            console.log('📄 Dados recebidos do servidor:', data);
+            console.log('📄 Dados recebidos:', data);
             
+            // 🔥 VERIFICA SE VEIO HTML
             if (data.status === 'success' && data.html && data.html.length > 100) {
                 loading.classList.add('hidden');
                 renderHtmlInline(data.html);
@@ -911,11 +914,11 @@
             }
             
         } catch (e) {
-            console.log('❌ Erro ao carregar página:', e.message);
+            console.log('❌ Erro:', e.message);
             loading.classList.add('hidden');
             error.classList.add('show');
             document.getElementById('driveErrorText').textContent = 
-                'Não foi possível carregar a página. Verifique se o arquivo r5fit_home.html está no Google Drive.\n\n' +
+                'Não foi possível carregar a página.\n\n' +
                 'Detalhes: ' + e.message;
         }
     }
@@ -1199,15 +1202,14 @@
         try {
             // 🔥 DEFINE QUAL ENDPOINT USAR
             const actions_drive = [
-                'saveChatAtendente', 
-                'getChatAtendente', 
+                'saveChatAtendente',     // Salvar no Drive - via proxy
+                // 🔥 REMOVER: 'getChatAtendente', - deve usar servidor local
                 'getChatAtendenteAll', 
                 'login', 
                 'listarUsuarios', 
                 'getLeads',
                 'atualizarUsuario',
                 'cadastrarUsuario'
-                // 🔥 REMOVER 'getHomePage' daqui - ela deve ser GET direto
             ];
             
             // 🔥 Ações que vão para o servidor local (processamento IA)
@@ -1649,39 +1651,35 @@
         if (isProcessing) return;
         
         try {
-            const pollData = await callAPI('getChatAtendente', { leadId: sessionId }, 'GET');
+            // 🔥 USA O SERVIDOR LOCAL DIRETAMENTE
+            const response = await fetch(`http://localhost:8080/api/chat-atendente/respostas?leadId=${sessionId}`, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await response.json();
             
-            if (pollData.conversas && pollData.conversas[sessionId]) {
-                const msgs = pollData.conversas[sessionId].mensagens || [];
-                const respostas = msgs.filter(m => m.de !== 'lead');
+            if (data.respostas && data.respostas.length > 0) {
+                const ultima = data.respostas[data.respostas.length - 1];
                 
-                if (respostas.length > 0) {
-                    const ultima = respostas[respostas.length - 1];
-                    
-                    // 🔥 VERIFICA SE JÁ FOI EXIBIDA
-                    const msgElements = document.querySelectorAll('.message.ai, .message.atendente-msg');
-                    let jaExibida = false;
-                    msgElements.forEach(el => {
-                        if (el.textContent?.includes(ultima.texto?.substring(0, 30))) {
-                            jaExibida = true;
-                        }
-                    });
-                    
-                    if (!jaExibida && ultima.texto) {
-                        // 🔥 ADICIONA A MENSAGEM
-                        if (ultima.respondido_por_ia) {
-                            addMessage('ai', ultima.texto + botoesResposta());
-                        } else {
-                            addMessage('atendente-msg', '👤 ' + ultima.texto);
-                        }
-                        
-                        // 🔥 NOTIFICAÇÃO
-                        document.getElementById('newMsgNotification').classList.add('show');
-                        document.getElementById('newMsgNotification').textContent = '📩 Nova resposta!';
-                        
-                        // 🔥 SOM
-                        tocarSomNotificacao();
+                // 🔥 VERIFICA SE JÁ FOI EXIBIDA
+                const msgElements = document.querySelectorAll('.message.ai, .message.atendente-msg');
+                let jaExibida = false;
+                msgElements.forEach(el => {
+                    if (el.textContent?.includes(ultima.texto?.substring(0, 30))) {
+                        jaExibida = true;
                     }
+                });
+                
+                if (!jaExibida && ultima.texto) {
+                    if (ultima.respondido_por_ia) {
+                        addMessage('ai', ultima.texto + botoesResposta());
+                    } else {
+                        addMessage('atendente-msg', '👤 ' + ultima.texto);
+                    }
+                    
+                    document.getElementById('newMsgNotification').classList.add('show');
+                    document.getElementById('newMsgNotification').textContent = '📩 Nova resposta!';
+                    tocarSomNotificacao();
                 }
             }
         } catch (e) {
@@ -1704,6 +1702,7 @@
         } catch (e) {}
     }
 
+    // ═══════════════ FLUXO 1: CHAT COM IA ═══════════════
     async function enviarParaIA(mensagem, arquivo = null) {
         isProcessing = true;
         document.getElementById('chatSendBtn').disabled = true;
@@ -1745,7 +1744,7 @@
             console.log('⚠️ Erro ao acionar servidor:', e.message);
         }
 
-        // 🔥 PASSO 3: POLLING - USA O SERVIDOR LOCAL PARA VERIFICAR RESPOSTAS
+        // 🔥 PASSO 3: POLLING - USA SOMENTE O SERVIDOR LOCAL
         let resposta = null;
         let tentativas = 0;
         const MAX_TENTATIVAS = 25; // 50s
@@ -1755,39 +1754,18 @@
             await new Promise(r => setTimeout(r, 2000));
             
             try {
-                // 🔥 USA O SERVIDOR LOCAL para verificar respostas pendentes
-                const respPendentes = await fetch('http://localhost:8080/api/chat-atendente/respostas', {
+                const respPendentes = await fetch(`http://localhost:8080/api/chat-atendente/respostas?leadId=${sessionId}`, {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' }
                 });
                 const pendentesData = await respPendentes.json();
                 
-                // 🔥 Verifica se há resposta para este leadId
                 if (pendentesData.respostas && pendentesData.respostas.length > 0) {
-                    resposta = pendentesData.respostas[pendentesData.respostas.length - 1];
-                    break;
-                }
-                
-                // 🔥 Fallback: verifica no Drive via proxy
-                const pollData = await callAPI('getChatAtendente', { leadId: sessionId }, 'GET');
-                
-                if (pollData.conversas && pollData.conversas[sessionId]) {
-                    const msgs = pollData.conversas[sessionId].mensagens || [];
-                    const respostas = msgs.filter(m => m.de !== 'lead');
-                    
-                    if (respostas.length > 0) {
-                        const ultima = respostas[respostas.length - 1];
-                        const msgElements = document.querySelectorAll('.message.ai, .message.atendente-msg');
-                        let jaExibida = false;
-                        msgElements.forEach(el => {
-                            if (el.textContent?.includes(ultima.texto?.substring(0, 30))) {
-                                jaExibida = true;
-                            }
-                        });
-                        if (!jaExibida && ultima.texto) {
-                            resposta = ultima;
-                            break;
-                        }
+                    const ultimaResposta = pendentesData.respostas[pendentesData.respostas.length - 1];
+                    if (ultimaResposta && ultimaResposta.texto) {
+                        resposta = ultimaResposta;
+                        console.log('✅ Resposta encontrada no servidor local!');
+                        break;
                     }
                 }
             } catch (e) {
@@ -1807,7 +1785,9 @@
             } else {
                 addMessage('atendente-msg', '👤 ' + resposta.texto);
             }
+            console.log('✅ Resposta exibida no chat!');
         } else {
+            console.log('⚠️ Nenhuma resposta encontrada, usando fallback');
             const fallback = gerarRespostaLocal(mensagem || '');
             addMessage('ai', fallback + botoesResposta());
         }
