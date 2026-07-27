@@ -1691,30 +1691,119 @@
         }
     }
 
-    // ═══════════════ FUNÇÃO AUXILIAR - VERIFICAR RESPOSTA DUPLICADA ═══════════════
     function respostaJaExibida(textoResposta) {
+        if (!textoResposta || textoResposta.length < 10) return true; // já exibida se for curta demais
+        
         const msgElements = document.querySelectorAll('.message.ai, .message.atendente-msg');
-        let jaExibida = false;
         
-        // Limpa o texto para comparação (remove emojis, botões, etc.)
+        // 🔥 LIMPA O TEXTO PARA COMPARAÇÃO (remove emojis, pontuação, espaços extras)
         const textoLimpo = textoResposta
-            .replace(/[^\w\s]/g, '')  // Remove emojis e pontuação
+            .replace(/[^\w\sáéíóúãõç]/g, ' ')
+            .replace(/\s+/g, ' ')
             .trim()
-            .substring(0, 100);
+            .substring(0, 200);
         
+        if (textoLimpo.length < 10) return true; // texto muito curto, considera já exibido
+        
+        let jaExibida = false;
         msgElements.forEach(el => {
             const elTexto = el.textContent
-                .replace(/[^\w\s]/g, '')
+                .replace(/[^\w\sáéíóúãõç]/g, ' ')
+                .replace(/\s+/g, ' ')
                 .trim()
-                .substring(0, 100);
+                .substring(0, 200);
             
-            // Se 70% do texto for igual, já foi exibida
-            if (elTexto.includes(textoLimpo) || textoLimpo.includes(elTexto)) {
-                jaExibida = true;
+            // 🔥 COMPARAÇÃO ROBUSTA
+            if (elTexto.length > 10) {
+                // Verifica se um texto contém o outro (com 80% de overlap)
+                const menor = textoLimpo.length < elTexto.length ? textoLimpo : elTexto;
+                const maior = textoLimpo.length < elTexto.length ? elTexto : textoLimpo;
+                
+                // Se o menor está contido no maior, ou se 80% do menor está no maior
+                if (maior.includes(menor) || menor.includes(maior)) {
+                    jaExibida = true;
+                }
             }
         });
         
         return jaExibida;
+    }
+
+    // ═══════════════ FUNÇÃO PARA LIMPAR RESPOSTA DA IA ═══════════════
+    function limparRespostaIA(texto) {
+        if (!texto) return null;
+        
+        // 🔥 REMOVE O PROMPT PADRÃO COMPLETO
+        const promptPadrao = "Você é a assistente virtual da R5 Fit";
+        let textoProcessado = texto;
+        
+        // Se o prompt estiver no texto, remove tudo até o final do prompt
+        if (texto.includes(promptPadrao)) {
+            const partes = texto.split(promptPadrao);
+            if (partes.length > 1) {
+                textoProcessado = partes[1];
+            }
+        }
+        
+        // 🔥 REMOVE LINHAS DE PROTOCOLO E CLIENTE
+        let linhas = textoProcessado.split('\n');
+        let linhasFiltradas = [];
+        let encontrouResposta = false;
+        let contadorResposta = 0;
+        
+        for (let linha of linhas) {
+            const linhaTrim = linha.trim();
+            
+            // Pula linhas de protocolo
+            if (linhaTrim.startsWith('Atendimento #')) continue;
+            // Pula linhas "Cliente:"
+            if (linhaTrim.startsWith('Cliente:')) continue;
+            // Pula linhas vazias
+            if (!linhaTrim) continue;
+            // Pula linhas de código/sistema
+            if (linhaTrim === 'Stop' || linhaTrim === 'Message is empty') continue;
+            if (linhaTrim.includes('```') || linhaTrim.includes('def ')) continue;
+            if (linhaTrim.includes('javascript') || linhaTrim.includes('function(')) continue;
+            if (linhaTrim.includes('servidor.py') || linhaTrim.includes('extrair_novo_conteudo')) continue;
+            
+            // 🔥 SE ENCONTROU UMA LINHA QUE PARECE RESPOSTA REAL
+            if (linhaTrim.length > 15 && 
+                !linhaTrim.includes('Diagnosticou') && 
+                !linhaTrim.includes('Identificou') &&
+                !linhaTrim.includes('A análise final é') &&
+                !linhaTrim.includes('O sistema está funcionando')) {
+                encontrouResposta = true;
+            }
+            
+            if (encontrouResposta) {
+                linhasFiltradas.push(linhaTrim);
+                contadorResposta++;
+            }
+        }
+        
+        // Se encontrou poucas linhas ou nenhuma, tenta pegar a última parte do texto
+        if (linhasFiltradas.length < 2) {
+            // Pega as últimas 3 linhas não vazias
+            const ultimas = linhas.filter(l => l.trim() && l.trim().length > 10).slice(-3);
+            if (ultimas.length > 0) {
+                const resultado = ultimas.join('\n').trim();
+                // Se o resultado ainda for o prompt, retorna null
+                if (resultado.includes(promptPadrao) || resultado.includes('Atendimento #')) {
+                    return null;
+                }
+                return resultado;
+            }
+            return null;
+        }
+        
+        const resultado = linhasFiltradas.join('\n').trim();
+        
+        // 🔥 VERIFICA SE O RESULTADO AINDA TEM PROMPT
+        if (resultado.includes(promptPadrao) || resultado.includes('Atendimento #')) {
+            return null;
+        }
+        
+        return resultado;
     }
 
     async function pollRespostasContinuo() {
@@ -1734,22 +1823,36 @@
             if (data.respostas && data.respostas.length > 0) {
                 const ultima = data.respostas[data.respostas.length - 1];
                 
-                // 🔥 VERIFICA SE JÁ FOI EXIBIDA USANDO A FUNÇÃO AUXILIAR
-                if (!respostaJaExibida(ultima.texto) && ultima.texto) {
+                // 🔥 LIMPA A RESPOSTA
+                const textoLimpo = limparRespostaIA(ultima.texto);
+                
+                // 🔥 SÓ EXIBE SE TIVER CONTEÚDO ÚTIL E NÃO FOI EXIBIDO ANTES
+                if (textoLimpo && textoLimpo.length > 15 && !respostaJaExibida(textoLimpo)) {
                     respostaEncontrada = true;
                     if (ultima.respondido_por_ia) {
-                        addMessage('ai', ultima.texto + botoesResposta());
+                        addMessage('ai', textoLimpo + botoesResposta());
                     } else {
-                        addMessage('atendente-msg', '👤 ' + ultima.texto);
+                        addMessage('atendente-msg', '👤 ' + textoLimpo);
                     }
                     
                     document.getElementById('newMsgNotification').classList.add('show');
                     document.getElementById('newMsgNotification').textContent = '📩 Nova resposta!';
                     tocarSomNotificacao();
+                    
+                    // 🔥 LIMPA A FILA DE RESPOSTAS PENDENTES PARA EVITAR REPETIÇÃO
+                    try {
+                        await fetch(`http://localhost:8080/api/chat-atendente/limpar-pendentes`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ leadId: sessionId })
+                        });
+                    } catch (e) {
+                        console.log('⚠️ Erro ao limpar pendentes:', e.message);
+                    }
                 }
             }
             
-            // 🔥 PASSO 2: FALLBACK - CONSULTA O SERVIDOR LOCAL (NÃO O PROXY)
+            // 🔥 PASSO 2: FALLBACK - CONSULTA O SERVIDOR LOCAL
             if (!respostaEncontrada) {
                 try {
                     const responseLocal = await fetch(`http://localhost:8080/api/chat-atendente/mensagens?leadId=${sessionId}`, {
@@ -1764,13 +1867,13 @@
                         
                         if (respostas.length > 0) {
                             const ultima = respostas[respostas.length - 1];
+                            const textoLimpo = limparRespostaIA(ultima.texto);
                             
-                            // 🔥 VERIFICA SE JÁ FOI EXIBIDA USANDO A FUNÇÃO AUXILIAR
-                            if (!respostaJaExibida(ultima.texto) && ultima.texto) {
+                            if (textoLimpo && textoLimpo.length > 15 && !respostaJaExibida(textoLimpo)) {
                                 if (ultima.respondido_por_ia) {
-                                    addMessage('ai', ultima.texto + botoesResposta());
+                                    addMessage('ai', textoLimpo + botoesResposta());
                                 } else {
-                                    addMessage('atendente-msg', '👤 ' + ultima.texto);
+                                    addMessage('atendente-msg', '👤 ' + textoLimpo);
                                 }
                                 
                                 document.getElementById('newMsgNotification').classList.add('show');
@@ -1787,7 +1890,7 @@
         } catch (e) {
             console.log('⚠️ Erro no polling contínuo:', e.message);
             
-            // 🔥 FALLBACK DIRETO NO SERVIDOR LOCAL (QUANDO O PRIMEIRO FETCH FALHA)
+            // 🔥 FALLBACK DIRETO NO SERVIDOR LOCAL
             try {
                 const responseLocal = await fetch(`http://localhost:8080/api/chat-atendente/mensagens?leadId=${sessionId}`, {
                     method: 'GET',
@@ -1801,13 +1904,13 @@
                     
                     if (respostas.length > 0) {
                         const ultima = respostas[respostas.length - 1];
+                        const textoLimpo = limparRespostaIA(ultima.texto);
                         
-                        // 🔥 VERIFICA SE JÁ FOI EXIBIDA USANDO A FUNÇÃO AUXILIAR
-                        if (!respostaJaExibida(ultima.texto) && ultima.texto) {
+                        if (textoLimpo && textoLimpo.length > 15 && !respostaJaExibida(textoLimpo)) {
                             if (ultima.respondido_por_ia) {
-                                addMessage('ai', ultima.texto + botoesResposta());
+                                addMessage('ai', textoLimpo + botoesResposta());
                             } else {
-                                addMessage('atendente-msg', '👤 ' + ultima.texto);
+                                addMessage('atendente-msg', '👤 ' + textoLimpo);
                             }
                             
                             document.getElementById('newMsgNotification').classList.add('show');
