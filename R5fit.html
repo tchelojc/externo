@@ -1518,11 +1518,15 @@
             document.getElementById('homePreviewStrip').style.display = 'none';
         }
         
-        // 🔥 REMOVIDO - NÃO ADICIONA MAIS A MENSAGEM DE CONFIRMAÇÃO
-        // if (query) {
-        //     addMessage('ai', `Vi que você perguntou: "${query}". Deixa eu te ajudar...`);
-        // }
-        
+        // 🔥 CORRIGIDO: iniciarJornada() chama enviarParaIA() diretamente, sem
+        // passar por enviarMensagem() - e só enviarMensagem() fazia
+        // addMessage('user', texto). Resultado: a mensagem digitada na home
+        // nunca aparecia no chat, só o anexo (quando tinha). Mostra a
+        // mensagem do próprio cliente aqui, como em qualquer chat normal.
+        if (query) {
+            addMessage('user', query);
+        }
+
         // ✅ APENAS ENVIA PARA A IA
         setTimeout(() => enviarParaIA(query, anexo), 800);
         input.value = '';
@@ -2066,4 +2070,4 @@
     }
     </script>
 </body>
-</html> 
+</html>
