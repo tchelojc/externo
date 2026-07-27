@@ -785,6 +785,8 @@
     let usuarioLogado = null;
     // ═══════════════ CARREGAR PÁGINA DO GOOGLE DRIVE ═══════════════
     let driveFileId = null;
+    // ═══════════════ POLLING CONTÍNUO PARA RESPOSTAS DO ATENDENTE ═══════════════
+    let pollContinuoInterval = null;
 
     function abrirModalLogin() {
         document.getElementById('loginModalOverlay').classList.add('active');
@@ -810,7 +812,7 @@
         btn.disabled = true;
         btn.textContent = 'Entrando...';
         
-        // 🔥 CHAMA DIRETO O APPS SCRIPT (já está correto via callAPI)
+        // 🔥 CHAMA DIRETO O APPS SCRIPT (via proxy Cloudflare)
         const data = await callAPI('login', { email, senha }, 'POST');
         
         btn.disabled = false;
@@ -834,7 +836,8 @@
             document.getElementById('userNameDisplay').textContent = '👤 ' + usuarioLogado.nome;
             document.getElementById('btnLogout').style.display = 'inline-block';
             
-            // 🔥 REMOVER: await carregarHomePage(); - não é necessário para atendimento.html
+            // 🔥 CORRETO: CARREGA A HOME PAGE DO DRIVE
+            await carregarHomePage();
             
             mostrarToast(`Bem-vindo, ${usuarioLogado.nome}!`);
             
@@ -891,16 +894,13 @@
         try {
             mostrarToast('Carregando página interna...');
             
-            // 🔥 CORREÇÃO: usa o proxy Cloudflare para buscar o HTML do Drive
+            // 🔥 CORRETO: usa o proxy Cloudflare para buscar o HTML do Drive
             const response = await fetch('https://almafluxo.uk/proxy/r5fit?action=getHomePage');
             const data = await response.json();
             console.log('📄 Dados recebidos do servidor:', data);
             
-            // 🔥 VERIFICA SE VEIO HTML VÁLIDO
             if (data.status === 'success' && data.html && data.html.length > 100) {
                 loading.classList.add('hidden');
-                
-                // 🔥 CRIA O CONTEÚDO INLINE
                 renderHtmlInline(data.html);
                 mostrarToast('Página carregada com sucesso!');
             } else {
@@ -1070,7 +1070,8 @@
         const campo = campoMap[label.toLowerCase()] || label.toLowerCase().replace(/\s+/g, '_');
         
         try {
-            await fetch(`${LOCAL}/api?action=atualizarUsuario`, {
+            // 🔥 CORRIGIDO: usa PROXY_CLOUDFLARE
+            await fetch(`${PROXY_CLOUDFLARE}?action=atualizarUsuario`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -1365,30 +1366,39 @@
         const subtitle = document.getElementById('chatSubtitle');
         
         if (mode === 'ia') {
-            cw.classList.remove('atendente-mode'); ch.classList.remove('atendente-header');
-            ca.classList.remove('atendente-avatar'); ca.textContent = '🤖';
+            cw.classList.remove('atendente-mode');
+            ch.classList.remove('atendente-header');
+            ca.classList.remove('atendente-avatar');
+            ca.textContent = '🤖';
             document.getElementById('chatTitle').textContent = 'R5 Fit · Assistente IA';
-            subtitle.textContent = 'IA · Respostas automáticas 24h';
-            ci.classList.remove('atendente-input'); ci.placeholder = 'Digite sua dúvida...';
+            subtitle.textContent = '🤖 IA · Respostas automáticas 24h';
+            ci.classList.remove('atendente-input');
+            ci.placeholder = 'Digite sua dúvida...';
             cb.classList.remove('atendente-send');
             document.getElementById('modeTabIA').classList.add('active-ia');
             document.getElementById('modeTabAtendente').classList.remove('active-atendente');
             document.getElementById('switchToAtendenteLink').style.display = 'inline';
         } else {
-            cw.classList.add('atendente-mode'); ch.classList.add('atendente-header');
-            ca.classList.add('atendente-avatar'); ca.textContent = '👋';
+            cw.classList.add('atendente-mode');
+            ch.classList.add('atendente-header');
+            ca.classList.add('atendente-avatar');
+            ca.textContent = '👋';
             document.getElementById('chatTitle').textContent = 'R5 Fit · Atendente';
             subtitle.textContent = '🟢 Online · Seg-Sex 6h-22h, Sáb 8h-14h';
-            ci.classList.add('atendente-input'); ci.placeholder = 'Fale diretamente com nossa equipe...';
+            ci.classList.add('atendente-input');
+            ci.placeholder = 'Fale com nossa equipe...';
             cb.classList.add('atendente-send');
             document.getElementById('modeTabIA').classList.remove('active-ia');
             document.getElementById('modeTabAtendente').classList.add('active-atendente');
             document.getElementById('switchToAtendenteLink').style.display = 'none';
         }
-        startPolling();
+        
+        // 🔥 INICIA POLLING CONTÍNUO SE O CHAT ESTIVER ABERTO
+        if (document.getElementById('chatOverlay').classList.contains('active')) {
+            iniciarPollingContinuo();
+        }
     }
 
-    // ═══════════════ RESPOSTAS PRONTAS (CHIPS) ═══════════════
     function respostaPronta(tipo) {
         const resposta = RESPOSTAS_PRONTAS[tipo];
         if (!resposta) return;
@@ -1398,7 +1408,8 @@
         document.getElementById('chatMessages').innerHTML = '';
         if (tipo === 'atendente') {
             addMessage('atendente-msg', resposta);
-            enviarMensagemParaServidor(resposta);
+            // 🔥 CORRIGIDO: usa enviarParaAtendente
+            enviarParaAtendente(resposta);
         } else {
             addMessage('ai', resposta + botoesResposta());
         }
@@ -1414,9 +1425,29 @@
         document.getElementById('chatOverlay').classList.add('active');
         document.getElementById('homeContainer').classList.add('chat-open');
         document.body.style.overflow = 'hidden';
+        
+        // 🔥 INICIA POLLING CONTÍNUO
+        iniciarPollingContinuo();
     }
 
-    // ═══════════════ CHAT ═══════════════
+    function fecharChat() {
+        const msgCount = document.getElementById('chatMessages').children.length;
+        if (msgCount > 1) {
+            if (!confirm('Tem certeza que deseja fechar o chat? Sua conversa será salva.')) {
+                return;
+            }
+        }
+        
+        document.getElementById('chatOverlay').classList.remove('active');
+        document.getElementById('homeContainer').classList.remove('chat-open');
+        document.body.style.overflow = '';
+        document.getElementById('searchInput').focus();
+        stopPolling();
+        
+        // 🔥 PARA POLLING CONTÍNUO
+        pararPollingContinuo();
+    }
+
     function iniciarJornada() {
         const input = document.getElementById('searchInput');
         const query = input.value.trim();
@@ -1445,24 +1476,9 @@
             addMessage('ai', `Vi que você perguntou: "${query}". Deixa eu te ajudar...`);
         }
         
-        setTimeout(() => enviarMensagemParaServidor(query, anexo), 800);
+        // 🔥 CORRIGIDO: usa enviarParaIA em vez de enviarMensagemParaServidor
+        setTimeout(() => enviarParaIA(query, anexo), 800);
         input.value = '';
-    }
-
-    function fecharChat() {
-        // 🔥 Confirma antes de fechar se houver conversa ativa
-        const msgCount = document.getElementById('chatMessages').children.length;
-        if (msgCount > 1) {
-            if (!confirm('Tem certeza que deseja fechar o chat? Sua conversa será salva.')) {
-                return;
-            }
-        }
-        
-        document.getElementById('chatOverlay').classList.remove('active');
-        document.getElementById('homeContainer').classList.remove('chat-open');
-        document.body.style.overflow = '';
-        document.getElementById('searchInput').focus();
-        stopPolling();
     }
 
     // ═══════════════ ANEXO DE ARQUIVOS ═══════════════
@@ -1579,16 +1595,14 @@
         reconhecimentoVoz.start();
     }
 
-    // ═══════════════ ENVIO DE MENSAGEM ═══════════════
     async function enviarMensagem() {
         if (isProcessing) return;
         const input = document.getElementById('chatInput');
         const texto = input.value.trim();
         
-        // Se não tem texto nem arquivo, não envia
         if (!texto && !arquivoStaged) return;
 
-        // Mostra a mensagem no chat
+        // 🔥 MOSTRA A MENSAGEM NO CHAT
         if (arquivoStaged) {
             if (arquivoStaged.tipo.startsWith('image/')) {
                 addImageMessage('user', arquivoStaged.base64);
@@ -1604,17 +1618,97 @@
         const arquivoParaEnviar = arquivoStaged;
         removerAnexoStaged();
         
-        // Envia para o servidor
-        await enviarMensagemParaServidor(texto, arquivoParaEnviar);
+        // 🔥 ROTEIA PARA O FLUXO CORRETO
+        if (chatMode === 'atendente') {
+            await enviarParaAtendente(texto, arquivoParaEnviar);
+        } else {
+            await enviarParaIA(texto, arquivoParaEnviar);
+        }
     }
 
-    async function enviarMensagemParaServidor(mensagem, arquivo = null) {
+    function iniciarPollingContinuo() {
+        if (pollContinuoInterval) return;
+        pollContinuoInterval = setInterval(pollRespostasContinuo, 3000);
+        console.log('🔄 Polling contínuo iniciado');
+    }
+
+    function pararPollingContinuo() {
+        if (pollContinuoInterval) {
+            clearInterval(pollContinuoInterval);
+            pollContinuoInterval = null;
+            console.log('🛑 Polling contínuo parado');
+        }
+    }
+
+    async function pollRespostasContinuo() {
+        if (!document.getElementById('chatOverlay').classList.contains('active')) return;
+        if (isProcessing) return;
+        
+        try {
+            const pollData = await callAPI('getChatAtendente', { leadId: sessionId }, 'GET');
+            
+            if (pollData.conversas && pollData.conversas[sessionId]) {
+                const msgs = pollData.conversas[sessionId].mensagens || [];
+                const respostas = msgs.filter(m => m.de !== 'lead');
+                
+                if (respostas.length > 0) {
+                    const ultima = respostas[respostas.length - 1];
+                    
+                    // 🔥 VERIFICA SE JÁ FOI EXIBIDA
+                    const msgElements = document.querySelectorAll('.message.ai, .message.atendente-msg');
+                    let jaExibida = false;
+                    msgElements.forEach(el => {
+                        if (el.textContent?.includes(ultima.texto?.substring(0, 30))) {
+                            jaExibida = true;
+                        }
+                    });
+                    
+                    if (!jaExibida && ultima.texto) {
+                        // 🔥 ADICIONA A MENSAGEM
+                        if (ultima.respondido_por_ia) {
+                            addMessage('ai', ultima.texto + botoesResposta());
+                        } else {
+                            addMessage('atendente-msg', '👤 ' + ultima.texto);
+                        }
+                        
+                        // 🔥 NOTIFICAÇÃO
+                        document.getElementById('newMsgNotification').classList.add('show');
+                        document.getElementById('newMsgNotification').textContent = '📩 Nova resposta!';
+                        
+                        // 🔥 SOM
+                        tocarSomNotificacao();
+                    }
+                }
+            }
+        } catch (e) {
+            console.log('⚠️ Erro no polling contínuo:', e.message);
+        }
+    }
+
+    function tocarSomNotificacao() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.frequency.value = 830;
+            gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.15, ctx.currentTime + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.15);
+            osc.connect(gain).connect(ctx.destination);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.2);
+        } catch (e) {}
+    }
+
+    // ═══════════════ FLUXO 1: CHAT COM IA ═══════════════
+    async function enviarParaIA(mensagem, arquivo = null) {
         isProcessing = true;
         document.getElementById('chatSendBtn').disabled = true;
         showTyping();
         
-        console.log('📤 Enviando mensagem para atendimento...');
+        console.log('🤖 Enviando mensagem para IA...');
         
+        // 🔥 PASSO 1: SALVA NO DRIVE (para histórico)
         const payload = {
             leadId: sessionId,
             nomeLead: usuarioLogado?.nome || 'Visitante',
@@ -1622,7 +1716,7 @@
             texto: mensagem || (arquivo ? `📎 ${arquivo.nome}` : ''),
             mensagem: mensagem || (arquivo ? `📎 ${arquivo.nome}` : ''),
             respondido_por_ia: false,
-            aguardando_atendente: chatMode === 'atendente'
+            aguardando_atendente: false  // 🔥 NÃO É ATENDENTE
         };
         
         if (arquivo) {
@@ -1633,40 +1727,25 @@
             };
         }
 
-        // 🔥 PASSO 1: SALVA NO DRIVE (via proxy Cloudflare)
-        const saveData = await callAPI('saveChatAtendente', payload, 'POST');
-        console.log('📥 Mensagem salva no Drive:', saveData.status);
+        await callAPI('saveChatAtendente', payload, 'POST');
+        console.log('📥 Mensagem salva no Drive');
 
-        if (saveData.result && saveData.result.leadId && saveData.result.leadId !== sessionId) {
-            sessionId = saveData.result.leadId;
-        }
-
-        // 🔥 SE FOR MODO ATENDENTE, NÃO ESPERA IA
-        if (chatMode === 'atendente') {
-            removeTyping();
-            addMessage('atendente-msg', '✅ Mensagem enviada para nossa equipe! Responderemos em breve.');
-            isProcessing = false;
-            document.getElementById('chatSendBtn').disabled = false;
-            document.getElementById('chatInput').focus();
-            return;
-        }
-
-        // 🔥 PASSO 2: ACIONA O SERVIDOR LOCAL PARA PROCESSAR
+        // 🔥 PASSO 2: ACIONA O SERVIDOR LOCAL (IA)
         try {
             await fetch('http://localhost:8080/api/processar-pendentes', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({}) // Não força engine, usa a que está ativa
+                body: JSON.stringify({})  // Usa a IA que está ativa
             });
-            console.log('🤖 Servidor local acionado para processar');
+            console.log('🤖 Servidor local acionado');
         } catch (e) {
-            console.log('⚠️ Erro ao acionar servidor local:', e.message);
+            console.log('⚠️ Erro ao acionar servidor:', e.message);
         }
 
-        // 🔥 PASSO 3: POLLING - BUSCA RESPOSTA DO DRIVE (via proxy Cloudflare)
+        // 🔥 PASSO 3: POLLING - ESPERA RESPOSTA DA IA
         let resposta = null;
         let tentativas = 0;
-        const MAX_TENTATIVAS = 30; // 30 * 2s = 60s
+        const MAX_TENTATIVAS = 25; // 50s
 
         while (!resposta && tentativas < MAX_TENTATIVAS) {
             tentativas++;
@@ -1681,7 +1760,8 @@
                     
                     if (respostas.length > 0) {
                         const ultima = respostas[respostas.length - 1];
-                        // Verifica se é nova (não foi exibida ainda)
+                        
+                        // 🔥 VERIFICA SE É NOVA
                         const msgElements = document.querySelectorAll('.message.ai, .message.atendente-msg');
                         let jaExibida = false;
                         msgElements.forEach(el => {
@@ -1689,7 +1769,8 @@
                                 jaExibida = true;
                             }
                         });
-                        if (!jaExibida) {
+                        
+                        if (!jaExibida && ultima.texto) {
                             resposta = ultima;
                             break;
                         }
@@ -1700,23 +1781,67 @@
             }
             
             if (tentativas % 5 === 0) {
-                console.log(`⏳ Aguardando resposta... (${tentativas * 2}s)`);
+                console.log(`⏳ Aguardando IA... (${tentativas * 2}s)`);
             }
         }
 
         removeTyping();
 
-        if (resposta && resposta.texto && resposta.texto.trim().length > 0) {
+        if (resposta && resposta.texto) {
             if (resposta.respondido_por_ia) {
                 addMessage('ai', resposta.texto + botoesResposta());
             } else {
                 addMessage('atendente-msg', '👤 ' + resposta.texto);
             }
         } else {
-            // Fallback
-            const fallback = '✅ Mensagem recebida! Nossa equipe irá responder em breve.';
+            // 🔥 FALLBACK: IA LOCAL
+            const fallback = gerarRespostaLocal(mensagem || '');
             addMessage('ai', fallback + botoesResposta());
         }
+
+        isProcessing = false;
+        document.getElementById('chatSendBtn').disabled = false;
+        document.getElementById('chatInput').focus();
+    }
+
+    // ═══════════════ FLUXO 2: CHAT COM ATENDENTE HUMANO ═══════════════
+    async function enviarParaAtendente(mensagem, arquivo = null) {
+        isProcessing = true;
+        document.getElementById('chatSendBtn').disabled = true;
+        
+        console.log('👤 Enviando mensagem para atendente humano...');
+        
+        // 🔥 PASSO 1: SALVA NO DRIVE COM FLAG aguardando_atendente = true
+        const payload = {
+            leadId: sessionId,
+            nomeLead: usuarioLogado?.nome || 'Visitante',
+            de: 'lead',
+            texto: mensagem || (arquivo ? `📎 ${arquivo.nome}` : ''),
+            mensagem: mensagem || (arquivo ? `📎 ${arquivo.nome}` : ''),
+            respondido_por_ia: false,
+            aguardando_atendente: true  // 🔥 MARCA QUE PRECISA DE ATENDENTE HUMANO
+        };
+        
+        if (arquivo) {
+            payload.arquivo = {
+                base64: arquivo.base64,
+                tipo: arquivo.tipo,
+                nome: arquivo.nome
+            };
+        }
+
+        const saveData = await callAPI('saveChatAtendente', payload, 'POST');
+        console.log('📥 Mensagem salva no Drive, aguardando atendente');
+
+        if (saveData.result && saveData.result.leadId && saveData.result.leadId !== sessionId) {
+            sessionId = saveData.result.leadId;
+        }
+
+        // 🔥 PASSO 2: MOSTRA MENSAGEM DE AGUARDO
+        addMessage('atendente-msg', '⏳ Mensagem enviada para nossa equipe. Aguarde um momento...');
+
+        // 🔥 PASSO 3: INICIA POLLING CONTÍNUO (já existe no startPolling)
+        // O polling contínuo vai buscar respostas automaticamente
 
         isProcessing = false;
         document.getElementById('chatSendBtn').disabled = false;
