@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AlmaFluxo - Envio para Impressão</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --card: #141414;
+            --border: #2a2a2a;
+            --accent: #d4a017;
+            --accent2: #b8860b;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --text: #e0e0e0;
+            --text2: #999;
+            --text3: #666;
+            --radius: 12px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        .header {
+            background: linear-gradient(180deg, rgba(212,160,23,0.1) 0%, transparent 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 1.5rem;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            backdrop-filter: blur(10px);
+        }
+        .header h1 {
+            font-family: 'Cinzel', serif;
+            color: var(--accent);
+            font-size: 1.8rem;
+            letter-spacing: 0.08em;
+            margin: 0;
+        }
+        .header .subtitle { color: var(--text2); font-size: 0.85rem; margin-top: 0.25rem; }
+        .container { max-width: 640px; margin: 0 auto; padding: 1.5rem; }
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        }
+        .card-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.1rem;
+            color: var(--accent);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .card-title .icon { font-size: 1.3rem; }
+        
+        .upload-zone {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(212,160,23,0.02);
+            position: relative;
+        }
+        .upload-zone:hover, .upload-zone.drag-over {
+            border-color: var(--accent);
+            background: rgba(212,160,23,0.06);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(212,160,23,0.1);
+        }
+        .upload-zone .upload-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            display: block;
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .upload-zone .upload-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .upload-zone .upload-subtitle { color: var(--text2); font-size: 0.9rem; }
+        .upload-zone .upload-formats { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 1rem; }
+        .format-tag { background: var(--border); color: var(--text2); padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 500; }
+        .upload-zone input[type="file"] { display: none; }
+        
+        .file-list { margin-top: 1rem; }
+        .file-item {
+            display: flex; align-items: center; gap: 12px;
+            background: rgba(255,255,255,0.02); border: 1px solid var(--border);
+            border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; transition: all 0.2s;
+        }
+        .file-item:hover { background: rgba(255,255,255,0.04); }
+        .file-item .file-icon { font-size: 1.8rem; flex-shrink: 0; }
+        .file-item .file-info { flex: 1; min-width: 0; }
+        .file-item .file-name { font-weight: 500; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .file-item .file-meta { color: var(--text2); font-size: 0.75rem; }
+        .file-item .btn-icon {
+            background: none; border: none; color: var(--danger); cursor: pointer;
+            font-size: 1.1rem; padding: 6px; border-radius: 6px; transition: all 0.2s; flex-shrink: 0;
+        }
+        .file-item .btn-icon:hover { background: rgba(231,76,60,0.15); }
+        .file-item .btn-preview { color: var(--accent); }
+        .file-item .btn-preview:hover { background: rgba(212,160,23,0.15); }
+        
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-size: 0.85rem; font-weight: 500; color: var(--text2); margin-bottom: 0.4rem; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border); border-radius: 8px; color: var(--text);
+            font-size: 0.95rem; font-family: inherit; transition: all 0.2s;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(212,160,23,0.1);
+        }
+        .form-group textarea { resize: vertical; min-height: 90px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+        
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+            width: 100%; padding: 14px 20px; border: none; border-radius: var(--radius);
+            font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+            font-family: inherit; letter-spacing: 0.02em;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #000; box-shadow: 0 4px 15px rgba(212,160,23,0.2);
+        }
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px); box-shadow: 0 8px 25px rgba(212,160,23,0.35);
+        }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+        
+        .progress-container { margin-top: 1rem; display: none; }
+        .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+        .progress-fill {
+            height: 100%; background: linear-gradient(90deg, var(--accent), var(--success));
+            border-radius: 3px; width: 0%; transition: width 0.4s ease;
+        }
+        .progress-text { text-align: center; color: var(--text2); font-size: 0.8rem; margin-top: 0.5rem; }
+        
+        .toast {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: var(--card); border: 1px solid var(--accent); padding: 12px 24px;
+            border-radius: 30px; z-index: 1000; font-size: 0.9rem;
+            animation: slideUp 0.3s ease; box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+            max-width: 90vw; text-align: center;
+        }
+        @keyframes slideUp {
+            from { transform: translateX(-50%) translateY(100%); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+        
+        .success-container { display: none; text-align: center; padding: 2rem; }
+        .success-container .success-icon {
+            font-size: 5rem; display: block; margin-bottom: 1rem;
+            animation: bounceIn 0.6s ease;
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0); }
+            60% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .success-container h2 { color: var(--success); font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .success-container .info-box {
+            background: rgba(46,204,113,0.08); border: 1px solid rgba(46,204,113,0.2);
+            border-radius: var(--radius); padding: 1rem; margin: 1rem 0;
+            text-align: left; font-size: 0.9rem;
+        }
+        .success-container .info-box .info-row {
+            display: flex; align-items: center; gap: 0.5rem;
+            padding: 0.4rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .success-container .info-box .info-row:last-child { border-bottom: none; }
+        
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+            z-index: 100; align-items: center; justify-content: center; padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content { max-width: 90vw; max-height: 80vh; position: relative; }
+        .modal-content img { max-width: 100%; max-height: 80vh; border-radius: var(--radius); box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+        .modal-close {
+            position: absolute; top: -40px; right: 0; background: var(--danger); color: white;
+            border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
+            font-size: 1.2rem; display: flex; align-items: center; justify-content: center;
+        }
+        .modal-actions { display: flex; gap: 0.5rem; margin-top: 1rem; justify-content: center; flex-wrap: wrap; }
+        .modal-actions .btn { width: auto; padding: 10px 20px; font-size: 0.85rem; }
+        
+        .footer {
+            text-align: center; padding: 2rem 1rem; color: var(--text3);
+            font-size: 0.8rem; border-top: 1px solid var(--border); margin-top: 2rem;
+        }
+        .footer a { color: var(--accent); text-decoration: none; }
+        
+        @media (max-width: 480px) {
+            .container { padding: 1rem; }
+            .card { padding: 1rem; }
+            .header h1 { font-size: 1.4rem; }
+            .upload-zone { padding: 2rem 1rem; }
+            .upload-zone .upload-icon { font-size: 2.5rem; }
+            .form-row, .form-row-3 { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <div class="header">
+        <h1>✦ ALMAFLUXO ✦</h1>
+        <div class="subtitle">Envio Rápido para Impressão</div>
+    </div>
+
+    <!-- CONTAINER PRINCIPAL -->
+    <div class="container" id="mainContainer">
+        <!-- UPLOAD CARD -->
+        <div class="card">
+            <div class="card-title"><span class="icon">📤</span> Enviar Arquivos</div>
+            
+            <div class="upload-zone" id="uploadZone">
+                <span class="upload-icon">📁</span>
+                <div class="upload-title">Arraste seus arquivos aqui</div>
+                <div class="upload-subtitle">ou clique para selecionar (máx. 50MB por arquivo)</div>
+                <div class="upload-formats">
+                    <span class="format-tag">📄 PDF</span>
+                    <span class="format-tag">🖼️ Imagens</span>
+                    <span class="format-tag">📝 Documentos</span>
+                    <span class="format-tag">📸 Fotos</span>
+                    <span class="format-tag">🌐 HTML</span>
+                    <span class="format-tag">📋 TXT</span>
+                </div>
+                <input type="file" id="fileInput" multiple accept=".pdf,.jpg,.jpeg,.png,.gif,.bmp,.webp,.doc,.docx,.html,.htm,.txt,.rtf">
+            </div>
+            
+            <div class="file-list" id="fileList"></div>
+        </div>
+        
+        <!-- FORM CARD -->
+        <div class="card" id="formCard" style="display:none;">
+            <div class="card-title"><span class="icon">📋</span> Dados do Pedido</div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>👤 Seu Nome *</label>
+                    <input type="text" id="clientName" placeholder="Nome completo">
+                </div>
+                <div class="form-group">
+                    <label>📱 WhatsApp *</label>
+                    <input type="tel" id="clientPhone" placeholder="(11) 99999-9999">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>📝 Instruções de Impressão</label>
+                <textarea id="instructions" placeholder="Ex: Imprimir 2 cópias coloridas, tamanho A4, frente e verso..."></textarea>
+            </div>
+            
+            <div class="card-title" style="margin-top:1rem;"><span class="icon">⚙️</span> Configurações de Impressão</div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>📏 Tamanho do Papel</label>
+                    <select id="paperSize">
+                        <option value="a4">A4 (210×297mm)</option>
+                        <option value="a3">A3 (297×420mm)</option>
+                        <option value="a5">A5 (148×210mm)</option>
+                        <option value="letter">Carta (216×279mm)</option>
+                        <option value="10x15">Foto 10×15cm</option>
+                        <option value="13x18">Foto 13×18cm</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>🎨 Modo de Cor</label>
+                    <select id="colorMode">
+                        <option value="color">Colorido</option>
+                        <option value="bw">Preto e Branco</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-row-3">
+                <div class="form-group">
+                    <label>📑 Cópias</label>
+                    <input type="number" id="copies" value="1" min="1" max="100">
+                </div>
+                <div class="form-group">
+                    <label>📄 Lados</label>
+                    <select id="sides">
+                        <option value="simplex">Frente apenas</option>
+                        <option value="duplex">Frente e Verso</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>📚 Encadernação</label>
+                    <select id="binding">
+                        <option value="nenhuma">Nenhuma</option>
+                        <option value="espiral">Espiral</option>
+                        <option value="wire-o">Wire-O</option>
+                        <option value="grampo">Grampo</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button class="btn btn-primary" id="btnSend">🚀 Enviar Pedido de Impressão</button>
+            
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+                <div class="progress-text" id="progressText">Preparando envio...</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- SUCCESS -->
+    <div class="container success-container" id="successContainer">
+        <div class="card">
+            <span class="success-icon">✅</span>
+            <h2>Pedido Enviado com Sucesso!</h2>
+            <p style="color: var(--text2); margin-bottom: 1rem;">Seus arquivos foram recebidos e estão na fila de impressão.</p>
+            <div class="info-box">
+                <div class="info-row">📋 <strong>ID do Pedido:</strong> <span id="successOrderId">-</span></div>
+                <div class="info-row">📎 <strong>Arquivos:</strong> <span id="successFileCount">0</span></div>
+                <div class="info-row">⏱️ <strong>Tempo estimado:</strong> 15-30 minutos</div>
+                <div class="info-row">📍 <strong>Retirada:</strong> Na loja ou delivery</div>
+            </div>
+            <button class="btn btn-primary" id="btnNovoPedido" style="margin-top: 1rem;">📤 Fazer Novo Pedido</button>
+        </div>
+    </div>
+    
+    <!-- MODAL PREVIEW -->
+    <div class="modal-overlay" id="previewModal">
+        <div class="modal-content">
+            <button class="modal-close" id="btnModalClose">✕</button>
+            <img id="previewImage" src="" alt="Preview">
+            <div class="modal-actions">
+                <button class="btn btn-outline" id="btnImprimirPreview">🖨️ Imprimir</button>
+                <button class="btn btn-outline" id="btnFecharPreview">Fechar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- FOOTER -->
+    <div class="footer">
+        <p>✦ AlmaFluxo Impressões ✦</p>
+        <p>Dúvidas? <a href="https://wa.me/5511999999999" target="_blank">Chame no WhatsApp</a></p>
+    </div>
+
+    <script>
+        // ============================================
+        // ⚠️ URL FIXA DO APPS SCRIPT (CLIENTE)
+        // ============================================
+        var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzTpV_BvMM1fWP1_xdqm_Euy5aN2uBGoNHvClrrJO_fNJ3YottdGx2iG67E9nwobLjCew/exec';
+        
+        // ============================================
+        // ESTADO GLOBAL
+        // ============================================
+        var uploadedFiles = [];
+        var MAX_FILE_SIZE = 50 * 1024 * 1024;
+        var ALLOWED_TYPES = [
+            'application/pdf',
+            'image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/webp',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'text/html', 'text/plain', 'application/rtf'
+        ];
+        
+        // ============================================
+        // INICIALIZAÇÃO
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+        });
+        
+        function setupEventListeners() {
+            // Upload zone
+            var uploadZone = document.getElementById('uploadZone');
+            var fileInput = document.getElementById('fileInput');
+            
+            uploadZone.addEventListener('click', function() { fileInput.click(); });
+            
+            uploadZone.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadZone.classList.add('drag-over');
+            });
+            
+            uploadZone.addEventListener('dragleave', function() {
+                uploadZone.classList.remove('drag-over');
+            });
+            
+            uploadZone.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadZone.classList.remove('drag-over');
+                if (e.dataTransfer.files.length > 0) {
+                    handleFiles(e.dataTransfer.files);
+                }
+            });
+            
+            fileInput.addEventListener('change', function(e) {
+                if (e.target.files.length > 0) {
+                    handleFiles(e.target.files);
+                    fileInput.value = '';
+                }
+            });
+            
+            // Paste support
+            document.addEventListener('paste', function(e) {
+                var items = e.clipboardData && e.clipboardData.items;
+                if (!items) return;
+                
+                var files = [];
+                for (var i = 0; i < items.length; i++) {
+                    if (items[i].kind === 'file') {
+                        files.push(items[i].getAsFile());
+                    }
+                }
+                if (files.length > 0) {
+                    e.preventDefault();
+                    handleFiles(files);
+                }
+            });
+            
+            // Send button
+            document.getElementById('btnSend').addEventListener('click', enviarPedido);
+            
+            // Novo pedido button
+            document.getElementById('btnNovoPedido').addEventListener('click', novoPedido);
+            
+            // Modal
+            document.getElementById('btnModalClose').addEventListener('click', fecharPreview);
+            document.getElementById('btnFecharPreview').addEventListener('click', fecharPreview);
+            document.getElementById('btnImprimirPreview').addEventListener('click', imprimirPreview);
+            
+            // Phone mask
+            document.getElementById('clientPhone').addEventListener('input', function(e) {
+                var value = e.target.value.replace(/\D/g, '');
+                if (value.length > 11) value = value.substring(0, 11);
+                
+                if (value.length > 7) {
+                    value = '(' + value.substring(0,2) + ') ' + value.substring(2,7) + '-' + value.substring(7);
+                } else if (value.length > 2) {
+                    value = '(' + value.substring(0,2) + ') ' + value.substring(2);
+                } else if (value.length > 0) {
+                    value = '(' + value;
+                }
+                e.target.value = value;
+            });
+            
+            // Fechar modal com ESC
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    fecharPreview();
+                }
+            });
+        }
+        
+        // ============================================
+        // MANIPULAÇÃO DE ARQUIVOS
+        // ============================================
+        function handleFiles(files) {
+            var addedCount = 0;
+            
+            for (var i = 0; i < files.length; i++) {
+                var file = files[i];
+                
+                if (file.size > MAX_FILE_SIZE) {
+                    showToast('❌ ' + file.name + ' excede 50MB');
+                    continue;
+                }
+                
+                var ext = file.name.split('.').pop().toLowerCase();
+                var allowedExts = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'doc', 'docx', 'html', 'htm', 'txt', 'rtf'];
+                var isAllowed = ALLOWED_TYPES.indexOf(file.type) !== -1 || allowedExts.indexOf(ext) !== -1;
+                
+                if (!isAllowed) {
+                    showToast('❌ Formato não suportado: ' + file.name);
+                    continue;
+                }
+                
+                var isDuplicate = uploadedFiles.some(function(f) {
+                    return f.name === file.name && f.size === file.size;
+                });
+                
+                if (isDuplicate) {
+                    showToast('⚠️ Arquivo já adicionado: ' + file.name);
+                    continue;
+                }
+                
+                uploadedFiles.push(file);
+                addedCount++;
+            }
+            
+            if (addedCount > 0) {
+                renderFileList();
+                updateFormVisibility();
+                showToast('✅ ' + addedCount + ' arquivo(s) adicionado(s)');
+            }
+        }
+        
+        function renderFileList() {
+            var list = document.getElementById('fileList');
+            
+            if (uploadedFiles.length === 0) {
+                list.innerHTML = '';
+                return;
+            }
+            
+            var html = '';
+            for (var i = 0; i < uploadedFiles.length; i++) {
+                var file = uploadedFiles[i];
+                var icon = getFileIcon(file);
+                var size = formatFileSize(file.size);
+                var isPreview = isPreviewable(file);
+                
+                html += '<div class="file-item">';
+                html += '<span class="file-icon">' + icon + '</span>';
+                html += '<div class="file-info">';
+                html += '<div class="file-name" title="' + file.name + '">' + file.name + '</div>';
+                html += '<div class="file-meta">' + size + '</div>';
+                html += '</div>';
+                
+                if (isPreview) {
+                    html += '<button class="btn-icon btn-preview" data-index="' + i + '" title="Visualizar">👁️</button>';
+                }
+                
+                html += '<button class="btn-icon btn-remove" data-index="' + i + '" title="Remover">✕</button>';
+                html += '</div>';
+            }
+            
+            list.innerHTML = html;
+            
+            // Event listeners dinâmicos
+            var previewBtns = list.querySelectorAll('.btn-preview');
+            for (var j = 0; j < previewBtns.length; j++) {
+                previewBtns[j].addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var idx = parseInt(this.getAttribute('data-index'));
+                    previewFile(idx);
+                });
+            }
+            
+            var removeBtns = list.querySelectorAll('.btn-remove');
+            for (var k = 0; k < removeBtns.length; k++) {
+                removeBtns[k].addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var idx = parseInt(this.getAttribute('data-index'));
+                    removeFile(idx);
+                });
+            }
+        }
+        
+        function removeFile(index) {
+            var fileName = uploadedFiles[index].name;
+            uploadedFiles.splice(index, 1);
+            renderFileList();
+            updateFormVisibility();
+            showToast('🗑️ ' + fileName + ' removido');
+        }
+        
+        function getFileIcon(file) {
+            if (file.type.indexOf('pdf') !== -1) return '📕';
+            if (file.type.indexOf('image') !== -1) return '🖼️';
+            if (file.type.indexOf('word') !== -1 || file.name.match(/\.docx?$/i)) return '📝';
+            if (file.type.indexOf('html') !== -1) return '🌐';
+            if (file.type.indexOf('text') !== -1) return '📋';
+            return '📄';
+        }
+        
+        function isPreviewable(file) {
+            return file.type.indexOf('image/') === 0;
+        }
+        
+        function previewFile(index) {
+            var file = uploadedFiles[index];
+            if (!isPreviewable(file)) return;
+            
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('previewImage').src = e.target.result;
+                document.getElementById('previewModal').classList.add('active');
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function fecharPreview() {
+            document.getElementById('previewModal').classList.remove('active');
+        }
+        
+        function imprimirPreview() {
+            var img = document.getElementById('previewImage');
+            if (!img.src) return;
+            
+            var w = window.open('', '_blank');
+            w.document.write('<!DOCTYPE html><html><head><title>Impressão</title><style>*{margin:0;padding:0}body{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#fff}img{max-width:100%;max-height:100vh}@media print{body{margin:0}img{width:100%;height:auto}}</style></head><body><img src="' + img.src + '" onload="window.print();"></body></html>');
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / 1048576).toFixed(1) + ' MB';
+        }
+        
+        function updateFormVisibility() {
+            document.getElementById('formCard').style.display = uploadedFiles.length > 0 ? 'block' : 'none';
+        }
+        
+        // ============================================
+        // ENVIO DO PEDIDO
+        // ============================================
+        function enviarPedido() {
+            var clientName = document.getElementById('clientName').value.trim();
+            var clientPhone = document.getElementById('clientPhone').value.trim();
+            
+            if (!clientName) {
+                showToast('⚠️ Informe seu nome');
+                document.getElementById('clientName').focus();
+                return;
+            }
+            
+            if (!clientPhone) {
+                showToast('⚠️ Informe seu WhatsApp');
+                document.getElementById('clientPhone').focus();
+                return;
+            }
+            
+            if (uploadedFiles.length === 0) {
+                showToast('⚠️ Adicione pelo menos um arquivo');
+                return;
+            }
+            
+            if (!confirm('Confirma o envio de ' + uploadedFiles.length + ' arquivo(s) para impressão?')) return;
+            
+            var btn = document.getElementById('btnSend');
+            var progressContainer = document.getElementById('progressContainer');
+            var progressFill = document.getElementById('progressFill');
+            var progressText = document.getElementById('progressText');
+            
+            btn.disabled = true;
+            btn.textContent = '⏳ Preparando envio...';
+            progressContainer.style.display = 'block';
+            updateProgress(10, 'Lendo arquivos...');
+            
+            // Constrói FormData
+            var payload = new FormData();
+            payload.append('action', 'enviarPedido');
+            payload.append('clientName', clientName);
+            payload.append('clientPhone', clientPhone);
+            payload.append('instructions', document.getElementById('instructions').value);
+            payload.append('paperSize', document.getElementById('paperSize').value);
+            payload.append('colorMode', document.getElementById('colorMode').value);
+            payload.append('copies', document.getElementById('copies').value);
+            payload.append('sides', document.getElementById('sides').value);
+            payload.append('binding', document.getElementById('binding').value);
+            
+            updateProgress(20, 'Processando arquivos...');
+            
+            // Converte arquivos para base64
+            var promises = [];
+            for (var i = 0; i < uploadedFiles.length; i++) {
+                (function(index) {
+                    var file = uploadedFiles[index];
+                    promises.push(
+                        fileToBase64(file).then(function(base64) {
+                            payload.append('file_' + index, base64);
+                            payload.append('file_' + index + '_name', file.name);
+                            payload.append('file_' + index + '_type', file.type || 'application/octet-stream');
+                            updateProgress(20 + Math.floor((index + 1) / uploadedFiles.length * 50), 
+                                'Processando ' + (index + 1) + '/' + uploadedFiles.length + '...');
+                        })
+                    );
+                })(i);
+            }
+            
+            Promise.all(promises).then(function() {
+                updateProgress(75, 'Enviando para o servidor...');
+                
+                return fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: payload
+                });
+            })
+            .then(function(response) { return response.json(); })
+            .then(function(result) {
+                if (result.success) {
+                    updateProgress(100, '✅ Concluído!');
+                    
+                    setTimeout(function() {
+                        document.getElementById('mainContainer').style.display = 'none';
+                        document.getElementById('successContainer').style.display = 'block';
+                        document.getElementById('successOrderId').textContent = (result.pedido && result.pedido.id) || '-';
+                        document.getElementById('successFileCount').textContent = (result.pedido && result.pedido.total_arquivos) || 0;
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }, 800);
+                } else {
+                    throw new Error(result.error || 'Erro desconhecido no servidor');
+                }
+            })
+            .catch(function(error) {
+                showToast('❌ Erro: ' + error.message);
+                btn.disabled = false;
+                btn.textContent = '🚀 Enviar Pedido de Impressão';
+                progressContainer.style.display = 'none';
+                updateProgress(0, '');
+                console.error('Erro no envio:', error);
+            });
+        }
+        
+        function updateProgress(percent, text) {
+            document.getElementById('progressFill').style.width = percent + '%';
+            document.getElementById('progressText').textContent = text;
+        }
+        
+        function fileToBase64(file) {
+            return new Promise(function(resolve, reject) {
+                var reader = new FileReader();
+                reader.onload = function() {
+                    var base64 = reader.result.split(',')[1];
+                    resolve(base64);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        function novoPedido() {
+            uploadedFiles = [];
+            renderFileList();
+            updateFormVisibility();
+            
+            document.getElementById('clientName').value = '';
+            document.getElementById('clientPhone').value = '';
+            document.getElementById('instructions').value = '';
+            document.getElementById('paperSize').value = 'a4';
+            document.getElementById('colorMode').value = 'color';
+            document.getElementById('copies').value = '1';
+            document.getElementById('sides').value = 'simplex';
+            document.getElementById('binding').value = 'nenhuma';
+            
+            document.getElementById('btnSend').disabled = false;
+            document.getElementById('btnSend').textContent = '🚀 Enviar Pedido de Impressão';
+            document.getElementById('progressContainer').style.display = 'none';
+            updateProgress(0, '');
+            
+            document.getElementById('mainContainer').style.display = 'block';
+            document.getElementById('successContainer').style.display = 'none';
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        // ============================================
+        // TOAST
+        // ============================================
+        function showToast(message) {
+            var oldToasts = document.querySelectorAll('.toast');
+            for (var i = 0; i < oldToasts.length; i++) {
+                oldToasts[i].style.opacity = '0';
+                oldToasts[i].style.transform = 'translateX(-50%) translateY(100%)';
+                setTimeout(function(t) { return function() { t.remove(); }; }(oldToasts[i]), 300);
+            }
+            
+            var toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(function() {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(-50%) translateY(100%)';
+                setTimeout(function() { toast.remove(); }, 300);
+            }, 3500);
+        }
+        
+        console.log('🖨️ AlmaFluxo Print Service - Pronto para receber pedidos');
+        console.log('📡 Conectado ao Apps Script:', SCRIPT_URL);
+    </script>
+</body>
+</html>
