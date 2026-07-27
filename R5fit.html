@@ -763,18 +763,13 @@
     <script>
     // ═══════════════ CONFIGURAÇÃO ═══════════════
     const WHATSAPP = "5521981533928";
-    // 🔥 Antes apontava pra localhost:8080, que só funciona no PC onde o
-    // servidor roda. atendimento.html é o widget PÚBLICO (visitante pode
-    // estar em qualquer lugar/qualquer rede), então precisa falar com o
-    // proxy Cloudflare do ALMAFLUXO, não com o servidor local. painel.html
-    // e servidor.py continuam em localhost normalmente - só isso aqui muda.
-    const URL_BACKEND = "proxy/r5fit";
-    const LOCAL = "https://almafluxo.uk/" + URL_BACKEND;
-    // ⚠️ Assumindo que a action vai direto em "?action=", sem "/api" no
-    // meio. Se der 404, troca a linha acima por:
-    // const LOCAL = "https://almafluxo.uk/" + URL_BACKEND + "/api";
-    const API = LOCAL;
 
+    // 🔥 PARA ATENDIMENTO: usa servidor local para comunicação com IA
+    const SERVIDOR_LOCAL = "http://localhost:8080";
+    const API_LOCAL = SERVIDOR_LOCAL + "/api";
+
+    // 🔥 PARA SALVAR NO DRIVE: usa proxy Cloudflare -> Apps Script
+    const PROXY_CLOUDFLARE = "https://almafluxo.uk/proxy/r5fit";
     let isProcessing = false;
     let sessionId = "user_" + Date.now();
     let chatMode = "ia";
@@ -788,6 +783,8 @@
     
     // ═══════════════ LOGIN ═══════════════
     let usuarioLogado = null;
+    // ═══════════════ CARREGAR PÁGINA DO GOOGLE DRIVE ═══════════════
+    let driveFileId = null;
 
     function abrirModalLogin() {
         document.getElementById('loginModalOverlay').classList.add('active');
@@ -868,8 +865,18 @@
         mostrarToast('Até logo! 👋');
     }
 
-    // ═══════════════ CARREGAR PÁGINA DO GOOGLE DRIVE ═══════════════
-    let driveFileId = null;
+    // Função que decide qual endpoint usar
+    function getEndpoint(action) {
+        // Ações que vão direto para o Drive (via proxy)
+        const actions_drive = ['saveChatAtendente', 'getChatAtendente', 'getChatAtendenteAll', 'login', 'listarUsuarios'];
+        
+        if (actions_drive.includes(action)) {
+            return `${PROXY_CLOUDFLARE}?action=${action}`;
+        }
+        
+        // Ações que vão para o servidor local (IA)
+        return `${API_LOCAL}?action=${action}`;
+    }
 
     async function carregarHomePage() {
         const container = document.getElementById('drivePageContainer');
@@ -1226,7 +1233,40 @@
 
     async function callAPI(action, data = {}, method = 'GET') {
         try {
-            const url = `${LOCAL}?action=${action}`;
+            // 🔥 DEFINE QUAL ENDPOINT USAR
+            const actions_drive = [
+                'saveChatAtendente', 
+                'getChatAtendente', 
+                'getChatAtendenteAll', 
+                'login', 
+                'listarUsuarios', 
+                'getLeads',
+                'atualizarUsuario',
+                'cadastrarUsuario'
+            ];
+            
+            // 🔥 Ações que vão para o servidor local (processamento IA)
+            const actions_local = [
+                'processar-pendentes',
+                'dola/enviar',
+                'dola/verificar',
+                'deepseek/enviar',
+                'deepseek/verificar',
+                'canvas/fila',
+                'canvas/resposta',
+                'canvas/verificar'
+            ];
+            
+            let url;
+            if (actions_drive.includes(action)) {
+                url = `https://almafluxo.uk/proxy/r5fit?action=${action}`;
+            } else if (actions_local.includes(action)) {
+                url = `http://localhost:8080/api/${action}`;
+            } else {
+                // Fallback: tenta local primeiro, depois proxy
+                url = `http://localhost:8080/api?action=${action}`;
+            }
+            
             let options = { 
                 method, 
                 headers: { 'Content-Type': 'application/json' } 
@@ -1239,7 +1279,7 @@
             console.log(`📡 ${method} ${action} → ${url}`);
             const resp = await fetch(url, options);
             const json = await resp.json();
-            console.log(`📥 Resposta ${action}:`, json.status, json.message || '');
+            console.log(`📥 Resposta ${action}:`, json.status || json.message || '');
             return json;
         } catch (e) {
             console.warn('⚠️ API offline:', e.message);
@@ -1613,7 +1653,7 @@
         document.getElementById('chatSendBtn').disabled = true;
         showTyping();
         
-        console.log('📤 Enviando mensagem...');
+        console.log('📤 Enviando mensagem para atendimento...');
         
         const payload = {
             leadId: sessionId,
@@ -1633,15 +1673,15 @@
             };
         }
 
-        // 🔥 SALVA DIRETO NO APPS SCRIPT
+        // 🔥 PASSO 1: SALVA NO DRIVE (via proxy Cloudflare)
         const saveData = await callAPI('saveChatAtendente', payload, 'POST');
-        console.log('📥 Mensagem salva:', saveData.status);
+        console.log('📥 Mensagem salva no Drive:', saveData.status);
 
         if (saveData.result && saveData.result.leadId && saveData.result.leadId !== sessionId) {
             sessionId = saveData.result.leadId;
         }
 
-        // 🔥 SE FOR MODO ATENDENTE, NÃO ESPERA RESPOSTA AUTOMÁTICA
+        // 🔥 SE FOR MODO ATENDENTE, NÃO ESPERA IA
         if (chatMode === 'atendente') {
             removeTyping();
             addMessage('atendente-msg', '✅ Mensagem enviada para nossa equipe! Responderemos em breve.');
@@ -1651,10 +1691,22 @@
             return;
         }
 
-        // 🔥 BUSCA RESPOSTAS DIRETO DO APPS SCRIPT (polling simples)
+        // 🔥 PASSO 2: ACIONA O SERVIDOR LOCAL PARA PROCESSAR
+        try {
+            await fetch('http://localhost:8080/api/processar-pendentes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({}) // Não força engine, usa a que está ativa
+            });
+            console.log('🤖 Servidor local acionado para processar');
+        } catch (e) {
+            console.log('⚠️ Erro ao acionar servidor local:', e.message);
+        }
+
+        // 🔥 PASSO 3: POLLING - BUSCA RESPOSTA DO DRIVE (via proxy Cloudflare)
         let resposta = null;
         let tentativas = 0;
-        const MAX_TENTATIVAS = 25; // 25 * 2s = 50s
+        const MAX_TENTATIVAS = 30; // 30 * 2s = 60s
 
         while (!resposta && tentativas < MAX_TENTATIVAS) {
             tentativas++;
@@ -1665,7 +1717,6 @@
                 
                 if (pollData.conversas && pollData.conversas[sessionId]) {
                     const msgs = pollData.conversas[sessionId].mensagens || [];
-                    // Busca respostas do atendente (não do lead)
                     const respostas = msgs.filter(m => m.de !== 'lead');
                     
                     if (respostas.length > 0) {
@@ -1704,11 +1755,7 @@
         } else {
             // Fallback
             const fallback = '✅ Mensagem recebida! Nossa equipe irá responder em breve.';
-            if (chatMode === 'ia') {
-                addMessage('ai', fallback + botoesResposta());
-            } else {
-                addMessage('atendente-msg', fallback);
-            }
+            addMessage('ai', fallback + botoesResposta());
         }
 
         isProcessing = false;
