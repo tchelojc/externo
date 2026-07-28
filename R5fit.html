@@ -772,6 +772,7 @@
     // 🔥 PARA SALVAR NO DRIVE: usa proxy Cloudflare -> Apps Script
     const PROXY_CLOUDFLARE = "https://almafluxo.uk/proxy/r5fit";
     let isProcessing = false;
+    let atendimentoEncerrado = false; // 🔥 true depois que o atendimento é encerrado (pelo atendente ou por inatividade) - trava o envio
     let sessionId = "user_" + Date.now();
     let chatMode = "ia";
     let pollingInterval = null;
@@ -1891,6 +1892,13 @@
             });
             const data = await response.json();
 
+            // 🔥 NOVO: se o atendimento foi encerrado (atendente, limite ou
+            // inatividade) enquanto o cliente estava só olhando o chat, mostra
+            // o aviso mesmo sem ele ter mandado mensagem agora.
+            if (data.atendimento_status === 'encerrado' && !atendimentoEncerrado) {
+                mostrarAtendimentoEncerrado(data.atendimento_encerrado_por === 'sistema (inatividade)' ? 'inatividade' : 'atendente');
+            }
+
             if (data.respostas && data.respostas.length > 0) {
                 for (const resp of data.respostas) {
                     const textoLimpo = limparRespostaIA(resp.texto);
@@ -1924,6 +1932,29 @@
         }
     }
 
+    // 🔥 NOVO: mostra o aviso de atendimento encerrado (pelo atendente, IA via
+    // limite de mensagens, ou por inatividade) e trava o chat pro cliente não
+    // conseguir mandar mais nada nessa sessão - só pelo WhatsApp a partir daqui.
+    function mostrarAtendimentoEncerrado(motivo) {
+        if (atendimentoEncerrado) return; // já mostrado, não repete
+        atendimentoEncerrado = true;
+
+        const msg = motivo === 'limite'
+            ? `Você atingiu o limite de mensagens desta conversa. Chama a gente no WhatsApp que a gente continua o papo por lá! 📱`
+            : `Este atendimento foi encerrado. Se precisar de mais alguma coisa, é só chamar no WhatsApp! 👋`;
+
+        addMessage('atendente-msg', '🔒 ' + msg + botoesResposta());
+
+        const input = document.getElementById('chatInput');
+        const sendBtn = document.getElementById('chatSendBtn');
+        if (input) { input.disabled = true; input.placeholder = 'Atendimento encerrado'; }
+        if (sendBtn) sendBtn.disabled = true;
+        const btnAnexo = document.getElementById('btnAnexo');
+        const btnMic = document.getElementById('btnMic');
+        if (btnAnexo) btnAnexo.disabled = true;
+        if (btnMic) btnMic.disabled = true;
+    }
+
     function tocarSomNotificacao() {
         try {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1944,138 +1975,162 @@
         isProcessing = true;
         document.getElementById('chatSendBtn').disabled = true;
         showTyping();
-        
+
         console.log('🤖 Enviando mensagem para IA...');
-        
-        // 🔥 PASSO 1: SALVA NO DRIVE (via proxy Cloudflare)
-        const payload = {
-            leadId: sessionId,
-            nomeLead: usuarioLogado?.nome || 'Visitante',
-            de: 'lead',
-            texto: mensagem || (arquivo ? `📎 ${arquivo.nome}` : ''),
-            mensagem: mensagem || (arquivo ? `📎 ${arquivo.nome}` : ''),
-            respondido_por_ia: false,
-            aguardando_atendente: false
-        };
-        
-        if (arquivo) {
-            payload.arquivo = {
-                base64: arquivo.base64,
-                tipo: arquivo.tipo,
-                nome: arquivo.nome
-            };
-        }
 
-        await callAPI('saveChatAtendente', payload, 'POST');
-        console.log('📥 Mensagem salva no Drive');
-
-        // 🔥 PASSO 2: ACIONA O SERVIDOR LOCAL (IA)
+        // 🔥 CORREÇÃO: tudo daqui pra baixo agora está dentro de um try/finally.
+        // ANTES, se qualquer chamada (saveChatAtendente, processar-pendentes, o
+        // polling) desse erro, a função parava no meio, isProcessing nunca
+        // voltava pra false e o botão de enviar ficava desabilitado pro RESTO
+        // da sessão - o cliente conseguia mandar a primeira mensagem e nunca
+        // mais nenhuma outra. O finally garante que isProcessing e o botão
+        // sempre voltam ao normal, dê erro ou não.
         try {
-            await fetch('http://localhost:8080/api/processar-pendentes', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({})
-            });
-            console.log('🤖 Servidor local acionado');
-        } catch (e) {
-            console.log('⚠️ Erro ao acionar servidor:', e.message);
-        }
+            // 🔥 PASSO 1: SALVA NO DRIVE (via proxy Cloudflare)
+            const payload = {
+                leadId: sessionId,
+                nomeLead: usuarioLogado?.nome || 'Visitante',
+                de: 'lead',
+                texto: mensagem || (arquivo ? `📎 ${arquivo.nome}` : ''),
+                mensagem: mensagem || (arquivo ? `📎 ${arquivo.nome}` : ''),
+                respondido_por_ia: false,
+                aguardando_atendente: false
+            };
 
-        // 🔥 PASSO 3: POLLING - USA SOMENTE O SERVIDOR LOCAL
-        let resposta = null;
-        let tentativas = 0;
-        const MAX_TENTATIVAS = 25; // 50s
+            if (arquivo) {
+                payload.arquivo = {
+                    base64: arquivo.base64,
+                    tipo: arquivo.tipo,
+                    nome: arquivo.nome
+                };
+            }
 
-        while (!resposta && tentativas < MAX_TENTATIVAS) {
-            tentativas++;
-            await new Promise(r => setTimeout(r, 2000));
-            
+            await callAPI('saveChatAtendente', payload, 'POST');
+            console.log('📥 Mensagem salva no Drive');
+
+            // 🔥 PASSO 2: ACIONA O SERVIDOR LOCAL (IA)
             try {
-                const respPendentes = await fetch(`http://localhost:8080/api/chat-atendente/respostas?leadId=${sessionId}`, {
-                    method: 'GET',
-                    headers: { 'Content-Type': 'application/json' }
+                await fetch('http://localhost:8080/api/processar-pendentes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
                 });
-                const pendentesData = await respPendentes.json();
-                
-                if (pendentesData.respostas && pendentesData.respostas.length > 0) {
-                    const ultimaResposta = pendentesData.respostas[pendentesData.respostas.length - 1];
-                    if (ultimaResposta && ultimaResposta.texto) {
-                        resposta = ultimaResposta;
-                        console.log('✅ Resposta encontrada no servidor local!');
-                        break;
-                    }
-                }
+                console.log('🤖 Servidor local acionado');
             } catch (e) {
-                console.log('⚠️ Erro no polling:', e.message);
+                console.log('⚠️ Erro ao acionar servidor:', e.message);
             }
-            
-            if (tentativas % 5 === 0) {
-                console.log(`⏳ Aguardando IA... (${tentativas * 2}s)`);
+
+            // 🔥 PASSO 3: POLLING - USA SOMENTE O SERVIDOR LOCAL
+            let resposta = null;
+            let tentativas = 0;
+            const MAX_TENTATIVAS = 25; // 50s
+
+            while (!resposta && tentativas < MAX_TENTATIVAS) {
+                tentativas++;
+                await new Promise(r => setTimeout(r, 2000));
+
+                try {
+                    const respPendentes = await fetch(`http://localhost:8080/api/chat-atendente/respostas?leadId=${sessionId}`, {
+                        method: 'GET',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    const pendentesData = await respPendentes.json();
+
+                    if (pendentesData.respostas && pendentesData.respostas.length > 0) {
+                        const ultimaResposta = pendentesData.respostas[pendentesData.respostas.length - 1];
+                        if (ultimaResposta && ultimaResposta.texto) {
+                            resposta = ultimaResposta;
+                            console.log('✅ Resposta encontrada no servidor local!');
+                            break;
+                        }
+                    }
+                } catch (e) {
+                    console.log('⚠️ Erro no polling:', e.message);
+                }
+
+                if (tentativas % 5 === 0) {
+                    console.log(`⏳ Aguardando IA... (${tentativas * 2}s)`);
+                }
             }
-        }
 
-        removeTyping();
+            removeTyping();
 
-        if (resposta && resposta.texto) {
-            if (resposta.respondido_por_ia) {
-                addMessage('ai', resposta.texto + botoesResposta());
+            if (resposta && resposta.texto) {
+                if (resposta.respondido_por_ia) {
+                    addMessage('ai', resposta.texto + botoesResposta());
+                } else {
+                    addMessage('atendente-msg', '👤 ' + resposta.texto);
+                }
+                console.log('✅ Resposta exibida no chat!');
             } else {
-                addMessage('atendente-msg', '👤 ' + resposta.texto);
+                console.log('⚠️ Nenhuma resposta encontrada, usando fallback');
+                const fallback = gerarRespostaLocal(mensagem || '');
+                addMessage('ai', fallback + botoesResposta());
             }
-            console.log('✅ Resposta exibida no chat!');
-        } else {
-            console.log('⚠️ Nenhuma resposta encontrada, usando fallback');
-            const fallback = gerarRespostaLocal(mensagem || '');
-            addMessage('ai', fallback + botoesResposta());
+        } catch (e) {
+            // 🔥 Se algo quebrar (rede, parsing, etc.), avisa o cliente em vez
+            // de travar silenciosamente - e o finally abaixo libera o envio
+            // pra ele poder tentar de novo.
+            console.log('❌ Erro em enviarParaIA:', e.message);
+            removeTyping();
+            addMessage('ai', 'Ops, tive um probleminha para responder agora. Pode tentar de novo? 🙏' + botoesResposta());
+        } finally {
+            isProcessing = false;
+            document.getElementById('chatSendBtn').disabled = false;
+            document.getElementById('chatInput').focus();
         }
-
-        isProcessing = false;
-        document.getElementById('chatSendBtn').disabled = false;
-        document.getElementById('chatInput').focus();
     }
 
     // ═══════════════ FLUXO 2: CHAT COM ATENDENTE HUMANO ═══════════════
     async function enviarParaAtendente(mensagem, arquivo = null) {
         isProcessing = true;
         document.getElementById('chatSendBtn').disabled = true;
-        
+
         console.log('👤 Enviando mensagem para atendente humano...');
-        
-        // 🔥 PASSO 1: SALVA NO DRIVE COM FLAG aguardando_atendente = true
-        const payload = {
-            leadId: sessionId,
-            nomeLead: usuarioLogado?.nome || 'Visitante',
-            de: 'lead',
-            texto: mensagem || (arquivo ? `📎 ${arquivo.nome}` : ''),
-            mensagem: mensagem || (arquivo ? `📎 ${arquivo.nome}` : ''),
-            respondido_por_ia: false,
-            aguardando_atendente: true  // 🔥 MARCA QUE PRECISA DE ATENDENTE HUMANO
-        };
-        
-        if (arquivo) {
-            payload.arquivo = {
-                base64: arquivo.base64,
-                tipo: arquivo.tipo,
-                nome: arquivo.nome
+
+        // 🔥 CORREÇÃO: mesmo problema de enviarParaIA() - sem try/finally, um
+        // erro aqui travava isProcessing=true pra sempre e o cliente não
+        // conseguia mandar mais nenhuma mensagem depois da primeira.
+        try {
+            // 🔥 PASSO 1: SALVA NO DRIVE COM FLAG aguardando_atendente = true
+            const payload = {
+                leadId: sessionId,
+                nomeLead: usuarioLogado?.nome || 'Visitante',
+                de: 'lead',
+                texto: mensagem || (arquivo ? `📎 ${arquivo.nome}` : ''),
+                mensagem: mensagem || (arquivo ? `📎 ${arquivo.nome}` : ''),
+                respondido_por_ia: false,
+                aguardando_atendente: true  // 🔥 MARCA QUE PRECISA DE ATENDENTE HUMANO
             };
+
+            if (arquivo) {
+                payload.arquivo = {
+                    base64: arquivo.base64,
+                    tipo: arquivo.tipo,
+                    nome: arquivo.nome
+                };
+            }
+
+            const saveData = await callAPI('saveChatAtendente', payload, 'POST');
+            console.log('📥 Mensagem salva no Drive, aguardando atendente');
+
+            if (saveData.result && saveData.result.leadId && saveData.result.leadId !== sessionId) {
+                sessionId = saveData.result.leadId;
+            }
+
+            // 🔥 PASSO 2: MOSTRA MENSAGEM DE AGUARDO
+            addMessage('atendente-msg', '⏳ Mensagem enviada para nossa equipe. Aguarde um momento...');
+
+            // 🔥 PASSO 3: INICIA POLLING CONTÍNUO (já existe no startPolling)
+            // O polling contínuo vai buscar respostas automaticamente
+        } catch (e) {
+            console.log('❌ Erro em enviarParaAtendente:', e.message);
+            addMessage('atendente-msg', 'Ops, não consegui enviar sua mensagem agora. Pode tentar de novo? 🙏');
+        } finally {
+            isProcessing = false;
+            document.getElementById('chatSendBtn').disabled = false;
+            document.getElementById('chatInput').focus();
         }
-
-        const saveData = await callAPI('saveChatAtendente', payload, 'POST');
-        console.log('📥 Mensagem salva no Drive, aguardando atendente');
-
-        if (saveData.result && saveData.result.leadId && saveData.result.leadId !== sessionId) {
-            sessionId = saveData.result.leadId;
-        }
-
-        // 🔥 PASSO 2: MOSTRA MENSAGEM DE AGUARDO
-        addMessage('atendente-msg', '⏳ Mensagem enviada para nossa equipe. Aguarde um momento...');
-
-        // 🔥 PASSO 3: INICIA POLLING CONTÍNUO (já existe no startPolling)
-        // O polling contínuo vai buscar respostas automaticamente
-
-        isProcessing = false;
-        document.getElementById('chatSendBtn').disabled = false;
-        document.getElementById('chatInput').focus();
     }
 
     function stopPolling() { 
