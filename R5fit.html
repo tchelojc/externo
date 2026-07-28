@@ -1000,14 +1000,15 @@
         
         // 🔥 CORRIGE NAVEGAÇÃO INTERNA
         corrigirNavegacao(inlineDiv);
-        
+
         // 🔥 REEXECUTA SCRIPTS
         const scripts = inlineDiv.querySelectorAll('script');
         scripts.forEach(script => {
             const newScript = document.createElement('script');
             newScript.textContent = script.textContent
                 .replace(/const LOCAL = ['"]http:\/\/localhost:8080['"];/g, '// LOCAL já declarado')
-                .replace(/let clienteData = null;/g, '// clienteData já declarado');
+                .replace(/let clienteData = null;/g, '// clienteData já declarado')
+                .replace(/let usuarioLogado = null;/g, '// usuarioLogado já declarado');  // 🔥 ADICIONE ESTA LINHA
             script.remove();
             document.body.appendChild(newScript);
             setTimeout(() => {
