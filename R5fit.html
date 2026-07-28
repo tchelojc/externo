@@ -789,6 +789,7 @@
     let driveFileId = null;
     // ═══════════════ POLLING CONTÍNUO PARA RESPOSTAS DO ATENDENTE ═══════════════
     let pollContinuoInterval = null;
+    let pararPollingTimeout = null;
 
     function abrirModalLogin() {
         document.getElementById('loginModalOverlay').classList.add('active');
@@ -1486,8 +1487,9 @@
         
         // Reinicia o polling
         if (document.getElementById('chatOverlay').classList.contains('active')) {
-            pararPollingContinuo();
-            iniciarPollingContinuo();
+            if (!pollContinuoInterval) {
+                iniciarPollingContinuo();
+            }
         }
     }
 
@@ -1777,17 +1779,27 @@
     }
 
     function iniciarPollingContinuo() {
-        if (pollContinuoInterval) return;
+        // 🔥 CORREÇÃO: Se já está rodando, NÃO REINICIA
+        if (pollContinuoInterval) {
+            console.log('⏭️ Polling já está rodando, ignorando...');
+            return;
+        }
         pollContinuoInterval = setInterval(pollRespostasContinuo, 3000);
         console.log('🔄 Polling contínuo iniciado');
     }
 
     function pararPollingContinuo() {
-        if (pollContinuoInterval) {
-            clearInterval(pollContinuoInterval);
-            pollContinuoInterval = null;
-            console.log('🛑 Polling contínuo parado');
-        }
+        // 🔥 CORREÇÃO: Debounce - só para depois de 500ms sem novas chamadas
+        if (pararPollingTimeout) clearTimeout(pararPollingTimeout);
+        
+        pararPollingTimeout = setTimeout(() => {
+            if (pollContinuoInterval) {
+                clearInterval(pollContinuoInterval);
+                pollContinuoInterval = null;
+                console.log('🛑 Polling contínuo parado');
+            }
+            pararPollingTimeout = null;
+        }, 500);
     }
 
     function respostaJaExibida(textoResposta) {
