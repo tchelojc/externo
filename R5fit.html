@@ -985,17 +985,25 @@
         // 🔥 INSERE O HTML
         inlineDiv.innerHTML = htmlLimpo;
         
-        // 🔥 CORRIGE O NOME DO USUÁRIO
-        const usuarioStorage = JSON.parse(localStorage.getItem('r5fit_usuario') || '{}');
-        const topbarUserEl = inlineDiv.querySelector('#topbarUserName');
-        if (topbarUserEl && usuarioStorage.nome) {
-            topbarUserEl.textContent = '👤 ' + usuarioStorage.nome;
+        // 🔥 CORRIGE O NOME DO USUÁRIO (com try/catch de segurança)
+        try {
+            const usuarioStorage = JSON.parse(localStorage.getItem('r5fit_usuario') || '{}');
+            const topbarUserEl = inlineDiv.querySelector('#topbarUserName');
+            if (topbarUserEl && usuarioStorage.nome) {
+                topbarUserEl.textContent = '👤 ' + usuarioStorage.nome;
+            }
+        } catch (e) {
+            console.log('⚠️ Erro ao corrigir nome do usuário (ignorado)');
         }
         
         // 🔥 CORRIGE "guerreiro" → "atleta"
-        const welcomeEl = inlineDiv.querySelector('#welcomeName');
-        if (welcomeEl) {
-            welcomeEl.textContent = welcomeEl.textContent.replace(/guerreir[oa]/gi, 'atleta');
+        try {
+            const welcomeEl = inlineDiv.querySelector('#welcomeName');
+            if (welcomeEl) {
+                welcomeEl.textContent = welcomeEl.textContent.replace(/guerreir[oa]/gi, 'atleta');
+            }
+        } catch (e) {
+            console.log('⚠️ Erro ao corrigir welcomeName (ignorado)');
         }
         
         // 🔥 CORRIGE NAVEGAÇÃO INTERNA
@@ -1006,9 +1014,8 @@
         scripts.forEach(script => {
             const newScript = document.createElement('script');
             newScript.textContent = script.textContent
-                .replace(/const LOCAL = ['"]http:\/\/localhost:8080['"];/g, '// LOCAL já declarado')
                 .replace(/let clienteData = null;/g, '// clienteData já declarado')
-                .replace(/let usuarioLogado = null;/g, '// usuarioLogado já declarado');  // 🔥 ADICIONE ESTA LINHA
+                .replace(/let usuarioLogado = null;/g, '// usuarioLogado já declarado');
             script.remove();
             document.body.appendChild(newScript);
             setTimeout(() => {
