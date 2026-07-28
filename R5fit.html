@@ -693,6 +693,7 @@
                         <div class="chat-subtitle" id="chatSubtitle">IA Local · Respostas humanizadas</div>
                     </div>
                 </div>
+                <button class="chat-close" onclick="encerrarAtendimento()" title="Encerrar atendimento" style="margin-right:8px;">🔒</button>
                 <button class="chat-close" onclick="fecharChat()">✕</button>
             </div>
 
@@ -1438,6 +1439,17 @@
             document.getElementById('modeTabAtendente').classList.add('active-atendente');
             document.getElementById('switchToAtendenteLink').style.display = 'none';
         }
+
+        // 🔥 Notifica o servidor sobre a escolha do tipo de atendimento
+        fetch('http://localhost:8080/api/atendimento/escolher', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                leadId: sessionId,
+                tipo: mode,
+                nome: usuarioLogado?.nome || 'Visitante'
+            })
+        }).catch(e => console.log('⚠️ Erro ao notificar escolha:', e.message));
         
         // 🔥 INICIA O POLLING (USANDO A MESMA FUNÇÃO PARA AMBOS OS MODOS)
         if (document.getElementById('chatOverlay').classList.contains('active')) {
@@ -1472,7 +1484,8 @@
         document.getElementById('homeContainer').classList.add('chat-open');
         document.body.style.overflow = 'hidden';
         
-        // 🔥 INICIA POLLING CONTÍNUO
+        carregarHistorico();  // 🔥 ADICIONE ESTA LINHA AQUI
+        
         iniciarPollingContinuo();
     }
 
@@ -1492,6 +1505,58 @@
         
         // 🔥 PARA POLLING CONTÍNUO
         pararPollingContinuo();
+    }
+
+    // 🔥 ADICIONE AQUI:
+    async function encerrarAtendimento() {
+        if (!confirm('Deseja encerrar este atendimento?')) return;
+        
+        try {
+            await fetch('http://localhost:8080/api/atendimento/encerrar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    leadId: sessionId,
+                    origem: 'cliente'
+                })
+            });
+            mostrarToast('Atendimento encerrado. Obrigado! 👋');
+        } catch (e) {
+            console.log('⚠️ Erro ao encerrar:', e.message);
+        }
+        
+        fecharChat();
+    }
+
+    // 🔥 ADICIONE AQUI:
+    async function carregarHistorico() {
+        try {
+            const resp = await fetch(`http://localhost:8080/api/chat-atendente/mensagens?leadId=${sessionId}`);
+            const data = await resp.json();
+            
+            if (data.conversas && data.conversas[sessionId]) {
+                const mensagens = data.conversas[sessionId].mensagens || [];
+                
+                document.getElementById('chatMessages').innerHTML = '';
+                
+                for (const msg of mensagens) {
+                    if (msg.de === 'lead') {
+                        addMessage('user', msg.texto);
+                    } else {
+                        const textoLimpo = limparRespostaIA(msg.texto);
+                        if (textoLimpo) {
+                            if (msg.respondido_por_ia) {
+                                addMessage('ai', textoLimpo);
+                            } else {
+                                addMessage('atendente-msg', '👤 ' + textoLimpo);
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (e) {
+            console.log('⚠️ Histórico offline');
+        }
     }
 
     function iniciarJornada() {
@@ -1811,117 +1876,43 @@
         if (isProcessing) return;
         
         try {
-            // 🔥 PASSO 1: TENTA O CACHE DO SERVIDOR LOCAL
+            // 🔥 CONSULTA APENAS O SERVIDOR LOCAL (cache de respostas pendentes)
             const response = await fetch(`http://localhost:8080/api/chat-atendente/respostas?leadId=${sessionId}`, {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' }
             });
             const data = await response.json();
 
-            let respostaEncontrada = false;
-
             if (data.respostas && data.respostas.length > 0) {
-                const ultima = data.respostas[data.respostas.length - 1];
-                
-                // 🔥 LIMPA A RESPOSTA
-                const textoLimpo = limparRespostaIA(ultima.texto);
-                
-                // 🔥 SÓ EXIBE SE TIVER CONTEÚDO ÚTIL E NÃO FOI EXIBIDO ANTES
-                if (textoLimpo && textoLimpo.length > 15 && !respostaJaExibida(textoLimpo)) {
-                    respostaEncontrada = true;
-                    if (ultima.respondido_por_ia) {
-                        addMessage('ai', textoLimpo + botoesResposta());
-                    } else {
-                        addMessage('atendente-msg', '👤 ' + textoLimpo);
-                    }
+                for (const resp of data.respostas) {
+                    const textoLimpo = limparRespostaIA(resp.texto);
                     
-                    document.getElementById('newMsgNotification').classList.add('show');
-                    document.getElementById('newMsgNotification').textContent = '📩 Nova resposta!';
-                    tocarSomNotificacao();
-                    
-                    // 🔥 LIMPA A FILA DE RESPOSTAS PENDENTES PARA EVITAR REPETIÇÃO
-                    try {
-                        await fetch(`http://localhost:8080/api/chat-atendente/limpar-pendentes`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ leadId: sessionId })
-                        });
-                    } catch (e) {
-                        console.log('⚠️ Erro ao limpar pendentes:', e.message);
+                    if (textoLimpo && textoLimpo.length > 15 && !respostaJaExibida(textoLimpo)) {
+                        if (resp.respondido_por_ia) {
+                            addMessage('ai', textoLimpo + botoesResposta());
+                        } else {
+                            addMessage('atendente-msg', '👤 ' + textoLimpo);
+                        }
+                        
+                        document.getElementById('newMsgNotification').classList.add('show');
+                        document.getElementById('newMsgNotification').textContent = '📩 Nova resposta!';
+                        tocarSomNotificacao();
                     }
                 }
-            }
-            
-            // 🔥 PASSO 2: FALLBACK - CONSULTA O SERVIDOR LOCAL
-            if (!respostaEncontrada) {
+                
+                // 🔥 LIMPA A FILA APÓS EXIBIR
                 try {
-                    const responseLocal = await fetch(`http://localhost:8080/api/chat-atendente/mensagens?leadId=${sessionId}`, {
-                        method: 'GET',
-                        headers: { 'Content-Type': 'application/json' }
+                    await fetch(`http://localhost:8080/api/chat-atendente/limpar-pendentes`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ leadId: sessionId })
                     });
-                    const localData = await responseLocal.json();
-                    
-                    if (localData.conversas && localData.conversas[sessionId]) {
-                        const mensagens = localData.conversas[sessionId].mensagens || [];
-                        const respostas = mensagens.filter(m => m.de !== 'lead' && m.texto);
-                        
-                        if (respostas.length > 0) {
-                            const ultima = respostas[respostas.length - 1];
-                            const textoLimpo = limparRespostaIA(ultima.texto);
-                            
-                            if (textoLimpo && textoLimpo.length > 15 && !respostaJaExibida(textoLimpo)) {
-                                if (ultima.respondido_por_ia) {
-                                    addMessage('ai', textoLimpo + botoesResposta());
-                                } else {
-                                    addMessage('atendente-msg', '👤 ' + textoLimpo);
-                                }
-                                
-                                document.getElementById('newMsgNotification').classList.add('show');
-                                document.getElementById('newMsgNotification').textContent = '📩 Nova resposta!';
-                                tocarSomNotificacao();
-                            }
-                        }
-                    }
                 } catch (e) {
-                    console.log('⚠️ Erro no fallback local:', e.message);
+                    // Silencioso - o importante é exibir as mensagens
                 }
             }
-            
         } catch (e) {
-            console.log('⚠️ Erro no polling contínuo:', e.message);
-            
-            // 🔥 FALLBACK DIRETO NO SERVIDOR LOCAL
-            try {
-                const responseLocal = await fetch(`http://localhost:8080/api/chat-atendente/mensagens?leadId=${sessionId}`, {
-                    method: 'GET',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-                const localData = await responseLocal.json();
-                
-                if (localData.conversas && localData.conversas[sessionId]) {
-                    const mensagens = localData.conversas[sessionId].mensagens || [];
-                    const respostas = mensagens.filter(m => m.de !== 'lead' && m.texto);
-                    
-                    if (respostas.length > 0) {
-                        const ultima = respostas[respostas.length - 1];
-                        const textoLimpo = limparRespostaIA(ultima.texto);
-                        
-                        if (textoLimpo && textoLimpo.length > 15 && !respostaJaExibida(textoLimpo)) {
-                            if (ultima.respondido_por_ia) {
-                                addMessage('ai', textoLimpo + botoesResposta());
-                            } else {
-                                addMessage('atendente-msg', '👤 ' + textoLimpo);
-                            }
-                            
-                            document.getElementById('newMsgNotification').classList.add('show');
-                            document.getElementById('newMsgNotification').textContent = '📩 Nova resposta!';
-                            tocarSomNotificacao();
-                        }
-                    }
-                }
-            } catch (driveError) {
-                console.log('⚠️ Fallback local também falhou:', driveError.message);
-            }
+            // Silencioso - o polling continua tentando
         }
     }
 
