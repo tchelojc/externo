@@ -942,12 +942,11 @@
         try {
             mostrarToast('Carregando página interna...');
             
-            // 🔥 FORÇA MÉTODO GET EXPLICITAMENTE
-            const response = await fetch('https://almafluxo.uk/proxy/r5fit?action=getHomePage', {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json'
-                }
+            // 🔥 CORREÇÃO: Usa POST para garantir que o proxy Cloudflare encaminhe corretamente
+            const response = await fetch('https://almafluxo.uk/proxy/r5fit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'getHomePage' })
             });
             const data = await response.json();
             console.log('📄 Dados recebidos:', data);
