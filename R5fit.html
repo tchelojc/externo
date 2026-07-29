@@ -803,8 +803,8 @@
         try {
             console.log('🔍 Buscando dados completos do usuário:', email);
             
-            // 🔥 CORREÇÃO: Usa callAPI() que já sabe rotear para o proxy correto
-            const data = await callAPI('obterUsuarioCompleto', { email: email }, 'GET');
+            // 🔥 CORREÇÃO: Usa POST em vez de GET para enviar o email no body
+            const data = await callAPI('obterUsuarioCompleto', { email: email }, 'POST');
             
             if (data.status === 'success' && data.usuario) {
                 const usuarioCompleto = {
