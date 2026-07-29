@@ -1929,8 +1929,8 @@
         if (isProcessing) return;
         
         try {
-            // 🔥 CONSULTA APENAS O SERVIDOR LOCAL (cache de respostas pendentes)
-            const response = await fetch(`http://localhost:8080/api/chat-atendente/respostas?leadId=${sessionId}`, {
+            // 🔥 Usa o proxy Cloudflare (funciona em qualquer dispositivo)
+            const response = await fetch(`${PROXY_CLOUDFLARE}?action=chatAtendenteRespostas&leadId=${sessionId}`, {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' }
             });
