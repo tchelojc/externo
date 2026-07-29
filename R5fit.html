@@ -2097,7 +2097,7 @@
                 await new Promise(r => setTimeout(r, 2000));
 
                 try {
-                    const respPendentes = await fetch(`http://localhost:8080/api/chat-atendente/respostas?leadId=${sessionId}`, {
+                    const respPendentes = await fetch(`${PROXY_CLOUDFLARE}?action=chatAtendenteRespostas&leadId=${sessionId}`, {
                         method: 'GET',
                         headers: { 'Content-Type': 'application/json' }
                     });
