@@ -799,6 +799,57 @@
         document.getElementById('loginError').classList.remove('show');
     }
 
+    // 🔥 NOVA FUNÇÃO: Busca dados completos do usuário do Google Drive
+    async function carregarDadosCompletosUsuario(email) {
+        try {
+            console.log('🔍 Buscando dados completos do usuário:', email);
+            
+            const response = await fetch(
+                `https://almafluxo.uk/proxy/r5fit?action=obterUsuarioCompleto&email=${encodeURIComponent(email)}`,
+                { method: 'GET', headers: { 'Accept': 'application/json' } }
+            );
+            const data = await response.json();
+            
+            if (data.status === 'success' && data.usuario) {
+                // Salva TODOS os campos no localStorage
+                const usuarioCompleto = {
+                    id: data.usuario.id || usuarioLogado.id,
+                    nome: data.usuario.nome || usuarioLogado.nome,
+                    email: data.usuario.email || usuarioLogado.email,
+                    peso_atual: data.usuario.peso_atual || '',
+                    tipo_sanguineo: data.usuario.tipo_sanguineo || '',
+                    data_inicio: data.usuario.data_inicio || '',
+                    objetivo: data.usuario.objetivo || '',
+                    data_nascimento: data.usuario.data_nascimento || '',
+                    local_nascimento: data.usuario.local_nascimento || '',
+                    hora_nascimento: data.usuario.hora_nascimento || '',
+                    cor_favorita: data.usuario.cor_favorita || '',
+                    whatsapp: data.usuario.whatsapp || '',
+                    plano_atual: data.usuario.plano_atual || ''
+                };
+                
+                localStorage.setItem('r5fit_usuario', JSON.stringify(usuarioCompleto));
+                console.log('✅ Dados completos carregados do Drive:', Object.keys(usuarioCompleto).length, 'campos');
+            } else {
+                // Fallback: salva o básico que veio do login
+                localStorage.setItem('r5fit_usuario', JSON.stringify({
+                    id: usuarioLogado.id,
+                    nome: usuarioLogado.nome,
+                    email: usuarioLogado.email
+                }));
+                console.log('⚠️ Dados básicos salvos (usuário sem cadastro completo no Drive)');
+            }
+        } catch (e) {
+            console.log('⚠️ Erro ao carregar dados completos:', e.message);
+            // Salva o básico em caso de erro de rede
+            localStorage.setItem('r5fit_usuario', JSON.stringify({
+                id: usuarioLogado.id,
+                nome: usuarioLogado.nome,
+                email: usuarioLogado.email
+            }));
+        }
+    }
+
     async function fazerLogin() {
         const email = document.getElementById('loginEmail').value.trim();
         const senha = document.getElementById('loginSenha').value.trim();
@@ -822,11 +873,8 @@
         if (data.result && data.result.autenticado) {
             usuarioLogado = data.result.usuario;
             
-            localStorage.setItem('r5fit_usuario', JSON.stringify({
-                id: usuarioLogado.id,
-                nome: usuarioLogado.nome,
-                email: usuarioLogado.email
-            }));
+            // 🔥 CORREÇÃO: Busca dados COMPLETOS do Drive antes de salvar
+            await carregarDadosCompletosUsuario(email);
             
             console.log('✅ Login bem-sucedido:', usuarioLogado.nome);
             
@@ -837,7 +885,6 @@
             document.getElementById('userNameDisplay').textContent = '👤 ' + usuarioLogado.nome;
             document.getElementById('btnLogout').style.display = 'inline-block';
             
-            // 🔥 CORRETO: CARREGA A HOME PAGE DO DRIVE
             await carregarHomePage();
             
             mostrarToast(`Bem-vindo, ${usuarioLogado.nome}!`);
@@ -1071,7 +1118,6 @@
         });
     }
     
-    // 🔥 Salvar dado editado
     async function salvarDadoCliente(label, valor) {
         const usuarioStorage = JSON.parse(localStorage.getItem('r5fit_usuario') || '{}');
         
@@ -1085,7 +1131,6 @@
         const campo = campoMap[label.toLowerCase()] || label.toLowerCase().replace(/\s+/g, '_');
         
         try {
-            // 🔥 CORRIGIDO: usa PROXY_CLOUDFLARE
             await fetch(`${PROXY_CLOUDFLARE}?action=atualizarUsuario`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1094,9 +1139,18 @@
                     [campo]: valor
                 })
             });
+            
+            // 🔥 CORREÇÃO: Atualiza o localStorage local também
+            usuarioStorage[campo] = valor;
+            localStorage.setItem('r5fit_usuario', JSON.stringify(usuarioStorage));
+            
             mostrarToast('✅ Dado salvo!');
         } catch (e) {
-            console.log('Salvo localmente');
+            console.log('⚠️ Erro ao salvar no Drive, salvando localmente');
+            // Mesmo offline, salva no localStorage
+            usuarioStorage[campo] = valor;
+            localStorage.setItem('r5fit_usuario', JSON.stringify(usuarioStorage));
+            mostrarToast('💾 Salvo localmente');
         }
     }
     
