@@ -799,23 +799,18 @@
         document.getElementById('loginError').classList.remove('show');
     }
 
-    // 🔥 NOVA FUNÇÃO: Busca dados completos do usuário do Google Drive
     async function carregarDadosCompletosUsuario(email) {
         try {
             console.log('🔍 Buscando dados completos do usuário:', email);
             
-            const response = await fetch(
-                `https://almafluxo.uk/proxy/r5fit?action=obterUsuarioCompleto&email=${encodeURIComponent(email)}`,
-                { method: 'GET', headers: { 'Accept': 'application/json' } }
-            );
-            const data = await response.json();
+            // 🔥 CORREÇÃO: Usa callAPI() que já sabe rotear para o proxy correto
+            const data = await callAPI('obterUsuarioCompleto', { email: email }, 'GET');
             
             if (data.status === 'success' && data.usuario) {
-                // Salva TODOS os campos no localStorage
                 const usuarioCompleto = {
-                    id: data.usuario.id || usuarioLogado.id,
-                    nome: data.usuario.nome || usuarioLogado.nome,
-                    email: data.usuario.email || usuarioLogado.email,
+                    id: data.usuario.id || usuarioLogado?.id,
+                    nome: data.usuario.nome || usuarioLogado?.nome,
+                    email: data.usuario.email || usuarioLogado?.email,
                     peso_atual: data.usuario.peso_atual || '',
                     tipo_sanguineo: data.usuario.tipo_sanguineo || '',
                     data_inicio: data.usuario.data_inicio || '',
@@ -825,29 +820,34 @@
                     hora_nascimento: data.usuario.hora_nascimento || '',
                     cor_favorita: data.usuario.cor_favorita || '',
                     whatsapp: data.usuario.whatsapp || '',
-                    plano_atual: data.usuario.plano_atual || ''
+                    plano_atual: data.usuario.plano_atual || '',
+                    altura: data.usuario.altura || '',
+                    genero: data.usuario.genero || ''
                 };
                 
                 localStorage.setItem('r5fit_usuario', JSON.stringify(usuarioCompleto));
                 console.log('✅ Dados completos carregados do Drive:', Object.keys(usuarioCompleto).length, 'campos');
-            } else {
-                // Fallback: salva o básico que veio do login
-                localStorage.setItem('r5fit_usuario', JSON.stringify({
-                    id: usuarioLogado.id,
-                    nome: usuarioLogado.nome,
-                    email: usuarioLogado.email
-                }));
-                console.log('⚠️ Dados básicos salvos (usuário sem cadastro completo no Drive)');
+                return true;
             }
+            
+            console.log('⚠️ Usuário não encontrado no Drive, salvando dados básicos');
+            salvarDadosBasicosLocalStorage();
+            return false;
+            
         } catch (e) {
             console.log('⚠️ Erro ao carregar dados completos:', e.message);
-            // Salva o básico em caso de erro de rede
-            localStorage.setItem('r5fit_usuario', JSON.stringify({
-                id: usuarioLogado.id,
-                nome: usuarioLogado.nome,
-                email: usuarioLogado.email
-            }));
+            salvarDadosBasicosLocalStorage();
+            return false;
         }
+    }
+
+    // 🔥 Função auxiliar para fallback
+    function salvarDadosBasicosLocalStorage() {
+        localStorage.setItem('r5fit_usuario', JSON.stringify({
+            id: usuarioLogado?.id,
+            nome: usuarioLogado?.nome,
+            email: usuarioLogado?.email
+        }));
     }
 
     async function fazerLogin() {
@@ -1277,7 +1277,8 @@
                 'getHomePage',             // 🔥 ADICIONADO - página HTML
                 'getArquivoDrive',         // 🔥 ADICIONADO - arquivos HTML internos
                 'obterEvolucaoCliente',    // 🔥 ADICIONADO - evolução do cliente
-                'registrarEvolucaoCliente' // 🔥 ADICIONADO - registrar evolução
+                'registrarEvolucaoCliente', // 🔥 ADICIONADO - registrar evolução
+                'obterUsuarioCompleto'
             ];
             
             // 🔥 Ações que vão para o servidor local (processamento IA)
