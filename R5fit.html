@@ -2090,7 +2090,14 @@
             // 🔥 PASSO 3: POLLING - USA SOMENTE O SERVIDOR LOCAL
             let resposta = null;
             let tentativas = 0;
-            const MAX_TENTATIVAS = 25; // 50s
+            // 🔥 CORRIGIDO: era 25 (50s). Pra clientes remotos a mensagem só
+            // chega no servidor via polling de fundo (até 5s) + o tempo real
+            // da automação (clicar, digitar, esperar a IA escrever, ler a
+            // tela) - isso passava fácil de 50s e caía no fallback genérico
+            // mesmo quando a IA real ia responder certinho alguns segundos
+            // depois. Agora espera até 110s antes de desistir.
+            const MAX_TENTATIVAS = 55; // 110s
+            let avisoMostrado = false;
 
             while (!resposta && tentativas < MAX_TENTATIVAS) {
                 tentativas++;
@@ -2119,6 +2126,16 @@
                     console.log('⚠️ Erro no polling:', e.message);
                 }
 
+                // 🔥 NOVO: por volta dos 30s, avisa o visitante que ainda está
+                // processando - sem isso, o typing indicator sozinho por quase
+                // 2 minutos parece travado.
+                if (tentativas === 15 && !avisoMostrado) {
+                    avisoMostrado = true;
+                    removeTyping();
+                    addMessage('ai', '⏳ Ainda buscando sua resposta, só mais um instante...');
+                    showTyping();
+                }
+
                 if (tentativas % 5 === 0) {
                     console.log(`⏳ Aguardando IA... (${tentativas * 2}s)`);
                 }
@@ -2135,7 +2152,7 @@
                 console.log('✅ Resposta exibida no chat!');
             } else {
                 console.log('⚠️ Nenhuma resposta encontrada, usando fallback');
-                const fallback = gerarRespostaLocal(mensagem || '');
+                const fallback = gerarRespostaLocal();
                 addMessage('ai', fallback + botoesResposta());
             }
         } catch (e) {
@@ -2208,48 +2225,20 @@
         if (pollingInterval) { clearInterval(pollingInterval); pollingInterval = null; } 
     }
 
-    async function pollRespostas() {
-        if (!document.getElementById('chatOverlay').classList.contains('active')) return;
-        if (isProcessing) return;
-        
-        try {
-            const response = await fetch(`http://localhost:8080/api/chat-atendente/respostas?leadId=${sessionId}`, {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' }
-            });
-            const data = await response.json();
-            
-            if (data.respostas && data.respostas.length > 0) {
-                const ultima = data.respostas[data.respostas.length - 1];
-                
-                // 🔥 USA A FUNÇÃO AUXILIAR
-                if (!respostaJaExibida(ultima.texto) && ultima.texto) {
-                    if (ultima.respondido_por_ia) {
-                        addMessage('ai', ultima.texto + botoesResposta());
-                    } else {
-                        addMessage('atendente-msg', '👤 ' + ultima.texto);
-                    }
-                    
-                    document.getElementById('newMsgNotification').classList.add('show');
-                    document.getElementById('newMsgNotification').textContent = '📩 Nova resposta!';
-                    tocarSomNotificacao();
-                }
-            }
-        } catch (e) {
-            console.log('⚠️ Erro no polling:', e.message);
-        }
-    }
+    // 🔥 REMOVIDO: pollRespostas() - código morto, nunca era chamado em
+    // lugar nenhum (o fluxo real usa pollRespostasContinuo). Ainda apontava
+    // pra localhost:8080, o que só confundia quem lesse o arquivo depois.
 
     // ═══════════════ RESPOSTA LOCAL (FALLBACK) ═══════════════
-    function gerarRespostaLocal(p) {
-        const q = p.toLowerCase();
-        if (q.includes('emagrecer')) return 'Para emagrecimento: Bike (600cal) + Magic Dance + Musculação. WhatsApp: (21) 98153-3928';
-        if (q.includes('massa')||q.includes('musculo')) return 'Para ganho de massa: Musculação + Cross MFT. WhatsApp: (21) 98153-3928';
-        if (q.includes('ansiedade')||q.includes('estresse')) return 'R5 cuida da mente: meditação, yoga. WhatsApp: (21) 98153-3928';
-        if (q.includes('horario')||q.includes('hora')) return 'Seg-Sex 6h-22h, Sáb 8h-14h. WhatsApp: (21) 98153-3928';
-        if (q.includes('plano')||q.includes('preco')) return 'Planos Mensal, Trimestral, etc. WhatsApp: (21) 98153-3928';
-        if (q.includes('gratis')) return 'Aula 100% GRÁTIS! WhatsApp: (21) 98153-3928';
-        return 'Sou o assistente R5 Fit! Fale sobre objetivos, modalidades, horários, planos ou aula grátis. WhatsApp: (21) 98153-3928';
+    function gerarRespostaLocal() {
+        // 🔥 SIMPLIFICADO: antes isso fingia ser uma IA respondendo por
+        // palavra-chave, com o WhatsApp repetido em toda resposta - é
+        // exatamente esse tipo de "resposta automática" que confundia com
+        // a resposta real da IA. Agora só é usado como ÚLTIMO recurso,
+        // depois de ~110s sem resposta real (ver enviarParaIA). Mensagem
+        // única e honesta - o WhatsApp e o atendente já vêm nos botões
+        // logo abaixo (botoesResposta()), não precisa repetir aqui.
+        return 'No momento não consegui gerar sua resposta automaticamente. 🙏 Chama a gente no WhatsApp ou fala com um atendente:';
     }
 
     // ═══════════════ UI ═══════════════
