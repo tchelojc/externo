@@ -1929,23 +1929,36 @@
         if (isProcessing) return;
         
         try {
+            // 🔥 LOG DE DEBUG - mostra o que está sendo buscado
+            console.log('🔍 [POLLING] sessionId:', sessionId);
+            console.log('🔍 [POLLING] URL:', `${PROXY_CLOUDFLARE}?action=chatAtendenteRespostas&leadId=${sessionId}`);
+            
             // 🔥 Usa o proxy Cloudflare (funciona em qualquer dispositivo)
             const response = await fetch(`${PROXY_CLOUDFLARE}?action=chatAtendenteRespostas&leadId=${sessionId}`, {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' }
             });
             const data = await response.json();
+            
+            // 🔥 LOG DE DEBUG - mostra o que veio do servidor
+            console.log('🔍 [POLLING] Resposta crua:', JSON.stringify(data).substring(0, 300));
+            console.log('🔍 [POLLING] Total respostas:', data.respostas ? data.respostas.length : 0);
 
             // 🔥 NOVO: se o atendimento foi encerrado (atendente, limite ou
             // inatividade) enquanto o cliente estava só olhando o chat, mostra
             // o aviso mesmo sem ele ter mandado mensagem agora.
             if (data.atendimento_status === 'encerrado' && !atendimentoEncerrado) {
+                console.log('🔒 [POLLING] Atendimento encerrado!');
                 mostrarAtendimentoEncerrado(motivoEncerramento(data.atendimento_encerrado_por));
             }
 
             if (data.respostas && data.respostas.length > 0) {
+                console.log('📩 [POLLING] Exibindo', data.respostas.length, 'respostas');
+                
                 for (const resp of data.respostas) {
                     const textoLimpo = limparRespostaIA(resp.texto);
+                    
+                    console.log('📝 [POLLING] Resposta:', textoLimpo ? textoLimpo.substring(0, 50) + '...' : 'VAZIA');
                     
                     if (textoLimpo && textoLimpo.length > 15 && !respostaJaExibida(textoLimpo)) {
                         if (resp.respondido_por_ia) {
@@ -1970,9 +1983,11 @@
                 } catch (e) {
                     // Silencioso - o importante é exibir as mensagens
                 }
+            } else {
+                console.log('📭 [POLLING] Nenhuma resposta pendente');
             }
         } catch (e) {
-            // Silencioso - o polling continua tentando
+            console.log('❌ [POLLING] Erro:', e.message);
         }
     }
 
