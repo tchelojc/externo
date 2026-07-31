@@ -772,7 +772,21 @@
     const PROXY_CLOUDFLARE = "https://almafluxo.uk/proxy/r5fit";
     let isProcessing = false;
     let atendimentoEncerrado = false; // 🔥 true depois que o atendimento é encerrado (pelo atendente ou por inatividade) - trava o envio
-    let sessionId = "user_" + Date.now();
+    // 🔥 CORRIGIDO: sessionId era só uma variável em memória, recriada do
+    // zero (com um Date.now() novo) toda vez que a página recarregava. No
+    // celular, um recarregamento durante a espera pela resposta (bem comum
+    // - segundo plano, troca de app, etc.) gerava um sessionId novo, e o
+    // polling passava a procurar a resposta debaixo do leadId ERRADO - a
+    // resposta certa continuava sendo salva no Drive (por isso aparecia
+    // certinho no painel), mas o celular nunca mais achava ela, porque
+    // estava procurando por outro ID. Persistindo no localStorage, um
+    // recarregamento reaproveita o mesmo sessionId e encontra a resposta
+    // que já estava esperando.
+    let sessionId = localStorage.getItem('r5fit_session_id');
+    if (!sessionId) {
+        sessionId = "user_" + Date.now();
+        localStorage.setItem('r5fit_session_id', sessionId);
+    }
     let chatMode = "ia";
     let pollingInterval = null;
     let lastResponseTimestamp = null;
@@ -1584,7 +1598,15 @@
     // 🔥 ADICIONE AQUI:
     async function carregarHistorico() {
         try {
-            const resp = await fetch(`http://localhost:8080/api/chat-atendente/mensagens?leadId=${sessionId}`);
+            // 🔥 CORRIGIDO: estava em http://localhost:8080/... - só funcionava
+            // no seu próprio PC. Pra um visitante remoto isso sempre falhava
+            // silenciosamente ("Histórico offline"), então reabrir o chat (ou
+            // recarregar a página) nunca mostrava as mensagens já salvas no
+            // Drive - inclusive a resposta real da IA que já tinha chegado.
+            const resp = await fetch(`${PROXY_CLOUDFLARE}?action=getChatAtendente&leadId=${sessionId}`, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            });
             const data = await resp.json();
             
             if (data.conversas && data.conversas[sessionId]) {
@@ -2204,6 +2226,7 @@
 
             if (saveData.result && saveData.result.leadId && saveData.result.leadId !== sessionId) {
                 sessionId = saveData.result.leadId;
+                localStorage.setItem('r5fit_session_id', sessionId);
             }
 
             // 🔥 PASSO 2: MOSTRA MENSAGEM DE AGUARDO
