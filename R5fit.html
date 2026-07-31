@@ -1951,24 +1951,23 @@
         if (isProcessing) return;
         
         try {
-            // 🔥 LOG DE DEBUG - mostra o que está sendo buscado
             console.log('🔍 [POLLING] sessionId:', sessionId);
-            console.log('🔍 [POLLING] URL:', `${PROXY_CLOUDFLARE}?action=chatAtendenteRespostas&leadId=${sessionId}`);
             
-            // 🔥 Usa o proxy Cloudflare (funciona em qualquer dispositivo)
-            const response = await fetch(`${PROXY_CLOUDFLARE}?action=chatAtendenteRespostas&leadId=${sessionId}`, {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' }
+            // 🔥 CORREÇÃO: envia como POST com body JSON
+            const response = await fetch(PROXY_CLOUDFLARE, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'chatAtendenteRespostas',
+                    leadId: sessionId
+                })
             });
+            
             const data = await response.json();
             
-            // 🔥 LOG DE DEBUG - mostra o que veio do servidor
-            console.log('🔍 [POLLING] Resposta crua:', JSON.stringify(data).substring(0, 300));
-            console.log('🔍 [POLLING] Total respostas:', data.respostas ? data.respostas.length : 0);
+            console.log('🔍 [POLLING] Resposta:', data.status, data.respostas ? data.respostas.length : 0);
 
-            // 🔥 NOVO: se o atendimento foi encerrado (atendente, limite ou
-            // inatividade) enquanto o cliente estava só olhando o chat, mostra
-            // o aviso mesmo sem ele ter mandado mensagem agora.
+            // 🔥 Verifica se o atendimento foi encerrado
             if (data.atendimento_status === 'encerrado' && !atendimentoEncerrado) {
                 console.log('🔒 [POLLING] Atendimento encerrado!');
                 mostrarAtendimentoEncerrado(motivoEncerramento(data.atendimento_encerrado_por));
@@ -1995,7 +1994,7 @@
                     }
                 }
                 
-                // 🔥 LIMPA A FILA APÓS EXIBIR
+                // 🔥 Limpa a fila após exibir
                 try {
                     await fetch(`http://localhost:8080/api/chat-atendente/limpar-pendentes`, {
                         method: 'POST',
@@ -2003,7 +2002,7 @@
                         body: JSON.stringify({ leadId: sessionId })
                     });
                 } catch (e) {
-                    // Silencioso - o importante é exibir as mensagens
+                    // Silencioso
                 }
             } else {
                 console.log('📭 [POLLING] Nenhuma resposta pendente');
@@ -2067,13 +2066,6 @@
 
         console.log('🤖 Enviando mensagem para IA...');
 
-        // 🔥 CORREÇÃO: tudo daqui pra baixo agora está dentro de um try/finally.
-        // ANTES, se qualquer chamada (saveChatAtendente, processar-pendentes, o
-        // polling) desse erro, a função parava no meio, isProcessing nunca
-        // voltava pra false e o botão de enviar ficava desabilitado pro RESTO
-        // da sessão - o cliente conseguia mandar a primeira mensagem e nunca
-        // mais nenhuma outra. O finally garante que isProcessing e o botão
-        // sempre voltam ao normal, dê erro ou não.
         try {
             // 🔥 PASSO 1: SALVA NO DRIVE (via proxy Cloudflare)
             const payload = {
@@ -2109,15 +2101,9 @@
                 console.log('⚠️ Erro ao acionar servidor:', e.message);
             }
 
-            // 🔥 PASSO 3: POLLING - USA SOMENTE O SERVIDOR LOCAL
+            // 🔥 PASSO 3: POLLING
             let resposta = null;
             let tentativas = 0;
-            // 🔥 CORRIGIDO: era 25 (50s). Pra clientes remotos a mensagem só
-            // chega no servidor via polling de fundo (até 5s) + o tempo real
-            // da automação (clicar, digitar, esperar a IA escrever, ler a
-            // tela) - isso passava fácil de 50s e caía no fallback genérico
-            // mesmo quando a IA real ia responder certinho alguns segundos
-            // depois. Agora espera até 110s antes de desistir.
             const MAX_TENTATIVAS = 55; // 110s
             let avisoMostrado = false;
 
@@ -2126,9 +2112,14 @@
                 await new Promise(r => setTimeout(r, 2000));
 
                 try {
-                    const respPendentes = await fetch(`${PROXY_CLOUDFLARE}?action=chatAtendenteRespostas&leadId=${sessionId}`, {
-                        method: 'GET',
-                        headers: { 'Content-Type': 'application/json' }
+                    // 🔥 CORREÇÃO: POST com body JSON
+                    const respPendentes = await fetch(PROXY_CLOUDFLARE, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'chatAtendenteRespostas',
+                            leadId: sessionId
+                        })
                     });
                     const pendentesData = await respPendentes.json();
 
@@ -2140,7 +2131,7 @@
                         const ultimaResposta = pendentesData.respostas[pendentesData.respostas.length - 1];
                         if (ultimaResposta && ultimaResposta.texto) {
                             resposta = ultimaResposta;
-                            console.log('✅ Resposta encontrada no servidor local!');
+                            console.log('✅ Resposta encontrada!');
                             break;
                         }
                     }
@@ -2148,9 +2139,6 @@
                     console.log('⚠️ Erro no polling:', e.message);
                 }
 
-                // 🔥 NOVO: por volta dos 30s, avisa o visitante que ainda está
-                // processando - sem isso, o typing indicator sozinho por quase
-                // 2 minutos parece travado.
                 if (tentativas === 15 && !avisoMostrado) {
                     avisoMostrado = true;
                     removeTyping();
@@ -2178,9 +2166,6 @@
                 addMessage('ai', fallback + botoesResposta());
             }
         } catch (e) {
-            // 🔥 Se algo quebrar (rede, parsing, etc.), avisa o cliente em vez
-            // de travar silenciosamente - e o finally abaixo libera o envio
-            // pra ele poder tentar de novo.
             console.log('❌ Erro em enviarParaIA:', e.message);
             removeTyping();
             addMessage('ai', 'Ops, tive um probleminha para responder agora. Pode tentar de novo? 🙏' + botoesResposta());
