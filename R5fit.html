@@ -707,7 +707,34 @@
                 📩 Nova resposta do atendente! Clique para ver →
             </div>
 
-            <div class="chat-messages" id="chatMessages"></div>
+            <!-- 🔥 FORMULÁRIO DE CADASTRO INICIAL (perfil do lead) -->
+            <div class="lead-intake" id="leadIntake" style="padding:16px;overflow-y:auto;flex:1;">
+                <p style="font-size:0.85rem;color:var(--cinza-claro,#ccc);margin-bottom:12px;">Antes de começar, me conta um pouco sobre você 😊</p>
+
+                <input type="text" id="leadNome" class="lead-input" placeholder="Seu nome*" style="width:100%;padding:10px;margin-bottom:8px;border-radius:8px;border:1px solid #444;background:#1a1a1a;color:#fff;">
+                <input type="tel" id="leadWhatsapp" class="lead-input" placeholder="WhatsApp (com DDD)*" style="width:100%;padding:10px;margin-bottom:8px;border-radius:8px;border:1px solid #444;background:#1a1a1a;color:#fff;">
+
+                <div style="display:flex;gap:8px;margin-bottom:8px;">
+                    <input type="number" id="leadIdade" class="lead-input" placeholder="Idade" min="10" max="100" style="flex:1;padding:10px;border-radius:8px;border:1px solid #444;background:#1a1a1a;color:#fff;">
+                    <input type="number" id="leadPeso" class="lead-input" placeholder="Peso (kg)" min="30" max="250" style="flex:1;padding:10px;border-radius:8px;border:1px solid #444;background:#1a1a1a;color:#fff;">
+                </div>
+                <div style="display:flex;gap:8px;margin-bottom:8px;">
+                    <select id="leadSexo" class="lead-input" style="flex:1;padding:10px;border-radius:8px;border:1px solid #444;background:#1a1a1a;color:#fff;">
+                        <option value="">Sexo</option>
+                        <option value="masculino">Masculino</option>
+                        <option value="feminino">Feminino</option>
+                        <option value="prefiro_nao_dizer">Prefiro não dizer</option>
+                    </select>
+                    <input type="number" id="leadAltura" class="lead-input" placeholder="Altura (cm)" min="100" max="230" style="flex:1;padding:10px;border-radius:8px;border:1px solid #444;background:#1a1a1a;color:#fff;">
+                </div>
+                <input type="text" id="leadMotivo" class="lead-input" placeholder="O que te trouxe até aqui? (opcional)" style="width:100%;padding:10px;margin-bottom:12px;border-radius:8px;border:1px solid #444;background:#1a1a1a;color:#fff;">
+
+                <p id="leadIntakeErro" style="display:none;color:#ff6b6b;font-size:0.75rem;margin-bottom:8px;">Preenche pelo menos nome e WhatsApp pra gente continuar 🙏</p>
+
+                <button onclick="confirmarLeadIntake()" style="width:100%;padding:12px;border-radius:8px;border:none;background:var(--laranja,#FF4C00);color:#fff;font-weight:bold;cursor:pointer;">Começar conversa →</button>
+            </div>
+
+            <div class="chat-messages" id="chatMessages" style="display:none;"></div>
             
             <!-- 🔥 PREVIEW DE IMAGEM/ARQUIVO SELECIONADO -->
             <div class="img-preview-strip" id="imgPreviewStrip" style="display:none;">
@@ -717,7 +744,7 @@
             </div>
             
             <!-- 🔥 ÁREA DE INPUT COM BOTÕES DE MICROFONE E ANEXO -->
-            <div class="chat-input-area">
+            <div class="chat-input-area" id="chatInputArea" style="display:none;">
                 <!-- Botão de Anexo (Imagem, Documento, Recibo) -->
                 <input type="file" id="fileInput" accept="image/*,.pdf,.doc,.docx,.txt,.csv,.xlsx" style="display:none" onchange="onArquivoSelecionado(event)">
                 <button class="chat-icon-btn" id="btnAnexo" title="Anexar arquivo" onclick="document.getElementById('fileInput').click()">
@@ -1284,6 +1311,7 @@
                 'login',
                 'listarUsuarios',
                 'getLeads',
+                'saveLead',        // 🔥 ADICIONADO - formulário de cadastro inicial
                 'atualizarUsuario',
                 'cadastrarUsuario',
                 'atendenteResponder',      // 🔥 ADICIONADO - resposta do atendente
@@ -1565,9 +1593,59 @@
         document.getElementById('chatOverlay').classList.add('active');
         document.getElementById('homeContainer').classList.add('chat-open');
         document.body.style.overflow = 'hidden';
-        
-        carregarHistorico();  // 🔥 ADICIONE ESTA LINHA AQUI
-        
+
+        // 🔥 NOVO: se já temos o perfil do lead salvo (visita anterior),
+        // pula direto pro chat. Senão, mostra o formulário de cadastro
+        // primeiro e só libera o chat depois de confirmarLeadIntake().
+        const perfilSalvo = localStorage.getItem('r5fit_lead_perfil');
+        if (perfilSalvo) {
+            document.getElementById('leadIntake').style.display = 'none';
+            document.getElementById('chatMessages').style.display = '';
+            document.getElementById('chatInputArea').style.display = 'flex';
+            carregarHistorico();
+            iniciarPollingContinuo();
+        }
+        // Se não tem perfil salvo, o formulário (leadIntake) já está visível
+        // por padrão - confirmarLeadIntake() cuida do resto quando enviado.
+    }
+
+    async function confirmarLeadIntake() {
+        const nome = document.getElementById('leadNome').value.trim();
+        const whatsapp = document.getElementById('leadWhatsapp').value.trim();
+        const erro = document.getElementById('leadIntakeErro');
+
+        if (!nome || !whatsapp) {
+            erro.style.display = 'block';
+            return;
+        }
+        erro.style.display = 'none';
+
+        const perfil = {
+            id: sessionId,
+            nome: nome,
+            whatsapp: whatsapp,
+            idade: document.getElementById('leadIdade').value.trim(),
+            peso: document.getElementById('leadPeso').value.trim(),
+            sexo: document.getElementById('leadSexo').value,
+            altura: document.getElementById('leadAltura').value.trim(),
+            motivo: document.getElementById('leadMotivo').value.trim(),
+            origem: 'atendimento_widget'
+        };
+
+        // 🔥 Salva local primeiro - garante que a próxima visita não pergunta
+        // de novo, mesmo se o saveLead falhar por instabilidade de rede.
+        localStorage.setItem('r5fit_lead_perfil', JSON.stringify(perfil));
+
+        try {
+            await callAPI('saveLead', perfil, 'POST');
+        } catch (e) {
+            console.log('⚠️ Erro ao salvar lead (segue local):', e.message);
+        }
+
+        document.getElementById('leadIntake').style.display = 'none';
+        document.getElementById('chatMessages').style.display = '';
+        document.getElementById('chatInputArea').style.display = 'flex';
+        carregarHistorico();
         iniciarPollingContinuo();
     }
 
@@ -1977,11 +2055,22 @@
                 console.log('📩 [POLLING] Exibindo', data.respostas.length, 'respostas');
                 
                 for (const resp of data.respostas) {
-                    const textoLimpo = limparRespostaIA(resp.texto);
+                    const textoLimpo = resp.respondido_por_ia ? limparRespostaIA(resp.texto) : (resp.texto || '').trim();
                     
                     console.log('📝 [POLLING] Resposta:', textoLimpo ? textoLimpo.substring(0, 50) + '...' : 'VAZIA');
                     
-                    if (textoLimpo && textoLimpo.length > 15 && !respostaJaExibida(textoLimpo)) {
+                    // 🔥 CORRIGIDO: o mínimo de 15 caracteres é um filtro pra
+                    // descartar capturas de IA incompletas/lixo - fazia sentido
+                    // pra respostas de IA, mas estava sendo aplicado também às
+                    // respostas do atendente humano, que podem ser curtas de
+                    // propósito ("oi", "ok", "sim"). Isso derrubava silenciosamente
+                    // qualquer resposta manual curta do painel - o texto chegava
+                    // certinho até aqui e sumia só por causa desse filtro.
+                    const passaFiltro = resp.respondido_por_ia
+                        ? (textoLimpo && textoLimpo.length > 15)
+                        : !!textoLimpo;
+
+                    if (passaFiltro && !respostaJaExibida(textoLimpo)) {
                         if (resp.respondido_por_ia) {
                             addMessage('ai', textoLimpo + botoesResposta());
                         } else {
