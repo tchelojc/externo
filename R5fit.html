@@ -1527,9 +1527,12 @@
         switchChatMode(tipo === 'atendente' ? 'atendente' : 'ia');
         abrirChat();
         document.getElementById('chatMessages').innerHTML = '';
+        
+        // 🔥 EXTRAI DADOS DA RESPOSTA PRONTA (se tiver dados)
+        extrairDadosDaMensagem(resposta, sessionId);
+        
         if (tipo === 'atendente') {
             addMessage('atendente-msg', resposta);
-            // 🔥 CORRIGIDO: usa enviarParaAtendente
             enviarParaAtendente(resposta);
         } else {
             addMessage('ai', resposta + botoesResposta());
@@ -1546,22 +1549,13 @@
         document.getElementById('homeContainer').classList.add('chat-open');
         document.body.style.overflow = 'hidden';
 
-        // 🔥 CORRIGIDO: usuário que já fez login (aluno da academia) tem o
-        // perfil completo desde o cadastro - não faz sentido pedir
-        // nome/WhatsApp de novo como se fosse visitante anônimo. Isso
-        // quebrava a fluidez pra exatamente quem menos precisava de fricção.
-        const usuarioSalvo = usuarioLogado || JSON.parse(localStorage.getItem('r5fit_usuario') || 'null');
-        const perfilSalvo = localStorage.getItem('r5fit_lead_perfil');
-
-        if (usuarioSalvo || perfilSalvo) {
-            document.getElementById('leadIntake').style.display = 'none';
-            document.getElementById('chatMessages').style.display = '';
-            document.getElementById('chatInputArea').style.display = 'flex';
-            carregarHistorico();
-            iniciarPollingContinuo();
-        }
-        // Se não tem login nem perfil salvo, o formulário (leadIntake) já
-        // está visível por padrão - confirmarLeadIntake() cuida do resto.
+        // 🔥 FORÇA OCULTAR O FORMULÁRIO SEMPRE
+        document.getElementById('leadIntake').style.display = 'none';
+        document.getElementById('chatMessages').style.display = '';
+        document.getElementById('chatInputArea').style.display = 'flex';
+        
+        carregarHistorico();
+        iniciarPollingContinuo();
     }
 
     async function confirmarLeadIntake() {
@@ -1663,6 +1657,41 @@
         }
     }
 
+    async function extrairDadosDaMensagem(texto, leadId) {
+        // Regex para capturar dados comuns
+        const padroes = {
+            idade: /(\d{1,2})\s*anos?/i,
+            peso: /(\d{1,3})\s*kg/i,
+            altura: /(\d{1,3})\s*cm/i,
+            motivo: /(emagrecer|ganhar\s*massa|energia|saúde|postura|dor\s+nas\s+costas|joelho|ombro)/i
+        };
+        
+        const dadosExtraidos = {};
+        
+        if (padroes.idade.test(texto)) {
+            dadosExtraidos.idade = texto.match(padroes.idade)[1];
+        }
+        if (padroes.peso.test(texto)) {
+            dadosExtraidos.peso = texto.match(padroes.peso)[1];
+        }
+        if (padroes.altura.test(texto)) {
+            dadosExtraidos.altura = texto.match(padroes.altura)[1];
+        }
+        if (padroes.motivo.test(texto)) {
+            dadosExtraidos.motivo = texto.match(padroes.motivo)[1];
+        }
+        
+        if (Object.keys(dadosExtraidos).length > 0) {
+            // Atualiza o perfil do lead no Drive
+            await callAPI('saveLead', {
+                id: leadId,
+                ...dadosExtraidos,
+                origem: 'chat_extraido'
+            }, 'POST');
+            console.log('📊 Dados extraídos do chat:', dadosExtraidos);
+        }
+    }
+
     function iniciarJornada() {
         const input = document.getElementById('searchInput');
         const query = input.value.trim();
@@ -1687,16 +1716,14 @@
             document.getElementById('homePreviewStrip').style.display = 'none';
         }
         
-        // 🔥 CORRIGIDO: iniciarJornada() chama enviarParaIA() diretamente, sem
-        // passar por enviarMensagem() - e só enviarMensagem() fazia
-        // addMessage('user', texto). Resultado: a mensagem digitada na home
-        // nunca aparecia no chat, só o anexo (quando tinha). Mostra a
-        // mensagem do próprio cliente aqui, como em qualquer chat normal.
         if (query) {
             addMessage('user', query);
+            
+            // 🔥 EXTRAI DADOS DA MENSAGEM ANTES DE ENVIAR PARA IA
+            extrairDadosDaMensagem(query, sessionId);
         }
 
-        // ✅ APENAS ENVIA PARA A IA
+        // ✅ ENVIA PARA A IA
         setTimeout(() => enviarParaIA(query, anexo), 800);
         input.value = '';
     }
@@ -1822,7 +1849,12 @@
         
         if (!texto && !arquivoStaged) return;
 
-        // 🔥 MOSTRA A MENSAGEM NO CHAT
+        // 🔥 EXTRAI DADOS DA MENSAGEM ANTES DE ENVIAR
+        if (texto) {
+            await extrairDadosDaMensagem(texto, sessionId);
+        }
+
+        // MOSTRA A MENSAGEM NO CHAT
         if (arquivoStaged) {
             if (arquivoStaged.tipo.startsWith('image/')) {
                 addImageMessage('user', arquivoStaged.base64);
@@ -1838,7 +1870,7 @@
         const arquivoParaEnviar = arquivoStaged;
         removerAnexoStaged();
         
-        // 🔥 ROTEIA PARA O FLUXO CORRETO
+        // ROTEIA PARA O FLUXO CORRETO
         if (chatMode === 'atendente') {
             await enviarParaAtendente(texto, arquivoParaEnviar);
         } else {
