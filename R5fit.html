@@ -686,7 +686,7 @@
         <div class="chat-window" id="chatWindow">
             <div class="chat-header" id="chatHeader">
                 <div class="chat-header-left">
-                    <div class="chat-avatar" id="chatAvatar">R5</div>
+                    <div class="chat-avatar" id="chatAvatar">💬</div>
                     <div>
                         <div class="chat-title" id="chatTitle">R5 Fit</div>
                         <div class="chat-subtitle" id="chatSubtitle"></div>
@@ -1880,7 +1880,7 @@
 
     function iniciarPollingContinuo() {
         if (pollContinuoInterval) return;
-        pollContinuoInterval = setInterval(pollRespostasContinuo, 3000);
+        pollContinuoInterval = setInterval(pollRespostasContinuo, 2000);
         console.log('🔄 Polling contínuo iniciado');
     }
 
@@ -2175,7 +2175,7 @@
             // 🔥 PASSO 3: POLLING
             let resposta = null;
             let tentativas = 0;
-            const MAX_TENTATIVAS = 55; // 110s
+            const MAX_TENTATIVAS = 40; // 80s (40 × 2s)
             let avisoMostrado = false;
 
             while (!resposta && tentativas < MAX_TENTATIVAS) {
