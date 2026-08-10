@@ -6,281 +6,117 @@
     <title>ALMAFLUXO — Pagamentos</title>
     <style>
         :root {
-            --bg: #0a0a0f;
-            --card: #12121a;
-            --gold: #d4a843;
-            --gold-light: #f0d078;
-            --text: #e0e0e0;
-            --text-secondary: #a0a0b0;
+            --bg: #0a0a0f; --card: #12121a; --gold: #d4a843; --gold-light: #f0d078;
+            --text: #e0e0e0; --text-secondary: #a0a0b0;
         }
-
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg); color: var(--text); min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
             background-image: 
                 radial-gradient(ellipse at 50% 0%, rgba(212,168,67,0.08) 0%, transparent 70%),
                 radial-gradient(ellipse at 80% 100%, rgba(108,92,231,0.05) 0%, transparent 60%);
         }
-
-        .loading-container {
-            text-align: center;
-            padding: 40px;
-        }
-
+        .loading-container { text-align: center; padding: 40px; }
         .logo {
-            font-size: 2rem;
-            font-weight: 700;
+            font-size: 2rem; font-weight: 700;
             background: linear-gradient(135deg, var(--gold), var(--gold-light));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: 2px;
-            margin-bottom: 20px;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            letter-spacing: 2px; margin-bottom: 20px;
         }
-
         .spinner {
-            width: 48px;
-            height: 48px;
-            border: 3px solid rgba(212,168,67,0.2);
-            border-top-color: var(--gold);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin: 0 auto 20px;
+            width: 48px; height: 48px; border: 3px solid rgba(212,168,67,0.2);
+            border-top-color: var(--gold); border-radius: 50%;
+            animation: spin 0.8s linear infinite; margin: 0 auto 20px;
         }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .loading-text {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-
-        .error-container {
-            text-align: center;
-            padding: 40px;
-            display: none;
-        }
-
-        .error-container.show {
-            display: block;
-        }
-
-        .error-icon {
-            font-size: 3rem;
-            margin-bottom: 16px;
-        }
-
-        .error-text {
-            color: var(--text-secondary);
-            margin-bottom: 16px;
-            white-space: pre-line;
-        }
-
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { color: var(--text-secondary); font-size: 0.9rem; }
+        .error-container { text-align: center; padding: 40px; display: none; }
+        .error-container.show { display: block; }
+        .error-icon { font-size: 3rem; margin-bottom: 16px; }
+        .error-text { color: var(--text-secondary); margin-bottom: 16px; white-space: pre-line; font-size: 0.85rem; }
         .retry-btn {
-            padding: 12px 24px;
-            background: linear-gradient(135deg, var(--gold), #c8963e);
-            color: #1a1a1a;
-            border: none;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
-
-        .retry-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 8px 25px rgba(212,168,67,0.3);
-        }
-
-        .toast {
-            position: fixed;
-            bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--card);
-            border: 1px solid var(--gold);
-            color: var(--text);
-            padding: 12px 24px;
-            border-radius: 50px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            z-index: 2000;
-            animation: toastIn 0.3s ease, toastOut 0.3s ease 2.5s forwards;
-        }
-
-        @keyframes toastIn {
-            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
-            to { opacity: 1; transform: translateX(-50%) translateY(0); }
-        }
-        @keyframes toastOut {
-            from { opacity: 1; }
-            to { opacity: 0; }
+            padding: 12px 24px; background: linear-gradient(135deg, var(--gold), #c8963e);
+            color: #1a1a1a; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <!-- Loading -->
     <div class="loading-container" id="loadingContainer">
         <div class="logo">ALMAFLUXO</div>
         <div class="spinner"></div>
         <div class="loading-text">Carregando sistema de pagamentos...</div>
     </div>
 
-    <!-- Erro -->
     <div class="error-container" id="errorContainer">
         <div class="error-icon">⚠️</div>
-        <div class="error-text" id="errorText">Não foi possível carregar a página de pagamentos.</div>
-        <button class="retry-btn" onclick="recarregarPagina()">🔄 Tentar novamente</button>
+        <div class="error-text" id="errorText"></div>
+        <button class="retry-btn" onclick="recarregar()">🔄 Tentar novamente</button>
     </div>
 
     <script>
-        // ═══════════════════════════════════════════════════════
-        // CONFIGURAÇÃO
-        // ═══════════════════════════════════════════════════════
-        
-        let sessionId = localStorage.getItem('almafluxo_session_id');
-        if (!sessionId) {
-            sessionId = "user_" + Date.now();
-            localStorage.setItem('almafluxo_session_id', sessionId);
-        }
-
-        const CENTRAL_URL = "https://almafluxo.uk/economy";
-        const HTML_FILE_ID = "1CXLScS5zt1DOdGGNo2U1CsLZUMJXtNMV";
-        
-        // 🔥 Controle para evitar loop
         let carregando = false;
         let renderizado = false;
 
-        // ═══════════════════════════════════════════════════════
-        // INICIALIZAÇÃO
-        // ═══════════════════════════════════════════════════════
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            carregarPagamentosHTML();
-        });
+        document.addEventListener('DOMContentLoaded', carregarPagina);
 
-        async function carregarPagamentosHTML() {
-            // 🔥 Evita loop: se já está carregando ou já renderizou, sai
-            if (carregando || renderizado) {
-                console.log('⏭️ Já carregando ou já renderizado, ignorando...');
-                return;
-            }
-            
+        async function carregarPagina() {
+            if (carregando || renderizado) return;
             carregando = true;
-            
+
             const loading = document.getElementById('loadingContainer');
             const error = document.getElementById('errorContainer');
-
             loading.style.display = 'block';
             error.classList.remove('show');
 
             try {
-                console.log('📄 Buscando pagamentos.html via Worker...');
+                console.log('📄 Buscando via Worker...');
                 
-                // 🔥 Busca o HTML via Cloudflare Worker
-                const response = await fetch('https://almafluxo.uk/pagamentos/', {
-                    method: 'GET',
+                // 🔥 ÚNICA chamada: Worker → Central.gs → Drive
+                const resp = await fetch('https://almafluxo.uk/pagamentos/', {
                     headers: { 'Accept': 'text/html' },
                     signal: AbortSignal.timeout(15000)
                 });
 
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
 
-                const contentType = response.headers.get('Content-Type') || '';
-                const htmlContent = await response.text();
-                
+                const contentType = resp.headers.get('Content-Type') || '';
+                const text = await resp.text();
+
                 console.log('📥 Content-Type:', contentType);
-                console.log('📥 Tamanho:', htmlContent.length, 'caracteres');
-                console.log('📥 Primeiros 100 chars:', htmlContent.substring(0, 100));
+                console.log('📥 Tamanho:', text.length);
 
-                // 🔥 Verifica se é HTML puro (não viewer, não JSON, não redirecionamento)
-                const isJson = htmlContent.trim().startsWith('{');
-                const isViewer = htmlContent.includes('drive-viewer') || htmlContent.includes('ndfHFb-c4YZDc');
-                const isRedirect = htmlContent.includes('http-equiv="refresh"') && htmlContent.length < 500;
-                const isHtml = htmlContent.includes('<!DOCTYPE') || htmlContent.includes('<html') || htmlContent.includes('ALMAFLUXO');
+                // Verifica se é HTML válido
+                if (text.trim().startsWith('{')) throw new Error('JSON recebido');
+                if (text.includes('drive-viewer')) throw new Error('Google Drive Viewer');
+                if (text.length < 500 && text.includes('refresh')) throw new Error('Redirecionamento');
+                if (!text.includes('<html') && !text.includes('ALMAFLUXO')) throw new Error('Não é HTML');
 
-                if (isJson) {
-                    console.error('❌ Recebeu JSON em vez de HTML:', htmlContent.substring(0, 200));
-                    throw new Error('Servidor retornou JSON em vez de HTML');
-                }
-
-                if (isViewer) {
-                    console.error('❌ Recebeu viewer do Google Drive em vez do HTML puro');
-                    throw new Error('Google Drive viewer detectado - HTML não foi servido puro');
-                }
-
-                if (isRedirect) {
-                    console.error('❌ Recebeu página de redirecionamento');
-                    throw new Error('Página de redirecionamento detectada');
-                }
-
-                if (!isHtml) {
-                    console.error('❌ Conteúdo não parece ser HTML');
-                    throw new Error('Conteúdo não é HTML válido');
-                }
-
-                // 🔥 Sucesso! Renderiza o HTML
-                console.log('✅ HTML puro recebido!', htmlContent.length, 'caracteres');
-                
+                // Sucesso!
+                console.log('✅ HTML puro!', text.length, 'caracteres');
                 loading.style.display = 'none';
-                
-                // Substitui todo o body pelo HTML recebido
                 document.open();
-                document.write(htmlContent);
+                document.write(text);
                 document.close();
-                
                 renderizado = true;
-                console.log('✅ Página de pagamentos renderizada!');
 
             } catch (e) {
-                console.error('❌ Erro:', e.message);
+                console.error('❌', e.message);
                 carregando = false;
-                mostrarErro(e.message);
+                loading.style.display = 'none';
+                error.classList.add('show');
+                document.getElementById('errorText').textContent = 
+                    'Erro: ' + e.message + '\n\n' +
+                    'Verifique o Worker e o Central.gs';
             }
         }
 
-        function mostrarErro(mensagem) {
-            const loading = document.getElementById('loadingContainer');
-            const error = document.getElementById('errorContainer');
-            
-            loading.style.display = 'none';
-            error.classList.add('show');
-            document.getElementById('errorText').textContent = 
-                'Não foi possível carregar a página de pagamentos.\n\n' +
-                'Detalhes: ' + mensagem + '\n\n' +
-                'Verifique se:\n' +
-                '• O Central.gs tem a função servirArquivoHTML()\n' +
-                '• O Worker está atualizado com fetchHtmlDoDrive()\n' +
-                '• O arquivo pagamentos.html está no Google Drive';
-        }
-
-        function recarregarPagina() {
+        function recarregar() {
             carregando = false;
             renderizado = false;
-            carregarPagamentosHTML();
+            carregarPagina();
         }
-
-        function mostrarToast(msg) {
-            const t = document.createElement('div');
-            t.className = 'toast';
-            t.textContent = msg;
-            document.body.appendChild(t);
-            setTimeout(() => t.remove(), 3000);
-        }
-
-        console.log('🚀 ALMAFLUXO - Página de Pagamentos iniciada');
-        console.log('📋 Session ID:', sessionId);
     </script>
 </body>
 </html>
