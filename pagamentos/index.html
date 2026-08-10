@@ -62,7 +62,8 @@
     </div>
 
     <script>
-        const PROXY_CLOUDFLARE = 'https://almafluxo.uk/proxy/pagamentos';
+        // "central" existe no SCRIPT_MAP do worker — "pagamentos" não existe, por isso caía no fallback.
+        const PROXY_CLOUDFLARE = 'https://almafluxo.uk/proxy/central';
         let carregado = false;
 
         async function carregarPagamentosHTML() {
@@ -71,21 +72,22 @@
             try {
                 console.log('📄 Buscando pagamentos.html via proxy...');
                 
-                // 🔥 MESMO MÉTODO do atendimento.html: carregarHomePage()
                 const response = await fetch(PROXY_CLOUDFLARE, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'getPagamentosHTML' })
+                    body: JSON.stringify({ action: 'pagamentos' })
                 });
                 
-                const data = await response.json();
-                console.log('📄 Dados recebidos:', data.status);
+                // O Central_gs.js devolve HTML puro (ContentService.MimeType.HTML) para esta ação,
+                // não um objeto { status, html }. O worker reencaminha o corpo como veio.
+                const html = await response.text();
+                console.log('📄 Tamanho recebido:', html.length);
                 
-                if (data.status === 'success' && data.html && data.html.length > 100) {
+                if (response.ok && html && html.length > 100 && !html.trim().startsWith('{')) {
                     carregado = true;
-                    renderizarHTML(data.html);
+                    renderizarHTML(html);
                 } else {
-                    throw new Error(data.message || 'HTML não encontrado');
+                    throw new Error('HTML não encontrado — resposta: ' + html.substring(0, 200));
                 }
                 
             } catch (e) {
