@@ -1,45 +1,41 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALMAFLUXO — Pagamentos</title>
+    <meta http-equiv="refresh" content="0; url=/pagamentos">
+    <title>Redirecionando...</title>
     <style>
-        *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:'Segoe UI',system-ui,sans-serif;background:#0a0a0f;color:#e0e0e0;min-height:100vh;display:flex;align-items:center;justify-content:center}
-        .logo{font-size:2rem;font-weight:700;background:linear-gradient(135deg,#d4a843,#f0d078);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px;margin-bottom:20px}
-        .spinner{width:48px;height:48px;border:3px solid rgba(212,168,67,0.2);border-top-color:#d4a843;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 20px}
-        @keyframes spin{to{transform:rotate(360deg)}}
+        body { 
+            background: #0a0a0f; 
+            color: #d4a843; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh;
+            font-family: system-ui;
+            flex-direction: column;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(212,168,67,0.2);
+            border-top-color: #d4a843;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-    <div style="text-align:center" id="loading">
-        <div class="logo">ALMAFLUXO</div>
-        <div class="spinner"></div>
-        <p style="color:#a0a0b0">Carregando sistema de pagamentos...</p>
-    </div>
+    <div class="spinner"></div>
+    <div style="font-size: 1.5rem; font-weight: 700;">ALMAFLUXO</div>
+    <div style="color: #a0a0b0; margin-top: 8px;">Carregando sistema de pagamentos...</div>
     <script>
-        (async function(){
-            try {
-                // 🔥 Chama o Worker, que chama o Central.gs
-                const resp = await fetch('https://almafluxo.uk/pagamentos/');
-                if (resp.ok) {
-                    const html = await resp.text();
-                    if (html.includes('<html') && !html.startsWith('{')) {
-                        document.open();
-                        document.write(html);
-                        document.close();
-                        return;
-                    }
-                }
-            } catch(e) { console.error(e); }
-            
-            document.getElementById('loading').innerHTML = `
-                <div class="logo">ALMAFLUXO</div>
-                <p style="color:#e74c3c">Não foi possível carregar.</p>
-                <button onclick="location.reload()" style="margin-top:16px;padding:12px 24px;background:#d4a843;color:#1a1a1a;border:none;border-radius:10px;font-weight:600;cursor:pointer">🔄 Tentar novamente</button>
-            `;
-        })();
+        // Fallback caso o meta refresh não funcione
+        setTimeout(() => {
+            window.location.href = '/pagamentos';
+        }, 100);
     </script>
 </body>
 </html>
