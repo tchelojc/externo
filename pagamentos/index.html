@@ -20,22 +20,16 @@
         <p style="color:#a0a0b0">Carregando sistema de pagamentos...</p>
     </div>
     <script>
-        let carregou = false;
-
-        async function carregar() {
-            if (carregou) return;
-            
+        (async function(){
             try {
                 const resp = await fetch('https://almafluxo.uk/pagamentos/', {
                     signal: AbortSignal.timeout(15000)
                 });
-        
+
                 if (resp.ok) {
                     const html = await resp.text();
                     
-                    // Verifica se é HTML válido
                     if (html.includes('<html') && !html.startsWith('{')) {
-                        carregou = true;
                         document.open();
                         document.write(html);
                         document.close();
@@ -45,16 +39,14 @@
             } catch (e) {
                 console.error('Erro:', e.message);
             }
-        
+
             document.getElementById('loading').innerHTML = `
                 <div class="logo">ALMAFLUXO</div>
                 <p style="color:#e74c3c">Servidor indisponível.</p>
                 <p style="color:#a0a0b0;font-size:0.8rem">Tente novamente em instantes.</p>
                 <button onclick="location.reload()" class="retry-btn">🔄 Tentar novamente</button>
             `;
-        }
-
-        carregar();
+        })();
     </script>
 </body>
 </html>
