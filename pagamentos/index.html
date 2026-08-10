@@ -5,118 +5,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ALMAFLUXO — Pagamentos</title>
     <style>
-        :root {
-            --bg: #0a0a0f; --card: #12121a; --gold: #d4a843; --gold-light: #f0d078;
-            --text: #e0e0e0; --text-secondary: #a0a0b0;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: var(--bg); color: var(--text); min-height: 100vh;
-            display: flex; align-items: center; justify-content: center;
-            background-image: 
-                radial-gradient(ellipse at 50% 0%, rgba(212,168,67,0.08) 0%, transparent 70%),
-                radial-gradient(ellipse at 80% 100%, rgba(108,92,231,0.05) 0%, transparent 60%);
-        }
-        .loading-container { text-align: center; padding: 40px; }
-        .logo {
-            font-size: 2rem; font-weight: 700;
-            background: linear-gradient(135deg, var(--gold), var(--gold-light));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            letter-spacing: 2px; margin-bottom: 20px;
-        }
-        .spinner {
-            width: 48px; height: 48px; border: 3px solid rgba(212,168,67,0.2);
-            border-top-color: var(--gold); border-radius: 50%;
-            animation: spin 0.8s linear infinite; margin: 0 auto 20px;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .loading-text { color: var(--text-secondary); font-size: 0.9rem; }
-        .error-container { text-align: center; padding: 40px; display: none; }
-        .error-container.show { display: block; }
-        .error-icon { font-size: 3rem; margin-bottom: 16px; }
-        .error-text { color: var(--text-secondary); margin-bottom: 16px; white-space: pre-line; font-size: 0.85rem; }
-        .retry-btn {
-            padding: 12px 24px; background: linear-gradient(135deg, var(--gold), #c8963e);
-            color: #1a1a1a; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;
-        }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Segoe UI',system-ui,sans-serif;background:#0a0a0f;color:#e0e0e0;min-height:100vh;display:flex;align-items:center;justify-content:center}
+        .logo{font-size:2rem;font-weight:700;background:linear-gradient(135deg,#d4a843,#f0d078);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px;margin-bottom:20px}
+        .spinner{width:48px;height:48px;border:3px solid rgba(212,168,67,0.2);border-top-color:#d4a843;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 20px}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .retry-btn{padding:12px 24px;background:linear-gradient(135deg,#d4a843,#c8963e);color:#1a1a1a;border:none;border-radius:10px;font-weight:600;cursor:pointer;margin-top:16px}
     </style>
 </head>
 <body>
-    <div class="loading-container" id="loadingContainer">
+    <div style="text-align:center" id="loading">
         <div class="logo">ALMAFLUXO</div>
         <div class="spinner"></div>
-        <div class="loading-text">Carregando sistema de pagamentos...</div>
+        <p style="color:#a0a0b0">Carregando sistema de pagamentos...</p>
     </div>
-
-    <div class="error-container" id="errorContainer">
-        <div class="error-icon">⚠️</div>
-        <div class="error-text" id="errorText"></div>
-        <button class="retry-btn" onclick="recarregar()">🔄 Tentar novamente</button>
-    </div>
-
     <script>
-        let carregando = false;
-        let renderizado = false;
+        let carregou = false;
 
-        document.addEventListener('DOMContentLoaded', carregarPagina);
-
-        async function carregarPagina() {
-            if (carregando || renderizado) return;
-            carregando = true;
-
-            const loading = document.getElementById('loadingContainer');
-            const error = document.getElementById('errorContainer');
-            loading.style.display = 'block';
-            error.classList.remove('show');
-
+        async function carregar() {
+            if (carregou) return;
+            
             try {
-                console.log('📄 Buscando via Worker...');
-                
-                // 🔥 ÚNICA chamada: Worker → Central.gs → Drive
                 const resp = await fetch('https://almafluxo.uk/pagamentos/', {
-                    headers: { 'Accept': 'text/html' },
                     signal: AbortSignal.timeout(15000)
                 });
 
-                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-
-                const contentType = resp.headers.get('Content-Type') || '';
-                const text = await resp.text();
-
-                console.log('📥 Content-Type:', contentType);
-                console.log('📥 Tamanho:', text.length);
-
-                // Verifica se é HTML válido
-                if (text.trim().startsWith('{')) throw new Error('JSON recebido');
-                if (text.includes('drive-viewer')) throw new Error('Google Drive Viewer');
-                if (text.length < 500 && text.includes('refresh')) throw new Error('Redirecionamento');
-                if (!text.includes('<html') && !text.includes('ALMAFLUXO')) throw new Error('Não é HTML');
-
-                // Sucesso!
-                console.log('✅ HTML puro!', text.length, 'caracteres');
-                loading.style.display = 'none';
-                document.open();
-                document.write(text);
-                document.close();
-                renderizado = true;
-
+                if (resp.ok) {
+                    const html = await resp.text();
+                    
+                    if (html.length > 5000 && html.includes('<html') && !html.includes('drive-viewer') && !html.startsWith('{')) {
+                        carregou = true;
+                        document.open();
+                        document.write(html);
+                        document.close();
+                        return;
+                    }
+                }
             } catch (e) {
-                console.error('❌', e.message);
-                carregando = false;
-                loading.style.display = 'none';
-                error.classList.add('show');
-                document.getElementById('errorText').textContent = 
-                    'Erro: ' + e.message + '\n\n' +
-                    'Verifique o Worker e o Central.gs';
+                console.error('Erro:', e.message);
             }
+
+            document.getElementById('loading').innerHTML = `
+                <div class="logo">ALMAFLUXO</div>
+                <p style="color:#e74c3c">Servidor indisponível.</p>
+                <p style="color:#a0a0b0;font-size:0.8rem">Tente novamente em instantes.</p>
+                <button onclick="location.reload()" class="retry-btn">🔄 Tentar novamente</button>
+            `;
         }
 
-        function recarregar() {
-            carregando = false;
-            renderizado = false;
-            carregarPagina();
-        }
+        carregar();
     </script>
 </body>
 </html>
