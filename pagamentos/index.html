@@ -29,11 +29,12 @@
                 const resp = await fetch('https://almafluxo.uk/pagamentos/', {
                     signal: AbortSignal.timeout(15000)
                 });
-
+        
                 if (resp.ok) {
                     const html = await resp.text();
                     
-                    if (html.length > 5000 && html.includes('<html') && !html.includes('drive-viewer') && !html.startsWith('{')) {
+                    // Verifica se é HTML válido
+                    if (html.includes('<html') && !html.startsWith('{')) {
                         carregou = true;
                         document.open();
                         document.write(html);
@@ -44,7 +45,7 @@
             } catch (e) {
                 console.error('Erro:', e.message);
             }
-
+        
             document.getElementById('loading').innerHTML = `
                 <div class="logo">ALMAFLUXO</div>
                 <p style="color:#e74c3c">Servidor indisponível.</p>
