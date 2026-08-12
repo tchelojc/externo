@@ -11,6 +11,10 @@
             --vermelho: #CC0000;
             --vermelho-claro: #FF3333;
             --vermelho-neon: #FF6666;
+            /* 🔥 ADICIONE ESTAS VARIÁVEIS (para compatibilidade) */
+            --azul: #CC0000;
+            --azul-claro: #FF3333;
+            --azul-neon: #FF6666;
             --preto: #1A1A1A;
             --preto-claro: #2C2C2C;
             --preto-medio: #3A3A3A;
@@ -1242,17 +1246,12 @@
             payload.append('action', 'enviarPedido');
             payload.append('clientName', 'Cliente InfoCell');
             payload.append('clientPhone', WHATSAPP);
-            payload.append('instructions', 'Arquivo enviado via atendimento InfoCell');
-            payload.append('paperSize', 'a4');
-            payload.append('colorMode', 'color');
-            payload.append('copies', '1');
-            payload.append('sides', 'simplex');
-            payload.append('binding', 'nenhuma');
             payload.append('file_0', arquivo.dataBase64);
             payload.append('file_0_name', arquivo.nome);
             payload.append('file_0_type', arquivo.tipo || 'application/octet-stream');
             
-            const response = await fetch(SCRIPT_URL, {
+            // 🔥 Usa PROXY_CLOUDFLARE em vez de SCRIPT_URL
+            const response = await fetch(PROXY_CLOUDFLARE, {
                 method: 'POST',
                 body: payload
             });
@@ -1260,14 +1259,11 @@
             const result = await response.json();
             
             if (result.result && result.result.success) {
-                mostrarToast('✅ Arquivo enviado para a loja!');
+                mostrarToast('✅ Arquivo enviado!');
             } else if (result.success) {
-                mostrarToast('✅ Arquivo enviado para a loja!');
-            } else {
-                throw new Error(result.error || result.result?.error || 'Erro ao enviar arquivo');
+                mostrarToast('✅ Arquivo enviado!');
             }
         } catch (e) {
-            console.error('❌ Erro ao enviar arquivo:', e);
             mostrarToast('⚠️ Arquivo anexado localmente');
         }
     }
@@ -1695,16 +1691,13 @@
     async function callAPI(action, data = {}, method = 'GET') {
         try {
             let url;
-            if (method === 'GET') {
-                const params = new URLSearchParams({ action, ...data }).toString();
-                url = `${SCRIPT_URL}?${params}`;
-            } else {
-                url = SCRIPT_URL;
-            }
-            
             let options = { method, headers: { 'Content-Type': 'application/json' } };
             
-            if (method === 'POST' || method === 'PUT') {
+            if (method === 'GET') {
+                const params = new URLSearchParams({ action, ...data }).toString();
+                url = `${PROXY_CLOUDFLARE}?${params}`;
+            } else {
+                url = PROXY_CLOUDFLARE;
                 options.body = JSON.stringify({ action, ...data });
             }
             
@@ -1879,25 +1872,19 @@
 
     async function carregarProdutos() {
         const content = document.getElementById('lojaContent');
-        content.innerHTML = `
-            <div class="loja-loading">
-                <div class="loading-spinner"></div>
-                <p>Carregando produtos...</p>
-            </div>
-        `;
+        content.innerHTML = `<div class="loja-loading"><div class="loading-spinner"></div><p>Carregando produtos...</p></div>`;
 
         try {
-            const fd = new FormData();
-            fd.append('action', 'getProdutos');
-            
-            const response = await fetch(SCRIPT_URL, { method: 'POST', body: fd });
+            // Usa PROXY_CLOUDFLARE em vez de SCRIPT_URL
+            const response = await fetch(PROXY_CLOUDFLARE, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'getProdutos' })
+            });
             const data = await response.json();
             
             if (data.result && data.result.success) {
                 produtosLoja = data.result.produtos || [];
-                renderizarProdutos();
-            } else {
-                produtosLoja = [];
                 renderizarProdutos();
             }
         } catch (e) {
