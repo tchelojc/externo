@@ -6,221 +6,56 @@
 <title>Hub de Acesso | ALMAFLUXO</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
 <style>
-/* ============================
-   RESET & VARIÁVEIS — herdadas do index.html (Olho De Deus)
-   ============================ */
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --ciano:#00e5ff;
-  --dourado:#ffd700;
-  --verde:#00e676;
-  --vermelho:#ff5a5a;
-  --bg:#030508;
-  --panel:#0a0e17;
-  --panel2:#060a12;
-  --texto:#e0e0e0;
-  --texto2:#888;
-  --border:#1a1a2e;
-  --font:'Inter',sans-serif;
-  --body:'Nunito',sans-serif;
+  --ciano:#00e5ff;--dourado:#ffd700;--verde:#00e676;--vermelho:#ff5a5a;
+  --bg:#030508;--panel:#0a0e17;--panel2:#060a12;--texto:#e0e0e0;--texto2:#888;
+  --border:#1a1a2e;--font:'Inter',sans-serif;--body:'Nunito',sans-serif;
 }
 html{scroll-behavior:smooth}
-body{
-  font-family:var(--body);background:var(--bg);color:var(--texto);
-  overflow-x:hidden;padding-top:60px;line-height:1.5
-}
+body{font-family:var(--body);background:var(--bg);color:var(--texto);overflow-x:hidden;padding-top:60px;line-height:1.5}
 a{text-decoration:none;color:inherit}
 .container{max-width:1200px;margin:0 auto;padding:0 1.5rem}
-
-/* ============================
-   NAVBAR
-   ============================ */
-#app-nav{
-  display:flex;align-items:center;justify-content:space-between;
-  background:rgba(3,5,8,.92);backdrop-filter:blur(14px);
-  padding:.7rem 2rem;border-bottom:1px solid rgba(0,229,255,.08);
-  position:fixed;top:0;left:0;width:100%;z-index:9999
-}
+#app-nav{display:flex;align-items:center;justify-content:space-between;background:rgba(3,5,8,.92);backdrop-filter:blur(14px);padding:.7rem 2rem;border-bottom:1px solid rgba(0,229,255,.08);position:fixed;top:0;left:0;width:100%;z-index:9999}
 .nav-brand{font-family:var(--font);font-weight:800;color:var(--ciano);font-size:1.2rem;letter-spacing:.5px}
 .nav-brand span{color:#fff;font-weight:400}
 .nav-actions{display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
-.token-display{
-  background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.2);
-  color:var(--dourado);padding:.3rem 1.2rem;border-radius:30px;
-  font-weight:700;font-size:.85rem;font-family:var(--font);white-space:nowrap;
-  cursor:pointer;transition:.2s
-}
+.token-display{background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.2);color:var(--dourado);padding:.3rem 1.2rem;border-radius:30px;font-weight:700;font-size:.85rem;font-family:var(--font);cursor:pointer;transition:.2s}
 .token-display:hover{background:rgba(255,215,0,.1);box-shadow:0 0 16px rgba(255,215,0,.12)}
-.btn-nav{
-  background:var(--ciano);color:#000;border:none;padding:.5rem 1.6rem;
-  border-radius:30px;font-weight:800;font-size:.9rem;cursor:pointer;
-  transition:.25s;font-family:var(--font);white-space:nowrap
-}
+.btn-nav{background:var(--ciano);color:#000;border:none;padding:.5rem 1.6rem;border-radius:30px;font-weight:800;font-size:.9rem;cursor:pointer;transition:.25s;font-family:var(--font)}
 .btn-nav:hover{box-shadow:0 0 24px rgba(0,229,255,.35);transform:scale(1.03)}
 .btn-nav-outline{background:transparent;border:1px solid rgba(255,215,0,.3);color:var(--dourado)}
 .btn-nav-outline:hover{background:rgba(255,215,0,.05);box-shadow:0 0 20px rgba(255,215,0,.1)}
-
-/* ============================
-   HERO
-   ============================ */
-.hero{
-  max-width:900px;margin:2.5rem auto 0;padding:0 1.5rem 2.5rem;
-  text-align:center
-}
-.hero-badge{
-  display:inline-block;background:rgba(0,229,255,.06);padding:.3rem 1.2rem;
-  border-radius:30px;font-size:.75rem;color:var(--ciano);border:1px solid rgba(0,229,255,.12);
-  font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:1.2rem
-}
-.hero h1{
-  font-family:var(--font);font-size:clamp(2rem,4.5vw,3.2rem);font-weight:900;
-  line-height:1.1;color:#fff;margin-bottom:1rem
-}
+.hero{max-width:900px;margin:2.5rem auto 0;padding:0 1.5rem 2.5rem;text-align:center}
+.hero-badge{display:inline-block;background:rgba(0,229,255,.06);padding:.3rem 1.2rem;border-radius:30px;font-size:.75rem;color:var(--ciano);border:1px solid rgba(0,229,255,.12);font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:1.2rem}
+.hero h1{font-family:var(--font);font-size:clamp(2rem,4.5vw,3.2rem);font-weight:900;line-height:1.1;color:#fff;margin-bottom:1rem}
 .hero h1 .destaque{color:var(--dourado)}
 .hero p{font-size:1.05rem;color:var(--texto2);max-width:560px;margin:0 auto 2rem;line-height:1.7}
-
-/* ============================
-   FEATURES — explicação do sistema (clicáveis)
-   ============================ */
-.features-section{
-  padding:2rem 1.5rem 3.5rem;background:var(--panel2);
-  border-top:1px solid var(--border);border-bottom:1px solid var(--border)
-}
-.features-section .section-title{
-  text-align:center;font-family:var(--font);font-size:1.5rem;font-weight:800;
-  color:#fff;margin-bottom:.4rem
-}
-.features-section .section-sub{
-  text-align:center;color:var(--texto2);font-size:.92rem;margin-bottom:2.2rem
-}
-.features-grid{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-  gap:1.2rem;max-width:1100px;margin:0 auto
-}
-.feature-card{
-  background:var(--panel);border:1px solid var(--border);border-radius:16px;
-  padding:1.8rem 1.2rem;text-align:center;transition:.25s;cursor:pointer;
-}
-.feature-card:hover{border-color:rgba(0,229,255,.35);transform:translateY(-3px);box-shadow:0 8px 28px rgba(0,229,255,.08)}
-.feature-icon{font-size:2.4rem;margin-bottom:.6rem;display:block}
-.feature-card h4{font-family:var(--font);font-weight:700;color:#fff;font-size:.95rem;letter-spacing:.3px;margin-bottom:.4rem}
-.feature-card p{font-size:.76rem;color:var(--texto2);line-height:1.5}
-
-/* ============================
-   PLATAFORMAS (PROPAGANDA) — VS, operadores, pilares
-   ============================ */
-.propa-section{max-width:900px;margin:0 auto;padding:3.5rem 1.5rem 1rem}
-.propa-headline{
-  font-size:clamp(1.6rem,3.4vw,2.3rem);font-weight:900;line-height:1.15;
-  background:linear-gradient(135deg,var(--ciano) 0%,var(--verde) 55%,var(--dourado) 100%);
-  -webkit-background-clip:text;background-clip:text;color:transparent;
-  text-align:center;margin-bottom:.6rem;letter-spacing:.3px
-}
-.propa-sub{font-size:.92rem;color:var(--texto2);text-align:center;margin-bottom:2rem;line-height:1.8}
-.propa-sub em{color:var(--dourado);font-style:normal;font-weight:700}
-
-.vs-box{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:1.8rem}
-.vs-col{border-radius:16px;padding:18px 20px;transition:transform .2s}
-.vs-col:hover{transform:translateY(-2px)}
-.vs-col.bad{background:rgba(255,90,90,.05);border:1px solid rgba(255,90,90,.18)}
-.vs-col.good{background:rgba(0,230,118,.05);border:1px solid rgba(0,230,118,.18)}
-.vs-col-title{font-size:.78rem;font-weight:800;letter-spacing:1.5px;margin-bottom:10px;text-transform:uppercase;font-family:var(--font)}
-.vs-col.bad .vs-col-title{color:var(--vermelho)}
-.vs-col.good .vs-col-title{color:var(--verde)}
-.vs-item{font-size:.82rem;line-height:1.8;color:rgba(255,255,255,.72);padding:4px 0;border-bottom:1px solid rgba(255,255,255,.03)}
-.vs-item:last-child{border-bottom:none}
-.vs-item span{margin-right:6px}
-
-.operadores-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:1.8rem}
-.op-card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:16px 18px;transition:all .2s}
-.op-card:hover{border-color:rgba(0,229,255,.3);background:rgba(0,229,255,.03);transform:translateY(-2px)}
-.op-icon{font-size:1.8rem;display:block;margin-bottom:8px}
-.op-nome{font-size:.92rem;font-weight:700;color:var(--ciano);margin-bottom:5px;font-family:var(--font)}
-.op-desc{font-size:.76rem;color:var(--texto2);line-height:1.6}
-
-.pilares-row{display:flex;gap:10px;margin-bottom:1.8rem;flex-wrap:wrap}
-.pilar{
-  flex:1;min-width:130px;background:var(--panel);border:1px solid rgba(255,215,0,.12);
-  border-radius:14px;padding:16px 14px;text-align:center;transition:all .2s
-}
-.pilar:hover{border-color:rgba(255,215,0,.3);background:rgba(255,215,0,.03)}
-.pilar-icone{font-size:1.7rem;display:block;margin-bottom:8px}
-.pilar-title{font-size:.74rem;font-weight:800;color:var(--dourado);margin-bottom:5px;letter-spacing:1px;text-transform:uppercase;font-family:var(--font)}
-.pilar-desc{font-size:.74rem;color:var(--texto2);line-height:1.6}
-
-.propa-frase{
-  background:rgba(0,229,255,.04);border:1px solid rgba(0,229,255,.15);
-  border-left:3px solid var(--ciano);border-radius:12px;padding:18px 22px;
-  font-size:.95rem;color:rgba(255,255,255,.85);line-height:1.8;
-  margin-bottom:2rem;font-style:italic;letter-spacing:.2px;text-align:center
-}
-.propa-frase strong{color:var(--ciano);font-style:normal;font-weight:700}
-
-/* ============================
-   COUNTDOWN / TOP STATUS
-   ============================ */
-.status-bar{
-  display:flex;justify-content:center;align-items:center;gap:.6rem;
-  margin:1rem auto 0;max-width:320px;background:rgba(0,0,0,.3);
-  padding:8px 18px;border-radius:48px;border:1px solid rgba(0,229,255,.12);
-  font-size:.82rem;color:#4cc
-}
+.status-bar{display:flex;justify-content:center;align-items:center;gap:.6rem;margin:1rem auto 0;max-width:320px;background:rgba(0,0,0,.3);padding:8px 18px;border-radius:48px;border:1px solid rgba(0,229,255,.12);font-size:.82rem;color:#4cc}
 .status-bar .value{font-family:monospace;font-weight:700;color:var(--verde);font-size:.88rem}
 .status-bar.urgente .value{color:var(--vermelho);animation:piscar 1s infinite}
 @keyframes piscar{50%{opacity:.4}}
-
-/* ============================
-   HUB DE ACESSO — seleção de plataforma + token
-   ============================ */
 .hub-section{max-width:760px;margin:0 auto;padding:2.5rem 1.5rem 1rem}
-.hub-card{
-  background:var(--panel);border:1px solid var(--border);border-radius:24px;
-  padding:2rem;box-shadow:0 20px 48px rgba(0,0,0,.4)
-}
-
-/* Badge da plataforma selecionada */
-.plat-badge{
-  display:flex;align-items:center;gap:14px;
-  background:rgba(0,0,0,.3);border:1px solid rgba(0,229,255,.18);
-  border-radius:18px;padding:14px 18px;margin-bottom:1.4rem;cursor:pointer;
-  transition:all .25s
-}
+.hub-card{background:var(--panel);border:1px solid var(--border);border-radius:24px;padding:2rem;box-shadow:0 20px 48px rgba(0,0,0,.4)}
+.plat-badge{display:flex;align-items:center;gap:14px;background:rgba(0,0,0,.3);border:1px solid rgba(0,229,255,.18);border-radius:18px;padding:14px 18px;margin-bottom:1.4rem;cursor:pointer;transition:all .25s}
 .plat-badge:hover{background:rgba(0,229,255,.05);border-color:rgba(0,229,255,.35);box-shadow:0 0 20px rgba(0,229,255,.08)}
-.plat-badge:active{transform:scale(.99)}
 .plat-icon{font-size:1.8rem;flex-shrink:0;width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:rgba(0,229,255,.06);border-radius:50%}
 .plat-info{flex:1;min-width:0}
-.plat-nome{font-size:1rem;font-weight:700;color:var(--ciano);letter-spacing:.3px;font-family:var(--font)}
+.plat-nome{font-size:1rem;font-weight:700;color:var(--ciano);font-family:var(--font)}
 .plat-desc{font-size:.78rem;color:var(--texto2);margin-top:3px;line-height:1.5}
 .plat-seta{font-size:.85rem;color:var(--texto2);flex-shrink:0;transition:transform .2s}
 .plat-badge:hover .plat-seta{transform:translateY(2px)}
-
-/* Modal seleção de plataforma */
-.modal-overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(10px);
-  z-index:10000;display:none;align-items:center;justify-content:center;padding:1.5rem
-}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(10px);z-index:10000;display:none;align-items:center;justify-content:center;padding:1.5rem}
 .modal-overlay.active{display:flex;animation:fadeIn .25s ease}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-.modal{
-  background:var(--panel);border:1px solid var(--border);border-radius:24px;
-  padding:1.8rem;max-width:480px;width:100%;animation:fadeUp .3s ease;
-  box-shadow:0 30px 60px rgba(0,0,0,.6)
-}
+.modal{background:var(--panel);border:1px solid var(--border);border-radius:24px;padding:1.8rem;max-width:480px;width:100%;animation:fadeUp .3s ease;box-shadow:0 30px 60px rgba(0,0,0,.6)}
 @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
 .modal .close-btn{float:right;background:transparent;border:none;color:var(--texto2);font-size:1.8rem;cursor:pointer;line-height:1;transition:.2s}
 .modal .close-btn:hover{color:#fff}
 .modal h2,.modal h3{font-family:var(--font);color:#fff;text-align:center;font-weight:800;margin-bottom:.4rem;font-size:1.3rem}
-.modal .subtitulo{font-size:.82rem;color:var(--texto2);text-align:center;margin-bottom:1.4rem;line-height:1.5}
-
+.modal .subtitulo{font-size:.82rem;color:var(--texto2);text-align:center;margin-bottom:1.4rem}
 .plat-lista{display:flex;flex-direction:column;gap:8px;max-height:58vh;overflow-y:auto;padding-right:4px}
-.plat-lista::-webkit-scrollbar{width:4px}
-.plat-lista::-webkit-scrollbar-track{background:transparent}
-.plat-lista::-webkit-scrollbar-thumb{background:rgba(0,229,255,.2);border-radius:4px}
-.plat-item{
-  display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:14px;
-  cursor:pointer;transition:all .2s;border:1px solid rgba(255,255,255,.05);
-  background:rgba(0,0,0,.2);min-height:56px
-}
+.plat-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:14px;cursor:pointer;transition:all .2s;border:1px solid rgba(255,255,255,.05);background:rgba(0,0,0,.2);min-height:56px}
 .plat-item:hover{background:rgba(0,229,255,.06);border-color:rgba(0,229,255,.2)}
 .plat-item.sel{background:rgba(0,229,255,.1);border-color:var(--ciano);box-shadow:0 0 16px rgba(0,229,255,.1)}
 .plat-item-icone{font-size:1.6rem;flex-shrink:0;width:42px;height:42px;display:flex;align-items:center;justify-content:center;background:rgba(0,229,255,.05);border-radius:50%}
@@ -229,897 +64,288 @@ a{text-decoration:none;color:inherit}
 .plat-item-desc{font-size:.72rem;color:var(--texto2);line-height:1.4;margin-top:2px}
 .plat-item-check{color:var(--ciano);font-size:.95rem;flex-shrink:0;opacity:0;transition:all .2s}
 .plat-item.sel .plat-item-check{opacity:1}
-.modal-fechar{
-  display:block;width:100%;margin-top:16px;padding:12px;border-radius:48px;
-  border:1px solid rgba(0,229,255,.2);background:rgba(0,0,0,.3);color:var(--texto2);
-  cursor:pointer;font-size:.84rem;font-weight:600;text-align:center;transition:all .2s
-}
+.modal-fechar{display:block;width:100%;margin-top:16px;padding:12px;border-radius:48px;border:1px solid rgba(0,229,255,.2);background:rgba(0,0,0,.3);color:var(--texto2);cursor:pointer;font-size:.84rem;font-weight:600;text-align:center;transition:all .2s}
 .modal-fechar:hover{background:rgba(0,229,255,.08);color:var(--ciano);border-color:rgba(0,229,255,.35)}
-
-/* ============================
-   ABAS
-   ============================ */
 .tabs{display:flex;gap:0;margin-bottom:1.6rem;border-radius:48px;overflow:hidden;border:1px solid rgba(0,229,255,.2);background:rgba(0,0,0,.3)}
 .tab{flex:1;padding:13px 0;text-align:center;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .25s;color:var(--texto2);background:transparent;letter-spacing:.4px;user-select:none}
 .tab:first-child{border-right:1px solid rgba(0,229,255,.15)}
 .tab.active{background:linear-gradient(95deg,rgba(0,229,255,.12),rgba(0,229,255,.18));color:var(--ciano);box-shadow:inset 0 0 16px rgba(0,229,255,.08)}
-.tab:hover:not(.active){background:rgba(0,229,255,.04);color:#8ff}
-
 .panel{display:none;animation:fadeIn .3s ease}
 .panel.active{display:block}
-
-/* ============================
-   INPUTS / BOTÕES
-   ============================ */
-input[type=text],input[type=email],input[type=number],select,textarea{
-  background:#0d1220;border:1px solid var(--border);border-radius:14px;
-  padding:13px 16px;width:100%;color:#fff;font-size:.92rem;
-  font-family:var(--body);outline:none;transition:all .25s;margin-bottom:12px;
-  -webkit-appearance:none;appearance:none
-}
-input:focus,select:focus,textarea:focus{border-color:var(--ciano);box-shadow:0 0 18px rgba(0,229,255,.12)}
-input::placeholder,textarea::placeholder{color:#445}
-select{
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2300e5ff' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 14px center;padding-right:36px
-}
-select option{background:#0d1220;color:#fff}
-#tokenInput{border-radius:48px;text-align:center;letter-spacing:3px;font-size:1.05rem;color:var(--ciano);margin-bottom:14px;font-weight:700;padding:15px;text-transform:uppercase}
-
-.btn{
-  background:var(--ciano);color:#000;border:none;border-radius:48px;
-  padding:14px 24px;width:100%;font-size:.95rem;font-weight:800;
-  cursor:pointer;transition:all .25s;margin-top:6px;letter-spacing:.4px;
-  font-family:var(--font)
-}
+input[type=text],input[type=email],input[type=password],input[type=number]{background:#0d1220;border:1px solid var(--border);border-radius:14px;padding:13px 16px;width:100%;color:#fff;font-size:.92rem;font-family:var(--body);outline:none;transition:all .25s;margin-bottom:12px}
+input:focus{border-color:var(--ciano);box-shadow:0 0 18px rgba(0,229,255,.12)}
+.btn{background:var(--ciano);color:#000;border:none;border-radius:48px;padding:14px 24px;width:100%;font-size:.95rem;font-weight:800;cursor:pointer;transition:all .25s;margin-top:6px;font-family:var(--font)}
 .btn:hover{box-shadow:0 0 24px rgba(0,229,255,.3);transform:translateY(-1px)}
-.btn:active{transform:scale(.98)}
-.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+.btn:disabled{opacity:.45;cursor:not-allowed}
 .btn-dourado{background:var(--dourado)}
 .btn-dourado:hover{box-shadow:0 0 24px rgba(255,215,0,.3)}
-.btn-ghost{background:transparent;color:var(--ciano);border:1px solid rgba(0,229,255,.3)}
-.btn-ghost:hover{background:rgba(0,229,255,.05);box-shadow:none}
-
-.lbl{display:block;font-size:.8rem;color:#9ad;margin-bottom:5px;margin-top:8px;letter-spacing:.3px;font-weight:600}
+.lbl{display:block;font-size:.8rem;color:#9ad;margin-bottom:5px;margin-top:8px;font-weight:600}
 .sect{font-size:.85rem;font-weight:800;color:var(--ciano);letter-spacing:1px;margin:20px 0 12px;padding-bottom:6px;border-bottom:1px solid rgba(0,229,255,.12);font-family:var(--font)}
-
-.radio-group{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
-.radio-group label{display:flex;align-items:flex-start;gap:10px;font-size:.84rem;color:#bcd;cursor:pointer;padding:11px 14px;border-radius:12px;transition:all .2s;border:1px solid transparent;line-height:1.4}
-.radio-group label:hover{background:rgba(0,229,255,.04);border-color:rgba(0,229,255,.1)}
-.radio-group input[type=radio],.radio-group input[type=checkbox]{width:18px;height:18px;accent-color:var(--ciano);flex-shrink:0;margin-top:1px}
-
-.tipo-btn-row{display:flex;gap:10px;margin-bottom:16px}
-.tipo-btn{flex:1;padding:13px 0;border-radius:14px;font-size:.84rem;font-weight:700;cursor:pointer;border:1px solid var(--border);background:rgba(0,0,0,.3);color:var(--texto2);transition:all .25s;text-align:center}
-.tipo-btn.sel{background:rgba(0,229,255,.1);border-color:var(--ciano);color:var(--ciano);box-shadow:0 0 14px rgba(0,229,255,.12)}
-.tipo-btn:hover:not(.sel){background:rgba(0,229,255,.04);color:#8ff}
-
-.aviso{background:rgba(255,215,0,.05);border:1px solid rgba(255,215,0,.2);border-radius:12px;padding:14px 18px;font-size:.82rem;color:rgba(255,255,255,.8);line-height:1.7;margin-bottom:16px}
-.aviso strong{color:var(--dourado);font-weight:700}
-
-/* Planos de preço (hora / dia / mês) */
 .planos-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:1rem}
-.plano-card{
-  background:rgba(0,0,0,.25);border:2px solid var(--border);border-radius:16px;
-  padding:16px 12px;text-align:center;cursor:pointer;transition:all .2s
-}
+.plano-card{background:rgba(0,0,0,.25);border:2px solid var(--border);border-radius:16px;padding:16px 12px;text-align:center;cursor:pointer;transition:all .2s}
 .plano-card:hover{border-color:rgba(0,229,255,.3)}
 .plano-card.sel{border-color:var(--ciano);background:rgba(0,229,255,.06);box-shadow:0 0 18px rgba(0,229,255,.1)}
-.plano-nome{font-size:.78rem;font-weight:700;color:var(--texto2);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;font-family:var(--font)}
+.plano-nome{font-size:.78rem;font-weight:700;color:var(--texto2);text-transform:uppercase;margin-bottom:6px;font-family:var(--font)}
 .plano-card.sel .plano-nome{color:var(--ciano)}
 .plano-preco{font-size:1.4rem;font-weight:800;color:var(--dourado);font-family:var(--font)}
 .plano-preco span{font-size:.7rem;color:var(--texto2);font-weight:400;display:block}
-
 .valor-total{text-align:center;font-size:1.1rem;font-weight:800;color:var(--dourado);padding:12px;background:rgba(255,215,0,.06);border-radius:12px;margin:12px 0 16px;display:none;border:1px solid rgba(255,215,0,.15);font-family:var(--font)}
-
-.civs-block{background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:14px;margin-bottom:12px;display:none}
-.civs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-top:10px}
-.civs-grid label{font-size:.8rem;color:#9cc;padding:8px 12px;border-radius:10px;transition:all .2s;border:1px solid transparent;cursor:pointer;display:flex;align-items:center;gap:8px}
-.civs-grid label:hover{background:rgba(0,229,255,.04);border-color:rgba(0,229,255,.1)}
-.civs-grid input[type=checkbox]{width:16px;height:16px;accent-color:var(--dourado);flex-shrink:0}
-.civ-total{margin-top:10px;font-weight:700;color:var(--dourado);font-size:.84rem;text-align:right}
-
+.aviso{background:rgba(255,215,0,.05);border:1px solid rgba(255,215,0,.2);border-radius:12px;padding:14px 18px;font-size:.82rem;color:rgba(255,255,255,.8);line-height:1.7;margin-bottom:16px}
+.aviso strong{color:var(--dourado);font-weight:700}
 .mapa-panel{background:rgba(0,0,0,.25);border:1px solid rgba(255,215,0,.2);border-radius:20px;padding:1.8rem;text-align:center}
-.mapa-panel .mapa-icone{font-size:3rem;display:block;margin-bottom:.8rem}
-.mapa-panel .mapa-titulo{font-size:1.1rem;font-weight:700;color:var(--dourado);letter-spacing:.3px;margin-bottom:.5rem;line-height:1.3;font-family:var(--font)}
-.mapa-panel .mapa-desc{font-size:.82rem;color:#aab;line-height:1.8;margin-bottom:1.4rem}
-.mapa-panel .mapa-rota{background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.18);border-radius:12px;padding:1rem 1.2rem;margin-bottom:1.4rem;font-size:.8rem;color:rgba(255,255,255,.8);line-height:1.8;text-align:left}
-.mapa-panel .mapa-rota strong{color:var(--dourado)}
-
 .msg{display:none;border-radius:12px;padding:13px 16px;font-size:.84rem;margin-top:10px;line-height:1.6}
-.msg.ok{background:rgba(0,230,118,.08);border:1px solid rgba(0,200,80,.35);color:#7fd}
 .msg.err{background:rgba(255,90,90,.08);border:1px solid rgba(200,50,50,.35);color:#f88}
 .msg.info{background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.3);color:#aef}
-
-.loader{display:inline-block;width:14px;height:14px;border:2px solid #000;border-top:2px solid transparent;border-radius:50%;animation:spin .7s linear infinite;margin-left:10px;vertical-align:middle}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-.div-sep{border:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,229,255,.12),transparent);margin:18px 0}
 .link-switch{font-size:.8rem;color:var(--texto2);text-align:center;margin-top:14px;line-height:1.7}
-.link-switch span{color:var(--ciano);cursor:pointer;text-decoration:underline;font-weight:600;transition:color .2s}
-.link-switch span:hover{color:#fff}
-
-/* ============================
-   FOOTER
-   ============================ */
+.link-switch span{color:var(--ciano);cursor:pointer;text-decoration:underline;font-weight:600}
 footer{padding:2.5rem 1.5rem;background:var(--panel2);border-top:1px solid var(--border);text-align:center;color:var(--texto2);font-size:.85rem;margin-top:2rem}
-.footer-links{display:flex;justify-content:center;gap:2rem;flex-wrap:wrap;margin-bottom:1.2rem}
-.footer-links a{color:var(--texto2);transition:.2s;font-weight:600}
-.footer-links a:hover{color:var(--ciano)}
-
-/* ============================
-   MODAL DETALHE DE FEATURE / PLATAFORMA
-   ============================ */
-.feature-detalhe-body{font-size:.88rem;color:#bcd;line-height:1.8;text-align:left}
-.feature-detalhe-body ul{margin:10px 0 10px 18px}
-.feature-detalhe-body li{margin-bottom:6px}
-
-/* ============================
-   RESPONSIVO
-   ============================ */
-@media(max-width:600px){
-  .hero h1{font-size:1.8rem}
-  #app-nav{padding:.7rem 1rem}
-  .btn-nav{padding:.4rem 1.2rem;font-size:.8rem}
-  .nav-actions .token-display{display:none}
-  .features-grid{grid-template-columns:1fr 1fr}
-  .vs-box{grid-template-columns:1fr}
-  .pilares-row{flex-direction:column}
-  .hub-card{padding:1.4rem;border-radius:20px}
-  .planos-grid{grid-template-columns:1fr}
-  .modal{padding:1.4rem}
-}
-@media(max-width:420px){
-  .features-grid{grid-template-columns:1fr}
-}
+@media(max-width:600px){.hero h1{font-size:1.8rem}#app-nav{padding:.7rem 1rem}.btn-nav{padding:.4rem 1.2rem;font-size:.8rem}.planos-grid{grid-template-columns:1fr}.hub-card{padding:1.4rem}}
 </style>
 </head>
 <body>
 
-<!-- ===== NAVBAR ===== -->
 <nav id="app-nav">
   <div class="nav-brand">ALMAFLUXO <span>| Hub de Acesso</span></div>
   <div class="nav-actions">
-    <div class="token-display" id="tokenDisplay" onclick="abrirModalConsulta()">🔑 Consultar Token</div>
-    <button class="btn-nav" onclick="document.getElementById('hub').scrollIntoView({behavior:'smooth'})">⚡ Acessar Plataforma</button>
+    <div class="token-display" id="tokenDisplay" onclick="abrirModalLogin()">🔑 Fazer Login</div>
+    <button class="btn-nav" onclick="window.location.href='https://almafluxo.uk/pagamentos/'">💳 Comprar Tokens</button>
   </div>
 </nav>
 
-<!-- ===== HERO ===== -->
 <section class="hero">
   <div class="hero-badge">⚡ Universo Áureo · 3·6·9</div>
   <h1>Todas as suas plataformas,<br /><span class="destaque">um único acesso</span></h1>
-  <p>
-    Trading, esportes e autoconhecimento reunidos em um só lugar. Compre seu token,
-    receba por e-mail e desbloqueie qualquer plataforma ALMAFLUXO em segundos.
-  </p>
-  <div class="status-bar" id="statusBar">
-    <span>🕒</span><span class="value" id="countdown">--:--:--</span>
-  </div>
+  <p>Trading, esportes e autoconhecimento reunidos em um só lugar. Faça login, escolha o plano e acesse.</p>
+  <div class="status-bar"><span>🕒</span><span class="value" id="countdown">--:--:--</span></div>
 </section>
 
-<!-- ===== FEATURES — explicação do sistema (clicáveis) ===== -->
-<section class="features-section" id="features">
-  <div class="section-title">Como o ALMAFLUXO funciona</div>
-  <div class="section-sub">Toque em cada módulo para entender o que ele faz</div>
-  <div class="features-grid">
-    <div class="feature-card" onclick="abrirDetalheFeature('entropia')">
-      <span class="feature-icon">🌌</span>
-      <h4>Motor de Entropia</h4>
-      <p>Cálculo das constantes que orientam cada decisão</p>
-    </div>
-    <div class="feature-card" onclick="abrirDetalheFeature('oraculo')">
-      <span class="feature-icon">📐</span>
-      <h4>Oráculo &amp; Constantes</h4>
-      <p>φ, MARC, JUBILO, DEUS — a base matemática do sistema</p>
-    </div>
-    <div class="feature-card" onclick="abrirDetalheFeature('blindado')">
-      <span class="feature-icon">🔐</span>
-      <h4>Acesso Blindado</h4>
-      <p>Token único, criptografia de ponta a ponta</p>
-    </div>
-    <div class="feature-card" onclick="abrirDetalheFeature('analise')">
-      <span class="feature-icon">⚽</span>
-      <h4>Análise de Partidas</h4>
-      <p>Projeções ao vivo para futebol, basquete e mais</p>
-    </div>
-  </div>
-</section>
-
-<!-- ===== MODAL DETALHE DE FEATURE ===== -->
-<div class="modal-overlay" id="modalFeatureDetalhe">
-  <div class="modal">
-    <button class="close-btn" onclick="fecharDetalheFeature()">✕</button>
-    <h3 id="featureDetalheTitulo">Módulo</h3>
-    <div class="feature-detalhe-body" id="featureDetalheCorpo"></div>
-    <button class="modal-fechar" onclick="fecharDetalheFeature()" style="margin-top:1.4rem">Entendi</button>
-  </div>
-</div>
-
-<!-- ===== PROPAGANDA — MÉTODO ALMAFLUXO ===== -->
-<section class="propa-section">
-  <div class="propa-headline">Pare de torcer.<br>Comece a operar.</div>
-  <div class="propa-sub">
-    Aposta tradicional tem <em>3 resultados</em> — 2 contra você.<br>
-    Aqui você opera com <em>2 saídas</em>. Ambas cobertas. Matematicamente.
-  </div>
-
-  <div class="vs-box">
-    <div class="vs-col bad">
-      <div class="vs-col-title">❌ Torcedor</div>
-      <div class="vs-item"><span>⚠️</span>3 resultados possíveis</div>
-      <div class="vs-item"><span>⚠️</span>Empate zera a banca</div>
-      <div class="vs-item"><span>⚠️</span>Errou — acabou</div>
-      <div class="vs-item"><span>⚠️</span>Emoção decide</div>
-      <div class="vs-item"><span>⚠️</span>100% exposto</div>
-    </div>
-    <div class="vs-col good">
-      <div class="vs-col-title">✅ Operador</div>
-      <div class="vs-item"><span>⚡</span>2 saídas cobertas</div>
-      <div class="vs-item"><span>⚡</span>Empate não te afeta</div>
-      <div class="vs-item"><span>⚡</span>Errou — recupera parte</div>
-      <div class="vs-item"><span>⚡</span>Cálculo decide</div>
-      <div class="vs-item"><span>⚡</span>Capital distribuído</div>
-    </div>
-  </div>
-
-  <div class="operadores-row">
-    <div class="op-card">
-      <span class="op-icon">⚽</span>
-      <div class="op-nome">Futebol</div>
-      <div class="op-desc">Ambas marcam · Over/Under · Handicap · 23 mercados cobertos</div>
-    </div>
-    <div class="op-card">
-      <span class="op-icon">🏀</span>
-      <div class="op-nome">Basquete</div>
-      <div class="op-desc">Diferença de pontos · Handicap · Par/Ímpar · 4 quartos operados</div>
-    </div>
-    <div class="op-card">
-      <span class="op-icon">🎾</span>
-      <div class="op-nome">Multiesportes</div>
-      <div class="op-desc">Vôlei · Tênis · MMA — 1 método, 3 esportes, 0 torcida</div>
-    </div>
-    <div class="op-card">
-      <span class="op-icon">📈</span>
-      <div class="op-nome">Day Trade</div>
-      <div class="op-desc">Até 10 ativos · Correlação negativa · Escala automática · A partir de R$100</div>
-    </div>
-  </div>
-
-  <div class="pilares-row">
-    <div class="pilar">
-      <span class="pilar-icone">🛡️</span>
-      <div class="pilar-title">PROTEÇÃO</div>
-      <div class="pilar-desc">Erro está precificado no hedge. Não é ruína — é recuo tático.</div>
-    </div>
-    <div class="pilar">
-      <span class="pilar-icone">🧮</span>
-      <div class="pilar-title">CÁLCULO</div>
-      <div class="pilar-desc">Distribuição pré-operação. Capital alocado antes do apito.</div>
-    </div>
-    <div class="pilar">
-      <span class="pilar-icone">🔄</span>
-      <div class="pilar-title">CONTROLE</div>
-      <div class="pilar-desc">Break-even garantido. Reposicionamento ao vivo em qualquer cenário.</div>
-    </div>
-  </div>
-
-  <div class="propa-frase">
-    "Se acertar, leva o lucro.<br>
-    Se errar, recupera parte.<br>
-    <strong>Isso não é aposta. É hedge esportivo.</strong>"
-  </div>
-</section>
-
-<!-- ===== HUB DE ACESSO ===== -->
 <section class="hub-section" id="hub">
   <div class="hub-card">
-
-    <!-- BADGE DA PLATAFORMA SELECIONADA -->
-    <div class="plat-badge" id="platBadge" onclick="abrirModalPlataformas()" title="Clique para selecionar a plataforma">
+    <div class="plat-badge" id="platBadge" onclick="abrirModalPlataformas()">
       <div class="plat-icon" id="platIcon">⚡</div>
-      <div class="plat-info">
-        <div class="plat-nome" id="platNome">Carregando...</div>
-        <div class="plat-desc" id="platDesc">Identificando plataforma...</div>
-      </div>
+      <div class="plat-info"><div class="plat-nome" id="platNome">Selecione a Plataforma</div><div class="plat-desc" id="platDesc">Clique para escolher</div></div>
       <div class="plat-seta">▼</div>
     </div>
 
-    <!-- ABAS -->
-    <div class="tabs">
-      <div class="tab active" id="tab-senha" onclick="switchTab('senha')">🔓 Já tenho token</div>
-      <div class="tab" id="tab-acesso" onclick="switchTab('acesso')">🚀 Quero acesso</div>
+    <div class="sect">💰 Planos Disponíveis</div>
+    <div class="planos-grid" id="planosGrid"></div>
+    <div class="valor-total" id="valorTotal"></div>
+
+    <button class="btn" id="btnDesbloquear" disabled>💎 ACESSAR PLATAFORMA</button>
+    <div class="msg err" id="erroToken"></div>
+    <div class="msg info" id="infoSaldo"></div>
+
+    <div class="link-switch" style="margin-top:16px">
+      <span onclick="window.location.href='https://almafluxo.uk/pagamentos/'">💳 Comprar mais tokens →</span>
     </div>
-
-    <!-- ══ PAINEL: JÁ TENHO TOKEN ══ -->
-    <div class="panel active" id="panel-senha">
-      <input type="text" id="tokenInput" placeholder="INSIRA SEU TOKEN" autocomplete="off" maxlength="20">
-      <button class="btn" id="btnDesbloquear">🔓 DESBLOQUEAR ACESSO</button>
-      <div class="msg err" id="erroToken"></div>
-      <div class="msg info" id="infoSaldo"></div>
-      <hr class="div-sep" style="margin-top:14px">
-      <div class="link-switch">
-        Ainda não tem um token?<br>
-        <span onclick="switchTab('acesso')">Clique aqui para comprar acesso →</span>
-      </div>
-    </div>
-
-    <!-- ══ PAINEL: MAPA DO PRÓPRIO DESTINO ══ -->
-    <div id="panel-mapa" style="display:none">
-      <div class="mapa-panel">
-        <span class="mapa-icone">🧭</span>
-        <div class="mapa-titulo">Mapa do Próprio Destino — R$ 100,00</div>
-        <div class="mapa-desc">
-          Análise numerológica personalizada com 7 civilizações ancestrais.<br>
-          O preenchimento dos dados e o pagamento são feitos diretamente na plataforma dedicada.
-        </div>
-        <div class="mapa-rota">
-          <strong>📍 Rota para acesso:</strong><br><br>
-          1. Clique no botão abaixo<br>
-          2. Você será direcionado para <strong>almafluxo.uk/Dados</strong><br>
-          3. Preencha seus dados pessoais para a análise<br>
-          4. O pagamento e o envio do relatório são feitos nessa página
-        </div>
-        <a href="https://almafluxo.uk/Dados" target="_blank" class="btn" style="display:flex;align-items:center;justify-content:center;background:var(--dourado)">
-          🧭 Ir para almafluxo.uk/Dados →
-        </a>
-      </div>
-    </div>
-
-    <!-- ══ PAINEL: QUERO ACESSO (compra de token) ══ -->
-    <div class="panel" id="panel-acesso">
-
-      <div class="aviso">💳 <strong>Pagamento automático com token por e-mail</strong><br>
-      Escolha a plataforma e o plano. Após o pagamento confirmado, seu token chega
-      automaticamente no e-mail informado — sem espera de aprovação manual.</div>
-
-      <label class="lbl">Nome completo</label>
-      <input type="text" id="compraNome" placeholder="Seu nome completo" required>
-      <label class="lbl">E-mail (onde você receberá o token)</label>
-      <input type="email" id="compraEmail" placeholder="seuemail@exemplo.com" required>
-
-      <div class="sect" id="planosSectTitle">💰 Escolha o plano</div>
-      <div class="planos-grid" id="planosGrid">
-        <!-- Preenchido via JS conforme a plataforma selecionada -->
-      </div>
-
-      <div class="valor-total" id="valorTotal">💰 Valor total: R$ 0,00</div>
-      <button class="btn btn-dourado" id="btnComprar">💳 Gerar Link de Pagamento</button>
-
-      <div class="msg ok"  id="compraSuccess"></div>
-      <div class="msg err" id="compraError"></div>
-      <div class="msg info" id="compraInfo"></div>
-
-      <hr class="div-sep">
-      <div class="link-switch">
-        Já tem seu token? <span onclick="switchTab('senha')">← Ir para desbloqueio</span>
-      </div>
-    </div>
-
   </div>
 </section>
 
-<!-- ===== MODAL DE SELEÇÃO DE PLATAFORMA ===== -->
 <div class="modal-overlay" id="modalPlataformas">
   <div class="modal">
     <h3>🔮 Selecione a Plataforma</h3>
-    <p class="subtitulo">Escolha qual plataforma deseja acessar ou comprar</p>
-    <div class="plat-lista" id="platLista">
-      <!-- Preenchido via JS -->
-    </div>
+    <p class="subtitulo">Escolha qual plataforma deseja acessar</p>
+    <div class="plat-lista" id="platLista"></div>
     <button class="modal-fechar" onclick="fecharModalPlataformas()">✓ Confirmar seleção</button>
   </div>
 </div>
-<!-- ═══ MODAL CONSULTAR TOKEN ═══ -->
-<div class="modal-overlay" id="modalConsultaToken">
-  <div class="modal">
-    <button class="close-btn" onclick="fecharModalConsulta()">✕</button>
-    <h2>🔑 Consultar Token</h2>
-    <p class="subtitulo">Informe seu e‑mail e autentique‑se para recuperar seu token.</p>
-    <form id="formConsultaToken" onsubmit="iniciarConsulta(event)">
-      <label for="consultaEmail">E‑mail cadastrado</label>
-      <input type="email" id="consultaEmail" placeholder="seuemail@exemplo.com" required />
-      <button type="submit" class="btn-pagar" style="background:var(--ciano);color:#000;">🔍 Buscar Token</button>
-    </form>
-    <div class="status-msg" id="consultaStatus"></div>
-    <p class="modal-footnote">🔒 Seus dados biométricos permanecem no dispositivo.</p>
-  </div>
-</div>
 
-<!-- ===== FOOTER ===== -->
 <footer>
-  <div class="footer-links">
-    <a href="#hub">Acessar</a>
-    <a href="#features">Como funciona</a>
-    <a href="mailto:almafluxo@almafluxo.uk">Suporte</a>
-    <a href="#">Termos</a>
-  </div>
-  <span>ALMAFLUXO © 2026 – Universo Áureo. Todos os direitos reservados.</span>
+  <span>ALMAFLUXO © 2026 – Universo Áureo</span>
 </footer>
 
 <script>
-// ═══════════════════════════════════════════════════════
-// CONFIGURAÇÃO GERAL
-// Comunicação via proxy-ua (Cloudflare Worker) — rota "hub"
-// O token interno (tk) é injetado pelo Worker, NUNCA pelo cliente
-// ═══════════════════════════════════════════════════════
-const URL_BACKEND = "https://almafluxo.uk/proxy/hub";  // ← absoluta para funcionar em qualquer domínio
-const TIMEOUT_MS = 15000;
-let isProcessing = false;
+const ALMA_CENTRAL = "https://almafluxo.uk/proxy/central";
+let isProcessing = false, usuarioALMA = null, saldoALMA = 0, planoSelecionado = null;
+// ═══ Container original dos planos (salvo para restaurar depois) ═══
+const hubCardOriginal = document.querySelector('.hub-card').innerHTML;
 
-// ═══════════════════════════════════════════════════════
-// MAPA DE PLATAFORMAS
-// ═══════════════════════════════════════════════════════
 const PLATAFORMAS = {
-  futebol: {
-    id: "futebol", nome: "Hedge Dinâmico – Futebol", icone: "⚽",
-    desc: "Mercados de gols, ambas marcam, handicaps e proteção automática",
-    planos: { hora: 1, dia: 10, mes: 200 }
-  },
-  basquete: {
-    id: "basquete", nome: "Hedge Dinâmico – Basquete", icone: "🏀",
-    desc: "Distribuição proporcional, odds ao vivo e cenários de hedge para basquete",
-    planos: { hora: 1, dia: 10, mes: 200 }
-  },
-  operador: {
-    id: "operador", nome: "Interface OPERADOR", icone: "📈",
-    desc: "Day trade com visualização em tempo real e controle avançado de ordens",
-    planos: { hora: 1, dia: 10, mes: 200 }
-  },
-  multiesportes: {
-    id: "multiesportes", nome: "Hedge Multiesportes", icone: "🎾",
-    desc: "Vôlei, Tênis e Lutas — estratégias por sets/rounds e operação ao vivo",
-    planos: { hora: 1, dia: 10, mes: 200 }
-  },
-  sintesia: {
-    id: "sintesia", nome: "Sintesia Humana", icone: "🧬",
-    desc: "Autoconhecimento diário: humor, saúde, fluxo quântico e alinhamentos",
-    planos: { hora: 10 }
-  },
-  mapa: {
-    id: "mapa", nome: "Mapa do Próprio Destino", icone: "🧭",
-    desc: "Análise numerológica com 7 civilizações ancestrais — relatório personalizado",
-    planos: {}, externo: true
-  }
+  futebol:{id:"futebol",nome:"Hedge Dinâmico – Futebol",icone:"⚽",desc:"Mercados de gols, ambas marcam, handicaps",planos:{hora:{tokens:60,label:"1 Hora"},dia:{tokens:240,label:"1 Dia"},mes:{tokens:500,label:"1 Mês"}}},
+  basquete:{id:"basquete",nome:"Hedge Dinâmico – Basquete",icone:"🏀",desc:"Distribuição proporcional, odds ao vivo",planos:{hora:{tokens:60,label:"1 Hora"},dia:{tokens:240,label:"1 Dia"},mes:{tokens:500,label:"1 Mês"}}},
+  operador:{id:"operador",nome:"Interface OPERADOR",icone:"📈",desc:"Day trade em tempo real",planos:{hora:{tokens:60,label:"1 Hora"},dia:{tokens:240,label:"1 Dia"},mes:{tokens:500,label:"1 Mês"}}},
+  multiesportes:{id:"multiesportes",nome:"Hedge Multiesportes",icone:"🎾",desc:"Vôlei, Tênis e Lutas",planos:{hora:{tokens:60,label:"1 Hora"},dia:{tokens:240,label:"1 Dia"},mes:{tokens:500,label:"1 Mês"}}},
+  sintesia:{id:"sintesia",nome:"Sintesia Humana",icone:"🧬",desc:"Autoconhecimento diário",planos:{hora:{tokens:10,label:"1 Hora"}}},
+  mapa:{id:"mapa",nome:"Mapa do Próprio Destino",icone:"🧭",desc:"Análise numerológica com 7 civilizações ancestrais — relatório personalizado",planos:{completo:{tokens:100,label:"Relatório Completo"}},externo:true}
 };
-const ORDEM_PLATAFORMAS = ["futebol", "basquete", "operador", "multiesportes", "sintesia", "mapa"];
-const PLAT_DESCONHECIDA = PLATAFORMAS.basquete;
+const ORDEM = ["futebol","basquete","operador","multiesportes","sintesia","mapa"];
+let PLAT = PLATAFORMAS.basquete;
 
-let PLAT = PLAT_DESCONHECIDA;
-let planoSelecionado = null;
+// ═══ CONTAINER DO MAPA ═══
+const mapaHTML = `
+<div class="mapa-panel">
+  <span class="mapa-icone">🧭</span>
+  <div class="mapa-titulo">Mapa do Próprio Destino — 100 tokens</div>
+  <div class="mapa-desc">Análise numerológica personalizada com 7 civilizações ancestrais.<br>O preenchimento dos dados e o pagamento são feitos diretamente na plataforma dedicada.</div>
+  <div class="mapa-rota" style="background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.18);border-radius:12px;padding:1rem 1.2rem;margin-bottom:1.4rem;font-size:.8rem;color:rgba(255,255,255,.8);line-height:1.8;text-align:left">
+    <strong style="color:var(--dourado)">📍 Rota para acesso:</strong><br><br>
+    1. Clique no botão abaixo<br>
+    2. Você será direcionado para <strong>almafluxo.uk/Dados</strong><br>
+    3. Preencha seus dados pessoais para a análise<br>
+    4. O pagamento de <strong>100 tokens</strong> será debitado da sua carteira
+  </div>
+  <a href="https://almafluxo.uk/Dados" target="_blank" class="btn" style="display:flex;align-items:center;justify-content:center;background:var(--dourado);text-decoration:none;color:#000">🧭 Ir para almafluxo.uk/Dados →</a>
+  <div style="margin-top:12px;font-size:.75rem;color:var(--texto2)">Ou acesse com seus tokens:</div>
+  <button class="btn" id="btnAcessarMapa" style="margin-top:8px;background:var(--ciano)">💎 Debitar 100 tokens e Acessar</button>
+  <div class="msg err" id="erroMapa" style="margin-top:8px"></div>
+</div>`;
 
-// ═══════════════════════════════════════════════════════
-// DETALHES DOS MÓDULOS (feature cards explicativos)
-// ═══════════════════════════════════════════════════════
-const DETALHES_FEATURE = {
-  entropia: {
-    titulo: "🌌 Motor de Entropia",
-    corpo: "<p>Lê o cenário de cada operação (esportiva ou de trading) e calcula o grau de desordem do sistema no momento da decisão.</p><ul><li>Atualiza em tempo real conforme novos dados chegam</li><li>Serve de base para todas as outras camadas do método</li><li>Reduz decisões puramente emocionais</li></ul>"
-  },
-  oraculo: {
-    titulo: "📐 Oráculo & Constantes",
-    corpo: "<p>Conjunto de constantes matemáticas fixas (φ, MARC, JUBILO, DEUS, GRATIDÃO, CICLO) que orientam o cálculo de cada cenário.</p><ul><li>Mesma base matemática usada em todas as plataformas</li><li>Garante consistência entre Trading e Esportes</li><li>Não muda — é o alicerce do sistema</li></ul>"
-  },
-  blindado: {
-    titulo: "🔐 Acesso Blindado",
-    corpo: "<p>Cada plataforma fica protegida por criptografia (AES-256-GCM) e só é liberada com um token válido — gerado automaticamente após o pagamento.</p><ul><li>1 token = 1 plataforma + 1 plano (hora/dia/mês)</li><li>Token chega por e-mail, sem espera manual</li><li>Conteúdo nunca fica exposto sem token ativo</li></ul>"
-  },
-  analise: {
-    titulo: "⚽ Análise de Partidas",
-    corpo: "<p>Projeta cenários de jogo (gols, pontos, handicaps) usando os dados ao vivo da partida combinados às constantes do Oráculo.</p><ul><li>Futebol, Basquete e Multiesportes (Vôlei, Tênis, MMA)</li><li>Atualização contínua durante o evento</li></ul>"
+function detectarPlataforma(chave){
+  if(chave && PLATAFORMAS[chave]) PLAT = PLATAFORMAS[chave];
+  
+  // Se for Mapa, mostra o painel especial
+  if(PLAT.externo){
+    document.querySelector('.hub-card').innerHTML = `
+      <div class="plat-badge" style="cursor:pointer" onclick="voltarParaPlataformasNormais()">
+        <div class="plat-icon">🧭</div>
+        <div class="plat-info"><div class="plat-nome">Mapa do Próprio Destino</div><div class="plat-desc">Análise numerológica</div></div>
+        <div class="plat-seta">▲</div>
+      </div>
+      ${mapaHTML}
+    `;
+    setTimeout(()=>{
+      const btnMapa = document.getElementById('btnAcessarMapa');
+      if(btnMapa) btnMapa.onclick = acessarMapa;
+    }, 100);
+    return;
   }
-};
-
-function abrirDetalheFeature(chave) {
-  const d = DETALHES_FEATURE[chave];
-  if (!d) return;
-  document.getElementById('featureDetalheTitulo').textContent = d.titulo;
-  document.getElementById('featureDetalheCorpo').innerHTML = d.corpo;
-  document.getElementById('modalFeatureDetalhe').classList.add('active');
-}
-function fecharDetalheFeature() {
-  document.getElementById('modalFeatureDetalhe').classList.remove('active');
-}
-document.getElementById('modalFeatureDetalhe').addEventListener('click', function (e) {
-  if (e.target === this) fecharDetalheFeature();
-});
-
-// ═══════════════════════════════════════════════════════
-// COUNTDOWN
-// ═══════════════════════════════════════════════════════
-function pad(n) { return String(n).padStart(2, "0"); }
-function fmtContagem(ms) {
-  if (ms <= 0) return "00:00:00";
-  const s = Math.floor(ms / 1000);
-  return `${pad(Math.floor(s / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
-}
-function atualizarContagem() {
-  const agora = new Date();
-  const amanha = new Date(Date.UTC(agora.getUTCFullYear(), agora.getUTCMonth(), agora.getUTCDate() + 1));
-  const ms = amanha - agora;
-  const el = document.getElementById("countdown");
-  if (el) el.textContent = fmtContagem(ms);
-  const bar = document.getElementById("statusBar");
-  if (bar) bar.classList.toggle("urgente", ms < 3600000);
-}
-atualizarContagem();
-setInterval(atualizarContagem, 1000);
-
-// ═══════════════════════════════════════════════════════
-// SELEÇÃO / DETECÇÃO DE PLATAFORMA
-// ═══════════════════════════════════════════════════════
-function detectarPlataforma(chaveForcada) {
-  let chave;
-  if (chaveForcada && PLATAFORMAS[chaveForcada]) {
-    chave = chaveForcada;
-  } else {
-    const params = new URLSearchParams(location.search);
-    chave = (params.get('p') || params.get('plataforma') || '').toLowerCase().trim();
+  
+  // Plataformas normais - restaura o layout original se necessário
+  if(document.querySelector('.mapa-panel')){
+    document.querySelector('.hub-card').innerHTML = hubCardOriginal;
+    // Reconfigura os event listeners
+    document.getElementById('btnDesbloquear').onclick = acessarPlataforma;
   }
-  PLAT = PLATAFORMAS[chave] || PLAT_DESCONHECIDA;
-  planoSelecionado = null;
-
-  const ehMapa = !!PLAT.externo;
-  document.querySelector('.tabs').style.display         = ehMapa ? 'none' : '';
-  document.getElementById('panel-senha').style.display   = ehMapa ? 'none' : '';
-  document.getElementById('panel-acesso').style.display   = ehMapa ? 'none' : '';
-  document.getElementById('panel-mapa').style.display    = ehMapa ? 'block' : 'none';
-
+  
   document.getElementById('platIcon').textContent = PLAT.icone;
-  document.getElementById('platNome').textContent  = PLAT.nome;
-  document.getElementById('platDesc').textContent  = PLAT.desc;
-
+  document.getElementById('platNome').textContent = PLAT.nome;
+  document.getElementById('platDesc').textContent = PLAT.desc;
+  document.title = PLAT.nome + ' · ALMAFLUXO';
   construirPlanos();
-  atualizarSelecaoModal();
-  document.title = `${PLAT.nome} · ALMAFLUXO`;
 }
 
-function abrirModalPlataformas() {
-  document.getElementById('modalPlataformas').classList.add('active');
-  atualizarSelecaoModal();
-}
-function fecharModalPlataformas() {
-  document.getElementById('modalPlataformas').classList.remove('active');
-}
-function selecionarPlataforma(chave) {
-  detectarPlataforma(chave);
-  fecharModalPlataformas();
-}
-function atualizarSelecaoModal() {
-  document.querySelectorAll('.plat-item').forEach(item => {
-    item.classList.toggle('sel', item.getAttribute('data-plat') === PLAT.id);
-  });
-}
-function construirListaPlataformas() {
-  const container = document.getElementById('platLista');
-  let html = '';
-  ORDEM_PLATAFORMAS.forEach(chave => {
-    const p = PLATAFORMAS[chave];
-    if (!p) return;
-    html += `
-      <div class="plat-item" data-plat="${p.id}" onclick="selecionarPlataforma('${p.id}')">
-        <div class="plat-item-icone">${p.icone}</div>
-        <div class="plat-item-info">
-          <div class="plat-item-nome">${p.nome}</div>
-          <div class="plat-item-desc">${p.desc}</div>
-        </div>
-        <div class="plat-item-check">✓</div>
-      </div>`;
-  });
-  container.innerHTML = html;
-}
-document.getElementById('modalPlataformas').addEventListener('click', function (e) {
-  if (e.target === this) fecharModalPlataformas();
-});
-
-// ═══════════════════════════════════════════════════════
-// ABAS
-// ═══════════════════════════════════════════════════════
-function switchTab(t) {
-  document.querySelectorAll('.tab').forEach(e => e.classList.remove('active'));
-  document.querySelectorAll('.panel').forEach(e => e.classList.remove('active'));
-  document.getElementById('tab-' + t).classList.add('active');
-  document.getElementById('panel-' + t).classList.add('active');
+// ═══ Voltar do Mapa para plataformas normais ═══
+function voltarParaPlataformasNormais(){
+  PLAT = PLATAFORMAS.basquete; // Volta para Basquete como padrão
+  document.querySelector('.hub-card').innerHTML = hubCardOriginal;
+  document.getElementById('btnDesbloquear').onclick = acessarPlataforma;
+  document.getElementById('platIcon').textContent = '🏀';
+  document.getElementById('platNome').textContent = 'Hedge Dinâmico – Basquete';
+  document.getElementById('platDesc').textContent = 'Distribuição proporcional, odds ao vivo';
+  construirPlanos();
+  abrirModalPlataformas(); // Abre o modal para escolher outra
 }
 
-// ═══════════════════════════════════════════════════════
-// PLANOS
-// ═══════════════════════════════════════════════════════
-const LABEL_PLANO = { hora: ['⏱️ Hora', '/ hora'], dia: ['📆 Dia', '/ dia'], mes: ['📆 Mês', '/ mês'] };
-
-function construirPlanos() {
-  const grid = document.getElementById('planosGrid');
-  const planos = PLAT.planos || {};
-  let html = '';
-  Object.keys(planos).forEach(chave => {
-    const preco = planos[chave];
-    const [nome, sufixo] = LABEL_PLANO[chave] || [chave, ''];
-    html += `
-      <div class="plano-card" data-plano="${chave}" onclick="selecionarPlano('${chave}')">
-        <div class="plano-nome">${nome}</div>
-        <div class="plano-preco">R$ ${preco}<span>${sufixo}</span></div>
-      </div>`;
-  });
-  grid.innerHTML = html;
-  calcTotal();
-}
-
-function selecionarPlano(chave) {
-  planoSelecionado = chave;
-  document.querySelectorAll('.plano-card').forEach(c => {
-    c.classList.toggle('sel', c.getAttribute('data-plano') === chave);
-  });
-  calcTotal();
-}
-
-function calcTotal() {
-  const el = document.getElementById('valorTotal');
-  if (!planoSelecionado || !PLAT.planos[planoSelecionado]) {
-    el.style.display = 'none';
-    return 0;
-  }
-  const total = PLAT.planos[planoSelecionado];
-  el.style.display = 'block';
-  el.innerHTML = `💰 Valor total: R$ ${total},00`;
-  return total;
-}
-
-// ═══════════════════════════════════════════════════════
-// BACKEND
-// ═══════════════════════════════════════════════════════
-async function chamarBackend(action, dados) {
-  const body = Object.assign({ action }, dados);
-  const c = new AbortController();
-  const t = setTimeout(() => c.abort(), TIMEOUT_MS);
-  let response;
-  try {
-    response = await fetch(URL_BACKEND, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-      signal: c.signal
-    });
-  } finally {
-    clearTimeout(t);
-  }
-  if (!response.ok) throw new Error(`Backend retornou ${response.status}`);
-  const data = await response.json();
-  if (!data.ok) throw new Error(data.error || 'Erro desconhecido');
-  return data;
-}
-
-// ═══════════════════════════════════════════════════════
-// COMPRA — GERA LINK DE PAGAMENTO
-// ═══════════════════════════════════════════════════════
-document.getElementById('btnComprar').onclick = async () => {
-  if (isProcessing) return;
-  const nome = document.getElementById('compraNome').value.trim();
-  const email = document.getElementById('compraEmail').value.trim();
-  const okEl = document.getElementById('compraSuccess');
-  const errEl = document.getElementById('compraError');
-  const infoEl = document.getElementById('compraInfo');
-  okEl.style.display = errEl.style.display = infoEl.style.display = 'none';
-
-  if (!nome) { errEl.textContent = '❌ Informe seu nome completo.'; errEl.style.display = 'block'; return; }
-  if (!email || !email.includes('@')) { errEl.textContent = '❌ Informe um e-mail válido.'; errEl.style.display = 'block'; return; }
-  if (!planoSelecionado) { errEl.textContent = '❌ Selecione um plano antes de continuar.'; errEl.style.display = 'block'; return; }
-
-  isProcessing = true;
-  const btn = document.getElementById('btnComprar');
-  const orig = btn.innerText;
-  btn.innerText = '⏳ Gerando link...'; btn.disabled = true;
-
-  try {
-    const data = await chamarBackend('criarPagamento', {
-      plataforma: PLAT.id, plano: planoSelecionado, email, nome
-    });
-    infoEl.innerHTML = `✅ Link de pagamento gerado! Você será redirecionado.<br><small>Após a confirmação, seu token chega no e-mail <strong>${email}</strong>.</small>`;
-    infoEl.style.display = 'block';
-    setTimeout(() => { window.location.href = data.linkPagamento; }, 1500);
-  } catch (e) {
-    errEl.textContent = '❌ ' + e.message;
-    errEl.style.display = 'block';
-  } finally {
-    btn.innerText = orig; btn.disabled = false;
-    isProcessing = false;
-  }
-};
-
-// ═══════════════════════════════════════════════════════
-// DESBLOQUEIO COM TOKEN + E-MAIL (exigido pelo backend v16.0)
-// ═══════════════════════════════════════════════════════
-async function obterChavePorToken(token, email) {
-  const data = await chamarBackend('getKeyWithToken', { token, plataforma: PLAT.id, email });
-  const keyBytes = Uint8Array.from(atob(data.chaveMestra), c => c.charCodeAt(0));
-  if (keyBytes.length !== 32) throw new Error('Chave inválida');
-  return { chaveMestra: data.chaveMestra, conteudo: { nonce: data.nonce, tag: data.tag, data: data.data } };
-}
-
-async function aesDecrypt(obj, keyB64) {
-  const keyBytes = Uint8Array.from(atob(keyB64), c => c.charCodeAt(0));
-  const cryptoKey = await crypto.subtle.importKey('raw', keyBytes, 'AES-GCM', false, ['decrypt']);
-  const iv = Uint8Array.from(atob(obj.nonce), c => c.charCodeAt(0));
-  const tag = Uint8Array.from(atob(obj.tag), c => c.charCodeAt(0));
-  const data = Uint8Array.from(atob(obj.data), c => c.charCodeAt(0));
-  return await crypto.subtle.decrypt({ name: 'AES-GCM', iv, tagLength: 128 }, cryptoKey, new Uint8Array([...data, ...tag]));
-}
-
-function exibirConteudo(html) {
-  const txt = html.trim();
-  if (txt.toLowerCase().startsWith('<!doctype') || txt.startsWith('<html')) {
-    const iframe = document.createElement('iframe');
-    iframe.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:9999';
-    iframe.srcdoc = txt;
-    document.body.innerHTML = '';
-    document.body.appendChild(iframe);
-    document.body.style.cssText = 'margin:0;padding:0;overflow:hidden';
-  } else {
-    const div = document.createElement('div');
-    div.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;background:#0a0e17;overflow:auto';
-    const pre = document.createElement('pre');
-    pre.textContent = txt;
-    pre.style.cssText = 'padding:1rem;margin:0;color:#00e5ff;font-family:monospace;font-size:.9rem;white-space:pre-wrap';
-    div.appendChild(pre);
-    document.body.innerHTML = '';
-    document.body.appendChild(div);
-  }
-}
-
-document.getElementById('btnDesbloquear').onclick = async () => {
-  if (isProcessing) return;
-  const token = document.getElementById('tokenInput').value.trim().toUpperCase();
-  const email = document.getElementById('emailDesbloqueio')?.value.trim().toLowerCase() || '';
-  const errEl = document.getElementById('erroToken');
-  errEl.style.display = 'none';
-
-  if (!token) { errEl.textContent = '❌ Digite seu token de acesso.'; errEl.style.display = 'block'; return; }
-  if (!email) { errEl.textContent = '❌ Informe o e-mail usado na compra.'; errEl.style.display = 'block'; return; }
-
-  isProcessing = true;
-  const btn = document.getElementById('btnDesbloquear');
-  const orig = btn.innerText;
-  btn.innerText = '🔐 VERIFICANDO'; btn.disabled = true;
-  const sp = document.createElement('span'); sp.className = 'loader'; btn.appendChild(sp);
-
-  try {
-    const { chaveMestra, conteudo } = await obterChavePorToken(token, email);
-    const buf = await aesDecrypt(conteudo, chaveMestra);
-    exibirConteudo(new TextDecoder().decode(buf));
-  } catch (e) {
-    errEl.textContent = '❌ ' + e.message;
-    errEl.style.display = 'block';
-    btn.innerText = orig; btn.disabled = false;
-    if (sp.parentNode) sp.remove();
-    isProcessing = false;
-  }
-};
-
-// Adicionar campo de e-mail no painel de desbloqueio (via JS, para não precisar alterar o HTML)
-(function adicionarCampoEmail() {
-  const panel = document.getElementById('panel-senha');
-  if (!panel || document.getElementById('emailDesbloqueio')) return;
-
-  const label = document.createElement('label');
-  label.className = 'lbl';
-  label.textContent = 'E-mail usado na compra';
-  label.style.marginTop = '12px';
-
-  const input = document.createElement('input');
-  input.type = 'email';
-  input.id = 'emailDesbloqueio';
-  input.placeholder = 'seu@email.com';
-  input.autocomplete = 'email';
-
-  const tokenInput = document.getElementById('tokenInput');
-  tokenInput.parentNode.insertBefore(label, tokenInput.nextSibling);
-  tokenInput.parentNode.insertBefore(input, label.nextSibling);
-})();
-
-// ═══════════════════════════════════════════════════════
-// CONSULTA DE TOKEN COM BIOMETRIA
-// ═══════════════════════════════════════════════════════
-function abrirModalConsulta() {
-  document.getElementById('modalConsultaToken').classList.add('active');
-  document.getElementById('consultaStatus').textContent = '';
-  document.getElementById('consultaEmail').value = '';
-}
-function fecharModalConsulta() {
-  document.getElementById('modalConsultaToken').classList.remove('active');
-}
-document.getElementById('modalConsultaToken').addEventListener('click', function(e) {
-  if (e.target === this) fecharModalConsulta();
-});
-
-async function iniciarConsulta(e) {
-  e.preventDefault();
-  const email = document.getElementById('consultaEmail').value.trim().toLowerCase();
-  const statusEl = document.getElementById('consultaStatus');
-
-  if (!email || !email.includes('@')) {
-    statusEl.textContent = '⚠️ Informe um e‑mail válido.';
-    statusEl.style.color = '#ff6b6b';
+async function acessarMapa(){
+  if(isProcessing)return;
+  if(!usuarioALMA){abrirModalLogin();return;}
+  if(saldoALMA<100){
+    document.getElementById('erroMapa').innerHTML=`❌ Saldo insuficiente.<br>Necessário: <strong>100 tokens</strong><br>Você tem: <strong>${saldoALMA}</strong><br><a href="https://almafluxo.uk/pagamentos/" style="color:var(--dourado)">Comprar tokens →</a>`;
+    document.getElementById('erroMapa').style.display='block';
     return;
   }
-
-  statusEl.textContent = '🔐 Autentique sua identidade...';
-  statusEl.style.color = 'var(--ciano)';
-
-  const autenticado = await autenticarBiometria();
-  if (!autenticado) {
-    statusEl.textContent = '❌ Autenticação falhou ou foi cancelada.';
-    statusEl.style.color = '#ff6b6b';
-    return;
-  }
-
-  statusEl.textContent = '⏳ Buscando tokens...';
-  try {
-    const resposta = await fetch(URL_BACKEND, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'listarTokensPorEmail', email })
-    });
-    const data = await resposta.json();
-
-    if (!data.ok) throw new Error(data.error || 'Erro na consulta');
-
-    if (data.tokens && data.tokens.length > 0) {
-      let html = '<div style="text-align:left;max-height:200px;overflow-y:auto;margin-top:10px">';
-      data.tokens.forEach(t => {
-        const restante = t.expiraEm ? Math.max(0, Math.floor((t.expiraEm - Date.now()) / 60000)) : 0;
-        const status = t.expirado ? '❌ Expirado' : (restante > 0 ? `✅ ${restante} min restantes` : '⚠️ Quase expirado');
-        html += `<div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:10px;margin-bottom:8px">
-          <strong>${t.token}</strong><br>
-          <small>Plataforma: ${t.plataforma} · Plano: ${t.plano}</small><br>
-          <small style="color:${t.expirado ? '#ff6b6b' : '#4caf50'}">${status}</small>
-        </div>`;
-      });
-      html += '</div>';
-      statusEl.innerHTML = html;
-    } else {
-      statusEl.innerHTML = '⚠️ Nenhum token encontrado para este e‑mail.';
-      statusEl.style.color = '#ffd700';
+  isProcessing=true;
+  const btn=document.getElementById('btnAcessarMapa'),orig=btn.innerText;
+  btn.innerText='💎 DEBITANDO 100 TOKENS...';btn.disabled=true;
+  try{
+    const r=await fetch(ALMA_CENTRAL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'acessarPlataforma',email:usuarioALMA.email,plataforma:'mapa',quantidade:100,sessionToken:usuarioALMA.sessionToken})});
+    const d=await r.json();
+    if(d.ok){
+      saldoALMA=d.saldoRestante;usuarioALMA.balance=saldoALMA;
+      localStorage.setItem('almafluxo_usuario',JSON.stringify(usuarioALMA));
+      mostrarPainelLogado();
+      window.open('https://almafluxo.uk/Dados','_blank');
+      document.getElementById('erroMapa').innerHTML='✅ Acesso liberado! Redirecionando...';
+      document.getElementById('erroMapa').style.display='block';
+      document.getElementById('erroMapa').style.background='rgba(0,230,118,.08)';
+      document.getElementById('erroMapa').style.color='#7fd';
+    }else{
+      document.getElementById('erroMapa').textContent='❌ '+(d.error||'Erro.');
+      document.getElementById('erroMapa').style.display='block';
     }
-  } catch (erro) {
-    statusEl.textContent = '❌ ' + erro.message;
-    statusEl.style.color = '#ff6b6b';
+  }catch(e){
+    document.getElementById('erroMapa').textContent='❌ '+e.message;
+    document.getElementById('erroMapa').style.display='block';
   }
+  finally{btn.innerText=orig;btn.disabled=false;isProcessing=false;}
 }
 
-// ═══════════════════════════════════════════════════════
-// AUTENTICAÇÃO BIOMÉTRICA (WebAuthn)
-// ═══════════════════════════════════════════════════════
-async function autenticarBiometria() {
-  if (!window.PublicKeyCredential) {
-    return await fallbackSenhaDispositivo();
-  }
-  try {
-    const credential = await navigator.credentials.get({
-      publicKey: {
-        challenge: crypto.getRandomValues(new Uint8Array(32)),
-        rpId: window.location.hostname,
-        userVerification: 'required',
-        timeout: 60000,
-        allowCredentials: []
-      }
-    });
-    return !!credential;
-  } catch (err) {
-    console.log('Biometria falhou ou indisponível:', err.name);
-    return await fallbackSenhaDispositivo();
-  }
+function abrirModalPlataformas(){document.getElementById('modalPlataformas').classList.add('active');atualizarSelecaoModal();}
+function fecharModalPlataformas(){document.getElementById('modalPlataformas').classList.remove('active');}
+function selecionarPlataforma(chave){detectarPlataforma(chave);fecharModalPlataformas();}
+function atualizarSelecaoModal(){document.querySelectorAll('.plat-item').forEach(i=>i.classList.toggle('sel',i.dataset.plat===PLAT.id));}
+function construirListaPlataformas(){
+  document.getElementById('platLista').innerHTML=ORDEM.map(c=>{
+    const p=PLATAFORMAS[c];if(!p)return'';
+    return`<div class="plat-item" data-plat="${p.id}" onclick="selecionarPlataforma('${p.id}')"><div class="plat-item-icone">${p.icone}</div><div class="plat-item-info"><div class="plat-item-nome">${p.nome}</div><div class="plat-item-desc">${p.desc}</div></div><div class="plat-item-check">✓</div></div>`;
+  }).join('');
+}
+document.getElementById('modalPlataformas').addEventListener('click',e=>{if(e.target===document.getElementById('modalPlataformas'))fecharModalPlataformas();});
+
+function construirPlanos(){
+  const grid=document.getElementById('planosGrid'),planos=PLAT.planos||{};
+  grid.innerHTML=Object.keys(planos).map(c=>{
+    const p=planos[c];
+    return`<div class="plano-card" data-plano="${c}" onclick="selecionarPlano('${c}')"><div class="plano-nome">${p.label}</div><div class="plano-preco">${p.tokens}<span>tokens</span></div></div>`;
+  }).join('');
+  document.getElementById('valorTotal').style.display='none';
+  planoSelecionado=null;
+  document.getElementById('btnDesbloquear').disabled=true;
+}
+function selecionarPlano(c){
+  planoSelecionado=c;
+  document.querySelectorAll('.plano-card').forEach(i=>i.classList.toggle('sel',i.dataset.plano===c));
+  const p=PLAT.planos[c],el=document.getElementById('valorTotal');
+  el.style.display='block';el.innerHTML=`💰 <strong>${p.tokens} tokens</strong> — ${p.label}`;
+  document.getElementById('btnDesbloquear').disabled=false;
 }
 
-async function fallbackSenhaDispositivo() {
-  const senha = prompt('🔐 Biometria indisponível. Digite sua senha de acesso:');
-  const SENHA_FALLBACK = '369ALMA';
-  return senha === SENHA_FALLBACK;
+function abrirModalLogin(){
+  if(usuarioALMA){mostrarPainelLogado();return;}
+  const o=document.createElement('div');o.className='modal-overlay active';o.id='modalLogin';
+  o.innerHTML=`<div class="modal"><button class="close-btn" onclick="document.getElementById('modalLogin').remove()">✕</button><h3>🔐 Entrar na Carteira ALMA</h3><p class="subtitulo">Faça login para acessar</p><div style="display:flex;gap:0;margin-bottom:1rem;border-radius:48px;overflow:hidden;border:1px solid rgba(0,229,255,.2)"><div id="tabEntrar" class="tab active" onclick="switchLoginTab('entrar')">🔑 Entrar</div><div id="tabCadastrar" class="tab" onclick="switchLoginTab('cadastrar')">📝 Cadastrar</div></div><div id="loginFormEntrar"><input type="email" id="loginEmail" placeholder="seu@email.com"><input type="password" id="loginSenha" placeholder="Sua senha"><button class="btn" onclick="fazerLogin()">🔓 Entrar</button></div><div id="loginFormCadastrar" style="display:none"><input type="text" id="cadNome" placeholder="Nome"><input type="email" id="cadEmail" placeholder="seu@email.com"><input type="password" id="cadSenha" placeholder="Senha"><input type="password" id="cadConfirmarSenha" placeholder="Confirmar"><button class="btn btn-dourado" onclick="fazerCadastro()">📝 Criar (+10 tokens)</button></div><div id="loginMsg" style="display:none;margin-top:10px;padding:10px;border-radius:10px;font-size:.8rem"></div></div>`;
+  document.body.appendChild(o);o.addEventListener('click',e=>{if(e.target===o)document.getElementById('modalLogin').remove();});
+}
+function switchLoginTab(t){document.getElementById('tabEntrar').classList.toggle('active',t==='entrar');document.getElementById('tabCadastrar').classList.toggle('active',t==='cadastrar');document.getElementById('loginFormEntrar').style.display=t==='entrar'?'block':'none';document.getElementById('loginFormCadastrar').style.display=t==='cadastrar'?'block':'none';}
+async function fazerLogin(){
+  const e=document.getElementById('loginEmail').value.trim().toLowerCase(),s=document.getElementById('loginSenha').value,m=document.getElementById('loginMsg');
+  if(!e||!s){m.style.display='block';m.textContent='Preencha todos.';m.style.background='rgba(255,90,90,.1)';m.style.color='#f88';return;}
+  m.style.display='block';m.textContent='⏳ Entrando...';m.style.background='rgba(0,229,255,.1)';m.style.color='var(--ciano)';
+  try{const r=await fetch(ALMA_CENTRAL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'login',email:e,senha:s})}),d=await r.json();
+    if(d.ok){usuarioALMA={nome:d.nome,email:e,balance:d.balance,sessionToken:d.sessionToken};saldoALMA=d.balance;localStorage.setItem('almafluxo_usuario',JSON.stringify(usuarioALMA));document.getElementById('modalLogin').remove();mostrarPainelLogado();}
+    else{m.style.background='rgba(255,90,90,.1)';m.style.color='#f88';m.textContent=d.error||'Credenciais inválidas.';}
+  }catch(x){m.style.background='rgba(255,90,90,.1)';m.style.color='#f88';m.textContent='Erro.';}
+}
+async function fazerCadastro(){
+  const n=document.getElementById('cadNome').value.trim(),e=document.getElementById('cadEmail').value.trim().toLowerCase(),s=document.getElementById('cadSenha').value,c=document.getElementById('cadConfirmarSenha').value,m=document.getElementById('loginMsg');
+  if(!n||!e||!s){m.style.display='block';m.textContent='Preencha todos.';m.style.background='rgba(255,90,90,.1)';m.style.color='#f88';return;}
+  if(s!==c){m.style.display='block';m.textContent='Senhas não coincidem.';m.style.background='rgba(255,90,90,.1)';m.style.color='#f88';return;}
+  if(s.length<6){m.style.display='block';m.textContent='Mín. 6 caracteres.';m.style.background='rgba(255,90,90,.1)';m.style.color='#f88';return;}
+  m.style.display='block';m.textContent='⏳ Criando...';m.style.background='rgba(0,229,255,.1)';m.style.color='var(--ciano)';
+  try{const r=await fetch(ALMA_CENTRAL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'cadastrarUsuario',nome:n,email:e,senha:s})}),d=await r.json();
+    if(d.ok){usuarioALMA={nome:n,email:e,balance:d.balance||10,sessionToken:d.sessionToken};saldoALMA=d.balance||10;localStorage.setItem('almafluxo_usuario',JSON.stringify(usuarioALMA));document.getElementById('modalLogin').remove();mostrarPainelLogado();}
+    else{m.style.background='rgba(255,90,90,.1)';m.style.color='#f88';m.textContent=d.error||'Erro.';}
+  }catch(x){m.style.background='rgba(255,90,90,.1)';m.style.color='#f88';m.textContent='Erro.';}
+}
+function mostrarPainelLogado(){const d=document.getElementById('tokenDisplay');if(d){d.textContent=`💎 ${saldoALMA} ALMA`;d.style.color='var(--dourado)';d.onclick=()=>{if(confirm(`${usuarioALMA.nome}\nSaldo:${saldoALMA} tokens\n\nSair?`))fazerLogout();};}document.getElementById('infoSaldo').innerHTML=`Seu saldo: <strong>${saldoALMA} tokens</strong>`;document.getElementById('infoSaldo').style.display='block';}
+function fazerLogout(){usuarioALMA=null;saldoALMA=0;localStorage.removeItem('almafluxo_usuario');const d=document.getElementById('tokenDisplay');if(d){d.textContent='🔑 Fazer Login';d.style.color='var(--ciano)';d.onclick=abrirModalLogin;}}
+
+async function acessarPlataforma(){
+  if(isProcessing)return;if(!usuarioALMA){abrirModalLogin();return;}if(!planoSelecionado){document.getElementById('erroToken').textContent='❌ Selecione um plano.';document.getElementById('erroToken').style.display='block';return;}
+  const p=PLAT.planos[planoSelecionado];
+  if(saldoALMA<p.tokens){document.getElementById('erroToken').innerHTML=`❌ Saldo insuficiente.<br>Necessário: <strong>${p.tokens} tokens</strong><br>Você tem: <strong>${saldoALMA}</strong><br><a href="https://almafluxo.uk/pagamentos/" style="color:var(--dourado)">Comprar tokens →</a>`;document.getElementById('erroToken').style.display='block';return;}
+  document.getElementById('erroToken').style.display='none';isProcessing=true;const b=document.getElementById('btnDesbloquear'),o=b.innerText;b.innerText=`💎 DEBITANDO ${p.tokens}...`;b.disabled=true;
+  try{const r=await fetch(ALMA_CENTRAL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'acessarPlataforma',email:usuarioALMA.email,plataforma:PLAT.id,quantidade:p.tokens,sessionToken:usuarioALMA.sessionToken})}),d=await r.json();
+    if(d.ok){saldoALMA=d.saldoRestante;usuarioALMA.balance=saldoALMA;localStorage.setItem('almafluxo_usuario',JSON.stringify(usuarioALMA));mostrarPainelLogado();
+      if(d.chaveMestra){const kb=Uint8Array.from(atob(d.chaveMestra),c=>c.charCodeAt(0)),ck=await crypto.subtle.importKey('raw',kb,'AES-GCM',false,['decrypt']),iv=Uint8Array.from(atob(d.nonce),c=>c.charCodeAt(0)),tg=Uint8Array.from(atob(d.tag),c=>c.charCodeAt(0)),ct=Uint8Array.from(atob(d.data),c=>c.charCodeAt(0)),bf=await crypto.subtle.decrypt({name:'AES-GCM',iv,tagLength:128},ck,new Uint8Array([...ct,...tg])),h=new TextDecoder().decode(bf),fr=document.createElement('iframe');fr.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:9999';fr.srcdoc=h;document.body.innerHTML='';document.body.appendChild(fr);}
+    }else{document.getElementById('erroToken').textContent='❌ '+(d.error||'Erro.');document.getElementById('erroToken').style.display='block';}
+  }catch(e){document.getElementById('erroToken').textContent='❌ '+e.message;document.getElementById('erroToken').style.display='block';}
+  finally{b.innerText=o;b.disabled=false;isProcessing=false;}
 }
 
-// ═══════════════════════════════════════════════════════
-// INICIALIZAÇÃO
-// ═══════════════════════════════════════════════════════
-construirListaPlataformas();
-detectarPlataforma();
-console.log("🚀 ALMAFLUXO Hub de Acesso · Plataforma ativa:", PLAT.nome);
+document.getElementById('btnDesbloquear').onclick=acessarPlataforma;
+(function(){const s=localStorage.getItem('almafluxo_usuario');if(s){try{usuarioALMA=JSON.parse(s);saldoALMA=usuarioALMA.balance||0;mostrarPainelLogado();}catch(e){localStorage.removeItem('almafluxo_usuario');}}document.getElementById('tokenDisplay').style.cursor='pointer';document.getElementById('tokenDisplay').onclick=abrirModalLogin;})();
+construirListaPlataformas();detectarPlataforma();
 </script>
 </body>
 </html>
