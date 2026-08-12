@@ -1384,6 +1384,28 @@
         "atendente": "Conectando ao atendente! Me diga seu nome, objetivo e horário."
     };
 
+    // ═══════════════ FUNÇÃO RESPOSTA PRONTA ═══════════════
+    function respostaPronta(tipo) {
+        const resposta = RESPOSTAS_PRONTAS[tipo];
+        if (!resposta) return;
+        
+        mostrarToast("Resposta carregada!");
+        switchChatMode(tipo === 'atendente' ? 'atendente' : 'ia');
+        abrirChat();
+        document.getElementById('chatMessages').innerHTML = '';
+        
+        // 🔥 EXTRAI DADOS DA RESPOSTA PRONTA (se tiver dados)
+        extrairDadosDaMensagem(resposta, sessionId);
+        
+        if (tipo === 'atendente') {
+            addMessage('atendente-msg', resposta);
+            // 🔥 CORRIGIDO: usa enviarParaAtendente
+            enviarParaAtendente(resposta);
+        } else {
+            addMessage('ai', resposta + botoesResposta());
+        }
+    }
+
     // ═══════════════ MICROFONE E ANEXO NA HOME ═══════════════
     let homeArquivoStaged = null;
     let homeGravando = false;
@@ -1521,26 +1543,6 @@
         // 🔥 INICIA O POLLING (USANDO A MESMA FUNÇÃO PARA AMBOS OS MODOS)
         if (document.getElementById('chatOverlay').classList.contains('active')) {
             iniciarPollingContinuo();
-        }
-    }
-
-    function respostaPronta(tipo) {
-        const resposta = RESPOSTAS_PRONTAS[tipo];
-        if (!resposta) return;
-        mostrarToast("Resposta carregada!");
-        switchChatMode(tipo === 'atendente' ? 'atendente' : 'ia');
-        abrirChat();
-        document.getElementById('chatMessages').innerHTML = '';
-        
-        // 🔥 EXTRAI DADOS DA RESPOSTA PRONTA (se tiver dados)
-        extrairDadosDaMensagem(resposta, sessionId);
-        
-        if (tipo === 'atendente') {
-            addMessage('atendente-msg', resposta);
-            // 🔥 CORRIGIDO: usa enviarParaAtendente
-            enviarParaAtendente(resposta);
-        } else {
-            addMessage('ai', resposta + botoesResposta());
         }
     }
 
@@ -2204,8 +2206,7 @@
             // 🔥 PASSO 3: POLLING
             let resposta = null;
             let tentativas = 0;
-            const MAX_TENTATIVAS = 40; // 80s (40 × 2s)
-            const MAX_TENTATIVAS = 55; // 110s
+            const MAX_TENTATIVAS = 55; // 110s (55 × 2s) - CORRIGIDO: removida a duplicata
             let avisoMostrado = false;
 
             while (!resposta && tentativas < MAX_TENTATIVAS) {
