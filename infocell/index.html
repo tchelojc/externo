@@ -1479,15 +1479,12 @@
                     tipo: arquivo.tipo,
                     nome: arquivo.nome
                 };
-                payload.imagem = arquivo.base64;
             }
 
+            // 🔥 Salva no Drive via Apps Script
             await callAPI('saveChatAtendente', payload, 'POST');
 
-            if (arquivo) {
-                await enviarArquivoParaDrive(arquivo);
-            }
-
+            // 🔥 Polling para buscar resposta (o servidor Python vai responder)
             let resposta = null;
             let tentativas = 0;
             const MAX_TENTATIVAS = 55;
@@ -1522,7 +1519,7 @@
             if (resposta && resposta.texto) {
                 addMessage('ai', resposta.texto + botoesResposta());
             } else {
-                const fallback = 'Recebi seu arquivo! 📎 Nossa equipe vai analisar e retornar em breve. Se preferir, chame no WhatsApp (21 96481-4751).';
+                const fallback = 'Recebi sua mensagem! Nossa equipe vai responder em breve. Se preferir, chame no WhatsApp (21 96481-4751).';
                 addMessage('ai', fallback + botoesResposta());
             }
         } catch (e) {
