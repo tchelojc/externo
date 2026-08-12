@@ -9,31 +9,45 @@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
     
+    <!-- Fontes -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    
     <style>
+        /* ============================
+           RESET & VARIÁVEIS
+           ============================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         :root {
-            --bg: #0a0a0f;
-            --card: #12121a;
-            --gold: #d4a843;
-            --gold-light: #f0d078;
-            --text: #e0e0e0;
-            --text-secondary: #a0a0b0;
-            --input-bg: #1a1a2e;
-            --input-border: #2a2a3e;
-            --success: #2ecc71;
-            --error: #e74c3c;
+            --ciano: #00e5ff;
+            --dourado: #ffd700;
+            --verde: #00e676;
+            --bg: #030508;
+            --panel: #0a0e17;
+            --panel2: #060a12;
+            --texto: #e0e0e0;
+            --texto2: #888;
+            --border: #1a1a2e;
+            --input-bg: #0d1220;
+            --success: #00e676;
+            --error: #ff6b6b;
             --primary: #6c5ce7;
+            --font: 'Inter', sans-serif;
+            --body: 'Nunito', sans-serif;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-family: var(--body);
             background: var(--bg);
-            color: var(--text);
+            color: var(--texto);
             min-height: 100vh;
             background-image: 
-                radial-gradient(ellipse at 50% 0%, rgba(212,168,67,0.08) 0%, transparent 70%),
-                radial-gradient(ellipse at 80% 100%, rgba(108,92,231,0.05) 0%, transparent 60%);
+                radial-gradient(ellipse at 50% 0%, rgba(0,229,255,0.06) 0%, transparent 70%),
+                radial-gradient(ellipse at 80% 100%, rgba(255,215,0,0.04) 0%, transparent 60%);
+            line-height: 1.5;
         }
 
         .container {
@@ -52,9 +66,10 @@
         }
 
         .logo {
+            font-family: var(--font);
             font-size: 2rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--dourado), #fff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -62,26 +77,27 @@
         }
 
         .subtitle {
-            color: var(--text-secondary);
+            color: var(--texto2);
             font-size: 0.9rem;
             margin-top: 5px;
         }
 
         /* Cards */
         .card {
-            background: var(--card);
-            border-radius: 16px;
+            background: var(--panel);
+            border-radius: 20px;
             padding: 24px;
             margin-bottom: 16px;
-            border: 1px solid rgba(255,255,255,0.05);
-            box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 30px rgba(0,0,0,0.4);
         }
 
         .card-title {
+            font-family: var(--font);
             font-size: 1.1rem;
-            font-weight: 600;
+            font-weight: 700;
             margin-bottom: 16px;
-            color: var(--gold);
+            color: var(--dourado);
             display: flex;
             align-items: center;
             gap: 8px;
@@ -99,26 +115,27 @@
         .input-group label {
             display: block;
             font-size: 0.8rem;
-            color: var(--text-secondary);
+            color: var(--texto2);
             margin-bottom: 6px;
-            font-weight: 500;
+            font-weight: 600;
         }
 
         .input-group input {
             width: 100%;
             padding: 12px 14px;
             background: var(--input-bg);
-            border: 1px solid var(--input-border);
-            border-radius: 10px;
-            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--texto);
             font-size: 0.95rem;
             transition: all 0.3s;
             outline: none;
+            font-family: var(--font);
         }
 
         .input-group input:focus {
-            border-color: var(--gold);
-            box-shadow: 0 0 0 3px rgba(212,168,67,0.1);
+            border-color: var(--ciano);
+            box-shadow: 0 0 0 3px rgba(0,229,255,0.08);
         }
 
         /* Botões */
@@ -126,50 +143,56 @@
             width: 100%;
             padding: 14px;
             border: none;
-            border-radius: 10px;
+            border-radius: 50px;
             font-size: 1rem;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.3s;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
+            font-family: var(--font);
         }
 
         .btn-gold {
-            background: linear-gradient(135deg, var(--gold), #c8963e);
-            color: #1a1a1a;
+            background: linear-gradient(135deg, var(--dourado), #c8963e);
+            color: #000;
         }
 
         .btn-gold:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 8px 25px rgba(212,168,67,0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255,215,0,0.25);
         }
 
         .btn-outline {
             background: transparent;
-            border: 1px solid var(--gold);
-            color: var(--gold);
+            border: 1px solid var(--ciano);
+            color: var(--ciano);
         }
 
         .btn-outline:hover {
-            background: rgba(212,168,67,0.1);
+            background: rgba(0,229,255,0.08);
         }
 
         .btn-google {
             background: #fff;
             color: #333;
-            border: 1px solid #ddd;
+            border: none;
         }
 
         .btn-google:hover {
-            background: #f5f5f5;
+            background: #f0f0f0;
         }
 
         .btn-biometria {
-            background: linear-gradient(135deg, var(--primary), #a855f7);
-            color: #fff;
+            background: linear-gradient(135deg, var(--ciano), #0088cc);
+            color: #000;
+            font-weight: 800;
+        }
+
+        .btn-biometria:hover {
+            box-shadow: 0 8px 25px rgba(0,229,255,0.2);
         }
 
         .btn:disabled {
@@ -181,22 +204,25 @@
         .balance-display {
             text-align: center;
             padding: 20px;
-            background: linear-gradient(135deg, rgba(212,168,67,0.1), rgba(240,208,120,0.05));
-            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(0,229,255,0.06), rgba(255,215,0,0.04));
+            border-radius: 16px;
             margin-bottom: 16px;
+            border: 1px solid rgba(0,229,255,0.1);
         }
 
         .balance-amount {
+            font-family: var(--font);
             font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--gold);
+            font-weight: 900;
+            color: var(--dourado);
         }
 
         .balance-label {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
+            font-size: 0.75rem;
+            color: var(--texto2);
             text-transform: uppercase;
             letter-spacing: 2px;
+            font-weight: 700;
         }
 
         /* Catálogo */
@@ -208,8 +234,8 @@
 
         .servico-card {
             background: var(--input-bg);
-            border: 1px solid var(--input-border);
-            border-radius: 10px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
             padding: 14px;
             cursor: pointer;
             transition: all 0.3s;
@@ -217,36 +243,39 @@
         }
 
         .servico-card:hover {
-            border-color: var(--gold);
+            border-color: var(--ciano);
             transform: translateY(-2px);
         }
 
         .servico-card.selecionado {
-            border-color: var(--gold);
-            background: rgba(212,168,67,0.1);
+            border-color: var(--ciano);
+            background: rgba(0,229,255,0.06);
+            box-shadow: 0 0 15px rgba(0,229,255,0.1);
         }
 
         .servico-nome {
+            font-family: var(--font);
             font-size: 0.85rem;
-            font-weight: 600;
+            font-weight: 700;
             margin-bottom: 4px;
+            color: #fff;
         }
 
         .servico-preco {
             font-size: 0.75rem;
-            color: var(--text-secondary);
+            color: var(--texto2);
         }
 
         .servico-tokens {
-            color: var(--gold);
-            font-weight: 600;
+            color: var(--dourado);
+            font-weight: 700;
         }
 
         /* Camera */
         .camera-container {
             position: relative;
             width: 100%;
-            border-radius: 12px;
+            border-radius: 14px;
             overflow: hidden;
             margin-bottom: 12px;
             background: #000;
@@ -255,7 +284,7 @@
         .camera-container video {
             width: 100%;
             display: block;
-            border-radius: 12px;
+            border-radius: 14px;
         }
 
         .camera-container canvas {
@@ -269,7 +298,7 @@
             transform: translate(-50%, -50%);
             width: 200px;
             height: 200px;
-            border: 2px dashed var(--gold);
+            border: 2px dashed var(--ciano);
             border-radius: 50%;
             pointer-events: none;
         }
@@ -281,13 +310,14 @@
             left: 50%;
             transform: translateX(-50%);
             padding: 12px 24px;
-            border-radius: 10px;
-            font-weight: 600;
+            border-radius: 50px;
+            font-weight: 700;
             z-index: 1000;
             animation: slideDown 0.3s ease;
+            font-family: var(--font);
         }
 
-        .toast-success { background: var(--success); color: #fff; }
+        .toast-success { background: var(--success); color: #000; }
         .toast-error { background: var(--error); color: #fff; }
 
         @keyframes slideDown {
@@ -301,45 +331,48 @@
             gap: 4px;
             margin-bottom: 16px;
             background: var(--input-bg);
-            border-radius: 10px;
+            border-radius: 14px;
             padding: 4px;
+            border: 1px solid var(--border);
         }
 
         .tab {
             flex: 1;
             padding: 10px;
             text-align: center;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 500;
+            font-size: 0.8rem;
+            font-weight: 700;
             transition: all 0.3s;
-            color: var(--text-secondary);
+            color: var(--texto2);
             border: none;
             background: transparent;
+            font-family: var(--font);
         }
 
         .tab.active {
-            background: var(--card);
-            color: var(--gold);
+            background: var(--panel);
+            color: var(--dourado);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
 
         /* Status biometria */
         .biometria-status {
             margin-top: 12px;
             padding: 8px;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 0.85rem;
             text-align: center;
         }
 
         .biometria-cadastrada {
-            background: rgba(46, 204, 113, 0.1);
+            background: rgba(0, 230, 118, 0.08);
             color: var(--success);
         }
 
         .biometria-nao-cadastrada {
-            background: rgba(231, 76, 60, 0.1);
+            background: rgba(255, 107, 107, 0.08);
             color: var(--error);
         }
 
@@ -347,7 +380,8 @@
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(10px);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -355,12 +389,19 @@
         }
 
         .modal {
-            background: var(--card);
-            border-radius: 16px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 24px;
             padding: 24px;
             max-width: 400px;
             width: 90%;
             text-align: center;
+            animation: fadeUp 0.3s ease;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .hidden { display: none !important; }
@@ -368,24 +409,9 @@
         .mt-3 { margin-top: 16px; }
         .text-center { text-align: center; }
         .text-sm { font-size: 0.8rem; }
-        .text-gold { color: var(--gold); }
+        .text-gold { color: var(--dourado); }
         .text-error { color: var(--error); }
         .text-success { color: var(--success); }
-
-        /* Loader */
-        .loader {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
     </style>
 </head>
 <body>
