@@ -113,7 +113,7 @@
         .chat-send-btn { width: 44px; height: 44px; border-radius: 50%; border: none; background: linear-gradient(135deg, var(--laranja), #E04400); color: white; font-size: 1.2rem; cursor: pointer; flex-shrink: 0; transition: all 0.3s; }
         .chat-send-btn:hover { transform: scale(1.1); }
         .chat-send-btn:disabled { opacity: 0.5; }
-        
+
         /* 🔥 NOVOS BOTÕES DE MICROFONE E ANEXO */
         .chat-icon-btn { 
             width: 40px; 
@@ -147,7 +147,7 @@
             0%,100% { box-shadow: 0 0 0 0 rgba(255,68,68,0.4); } 
             50% { box-shadow: 0 0 0 8px rgba(255,68,68,0); } 
         }
-        
+
         /* Tooltip para os botões */
         .chat-icon-btn::after {
             content: attr(title);
@@ -199,7 +199,7 @@
             background: #FF0000;
             transform: scale(1.1);
         }
-        
+
         .message img.msg-imagem { 
             max-width: 220px; 
             border-radius: 10px; 
@@ -337,7 +337,7 @@
                 padding: 4px;
             }
         }
-        
+
         /* BOTÃO DE LOGIN NO TOPO DIREITO */
         .login-btn-top {
             position: fixed;
@@ -646,22 +646,22 @@
 
         <div class="search-box">
             <div class="search-icon">💬</div>
-            
+
             <!-- 🔥 INPUT DE ARQUIVO OCULTO -->
             <input type="file" id="homeFileInput" accept="image/*,.pdf,.doc,.docx,.txt,.csv,.xlsx" style="display:none" onchange="onHomeArquivoSelecionado(event)">
-            
+
             <!-- 🔥 BOTÃO DE ANEXO CIRCULAR -->
             <button class="home-anexo-btn" id="homeAnexoBtn" title="Anexar imagem ou documento" onclick="document.getElementById('homeFileInput').click()">
                 📎
             </button>
-            
+
             <!-- 🔥 BOTÃO DE MICROFONE CIRCULAR -->
             <button class="home-mic-btn" id="homeMicBtn" title="Gravar áudio" onclick="toggleHomeMic()">
                 🎤
             </button>
-            
+
             <input type="text" class="search-input" id="searchInput" placeholder="Digite sua dúvida..." onkeydown="if(event.key==='Enter')iniciarJornada()" autocomplete="off" />
-            
+
             <button class="search-btn" onclick="iniciarJornada()" id="searchBtn">🚀 INICIAR JORNADA</button>
         </div>
 
@@ -676,7 +676,6 @@
             <div class="suggestion-chip" onclick="respostaPronta('planos')">💰 Planos</div>
             <div class="suggestion-chip" onclick="respostaPronta('horarios')">🕐 Horários</div>
             <div class="suggestion-chip" onclick="respostaPronta('aula')">🎯 Aula Grátis</div>
-            <div class="suggestion-chip atendente-chip" onclick="respostaPronta('atendente')">👋 Atendente</div>
         </div>
 
         <div class="status-mini"><span class="status-dot"></span> Atendimento Online 24h · Jacarepaguá/RJ</div>
@@ -687,32 +686,22 @@
         <div class="chat-window" id="chatWindow">
             <div class="chat-header" id="chatHeader">
                 <div class="chat-header-left">
-                    <div class="chat-avatar" id="chatAvatar">🤖</div>
+                    <div class="chat-avatar" id="chatAvatar">💬</div>
+                    <div class="chat-avatar" id="chatAvatar">R5</div>
                     <div>
-                        <div class="chat-title" id="chatTitle">R5 Fit · Assistente IA</div>
-                        <div class="chat-subtitle" id="chatSubtitle">IA Local · Respostas humanizadas</div>
+                        <div class="chat-title" id="chatTitle">R5 Fit</div>
+                        <div class="chat-subtitle" id="chatSubtitle"></div>
                     </div>
                 </div>
                 <button class="chat-close" onclick="fecharChat()">✕</button>
-            </div>
-
-            <!-- Seletor de modo -->
-            <div class="chat-mode-switch">
-                <button class="mode-tab active-ia" id="modeTabIA" onclick="switchChatMode('ia')">🤖 Falar com IA</button>
-                <button class="mode-tab" id="modeTabAtendente" onclick="switchChatMode('atendente')">👋 Falar com Atendente</button>
-            </div>
-
-            <!-- Notificação de nova mensagem do atendente -->
-            <div class="new-msg-notification" id="newMsgNotification" onclick="switchChatMode('atendente')">
-                📩 Nova resposta do atendente! Clique para ver →
             </div>
 
             <!-- 🔥 FORMULÁRIO DE CADASTRO INICIAL (perfil do lead) -->
             <div class="lead-intake" id="leadIntake" style="padding:16px;overflow-y:auto;flex:1;">
                 <p style="font-size:0.85rem;color:var(--cinza-claro,#ccc);margin-bottom:12px;">Antes de começar, me conta um pouco sobre você 😊</p>
 
-                <input type="text" id="leadNome" class="lead-input" placeholder="Seu nome*" style="width:100%;padding:10px;margin-bottom:8px;border-radius:8px;border:1px solid #444;background:#1a1a1a;color:#fff;">
-                <input type="tel" id="leadWhatsapp" class="lead-input" placeholder="WhatsApp (com DDD)*" style="width:100%;padding:10px;margin-bottom:8px;border-radius:8px;border:1px solid #444;background:#1a1a1a;color:#fff;">
+                <input type="text" id="leadNome" class="lead-input" placeholder="Seu nome (opcional)" style="width:100%;padding:10px;margin-bottom:8px;border-radius:8px;border:1px solid #444;background:#1a1a1a;color:#fff;">
+                <input type="tel" id="leadWhatsapp" class="lead-input" placeholder="WhatsApp (com DDD, opcional)" style="width:100%;padding:10px;margin-bottom:8px;border-radius:8px;border:1px solid #444;background:#1a1a1a;color:#fff;">
 
                 <div style="display:flex;gap:8px;margin-bottom:8px;">
                     <input type="number" id="leadIdade" class="lead-input" placeholder="Idade" min="10" max="100" style="flex:1;padding:10px;border-radius:8px;border:1px solid #444;background:#1a1a1a;color:#fff;">
@@ -729,20 +718,18 @@
                 </div>
                 <input type="text" id="leadMotivo" class="lead-input" placeholder="O que te trouxe até aqui? (opcional)" style="width:100%;padding:10px;margin-bottom:12px;border-radius:8px;border:1px solid #444;background:#1a1a1a;color:#fff;">
 
-                <p id="leadIntakeErro" style="display:none;color:#ff6b6b;font-size:0.75rem;margin-bottom:8px;">Preenche pelo menos nome e WhatsApp pra gente continuar 🙏</p>
-
                 <button onclick="confirmarLeadIntake()" style="width:100%;padding:12px;border-radius:8px;border:none;background:var(--laranja,#FF4C00);color:#fff;font-weight:bold;cursor:pointer;">Começar conversa →</button>
             </div>
 
             <div class="chat-messages" id="chatMessages" style="display:none;"></div>
-            
+
             <!-- 🔥 PREVIEW DE IMAGEM/ARQUIVO SELECIONADO -->
             <div class="img-preview-strip" id="imgPreviewStrip" style="display:none;">
                 <img id="imgPreviewThumb" src="" alt="Preview">
                 <span id="imgPreviewName" style="font-size:0.75rem;color:var(--cinza-claro);"></span>
                 <button class="img-preview-remove" onclick="removerAnexoStaged()">✕</button>
             </div>
-            
+
             <!-- 🔥 ÁREA DE INPUT COM BOTÕES DE MICROFONE E ANEXO -->
             <div class="chat-input-area" id="chatInputArea" style="display:none;">
                 <!-- Botão de Anexo (Imagem, Documento, Recibo) -->
@@ -750,23 +737,21 @@
                 <button class="chat-icon-btn" id="btnAnexo" title="Anexar arquivo" onclick="document.getElementById('fileInput').click()">
                     📎
                 </button>
-                
+
                 <!-- Botão de Microfone (Áudio para Texto) -->
                 <button class="chat-icon-btn" id="btnMic" title="Gravar áudio" onclick="toggleMic()">
                     🎤
                 </button>
-                
+
                 <!-- Campo de texto -->
                 <input type="text" class="chat-input" id="chatInput" placeholder="Digite sua mensagem..." onkeydown="if(event.key==='Enter')enviarMensagem()" />
-                
+
                 <!-- Botão de envio -->
                 <button class="chat-send-btn" onclick="enviarMensagem()" id="chatSendBtn">➤</button>
             </div>
-            
+
             <div class="always-wpp">
                 💬 <a href="#" id="wppLinkBottom" target="_blank">Chamar no WhatsApp</a>
-                <span style="margin:0 8px;color:var(--border);">|</span>
-                <a href="#" id="switchToAtendenteLink" onclick="switchChatMode('atendente');return false;" style="color:var(--azul);">Falar com Atendente 👋</a>
             </div>
         </div>
     </div>
@@ -789,12 +774,11 @@
         <iframe class="drive-iframe" id="driveIframe" src="" sandbox="allow-scripts allow-forms allow-popups allow-downloads allow-top-navigation"></iframe>    </div>
     <script>
     // ═══════════════ CONFIGURAÇÃO ═══════════════
-    const WHATSAPP = "552199549-1483";
+    const WHATSAPP = "5521995491483";
 
-    // 🔥 REMOVIDO: SERVIDOR_LOCAL/API_LOCAL ("http://localhost:8080") só
-    // eram usadas pela getEndpoint() abaixo, que nunca era chamada em
-    // lugar nenhum - código morto de uma versão anterior. O fluxo real usa
-    // callAPI() (mais abaixo), que já roteia certo pro proxy Cloudflare.
+    // 🔥 PARA ATENDIMENTO: usa servidor local para comunicação com IA
+    const SERVIDOR_LOCAL = "http://localhost:8080";
+    const API_LOCAL = SERVIDOR_LOCAL + "/api";
 
     // 🔥 PARA SALVAR NO DRIVE: usa proxy Cloudflare -> Apps Script
     const PROXY_CLOUDFLARE = "https://almafluxo.uk/proxy/r5fit";
@@ -818,12 +802,12 @@
     let chatMode = "ia";
     let pollingInterval = null;
     let lastResponseTimestamp = null;
-    
+
     // 🔥 VARIÁVEIS PARA MICROFONE E ANEXOS
     let reconhecimentoVoz = null;
     let gravandoVoz = false;
     let arquivoStaged = null; // { base64, tipo, nome }
-    
+
     // ═══════════════ LOGIN ═══════════════
     let usuarioLogado = null;
     // ═══════════════ CARREGAR PÁGINA DO GOOGLE DRIVE ═══════════════
@@ -844,10 +828,10 @@
     async function carregarDadosCompletosUsuario(email) {
         try {
             console.log('🔍 Buscando dados completos do usuário:', email);
-            
+
             // 🔥 CORREÇÃO: Usa POST em vez de GET para enviar o email no body
             const data = await callAPI('obterUsuarioCompleto', { email: email }, 'POST');
-            
+
             if (data.status === 'success' && data.usuario) {
                 const usuarioCompleto = {
                     id: data.usuario.id || usuarioLogado?.id,
@@ -866,16 +850,16 @@
                     altura: data.usuario.altura || '',
                     genero: data.usuario.genero || ''
                 };
-                
+
                 localStorage.setItem('r5fit_usuario', JSON.stringify(usuarioCompleto));
                 console.log('✅ Dados completos carregados do Drive:', Object.keys(usuarioCompleto).length, 'campos');
                 return true;
             }
-            
+
             console.log('⚠️ Usuário não encontrado no Drive, salvando dados básicos');
             salvarDadosBasicosLocalStorage();
             return false;
-            
+
         } catch (e) {
             console.log('⚠️ Erro ao carregar dados completos:', e.message);
             salvarDadosBasicosLocalStorage();
@@ -895,42 +879,42 @@
     async function fazerLogin() {
         const email = document.getElementById('loginEmail').value.trim();
         const senha = document.getElementById('loginSenha').value.trim();
-        
+
         if (!email || !senha) {
             document.getElementById('loginError').classList.add('show');
             document.getElementById('loginError').textContent = 'Preencha email e senha';
             return;
         }
-        
+
         const btn = document.querySelector('.btn-login-submit');
         btn.disabled = true;
         btn.textContent = 'Entrando...';
-        
+
         // 🔥 CHAMA DIRETO O APPS SCRIPT (via proxy Cloudflare)
         const data = await callAPI('login', { email, senha }, 'POST');
-        
+
         btn.disabled = false;
         btn.textContent = '🔐 ENTRAR';
-        
+
         if (data.result && data.result.autenticado) {
             usuarioLogado = data.result.usuario;
-            
+
             // 🔥 CORREÇÃO: Busca dados COMPLETOS do Drive antes de salvar
             await carregarDadosCompletosUsuario(email);
-            
+
             console.log('✅ Login bem-sucedido:', usuarioLogado.nome);
-            
+
             fecharModalLogin();
-            
+
             document.getElementById('btnAbrirLogin').style.display = 'none';
             document.getElementById('userNameDisplay').style.display = 'inline';
             document.getElementById('userNameDisplay').textContent = '👤 ' + usuarioLogado.nome;
             document.getElementById('btnLogout').style.display = 'inline-block';
-            
+
             await carregarHomePage();
-            
+
             mostrarToast(`Bem-vindo, ${usuarioLogado.nome}!`);
-            
+
             document.getElementById('loginEmail').value = '';
             document.getElementById('loginSenha').value = '';
         } else {
@@ -943,38 +927,47 @@
         // 🔥 LIMPA DADOS DO LOCALSTORAGE
         localStorage.removeItem('r5fit_usuario');
         localStorage.removeItem('rosa_cliente_data');
-        
+
         usuarioLogado = null;
         document.getElementById('btnAbrirLogin').style.display = 'inline-block';
         document.getElementById('userNameDisplay').style.display = 'none';
         document.getElementById('btnLogout').style.display = 'none';
-        
+
         fecharDrivePage();
-        
+
         if (document.getElementById('chatOverlay').classList.contains('active')) {
             fecharChat();
         }
-        
+
         mostrarToast('Até logo! 👋');
     }
 
-    // 🔥 REMOVIDO: getEndpoint() - função morta, nunca era chamada (o
-    // fluxo real usa callAPI(), mais abaixo, que já resolve o endpoint
-    // certo pra cada action).
+    // Função que decide qual endpoint usar
+    function getEndpoint(action) {
+        // Ações que vão direto para o Drive (via proxy)
+        const actions_drive = ['saveChatAtendente', 'getChatAtendente', 'getChatAtendenteAll', 'login', 'listarUsuarios'];
+
+        if (actions_drive.includes(action)) {
+            return `${PROXY_CLOUDFLARE}?action=${action}`;
+        }
+
+        // Ações que vão para o servidor local (IA)
+        return `${API_LOCAL}?action=${action}`;
+    }
 
     async function carregarHomePage() {
         const container = document.getElementById('drivePageContainer');
         const loading = document.getElementById('driveLoading');
         const error = document.getElementById('driveError');
-        
+
         container.classList.add('active');
         loading.classList.remove('hidden');
         error.classList.remove('show');
         document.getElementById('homeContainer').style.display = 'none';
-        
+
         try {
             mostrarToast('Carregando página interna...');
-            
+
             // 🔥 CORREÇÃO: Usa POST para garantir que o proxy Cloudflare encaminhe corretamente
             const response = await fetch('https://almafluxo.uk/proxy/r5fit', {
                 method: 'POST',
@@ -983,7 +976,7 @@
             });
             const data = await response.json();
             console.log('📄 Dados recebidos:', data);
-            
+
             // 🔥 VERIFICA SE VEIO HTML
             if (data.status === 'success' && data.html && data.html.length > 100) {
                 loading.classList.add('hidden');
@@ -992,7 +985,7 @@
             } else {
                 throw new Error(data.message || 'HTML não encontrado ou vazio');
             }
-            
+
         } catch (e) {
             console.log('❌ Erro:', e.message);
             loading.classList.add('hidden');
@@ -1005,11 +998,11 @@
 
     function renderHtmlInline(htmlContent) {
         const container = document.getElementById('drivePageContainer');
-        
+
         // 🔥 ESCONDE A TOOLBAR
         const toolbar = container.querySelector('.drive-toolbar');
         if (toolbar) toolbar.style.display = 'none';
-        
+
         // 🔥 REMOVE CONTEÚDO ANTIGO
         let wrapper = document.getElementById('driveInlineWrapper');
         if (!wrapper) {
@@ -1031,7 +1024,7 @@
             `;
             container.appendChild(wrapper);
         }
-        
+
         let inlineDiv = document.getElementById('driveInlineContent');
         if (!inlineDiv) {
             inlineDiv = document.createElement('div');
@@ -1046,7 +1039,7 @@
             `;
             wrapper.appendChild(inlineDiv);
         }
-        
+
         // 🔥 LIMPA O HTML (remove caracteres de escape)
         let htmlLimpo = htmlContent;
         htmlLimpo = htmlLimpo.replace(/\\"/g, '"');
@@ -1054,16 +1047,16 @@
         htmlLimpo = htmlLimpo.replace(/\\n/g, '\n');
         htmlLimpo = htmlLimpo.replace(/\\r/g, '');
         htmlLimpo = htmlLimpo.replace(/\\t/g, '');
-        
+
         // 🔥 REMOVE TOPBAR DUPLICADA
         htmlLimpo = htmlLimpo.replace(/<div class="topbar">[\s\S]*?<\/div>/gi, '');
-        
+
         // 🔥 REMOVE "Sair" duplicado
         htmlLimpo = htmlLimpo.replace(/<button[^>]*onclick="logout\(\)"[^>]*>Sair<\/button>/gi, '');
-        
+
         // 🔥 INSERE O HTML
         inlineDiv.innerHTML = htmlLimpo;
-        
+
         // 🔥 CORRIGE O NOME DO USUÁRIO (com try/catch de segurança)
         try {
             const usuarioStorage = JSON.parse(localStorage.getItem('r5fit_usuario') || '{}');
@@ -1074,7 +1067,7 @@
         } catch (e) {
             console.log('⚠️ Erro ao corrigir nome do usuário (ignorado)');
         }
-        
+
         // 🔥 CORRIGE "guerreiro" → "atleta"
         try {
             const welcomeEl = inlineDiv.querySelector('#welcomeName');
@@ -1084,7 +1077,7 @@
         } catch (e) {
             console.log('⚠️ Erro ao corrigir welcomeName (ignorado)');
         }
-        
+
         // 🔥 CORRIGE NAVEGAÇÃO INTERNA
         corrigirNavegacao(inlineDiv);
 
@@ -1101,16 +1094,16 @@
                 if (newScript.parentNode) newScript.remove();
             }, 100);
         });
-        
+
         // 🔥 DISPARA EVENTO DOMContentLoaded
         setTimeout(() => {
             document.dispatchEvent(new Event('DOMContentLoaded', { bubbles: true, cancelable: true }));
         }, 50);
-        
+
         // 🔥 ESCONDE IFRAME
         const iframe = document.getElementById('driveIframe');
         if (iframe) iframe.style.display = 'none';
-        
+
         console.log('✅ HTML inline renderizado com sucesso!');
     }
 
@@ -1118,19 +1111,19 @@
     function adicionarCamposEditaveis(container) {
         const resumoGrid = container.querySelector('#resumoGrid') || container.querySelector('.resumo-grid');
         if (!resumoGrid) return;
-        
+
         const cards = resumoGrid.querySelectorAll('.resumo-card');
         cards.forEach(card => {
             const valorEl = card.querySelector('.resumo-valor');
             const labelEl = card.querySelector('.resumo-label');
-            
+
             if (valorEl && (valorEl.textContent === '—' || valorEl.textContent.trim() === '')) {
                 valorEl.contentEditable = 'true';
                 valorEl.style.cursor = 'text';
                 valorEl.style.borderBottom = '1px dashed var(--gold)';
                 valorEl.style.padding = '2px 4px';
                 valorEl.title = 'Clique para editar';
-                
+
                 valorEl.addEventListener('blur', function() {
                     const novoValor = this.textContent.trim();
                     if (novoValor && novoValor !== '—') {
@@ -1139,7 +1132,7 @@
                         salvarDadoCliente(labelEl ? labelEl.textContent : '', novoValor);
                     }
                 });
-                
+
                 valorEl.addEventListener('keydown', function(e) {
                     if (e.key === 'Enter') {
                         e.preventDefault();
@@ -1149,19 +1142,19 @@
             }
         });
     }
-    
+
     async function salvarDadoCliente(label, valor) {
         const usuarioStorage = JSON.parse(localStorage.getItem('r5fit_usuario') || '{}');
-        
+
         const campoMap = {
             'peso atual (kg)': 'peso_atual',
             'tipo sanguíneo': 'tipo_sanguineo',
             'meses de treino': 'data_inicio',
             'objetivo': 'objetivo'
         };
-        
+
         const campo = campoMap[label.toLowerCase()] || label.toLowerCase().replace(/\s+/g, '_');
-        
+
         try {
             await fetch(`${PROXY_CLOUDFLARE}?action=atualizarUsuario`, {
                 method: 'POST',
@@ -1171,11 +1164,11 @@
                     [campo]: valor
                 })
             });
-            
+
             // 🔥 CORREÇÃO: Atualiza o localStorage local também
             usuarioStorage[campo] = valor;
             localStorage.setItem('r5fit_usuario', JSON.stringify(usuarioStorage));
-            
+
             mostrarToast('✅ Dado salvo!');
         } catch (e) {
             console.log('⚠️ Erro ao salvar no Drive, salvando localmente');
@@ -1185,7 +1178,7 @@
             mostrarToast('💾 Salvo localmente');
         }
     }
-    
+
     // 🔥 Corrigir navegação entre abas
     function corrigirNavegacao(container) {
         // 🔥 CORRIGE LINKS
@@ -1200,7 +1193,7 @@
                 });
             }
         });
-        
+
         // 🔥 CORRIGE BOTÕES DE NAVEGAÇÃO
         const navBtns = container.querySelectorAll('.nav-btn, [onclick]');
         navBtns.forEach(btn => {
@@ -1221,17 +1214,17 @@
             }
         });
     }
-    
+
     // 🔥 Carregar página interna mantendo contexto
     async function carregarPaginaInterna(pagina) {
         const loading = document.getElementById('driveLoading');
         loading.classList.remove('hidden');
-        
+
         try {
             // 🔥 BUSCA O ARQUIVO DO DRIVE VIA PROXY
             const response = await fetch(`https://almafluxo.uk/proxy/r5fit?action=getArquivoDrive&arquivo=${encodeURIComponent(pagina)}`);
             const data = await response.json();
-            
+
             if (data.status === 'success' && data.html) {
                 loading.classList.add('hidden');
                 renderHtmlInline(data.html);
@@ -1250,28 +1243,28 @@
         const iframe = document.getElementById('driveIframe');
         const loading = document.getElementById('driveLoading');
         const error = document.getElementById('driveError');
-        
+
         container.classList.remove('active');
         iframe.src = '';
         loading.classList.remove('hidden');
         error.classList.remove('show');
-        
+
         // 🔥 RESTAURA A TOOLBAR
         const toolbar = container.querySelector('.drive-toolbar');
         if (toolbar) toolbar.style.display = 'flex';
-        
+
         // 🔥 REMOVE WRAPPER INLINE
         const wrapper = document.getElementById('driveInlineWrapper');
         if (wrapper) wrapper.remove();
-        
+
         // 🔥 LIMPA CONTEÚDO INLINE
         const inlineDiv = document.getElementById('driveInlineContent');
         if (inlineDiv) inlineDiv.remove();
-        
+
         document.getElementById('driveIframe').style.display = '';
         document.getElementById('homeContainer').style.display = '';
         document.body.style.overflow = '';
-        
+
         console.log('🏠 Voltou para a home do atendimento');
     }
 
@@ -1313,7 +1306,7 @@
                 'registrarEvolucaoCliente', // 🔥 ADICIONADO - registrar evolução
                 'obterUsuarioCompleto'
             ];
-            
+
             // 🔥 Ações que vão para o servidor local (processamento IA)
             const actions_local = [
                 'processar-pendentes',
@@ -1325,14 +1318,14 @@
                 'canvas/resposta',
                 'canvas/verificar'
             ];
-            
+
             // 🔥 Ações que são rotas específicas do servidor local (com path próprio)
             const actions_local_path = [
                 'chat-atendente/respostas'  // GET /api/chat-atendente/respostas
             ];
-            
+
             let url;
-            
+
             // 🔥 VERIFICA SE É UMA AÇÃO DO DRIVE
             if (actions_drive.includes(action)) {
                 url = `https://almafluxo.uk/proxy/r5fit?action=${action}`;
@@ -1354,12 +1347,12 @@
                     url = `http://localhost:8080/api?action=${action}`;
                 }
             }
-            
+
             let options = { 
                 method, 
                 headers: { 'Content-Type': 'application/json' } 
             };
-            
+
             // 🔥 CONSTRÓI O BODY APENAS PARA POST E PUT
             if (method === 'POST' || method === 'PUT') {
                 // Para ações do Drive, o proxy espera o payload dentro de um campo 'result'
@@ -1369,13 +1362,13 @@
                     options.body = JSON.stringify(data);
                 }
             }
-            
+
             console.log(`📡 ${method} ${action} → ${url}`);
             const resp = await fetch(url, options);
             const json = await resp.json();
             console.log(`📥 Resposta ${action}:`, json.status || json.message || '');
             return json;
-            
+
         } catch (e) {
             console.warn('⚠️ API offline:', e.message);
             return { status: 'error', message: e.message };
@@ -1399,13 +1392,13 @@
     function onHomeArquivoSelecionado(event) {
         const file = event.target.files[0];
         if (!file) return;
-        
+
         if (file.size > 10 * 1024 * 1024) {
             mostrarToast('Arquivo muito grande! Máximo 10MB');
             event.target.value = '';
             return;
         }
-        
+
         const reader = new FileReader();
         reader.onload = (e) => {
             homeArquivoStaged = {
@@ -1450,12 +1443,12 @@
             btn.classList.add('gravando');
             mostrarToast('🎤 Gravando... Fale agora!');
         };
-        
+
         homeReconhecimento.onend = () => { 
             homeGravando = false; 
             btn.classList.remove('gravando');
         };
-        
+
         homeReconhecimento.onerror = (event) => { 
             homeGravando = false; 
             btn.classList.remove('gravando');
@@ -1463,7 +1456,7 @@
                 mostrarToast('Permita o acesso ao microfone!');
             }
         };
-        
+
         homeReconhecimento.onresult = (event) => {
             const texto = event.results[0][0].transcript;
             const input = document.getElementById('searchInput');
@@ -1478,16 +1471,16 @@
     document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('searchInput').focus();
         document.getElementById('wppLinkBottom').href = `https://wa.me/${WHATSAPP}`;
-        
+
         document.getElementById('chatOverlay').addEventListener('click', e => {
             if (e.target === document.getElementById('chatOverlay')) fecharChat();
         });
-        
+
         // 🔥 CORRIGIDO: remove referência a startPolling
         window.addEventListener('beforeunload', () => {
             pararPollingContinuo();
         });
-        
+
         // 🔥 CORREÇÃO: antes, ficar numa aba diferente (ex: você no painel
         // respondendo, com o atendimento.html em segundo plano) chamava
         // pararPollingContinuo() e o polling ficava DESLIGADO o tempo todo -
@@ -1504,43 +1497,15 @@
     });
 
     function switchChatMode(mode) {
+        // 🔥 SIMPLIFICADO: não existe mais alternância visível de modo pro
+        // cliente (sem abas, sem "Falar com Atendente") - a conversa é uma
+        // só, sempre com a mesma cara. chatMode continua existindo só como
+        // estado interno (decide qual função de envio é chamada), mas não
+        // muda mais nada na tela.
+        // 🔥 SIMPLIFICADO: sem alternância visível de modo pro cliente -
+        // chatMode continua como estado interno (decide a função de envio),
+        // mas não muda mais nada na tela (mesma cara sempre).
         chatMode = mode;
-        document.getElementById('newMsgNotification').classList.remove('show');
-        
-        const cw = document.getElementById('chatWindow');
-        const ch = document.getElementById('chatHeader');
-        const ca = document.getElementById('chatAvatar');
-        const ci = document.getElementById('chatInput');
-        const cb = document.getElementById('chatSendBtn');
-        const subtitle = document.getElementById('chatSubtitle');
-        
-        if (mode === 'ia') {
-            cw.classList.remove('atendente-mode');
-            ch.classList.remove('atendente-header');
-            ca.classList.remove('atendente-avatar');
-            ca.textContent = '🤖';
-            document.getElementById('chatTitle').textContent = 'R5 Fit · Assistente IA';
-            subtitle.textContent = '🤖 IA · Respostas automáticas 24h';
-            ci.classList.remove('atendente-input');
-            ci.placeholder = 'Digite sua dúvida...';
-            cb.classList.remove('atendente-send');
-            document.getElementById('modeTabIA').classList.add('active-ia');
-            document.getElementById('modeTabAtendente').classList.remove('active-atendente');
-            document.getElementById('switchToAtendenteLink').style.display = 'inline';
-        } else {
-            cw.classList.add('atendente-mode');
-            ch.classList.add('atendente-header');
-            ca.classList.add('atendente-avatar');
-            ca.textContent = '👋';
-            document.getElementById('chatTitle').textContent = 'R5 Fit · Atendente';
-            subtitle.textContent = '🟢 Online · Seg-Sex 6h-22h, Sáb 8h-14h';
-            ci.classList.add('atendente-input');
-            ci.placeholder = 'Fale com nossa equipe...';
-            cb.classList.add('atendente-send');
-            document.getElementById('modeTabIA').classList.remove('active-ia');
-            document.getElementById('modeTabAtendente').classList.add('active-atendente');
-            document.getElementById('switchToAtendenteLink').style.display = 'none';
-        }
 
         // 🔥 Notifica o servidor sobre a escolha do tipo de atendimento
         fetch('http://localhost:8080/api/atendimento/escolher', {
@@ -1552,7 +1517,7 @@
                 nome: usuarioLogado?.nome || 'Visitante'
             })
         }).catch(e => console.log('⚠️ Erro ao notificar escolha:', e.message));
-        
+
         // 🔥 INICIA O POLLING (USANDO A MESMA FUNÇÃO PARA AMBOS OS MODOS)
         if (document.getElementById('chatOverlay').classList.contains('active')) {
             iniciarPollingContinuo();
@@ -1566,6 +1531,10 @@
         switchChatMode(tipo === 'atendente' ? 'atendente' : 'ia');
         abrirChat();
         document.getElementById('chatMessages').innerHTML = '';
+        
+        // 🔥 EXTRAI DADOS DA RESPOSTA PRONTA (se tiver dados)
+        extrairDadosDaMensagem(resposta, sessionId);
+        
         if (tipo === 'atendente') {
             addMessage('atendente-msg', resposta);
             // 🔥 CORRIGIDO: usa enviarParaAtendente
@@ -1577,8 +1546,7 @@
 
     function botoesResposta() {
         return `<div style="text-align:center;margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
-            <a href="https://wa.me/${WHATSAPP}" target="_blank" class="wpp-btn-inline">WhatsApp</a>
-            <button class="switch-to-atendente-btn" onclick="switchChatMode('atendente')">Falar com Atendente</button></div>`;
+            <a href="https://wa.me/${WHATSAPP}" target="_blank" class="wpp-btn-inline">WhatsApp</a></div>`;
     }
 
     function abrirChat() {
@@ -1586,11 +1554,19 @@
         document.getElementById('homeContainer').classList.add('chat-open');
         document.body.style.overflow = 'hidden';
 
-        // 🔥 NOVO: se já temos o perfil do lead salvo (visita anterior),
-        // pula direto pro chat. Senão, mostra o formulário de cadastro
-        // primeiro e só libera o chat depois de confirmarLeadIntake().
+        // 🔥 FORÇA OCULTAR O FORMULÁRIO SEMPRE
+        document.getElementById('leadIntake').style.display = 'none';
+        document.getElementById('chatMessages').style.display = '';
+        document.getElementById('chatInputArea').style.display = 'flex';
+        
+        carregarHistorico();
+        iniciarPollingContinuo();
+        // 🔥 CORRIGIDO: aluno já logado (perfil completo) não deve ver o
+        // formulário de cadastro anônimo de novo - isso quebrava a
+        // fluidez pra quem menos precisava de fricção.
+        const usuarioSalvo = usuarioLogado || JSON.parse(localStorage.getItem('r5fit_usuario') || 'null');
         const perfilSalvo = localStorage.getItem('r5fit_lead_perfil');
-        if (perfilSalvo) {
+        if (usuarioSalvo || perfilSalvo) {
             document.getElementById('leadIntake').style.display = 'none';
             document.getElementById('chatMessages').style.display = '';
             document.getElementById('chatInputArea').style.display = 'flex';
@@ -1602,19 +1578,15 @@
     }
 
     async function confirmarLeadIntake() {
+        // 🔥 CORRIGIDO: antes travava aqui exigindo nome+whatsapp - você
+        // achou isso uma imposição. Agora é só um convite: preenche quem
+        // quiser, do jeito que quiser, e segue em frente de qualquer forma.
         const nome = document.getElementById('leadNome').value.trim();
         const whatsapp = document.getElementById('leadWhatsapp').value.trim();
-        const erro = document.getElementById('leadIntakeErro');
-
-        if (!nome || !whatsapp) {
-            erro.style.display = 'block';
-            return;
-        }
-        erro.style.display = 'none';
 
         const perfil = {
             id: sessionId,
-            nome: nome,
+            nome: nome || 'Visitante',
             whatsapp: whatsapp,
             idade: document.getElementById('leadIdade').value.trim(),
             peso: document.getElementById('leadPeso').value.trim(),
@@ -1648,13 +1620,13 @@
                 return;
             }
         }
-        
+
         document.getElementById('chatOverlay').classList.remove('active');
         document.getElementById('homeContainer').classList.remove('chat-open');
         document.body.style.overflow = '';
         document.getElementById('searchInput').focus();
         stopPolling();
-        
+
         // 🔥 PARA POLLING CONTÍNUO
         pararPollingContinuo();
     }
@@ -1678,12 +1650,12 @@
                 headers: { 'Content-Type': 'application/json' }
             });
             const data = await resp.json();
-            
+
             if (data.conversas && data.conversas[sessionId]) {
                 const mensagens = data.conversas[sessionId].mensagens || [];
-                
+
                 document.getElementById('chatMessages').innerHTML = '';
-                
+
                 for (const msg of mensagens) {
                     if (msg.de === 'lead') {
                         addMessage('user', msg.texto);
@@ -1693,7 +1665,7 @@
                             if (msg.respondido_por_ia) {
                                 addMessage('ai', textoLimpo);
                             } else {
-                                addMessage('atendente-msg', '👤 ' + textoLimpo);
+                                addMessage('atendente-msg', textoLimpo);
                             }
                         }
                     }
@@ -1704,20 +1676,55 @@
         }
     }
 
+    async function extrairDadosDaMensagem(texto, leadId) {
+        // Regex para capturar dados comuns
+        const padroes = {
+            idade: /(\d{1,2})\s*anos?/i,
+            peso: /(\d{1,3})\s*kg/i,
+            altura: /(\d{1,3})\s*cm/i,
+            motivo: /(emagrecer|ganhar\s*massa|energia|saúde|postura|dor\s+nas\s+costas|joelho|ombro)/i
+        };
+        
+        const dadosExtraidos = {};
+        
+        if (padroes.idade.test(texto)) {
+            dadosExtraidos.idade = texto.match(padroes.idade)[1];
+        }
+        if (padroes.peso.test(texto)) {
+            dadosExtraidos.peso = texto.match(padroes.peso)[1];
+        }
+        if (padroes.altura.test(texto)) {
+            dadosExtraidos.altura = texto.match(padroes.altura)[1];
+        }
+        if (padroes.motivo.test(texto)) {
+            dadosExtraidos.motivo = texto.match(padroes.motivo)[1];
+        }
+        
+        if (Object.keys(dadosExtraidos).length > 0) {
+            // Atualiza o perfil do lead no Drive
+            await callAPI('saveLead', {
+                id: leadId,
+                ...dadosExtraidos,
+                origem: 'chat_extraido'
+            }, 'POST');
+            console.log('📊 Dados extraídos do chat:', dadosExtraidos);
+        }
+    }
+
     function iniciarJornada() {
         const input = document.getElementById('searchInput');
         const query = input.value.trim();
         const anexo = homeArquivoStaged;
-        
+
         if (!query && !anexo) { 
             input.placeholder = 'Digite sua dúvida ou anexe algo...'; 
             return; 
         }
-        
+
         switchChatMode('ia');
         abrirChat();
         document.getElementById('chatMessages').innerHTML = '';
-        
+
         if (anexo) {
             if (anexo.tipo.startsWith('image/')) {
                 addImageMessage('user', anexo.base64);
@@ -1727,7 +1734,7 @@
             homeArquivoStaged = null;
             document.getElementById('homePreviewStrip').style.display = 'none';
         }
-        
+
         // 🔥 CORRIGIDO: iniciarJornada() chama enviarParaIA() diretamente, sem
         // passar por enviarMensagem() - e só enviarMensagem() fazia
         // addMessage('user', texto). Resultado: a mensagem digitada na home
@@ -1735,8 +1742,12 @@
         // mensagem do próprio cliente aqui, como em qualquer chat normal.
         if (query) {
             addMessage('user', query);
+            
+            // 🔥 EXTRAI DADOS DA MENSAGEM ANTES DE ENVIAR PARA IA
+            extrairDadosDaMensagem(query, sessionId);
         }
 
+        // ✅ ENVIA PARA A IA
         // ✅ APENAS ENVIA PARA A IA
         setTimeout(() => enviarParaIA(query, anexo), 800);
         input.value = '';
@@ -1746,14 +1757,14 @@
     function onArquivoSelecionado(event) {
         const file = event.target.files[0];
         if (!file) return;
-        
+
         // Verifica tamanho máximo (10MB)
         if (file.size > 10 * 1024 * 1024) {
             mostrarToast('Arquivo muito grande! Máximo 10MB');
             event.target.value = '';
             return;
         }
-        
+
         const reader = new FileReader();
         reader.onload = (e) => {
             arquivoStaged = {
@@ -1762,7 +1773,7 @@
                 nome: file.name,
                 tamanho: file.size
             };
-            
+
             // Mostra preview
             if (file.type.startsWith('image/')) {
                 document.getElementById('imgPreviewThumb').src = e.target.result;
@@ -1773,13 +1784,13 @@
                 document.getElementById('imgPreviewName').textContent = `📄 ${file.name}`;
             }
             document.getElementById('imgPreviewStrip').style.display = 'flex';
-            
+
             mostrarToast(`📎 ${file.name} anexado!`);
         };
         reader.readAsDataURL(file);
         event.target.value = '';
     }
-    
+
     function removerAnexoStaged() {
         arquivoStaged = null;
         document.getElementById('imgPreviewStrip').style.display = 'none';
@@ -1815,13 +1826,13 @@
             btn.title = 'Gravando... clique para parar';
             mostrarToast('🎤 Gravando... Fale agora!');
         };
-        
+
         reconhecimentoVoz.onend = () => { 
             gravandoVoz = false; 
             btn.classList.remove('gravando');
             btn.title = 'Gravar áudio';
         };
-        
+
         reconhecimentoVoz.onerror = (event) => { 
             gravandoVoz = false; 
             btn.classList.remove('gravando');
@@ -1831,14 +1842,14 @@
                 mostrarToast('Permita o acesso ao microfone!');
             }
         };
-        
+
         reconhecimentoVoz.onresult = (event) => {
             let texto = '';
             // Pega todos os resultados (incluindo parciais)
             for (let i = event.resultIndex; i < event.results.length; i++) {
                 texto += event.results[i][0].transcript;
             }
-            
+
             const input = document.getElementById('chatInput');
             // Se já tem texto, adiciona espaço
             if (input.value && texto) {
@@ -1846,7 +1857,7 @@
             } else {
                 input.value = texto;
             }
-            
+
             // Se for resultado final, foca no input
             if (event.results[0].isFinal) {
                 input.focus();
@@ -1860,9 +1871,15 @@
         if (isProcessing) return;
         const input = document.getElementById('chatInput');
         const texto = input.value.trim();
-        
+
         if (!texto && !arquivoStaged) return;
 
+        // 🔥 EXTRAI DADOS DA MENSAGEM ANTES DE ENVIAR
+        if (texto) {
+            await extrairDadosDaMensagem(texto, sessionId);
+        }
+
+        // MOSTRA A MENSAGEM NO CHAT
         // 🔥 MOSTRA A MENSAGEM NO CHAT
         if (arquivoStaged) {
             if (arquivoStaged.tipo.startsWith('image/')) {
@@ -1878,7 +1895,8 @@
         input.value = '';
         const arquivoParaEnviar = arquivoStaged;
         removerAnexoStaged();
-        
+
+        // ROTEIA PARA O FLUXO CORRETO
         // 🔥 ROTEIA PARA O FLUXO CORRETO
         if (chatMode === 'atendente') {
             await enviarParaAtendente(texto, arquivoParaEnviar);
@@ -1889,6 +1907,7 @@
 
     function iniciarPollingContinuo() {
         if (pollContinuoInterval) return;
+        pollContinuoInterval = setInterval(pollRespostasContinuo, 2000);
         pollContinuoInterval = setInterval(pollRespostasContinuo, 3000);
         console.log('🔄 Polling contínuo iniciado');
     }
@@ -1903,18 +1922,18 @@
 
     function respostaJaExibida(textoResposta) {
         if (!textoResposta || textoResposta.length < 10) return true; // já exibida se for curta demais
-        
+
         const msgElements = document.querySelectorAll('.message.ai, .message.atendente-msg');
-        
+
         // 🔥 LIMPA O TEXTO PARA COMPARAÇÃO (remove emojis, pontuação, espaços extras)
         const textoLimpo = textoResposta
             .replace(/[^\w\sáéíóúãõç]/g, ' ')
             .replace(/\s+/g, ' ')
             .trim()
             .substring(0, 200);
-        
+
         if (textoLimpo.length < 10) return true; // texto muito curto, considera já exibido
-        
+
         let jaExibida = false;
         msgElements.forEach(el => {
             const elTexto = el.textContent
@@ -1922,31 +1941,31 @@
                 .replace(/\s+/g, ' ')
                 .trim()
                 .substring(0, 200);
-            
+
             // 🔥 COMPARAÇÃO ROBUSTA
             if (elTexto.length > 10) {
                 // Verifica se um texto contém o outro (com 80% de overlap)
                 const menor = textoLimpo.length < elTexto.length ? textoLimpo : elTexto;
                 const maior = textoLimpo.length < elTexto.length ? elTexto : textoLimpo;
-                
+
                 // Se o menor está contido no maior, ou se 80% do menor está no maior
                 if (maior.includes(menor) || menor.includes(maior)) {
                     jaExibida = true;
                 }
             }
         });
-        
+
         return jaExibida;
     }
 
     // ═══════════════ FUNÇÃO PARA LIMPAR RESPOSTA DA IA ═══════════════
     function limparRespostaIA(texto) {
         if (!texto) return null;
-        
+
         // 🔥 REMOVE O PROMPT PADRÃO COMPLETO
         const promptPadrao = "Você é a assistente virtual da R5 Fit";
         let textoProcessado = texto;
-        
+
         // Se o prompt estiver no texto, remove tudo até o final do prompt
         if (texto.includes(promptPadrao)) {
             const partes = texto.split(promptPadrao);
@@ -1954,16 +1973,16 @@
                 textoProcessado = partes[1];
             }
         }
-        
+
         // 🔥 REMOVE LINHAS DE PROTOCOLO E CLIENTE
         let linhas = textoProcessado.split('\n');
         let linhasFiltradas = [];
         let encontrouResposta = false;
         let contadorResposta = 0;
-        
+
         for (let linha of linhas) {
             const linhaTrim = linha.trim();
-            
+
             // Pula linhas de protocolo
             if (linhaTrim.startsWith('Atendimento #')) continue;
             // Pula linhas "Cliente:"
@@ -1975,7 +1994,7 @@
             if (linhaTrim.includes('```') || linhaTrim.includes('def ')) continue;
             if (linhaTrim.includes('javascript') || linhaTrim.includes('function(')) continue;
             if (linhaTrim.includes('servidor.py') || linhaTrim.includes('extrair_novo_conteudo')) continue;
-            
+
             // 🔥 SE ENCONTROU UMA LINHA QUE PARECE RESPOSTA REAL
             if (linhaTrim.length > 15 && 
                 !linhaTrim.includes('Diagnosticou') && 
@@ -1984,13 +2003,13 @@
                 !linhaTrim.includes('O sistema está funcionando')) {
                 encontrouResposta = true;
             }
-            
+
             if (encontrouResposta) {
                 linhasFiltradas.push(linhaTrim);
                 contadorResposta++;
             }
         }
-        
+
         // Se encontrou poucas linhas ou nenhuma, tenta pegar a última parte do texto
         if (linhasFiltradas.length < 2) {
             // Pega as últimas 3 linhas não vazias
@@ -2005,24 +2024,24 @@
             }
             return null;
         }
-        
+
         const resultado = linhasFiltradas.join('\n').trim();
-        
+
         // 🔥 VERIFICA SE O RESULTADO AINDA TEM PROMPT
         if (resultado.includes(promptPadrao) || resultado.includes('Atendimento #')) {
             return null;
         }
-        
+
         return resultado;
     }
 
     async function pollRespostasContinuo() {
         if (!document.getElementById('chatOverlay').classList.contains('active')) return;
         if (isProcessing) return;
-        
+
         try {
             console.log('🔍 [POLLING] sessionId:', sessionId);
-            
+
             // 🔥 CORREÇÃO: envia como POST com body JSON
             const response = await fetch(PROXY_CLOUDFLARE, {
                 method: 'POST',
@@ -2032,9 +2051,9 @@
                     leadId: sessionId
                 })
             });
-            
+
             const data = await response.json();
-            
+
             console.log('🔍 [POLLING] Resposta:', data.status, data.respostas ? data.respostas.length : 0);
 
             // 🔥 Verifica se o atendimento foi encerrado
@@ -2045,12 +2064,12 @@
 
             if (data.respostas && data.respostas.length > 0) {
                 console.log('📩 [POLLING] Exibindo', data.respostas.length, 'respostas');
-                
+
                 for (const resp of data.respostas) {
                     const textoLimpo = resp.respondido_por_ia ? limparRespostaIA(resp.texto) : (resp.texto || '').trim();
-                    
+
                     console.log('📝 [POLLING] Resposta:', textoLimpo ? textoLimpo.substring(0, 50) + '...' : 'VAZIA');
-                    
+
                     // 🔥 CORRIGIDO: o mínimo de 15 caracteres é um filtro pra
                     // descartar capturas de IA incompletas/lixo - fazia sentido
                     // pra respostas de IA, mas estava sendo aplicado também às
@@ -2066,15 +2085,15 @@
                         if (resp.respondido_por_ia) {
                             addMessage('ai', textoLimpo + botoesResposta());
                         } else {
-                            addMessage('atendente-msg', '👤 ' + textoLimpo);
+                            addMessage('atendente-msg', textoLimpo);
                         }
-                        
-                        document.getElementById('newMsgNotification').classList.add('show');
-                        document.getElementById('newMsgNotification').textContent = '📩 Nova resposta!';
+
+                        document.getElementById('newMsgNotification')?.classList.add('show');
+                        // (elemento de notificação visual removido da UI)
                         tocarSomNotificacao();
                     }
                 }
-                
+
                 // 🔥 Limpa a fila após exibir
                 try {
                     await fetch(`http://localhost:8080/api/chat-atendente/limpar-pendentes`, {
@@ -2170,15 +2189,7 @@
             await callAPI('saveChatAtendente', payload, 'POST');
             console.log('📥 Mensagem salva no Drive');
 
-            // 🔥 PASSO 2: "COTOVELADA" NO SERVIDOR LOCAL (best-effort, opcional)
-            // "localhost:8080" aqui é sempre a máquina de QUEM ESTÁ VISITANDO
-            // o site, nunca a sua - pra qualquer visitante remoto, isso
-            // sempre cai no catch abaixo, silenciosamente. Não é bug: é só
-            // uma tentativa de acordar o processamento mais rápido pra quem
-            // estiver testando localmente. O fluxo real, pra visitantes de
-            // verdade, depende do polling de fundo do seu servidor.py
-            // (background_polling_drive), que varre o Drive sozinho a cada
-            // ~15s independente disso.
+            // 🔥 PASSO 2: ACIONA O SERVIDOR LOCAL (IA)
             try {
                 await fetch('http://localhost:8080/api/processar-pendentes', {
                     method: 'POST',
@@ -2187,12 +2198,13 @@
                 });
                 console.log('🤖 Servidor local acionado');
             } catch (e) {
-                console.log('ℹ️ Servidor local não alcançável a partir daqui (normal para visitantes remotos) - seguindo via polling de fundo.');
+                console.log('⚠️ Erro ao acionar servidor:', e.message);
             }
 
             // 🔥 PASSO 3: POLLING
             let resposta = null;
             let tentativas = 0;
+            const MAX_TENTATIVAS = 40; // 80s (40 × 2s)
             const MAX_TENTATIVAS = 55; // 110s
             let avisoMostrado = false;
 
@@ -2246,7 +2258,7 @@
                 if (resposta.respondido_por_ia) {
                     addMessage('ai', resposta.texto + botoesResposta());
                 } else {
-                    addMessage('atendente-msg', '👤 ' + resposta.texto);
+                    addMessage('atendente-msg', resposta.texto);
                 }
                 console.log('✅ Resposta exibida no chat!');
             } else {
@@ -2357,7 +2369,7 @@
         d.appendChild(img);
         c.appendChild(d); c.scrollTop = c.scrollHeight;
     }
-    
+
     function addDocumentMessage(tipo, nomeArquivo) {
         const c = document.getElementById('chatMessages');
         const d = document.createElement('div');
