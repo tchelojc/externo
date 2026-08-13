@@ -1109,7 +1109,11 @@
     <script>
     // ═══════════════ CONFIGURAÇÃO ═══════════════
     const WHATSAPP = "5521964814751";
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxJH3HYvgyhe20GmoyVJTTOBuRYJuzN0R1ZiFLkowe5Jsc37UKoV5pDd1_1mDE0OVujmQ/exec";
+    // 🔥 REMOVIDO: SCRIPT_URL (a URL bruta do script.google.com) ficava
+    // exposta aqui sem nenhum uso real - os comentários mais abaixo já
+    // confirmam "usa PROXY_CLOUDFLARE em vez de SCRIPT_URL". Deixar essa
+    // string parada no código-fonte só entregava de bandeja o endereço
+    // pra quem quisesse chamar o backend direto, sem passar pelo Worker.
     const PROXY_CLOUDFLARE = "https://almafluxo.uk/proxy/infocell";
     let isProcessing = false;
     let atendimentoEncerrado = false;
