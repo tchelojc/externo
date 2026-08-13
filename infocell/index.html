@@ -1453,10 +1453,62 @@
         await enviarParaIA(texto, arquivoParaEnviar);
     }
 
+    // 🔥 NOVO: sem isso, nenhum lead nunca era criado no InfoCell - só as
+    // mensagens de chat (saveChatAtendente) eram salvas, e o painel não
+    // tinha nada de "lead" pra mostrar (leads/getLeadsInfocell voltava
+    // sempre vazio). Cria o registro do lead na primeira mensagem, e vai
+    // completando com o que a pessoa for mencionando na conversa.
+    let leadCriado = false;
+
+    async function garantirLead() {
+        if (leadCriado) return;
+        leadCriado = true; // marca antes de terminar - evita corrida se a pessoa manda 2 mensagens rápido
+        try {
+            await callAPI('saveLead', {
+                id: sessionId,
+                nome: usuarioLogado?.nome || undefined,
+                whatsapp: usuarioLogado?.telefone || undefined,
+                origem: 'chat_infocell'
+            }, 'POST');
+        } catch (e) {
+            console.log('⚠️ Erro ao criar lead:', e.message);
+        }
+    }
+
+    async function extrairDadosDaMensagem(texto, leadId) {
+        if (!texto) return;
+        // Padrões pensados pra loja de celular: telefone/whatsapp, marca,
+        // modelo do aparelho e o motivo mais comum de procura (conserto,
+        // orçamento, compra).
+        const padroes = {
+            whatsapp: /(\(?\d{2}\)?\s?9?\d{4}[-\s]?\d{4})/,
+            marca: /(iphone|samsung|galaxy|xiaomi|redmi|motorola|moto\s?[a-z]?\d*|lg|asus|realme|poco)/i,
+            motivo: /(tela\s*(quebrada|trincada|rachada)|não\s*liga|nao\s*liga|bateria|molhou|molhado|câmera|camera|alto[\s-]?falante|carregador|touch|travando|lento)/i
+        };
+
+        const dadosExtraidos = {};
+        const mWpp = texto.match(padroes.whatsapp);
+        if (mWpp) dadosExtraidos.whatsapp = mWpp[1].replace(/\D/g, '');
+        const mMarca = texto.match(padroes.marca);
+        if (mMarca) dadosExtraidos.marca = mMarca[1];
+        const mMotivo = texto.match(padroes.motivo);
+        if (mMotivo) dadosExtraidos.motivo = mMotivo[1];
+
+        if (Object.keys(dadosExtraidos).length > 0) {
+            try {
+                await callAPI('saveLead', { id: leadId, ...dadosExtraidos, origem: 'chat_extraido' }, 'POST');
+                console.log('📊 Dados extraídos do chat:', dadosExtraidos);
+            } catch (e) {}
+        }
+    }
+
     async function enviarParaIA(mensagem, arquivo = null) {
         isProcessing = true;
         document.getElementById('chatSendBtn').disabled = true;
         showTyping();
+
+        await garantirLead();
+        if (mensagem) await extrairDadosDaMensagem(mensagem, sessionId);
 
         try {
             const payload = {
