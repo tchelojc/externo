@@ -686,7 +686,6 @@
         <div class="chat-window" id="chatWindow">
             <div class="chat-header" id="chatHeader">
                 <div class="chat-header-left">
-                    <div class="chat-avatar" id="chatAvatar">💬</div>
                     <div class="chat-avatar" id="chatAvatar">R5</div>
                     <div>
                         <div class="chat-title" id="chatTitle">R5 Fit</div>
@@ -776,9 +775,10 @@
     // ═══════════════ CONFIGURAÇÃO ═══════════════
     const WHATSAPP = "5521995491483";
 
-    // 🔥 PARA ATENDIMENTO: usa servidor local para comunicação com IA
-    const SERVIDOR_LOCAL = "http://localhost:8080";
-    const API_LOCAL = SERVIDOR_LOCAL + "/api";
+    // 🔥 REMOVIDO: SERVIDOR_LOCAL/API_LOCAL ("http://localhost:8080") só
+    // eram usadas pela getEndpoint() abaixo, que nunca era chamada em
+    // lugar nenhum - código morto de uma versão anterior. O fluxo real usa
+    // callAPI() (mais abaixo), que já roteia certo pro proxy Cloudflare.
 
     // 🔥 PARA SALVAR NO DRIVE: usa proxy Cloudflare -> Apps Script
     const PROXY_CLOUDFLARE = "https://almafluxo.uk/proxy/r5fit";
@@ -942,18 +942,9 @@
         mostrarToast('Até logo! 👋');
     }
 
-    // Função que decide qual endpoint usar
-    function getEndpoint(action) {
-        // Ações que vão direto para o Drive (via proxy)
-        const actions_drive = ['saveChatAtendente', 'getChatAtendente', 'getChatAtendenteAll', 'login', 'listarUsuarios'];
-
-        if (actions_drive.includes(action)) {
-            return `${PROXY_CLOUDFLARE}?action=${action}`;
-        }
-
-        // Ações que vão para o servidor local (IA)
-        return `${API_LOCAL}?action=${action}`;
-    }
+    // 🔥 REMOVIDO: getEndpoint() - função morta, nunca era chamada (o
+    // fluxo real usa callAPI(), mais abaixo, que já resolve o endpoint
+    // certo pra cada action).
 
     async function carregarHomePage() {
         const container = document.getElementById('drivePageContainer');
@@ -2191,7 +2182,15 @@
             await callAPI('saveChatAtendente', payload, 'POST');
             console.log('📥 Mensagem salva no Drive');
 
-            // 🔥 PASSO 2: ACIONA O SERVIDOR LOCAL (IA)
+            // 🔥 PASSO 2: "COTOVELADA" NO SERVIDOR LOCAL (best-effort, opcional)
+            // "localhost:8080" aqui é sempre a máquina de QUEM ESTÁ VISITANDO
+            // o site, nunca a sua - pra qualquer visitante remoto, isso
+            // sempre cai no catch abaixo, silenciosamente. Não é bug: é só
+            // uma tentativa de acordar o processamento mais rápido pra quem
+            // estiver testando localmente. O fluxo real, pra visitantes de
+            // verdade, depende do polling de fundo do seu servidor.py
+            // (background_polling_drive), que varre o Drive sozinho a cada
+            // ~15s independente disso.
             try {
                 await fetch('http://localhost:8080/api/processar-pendentes', {
                     method: 'POST',
@@ -2200,7 +2199,7 @@
                 });
                 console.log('🤖 Servidor local acionado');
             } catch (e) {
-                console.log('⚠️ Erro ao acionar servidor:', e.message);
+                console.log('ℹ️ Servidor local não alcançável a partir daqui (normal para visitantes remotos) - seguindo via polling de fundo.');
             }
 
             // 🔥 PASSO 3: POLLING
