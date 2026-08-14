@@ -1538,13 +1538,18 @@
                 };
             }
 
-            // 🔥 Salva no Drive via Apps Script
+            // Salva no Drive
             await callAPI('saveChatAtendente', payload, 'POST');
 
-            // 🔥 Polling para buscar resposta (o servidor Python vai responder)
+            // 🔥 CORREÇÃO: ESPERA MAIS TEMPO ANTES DE COMEÇAR O POLLING
+            // A IA precisa de 30-90 segundos para responder
+            // Só começa a buscar resposta após 10 segundos
+            await new Promise(r => setTimeout(r, 10000));
+
+            // Polling para buscar resposta
             let resposta = null;
             let tentativas = 0;
-            const MAX_TENTATIVAS = 55;
+            const MAX_TENTATIVAS = 40; // 40 × 2s = 80s adicionais (total ~90s)
 
             while (!resposta && tentativas < MAX_TENTATIVAS) {
                 tentativas++;
@@ -1564,8 +1569,13 @@
                     if (pendentesData.respostas && pendentesData.respostas.length > 0) {
                         const ultimaResposta = pendentesData.respostas[pendentesData.respostas.length - 1];
                         if (ultimaResposta && ultimaResposta.texto) {
-                            resposta = ultimaResposta;
-                            break;
+                            // 🔥 CORREÇÃO: Verifica se NÃO é o fallback
+                            const textoResposta = ultimaResposta.texto;
+                            if (!textoResposta.includes('Desculpe, estou com problemas técnicos') &&
+                                !textoResposta.includes('Tô sem conseguir acessar minha central')) {
+                                resposta = ultimaResposta;
+                                break;
+                            }
                         }
                     }
                 } catch (e) {}
@@ -1574,8 +1584,14 @@
             removeTyping();
 
             if (resposta && resposta.texto) {
-                addMessage('ai', resposta.texto + botoesResposta());
+                const textoLimpo = limparRespostaIA(resposta.texto);
+                if (textoLimpo) {
+                    addMessage('ai', textoLimpo + botoesResposta());
+                } else {
+                    addMessage('ai', resposta.texto + botoesResposta());
+                }
             } else {
+                // Só mostra fallback se realmente não veio resposta da IA
                 const fallback = 'Recebi sua mensagem! Nossa equipe vai responder em breve. Se preferir, chame no WhatsApp (21 96481-4751).';
                 addMessage('ai', fallback + botoesResposta());
             }
