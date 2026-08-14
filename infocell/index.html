@@ -1511,8 +1511,15 @@
         }
     }
 
+    // ═══════════════════════════════════════
+    // VARIÁVEL GLOBAL PARA CONTROLAR RESPOSTAS JÁ EXIBIDAS
+    // ═══════════════════════════════════════
+    let respostasExibidas = new Set();
+    let aguardandoRespostaIA = false;
+
     async function enviarParaIA(mensagem, arquivo = null) {
         isProcessing = true;
+        aguardandoRespostaIA = true; // 🔥 MARCA QUE ESTÁ AGUARDANDO IA
         document.getElementById('chatSendBtn').disabled = true;
         showTyping();
 
@@ -1541,19 +1548,14 @@
             // Salva no Drive
             await callAPI('saveChatAtendente', payload, 'POST');
 
-            // 🔥 CORREÇÃO: ESPERA MAIS TEMPO ANTES DE COMEÇAR O POLLING
-            // A IA precisa de 30-90 segundos para responder
-            // Só começa a buscar resposta após 10 segundos
-            await new Promise(r => setTimeout(r, 10000));
-
-            // Polling para buscar resposta
+            // 🔥 ESPERA A IA RESPONDER - POLLING ÚNICO AQUI
             let resposta = null;
             let tentativas = 0;
-            const MAX_TENTATIVAS = 40; // 40 × 2s = 80s adicionais (total ~90s)
+            const MAX_TENTATIVAS = 45; // 45 × 3s = 135s (mais de 2 minutos)
 
             while (!resposta && tentativas < MAX_TENTATIVAS) {
                 tentativas++;
-                await new Promise(r => setTimeout(r, 2000));
+                await new Promise(r => setTimeout(r, 3000)); // 3 segundos entre tentativas
 
                 try {
                     const respPendentes = await fetch(PROXY_CLOUDFLARE, {
@@ -1567,42 +1569,94 @@
                     const pendentesData = await respPendentes.json();
 
                     if (pendentesData.respostas && pendentesData.respostas.length > 0) {
-                        const ultimaResposta = pendentesData.respostas[pendentesData.respostas.length - 1];
-                        if (ultimaResposta && ultimaResposta.texto) {
-                            // 🔥 CORREÇÃO: Verifica se NÃO é o fallback
-                            const textoResposta = ultimaResposta.texto;
-                            if (!textoResposta.includes('Desculpe, estou com problemas técnicos') &&
-                                !textoResposta.includes('Tô sem conseguir acessar minha central')) {
-                                resposta = ultimaResposta;
-                                break;
+                        // 🔥 PEGA A ÚLTIMA RESPOSTA QUE NÃO É FALLBACK
+                        for (let i = pendentesData.respostas.length - 1; i >= 0; i--) {
+                            const resp = pendentesData.respostas[i];
+                            if (resp && resp.texto) {
+                                const texto = resp.texto;
+                                // Ignora fallback
+                                if (texto.includes('Desculpe, estou com problemas técnicos') ||
+                                    texto.includes('Tô sem conseguir acessar minha central')) {
+                                    continue;
+                                }
+                                // 🔥 Verifica se essa resposta já foi exibida
+                                const chaveResposta = texto.substring(0, 100);
+                                if (!respostasExibidas.has(chaveResposta)) {
+                                    resposta = resp;
+                                    respostasExibidas.add(chaveResposta);
+                                    break;
+                                }
                             }
                         }
                     }
-                } catch (e) {}
+                } catch (e) {
+                    // Servidor pode estar processando - continua tentando
+                }
             }
 
             removeTyping();
 
             if (resposta && resposta.texto) {
                 const textoLimpo = limparRespostaIA(resposta.texto);
-                if (textoLimpo) {
+                if (textoLimpo && textoLimpo.length > 5) {
                     addMessage('ai', textoLimpo + botoesResposta());
-                } else {
-                    addMessage('ai', resposta.texto + botoesResposta());
                 }
             } else {
-                // Só mostra fallback se realmente não veio resposta da IA
-                const fallback = 'Recebi sua mensagem! Nossa equipe vai responder em breve. Se preferir, chame no WhatsApp (21 96481-4751).';
-                addMessage('ai', fallback + botoesResposta());
+                // Só mostra mensagem genérica se NÃO veio NENHUMA resposta
+                // NÃO usa o fallback do servidor
+                const mensagemAguarde = 'Recebi sua mensagem! Estou verificando aqui... Se preferir, chame no WhatsApp (21 96481-4751).';
+                addMessage('ai', mensagemAguarde + botoesResposta());
             }
         } catch (e) {
             removeTyping();
             addMessage('ai', 'Ops, tive um probleminha. Pode tentar de novo? 🙏' + botoesResposta());
         } finally {
             isProcessing = false;
+            aguardandoRespostaIA = false; // 🔥 DESMARCA
             document.getElementById('chatSendBtn').disabled = false;
             document.getElementById('chatInput').focus();
         }
+    }
+
+    // 🔥 CORREÇÃO: Polling contínuo NÃO roda enquanto aguarda resposta da IA
+    async function pollRespostasContinuo() {
+        if (!document.getElementById('chatOverlay').classList.contains('active')) return;
+        if (isProcessing) return; // 🔥 NÃO FAZ POLLING ENQUANTO ENVIA
+        if (aguardandoRespostaIA) return; // 🔥 NÃO FAZ POLLING ENQUANTO AGUARDA IA
+        
+        try {
+            const response = await fetch(PROXY_CLOUDFLARE, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'chatAtendenteRespostas',
+                    leadId: sessionId
+                })
+            });
+            
+            const data = await response.json();
+
+            if (data.respostas && data.respostas.length > 0) {
+                for (const resp of data.respostas) {
+                    // 🔥 IGNORA FALLBACK
+                    if (resp.texto && 
+                        (resp.texto.includes('Desculpe, estou com problemas técnicos') ||
+                         resp.texto.includes('Tô sem conseguir acessar minha central'))) {
+                        continue;
+                    }
+                    
+                    const textoLimpo = limparRespostaIA(resp.texto);
+                    if (textoLimpo && textoLimpo.length > 5) {
+                        const chaveResposta = textoLimpo.substring(0, 100);
+                        if (!respostasExibidas.has(chaveResposta)) {
+                            respostasExibidas.add(chaveResposta);
+                            addMessage('ai', textoLimpo + botoesResposta());
+                            tocarSomNotificacao();
+                        }
+                    }
+                }
+            }
+        } catch (e) {}
     }
 
     async function carregarHistorico() {
@@ -1643,34 +1697,6 @@
             clearInterval(pollContinuoInterval);
             pollContinuoInterval = null;
         }
-    }
-
-    async function pollRespostasContinuo() {
-        if (!document.getElementById('chatOverlay').classList.contains('active')) return;
-        if (isProcessing) return;
-        
-        try {
-            const response = await fetch(PROXY_CLOUDFLARE, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'chatAtendenteRespostas',
-                    leadId: sessionId
-                })
-            });
-            
-            const data = await response.json();
-
-            if (data.respostas && data.respostas.length > 0) {
-                for (const resp of data.respostas) {
-                    const textoLimpo = limparRespostaIA(resp.texto);
-                    if (textoLimpo && !respostaJaExibida(textoLimpo)) {
-                        addMessage('ai', textoLimpo + botoesResposta());
-                        tocarSomNotificacao();
-                    }
-                }
-            }
-        } catch (e) {}
     }
 
     function respostaJaExibida(textoResposta) {
