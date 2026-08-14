@@ -1029,7 +1029,12 @@
 
         <div class="quick-suggestions">
             <div class="suggestion-chip" onclick="respostaPronta('consertar')">🔧 Consertar</div>
-            <div class="suggestion-chip" onclick="respostaPronta('comprar')">💰 Comprar</div>
+            <!-- 🔥 CORRIGIDO: "Comprar" antes disparava uma resposta pronta
+            no chat (respostaPronta('comprar')) - agora leva direto pra
+            https://almafluxo.uk/envio, o link de impressão/envio de fotos
+            que já está funcionando. Abre em nova aba, igual o WhatsApp/
+            Ligar, pra não perder o lugar no chat. -->
+            <a class="suggestion-chip" href="https://almafluxo.uk/envio" target="_blank" rel="noopener" style="text-decoration:none;">💰 Comprar</a>
             <div class="suggestion-chip" onclick="respostaPronta('horarios')">🕐 Horários</div>
             <div class="suggestion-chip" onclick="respostaPronta('orcamento')">🎯 Orçamento Grátis</div>
             <div class="suggestion-chip loja-chip" onclick="abrirLoja()" style="
