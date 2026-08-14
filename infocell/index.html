@@ -1444,6 +1444,28 @@
     let aguardandoRespostaIA = false;
     let mensagensProcessadas = new Set(); // 🔥 Rastreia mensagens já exibidas
 
+    // Fonte de verdade: histórico real do backend/Apps Script via Worker.
+    const mensagensServidorExibidas = new Set();
+
+    function chaveMensagemServidor(msg) {
+        if (!msg) return '';
+        return String(msg.id || `${msg.timestamp || ''}|${msg.de || ''}|${msg.texto || ''}`);
+    }
+
+    function ehRespostaValidaDoServidor(msg) {
+        if (!msg || msg.de !== 'atendente' || !msg.texto) return false;
+        const t = String(msg.texto);
+        return !t.includes('Desculpe, estou com problemas técnicos') &&
+               !t.includes('Tô sem conseguir acessar minha central') &&
+               !t.includes('Recebi sua mensagem! Nossa equipe');
+    }
+
+    async function obterConversaServidor() {
+        const data = await callAPI('getChatAtendente', { leadId: sessionId }, 'GET');
+        if (!data || data.status === 'error') return [];
+        return data.conversas?.[sessionId]?.mensagens || [];
+    }
+
     async function enviarMensagem() {
         if (isProcessing) {
             mostrarToast('Aguarde a resposta anterior...');
@@ -1486,6 +1508,19 @@
         if (mensagem) await extrairDadosDaMensagem(mensagem, sessionId);
 
         try {
+            let mensagensAntes = [];
+            try {
+                mensagensAntes = await obterConversaServidor();
+                mensagensAntes.forEach(msg => {
+                    const chave = chaveMensagemServidor(msg);
+                    if (chave) mensagensServidorExibidas.add(chave);
+                });
+            } catch (e) {
+                console.warn('⚠️ Estado anterior indisponível:', e.message);
+            }
+
+            const chavesAntes = new Set(mensagensAntes.map(chaveMensagemServidor));
+
             const payload = {
                 leadId: sessionId,
                 nomeLead: usuarioLogado?.nome || 'Visitante',
@@ -1504,78 +1539,67 @@
                 };
             }
 
-            // Salva no Drive
             const saveResult = await callAPI('saveChatAtendente', payload, 'POST');
-            console.log('📤 Mensagem salva no Drive');
+            if (!saveResult || saveResult.status === 'error') {
+                throw new Error(saveResult?.message || 'Falha ao salvar a mensagem');
+            }
+            console.log('📤 Mensagem salva no backend');
 
-            // 🔥 POLLING - Espera resposta da IA
+            // Não consulta mais "chatAtendenteRespostas" no cache local.
+            // A fonte de verdade é getChatAtendente -> Apps Script/Drive.
             let resposta = null;
-            let tentativas = 0;
             const MAX_TENTATIVAS = 45;
 
-            while (!resposta && tentativas < MAX_TENTATIVAS) {
-                tentativas++;
+            for (let tentativa = 0; tentativa < MAX_TENTATIVAS && !resposta; tentativa++) {
                 await new Promise(r => setTimeout(r, 3000));
 
                 try {
-                    const respPendentes = await fetch(PROXY_CLOUDFLARE, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            action: 'chatAtendenteRespostas',
-                            leadId: sessionId
-                        })
+                    const mensagens = await obterConversaServidor();
+                    const novas = mensagens.filter(msg => {
+                        const chave = chaveMensagemServidor(msg);
+                        return chave && !chavesAntes.has(chave);
                     });
-                    
-                    if (!respPendentes.ok) {
-                        continue;
-                    }
-                    
-                    const pendentesData = await respPendentes.json();
 
-                    if (pendentesData.respostas && pendentesData.respostas.length > 0) {
-                        // Pega a última resposta que NÃO é fallback
-                        for (let i = pendentesData.respostas.length - 1; i >= 0; i--) {
-                            const resp = pendentesData.respostas[i];
-                            if (resp && resp.texto) {
-                                const texto = resp.texto;
-                                
-                                // Ignora fallback e mensagens automáticas
-                                if (texto.includes('Desculpe, estou com problemas técnicos') ||
-                                    texto.includes('Tô sem conseguir acessar minha central') ||
-                                    texto.includes('Recebi sua mensagem! Nossa equipe') ||
-                                    texto.includes('Olá! Como posso te ajudar')) {
-                                    continue;
-                                }
-                                
-                                const chave = texto.substring(0, 150);
-                                if (!respostasExibidas.has(chave)) {
-                                    resposta = resp;
-                                    respostasExibidas.add(chave);
-                                    break;
-                                }
-                            }
+                    for (const msg of novas) {
+                        if (msg.de === 'lead') {
+                            mensagensServidorExibidas.add(chaveMensagemServidor(msg));
+                            continue;
+                        }
+
+                        if (!ehRespostaValidaDoServidor(msg)) continue;
+
+                        const textoLimpo = limparRespostaIA(msg.texto);
+                        if (textoLimpo && textoLimpo.length > 5) {
+                            resposta = { ...msg, texto: textoLimpo };
+                            break;
                         }
                     }
                 } catch (e) {
-                    // Continua tentando
+                    if (tentativa % 5 === 0) {
+                        console.warn(`⚠️ Polling ${tentativa + 1}/${MAX_TENTATIVAS}:`, e.message);
+                    }
                 }
             }
 
             removeTyping();
 
             if (resposta && resposta.texto) {
-                const textoLimpo = limparRespostaIA(resposta.texto);
-                if (textoLimpo && textoLimpo.length > 5) {
-                    addMessage('ai', textoLimpo + botoesResposta());
+                mensagensServidorExibidas.add(chaveMensagemServidor(resposta));
+                const chaveTexto = resposta.texto.substring(0, 150);
+                if (!respostasExibidas.has(chaveTexto)) {
+                    respostasExibidas.add(chaveTexto);
+                    addMessage('ai', resposta.texto + botoesResposta());
                 }
+            } else {
+                console.warn('⚠️ Nenhuma resposta nova encontrada no histórico após 135s');
             }
-            // Se não tem resposta, não mostra nada (apenas remove typing)
-            
+
         } catch (e) {
             removeTyping();
-            console.log('❌ Erro:', e);
+            console.error('❌ Erro no envio:', e);
+            mostrarToast(`❌ ${e.message || 'Não foi possível enviar a mensagem'}`);
         } finally {
+            removeTyping();
             isProcessing = false;
             aguardandoRespostaIA = false;
             document.getElementById('chatSendBtn').disabled = false;
@@ -1583,51 +1607,37 @@
         }
     }
 
+
     // 🔥 CORREÇÃO: Polling contínuo NÃO duplica mensagens
     async function pollRespostasContinuo() {
         if (!document.getElementById('chatOverlay').classList.contains('active')) return;
-        if (isProcessing) return;
-        if (aguardandoRespostaIA) return;
-        
-        try {
-            const response = await fetch(PROXY_CLOUDFLARE, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'chatAtendenteRespostas',
-                    leadId: sessionId
-                })
-            });
-            
-            if (!response.ok) return;
-            
-            const data = await response.json();
+        if (isProcessing || aguardandoRespostaIA) return;
 
-            if (data.respostas && data.respostas.length > 0) {
-                for (const resp of data.respostas) {
-                    if (!resp.texto) continue;
-                    
-                    // Ignora fallback
-                    if (resp.texto.includes('Desculpe, estou com problemas técnicos') ||
-                        resp.texto.includes('Tô sem conseguir acessar minha central') ||
-                        resp.texto.includes('Recebi sua mensagem! Nossa equipe')) {
-                        continue;
-                    }
-                    
-                    const textoLimpo = limparRespostaIA(resp.texto);
-                    if (textoLimpo && textoLimpo.length > 5) {
-                        const chave = textoLimpo.substring(0, 150);
-                        if (!respostasExibidas.has(chave)) {
-                            respostasExibidas.add(chave);
-                            addMessage('ai', textoLimpo + botoesResposta());
-                            tocarSomNotificacao();
-                        }
+        try {
+            const mensagens = await obterConversaServidor();
+            for (const msg of mensagens) {
+                const chave = chaveMensagemServidor(msg);
+                if (!chave || mensagensServidorExibidas.has(chave)) continue;
+                mensagensServidorExibidas.add(chave);
+
+                if (!ehRespostaValidaDoServidor(msg)) continue;
+
+                const textoLimpo = limparRespostaIA(msg.texto);
+                if (textoLimpo && textoLimpo.length > 5) {
+                    const chaveTexto = textoLimpo.substring(0, 150);
+                    if (!respostasExibidas.has(chaveTexto)) {
+                        respostasExibidas.add(chaveTexto);
+                        addMessage('ai', textoLimpo + botoesResposta());
+                        tocarSomNotificacao();
                     }
                 }
             }
-        } catch (e) {}
+        } catch (e) {
+            console.warn('⚠️ Polling contínuo do chat:', e.message);
+        }
     }
 
+    // 🔥 CORREÇÃO: carregarHistorico NÃO duplica mensagens
     async function carregarHistorico() {
         try {
             const resp = await fetch(`${PROXY_CLOUDFLARE}?action=getChatAtendente&leadId=${sessionId}`, {
@@ -1641,23 +1651,23 @@
             
             if (data.conversas && data.conversas[sessionId]) {
                 const mensagens = data.conversas[sessionId].mensagens || [];
-                
-                // 🔥 SÓ CARREGA HISTÓRICO SE O CHAT ESTIVER VAZIO
-                if (document.getElementById('chatMessages').children.length === 0) {
-                    document.getElementById('chatMessages').innerHTML = '';
-                    respostasExibidas.clear();
-                    
-                    for (const msg of mensagens) {
-                        if (msg.de === 'lead') {
-                            addMessage('user', msg.texto);
-                        } else if (msg.de === 'atendente') {
-                            const textoLimpo = limparRespostaIA(msg.texto);
-                            if (textoLimpo && textoLimpo.length > 5) {
-                                const chave = textoLimpo.substring(0, 150);
-                                if (!respostasExibidas.has(chave)) {
-                                    respostasExibidas.add(chave);
-                                    addMessage('ai', textoLimpo);
-                                }
+                document.getElementById('chatMessages').innerHTML = '';
+                respostasExibidas.clear();
+                mensagensServidorExibidas.clear();
+
+                for (const msg of mensagens) {
+                    const chave = chaveMensagemServidor(msg);
+                    if (chave) mensagensServidorExibidas.add(chave);
+
+                    if (msg.de === 'lead') {
+                        addMessage('user', msg.texto);
+                    } else if (ehRespostaValidaDoServidor(msg)) {
+                        const textoLimpo = limparRespostaIA(msg.texto);
+                        if (textoLimpo && textoLimpo.length > 5) {
+                            const chaveTexto = textoLimpo.substring(0, 150);
+                            if (!respostasExibidas.has(chaveTexto)) {
+                                respostasExibidas.add(chaveTexto);
+                                addMessage('ai', textoLimpo);
                             }
                         }
                     }
