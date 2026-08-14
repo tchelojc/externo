@@ -1171,8 +1171,8 @@
         document.getElementById('chatInputArea').style.display = 'flex';
         carregarHistorico();
         iniciarPollingContinuo();
+        // 🔥 NÃO mostra mensagem de boas-vindas automática
     }
-
     function fecharChat() {
         document.getElementById('chatOverlay').classList.remove('active');
         document.getElementById('homeContainer').classList.remove('chat-open');
@@ -1194,9 +1194,8 @@
         abrirChat();
         document.getElementById('chatMessages').innerHTML = '';
         
-        setTimeout(() => {
-            addMessage('ai', 'Olá! Como posso te ajudar? 😊' + botoesResposta());
-        }, 500);
+        // 🔥 REMOVIDO: Não mostra "Olá! Como posso te ajudar?" automaticamente
+        // A IA vai responder diretamente à mensagem do usuário
         
         if (anexo) {
             if (anexo.tipo.startsWith('image/')) {
@@ -1213,7 +1212,7 @@
             addMessage('user', query);
         }
 
-        setTimeout(() => enviarParaIA(query, anexo), 800);
+        setTimeout(() => enviarParaIA(query, anexo), 500);
         input.value = '';
     }
 
@@ -1446,13 +1445,17 @@
     let mensagensProcessadas = new Set(); // 🔥 Rastreia mensagens já exibidas
 
     async function enviarMensagem() {
-        if (isProcessing) return;
+        if (isProcessing) {
+            mostrarToast('Aguarde a resposta anterior...');
+            return;
+        }
+        
         const input = document.getElementById('chatInput');
         const texto = input.value.trim();
         
         if (!texto && !arquivoStaged) return;
 
-        // 🔥 EXIBE A MENSAGEM DO USUÁRIO IMEDIATAMENTE
+        // 🔥 EXIBE A MENSAGEM DO USUÁRIO PRIMEIRO
         if (arquivoStaged) {
             if (arquivoStaged.tipo.startsWith('image/')) {
                 addImageMessage('user', arquivoStaged.base64);
@@ -1464,10 +1467,12 @@
             addMessage('user', texto);
         }
 
+        // Limpa input
         input.value = '';
         const arquivoParaEnviar = arquivoStaged;
         removerAnexoStaged();
         
+        // 🔥 ENVIA PARA IA
         await enviarParaIA(texto, arquivoParaEnviar);
     }
 
@@ -1499,14 +1504,14 @@
                 };
             }
 
-            // 🔥 Salva no Drive SEM esperar resposta longa
+            // Salva no Drive
             const saveResult = await callAPI('saveChatAtendente', payload, 'POST');
-            console.log('📤 Mensagem salva:', saveResult);
+            console.log('📤 Mensagem salva no Drive');
 
-            // 🔥 POLLING ÚNICO - Espera resposta da IA
+            // 🔥 POLLING - Espera resposta da IA
             let resposta = null;
             let tentativas = 0;
-            const MAX_TENTATIVAS = 45; // 45 × 3s = 135s
+            const MAX_TENTATIVAS = 45;
 
             while (!resposta && tentativas < MAX_TENTATIVAS) {
                 tentativas++;
@@ -1523,27 +1528,26 @@
                     });
                     
                     if (!respPendentes.ok) {
-                        console.log(`⚠️ Polling ${tentativas}: status ${respPendentes.status}`);
                         continue;
                     }
                     
                     const pendentesData = await respPendentes.json();
 
                     if (pendentesData.respostas && pendentesData.respostas.length > 0) {
-                        // 🔥 PEGA APENAS RESPOSTAS NOVAS (não exibidas antes)
+                        // Pega a última resposta que NÃO é fallback
                         for (let i = pendentesData.respostas.length - 1; i >= 0; i--) {
                             const resp = pendentesData.respostas[i];
                             if (resp && resp.texto) {
                                 const texto = resp.texto;
                                 
-                                // Ignora fallback
+                                // Ignora fallback e mensagens automáticas
                                 if (texto.includes('Desculpe, estou com problemas técnicos') ||
                                     texto.includes('Tô sem conseguir acessar minha central') ||
-                                    texto.includes('Recebi sua mensagem! Nossa equipe')) {
+                                    texto.includes('Recebi sua mensagem! Nossa equipe') ||
+                                    texto.includes('Olá! Como posso te ajudar')) {
                                     continue;
                                 }
                                 
-                                // Verifica se já foi exibida
                                 const chave = texto.substring(0, 150);
                                 if (!respostasExibidas.has(chave)) {
                                     resposta = resp;
@@ -1554,7 +1558,7 @@
                         }
                     }
                 } catch (e) {
-                    // Silencioso - continua tentando
+                    // Continua tentando
                 }
             }
 
@@ -1566,11 +1570,11 @@
                     addMessage('ai', textoLimpo + botoesResposta());
                 }
             }
-            // 🔥 SE NÃO TEM RESPOSTA, NÃO MOSTRA NADA (apenas remove typing)
+            // Se não tem resposta, não mostra nada (apenas remove typing)
             
         } catch (e) {
             removeTyping();
-            console.log('❌ Erro no envio:', e);
+            console.log('❌ Erro:', e);
         } finally {
             isProcessing = false;
             aguardandoRespostaIA = false;
@@ -1624,7 +1628,6 @@
         } catch (e) {}
     }
 
-    // 🔥 CORREÇÃO: carregarHistorico NÃO duplica mensagens
     async function carregarHistorico() {
         try {
             const resp = await fetch(`${PROXY_CLOUDFLARE}?action=getChatAtendente&leadId=${sessionId}`, {
@@ -1638,21 +1641,23 @@
             
             if (data.conversas && data.conversas[sessionId]) {
                 const mensagens = data.conversas[sessionId].mensagens || [];
-                document.getElementById('chatMessages').innerHTML = '';
-                respostasExibidas.clear(); // 🔥 LIMPA SET
                 
-                for (const msg of mensagens) {
-                    if (msg.de === 'lead') {
-                        // 🔥 Exibe mensagem do usuário
-                        addMessage('user', msg.texto);
-                    } else if (msg.de === 'atendente') {
-                        // 🔥 Exibe apenas respostas da IA (não fallback)
-                        const textoLimpo = limparRespostaIA(msg.texto);
-                        if (textoLimpo && textoLimpo.length > 5) {
-                            const chave = textoLimpo.substring(0, 150);
-                            if (!respostasExibidas.has(chave)) {
-                                respostasExibidas.add(chave);
-                                addMessage('ai', textoLimpo);
+                // 🔥 SÓ CARREGA HISTÓRICO SE O CHAT ESTIVER VAZIO
+                if (document.getElementById('chatMessages').children.length === 0) {
+                    document.getElementById('chatMessages').innerHTML = '';
+                    respostasExibidas.clear();
+                    
+                    for (const msg of mensagens) {
+                        if (msg.de === 'lead') {
+                            addMessage('user', msg.texto);
+                        } else if (msg.de === 'atendente') {
+                            const textoLimpo = limparRespostaIA(msg.texto);
+                            if (textoLimpo && textoLimpo.length > 5) {
+                                const chave = textoLimpo.substring(0, 150);
+                                if (!respostasExibidas.has(chave)) {
+                                    respostasExibidas.add(chave);
+                                    addMessage('ai', textoLimpo);
+                                }
                             }
                         }
                     }
