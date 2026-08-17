@@ -1166,6 +1166,16 @@
     SCRIPTS
     ============================ -->
     <script>
+
+        // Limpa o campo de chat ao carregar
+        window.addEventListener('load', () => {
+            const chatInput = document.getElementById('chatInputOlho');
+            if (chatInput) {
+                chatInput.value = '';
+                chatInput.setAttribute('autocomplete', 'off');
+                chatInput.setAttribute('name', 'chat_olho_' + Date.now());
+            }
+        });
         // ======================================================
         // CONFIGURAÇÃO
         // ======================================================
@@ -1246,32 +1256,16 @@
             
             mostrarToastOlho('🚀 Abrindo plataforma...');
             
-            // Verifica acesso (MASTER ou saldo suficiente)
-            try {
-                // MASTER acesso direto
-                if (usuarioLogadoOlho.master || usuarioLogadoOlho.acessoUniversal) {
-                    window.open('https://almafluxo.uk/olhodedeus', '_blank');
-                    return;
-                }
-                
-                // Usuário normal: verifica saldo
-                const data = await consultarSaldoOlho(usuarioLogadoOlho.email, usuarioLogadoOlho.sessionToken);
-                
-                if (!data.ok) {
-                    mostrarToastOlho('⚠️ Erro ao verificar saldo');
-                    return;
-                }
-                
-                if (data.balance < 10) {
-                    mostrarToastOlho(`⚠️ Saldo insuficiente! Você tem ${data.balance} tokens. Mínimo: 10`);
-                    abrirModalPlanos();
-                    return;
-                }
-                
-                window.open('https://almafluxo.uk/olhodedeus', '_blank');
-                
-            } catch (e) {
-                mostrarToastOlho('⚠️ Erro ao acessar: ' + e.message);
+            // ✅ Usa a rota do Worker (nunca expõe o Drive)
+            // A rota /olhodedeus SERVE o HTML ou mostra iframe
+            const url = 'https://almafluxo.uk/olhodedeus?t=' + Date.now();
+            
+            // Abre em NOVA aba
+            const novaAba = window.open(url, '_blank');
+            
+            // Se o popup foi bloqueado, redireciona na mesma aba
+            if (!novaAba) {
+                window.location.href = url;
             }
         }
 
