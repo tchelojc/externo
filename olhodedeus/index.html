@@ -1126,6 +1126,29 @@
         </div>
     </div>
 
+    <!-- ===== MODAL DO PROMPT OLHO DE DEUS (venda + tutorial) ===== -->
+    <!-- 🔥 NOVO: mensagem padronizada mostrada sempre que o acesso é
+         liberado por aqui (tanto por "Acessar com Tokens" quanto por
+         "Acessar Plataforma"), antes de abrir o Olho De Deus de fato. -->
+    <div class="modal-overlay" id="modalPromptOlho">
+        <div class="modal" style="max-width:480px;">
+            <button class="close-btn" onclick="fecharModalPromptOlho()">✕</button>
+            <h2>👁️ Bem-vindo ao Olho De Deus</h2>
+            <p style="color:var(--texto2);font-size:0.9rem;text-align:center;margin-bottom:1rem;">
+                Antes de entrar, veja como tirar o máximo da plataforma.
+            </p>
+            <div style="background:#0d1220;border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:1rem;font-size:0.88rem;line-height:1.6;color:var(--texto);">
+                <p><strong>⚙️ Como funciona:</strong> o Olho De Deus lê as odds e os dados da partida/mercado em tempo real e aplica o Motor de Entropia + Oráculo &amp; Constantes para calcular a distribuição de entrada — favorito, proteção e cenários — antes de você decidir.</p>
+                <p style="margin-top:10px;"><strong>🧭 Como usar:</strong> acompanhe a Mesa GPS para ver a leitura atual, confira a projeção sugerida e ajuste a entrada manualmente se quiser — a decisão final é sempre sua, a plataforma só organiza os números.</p>
+                <p style="margin-top:10px;"><strong>🔐 Acesso Blindado:</strong> seu tempo de uso já foi confirmado pelo seu saldo ALMA — pode entrar tranquilo.</p>
+            </div>
+            <button class="btn-pagar" onclick="confirmarEntradaOlho()">▶ Entrar no Olho De Deus</button>
+            <p style="text-align:center;margin-top:1rem;font-size:0.8rem;color:var(--texto2);">
+                Dúvidas? <a href="https://wa.me/5521981533928" target="_blank" style="color:var(--ciano);">Fale no WhatsApp</a>
+            </p>
+        </div>
+    </div>
+
     <!-- ============================
     SCRIPTS
     ============================ -->
@@ -1312,13 +1335,40 @@
                     return;
                 }
 
-                // 🔥 ROTA CORRETA: Acessa a plataforma Olho De Deus (conteúdo do Drive)
-                // O Worker redireciona para a pasta do Drive ou serve o HTML
-                window.open('https://almafluxo.uk/olhodedeus', '_blank');
+                // 🔥 NOVO: em vez de abrir direto, mostra o prompt padronizado
+                // (venda + tutorial) — a entrada real só acontece quando o
+                // usuário clica "Entrar" no modal (ver confirmarEntradaOlho()).
+                // Isso garante que TODO acesso liberado por aqui — seja pelo
+                // botão "Acessar com Tokens" (ativarAcesso) seja por "Acessar
+                // Plataforma" (acessarPlataforma) — passa pela mesma mensagem,
+                // já que os dois fluxos chamam esta mesma função.
+                abrirModalPromptOlho();
                 
             } catch (e) {
                 mostrarToastOlho('⚠️ Erro ao acessar: ' + e.message);
             }
+        }
+
+        // ======================================================
+        // PROMPT OLHO DE DEUS (mensagem padronizada de entrada)
+        // ======================================================
+        function abrirModalPromptOlho() {
+            document.getElementById('modalPromptOlho').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function fecharModalPromptOlho() {
+            document.getElementById('modalPromptOlho').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function confirmarEntradaOlho() {
+            fecharModalPromptOlho();
+            // 🔥 NOVO: sinaliza pra página de destino (quando ela ler esse
+            // parâmetro) que o acesso veio por aqui, já passado pelo prompt
+            // padronizado — evita repetir a mesma explicação lá dentro.
+            const nomeParam = usuarioLogadoOlho?.nome ? `&nome=${encodeURIComponent(usuarioLogadoOlho.nome)}` : '';
+            window.open(`https://almafluxo.uk/olhodedeus?origem=prompt_olho${nomeParam}`, '_blank');
         }
 
         // 7. CHAT DE ATENDIMENTO (já está correto)
