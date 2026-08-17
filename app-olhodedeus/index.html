@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Olho De Deus | Carregando...</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #030508;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Inter', system-ui, sans-serif;
+            overflow: hidden;
+        }
+        .loading-container {
+            text-align: center;
+            color: #00e5ff;
+        }
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #1a1a2e;
+            border-top-color: #00e5ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text {
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+        .loading-sub {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 10px;
+        }
+        .error-container {
+            text-align: center;
+            color: #ff6b6b;
+            display: none;
+        }
+        .error-container .icon { font-size: 3rem; margin-bottom: 10px; }
+        .error-container h2 { font-size: 1.3rem; margin-bottom: 10px; color: #fff; }
+        .error-container p { font-size: 0.9rem; color: #888; margin-bottom: 20px; }
+        .btn-retry {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #00e5ff;
+            color: #000;
+            border: none;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        .btn-retry:hover {
+            box-shadow: 0 0 30px rgba(0, 229, 255, 0.4);
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="loading-container" id="loadingContainer">
+        <div class="spinner"></div>
+        <div class="loading-text">🔓 Carregando Olho De Deus...</div>
+        <div class="loading-sub" id="loadingStatus">Verificando acesso...</div>
+    </div>
+
+    <div class="error-container" id="errorContainer">
+        <div class="icon">⚠️</div>
+        <h2>Não foi possível carregar a plataforma</h2>
+        <p id="errorMessage">Verifique sua conexão e tente novamente.</p>
+        <button class="btn-retry" onclick="carregarPlataforma()">🔄 Tentar Novamente</button>
+        <br><br>
+        <a href="https://almafluxo.uk/olhodedeus" style="color:#00e5ff;font-size:0.8rem;text-decoration:none;">← Voltar para o Olho De Deus</a>
+    </div>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════
+        // CONFIGURAÇÃO - ROTA DO WORKER (NUNCA expõe o ID do Drive)
+        // ═══════════════════════════════════════════════════════════
+        const PROXY_CENTRAL = 'https://almafluxo.uk/proxy/central';
+
+        // ═══════════════════════════════════════════════════════════
+        // FUNÇÃO PRINCIPAL
+        // ═══════════════════════════════════════════════════════════
+        async function carregarPlataforma() {
+            const loadingContainer = document.getElementById('loadingContainer');
+            const errorContainer = document.getElementById('errorContainer');
+            const loadingStatus = document.getElementById('loadingStatus');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            loadingContainer.style.display = 'block';
+            errorContainer.style.display = 'none';
+            
+            try {
+                loadingStatus.textContent = 'Verificando sessão...';
+                
+                const sessao = localStorage.getItem('olho_de_deus_usuario');
+                
+                if (!sessao) {
+                    throw new Error('Você precisa fazer login primeiro. Redirecionando...');
+                }
+                
+                const usuario = JSON.parse(sessao);
+                
+                loadingStatus.textContent = 'Validando acesso...';
+                
+                if (usuario.master || usuario.acessoUniversal) {
+                    loadingStatus.textContent = 'Acesso MASTER confirmado!';
+                } else if (usuario.balance < 10) {
+                    throw new Error('Saldo insuficiente! Você tem ' + usuario.balance + ' tokens.');
+                } else {
+                    loadingStatus.textContent = 'Saldo confirmado (' + usuario.balance + ' tokens).';
+                }
+                
+                loadingStatus.textContent = 'Buscando plataforma...';
+                
+                // 🔥 CHAMA A ROTA DO WORKER com action 'acessarPlataforma'
+                // O Worker sabe qual arquivo buscar (configurado no PLATAFORMAS_DRIVE)
+                const response = await fetch(PROXY_CENTRAL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'acessarPlataforma',
+                        plataforma: 'olhodedeus',
+                        email: usuario.email,
+                        sessionToken: usuario.sessionToken
+                    }),
+                    signal: AbortSignal.timeout(30000)
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Servidor retornou status ' + response.status);
+                }
+                
+                const resultado = await response.json();
+                
+                if (!resultado.ok) {
+                    throw new Error(resultado.error || 'Acesso negado');
+                }
+                
+                // 🔥 Se tem conteúdo criptografado, descriptografa
+                if (resultado.chaveMestra && resultado.data) {
+                    loadingStatus.textContent = 'Descriptografando plataforma...';
+                    
+                    const keyBytes = Uint8Array.from(atob(resultado.chaveMestra), c => c.charCodeAt(0));
+                    const cryptoKey = await crypto.subtle.importKey('raw', keyBytes, 'AES-GCM', false, ['decrypt']);
+                    const iv = Uint8Array.from(atob(resultado.nonce), c => c.charCodeAt(0));
+                    const tag = Uint8Array.from(atob(resultado.tag), c => c.charCodeAt(0));
+                    const ct = Uint8Array.from(atob(resultado.data), c => c.charCodeAt(0));
+                    const buf = await crypto.subtle.decrypt(
+                        { name: 'AES-GCM', iv, tagLength: 128 },
+                        cryptoKey,
+                        new Uint8Array([...ct, ...tag])
+                    );
+                    const html = new TextDecoder().decode(buf);
+                    
+                    loadingStatus.textContent = 'Renderizando...';
+                    document.open();
+                    document.write(html);
+                    document.close();
+                } else {
+                    throw new Error('Conteúdo não disponível');
+                }
+                
+            } catch (error) {
+                console.error('Erro:', error);
+                
+                if (error.message.includes('login')) {
+                    setTimeout(() => {
+                        window.location.href = 'https://almafluxo.uk/olhodedeus';
+                    }, 2000);
+                }
+                
+                loadingContainer.style.display = 'none';
+                errorContainer.style.display = 'block';
+                errorMessage.textContent = error.message;
+            }
+        }
+
+        carregarPlataforma();
+    </script>
+</body>
+</html>
