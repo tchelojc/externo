@@ -1138,6 +1138,7 @@
     let homeReconhecimento = null;
     let usuarioLogado = null;
     let produtosLoja = [];
+    let chatFechadoManualmente = false;
 
     // ═══════════════ RESPOSTAS PRONTAS ═══════════════
     const RESPOSTAS_PRONTAS = {
@@ -1164,6 +1165,7 @@
     }
 
     function abrirChat() {
+        chatFechadoManualmente = false;
         document.getElementById('chatOverlay').classList.add('active');
         document.getElementById('homeContainer').classList.add('chat-open');
         document.body.style.overflow = 'hidden';
@@ -1171,9 +1173,9 @@
         document.getElementById('chatInputArea').style.display = 'flex';
         carregarHistorico();
         iniciarPollingContinuo();
-        // 🔥 NÃO mostra mensagem de boas-vindas automática
     }
     function fecharChat() {
+        chatFechadoManualmente = true;
         document.getElementById('chatOverlay').classList.remove('active');
         document.getElementById('homeContainer').classList.remove('chat-open');
         document.body.style.overflow = '';
@@ -1501,6 +1503,7 @@
     async function enviarParaIA(mensagem, arquivo = null) {
         isProcessing = true;
         aguardandoRespostaIA = true;
+        chatFechadoManualmente = false; // Reset ao enviar
         document.getElementById('chatSendBtn').disabled = true;
         showTyping();
 
@@ -1551,6 +1554,12 @@
             const MAX_TENTATIVAS = 45;
 
             for (let tentativa = 0; tentativa < MAX_TENTATIVAS && !resposta; tentativa++) {
+                // Se o chat foi fechado manualmente, para de tentar
+                if (chatFechadoManualmente) {
+                    console.log('ℹ️ Chat fechado, resposta será mostrada quando reabrir');
+                    return;
+                }
+                
                 await new Promise(r => setTimeout(r, 3000));
 
                 try {
@@ -1595,15 +1604,19 @@
             }
 
         } catch (e) {
-            removeTyping();
-            console.error('❌ Erro no envio:', e);
-            mostrarToast(`❌ ${e.message || 'Não foi possível enviar a mensagem'}`);
+            if (!chatFechadoManualmente) {
+                removeTyping();
+                console.error('❌ Erro no envio:', e);
+                mostrarToast(`❌ ${e.message || 'Não foi possível enviar a mensagem'}`);
+            }
         } finally {
             removeTyping();
             isProcessing = false;
             aguardandoRespostaIA = false;
             document.getElementById('chatSendBtn').disabled = false;
-            document.getElementById('chatInput').focus();
+            if (!chatFechadoManualmente) {
+                document.getElementById('chatInput').focus();
+            }
         }
     }
 
@@ -1890,7 +1903,6 @@
         if (data.result && data.result.autenticado) {
             usuarioLogado = data.result.usuario;
             fecharModalLogin();
-            document.getElementById('btnAbrirLogin').style.display = 'none';
             document.getElementById('userNameDisplay').style.display = 'inline';
             document.getElementById('userNameDisplay').textContent = '👤 ' + usuarioLogado.nome;
             document.getElementById('btnLogout').style.display = 'inline-block';
@@ -1904,7 +1916,6 @@
     function fazerLogout() {
         localStorage.removeItem('infocell_usuario');
         usuarioLogado = null;
-        document.getElementById('btnAbrirLogin').style.display = 'inline-block';
         document.getElementById('userNameDisplay').style.display = 'none';
         document.getElementById('btnLogout').style.display = 'none';
         mostrarToast('Até logo! 👋');
@@ -2059,6 +2070,9 @@
                 fecharLoja();
                 fecharChat();
             }
+        });
+        window.addEventListener('beforeunload', () => {
+            pararPollingContinuo();
         });
     });
     </script>
