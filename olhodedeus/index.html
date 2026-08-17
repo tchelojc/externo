@@ -1176,16 +1176,30 @@
                 chatInput.setAttribute('name', 'chat_olho_' + Date.now());
             }
         });
-
         // ======================================================
         // CONFIGURAÇÃO
         // ======================================================
-        const API_CENTRAL = 'https://almafluxo.uk/proxy/central';
-        const PAGAMENTOS_URL = 'https://almafluxo.uk/pagamentos';
-        const OLHO_DE_DEUS_DRIVE = 'https://almafluxo.uk/olhodedeus';
-        const PROXY_CLOUDFLARE = 'https://almafluxo.uk/proxy/infocell';
-        const WHATSAPP_ATENDIMENTO = "5521981533928";
+        // ═══════════════════════════════════════════════════════════
+        // ROTAS CORRETAS (usando o Worker almafluxo.uk)
+        // ═══════════════════════════════════════════════════════════
 
+        // API Central (economia, login, cadastro, tokens)
+        const API_URL_OLHO = 'https://almafluxo.uk/economy';
+        // OU para chamadas diretas ao Central.gs via proxy:
+        const API_CENTRAL = 'https://almafluxo.uk/proxy/central';
+
+        // Página de Pagamentos (HTML do Drive)
+        const PAGAMENTOS_URL = 'https://almafluxo.uk/pagamentos';
+
+        // Plataforma Olho De Deus (conteúdo do Drive)
+        const OLHO_DE_DEUS_DRIVE = 'https://almafluxo.uk/proxy/central';
+
+        // Chat de Atendimento (backend InfoCell)
+        const PROXY_CLOUDFLARE = 'https://almafluxo.uk/proxy/infocell';
+
+        // WhatsApp
+        const WHATSAPP_ATENDIMENTO = "5521981533928";
+        
         let usuarioLogadoOlho = null;
         let isProcessingChat = false;
         let sessionIdChat = localStorage.getItem('olho_de_deus_session_id');
@@ -1195,25 +1209,36 @@
         }
 
         // ======================================================
-        // NAVEGAÇÃO
+        // NAVEGAÇÃO PARA PAGAMENTOS
         // ======================================================
+        // 2. IR PARA PAGAMENTOS (via Worker)
         function irParaPagamentos() {
+            // 🔥 ROTA CORRETA: https://almafluxo.uk/pagamentos
             window.open('https://almafluxo.uk/pagamentos', '_blank');
         }
+        // ======================================================
+        // FUNÇÕES CORRIGIDAS
+        // ======================================================
 
-        // ======================================================
-        // INTERFACE PÓS-LOGIN
-        // ======================================================
+        // Função para atualizar a interface após login
         function atualizarInterfaceLogado() {
             if (usuarioLogadoOlho) {
+                // Mostra nome do usuário
                 document.getElementById('userNameDisplay').textContent = '👤 ' + usuarioLogadoOlho.nome;
                 document.getElementById('userNameDisplay').style.display = 'inline';
+                
+                // Mostra botão de plataforma na navbar
                 document.getElementById('btnAcessarPlataforma').style.display = 'inline-block';
+                
+                // Mostra botão de entrar no hero
                 document.getElementById('btnAbrirOlho').style.display = 'inline-block';
                 document.getElementById('nomeUsuarioBtn').textContent = usuarioLogadoOlho.nome.split(' ')[0];
+                
+                // Troca Login por Sair
                 document.getElementById('btnLogin').style.display = 'none';
                 document.getElementById('btnLogout').style.display = 'inline-block';
                 
+                // Atualiza token display
                 if (usuarioLogadoOlho.master) {
                     document.getElementById('tokenDisplay').textContent = '⚡ ∞ MASTER';
                 } else {
@@ -1222,49 +1247,35 @@
             }
         }
 
+        async function abrirPlataformaDireto() {
+            if (!usuarioLogadoOlho) {
+                abrirModalLogin();
+                return;
+            }
+            
+            mostrarToastOlho('🚀 Abrindo plataforma...');
+            
+            // 🔥 REDIRECIONAMENTO DIRETO NA MESMA ABA
+            window.location.href = 'https://almafluxo.uk/proxy/central';
+        }
+
+        // Função de logout
         function fazerLogout() {
             usuarioLogadoOlho = null;
             localStorage.removeItem('olho_de_deus_usuario');
+            
+            // Esconde elementos de logado
             document.getElementById('userNameDisplay').style.display = 'none';
             document.getElementById('btnAcessarPlataforma').style.display = 'none';
             document.getElementById('btnAbrirOlho').style.display = 'none';
             document.getElementById('btnLogout').style.display = 'none';
             document.getElementById('btnLogin').style.display = 'inline-block';
             document.getElementById('tokenDisplay').textContent = '⚡ 0 Tokens';
+            
             mostrarToastOlho('👋 Até logo!');
         }
 
-        // ======================================================
-        // ABRIR PLATAFORMA
-        // ======================================================
-        function abrirPlataformaDireto() {
-            if (!usuarioLogadoOlho) {
-                abrirModalLogin();
-                return;
-            }
-            mostrarToastOlho('🚀 Abrindo plataforma...');
-            // Redirecionamento direto
-            window.location.href = 'https://almafluxo.uk/olhodedeus';
-        }
-
-        // ======================================================
-        // LOGIN (ÚNICA DEFINIÇÃO)
-        // ======================================================
-        function abrirModalLogin() {
-            if (usuarioLogadoOlho) {
-                mostrarToastOlho('✅ Você já está logado!');
-                return;
-            }
-            document.getElementById('modalLogin').classList.add('active');
-            document.body.style.overflow = 'hidden';
-            document.getElementById('loginStatus').textContent = '';
-        }
-
-        function fecharModalLogin() {
-            document.getElementById('modalLogin').classList.remove('active');
-            document.body.style.overflow = '';
-        }
-
+        // LOGIN ATUALIZADO
         async function fazerLogin() {
             const email = document.getElementById('loginEmail').value.trim().toLowerCase();
             const senha = document.getElementById('loginSenha').value;
@@ -1283,7 +1294,11 @@
                 const response = await fetch('https://almafluxo.uk/proxy/central', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'login', email, senha })
+                    body: JSON.stringify({ 
+                        action: 'login', 
+                        email, 
+                        senha 
+                    })
                 });
                 const data = await response.json();
 
@@ -1298,6 +1313,7 @@
                     };
                     localStorage.setItem('olho_de_deus_usuario', JSON.stringify(usuarioLogadoOlho));
                     
+                    // 🔥 Atualiza interface
                     atualizarInterfaceLogado();
                     
                     if (data.master) {
@@ -1306,15 +1322,17 @@
                         mostrarToastOlho(`✅ Bem-vindo, ${data.nome}!`);
                     }
                     
-                    statusEl.textContent = '✅ Login realizado! Redirecionando...';
+                    statusEl.textContent = '✅ Login realizado!';
                     statusEl.style.color = '#4caf50';
                     
+                    // 🔥 NOVO: Fecha o modal e REDIRECIONA DIRETAMENTE
                     fecharModalLogin();
                     
-                    // 🔥 REDIRECIONAMENTO DIRETO
+                    // 🔥 REDIRECIONAMENTO DIRETO PARA A PLATAFORMA
                     setTimeout(() => {
-                        window.location.href = 'https://almafluxo.uk/olhodedeus';
-                    }, 800);
+                        // Abre a plataforma na MESMA aba (redirecionamento direto)
+                        window.location.href = 'https://almafluxo.uk/proxy/central';
+                    }, 1000); // 1 segundo para o usuário ver a mensagem de sucesso
                     
                 } else {
                     statusEl.textContent = '❌ ' + (data.error || 'Credenciais inválidas.');
@@ -1326,40 +1344,379 @@
             }
         }
 
-        // ======================================================
-        // CONSULTAR SALDO
-        // ======================================================
+        // 2. CONSULTAR SALDO
         async function consultarSaldoOlho(email, sessionToken) {
             try {
+                // ✅ CORRIGIDO: usa proxy/central
                 const response = await fetch('https://almafluxo.uk/proxy/central', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'consultarSaldo', email, sessionToken })
+                    body: JSON.stringify({ 
+                        action: 'consultarSaldo', 
+                        email,
+                        sessionToken
+                    })
                 });
                 return await response.json();
             } catch (e) {
+                console.error('Erro ao consultar saldo:', e);
                 return { ok: false, error: 'Erro de conexão' };
             }
         }
 
-        // ======================================================
-        // DEBITAR TOKENS
-        // ======================================================
+        // 3. DEBITAR TOKENS
         async function debitarTokensOlho(email, quantidade, sessionToken) {
             try {
+                // ✅ CORRIGIDO: usa proxy/central
                 const response = await fetch('https://almafluxo.uk/proxy/central', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'debitarTokens', email, quantidade, plataforma: 'olhodedeus', sessionToken })
+                    body: JSON.stringify({ 
+                        action: 'debitarTokens', 
+                        email,
+                        quantidade,
+                        plataforma: 'olhodedeus',
+                        sessionToken
+                    })
                 });
                 return await response.json();
             } catch (e) {
+                console.error('Erro ao debitar tokens:', e);
                 return { ok: false, error: 'Erro de conexão' };
             }
         }
 
+        // 4. ACESSAR CONTEÚDO
+        async function acessarConteudoOlho() {
+            try {
+                // MASTER acesso direto
+                if (usuarioLogadoOlho.master || usuarioLogadoOlho.acessoUniversal) {
+                    abrirModalPromptOlho();
+                    return;
+                }
+                
+                // Usuário normal: verifica saldo
+                const data = await consultarSaldoOlho(usuarioLogadoOlho.email, usuarioLogadoOlho.sessionToken);
+
+                if (!data.ok) {
+                    throw new Error(data.error || 'Erro ao verificar saldo');
+                }
+
+                if (data.balance < 10) {
+                    mostrarToastOlho(`⚠️ Saldo insuficiente! Você tem ${data.balance} tokens. Mínimo: 10`);
+                    abrirModalPlanos();
+                    return;
+                }
+
+                abrirModalPromptOlho();
+                
+            } catch (e) {
+                mostrarToastOlho('⚠️ Erro ao acessar: ' + e.message);
+            }
+        }
+
+        // 5. ATIVAR ACESSO (debitar tokens + liberar plataforma)
+        async function ativarAcesso() {
+            if (!usuarioLogadoOlho) {
+                abrirModalLogin();
+                return;
+            }
+
+            const tokensNecessarios = parseInt(document.getElementById('planoAcesso').value);
+            const statusEl = document.getElementById('acessoStatus');
+
+            statusEl.textContent = `⏳ Verificando saldo (${tokensNecessarios} tokens necessários)...`;
+            statusEl.style.color = 'var(--ciano)';
+
+            try {
+                // Verifica saldo
+                const saldoData = await consultarSaldoOlho(usuarioLogadoOlho.email, usuarioLogadoOlho.sessionToken);
+
+                if (!saldoData.ok) {
+                    throw new Error(saldoData.error || 'Erro ao consultar saldo');
+                }
+
+                if (saldoData.balance < tokensNecessarios) {
+                    statusEl.textContent = `❌ Saldo insuficiente! Você tem ${saldoData.balance} tokens. Necessário: ${tokensNecessarios}`;
+                    statusEl.style.color = '#ff6b6b';
+                    return;
+                }
+
+                // Debita tokens
+                const debitoData = await debitarTokensOlho(usuarioLogadoOlho.email, tokensNecessarios, usuarioLogadoOlho.sessionToken);
+
+                if (debitoData.ok) {
+                    usuarioLogadoOlho.balance = debitoData.saldoRestante || (saldoData.balance - tokensNecessarios);
+                    localStorage.setItem('olho_de_deus_usuario', JSON.stringify(usuarioLogadoOlho));
+                    document.getElementById('tokenDisplay').textContent = `⚡ ${usuarioLogadoOlho.balance} Tokens`;
+                    
+                    statusEl.textContent = '✅ Acesso ativado!';
+                    statusEl.style.color = '#4caf50';
+                    mostrarToastOlho('✅ Acesso ativado com sucesso!');
+                    
+                    setTimeout(() => {
+                        fecharModalPlanos();
+                        acessarConteudoOlho();
+                    }, 1500);
+                } else {
+                    throw new Error(debitoData.error || 'Erro ao debitar tokens');
+                }
+            } catch (erro) {
+                statusEl.textContent = '❌ ' + erro.message;
+                statusEl.style.color = '#ff6b6b';
+            }
+        }
+
+        // 6. ACESSAR PLATAFORMA (verifica saldo + libera conteúdo)
+        async function acessarPlataforma() {
+            if (!usuarioLogadoOlho) {
+                const sessao = localStorage.getItem('olho_de_deus_usuario');
+                if (sessao) {
+                    usuarioLogadoOlho = JSON.parse(sessao);
+                } else {
+                    abrirModalLogin();
+                    return;
+                }
+            }
+
+            mostrarToastOlho('⏳ Verificando seu acesso...');
+            await acessarConteudoOlho();
+        }
+
         // ======================================================
-        // PLANOS
+        // PROMPT OLHO DE DEUS (mensagem padronizada de entrada)
+        // ======================================================
+        function abrirModalPromptOlho() {
+            document.getElementById('modalPromptOlho').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function fecharModalPromptOlho() {
+            document.getElementById('modalPromptOlho').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function confirmarEntradaOlho() {
+            fecharModalPromptOlho();
+            // 🔥 REDIRECIONAMENTO DIRETO NA MESMA ABA
+            window.location.href = 'https://almafluxo.uk/proxy/central';
+        }
+
+        // 7. CHAT DE ATENDIMENTO (já está correto)
+        async function enviarParaIAOlho(mensagem) {
+            isProcessingChat = true;
+            document.getElementById('chatSendBtnOlho').disabled = true;
+            showTypingOlho();
+
+            try {
+                // 🔥 ROTA CORRETA: https://almafluxo.uk/proxy/infocell
+                await fetch('https://almafluxo.uk/proxy/infocell', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        action: 'saveChatAtendente', 
+                        leadId: sessionIdChat,
+                        nomeLead: 'Visitante Olho De Deus',
+                        de: 'lead',
+                        texto: mensagem
+                    })
+                });
+
+                // Polling para resposta
+                let resposta = null;
+                const MAX_TENTATIVAS = 20;
+                
+                for (let tentativa = 0; tentativa < MAX_TENTATIVAS && !resposta; tentativa++) {
+                    await new Promise(r => setTimeout(r, 3000));
+                    
+                    try {
+                        const resp = await fetch(`https://almafluxo.uk/proxy/infocell?action=getChatAtendente&leadId=${sessionIdChat}`);
+                        const data = await resp.json();
+                        const mensagens = data.conversas?.[sessionIdChat]?.mensagens || [];
+                        
+                        const ultimas = mensagens.filter(m => m.de === 'atendente');
+                        if (ultimas.length > 0) {
+                            const ultima = ultimas[ultimas.length - 1];
+                            if (ultima.texto && !ultima.texto.includes('Desculpe')) {
+                                resposta = ultima.texto;
+                            }
+                        }
+                    } catch (e) {}
+                }
+
+                removeTypingOlho();
+
+                if (resposta) {
+                    addMessageOlho('ai', resposta);
+                }
+
+            } catch (e) {
+                removeTypingOlho();
+                mostrarToastOlho('❌ Erro ao enviar mensagem');
+            } finally {
+                removeTypingOlho();
+                isProcessingChat = false;
+                document.getElementById('chatSendBtnOlho').disabled = false;
+                document.getElementById('chatInputOlho').focus();
+            }
+        }
+        // ======================================================
+        // LOGIN
+        // ======================================================
+        function abrirModalLogin() {
+            if (usuarioLogadoOlho) {
+                // Já está logado
+                mostrarToastOlho('✅ Você já está logado!');
+                return;
+            }
+            document.getElementById('modalLogin').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            document.getElementById('loginStatus').textContent = '';
+        }
+
+        function fecharModalLogin() {
+            document.getElementById('modalLogin').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+// ======================================================
+// FUNÇÕES CORRIGIDAS
+// ======================================================
+
+// 1. LOGIN
+async function fazerLogin() {
+    const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+    const senha = document.getElementById('loginSenha').value;
+    const statusEl = document.getElementById('loginStatus');
+
+    if (!email || !senha) {
+        statusEl.textContent = '⚠️ Preencha e-mail e senha.';
+        statusEl.style.color = '#ff6b6b';
+        return;
+    }
+
+    statusEl.textContent = '⏳ Entrando...';
+    statusEl.style.color = 'var(--ciano)';
+
+    try {
+        // ✅ CORRIGIDO: usa proxy/central
+        const response = await fetch('https://almafluxo.uk/proxy/central', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                action: 'login', 
+                email, 
+                senha 
+            })
+        });
+        const data = await response.json();
+
+        if (data.ok) {
+            usuarioLogadoOlho = {
+                nome: data.nome,
+                email: email,
+                balance: data.balance,
+                sessionToken: data.sessionToken,
+                master: data.master || false,
+                acessoUniversal: data.acessoUniversal || false
+            };
+            localStorage.setItem('olho_de_deus_usuario', JSON.stringify(usuarioLogadoOlho));
+            
+            if (data.master) {
+                document.getElementById('tokenDisplay').textContent = '⚡ ∞ MASTER';
+                mostrarToastOlho('✅ Acesso MASTER ativado!');
+            } else {
+                document.getElementById('tokenDisplay').textContent = `⚡ ${data.balance} Tokens`;
+                mostrarToastOlho(`✅ Bem-vindo, ${data.nome}!`);
+            }
+            
+            statusEl.textContent = '✅ Login realizado!';
+            statusEl.style.color = '#4caf50';
+            
+            setTimeout(fecharModalLogin, 1500);
+        } else {
+            statusEl.textContent = '❌ ' + (data.error || 'Credenciais inválidas.');
+            statusEl.style.color = '#ff6b6b';
+        }
+    } catch (erro) {
+        statusEl.textContent = '⚠️ Erro de conexão.';
+        statusEl.style.color = '#ff6b6b';
+    }
+}
+
+// 2. CONSULTAR SALDO
+async function consultarSaldoOlho(email, sessionToken) {
+    try {
+        // ✅ CORRIGIDO: usa proxy/central
+        const response = await fetch('https://almafluxo.uk/proxy/central', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                action: 'consultarSaldo', 
+                email,
+                sessionToken
+            })
+        });
+        return await response.json();
+    } catch (e) {
+        console.error('Erro ao consultar saldo:', e);
+        return { ok: false, error: 'Erro de conexão' };
+    }
+}
+
+// 3. DEBITAR TOKENS
+async function debitarTokensOlho(email, quantidade, sessionToken) {
+    try {
+        // ✅ CORRIGIDO: usa proxy/central
+        const response = await fetch('https://almafluxo.uk/proxy/central', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                action: 'debitarTokens', 
+                email,
+                quantidade,
+                plataforma: 'olhodedeus',
+                sessionToken
+            })
+        });
+        return await response.json();
+    } catch (e) {
+        console.error('Erro ao debitar tokens:', e);
+        return { ok: false, error: 'Erro de conexão' };
+    }
+}
+
+// 4. ACESSAR CONTEÚDO
+async function acessarConteudoOlho() {
+    try {
+        // MASTER acesso direto
+        if (usuarioLogadoOlho.master || usuarioLogadoOlho.acessoUniversal) {
+            abrirModalPromptOlho();
+            return;
+        }
+        
+        // Usuário normal: verifica saldo
+        const data = await consultarSaldoOlho(usuarioLogadoOlho.email, usuarioLogadoOlho.sessionToken);
+
+        if (!data.ok) {
+            throw new Error(data.error || 'Erro ao verificar saldo');
+        }
+
+        if (data.balance < 10) {
+            mostrarToastOlho(`⚠️ Saldo insuficiente! Você tem ${data.balance} tokens. Mínimo: 10`);
+            abrirModalPlanos();
+            return;
+        }
+
+        abrirModalPromptOlho();
+        
+    } catch (e) {
+        mostrarToastOlho('⚠️ Erro ao acessar: ' + e.message);
+    }
+}
+
+        // ======================================================
+        // PLANOS DE ACESSO
         // ======================================================
         function abrirModalPlanos() {
             if (!usuarioLogadoOlho) {
@@ -1376,71 +1733,28 @@
             document.body.style.overflow = '';
         }
 
-        async function ativarAcesso() {
-            if (!usuarioLogadoOlho) {
-                abrirModalLogin();
-                return;
-            }
-
-            const tokensNecessarios = parseInt(document.getElementById('planoAcesso').value);
-            const statusEl = document.getElementById('acessoStatus');
-
-            statusEl.textContent = `⏳ Verificando saldo (${tokensNecessarios} tokens)...`;
-            statusEl.style.color = 'var(--ciano)';
-
-            try {
-                const saldoData = await consultarSaldoOlho(usuarioLogadoOlho.email, usuarioLogadoOlho.sessionToken);
-
-                if (!saldoData.ok) throw new Error(saldoData.error);
-
-                if (saldoData.balance < tokensNecessarios) {
-                    statusEl.textContent = `❌ Saldo insuficiente! Você tem ${saldoData.balance} tokens.`;
-                    statusEl.style.color = '#ff6b6b';
-                    return;
-                }
-
-                const debitoData = await debitarTokensOlho(usuarioLogadoOlho.email, tokensNecessarios, usuarioLogadoOlho.sessionToken);
-
-                if (debitoData.ok) {
-                    usuarioLogadoOlho.balance = debitoData.saldoRestante || (saldoData.balance - tokensNecessarios);
-                    localStorage.setItem('olho_de_deus_usuario', JSON.stringify(usuarioLogadoOlho));
-                    document.getElementById('tokenDisplay').textContent = `⚡ ${usuarioLogadoOlho.balance} Tokens`;
-                    statusEl.textContent = '✅ Acesso ativado!';
-                    statusEl.style.color = '#4caf50';
-                    mostrarToastOlho('✅ Acesso ativado!');
-                    
-                    setTimeout(() => {
-                        fecharModalPlanos();
-                        window.location.href = 'https://almafluxo.uk/olhodedeus';
-                    }, 800);
-                }
-            } catch (erro) {
-                statusEl.textContent = '❌ ' + erro.message;
-                statusEl.style.color = '#ff6b6b';
-            }
-        }
-
         // ======================================================
-        // CHAT
+        // CHAT DE ATENDIMENTO (MESMA LÓGICA DO INFOCELL)
         // ======================================================
         function mostrarToastOlho(msg) {
             const t = document.createElement('div');
-            t.className = 'toast-olho';
+            t.className = 'toast-olho'; 
             t.textContent = msg;
             document.body.appendChild(t);
             setTimeout(() => t.remove(), 3000);
         }
 
         const RESPOSTAS_PRONTAS_OLHO = {
-            "como_funciona": "⚙️ O Olho De Deus usa algoritmos preditivos avançados.",
-            "planos": "💎 Planos: 10/30/100/300/2000 tokens.",
-            "suporte": "🆘 Fale no WhatsApp: 21 98153-3928"
+            "como_funciona": "⚙️ O Olho De Deus usa algoritmos preditivos avançados para analisar padrões no Trading e no Futebol. Você compra tokens e acessa a plataforma com sua conta.",
+            "planos": "💎 Temos 5 planos:\n⏱️ 1 Hora: 10 tokens\n📆 1 Dia: 30 tokens\n📆 1 Semana: 100 tokens\n📆 1 Mês: 300 tokens\n📆 1 Ano: 2000 tokens\n\nQual você gostaria de ativar?",
+            "suporte": "🆘 Para suporte técnico, fale com nosso time pelo WhatsApp ou aguarde um atendente aqui no chat."
         };
 
         function respostaProntaOlho(tipo) {
             const resposta = RESPOSTAS_PRONTAS_OLHO[tipo];
             if (!resposta) return;
             addMessageOlho('ai', resposta);
+            setTimeout(() => enviarParaIAOlho(resposta), 800);
         }
 
         function addMessageOlho(tipo, texto) {
@@ -1448,76 +1762,41 @@
             const d = document.createElement('div');
             d.className = `message-olho ${tipo === 'user' ? 'user' : 'ai'}`;
             d.innerHTML = texto.replace(/\n/g, '<br>');
-            c.appendChild(d);
+            c.appendChild(d); 
             c.scrollTop = c.scrollHeight;
         }
 
         function showTypingOlho() {
             const c = document.getElementById('chatMessagesOlho');
             const t = document.createElement('div');
-            t.className = 'message-olho ai';
+            t.className = 'message-olho ai'; 
             t.id = 'typingIndicatorOlho';
             t.innerHTML = '<div class="typing-indicator-olho"><div class="typing-dot-olho"></div><div class="typing-dot-olho"></div><div class="typing-dot-olho"></div></div>';
-            c.appendChild(t);
+            c.appendChild(t); 
             c.scrollTop = c.scrollHeight;
         }
 
-        function removeTypingOlho() {
-            const t = document.getElementById('typingIndicatorOlho');
-            if (t) t.remove();
+        function removeTypingOlho() { 
+            const t = document.getElementById('typingIndicatorOlho'); 
+            if (t) t.remove(); 
         }
 
         async function enviarMensagemOlho() {
             const input = document.getElementById('chatInputOlho');
             const texto = input.value.trim();
+            
             if (!texto || isProcessingChat) return;
+
             addMessageOlho('user', texto);
             input.value = '';
+            
             await enviarParaIAOlho(texto);
-        }
-
-        async function enviarParaIAOlho(mensagem) {
-            isProcessingChat = true;
-            document.getElementById('chatSendBtnOlho').disabled = true;
-            showTypingOlho();
-
-            try {
-                await fetch('https://almafluxo.uk/proxy/infocell', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'saveChatAtendente', leadId: sessionIdChat, nomeLead: 'Visitante', de: 'lead', texto: mensagem })
-                });
-
-                let resposta = null;
-                for (let i = 0; i < 20 && !resposta; i++) {
-                    await new Promise(r => setTimeout(r, 3000));
-                    try {
-                        const resp = await fetch(`https://almafluxo.uk/proxy/infocell?action=getChatAtendente&leadId=${sessionIdChat}`);
-                        const data = await resp.json();
-                        const mensagens = data.conversas?.[sessionIdChat]?.mensagens || [];
-                        const ultimas = mensagens.filter(m => m.de === 'atendente');
-                        if (ultimas.length > 0) {
-                            const ultima = ultimas[ultimas.length - 1];
-                            if (ultima.texto && !ultima.texto.includes('Desculpe')) resposta = ultima.texto;
-                        }
-                    } catch (e) {}
-                }
-
-                removeTypingOlho();
-                if (resposta) addMessageOlho('ai', resposta);
-            } catch (e) {
-                removeTypingOlho();
-                mostrarToastOlho('❌ Erro');
-            } finally {
-                removeTypingOlho();
-                isProcessingChat = false;
-                document.getElementById('chatSendBtnOlho').disabled = false;
-            }
         }
 
         // ======================================================
         // INICIALIZAÇÃO
         // ======================================================
+        // INICIALIZAÇÃO ATUALIZADA
         document.addEventListener('DOMContentLoaded', () => {
             const sessao = localStorage.getItem('olho_de_deus_usuario');
             if (sessao) {
@@ -1526,8 +1805,6 @@
             } else {
                 document.getElementById('tokenDisplay').textContent = '⚡ 0 Tokens';
             }
-            
-            document.getElementById('chatInputOlho').value = '';
             
             setTimeout(() => {
                 if (document.getElementById('chatMessagesOlho').children.length === 0) {
