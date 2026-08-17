@@ -115,44 +115,17 @@
                 loadingStatus.textContent = 'Validando acesso...';
                 
                 if (usuario.master || usuario.acessoUniversal) {
-                    loadingStatus.textContent = 'Acesso MASTER confirmado!';
+                    loadingStatus.textContent = 'Acesso MASTER confirmado! Redirecionando...';
                 } else if (usuario.balance < 10) {
                     throw new Error('Saldo insuficiente! Você tem ' + usuario.balance + ' tokens.');
                 } else {
-                    loadingStatus.textContent = 'Saldo confirmado (' + usuario.balance + ' tokens).';
+                    loadingStatus.textContent = 'Saldo confirmado! Redirecionando...';
                 }
                 
-                loadingStatus.textContent = 'Buscando plataforma...';
-                
-                // 🔥 CORRIGIDO: Usa a ROTA do Worker (o ID fica no Worker)
-                const response = await fetch('https://almafluxo.uk/app-olhodedeus', {
-                    method: 'GET',
-                    signal: AbortSignal.timeout(30000)
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Servidor retornou status ' + response.status);
-                }
-                
-                const html = await response.text();
-                
-                // Verifica se é HTML válido ou JSON de erro
-                if (html.includes('<!DOCTYPE') || html.includes('<html')) {
-                    loadingStatus.textContent = 'Renderizando...';
-                    document.open();
-                    document.write(html);
-                    document.close();
-                } else {
-                    try {
-                        const json = JSON.parse(html);
-                        throw new Error(json.error || 'Erro ao carregar plataforma');
-                    } catch (parseError) {
-                        if (parseError.message !== 'Erro ao carregar plataforma') {
-                            throw parseError;
-                        }
-                        throw new Error('Resposta inválida do servidor');
-                    }
-                }
+                // 🔥 MELHOR SOLUÇÃO: Redirecionamento direto
+                setTimeout(() => {
+                    window.location.href = 'https://almafluxo.uk/app-olhodedeus';
+                }, 500);
                 
             } catch (error) {
                 console.error('Erro:', error);
