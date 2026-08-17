@@ -917,7 +917,17 @@
         <div class="nav-brand">ALMAFLUXO <span>| Olho De Deus</span></div>
         <div class="nav-actions">
             <div class="token-display" id="tokenDisplay">⚡ Carregando...</div>
-            <button class="btn-nav btn-nav-outline" onclick="abrirModalLogin()">🔑 Login</button>
+            
+            <!-- 🔥 NOVO: Botão que aparece APÓS login -->
+            <button class="btn-nav" id="btnAcessarPlataforma" style="display:none;" onclick="abrirPlataformaDireto()">
+                🚀 Abrir Plataforma
+            </button>
+            
+            <!-- 🔥 NOVO: Nome do usuário logado -->
+            <span id="userNameDisplay" style="color:var(--dourado);font-weight:700;font-size:0.85rem;display:none;"></span>
+            
+            <button class="btn-nav btn-nav-outline" id="btnLogin" onclick="abrirModalLogin()">🔑 Login</button>
+            <button class="btn-nav" id="btnLogout" style="display:none;background:#FF4444;" onclick="fazerLogout()">Sair</button>
             <button class="btn-nav" onclick="irParaPagamentos()">Comprar Tokens</button>
         </div>
     </nav>
@@ -934,6 +944,12 @@
             <div class="hero-buttons">
                 <button class="btn-primary" onclick="abrirModalPlanos()">▶ Acessar com Tokens</button>
                 <button class="btn-primary" onclick="acessarPlataforma()">🔓 Acessar Plataforma</button>
+                
+                <!-- 🔥 NOVO: Botão que aparece APÓS login com nome do usuário -->
+                <button class="btn-primary" id="btnAbrirOlho" style="display:none;background:var(--dourado);color:#000;box-shadow:0 0 30px rgba(255,215,0,0.3);" onclick="abrirPlataformaDireto()">
+                    🚀 Entrar como <span id="nomeUsuarioBtn"></span>
+                </button>
+                
                 <button class="btn-secondary" onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})">▶ Explorar</button>
             </div>
         </div>
@@ -1127,9 +1143,6 @@
     </div>
 
     <!-- ===== MODAL DO PROMPT OLHO DE DEUS (venda + tutorial) ===== -->
-    <!-- 🔥 NOVO: mensagem padronizada mostrada sempre que o acesso é
-         liberado por aqui (tanto por "Acessar com Tokens" quanto por
-         "Acessar Plataforma"), antes de abrir o Olho De Deus de fato. -->
     <div class="modal-overlay" id="modalPromptOlho">
         <div class="modal" style="max-width:480px;">
             <button class="close-btn" onclick="fecharModalPromptOlho()">✕</button>
@@ -1197,7 +1210,88 @@
         // FUNÇÕES CORRIGIDAS
         // ======================================================
 
-        // 1. LOGIN
+        // Função para atualizar a interface após login
+        function atualizarInterfaceLogado() {
+            if (usuarioLogadoOlho) {
+                // Mostra nome do usuário
+                document.getElementById('userNameDisplay').textContent = '👤 ' + usuarioLogadoOlho.nome;
+                document.getElementById('userNameDisplay').style.display = 'inline';
+                
+                // Mostra botão de plataforma na navbar
+                document.getElementById('btnAcessarPlataforma').style.display = 'inline-block';
+                
+                // Mostra botão de entrar no hero
+                document.getElementById('btnAbrirOlho').style.display = 'inline-block';
+                document.getElementById('nomeUsuarioBtn').textContent = usuarioLogadoOlho.nome.split(' ')[0];
+                
+                // Troca Login por Sair
+                document.getElementById('btnLogin').style.display = 'none';
+                document.getElementById('btnLogout').style.display = 'inline-block';
+                
+                // Atualiza token display
+                if (usuarioLogadoOlho.master) {
+                    document.getElementById('tokenDisplay').textContent = '⚡ ∞ MASTER';
+                } else {
+                    document.getElementById('tokenDisplay').textContent = `⚡ ${usuarioLogadoOlho.balance} Tokens`;
+                }
+            }
+        }
+
+        // Função para abrir a plataforma diretamente (após login)
+        async function abrirPlataformaDireto() {
+            if (!usuarioLogadoOlho) {
+                abrirModalLogin();
+                return;
+            }
+            
+            mostrarToastOlho('🚀 Abrindo plataforma...');
+            
+            // Verifica acesso (MASTER ou saldo suficiente)
+            try {
+                // MASTER acesso direto
+                if (usuarioLogadoOlho.master || usuarioLogadoOlho.acessoUniversal) {
+                    window.open('https://almafluxo.uk/olhodedeus', '_blank');
+                    return;
+                }
+                
+                // Usuário normal: verifica saldo
+                const data = await consultarSaldoOlho(usuarioLogadoOlho.email, usuarioLogadoOlho.sessionToken);
+                
+                if (!data.ok) {
+                    mostrarToastOlho('⚠️ Erro ao verificar saldo');
+                    return;
+                }
+                
+                if (data.balance < 10) {
+                    mostrarToastOlho(`⚠️ Saldo insuficiente! Você tem ${data.balance} tokens. Mínimo: 10`);
+                    abrirModalPlanos();
+                    return;
+                }
+                
+                window.open('https://almafluxo.uk/olhodedeus', '_blank');
+                
+            } catch (e) {
+                mostrarToastOlho('⚠️ Erro ao acessar: ' + e.message);
+            }
+        }
+
+        // Função de logout
+        function fazerLogout() {
+            usuarioLogadoOlho = null;
+            localStorage.removeItem('olho_de_deus_usuario');
+            
+            // Esconde elementos de logado
+            document.getElementById('userNameDisplay').style.display = 'none';
+            document.getElementById('btnAcessarPlataforma').style.display = 'none';
+            document.getElementById('btnAbrirOlho').style.display = 'none';
+            document.getElementById('btnLogout').style.display = 'none';
+            document.getElementById('btnLogin').style.display = 'inline-block';
+            document.getElementById('tokenDisplay').textContent = '⚡ 0 Tokens';
+            
+            mostrarToastOlho('👋 Até logo!');
+        }
+
+        // LOGIN ATUALIZADO
         async function fazerLogin() {
             const email = document.getElementById('loginEmail').value.trim().toLowerCase();
             const senha = document.getElementById('loginSenha').value;
@@ -1213,7 +1307,6 @@
             statusEl.style.color = 'var(--ciano)';
 
             try {
-                // ✅ CORRIGIDO: usa proxy/central
                 const response = await fetch('https://almafluxo.uk/proxy/central', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1236,11 +1329,12 @@
                     };
                     localStorage.setItem('olho_de_deus_usuario', JSON.stringify(usuarioLogadoOlho));
                     
+                    // 🔥 NOVO: Atualiza interface
+                    atualizarInterfaceLogado();
+                    
                     if (data.master) {
-                        document.getElementById('tokenDisplay').textContent = '⚡ ∞ MASTER';
                         mostrarToastOlho('✅ Acesso MASTER ativado!');
                     } else {
-                        document.getElementById('tokenDisplay').textContent = `⚡ ${data.balance} Tokens`;
                         mostrarToastOlho(`✅ Bem-vindo, ${data.nome}!`);
                     }
                     
@@ -1713,17 +1807,16 @@ async function acessarConteudoOlho() {
         // ======================================================
         // INICIALIZAÇÃO
         // ======================================================
+        // INICIALIZAÇÃO ATUALIZADA
         document.addEventListener('DOMContentLoaded', () => {
-            // Carrega sessão salva
             const sessao = localStorage.getItem('olho_de_deus_usuario');
             if (sessao) {
                 usuarioLogadoOlho = JSON.parse(sessao);
-                document.getElementById('tokenDisplay').textContent = `⚡ ${usuarioLogadoOlho.balance} Tokens`;
+                atualizarInterfaceLogado();
             } else {
                 document.getElementById('tokenDisplay').textContent = '⚡ 0 Tokens';
             }
             
-            // Mensagem de boas-vindas no chat
             setTimeout(() => {
                 if (document.getElementById('chatMessagesOlho').children.length === 0) {
                     addMessageOlho('ai', '👁️ Olá! Sou o suporte do Olho De Deus. Como posso te ajudar hoje?');
