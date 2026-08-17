@@ -1247,7 +1247,6 @@
             }
         }
 
-        // Função para abrir a plataforma diretamente (após login)
         async function abrirPlataformaDireto() {
             if (!usuarioLogadoOlho) {
                 abrirModalLogin();
@@ -1256,17 +1255,8 @@
             
             mostrarToastOlho('🚀 Abrindo plataforma...');
             
-            // ✅ Usa a rota do Worker (nunca expõe o Drive)
-            // A rota /olhodedeus SERVE o HTML ou mostra iframe
-            const url = 'https://almafluxo.uk/olhodedeus?t=' + Date.now();
-            
-            // Abre em NOVA aba
-            const novaAba = window.open(url, '_blank');
-            
-            // Se o popup foi bloqueado, redireciona na mesma aba
-            if (!novaAba) {
-                window.location.href = url;
-            }
+            // 🔥 REDIRECIONAMENTO DIRETO NA MESMA ABA
+            window.location.href = 'https://almafluxo.uk/olhodedeus';
         }
 
         // Função de logout
@@ -1323,7 +1313,7 @@
                     };
                     localStorage.setItem('olho_de_deus_usuario', JSON.stringify(usuarioLogadoOlho));
                     
-                    // 🔥 NOVO: Atualiza interface
+                    // 🔥 Atualiza interface
                     atualizarInterfaceLogado();
                     
                     if (data.master) {
@@ -1335,7 +1325,15 @@
                     statusEl.textContent = '✅ Login realizado!';
                     statusEl.style.color = '#4caf50';
                     
-                    setTimeout(fecharModalLogin, 1500);
+                    // 🔥 NOVO: Fecha o modal e REDIRECIONA DIRETAMENTE
+                    fecharModalLogin();
+                    
+                    // 🔥 REDIRECIONAMENTO DIRETO PARA A PLATAFORMA
+                    setTimeout(() => {
+                        // Abre a plataforma na MESMA aba (redirecionamento direto)
+                        window.location.href = 'https://almafluxo.uk/olhodedeus';
+                    }, 1000); // 1 segundo para o usuário ver a mensagem de sucesso
+                    
                 } else {
                     statusEl.textContent = '❌ ' + (data.error || 'Credenciais inválidas.');
                     statusEl.style.color = '#ff6b6b';
@@ -1500,11 +1498,8 @@
 
         function confirmarEntradaOlho() {
             fecharModalPromptOlho();
-            // 🔥 NOVO: sinaliza pra página de destino (quando ela ler esse
-            // parâmetro) que o acesso veio por aqui, já passado pelo prompt
-            // padronizado — evita repetir a mesma explicação lá dentro.
-            const nomeParam = usuarioLogadoOlho?.nome ? `&nome=${encodeURIComponent(usuarioLogadoOlho.nome)}` : '';
-            window.open(`https://almafluxo.uk/olhodedeus?origem=prompt_olho${nomeParam}`, '_blank');
+            // 🔥 REDIRECIONAMENTO DIRETO NA MESMA ABA
+            window.location.href = 'https://almafluxo.uk/olhodedeus';
         }
 
         // 7. CHAT DE ATENDIMENTO (já está correto)
