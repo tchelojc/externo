@@ -874,129 +874,262 @@
 
     <script>
         // ═══════════════════════════════════════════════════════════════
-        // CONFIGURAÇÃO CENTRAL
+        // CONFIGURAÇÃO CENTRAL - LEITURA AUTOMÁTICA DE PASTAS DO GITHUB
         // ═══════════════════════════════════════════════════════════════
         const CONFIG = {
             WHATSAPP_NUMBER: "5521981533928",
             API_URL: "https://almafluxo.uk/proxy/infocell",
             ORIGEM: "kpgconstrucoes",
-            GITHUB_RAW_BASE: "https://raw.githubusercontent.com/SEU_USUARIO/SEU_REPOSITORIO/main",
-            PORTFOLIO_PATH: "/portfolio/obras/"
+            
+            // 🔥 CONFIGURAÇÃO DO GITHUB
+            GITHUB_USER: "tchelojc",
+            GITHUB_REPO: "externo",
+            GITHUB_BRANCH: "main",
+            GITHUB_PATH: "t/T/KPG/portfolio/obras",
+            
+            // API do GitHub para listar conteúdo
+            get GITHUB_API_URL() {
+                return `https://api.github.com/repos/${this.GITHUB_USER}/${this.GITHUB_REPO}/contents/${this.GITHUB_PATH}?ref=${this.GITHUB_BRANCH}`;
+            },
+            
+            // Base para imagens raw
+            get GITHUB_RAW_BASE() {
+                return `https://raw.githubusercontent.com/${this.GITHUB_USER}/${this.GITHUB_REPO}/${this.GITHUB_BRANCH}/${this.GITHUB_PATH}`;
+            }
         };
 
-        let sessionId = localStorage.getItem('kpg_session_id');
-        if (!sessionId) {
-            sessionId = "user_kpg_" + Date.now();
-            localStorage.setItem('kpg_session_id', sessionId);
-        }
-
-        let isProcessingChat = false;
-        let obrasCarregadas = [];
-
         // ═══════════════════════════════════════════════════════════════
-        // SERVIÇOS
+        // FUNÇÃO PARA LISTAR PASTAS AUTOMATICAMENTE DO GITHUB
         // ═══════════════════════════════════════════════════════════════
-        const servicos = [
-            { icone: "fa-building", titulo: "Construção Civil", desc: "Obras residenciais, comerciais e industriais" },
-            { icone: "fa-hammer", titulo: "Reformas e Restaurações", desc: "Reformas estruturais e estéticas" },
-            { icone: "fa-truck-pickup", titulo: "Demolições Seguras", desc: "Serviços seguindo normas rigorosas" },
-            { icone: "fa-file-signature", titulo: "Licitações Públicas", desc: "Especialistas em processos licitatórios" },
-            { icone: "fa-drafting-compass", titulo: "Projetos e Planejamento", desc: "Projetos executivos e orçamentos" },
-            { icone: "fa-clipboard-check", titulo: "Gerenciamento de Obras", desc: "Acompanhamento técnico e administrativo" }
-        ];
-
-        function renderizarServicos() {
-            const grid = document.getElementById('servicesGrid');
-            grid.innerHTML = '';
-            servicos.forEach(servico => {
-                const card = document.createElement('div');
-                card.className = 'service-card';
-                card.onclick = abrirModalOrcamento;
-                card.innerHTML = `
-                    <i class="fas ${servico.icone} service-icon"></i>
-                    <h4>${servico.titulo}</h4>
-                    <p>${servico.desc}</p>
-                `;
-                grid.appendChild(card);
-            });
-        }
-
-        // ═══════════════════════════════════════════════════════════════
-        // PORTFÓLIO - LEITURA AUTOMÁTICA DE PASTAS NO GITHUB
-        // ═══════════════════════════════════════════════════════════════
-        async function carregarPortfolio() {
+        async function carregarPortfolioAutomatico() {
             try {
-                // Tenta carregar o config.json
-                const configUrl = `${CONFIG.GITHUB_RAW_BASE}${CONFIG.PORTFOLIO_PATH}config.json`;
-                const response = await fetch(configUrl);
+                console.log('📂 Listando pastas do GitHub...');
+                console.log('🔗 URL:', CONFIG.GITHUB_API_URL);
                 
-                if (response.ok) {
-                    const config = await response.json();
-                    obrasCarregadas = config.obras || [];
-                } else {
-                    // Fallback: usa lista estática
-                    obrasCarregadas = getObrasFallback();
+                const response = await fetch(CONFIG.GITHUB_API_URL);
+                
+                if (!response.ok) {
+                    throw new Error(`Erro ${response.status}: ${response.statusText}`);
                 }
+                
+                const conteudo = await response.json();
+                
+                // Filtra apenas diretórios (pastas)
+                const pastas = conteudo.filter(item => item.type === 'dir');
+                
+                console.log(`✅ Encontradas ${pastas.length} pastas de obras`);
+                
+                // Para cada pasta, busca as imagens
+                obrasCarregadas = [];
+                
+                for (const pasta of pastas) {
+                    const obra = await processarPastaObra(pasta);
+                    if (obra) {
+                        obrasCarregadas.push(obra);
+                    }
+                }
+                
+                console.log('✅ Obras carregadas:', obrasCarregadas);
+                renderizarPortfolio();
+                
             } catch (e) {
-                console.log('ℹ️ Sem config.json, usando fallback');
+                console.error('❌ Erro ao carregar portfolio:', e.message);
+                // Fallback para lista estática
                 obrasCarregadas = getObrasFallback();
+                renderizarPortfolio();
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // FUNÇÃO PARA PROCESSAR CADA PASTA DE OBRA
+        // ═══════════════════════════════════════════════════════════════
+        async function processarPastaObra(pasta) {
+            try {
+                // Nome da pasta ex: "obra-01-reforma-escola-municipal-rio-de-janeiro"
+                const nomePasta = pasta.name;
+                
+                // Extrai informações do nome da pasta
+                const info = extrairInfoDoNomePasta(nomePasta);
+                
+                // Busca as imagens dentro da pasta
+                const imagensUrl = `https://api.github.com/repos/${CONFIG.GITHUB_USER}/${CONFIG.GITHUB_REPO}/contents/${CONFIG.GITHUB_PATH}/${nomePasta}?ref=${CONFIG.GITHUB_BRANCH}`;
+                
+                const response = await fetch(imagensUrl);
+                
+                if (!response.ok) {
+                    console.warn(`⚠️ Não foi possível listar imagens de: ${nomePasta}`);
+                    return null;
+                }
+                
+                const arquivos = await response.json();
+                
+                // Filtra apenas arquivos de imagem
+                const extensoesImagem = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'];
+                const imagens = arquivos
+                    .filter(arquivo => arquivo.type === 'file')
+                    .filter(arquivo => {
+                        const nome = arquivo.name.toLowerCase();
+                        return extensoesImagem.some(ext => nome.endsWith(ext));
+                    })
+                    .map(arquivo => arquivo.name);
+                
+                if (imagens.length === 0) {
+                    console.warn(`⚠️ Nenhuma imagem encontrada em: ${nomePasta}`);
+                    return null;
+                }
+                
+                // Ordena: destaque.jpg primeiro, depois foto-01, foto-02, etc.
+                imagens.sort((a, b) => {
+                    // destaque sempre primeiro
+                    if (a.toLowerCase().includes('destaque')) return -1;
+                    if (b.toLowerCase().includes('destaque')) return 1;
+                    // capa em segundo
+                    if (a.toLowerCase().includes('capa')) return -1;
+                    if (b.toLowerCase().includes('capa')) return 1;
+                    // depois ordena alfabeticamente
+                    return a.localeCompare(b);
+                });
+                
+                return {
+                    titulo: info.titulo,
+                    local: info.local,
+                    ano: info.ano || '2024',
+                    tipo: info.tipo || 'obra',
+                    pasta: nomePasta,
+                    imagens: imagens,
+                    descricao: info.descricao
+                };
+                
+            } catch (e) {
+                console.error(`❌ Erro ao processar pasta:`, e.message);
+                return null;
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // FUNÇÃO PARA EXTRAIR INFORMAÇÕES DO NOME DA PASTA
+        // ═══════════════════════════════════════════════════════════════
+        function extrairInfoDoNomePasta(nomePasta) {
+            // Exemplos de nomes:
+            // "reforma-escola-municipal-rio-de-janeiro-2024"
+            // "construcao-unidade-saude-niteroi-2024"
+            // "reforma-praca-publica-duque-caxias-2023"
+            
+            // Remove "obra-XX-" se existir
+            let nomeLimpo = nomePasta.replace(/^obra-\d+-/i, '');
+            
+            // Separa por hífens
+            const partes = nomeLimpo.split('-');
+            
+            // Extrai o ano (último elemento se for número de 4 dígitos)
+            let ano = '2024';
+            const ultimo = partes[partes.length - 1];
+            if (/^\d{4}$/.test(ultimo)) {
+                ano = ultimo;
+                partes.pop(); // Remove o ano
             }
             
-            renderizarPortfolio();
-        }
-
-        function getObrasFallback() {
-            // Estrutura esperada das pastas:
-            // portfolio/obras/obra-01-reforma-escola/
-            //   destaque.jpg (foto principal)
-            //   foto-01.jpg, foto-02.jpg, etc.
-            return [
-                {
-                    titulo: "Reforma de Escola Municipal",
-                    local: "Rio de Janeiro - RJ",
-                    ano: "2024",
-                    tipo: "licitacao",
-                    pasta: "obra-01-reforma-escola",
-                    imagens: ["destaque.jpg", "foto-01.jpg", "foto-02.jpg", "foto-03.jpg"]
-                },
-                {
-                    titulo: "Construção de Unidade de Saúde",
-                    local: "Niterói - RJ",
-                    ano: "2024",
-                    tipo: "publica",
-                    pasta: "obra-02-unidade-saude",
-                    imagens: ["destaque.jpg", "foto-01.jpg", "foto-02.jpg"]
-                },
-                {
-                    titulo: "Reforma de Praça Pública",
-                    local: "Rio de Janeiro - RJ",
-                    ano: "2023",
-                    tipo: "licitacao",
-                    pasta: "obra-03-praca-publica",
-                    imagens: ["destaque.jpg", "foto-01.jpg", "foto-02.jpg"]
-                }
+            // Procura por cidade/estado conhecidos
+            const cidades = [
+                'rio-de-janeiro', 'niteroi', 'sao-goncalo', 'duque-de-caxias',
+                'nova-iguacu', 'belford-roxo', 'mesquita', 'nilopolis',
+                'sao-joao-de-meriti', 'mage', 'petropolis', 'teresopolis'
             ];
+            
+            let local = 'Rio de Janeiro - RJ';
+            let tituloPartes = [...partes];
+            
+            // Tenta encontrar a cidade no final
+            for (let i = partes.length - 1; i >= 0; i--) {
+                const possivelCidade = partes.slice(i).join('-');
+                if (cidades.includes(possivelCidade)) {
+                    local = formatarNomeCidade(possivelCidade);
+                    tituloPartes = partes.slice(0, i);
+                    break;
+                }
+            }
+            
+            // Formata o título
+            let titulo = tituloPartes.join(' ');
+            titulo = titulo.charAt(0).toUpperCase() + titulo.slice(1);
+            titulo = titulo.replace(/-/g, ' ');
+            
+            // Determina o tipo baseado nas primeiras palavras
+            let tipo = 'obra';
+            if (titulo.toLowerCase().includes('reforma')) {
+                tipo = 'licitacao';
+            } else if (titulo.toLowerCase().includes('construcao') || titulo.toLowerCase().includes('construção')) {
+                tipo = 'publica';
+            }
+            
+            return {
+                titulo: titulo,
+                local: local,
+                ano: ano,
+                tipo: tipo,
+                descricao: `${titulo} em ${local}`
+            };
         }
 
+        // ═══════════════════════════════════════════════════════════════
+        // FUNÇÃO PARA FORMATAR NOME DA CIDADE
+        // ═══════════════════════════════════════════════════════════════
+        function formatarNomeCidade(cidadeSlug) {
+            const mapa = {
+                'rio-de-janeiro': 'Rio de Janeiro - RJ',
+                'niteroi': 'Niterói - RJ',
+                'sao-goncalo': 'São Gonçalo - RJ',
+                'duque-de-caxias': 'Duque de Caxias - RJ',
+                'nova-iguacu': 'Nova Iguaçu - RJ',
+                'belford-roxo': 'Belford Roxo - RJ',
+                'mesquita': 'Mesquita - RJ',
+                'nilopolis': 'Nilópolis - RJ',
+                'sao-joao-de-meriti': 'São João de Meriti - RJ',
+                'mage': 'Magé - RJ',
+                'petropolis': 'Petrópolis - RJ',
+                'teresopolis': 'Teresópolis - RJ'
+            };
+            
+            return mapa[cidadeSlug] || cidadeSlug.replace(/-/g, ' ').toUpperCase();
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // FUNÇÃO PARA MONTAR URL DA IMAGEM
+        // ═══════════════════════════════════════════════════════════════
+        function getImagemUrl(obra, imagem) {
+            return `${CONFIG.GITHUB_RAW_BASE}/${obra.pasta}/${imagem}`;
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // RENDERIZAR PORTFÓLIO
+        // ═══════════════════════════════════════════════════════════════
         function renderizarPortfolio() {
             const grid = document.getElementById('portfolioGrid');
+            
+            if (!grid) return;
+            
             grid.innerHTML = '';
+            
+            if (obrasCarregadas.length === 0) {
+                grid.innerHTML = '<p style="text-align:center;color:var(--texto-suave);padding:2rem;">Nenhuma obra encontrada. Crie pastas em: portfolio/obras/</p>';
+                return;
+            }
             
             obrasCarregadas.forEach((obra, index) => {
                 const card = document.createElement('div');
                 card.className = 'portfolio-card';
                 card.onclick = () => abrirGaleriaObra(index);
                 
-                // Imagem de destaque (primeira da lista)
                 const imgDestaque = obra.imagens && obra.imagens.length > 0 
-                    ? `${CONFIG.GITHUB_RAW_BASE}${CONFIG.PORTFOLIO_PATH}${obra.pasta}/${obra.imagens[0]}`
+                    ? getImagemUrl(obra, obra.imagens[0])
                     : null;
                 
                 card.innerHTML = `
                     <div class="portfolio-img">
                         ${imgDestaque 
-                            ? `<img src="${imgDestaque}" alt="${obra.titulo}" loading="lazy" onerror="this.parentElement.innerHTML='<i class=\'fas fa-building\'></i>'">`
-                            : `<i class="fas fa-building"></i>`}
+                            ? `<img src="${imgDestaque}" alt="${obra.titulo}" loading="lazy" 
+                                onerror="this.parentElement.innerHTML='<i class=\'fas fa-building\' style=\'font-size:3rem;color:rgba(255,255,255,0.7);\'></i>'">`
+                            : `<i class="fas fa-building" style="font-size:3rem;color:rgba(255,255,255,0.7);"></i>`}
                     </div>
                     <span class="portfolio-badge">${obra.tipo === 'licitacao' ? 'Licitação' : 'Obra Pública'}</span>
                     <div class="portfolio-info">
@@ -1006,6 +1139,8 @@
                             <i class="fas fa-map-marker-alt"></i> ${obra.local}
                             &nbsp;|&nbsp;
                             <i class="fas fa-calendar"></i> ${obra.ano}
+                            &nbsp;|&nbsp;
+                            <i class="fas fa-images"></i> ${obra.imagens.length} fotos
                         </p>
                     </div>
                 `;
@@ -1014,6 +1149,9 @@
             });
         }
 
+        // ═══════════════════════════════════════════════════════════════
+        // ABRIR GALERIA
+        // ═══════════════════════════════════════════════════════════════
         function abrirGaleriaObra(index) {
             const obra = obrasCarregadas[index];
             if (!obra) return;
@@ -1022,7 +1160,9 @@
             const titulo = document.getElementById('galeriaTitulo');
             const grid = document.getElementById('galeriaGrid');
             
-            titulo.textContent = obra.titulo;
+            if (!modal || !titulo || !grid) return;
+            
+            titulo.textContent = `${obra.titulo} - ${obra.local}`;
             grid.innerHTML = '';
             
             if (obra.imagens && obra.imagens.length > 0) {
@@ -1030,17 +1170,27 @@
                     const item = document.createElement('div');
                     item.className = 'galeria-item';
                     
-                    const imgSrc = `${CONFIG.GITHUB_RAW_BASE}${CONFIG.PORTFOLIO_PATH}${obra.pasta}/${imagem}`;
+                    const imgSrc = getImagemUrl(obra, imagem);
                     
                     item.innerHTML = `
-                        <img src="${imgSrc}" alt="${obra.titulo} - Foto ${idx + 1}" loading="lazy">
+                        <img src="${imgSrc}" alt="${obra.titulo} - Foto ${idx + 1}" loading="lazy"
+                            onerror="this.parentElement.innerHTML='<div style=\'display:flex;align-items:center;justify-content:center;height:100%;background:#f0f4f8;color:#7f8c8d;font-size:0.8rem;\'>Não carregou</div>'">
                         ${idx === 0 ? '<span class="badge-destaque">⭐ Destaque</span>' : ''}
                     `;
                     
-                    grid.appendChild(item);
+                    // Adiciona nome do arquivo como legenda
+                    const legenda = document.createElement('div');
+                    legenda.style.cssText = 'font-size:0.65rem;color:var(--texto-suave);text-align:center;padding:0.2rem;';
+                    legenda.textContent = imagem;
+                    
+                    const container = document.createElement('div');
+                    container.appendChild(item);
+                    container.appendChild(legenda);
+                    
+                    grid.appendChild(container);
                 });
             } else {
-                grid.innerHTML = '<p style="text-align:center; color:var(--texto-suave);">Nenhuma imagem disponível</p>';
+                grid.innerHTML = '<p style="text-align:center;color:var(--texto-suave);">Nenhuma imagem disponível</p>';
             }
             
             modal.classList.add('active');
@@ -1048,173 +1198,37 @@
         }
 
         function fecharModalGaleria() {
-            document.getElementById('modalGaleria').classList.remove('active');
-            document.body.style.overflow = '';
-        }
-
-        // ═══════════════════════════════════════════════════════════════
-        // CHAT DE ATENDIMENTO
-        // ═══════════════════════════════════════════════════════════════
-        const RESPOSTAS_RAPIDAS = {
-            servicos: "🏗️ Nossos principais serviços incluem:\n\n• Construção Civil\n• Reformas e Restaurações\n• Demolições Seguras\n• Licitações Públicas\n• Projetos e Planejamento\n• Gerenciamento de Obras\n\nQual serviço você precisa?",
-            licitacoes: "📋 Temos vasta experiência em licitações públicas!\n\nNosso processo inclui:\n1. Análise do edital\n2. Preparação da documentação\n3. Elaboração da proposta\n4. Acompanhamento até homologação\n5. Execução da obra\n\nDeseja conversar sobre uma licitação?",
-            orcamento: "💰 Para solicitar um orçamento:\n\n• Preencha o formulário no botão 'Solicitar Orçamento'\n• Fale conosco pelo WhatsApp\n\nNossa equipe entrará em contato!",
-            prazos: "⏱️ Prazos médios:\n\n• Obras pequenas: 3-6 meses\n• Obras médias: 6-12 meses\n• Grandes obras: mais de 1 ano"
-        };
-
-        function respostaRapida(tipo) {
-            const resposta = RESPOSTAS_RAPIDAS[tipo];
-            if (resposta) {
-                adicionarMensagem('ai', resposta);
+            const modal = document.getElementById('modalGaleria');
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
             }
         }
 
-        function adicionarMensagem(tipo, texto) {
-            const container = document.getElementById('chatMessages');
-            const div = document.createElement('div');
-            div.className = `message ${tipo}`;
-            
-            const timestamp = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-            div.innerHTML = texto.replace(/\n/g, '<br>') + `<span class="message-timestamp">${timestamp}</span>`;
-            
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function mostrarDigitando() {
-            const container = document.getElementById('chatMessages');
-            const div = document.createElement('div');
-            div.className = 'message ai';
-            div.id = 'typingIndicator';
-            div.innerHTML = '<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function removerDigitando() {
-            const indicator = document.getElementById('typingIndicator');
-            if (indicator) indicator.remove();
-        }
-
-        async function enviarParaIA(mensagem) {
-            isProcessingChat = true;
-            document.getElementById('sendBtn').disabled = true;
-            mostrarDigitando();
-            
-            try {
-                // 🔥 Salva a mensagem com a origem CORRETA
-                const saveResponse = await fetch(CONFIG.API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'saveChatAtendente',
-                        leadId: sessionId,
-                        nomeLead: 'Cliente KPG',
-                        de: 'lead',
-                        texto: mensagem,
-                        origem: CONFIG.ORIGEM
-                    })
-                });
-                
-                console.log('📤 Mensagem salva:', await saveResponse.json());
-                
-                // Aguarda resposta da IA (polling)
-                let resposta = null;
-                const MAX_TENTATIVAS = 20;
-                
-                for (let i = 0; i < MAX_TENTATIVAS && !resposta; i++) {
-                    await new Promise(r => setTimeout(r, 3000));
-                    
-                    try {
-                        const resp = await fetch(`${CONFIG.API_URL}?action=getChatAtendente&leadId=${sessionId}`);
-                        const data = await resp.json();
-                        
-                        const conversa = data.conversas?.[sessionId];
-                        if (conversa && conversa.mensagens) {
-                            const mensagensAtendente = conversa.mensagens.filter(m => m.de === 'atendente');
-                            
-                            if (mensagensAtendente.length > 0) {
-                                const ultima = mensagensAtendente[mensagensAtendente.length - 1];
-                                if (ultima.texto && !ultima.texto.includes('Desculpe') && !ultima.consumida) {
-                                    resposta = ultima.texto;
-                                    // Marca como consumida
-                                    ultima.consumida = true;
-                                }
-                            }
-                        }
-                    } catch (e) {
-                        console.log('⚠️ Polling tentativa', i + 1, 'falhou');
-                    }
-                }
-                
-                removerDigitando();
-                
-                if (resposta) {
-                    adicionarMensagem('ai', resposta);
-                } else {
-                    adicionarMensagem('ai', "👋 Obrigado pelo seu contato! Nossa equipe está analisando.\n\nPara atendimento imediato:\n📱 <a href='https://wa.me/" + CONFIG.WHATSAPP_NUMBER + "' target='_blank' class='whatsapp-link'><i class='fab fa-whatsapp'></i> (21) 98153-3928</a>");
-                }
-                
-            } catch (e) {
-                console.error('❌ Erro:', e);
-                removerDigitando();
-                adicionarMensagem('ai', "❌ Erro ao conectar. Por favor, tente novamente ou fale conosco pelo WhatsApp.");
-            } finally {
-                isProcessingChat = false;
-                document.getElementById('sendBtn').disabled = false;
-                document.getElementById('chatInput').focus();
-            }
-        }
-
-        async function enviarMensagem() {
-            const input = document.getElementById('chatInput');
-            const texto = input.value.trim();
-            
-            if (!texto || isProcessingChat) return;
-            
-            adicionarMensagem('user', texto);
-            input.value = '';
-            
-            await enviarParaIA(texto);
-        }
-
         // ═══════════════════════════════════════════════════════════════
-        // MODAL DE ORÇAMENTO
+        // OBRAS FALLBACK
         // ═══════════════════════════════════════════════════════════════
-        function abrirModalOrcamento() {
-            document.getElementById('modalOrcamento').classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function fecharModalOrcamento() {
-            document.getElementById('modalOrcamento').classList.remove('active');
-            document.body.style.overflow = '';
-        }
-
-        function enviarOrcamento(event) {
-            event.preventDefault();
-            
-            const nome = document.getElementById('nomeCliente').value;
-            const telefone = document.getElementById('telefoneCliente').value;
-            const servico = document.getElementById('tipoServico').value;
-            const descricao = document.getElementById('descricaoProjeto').value;
-            
-            const mensagem = `*NOVA SOLICITAÇÃO DE ORÇAMENTO*\n\n*Nome:* ${nome}\n*Telefone:* ${telefone}\n*Serviço:* ${servico}\n*Descrição:* ${descricao}`;
-            
-            const urlWhatsApp = `https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent(mensagem)}`;
-            window.open(urlWhatsApp, '_blank');
-            
-            fecharModalOrcamento();
-            mostrarToast('✅ Solicitação enviada!');
-            document.getElementById('formOrcamento').reset();
-        }
-
-        function mostrarToast(mensagem) {
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.textContent = mensagem;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
+        function getObrasFallback() {
+            return [
+                {
+                    titulo: "Reforma de Escola Municipal",
+                    descricao: "Reforma completa de unidade escolar",
+                    local: "Rio de Janeiro - RJ",
+                    ano: "2024",
+                    tipo: "licitacao",
+                    pasta: "reforma-escola-municipal-rio-de-janeiro-2024",
+                    imagens: ["destaque.jpg", "foto-01.jpg", "foto-02.jpg"]
+                },
+                {
+                    titulo: "Construção de Unidade de Saúde",
+                    descricao: "Construção de posto de saúde",
+                    local: "Niterói - RJ",
+                    ano: "2024",
+                    tipo: "publica",
+                    pasta: "construcao-unidade-saude-niteroi-2024",
+                    imagens: ["destaque.jpg", "foto-01.jpg"]
+                }
+            ];
         }
 
         // ═══════════════════════════════════════════════════════════════
@@ -1222,7 +1236,7 @@
         // ═══════════════════════════════════════════════════════════════
         document.addEventListener('DOMContentLoaded', () => {
             renderizarServicos();
-            carregarPortfolio();
+            carregarPortfolioAutomatico(); // 🔥 Usa leitura automática
             
             setTimeout(() => {
                 adicionarMensagem('ai', "👋 Olá! Sou o atendente virtual da KPG Construções.\n\nSomos especialistas em obras públicas e licitações no Rio de Janeiro. Como posso ajudar?");
