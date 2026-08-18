@@ -84,6 +84,12 @@
     </div>
 
     <script>
+        // ═══════════════════════════════════════════════════════════
+        // CONFIGURAÇÃO
+        // ═══════════════════════════════════════════════════════════
+        const WORKER_URL = 'https://almafluxo.uk';
+        const LOGIN_URL = 'https://almafluxo.uk/olhodedeus';
+        
         async function carregar() {
             const spinner = document.getElementById('spinner');
             const title = document.getElementById('title');
@@ -92,15 +98,18 @@
             const btnEnter = document.getElementById('btnEnter');
             
             try {
+                // PASSO 1: Verifica sessão no localStorage
                 const sessao = localStorage.getItem('olho_de_deus_usuario');
                 if (!sessao) {
-                    window.location.href = 'https://almafluxo.uk/olhodedeus';
+                    window.location.href = LOGIN_URL;
                     return;
                 }
                 
                 const usuario = JSON.parse(sessao);
                 
-                const response = await fetch('https://almafluxo.uk/proxy/central', {
+                // PASSO 2: Valida acesso no servidor
+                status.textContent = 'Validando acesso...';
+                const response = await fetch(`${WORKER_URL}/proxy/central`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -117,6 +126,7 @@
                     throw new Error(data.error || 'Acesso negado');
                 }
                 
+                // PASSO 3: Mostra botão de entrada
                 spinner.style.display = 'none';
                 title.textContent = '👁️ Bem-vindo ao Olho De Deus';
                 status.textContent = 'Acesso confirmado. Clique para entrar.';
@@ -124,23 +134,71 @@
                 btnEnter.style.display = 'inline-block';
                 
             } catch (e) {
-                window.location.href = 'https://almafluxo.uk/olhodedeus?erro=' + encodeURIComponent(e.message);
+                window.location.href = `${LOGIN_URL}?erro=${encodeURIComponent(e.message)}`;
             }
         }
         
-        function abrirPlataforma(event) {
+        async function abrirPlataforma(event) {
             event.preventDefault();
             
-            const sessao = localStorage.getItem('olho_de_deus_usuario');
-            const usuario = JSON.parse(sessao);
+            const btnEnter = document.getElementById('btnEnter');
+            const container = document.getElementById('container');
+            const title = document.getElementById('title');
+            const status = document.getElementById('status');
             
-            const params = new URLSearchParams({
-                email: usuario.email,
-                sessionToken: usuario.sessionToken
-            });
+            btnEnter.textContent = '⏳ Carregando plataforma...';
+            btnEnter.disabled = true;
+            status.textContent = 'Buscando conteúdo...';
             
-            // 🔥 CORRIGIDO: Redireciona na MESMA aba (não abre nova)
-            window.location.href = `https://almafluxo.uk/app-olhodedeus?${params.toString()}`;
+            try {
+                const sessao = localStorage.getItem('olho_de_deus_usuario');
+                const usuario = JSON.parse(sessao);
+                
+                // 🔥 PASSO 4: Busca o HTML do Drive via Worker
+                // A rota /proxy/central com action 'servirHTML' busca o
+                // arquivo no Drive e retorna o conteúdo HTML
+                const response = await fetch(`${WORKER_URL}/proxy/central`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'servirHTML',
+                        arquivoId: '16hKYZNJvXkWfk3FrW0gPXWMz0XSx_bFH'
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Servidor retornou status ' + response.status);
+                }
+                
+                const html = await response.text();
+                
+                // Verifica se é HTML válido
+                if (html.includes('<!DOCTYPE') || html.includes('<html')) {
+                    status.textContent = 'Plataforma carregada!';
+                    
+                    // 🔥 PASSO 5: Substitui TODO o conteúdo da página
+                    // pelo HTML do linear.html
+                    document.open();
+                    document.write(html);
+                    document.close();
+                } else {
+                    // Tenta parsear como JSON (pode ser erro)
+                    try {
+                        const json = JSON.parse(html);
+                        throw new Error(json.error || 'Erro ao carregar conteúdo');
+                    } catch (parseError) {
+                        if (parseError.message !== 'Erro ao carregar conteúdo') {
+                            throw parseError;
+                        }
+                        throw new Error('Conteúdo inválido retornado');
+                    }
+                }
+                
+            } catch (e) {
+                btnEnter.textContent = '▶ Entrar no Olho De Deus';
+                btnEnter.disabled = false;
+                alert('Erro ao carregar plataforma: ' + e.message);
+            }
         }
         
         carregar();
