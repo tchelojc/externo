@@ -917,17 +917,7 @@
         <div class="nav-brand">ALMAFLUXO <span>| Olho De Deus</span></div>
         <div class="nav-actions">
             <div class="token-display" id="tokenDisplay">⚡ Carregando...</div>
-            
-            <!-- 🔥 NOVO: Botão que aparece APÓS login -->
-            <button class="btn-nav" id="btnAcessarPlataforma" style="display:none;" onclick="abrirPlataformaDireto()">
-                🚀 Abrir Plataforma
-            </button>
-            
-            <!-- 🔥 NOVO: Nome do usuário logado -->
-            <span id="userNameDisplay" style="color:var(--dourado);font-weight:700;font-size:0.85rem;display:none;"></span>
-            
-            <button class="btn-nav btn-nav-outline" id="btnLogin" onclick="abrirModalLogin()">🔑 Login</button>
-            <button class="btn-nav" id="btnLogout" style="display:none;background:#FF4444;" onclick="fazerLogout()">Sair</button>
+            <button class="btn-nav btn-nav-outline" onclick="abrirModalLogin()">🔑 Login</button>
             <button class="btn-nav" onclick="irParaPagamentos()">Comprar Tokens</button>
         </div>
     </nav>
@@ -944,12 +934,6 @@
             <div class="hero-buttons">
                 <button class="btn-primary" onclick="abrirModalPlanos()">▶ Acessar com Tokens</button>
                 <button class="btn-primary" onclick="acessarPlataforma()">🔓 Acessar Plataforma</button>
-                
-                <!-- 🔥 NOVO: Botão que aparece APÓS login com nome do usuário -->
-                <button class="btn-primary" id="btnAbrirOlho" style="display:none;background:var(--dourado);color:#000;box-shadow:0 0 30px rgba(255,215,0,0.3);" onclick="abrirPlataformaDireto()">
-                    🚀 Entrar como <span id="nomeUsuarioBtn"></span>
-                </button>
-                
                 <button class="btn-secondary" onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})">▶ Explorar</button>
             </div>
         </div>
@@ -1142,40 +1126,10 @@
         </div>
     </div>
 
-    <!-- ===== MODAL DO PROMPT OLHO DE DEUS (venda + tutorial) ===== -->
-    <div class="modal-overlay" id="modalPromptOlho">
-        <div class="modal" style="max-width:480px;">
-            <button class="close-btn" onclick="fecharModalPromptOlho()">✕</button>
-            <h2>👁️ Bem-vindo ao Olho De Deus</h2>
-            <p style="color:var(--texto2);font-size:0.9rem;text-align:center;margin-bottom:1rem;">
-                Antes de entrar, veja como tirar o máximo da plataforma.
-            </p>
-            <div style="background:#0d1220;border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:1rem;font-size:0.88rem;line-height:1.6;color:var(--texto);">
-                <p><strong>⚙️ Como funciona:</strong> o Olho De Deus lê as odds e os dados da partida/mercado em tempo real e aplica o Motor de Entropia + Oráculo &amp; Constantes para calcular a distribuição de entrada — favorito, proteção e cenários — antes de você decidir.</p>
-                <p style="margin-top:10px;"><strong>🧭 Como usar:</strong> acompanhe a Mesa GPS para ver a leitura atual, confira a projeção sugerida e ajuste a entrada manualmente se quiser — a decisão final é sempre sua, a plataforma só organiza os números.</p>
-                <p style="margin-top:10px;"><strong>🔐 Acesso Blindado:</strong> seu tempo de uso já foi confirmado pelo seu saldo ALMA — pode entrar tranquilo.</p>
-            </div>
-            <button class="btn-pagar" onclick="confirmarEntradaOlho()">▶ Entrar no Olho De Deus</button>
-            <p style="text-align:center;margin-top:1rem;font-size:0.8rem;color:var(--texto2);">
-                Dúvidas? <a href="https://wa.me/5521981533928" target="_blank" style="color:var(--ciano);">Fale no WhatsApp</a>
-            </p>
-        </div>
-    </div>
-
     <!-- ============================
     SCRIPTS
     ============================ -->
     <script>
-
-        // Limpa o campo de chat ao carregar
-        window.addEventListener('load', () => {
-            const chatInput = document.getElementById('chatInputOlho');
-            if (chatInput) {
-                chatInput.value = '';
-                chatInput.setAttribute('autocomplete', 'off');
-                chatInput.setAttribute('name', 'chat_olho_' + Date.now());
-            }
-        });
         // ======================================================
         // CONFIGURAÇÃO
         // ======================================================
@@ -1192,7 +1146,7 @@
         const PAGAMENTOS_URL = 'https://almafluxo.uk/pagamentos';
 
         // Plataforma Olho De Deus (conteúdo do Drive)
-        const OLHO_DE_DEUS_DRIVE = 'https://almafluxo.uk/app-olhodedeus';
+        const OLHO_DE_DEUS_DRIVE = 'https://almafluxo.uk/olhodedeus';
 
         // Chat de Atendimento (backend InfoCell)
         const PROXY_CLOUDFLARE = 'https://almafluxo.uk/proxy/infocell';
@@ -1216,139 +1170,22 @@
             // 🔥 ROTA CORRETA: https://almafluxo.uk/pagamentos
             window.open('https://almafluxo.uk/pagamentos', '_blank');
         }
-        // ======================================================
-        // FUNÇÕES CORRIGIDAS
-        // ======================================================
 
-        // Função para atualizar a interface após login
-        function atualizarInterfaceLogado() {
-            if (usuarioLogadoOlho) {
-                // Mostra nome do usuário
-                document.getElementById('userNameDisplay').textContent = '👤 ' + usuarioLogadoOlho.nome;
-                document.getElementById('userNameDisplay').style.display = 'inline';
-                
-                // Mostra botão de plataforma na navbar
-                document.getElementById('btnAcessarPlataforma').style.display = 'inline-block';
-                
-                // Mostra botão de entrar no hero
-                document.getElementById('btnAbrirOlho').style.display = 'inline-block';
-                document.getElementById('nomeUsuarioBtn').textContent = usuarioLogadoOlho.nome.split(' ')[0];
-                
-                // Troca Login por Sair
-                document.getElementById('btnLogin').style.display = 'none';
-                document.getElementById('btnLogout').style.display = 'inline-block';
-                
-                // Atualiza token display
-                if (usuarioLogadoOlho.master) {
-                    document.getElementById('tokenDisplay').textContent = '⚡ ∞ MASTER';
-                } else {
-                    document.getElementById('tokenDisplay').textContent = `⚡ ${usuarioLogadoOlho.balance} Tokens`;
-                }
-            }
-        }
-
-        async function abrirPlataformaDireto() {
-            if (!usuarioLogadoOlho) {
-                abrirModalLogin();
-                return;
-            }
-            
-            mostrarToastOlho('🚀 Abrindo plataforma...');
-            
-            // 🔥 REDIRECIONAMENTO DIRETO NA MESMA ABA
-            window.location.href = 'https://almafluxo.uk/app-olhodedeus';
-        }
-
-        // Função de logout
-        function fazerLogout() {
-            usuarioLogadoOlho = null;
-            localStorage.removeItem('olho_de_deus_usuario');
-            
-            // Esconde elementos de logado
-            document.getElementById('userNameDisplay').style.display = 'none';
-            document.getElementById('btnAcessarPlataforma').style.display = 'none';
-            document.getElementById('btnAbrirOlho').style.display = 'none';
-            document.getElementById('btnLogout').style.display = 'none';
-            document.getElementById('btnLogin').style.display = 'inline-block';
-            document.getElementById('tokenDisplay').textContent = '⚡ 0 Tokens';
-            
-            mostrarToastOlho('👋 Até logo!');
-        }
-
-        // LOGIN ATUALIZADO
-        async function fazerLogin() {
-            const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-            const senha = document.getElementById('loginSenha').value;
-            const statusEl = document.getElementById('loginStatus');
-
-            if (!email || !senha) {
-                statusEl.textContent = '⚠️ Preencha e-mail e senha.';
-                statusEl.style.color = '#ff6b6b';
-                return;
-            }
-
-            statusEl.textContent = '⏳ Entrando...';
-            statusEl.style.color = 'var(--ciano)';
-
+        // 3. CONSULTAR SALDO (via Worker)
+        async function consultarSaldoOlho(email, sessionToken) {
             try {
-                const response = await fetch('https://almafluxo.uk/proxy/central', {
+                const response = await fetch('https://almafluxo.uk/economy/saldo', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
-                        action: 'login', 
-                        email, 
-                        senha 
+                        email,
+                        sessionToken
                     })
                 });
-                const data = await response.json();
-
-                if (data.ok) {
-                    usuarioLogadoOlho = {
-                        nome: data.nome,
-                        email: email,
-                        balance: data.balance,
-                        sessionToken: data.sessionToken,
-                        master: data.master || false,
-                        acessoUniversal: data.acessoUniversal || false
-                    };
-                    localStorage.setItem('olho_de_deus_usuario', JSON.stringify(usuarioLogadoOlho));
-                    
-                    // 🔥 Atualiza interface
-                    atualizarInterfaceLogado();
-                    
-                    if (data.master) {
-                        mostrarToastOlho('✅ Acesso MASTER ativado!');
-                    } else {
-                        mostrarToastOlho(`✅ Bem-vindo, ${data.nome}!`);
-                    }
-                    
-                    statusEl.textContent = '✅ Login realizado!';
-                    statusEl.style.color = '#4caf50';
-                    
-                    // 🔥 NOVO: Fecha o modal e REDIRECIONA DIRETAMENTE
-                    fecharModalLogin();
-                    
-                    // 🔥 REDIRECIONAMENTO DIRETO PARA A PLATAFORMA
-                    setTimeout(() => {
-                        // Abre a plataforma na MESMA aba (redirecionamento direto)
-                        window.location.href = 'https://almafluxo.uk/app-olhodedeus';
-                    }, 1000); // 1 segundo para o usuário ver a mensagem de sucesso
-                    
-                } else {
-                    statusEl.textContent = '❌ ' + (data.error || 'Credenciais inválidas.');
-                    statusEl.style.color = '#ff6b6b';
-                }
-            } catch (erro) {
-                statusEl.textContent = '⚠️ Erro de conexão.';
-                statusEl.style.color = '#ff6b6b';
-            }
-        }
-
-        // 2. CONSULTAR SALDO
-        async function consultarSaldoOlho(email, sessionToken) {
-            try {
-                // ✅ CORRIGIDO: usa proxy/central
-                const response = await fetch('https://almafluxo.uk/proxy/central', {
+                return await response.json();
+            } catch (e) {
+                // Fallback
+                const resp = await fetch('https://almafluxo.uk/proxy/central', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
@@ -1357,18 +1194,27 @@
                         sessionToken
                     })
                 });
-                return await response.json();
-            } catch (e) {
-                console.error('Erro ao consultar saldo:', e);
-                return { ok: false, error: 'Erro de conexão' };
+                return await resp.json();
             }
         }
-
-        // 3. DEBITAR TOKENS
+        // 4. DEBITAR TOKENS (via Worker)
         async function debitarTokensOlho(email, quantidade, sessionToken) {
             try {
-                // ✅ CORRIGIDO: usa proxy/central
-                const response = await fetch('https://almafluxo.uk/proxy/central', {
+                // 🔥 ROTA CORRETA: via Worker /economy/debitar
+                const response = await fetch('https://almafluxo.uk/economy/debitar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        email, 
+                        quantidade,
+                        plataforma: 'olhodedeus',
+                        sessionToken
+                    })
+                });
+                return await response.json();
+            } catch (e) {
+                // Fallback: via proxy/central
+                const resp = await fetch('https://almafluxo.uk/proxy/central', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
@@ -1379,39 +1225,7 @@
                         sessionToken
                     })
                 });
-                return await response.json();
-            } catch (e) {
-                console.error('Erro ao debitar tokens:', e);
-                return { ok: false, error: 'Erro de conexão' };
-            }
-        }
-
-        // 4. ACESSAR CONTEÚDO
-        async function acessarConteudoOlho() {
-            try {
-                // MASTER acesso direto
-                if (usuarioLogadoOlho.master || usuarioLogadoOlho.acessoUniversal) {
-                    abrirModalPromptOlho();
-                    return;
-                }
-                
-                // Usuário normal: verifica saldo
-                const data = await consultarSaldoOlho(usuarioLogadoOlho.email, usuarioLogadoOlho.sessionToken);
-
-                if (!data.ok) {
-                    throw new Error(data.error || 'Erro ao verificar saldo');
-                }
-
-                if (data.balance < 10) {
-                    mostrarToastOlho(`⚠️ Saldo insuficiente! Você tem ${data.balance} tokens. Mínimo: 10`);
-                    abrirModalPlanos();
-                    return;
-                }
-
-                abrirModalPromptOlho();
-                
-            } catch (e) {
-                mostrarToastOlho('⚠️ Erro ao acessar: ' + e.message);
+                return await resp.json();
             }
         }
 
@@ -1483,23 +1297,41 @@
             await acessarConteudoOlho();
         }
 
-        // ======================================================
-        // PROMPT OLHO DE DEUS (mensagem padronizada de entrada)
-        // ======================================================
-        function abrirModalPromptOlho() {
-            document.getElementById('modalPromptOlho').classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
+        async function acessarConteudoOlho() {
+            try {
+                // Checagem rápida de saldo só pra UX (evitar mandar quem
+                // está sem saldo pro loader à toa) — quem decide de
+                // verdade é o /app-olhodedeus, que confirma tudo de novo
+                // no servidor antes de liberar o conteúdo.
+                const data = await consultarSaldoOlho(usuarioLogadoOlho.email, usuarioLogadoOlho.sessionToken);
 
-        function fecharModalPromptOlho() {
-            document.getElementById('modalPromptOlho').classList.remove('active');
-            document.body.style.overflow = '';
-        }
+                if (!data.ok) {
+                    throw new Error(data.error || 'Erro ao verificar saldo');
+                }
 
-        function confirmarEntradaOlho() {
-            fecharModalPromptOlho();
-            // 🔥 REDIRECIONAMENTO DIRETO NA MESMA ABA
-            window.location.href = 'https://almafluxo.uk/app-olhodedeus';
+                if (data.balance < 10) {
+                    mostrarToastOlho(`⚠️ Saldo insuficiente! Você tem ${data.balance} tokens. Mínimo: 10`);
+                    abrirModalPlanos();
+                    return;
+                }
+
+                // 🔥 NOVO: o prompt padronizado (venda + tutorial) mora só
+                // no loader (/app-olhodedeus) agora — ele é quem confirma
+                // o acesso de verdade no servidor. Aqui só levamos o
+                // e-mail + sessionToken adiante; TODO acesso liberado por
+                // aqui — seja por "Acessar com Tokens" (ativarAcesso) seja
+                // por "Acessar Plataforma" (acessarPlataforma) — passa
+                // pelo mesmo loader e pela mesma mensagem, já que os dois
+                // fluxos chamam esta mesma função.
+                const params = new URLSearchParams({
+                    email: usuarioLogadoOlho.email,
+                    sessionToken: usuarioLogadoOlho.sessionToken
+                });
+                window.open(`https://almafluxo.uk/app-olhodedeus?${params.toString()}`, '_blank');
+
+            } catch (e) {
+                mostrarToastOlho('⚠️ Erro ao acessar: ' + e.message);
+            }
         }
 
         // 7. CHAT DE ATENDIMENTO (já está correto)
@@ -1510,6 +1342,12 @@
 
             try {
                 // 🔥 ROTA CORRETA: https://almafluxo.uk/proxy/infocell
+                // 🔥 NOVO: campo "origem" - permite ao servidor.py usar um
+                // prompt/seed diferente pro chat do Olho De Deus, mesmo
+                // passando pela mesma rota/Apps Script do InfoCell. Isso
+                // depende do Apps Script (getChatAtendenteAll) devolver
+                // esse campo junto da conversa - se ainda não devolve,
+                // nada quebra: o servidor.py cai no prompt padrão infocell.
                 await fetch('https://almafluxo.uk/proxy/infocell', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1518,7 +1356,8 @@
                         leadId: sessionIdChat,
                         nomeLead: 'Visitante Olho De Deus',
                         de: 'lead',
-                        texto: mensagem
+                        texto: mensagem,
+                        origem: 'olhodedeus'
                     })
                 });
 
@@ -1579,141 +1418,53 @@
             document.body.style.overflow = '';
         }
 
-// ======================================================
-// FUNÇÕES CORRIGIDAS
-// ======================================================
+        async function fazerLogin() {
+            const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+            const senha = document.getElementById('loginSenha').value;
+            const statusEl = document.getElementById('loginStatus');
 
-// 1. LOGIN
-async function fazerLogin() {
-    const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-    const senha = document.getElementById('loginSenha').value;
-    const statusEl = document.getElementById('loginStatus');
-
-    if (!email || !senha) {
-        statusEl.textContent = '⚠️ Preencha e-mail e senha.';
-        statusEl.style.color = '#ff6b6b';
-        return;
-    }
-
-    statusEl.textContent = '⏳ Entrando...';
-    statusEl.style.color = 'var(--ciano)';
-
-    try {
-        // ✅ CORRIGIDO: usa proxy/central
-        const response = await fetch('https://almafluxo.uk/proxy/central', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                action: 'login', 
-                email, 
-                senha 
-            })
-        });
-        const data = await response.json();
-
-        if (data.ok) {
-            usuarioLogadoOlho = {
-                nome: data.nome,
-                email: email,
-                balance: data.balance,
-                sessionToken: data.sessionToken,
-                master: data.master || false,
-                acessoUniversal: data.acessoUniversal || false
-            };
-            localStorage.setItem('olho_de_deus_usuario', JSON.stringify(usuarioLogadoOlho));
-            
-            if (data.master) {
-                document.getElementById('tokenDisplay').textContent = '⚡ ∞ MASTER';
-                mostrarToastOlho('✅ Acesso MASTER ativado!');
-            } else {
-                document.getElementById('tokenDisplay').textContent = `⚡ ${data.balance} Tokens`;
-                mostrarToastOlho(`✅ Bem-vindo, ${data.nome}!`);
+            if (!email || !senha) {
+                statusEl.textContent = '⚠️ Preencha e-mail e senha.';
+                statusEl.style.color = '#ff6b6b';
+                return;
             }
-            
-            statusEl.textContent = '✅ Login realizado!';
-            statusEl.style.color = '#4caf50';
-            
-            setTimeout(fecharModalLogin, 1500);
-        } else {
-            statusEl.textContent = '❌ ' + (data.error || 'Credenciais inválidas.');
-            statusEl.style.color = '#ff6b6b';
+
+            statusEl.textContent = '⏳ Entrando...';
+            statusEl.style.color = 'var(--ciano)';
+
+            try {
+                // 🔥 ROTA CORRETA: via Worker /economy/login
+                const response = await fetch('https://almafluxo.uk/economy/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, senha })
+                });
+                const data = await response.json();
+
+                if (data.ok) {
+                    usuarioLogadoOlho = {
+                        nome: data.nome,
+                        email: email,
+                        balance: data.balance,
+                        sessionToken: data.sessionToken
+                    };
+                    localStorage.setItem('olho_de_deus_usuario', JSON.stringify(usuarioLogadoOlho));
+                    
+                    document.getElementById('tokenDisplay').textContent = `⚡ ${data.balance} Tokens`;
+                    statusEl.textContent = '✅ Login realizado!';
+                    statusEl.style.color = '#4caf50';
+                    
+                    mostrarToastOlho(`✅ Bem-vindo, ${data.nome}!`);
+                    setTimeout(fecharModalLogin, 1500);
+                } else {
+                    statusEl.textContent = '❌ ' + (data.error || 'Credenciais inválidas.');
+                    statusEl.style.color = '#ff6b6b';
+                }
+            } catch (erro) {
+                statusEl.textContent = '⚠️ Erro de conexão.';
+                statusEl.style.color = '#ff6b6b';
+            }
         }
-    } catch (erro) {
-        statusEl.textContent = '⚠️ Erro de conexão.';
-        statusEl.style.color = '#ff6b6b';
-    }
-}
-
-// 2. CONSULTAR SALDO
-async function consultarSaldoOlho(email, sessionToken) {
-    try {
-        // ✅ CORRIGIDO: usa proxy/central
-        const response = await fetch('https://almafluxo.uk/proxy/central', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                action: 'consultarSaldo', 
-                email,
-                sessionToken
-            })
-        });
-        return await response.json();
-    } catch (e) {
-        console.error('Erro ao consultar saldo:', e);
-        return { ok: false, error: 'Erro de conexão' };
-    }
-}
-
-// 3. DEBITAR TOKENS
-async function debitarTokensOlho(email, quantidade, sessionToken) {
-    try {
-        // ✅ CORRIGIDO: usa proxy/central
-        const response = await fetch('https://almafluxo.uk/proxy/central', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                action: 'debitarTokens', 
-                email,
-                quantidade,
-                plataforma: 'olhodedeus',
-                sessionToken
-            })
-        });
-        return await response.json();
-    } catch (e) {
-        console.error('Erro ao debitar tokens:', e);
-        return { ok: false, error: 'Erro de conexão' };
-    }
-}
-
-// 4. ACESSAR CONTEÚDO
-async function acessarConteudoOlho() {
-    try {
-        // MASTER acesso direto
-        if (usuarioLogadoOlho.master || usuarioLogadoOlho.acessoUniversal) {
-            abrirModalPromptOlho();
-            return;
-        }
-        
-        // Usuário normal: verifica saldo
-        const data = await consultarSaldoOlho(usuarioLogadoOlho.email, usuarioLogadoOlho.sessionToken);
-
-        if (!data.ok) {
-            throw new Error(data.error || 'Erro ao verificar saldo');
-        }
-
-        if (data.balance < 10) {
-            mostrarToastOlho(`⚠️ Saldo insuficiente! Você tem ${data.balance} tokens. Mínimo: 10`);
-            abrirModalPlanos();
-            return;
-        }
-
-        abrirModalPromptOlho();
-        
-    } catch (e) {
-        mostrarToastOlho('⚠️ Erro ao acessar: ' + e.message);
-    }
-}
 
         // ======================================================
         // PLANOS DE ACESSO
@@ -1796,16 +1547,17 @@ async function acessarConteudoOlho() {
         // ======================================================
         // INICIALIZAÇÃO
         // ======================================================
-        // INICIALIZAÇÃO ATUALIZADA
         document.addEventListener('DOMContentLoaded', () => {
+            // Carrega sessão salva
             const sessao = localStorage.getItem('olho_de_deus_usuario');
             if (sessao) {
                 usuarioLogadoOlho = JSON.parse(sessao);
-                atualizarInterfaceLogado();
+                document.getElementById('tokenDisplay').textContent = `⚡ ${usuarioLogadoOlho.balance} Tokens`;
             } else {
                 document.getElementById('tokenDisplay').textContent = '⚡ 0 Tokens';
             }
             
+            // Mensagem de boas-vindas no chat
             setTimeout(() => {
                 if (document.getElementById('chatMessagesOlho').children.length === 0) {
                     addMessageOlho('ai', '👁️ Olá! Sou o suporte do Olho De Deus. Como posso te ajudar hoje?');
