@@ -13,11 +13,12 @@
             align-items: center;
             justify-content: center;
             font-family: 'Inter', system-ui, sans-serif;
-            overflow: hidden;
         }
-        .loading-container {
+        .container {
             text-align: center;
             color: #00e5ff;
+            max-width: 480px;
+            padding: 20px;
         }
         .spinner {
             width: 60px;
@@ -29,60 +30,24 @@
             margin: 0 auto 20px;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .loading-text {
-            font-size: 1.2rem;
-            font-weight: 700;
-            letter-spacing: 2px;
-        }
-        .loading-sub {
-            font-size: 0.8rem;
-            color: #888;
-            margin-top: 10px;
-        }
-        .error-container {
-            text-align: center;
-            color: #ff6b6b;
-            display: none;
-        }
-        .error-container .icon { font-size: 3rem; margin-bottom: 10px; }
-        .error-container h2 { font-size: 1.3rem; margin-bottom: 10px; color: #fff; }
-        .error-container p { font-size: 0.9rem; color: #888; margin-bottom: 20px; }
-        .btn-retry {
+        .title { font-size: 1.2rem; font-weight: 700; margin-bottom: 10px; }
+        .subtitle { font-size: 0.85rem; color: #888; margin-bottom: 20px; }
+        .btn-enter {
             display: inline-block;
-            padding: 12px 30px;
-            background: #00e5ff;
+            padding: 14px 30px;
+            background: #ffd700;
             color: #000;
             border: none;
             border-radius: 50px;
-            font-weight: 700;
-            font-size: 0.9rem;
+            font-weight: 800;
+            font-size: 1rem;
             cursor: pointer;
             text-decoration: none;
             transition: all 0.3s;
         }
-        .btn-retry:hover {
-            box-shadow: 0 0 30px rgba(0, 229, 255, 0.4);
+        .btn-enter:hover {
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
             transform: scale(1.05);
-        }
-        /* 🔥 NOVO: tela do prompt (venda + tutorial), mesma linguagem visual */
-        .prompt-container {
-            display: none;
-            max-width: 440px;
-            width: 90vw;
-            color: #e8e8f0;
-            text-align: left;
-        }
-        .prompt-container h2 {
-            color: #00e5ff;
-            text-align: center;
-            font-size: 1.3rem;
-            margin-bottom: 6px;
-        }
-        .prompt-container .sub {
-            text-align: center;
-            color: #888;
-            font-size: 0.85rem;
-            margin-bottom: 18px;
         }
         .prompt-box {
             background: #0d1220;
@@ -92,89 +57,52 @@
             margin-bottom: 18px;
             font-size: 0.88rem;
             line-height: 1.6;
+            color: #e0e0e0;
+            text-align: left;
+            display: none;
         }
-        .prompt-box p + p { margin-top: 10px; }
-        .prompt-container .btn-retry { display: block; width: 100%; text-align: center; border: none; }
+        .prompt-box p { margin-bottom: 10px; }
+        .prompt-box p:last-child { margin-bottom: 0; }
     </style>
 </head>
 <body>
 
-    <div class="loading-container" id="loadingContainer">
-        <div class="spinner"></div>
-        <div class="loading-text">🔓 Carregando Olho De Deus...</div>
-        <div class="loading-sub" id="loadingStatus">Verificando acesso...</div>
-    </div>
-
-    <div class="error-container" id="errorContainer">
-        <div class="icon">⚠️</div>
-        <h2>Não foi possível carregar a plataforma</h2>
-        <p id="errorMessage">Verifique sua conexão e tente novamente.</p>
-        <button class="btn-retry" onclick="carregarPlataforma()">🔄 Tentar Novamente</button>
-        <br><br>
-        <a href="https://almafluxo.uk/olhodedeus" style="color:#00e5ff;font-size:0.8rem;text-decoration:none;">← Voltar para o Olho De Deus</a>
-    </div>
-
-    <!-- 🔥 NOVO: prompt padronizado (venda + tutorial), mostrado depois que
-         o acesso é confirmado de verdade pelo servidor, antes de abrir o
-         Olho De Deus -->
-    <div class="prompt-container" id="promptContainer">
-        <h2>👁️ Bem-vindo ao Olho De Deus</h2>
-        <p class="sub">Acesso confirmado. Veja como tirar o máximo da plataforma.</p>
-        <div class="prompt-box">
-            <p><strong>⚙️ Como funciona:</strong> o Olho De Deus lê as odds e os dados da partida/mercado em tempo real e aplica o Motor de Entropia + Oráculo &amp; Constantes pra calcular a distribuição de entrada — favorito, proteção e cenários — antes de você decidir.</p>
-            <p><strong>🧭 Como usar:</strong> acompanhe a Mesa GPS pra ver a leitura atual, confira a projeção sugerida e ajuste a entrada manualmente se quiser — a decisão final é sempre sua, a plataforma só organiza os números.</p>
-            <p><strong>🔐 Seu acesso:</strong> <span id="promptSaldoInfo">confirmado</span>.</p>
+    <div class="container" id="container">
+        <div class="spinner" id="spinner"></div>
+        <div class="title" id="title">👁️ Verificando acesso...</div>
+        <div class="subtitle" id="status">Confirmando sua sessão...</div>
+        
+        <div class="prompt-box" id="promptBox">
+            <p><strong>⚙️ Como funciona:</strong> o Olho De Deus lê as odds e os dados da partida/mercado em tempo real e aplica o Motor de Entropia + Oráculo & Constantes pra calcular a distribuição de entrada.</p>
+            <p><strong>🧭 Como usar:</strong> acompanhe a Mesa GPS pra ver a leitura atual e ajuste a entrada manualmente se quiser.</p>
+            <p><strong>🔐 Seu acesso:</strong> saldo confirmado.</p>
         </div>
-        <button class="btn-retry" id="btnEntrarPrompt">▶ Entrar no Olho De Deus</button>
+        
+        <a href="https://almafluxo.uk/app-olhodedeus" target="_blank" class="btn-enter" id="btnEnter" style="display:none;">
+            ▶ Entrar no Olho De Deus
+        </a>
     </div>
 
     <script>
-        // ═══════════════════════════════════════════════════════════
-        // CONFIGURAÇÃO - Rota do Worker (NUNCA expõe ID do Drive)
-        // ═══════════════════════════════════════════════════════════
-        const PROXY_CENTRAL = 'https://almafluxo.uk/proxy/central';
-
-        // ═══════════════════════════════════════════════════════════
-        // FUNÇÃO PRINCIPAL
-        // ═══════════════════════════════════════════════════════════
-        async function carregarPlataforma() {
-            const loadingContainer = document.getElementById('loadingContainer');
-            const errorContainer = document.getElementById('errorContainer');
-            const promptContainer = document.getElementById('promptContainer');
-            const loadingStatus = document.getElementById('loadingStatus');
-            const errorMessage = document.getElementById('errorMessage');
-
-            loadingContainer.style.display = 'block';
-            errorContainer.style.display = 'none';
-            promptContainer.style.display = 'none';
-
+        async function carregar() {
+            const spinner = document.getElementById('spinner');
+            const title = document.getElementById('title');
+            const status = document.getElementById('status');
+            const promptBox = document.getElementById('promptBox');
+            const btnEnter = document.getElementById('btnEnter');
+            
             try {
-                loadingStatus.textContent = 'Verificando sessão...';
-
-                // 🔥 CORRIGIDO: a página /olhodedeus (login+compra+chat) salva
-                // a sessão em 'olho_de_deus_usuario' — na primeira correção eu
-                // tinha presumido que a origem era o localStorage do
-                // pagamentos.html ('almafluxo_usuario'), mas são páginas e
-                // sessões separadas; quem alimenta este loader é o /olhodedeus.
+                // Verifica sessão
                 const sessao = localStorage.getItem('olho_de_deus_usuario');
-
                 if (!sessao) {
-                    throw new Error('login');
+                    window.location.href = 'https://almafluxo.uk/olhodedeus';
+                    return;
                 }
-
+                
                 const usuario = JSON.parse(sessao);
-                if (!usuario.email || !usuario.sessionToken) {
-                    throw new Error('login');
-                }
-
-                loadingStatus.textContent = 'Validando acesso...';
-
-                // 🔥 CORRIGIDO: antes a checagem de saldo/master usava só o
-                // que estava salvo no navegador (localStorage.balance) —
-                // qualquer um edita isso pelo console do navegador e libera
-                // acesso sem pagar nada. Agora quem decide é o servidor
-                // (Central.gs), com o e-mail + sessionToken reais.
-                const resp = await fetch('https://almafluxo.uk/proxy/central', {
+                
+                // Verifica acesso via Worker (SEM expor ID)
+                const response = await fetch('https://almafluxo.uk/proxy/central', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -184,49 +112,26 @@
                         sessionToken: usuario.sessionToken
                     })
                 });
-                const data = await resp.json();
-
+                
+                const data = await response.json();
+                
                 if (!data.ok || !data.acessoPermitido) {
-                    throw new Error(data.error || 'Saldo insuficiente ou sessão expirada.');
+                    throw new Error(data.error || 'Acesso negado');
                 }
-
-                // Acesso confirmado de verdade pelo servidor — mostra o
-                // prompt (venda + tutorial) antes de entrar.
-                loadingContainer.style.display = 'none';
-                document.getElementById('promptSaldoInfo').textContent =
-                    `saldo de ${data.saldo} tokens ALMA confirmado`;
-                promptContainer.style.display = 'block';
-
-                document.getElementById('btnEntrarPrompt').onclick = () => {
-                    // Leva o e-mail + sessionToken adiante — o worker.js
-                    // agora exige os dois pra liberar o conteúdo em
-                    // /app-olhodedeus (antes era uma URL pública, sem
-                    // checagem nenhuma do lado do servidor).
-                    const params = new URLSearchParams({
-                        email: usuario.email,
-                        sessionToken: usuario.sessionToken
-                    });
-                    window.location.href = `https://almafluxo.uk/app-olhodedeus?${params.toString()}`;
-                };
-
-            } catch (error) {
-                console.error('Erro:', error);
-
-                if (error.message === 'login') {
-                    loadingStatus.textContent = 'Redirecionando para o login...';
-                    setTimeout(() => {
-                        window.location.href = 'https://almafluxo.uk/olhodedeus';
-                    }, 1500);
-                    return;
-                }
-
-                loadingContainer.style.display = 'none';
-                errorContainer.style.display = 'block';
-                errorMessage.textContent = error.message;
+                
+                // Esconde loading, mostra prompt
+                spinner.style.display = 'none';
+                title.textContent = '👁️ Bem-vindo ao Olho De Deus';
+                status.textContent = 'Acesso confirmado. Veja como tirar o máximo da plataforma.';
+                promptBox.style.display = 'block';
+                btnEnter.style.display = 'inline-block';
+                
+            } catch (e) {
+                window.location.href = 'https://almafluxo.uk/olhodedeus?erro=' + encodeURIComponent(e.message);
             }
         }
-
-        carregarPlataforma();
+        
+        carregar();
     </script>
 </body>
 </html>
