@@ -1174,18 +1174,7 @@
         // 3. CONSULTAR SALDO (via Worker)
         async function consultarSaldoOlho(email, sessionToken) {
             try {
-                const response = await fetch('https://almafluxo.uk/economy/saldo', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        email,
-                        sessionToken
-                    })
-                });
-                return await response.json();
-            } catch (e) {
-                // Fallback
-                const resp = await fetch('https://almafluxo.uk/proxy/central', {
+                const response = await fetch('https://almafluxo.uk/proxy/central', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
@@ -1194,27 +1183,15 @@
                         sessionToken
                     })
                 });
-                return await resp.json();
+                return await response.json();
+            } catch (e) {
+                return { ok: false, error: 'Erro de conexão' };
             }
         }
         // 4. DEBITAR TOKENS (via Worker)
         async function debitarTokensOlho(email, quantidade, sessionToken) {
             try {
-                // 🔥 ROTA CORRETA: via Worker /economy/debitar
-                const response = await fetch('https://almafluxo.uk/economy/debitar', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        email, 
-                        quantidade,
-                        plataforma: 'olhodedeus',
-                        sessionToken
-                    })
-                });
-                return await response.json();
-            } catch (e) {
-                // Fallback: via proxy/central
-                const resp = await fetch('https://almafluxo.uk/proxy/central', {
+                const response = await fetch('https://almafluxo.uk/proxy/central', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
@@ -1225,7 +1202,9 @@
                         sessionToken
                     })
                 });
-                return await resp.json();
+                return await response.json();
+            } catch (e) {
+                return { ok: false, error: 'Erro de conexão' };
             }
         }
 
