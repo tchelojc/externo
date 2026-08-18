@@ -174,10 +174,11 @@
                 // qualquer um edita isso pelo console do navegador e libera
                 // acesso sem pagar nada. Agora quem decide é o servidor
                 // (Central.gs), com o e-mail + sessionToken reais.
-                const resp = await fetch('https://almafluxo.uk/economy/verificar-acesso', {
+                const resp = await fetch('https://almafluxo.uk/proxy/central', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
+                        action: 'verificarAcesso',
                         email: usuario.email,
                         plataforma: 'olhodedeus',
                         sessionToken: usuario.sessionToken
