@@ -64,6 +64,37 @@
             box-shadow: 0 0 30px rgba(0, 229, 255, 0.4);
             transform: scale(1.05);
         }
+        /* 🔥 NOVO: tela do prompt (venda + tutorial), mesma linguagem visual */
+        .prompt-container {
+            display: none;
+            max-width: 440px;
+            width: 90vw;
+            color: #e8e8f0;
+            text-align: left;
+        }
+        .prompt-container h2 {
+            color: #00e5ff;
+            text-align: center;
+            font-size: 1.3rem;
+            margin-bottom: 6px;
+        }
+        .prompt-container .sub {
+            text-align: center;
+            color: #888;
+            font-size: 0.85rem;
+            margin-bottom: 18px;
+        }
+        .prompt-box {
+            background: #0d1220;
+            border: 1px solid #1a2035;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 18px;
+            font-size: 0.88rem;
+            line-height: 1.6;
+        }
+        .prompt-box p + p { margin-top: 10px; }
+        .prompt-container .btn-retry { display: block; width: 100%; text-align: center; border: none; }
     </style>
 </head>
 <body>
@@ -83,6 +114,20 @@
         <a href="https://almafluxo.uk/olhodedeus" style="color:#00e5ff;font-size:0.8rem;text-decoration:none;">← Voltar para o Olho De Deus</a>
     </div>
 
+    <!-- 🔥 NOVO: prompt padronizado (venda + tutorial), mostrado depois que
+         o acesso é confirmado de verdade pelo servidor, antes de abrir o
+         Olho De Deus -->
+    <div class="prompt-container" id="promptContainer">
+        <h2>👁️ Bem-vindo ao Olho De Deus</h2>
+        <p class="sub">Acesso confirmado. Veja como tirar o máximo da plataforma.</p>
+        <div class="prompt-box">
+            <p><strong>⚙️ Como funciona:</strong> o Olho De Deus lê as odds e os dados da partida/mercado em tempo real e aplica o Motor de Entropia + Oráculo &amp; Constantes pra calcular a distribuição de entrada — favorito, proteção e cenários — antes de você decidir.</p>
+            <p><strong>🧭 Como usar:</strong> acompanhe a Mesa GPS pra ver a leitura atual, confira a projeção sugerida e ajuste a entrada manualmente se quiser — a decisão final é sempre sua, a plataforma só organiza os números.</p>
+            <p><strong>🔐 Seu acesso:</strong> <span id="promptSaldoInfo">confirmado</span>.</p>
+        </div>
+        <button class="btn-retry" id="btnEntrarPrompt">▶ Entrar no Olho De Deus</button>
+    </div>
+
     <script>
         // ═══════════════════════════════════════════════════════════
         // CONFIGURAÇÃO - Rota do Worker (NUNCA expõe ID do Drive)
@@ -95,47 +140,85 @@
         async function carregarPlataforma() {
             const loadingContainer = document.getElementById('loadingContainer');
             const errorContainer = document.getElementById('errorContainer');
+            const promptContainer = document.getElementById('promptContainer');
             const loadingStatus = document.getElementById('loadingStatus');
             const errorMessage = document.getElementById('errorMessage');
-            
+
             loadingContainer.style.display = 'block';
             errorContainer.style.display = 'none';
-            
+            promptContainer.style.display = 'none';
+
             try {
                 loadingStatus.textContent = 'Verificando sessão...';
-                
+
+                // 🔥 CORRIGIDO: a página /olhodedeus (login+compra+chat) salva
+                // a sessão em 'olho_de_deus_usuario' — na primeira correção eu
+                // tinha presumido que a origem era o localStorage do
+                // pagamentos.html ('almafluxo_usuario'), mas são páginas e
+                // sessões separadas; quem alimenta este loader é o /olhodedeus.
                 const sessao = localStorage.getItem('olho_de_deus_usuario');
-                
+
                 if (!sessao) {
-                    throw new Error('Você precisa fazer login primeiro. Redirecionando...');
+                    throw new Error('login');
                 }
-                
+
                 const usuario = JSON.parse(sessao);
-                
-                loadingStatus.textContent = 'Validando acesso...';
-                
-                if (usuario.master || usuario.acessoUniversal) {
-                    loadingStatus.textContent = 'Acesso MASTER confirmado! Redirecionando...';
-                } else if (usuario.balance < 10) {
-                    throw new Error('Saldo insuficiente! Você tem ' + usuario.balance + ' tokens.');
-                } else {
-                    loadingStatus.textContent = 'Saldo confirmado! Redirecionando...';
+                if (!usuario.email || !usuario.sessionToken) {
+                    throw new Error('login');
                 }
-                
-                // 🔥 MELHOR SOLUÇÃO: Redirecionamento direto
-                setTimeout(() => {
-                    window.location.href = 'https://almafluxo.uk/app-olhodedeus';
-                }, 500);
-                
+
+                loadingStatus.textContent = 'Validando acesso...';
+
+                // 🔥 CORRIGIDO: antes a checagem de saldo/master usava só o
+                // que estava salvo no navegador (localStorage.balance) —
+                // qualquer um edita isso pelo console do navegador e libera
+                // acesso sem pagar nada. Agora quem decide é o servidor
+                // (Central.gs), com o e-mail + sessionToken reais.
+                const resp = await fetch('https://almafluxo.uk/economy/verificar-acesso', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: usuario.email,
+                        plataforma: 'olhodedeus',
+                        sessionToken: usuario.sessionToken
+                    })
+                });
+                const data = await resp.json();
+
+                if (!data.ok || !data.acessoPermitido) {
+                    throw new Error(data.error || 'Saldo insuficiente ou sessão expirada.');
+                }
+
+                // Acesso confirmado de verdade pelo servidor — mostra o
+                // prompt (venda + tutorial) antes de entrar.
+                loadingContainer.style.display = 'none';
+                document.getElementById('promptSaldoInfo').textContent =
+                    `saldo de ${data.saldo} tokens ALMA confirmado`;
+                promptContainer.style.display = 'block';
+
+                document.getElementById('btnEntrarPrompt').onclick = () => {
+                    // Leva o e-mail + sessionToken adiante — o worker.js
+                    // agora exige os dois pra liberar o conteúdo em
+                    // /app-olhodedeus (antes era uma URL pública, sem
+                    // checagem nenhuma do lado do servidor).
+                    const params = new URLSearchParams({
+                        email: usuario.email,
+                        sessionToken: usuario.sessionToken
+                    });
+                    window.location.href = `https://almafluxo.uk/app-olhodedeus?${params.toString()}`;
+                };
+
             } catch (error) {
                 console.error('Erro:', error);
-                
-                if (error.message.includes('login')) {
+
+                if (error.message === 'login') {
+                    loadingStatus.textContent = 'Redirecionando para o login...';
                     setTimeout(() => {
                         window.location.href = 'https://almafluxo.uk/olhodedeus';
-                    }, 2000);
+                    }, 1500);
+                    return;
                 }
-                
+
                 loadingContainer.style.display = 'none';
                 errorContainer.style.display = 'block';
                 errorMessage.textContent = error.message;
