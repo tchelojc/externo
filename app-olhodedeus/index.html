@@ -73,8 +73,8 @@
         <div class="subtitle" id="status">Confirmando sua sessão...</div>
         
         <div class="prompt-box" id="promptBox">
-            <p><strong>⚙️ Como funciona:</strong> o Olho De Deus lê as odds e os dados da partida/mercado em tempo real e aplica o Motor de Entropia + Oráculo & Constantes pra calcular a distribuição de entrada.</p>
-            <p><strong>🧭 Como usar:</strong> acompanhe a Mesa GPS pra ver a leitura atual e ajuste a entrada manualmente se quiser.</p>
+            <p><strong>⚙️ Como funciona:</strong> o Olho De Deus lê as odds e os dados da partida/mercado em tempo real.</p>
+            <p><strong>🧭 Como usar:</strong> acompanhe a Mesa GPS pra ver a leitura atual.</p>
             <p><strong>🔐 Seu acesso:</strong> saldo confirmado.</p>
         </div>
         
@@ -131,8 +131,6 @@
         function abrirPlataforma(event) {
             event.preventDefault();
             
-            // 🔥 CORRIGIDO: Redireciona para a rota do Worker que serve o HTML
-            // com email e sessionToken para validação no servidor
             const sessao = localStorage.getItem('olho_de_deus_usuario');
             const usuario = JSON.parse(sessao);
             
@@ -141,8 +139,8 @@
                 sessionToken: usuario.sessionToken
             });
             
-            // Abre em NOVA aba a rota do Worker
-            window.open(`https://almafluxo.uk/app-olhodedeus?${params.toString()}`, '_blank');
+            // 🔥 CORRIGIDO: Redireciona na MESMA aba (não abre nova)
+            window.location.href = `https://almafluxo.uk/app-olhodedeus?${params.toString()}`;
         }
         
         carregar();
