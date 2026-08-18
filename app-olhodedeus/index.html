@@ -142,8 +142,6 @@
             event.preventDefault();
             
             const btnEnter = document.getElementById('btnEnter');
-            const container = document.getElementById('container');
-            const title = document.getElementById('title');
             const status = document.getElementById('status');
             
             btnEnter.textContent = '⏳ Carregando plataforma...';
@@ -154,9 +152,7 @@
                 const sessao = localStorage.getItem('olho_de_deus_usuario');
                 const usuario = JSON.parse(sessao);
                 
-                // 🔥 PASSO 4: Busca o HTML do Drive via Worker
-                // A rota /proxy/central com action 'servirHTML' busca o
-                // arquivo no Drive e retorna o conteúdo HTML
+                // Busca o HTML do Drive via Worker
                 const response = await fetch(`${WORKER_URL}/proxy/central`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -172,26 +168,33 @@
                 
                 const html = await response.text();
                 
-                // Verifica se é HTML válido
                 if (html.includes('<!DOCTYPE') || html.includes('<html')) {
                     status.textContent = 'Plataforma carregada!';
                     
-                    // 🔥 PASSO 5: Substitui TODO o conteúdo da página
-                    // pelo HTML do linear.html
-                    document.open();
-                    document.write(html);
-                    document.close();
-                } else {
-                    // Tenta parsear como JSON (pode ser erro)
-                    try {
-                        const json = JSON.parse(html);
-                        throw new Error(json.error || 'Erro ao carregar conteúdo');
-                    } catch (parseError) {
-                        if (parseError.message !== 'Erro ao carregar conteúdo') {
-                            throw parseError;
+                    // 🔥 CORREÇÃO: Usar iframe em vez de document.write
+                    // Cria um iframe em tela cheia
+                    const iframe = document.createElement('iframe');
+                    iframe.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:9999;';
+                    iframe.srcdoc = html;
+                    
+                    // Remove o container original
+                    document.getElementById('container').style.display = 'none';
+                    
+                    // Adiciona o iframe
+                    document.body.appendChild(iframe);
+                    
+                    // Listener para mensagens do iframe
+                    window.addEventListener('message', function(event) {
+                        if (event.data === 'fechar-plataforma') {
+                            iframe.remove();
+                            document.getElementById('container').style.display = '';
                         }
-                        throw new Error('Conteúdo inválido retornado');
-                    }
+                        if (event.data === 'voltar-login') {
+                            window.location.href = LOGIN_URL;
+                        }
+                    });
+                } else {
+                    throw new Error('Conteúdo inválido retornado');
                 }
                 
             } catch (e) {
