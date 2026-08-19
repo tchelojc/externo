@@ -1649,7 +1649,8 @@
         document.getElementById('homeContainer').classList.add('chat-open');
         document.body.style.overflow = 'hidden';
 
-        // 🔥 RESETAR o timestamp para não exibir mensagens antigas
+        // 🔥 CORREÇÃO: Reseta o Set de respostas exibidas
+        respostasExibidas = new Set();
         lastResponseTimestamp = null;
 
         document.getElementById('leadIntake').style.display = 'none';
@@ -1714,13 +1715,6 @@
         document.getElementById('chatSendBtn').disabled = false;
     }
 
-    // 🔥 REMOVIDO: encerrarAtendimento() do lado do cliente. Por decisão sua,
-    // só o atendente/IA (via limite de mensagens) ou o sistema (inatividade)
-    // podem encerrar - o cliente não tem mais esse botão. Ver
-    // mostrarAtendimentoEncerrado() para o que acontece quando qualquer um
-    // desses encerra o atendimento.
-
-    // 🔥 ADICIONE AQUI:
     async function carregarHistorico() {
         try {
             const resp = await fetch(`${PROXY_CLOUDFLARE}?action=getChatAtendente&leadId=${sessionId}`, {
@@ -1734,15 +1728,15 @@
 
                 document.getElementById('chatMessages').innerHTML = '';
 
-                // 🔥 CORREÇÃO: Usa um Set para rastrear mensagens já exibidas
-                const exibidas = new Set();
+                // 🔥 CORREÇÃO: Usa Set para rastrear mensagens já exibidas
+                const exibidasNoHistorico = new Set();
 
                 for (const msg of mensagens) {
                     // Gera uma chave única para cada mensagem
-                    const chave = `${msg.de}-${msg.texto.substring(0, 50)}-${msg.timestamp}`;
+                    const chave = `${msg.de}-${(msg.texto || '').substring(0, 100)}`;
                     
-                    if (exibidas.has(chave)) continue;
-                    exibidas.add(chave);
+                    if (exibidasNoHistorico.has(chave)) continue;
+                    exibidasNoHistorico.add(chave);
 
                     if (msg.de === 'lead') {
                         addMessage('user', msg.texto);
@@ -1754,11 +1748,19 @@
                             } else {
                                 addMessage('atendente-msg', textoLimpo);
                             }
+                            
+                            // 🔥 Adiciona ao Set global para não exibir novamente no polling
+                            const chaveResposta = textoLimpo
+                                .replace(/[^\w\sáéíóúãõç]/g, ' ')
+                                .replace(/\s+/g, ' ')
+                                .trim()
+                                .substring(0, 200);
+                            respostasExibidas.add(chaveResposta);
                         }
                     }
                 }
                 
-                // 🔥 Atualiza lastResponseTimestamp com a última mensagem
+                // Atualiza lastResponseTimestamp com a última mensagem
                 if (mensagens.length > 0) {
                     const ultima = mensagens[mensagens.length - 1];
                     lastResponseTimestamp = new Date(ultima.timestamp || Date.now()).getTime();
@@ -2014,41 +2016,48 @@
     }
 
     function respostaJaExibida(textoResposta) {
-        if (!textoResposta || textoResposta.length < 10) return true; // já exibida se for curta demais
+        if (!textoResposta || textoResposta.length < 10) return true;
 
-        const msgElements = document.querySelectorAll('.message.ai, .message.atendente-msg');
-
-        // 🔥 LIMPA O TEXTO PARA COMPARAÇÃO (remove emojis, pontuação, espaços extras)
+        // 🔥 LIMPA O TEXTO PARA COMPARAÇÃO
         const textoLimpo = textoResposta
             .replace(/[^\w\sáéíóúãõç]/g, ' ')
             .replace(/\s+/g, ' ')
             .trim()
             .substring(0, 200);
 
-        if (textoLimpo.length < 10) return true; // texto muito curto, considera já exibido
+        if (textoLimpo.length < 10) return true;
 
-        let jaExibida = false;
-        msgElements.forEach(el => {
+        // 🔥 CORREÇÃO: Usa Set para verificação RÁPIDA e PRECISA
+        // Não depende mais de percorrer o DOM (que pode ser lento e impreciso)
+        if (respostasExibidas.has(textoLimpo)) {
+            console.log('⚠️ Resposta já exibida anteriormente, ignorando...');
+            return true;
+        }
+
+        // 🔥 FALLBACK: Verifica no DOM (para mensagens carregadas do histórico)
+        const msgElements = document.querySelectorAll('.message.ai, .message.atendente-msg');
+        
+        for (const el of msgElements) {
             const elTexto = el.textContent
                 .replace(/[^\w\sáéíóúãõç]/g, ' ')
                 .replace(/\s+/g, ' ')
                 .trim()
                 .substring(0, 200);
 
-            // 🔥 COMPARAÇÃO ROBUSTA
             if (elTexto.length > 10) {
-                // Verifica se um texto contém o outro (com 80% de overlap)
-                const menor = textoLimpo.length < elTexto.length ? textoLimpo : elTexto;
-                const maior = textoLimpo.length < elTexto.length ? elTexto : textoLimpo;
-
-                // Se o menor está contido no maior, ou se 80% do menor está no maior
-                if (maior.includes(menor) || menor.includes(maior)) {
-                    jaExibida = true;
+                // Verifica se um texto contém o outro
+                if (textoLimpo.includes(elTexto) || elTexto.includes(textoLimpo)) {
+                    // 🔥 Adiciona ao Set para não verificar no DOM novamente
+                    respostasExibidas.add(textoLimpo);
+                    console.log('⚠️ Resposta encontrada no DOM, ignorando...');
+                    return true;
                 }
             }
-        });
+        }
 
-        return jaExibida;
+        // 🔥 Se chegou aqui, é uma resposta NOVA - adiciona ao Set
+        respostasExibidas.add(textoLimpo);
+        return false;
     }
 
     // ═══════════════ FUNÇÃO PARA LIMPAR RESPOSTA DA IA ═══════════════
@@ -2133,29 +2142,14 @@
         if (isProcessing) return;
 
         try {
-            // 🔥 CORREÇÃO: Busca no SERVIDOR LOCAL primeiro
-            let data;
-            
-            try {
-                const respLocal = await fetch(`http://localhost:8080/api/chat-atendente/respostas?leadId=${sessionId}`);
-                data = await respLocal.json();
-            } catch (e) {
-                // Fallback para proxy
-                const respProxy = await fetch(PROXY_CLOUDFLARE, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'chatAtendenteRespostas',
-                        leadId: sessionId
-                    })
-                });
-                data = await respProxy.json();
-            }
+            const response = await fetch(`http://localhost:8080/api/chat-atendente/respostas?leadId=${sessionId}`);
+            const data = await response.json();
 
             if (data.respostas && data.respostas.length > 0) {
                 for (const resp of data.respostas) {
                     const textoLimpo = resp.respondido_por_ia ? limparRespostaIA(resp.texto) : (resp.texto || '').trim();
                     
+                    // 🔥 CORREÇÃO: Usa respostaJaExibida() que agora usa Set
                     if (textoLimpo && !respostaJaExibida(textoLimpo)) {
                         if (resp.respondido_por_ia) {
                             addMessage('ai', textoLimpo + botoesResposta());
