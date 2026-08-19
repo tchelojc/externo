@@ -1313,20 +1313,22 @@
             }
         }
 
-        // 7. CHAT DE ATENDIMENTO (já está correto)
         async function enviarParaIAOlho(mensagem) {
             isProcessingChat = true;
             document.getElementById('chatSendBtnOlho').disabled = true;
             showTypingOlho();
 
             try {
-                // 🔥 ROTA CORRETA: https://almafluxo.uk/proxy/infocell
-                // 🔥 NOVO: campo "origem" - permite ao servidor.py usar um
-                // prompt/seed diferente pro chat do Olho De Deus, mesmo
-                // passando pela mesma rota/Apps Script do InfoCell. Isso
-                // depende do Apps Script (getChatAtendenteAll) devolver
-                // esse campo junto da conversa - se ainda não devolve,
-                // nada quebra: o servidor.py cai no prompt padrão infocell.
+                // 🔥 ANTES de enviar, conta quantas mensagens do atendente já existem
+                let numeroRespostasAntes = 0;
+                try {
+                    const respAntes = await fetch(`https://almafluxo.uk/proxy/infocell?action=getChatAtendente&leadId=${sessionIdChat}`);
+                    const dataAntes = await respAntes.json();
+                    const mensagensAntes = dataAntes.conversas?.[sessionIdChat]?.mensagens || [];
+                    numeroRespostasAntes = mensagensAntes.filter(m => m.de === 'atendente').length;
+                } catch(e) {}
+
+                // Agora envia a mensagem do lead
                 await fetch('https://almafluxo.uk/proxy/infocell', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1340,29 +1342,9 @@
                     })
                 });
 
-                // Polling para resposta
+                // Polling para resposta NOVA
                 let resposta = null;
                 const MAX_TENTATIVAS = 20;
-
-                // 🔥 NOVO: filtro de segurança — se a automação local capturar
-                // por engano um texto de interface do DeepSeek (ex.: o aviso
-                // "Message is empty" quando um clique de reenvio acerta um
-                // campo já vazio) em vez de uma resposta real, isso NÃO deve
-                // ir pro visitante. Melhor esperar a próxima tentativa (ou
-                // cair no fallback de "sem resposta") do que mostrar lixo.
-                function pareceRespostaValidaOlho(texto) {
-                    if (!texto) return false;
-                    const t = texto.trim();
-                    if (t.length < 3) return false;
-                    const tLower = t.toLowerCase();
-                    const gatilhosInvalidos = [
-                        'desculpe',
-                        'message is empty',
-                        'mensagem vazia',
-                        'empty message'
-                    ];
-                    return !gatilhosInvalidos.some(g => tLower.includes(g));
-                }
                 
                 for (let tentativa = 0; tentativa < MAX_TENTATIVAS && !resposta; tentativa++) {
                     await new Promise(r => setTimeout(r, 3000));
@@ -1372,11 +1354,17 @@
                         const data = await resp.json();
                         const mensagens = data.conversas?.[sessionIdChat]?.mensagens || [];
                         
-                        const ultimas = mensagens.filter(m => m.de === 'atendente');
-                        if (ultimas.length > 0) {
-                            const ultima = ultimas[ultimas.length - 1];
-                            if (pareceRespostaValidaOlho(ultima.texto)) {
-                                resposta = ultima.texto;
+                        // 🔥 CORREÇÃO: Pega apenas as respostas NOVAS (depois do envio)
+                        const mensagensAtendente = mensagens.filter(m => m.de === 'atendente');
+                        
+                        // Só pega se houver MAIS respostas do que antes
+                        if (mensagensAtendente.length > numeroRespostasAntes) {
+                            const ultimaAtendente = mensagensAtendente[mensagensAtendente.length - 1];
+                            
+                            if (ultimaAtendente.texto && 
+                                !ultimaAtendente.texto.includes('Desculpe') &&
+                                ultimaAtendente.texto !== resposta) {
+                                resposta = ultimaAtendente.texto;
                             }
                         }
                     } catch (e) {}
