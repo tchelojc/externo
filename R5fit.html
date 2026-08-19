@@ -2133,26 +2133,27 @@
         if (isProcessing) return;
 
         try {
-            const response = await fetch(PROXY_CLOUDFLARE, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'chatAtendenteRespostas',
-                    leadId: sessionId
-                })
-            });
-
-            const data = await response.json();
+            // 🔥 CORREÇÃO: Busca no SERVIDOR LOCAL primeiro
+            let data;
+            
+            try {
+                const respLocal = await fetch(`http://localhost:8080/api/chat-atendente/respostas?leadId=${sessionId}`);
+                data = await respLocal.json();
+            } catch (e) {
+                // Fallback para proxy
+                const respProxy = await fetch(PROXY_CLOUDFLARE, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'chatAtendenteRespostas',
+                        leadId: sessionId
+                    })
+                });
+                data = await respProxy.json();
+            }
 
             if (data.respostas && data.respostas.length > 0) {
-                // 🔥 CORREÇÃO: Filtra apenas respostas NOVAS (após lastResponseTimestamp)
-                const respostasNovas = data.respostas.filter(resp => {
-                    if (!lastResponseTimestamp) return true;
-                    const respTime = new Date(resp.timestamp).getTime();
-                    return respTime > lastResponseTimestamp;
-                });
-
-                for (const resp of respostasNovas) {
+                for (const resp of data.respostas) {
                     const textoLimpo = resp.respondido_por_ia ? limparRespostaIA(resp.texto) : (resp.texto || '').trim();
                     
                     if (textoLimpo && !respostaJaExibida(textoLimpo)) {
@@ -2161,9 +2162,7 @@
                         } else {
                             addMessage('atendente-msg', textoLimpo);
                         }
-                        
-                        // 🔥 Atualiza o timestamp da última resposta exibida
-                        lastResponseTimestamp = new Date(resp.timestamp || Date.now()).getTime();
+                        tocarSomNotificacao();
                     }
                 }
             }
@@ -2218,7 +2217,6 @@
         } catch (e) {}
     }
 
-    // ═══════════════ FLUXO 1: CHAT COM IA ═══════════════
     async function enviarParaIA(mensagem, arquivo = null) {
         isProcessing = true;
         document.getElementById('chatSendBtn').disabled = true;
@@ -2249,94 +2247,88 @@
             await callAPI('saveChatAtendente', payload, 'POST');
             console.log('📥 Mensagem salva no Drive');
 
-            // 🔥 PASSO 2: "COTOVELADA" NO SERVIDOR LOCAL (best-effort, opcional)
-            // "localhost:8080" aqui é sempre a máquina de QUEM ESTÁ VISITANDO
-            // o site, nunca a sua - pra qualquer visitante remoto, isso
-            // sempre cai no catch abaixo, silenciosamente. Não é bug: é só
-            // uma tentativa de acordar o processamento mais rápido pra quem
-            // estiver testando localmente. O fluxo real, pra visitantes de
-            // verdade, depende do polling de fundo do seu servidor.py
-            // (background_polling_drive), que varre o Drive sozinho a cada
-            // ~15s independente disso.
+            // 🔥 PASSO 2: Acionar processamento
             try {
                 await fetch('http://localhost:8080/api/processar-pendentes', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({})
+                    body: JSON.stringify({ engine: 'dola' })
                 });
                 console.log('🤖 Servidor local acionado');
             } catch (e) {
-                console.log('ℹ️ Servidor local não alcançável a partir daqui (normal para visitantes remotos) - seguindo via polling de fundo.');
+                console.log('ℹ️ Servidor local não alcançável (normal para visitantes remotos)');
             }
 
-            // 🔥 PASSO 3: POLLING
+            // 🔥 PASSO 3: POLLING - CORRIGIDO para buscar do SERVIDOR LOCAL
             let resposta = null;
             let tentativas = 0;
-            const MAX_TENTATIVAS = 55; // 110s (55 × 2s) - CORRIGIDO: removida a duplicata
-            let avisoMostrado = false;
+            const MAX_TENTATIVAS = 30;
 
             while (!resposta && tentativas < MAX_TENTATIVAS) {
                 tentativas++;
                 await new Promise(r => setTimeout(r, 2000));
 
                 try {
-                    // 🔥 CORREÇÃO: POST com body JSON
-                    const respPendentes = await fetch(PROXY_CLOUDFLARE, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            action: 'chatAtendenteRespostas',
-                            leadId: sessionId
-                        })
-                    });
+                    // 🔥 CORREÇÃO: Busca no SERVIDOR LOCAL (não no proxy)
+                    const respPendentes = await fetch(`http://localhost:8080/api/chat-atendente/respostas?leadId=${sessionId}`);
                     const pendentesData = await respPendentes.json();
 
-                    if (pendentesData.atendimento_status === 'encerrado' && !atendimentoEncerrado) {
-                        mostrarAtendimentoEncerrado(motivoEncerramento(pendentesData.atendimento_encerrado_por));
-                    }
+                    console.log(`📥 Polling ${tentativas}: ${pendentesData.respostas?.length || 0} respostas`);
 
                     if (pendentesData.respostas && pendentesData.respostas.length > 0) {
+                        // 🔥 Pega a ÚLTIMA resposta não consumida
                         const ultimaResposta = pendentesData.respostas[pendentesData.respostas.length - 1];
                         if (ultimaResposta && ultimaResposta.texto) {
                             resposta = ultimaResposta;
-                            console.log('✅ Resposta encontrada!');
+                            console.log('✅ Resposta encontrada no servidor local!');
                             break;
                         }
                     }
                 } catch (e) {
-                    console.log('⚠️ Erro no polling:', e.message);
-                }
-
-                if (tentativas === 15 && !avisoMostrado) {
-                    avisoMostrado = true;
-                    removeTyping();
-                    addMessage('ai', '⏳ Ainda buscando sua resposta, só mais um instante...');
-                    showTyping();
-                }
-
-                if (tentativas % 5 === 0) {
-                    console.log(`⏳ Aguardando IA... (${tentativas * 2}s)`);
+                    console.log(`⚠️ Polling ${tentativas} falhou: ${e.message}`);
+                    
+                    // 🔥 FALLBACK: Tenta via proxy Cloudflare
+                    try {
+                        const respProxy = await fetch(PROXY_CLOUDFLARE, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                action: 'chatAtendenteRespostas',
+                                leadId: sessionId
+                            })
+                        });
+                        const proxyData = await respProxy.json();
+                        
+                        if (proxyData.respostas && proxyData.respostas.length > 0) {
+                            const ultimaResposta = proxyData.respostas[proxyData.respostas.length - 1];
+                            if (ultimaResposta && ultimaResposta.texto) {
+                                resposta = ultimaResposta;
+                                console.log('✅ Resposta encontrada via proxy!');
+                                break;
+                            }
+                        }
+                    } catch (e2) {
+                        // Silencioso
+                    }
                 }
             }
 
             removeTyping();
 
             if (resposta && resposta.texto) {
-                if (resposta.respondido_por_ia) {
-                    addMessage('ai', resposta.texto + botoesResposta());
-                } else {
-                    addMessage('atendente-msg', resposta.texto);
+                const textoLimpo = resposta.respondido_por_ia ? limparRespostaIA(resposta.texto) : resposta.texto;
+                if (textoLimpo) {
+                    addMessage('ai', textoLimpo + botoesResposta());
+                    console.log('✅ Resposta exibida no chat!');
                 }
-                console.log('✅ Resposta exibida no chat!');
             } else {
-                console.log('⚠️ Nenhuma resposta encontrada, usando fallback');
-                const fallback = gerarRespostaLocal();
-                addMessage('ai', fallback + botoesResposta());
+                console.log('⚠️ Nenhuma resposta encontrada após timeout');
+                addMessage('ai', gerarRespostaLocal() + botoesResposta());
             }
         } catch (e) {
             console.log('❌ Erro em enviarParaIA:', e.message);
             removeTyping();
-            addMessage('ai', 'Ops, tive um probleminha para responder agora. Pode tentar de novo? 🙏' + botoesResposta());
+            addMessage('ai', 'Ops, tive um probleminha. Pode tentar de novo? 🙏' + botoesResposta());
         } finally {
             isProcessing = false;
             document.getElementById('chatSendBtn').disabled = false;
