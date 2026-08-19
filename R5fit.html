@@ -914,6 +914,9 @@
     let driveFileId = null;
     // ═══════════════ POLLING CONTÍNUO PARA RESPOSTAS DO ATENDENTE ═══════════════
     let pollContinuoInterval = null;
+    let pollEmExecucao = false;
+    // Adicione no topo do script, junto com as outras variáveis:
+    let respostasExibidas = new Set();
 
     function abrirModalLogin() {
         document.getElementById('loginModalOverlay').classList.add('active');
@@ -2001,10 +2004,13 @@
     }
 
     function iniciarPollingContinuo() {
-        if (pollContinuoInterval) return;
-        pollContinuoInterval = setInterval(pollRespostasContinuo, 2000);
+        if (pollContinuoInterval) {
+            clearInterval(pollContinuoInterval);
+        }
+        
+        // 🔥 CORREÇÃO: Apenas UM setInterval (antes tinha dois!)
         pollContinuoInterval = setInterval(pollRespostasContinuo, 3000);
-        console.log('🔄 Polling contínuo iniciado');
+        console.log('🔄 Polling contínuo iniciado (a cada 3s)');
     }
 
     function pararPollingContinuo() {
@@ -2186,18 +2192,42 @@
     }
 
     async function pollRespostasContinuo() {
+        // 🔥 CORREÇÃO: Evita chamadas simultâneas
+        if (pollEmExecucao) return;
         if (!document.getElementById('chatOverlay').classList.contains('active')) return;
         if (isProcessing) return;
-
+        
+        pollEmExecucao = true;
+        
         try {
-            const response = await fetch(`http://localhost:8080/api/chat-atendente/respostas?leadId=${sessionId}`);
-            const data = await response.json();
+            // 🔥 CORREÇÃO: Usa proxy Cloudflare para visitantes remotos
+            let data;
+            
+            try {
+                // Tenta servidor local primeiro (para testes)
+                const response = await fetch(`http://localhost:8080/api/chat-atendente/respostas?leadId=${sessionId}`);
+                data = await response.json();
+            } catch (e) {
+                // Fallback para proxy
+                try {
+                    const respProxy = await fetch(`${PROXY_CLOUDFLARE}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'chatAtendenteRespostas',
+                            leadId: sessionId
+                        })
+                    });
+                    data = await respProxy.json();
+                } catch (e2) {
+                    return;
+                }
+            }
 
             if (data.respostas && data.respostas.length > 0) {
                 for (const resp of data.respostas) {
                     const textoLimpo = resp.respondido_por_ia ? limparRespostaIA(resp.texto) : (resp.texto || '').trim();
                     
-                    // 🔥 CORREÇÃO: Usa respostaJaExibida() que agora usa Set
                     if (textoLimpo && !respostaJaExibida(textoLimpo)) {
                         if (resp.respondido_por_ia) {
                             addMessage('ai', textoLimpo + botoesResposta());
@@ -2210,6 +2240,8 @@
             }
         } catch (e) {
             console.log('❌ [POLLING] Erro:', e.message);
+        } finally {
+            pollEmExecucao = false;
         }
     }
 
@@ -2260,6 +2292,7 @@
     }
 
     async function enviarParaIA(mensagem, arquivo = null) {
+        if (isProcessing) return; // 🔥 Evita envio duplicado
         isProcessing = true;
         document.getElementById('chatSendBtn').disabled = true;
         showTyping();
@@ -2284,12 +2317,14 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ engine: 'dola' })
                 });
-            } catch (e) {}
+            } catch (e) {
+                console.log('ℹ️ Servidor local não alcançável (normal para visitantes remotos)');
+            }
 
-            // 🔥 Polling com MAIS tentativas (60 = 120 segundos)
+            // 🔥 CORREÇÃO: 30 tentativas × 2s = 60s máximos
             let resposta = null;
             let tentativas = 0;
-            const MAX_TENTATIVAS = 60;
+            const MAX_TENTATIVAS = 30;
 
             while (!resposta && tentativas < MAX_TENTATIVAS) {
                 tentativas++;
@@ -2303,12 +2338,30 @@
                         const ultimaResposta = pendentesData.respostas[pendentesData.respostas.length - 1];
                         if (ultimaResposta && ultimaResposta.texto) {
                             resposta = ultimaResposta;
-                            console.log('✅ Resposta encontrada!');
                             break;
                         }
                     }
                 } catch (e) {
-                    console.log(`⚠️ Polling ${tentativas} falhou: ${e.message}`);
+                    // Fallback para proxy
+                    try {
+                        const respProxy = await fetch(`${PROXY_CLOUDFLARE}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                action: 'chatAtendenteRespostas',
+                                leadId: sessionId
+                            })
+                        });
+                        const proxyData = await respProxy.json();
+                        
+                        if (proxyData.respostas && proxyData.respostas.length > 0) {
+                            const ultimaResposta = proxyData.respostas[proxyData.respostas.length - 1];
+                            if (ultimaResposta && ultimaResposta.texto) {
+                                resposta = ultimaResposta;
+                                break;
+                            }
+                        }
+                    } catch (e2) {}
                 }
             }
 
@@ -2316,11 +2369,10 @@
 
             if (resposta && resposta.texto) {
                 const textoLimpo = resposta.respondido_por_ia ? limparRespostaIA(resposta.texto) : resposta.texto;
-                if (textoLimpo) {
+                if (textoLimpo && !respostaJaExibida(textoLimpo)) {
                     addMessage('ai', textoLimpo + botoesResposta());
                 }
             } else {
-                // 🔥 Só mostra fallback se REALMENTE esgotou todas as tentativas
                 addMessage('ai', gerarRespostaLocal() + botoesResposta());
             }
         } catch (e) {
