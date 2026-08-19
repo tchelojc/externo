@@ -1082,6 +1082,7 @@
             mostrarDigitando();
             
             try {
+                // 🔥 PASSO 1: Salva a mensagem
                 await fetch(CONFIG.API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1095,29 +1096,67 @@
                     })
                 });
                 
-                let resposta = null;
-                const MAX_TENTATIVAS = 20;
+                // 🔥 PASSO 2: Acionar processamento (best-effort para localhost)
+                try {
+                    await fetch('http://localhost:8081/api/processar-pendentes', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ engine: 'deepseek' })
+                    });
+                } catch (e) {
+                    // Silencioso - o polling de fundo do servidor vai processar
+                }
                 
-                for (let i = 0; i < MAX_TENTATIVAS && !resposta; i++) {
-                    await new Promise(r => setTimeout(r, 3000));
+                // 🔥 PASSO 3: Polling por resposta
+                let resposta = null;
+                const MAX_TENTATIVAS = 30;
+                let tentativas = 0;
+                
+                // 🔥 CORREÇÃO: Usa um Set para rastrear respostas já vistas
+                const respostasVistas = new Set();
+                
+                while (!resposta && tentativas < MAX_TENTATIVAS) {
+                    tentativas++;
+                    await new Promise(r => setTimeout(r, 2000));
                     
                     try {
-                        const resp = await fetch(`${CONFIG.API_URL}?action=getChatAtendente&leadId=${sessionId}`);
+                        // 🔥 CORREÇÃO: Busca respostas pendentes (não o histórico completo)
+                        const resp = await fetch(`${CONFIG.API_URL}?action=chatAtendenteRespostas&leadId=${sessionId}`);
                         const data = await resp.json();
                         
-                        const conversa = data.conversas?.[sessionId];
-                        if (conversa && conversa.mensagens) {
-                            const mensagensAtendente = conversa.mensagens.filter(m => m.de === 'atendente');
-                            
-                            if (mensagensAtendente.length > 0) {
-                                const ultima = mensagensAtendente[mensagensAtendente.length - 1];
-                                if (ultima.texto && !ultima.texto.includes('Desculpe') && !ultima.consumida) {
-                                    resposta = ultima.texto;
-                                    ultima.consumida = true;
+                        if (data.respostas && data.respostas.length > 0) {
+                            // 🔥 Pega a ÚLTIMA resposta que ainda não foi vista
+                            for (const r of data.respostas) {
+                                const chave = r.texto?.substring(0, 100) || '';
+                                if (chave && !respostasVistas.has(chave)) {
+                                    respostasVistas.add(chave);
+                                    if (r.texto && !r.texto.includes('Desculpe')) {
+                                        resposta = r.texto;
+                                        break;
+                                    }
                                 }
                             }
                         }
-                    } catch (e) {}
+                    } catch (e) {
+                        console.log(`⚠️ Polling ${tentativas} falhou: ${e.message}`);
+                        
+                        // 🔥 FALLBACK: Tenta via servidor local
+                        try {
+                            const respLocal = await fetch(`http://localhost:8081/api/chatAtendenteRespostas?leadId=${sessionId}`);
+                            const dataLocal = await respLocal.json();
+                            
+                            if (dataLocal.respostas && dataLocal.respostas.length > 0) {
+                                const ultima = dataLocal.respostas[dataLocal.respostas.length - 1];
+                                if (ultima.texto && !respostasVistas.has(ultima.texto.substring(0, 100))) {
+                                    respostasVistas.add(ultima.texto.substring(0, 100));
+                                    resposta = ultima.texto;
+                                    break;
+                                }
+                            }
+                        } catch (e2) {
+                            // Silencioso
+                        }
+                    }
                 }
                 
                 removerDigitando();
