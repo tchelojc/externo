@@ -2217,100 +2217,161 @@
             if (indicator) indicator.remove();
         }
 
+        // ═══════════════════════════════════════════════════════════════
+        // CHAT DE ATENDIMENTO - CORRIGIDO
+        // ═══════════════════════════════════════════════════════════════
+
         async function enviarParaIA(mensagem) {
             isProcessingChat = true;
             const sendBtn = document.getElementById('sendBtn');
             if (sendBtn) sendBtn.disabled = true;
             mostrarDigitando();
             
+            console.log('📤 Enviando mensagem para IA:', mensagem);
+            
             try {
-                // 🔥 PASSO 1: Salva a mensagem no Drive (via proxy)
-                await fetch(CONFIG.API_URL, {
+                // 🔥 PASSO 1: Salva a mensagem completa no Drive
+                const payload = {
+                    action: 'saveChatAtendente',
+                    leadId: sessionId,
+                    nomeLead: 'Cliente KPG',
+                    de: 'lead',
+                    texto: mensagem, // Mensagem COMPLETA
+                    origem: CONFIG.ORIGEM
+                };
+                
+                console.log('📦 Payload enviado:', payload);
+                
+                const saveResponse = await fetch(CONFIG.API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'saveChatAtendente',
-                        leadId: sessionId,
-                        nomeLead: 'Cliente KPG',
-                        de: 'lead',
-                        texto: mensagem,
-                        origem: CONFIG.ORIGEM
-                    })
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
                 });
                 
-                // 🔥 PASSO 2: Acionar processamento (best-effort para localhost)
+                if (!saveResponse.ok) {
+                    console.error('❌ Erro ao salvar mensagem:', saveResponse.status);
+                    throw new Error(`Erro ${saveResponse.status} ao salvar mensagem`);
+                }
+                
+                console.log('✅ Mensagem salva com sucesso');
+                
+                // 🔥 PASSO 2: Acionar processamento
                 try {
-                    await fetch('http://localhost:8081/api/processar-pendentes', {
+                    const processResponse = await fetch('http://localhost:8081/api/processar-pendentes', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ engine: 'deepseek' })
                     });
+                    console.log('🔄 Processamento acionado:', processResponse.status);
                 } catch (e) {
-                    // Silencioso - o polling de fundo do servidor vai processar
+                    console.log('ℹ️ Polling de fundo irá processar');
                 }
                 
-                // 🔥 PASSO 3: Polling por resposta
+                // 🔥 PASSO 3: Polling por resposta - MAIS ROBUSTO
                 let resposta = null;
-                const MAX_TENTATIVAS = 30;
+                const MAX_TENTATIVAS = 50; // Aumentado para 50 tentativas
+                const INTERVALO_MS = 3000; // 3 segundos entre tentativas
                 let tentativas = 0;
                 
                 const respostasVistas = new Set();
                 
+                console.log('🔍 Iniciando polling por resposta...');
+                
                 while (!resposta && tentativas < MAX_TENTATIVAS) {
                     tentativas++;
-                    await new Promise(r => setTimeout(r, 2000));
+                    console.log(`⏳ Tentativa ${tentativas}/${MAX_TENTATIVAS}...`);
+                    
+                    await new Promise(r => setTimeout(r, INTERVALO_MS));
                     
                     try {
+                        // Tenta primeiro via proxy
                         const resp = await fetch(`${CONFIG.API_URL}?action=chatAtendenteRespostas&leadId=${sessionId}`);
                         const data = await resp.json();
                         
+                        console.log(`📥 Resposta do proxy (tentativa ${tentativas}):`, data);
+                        
                         if (data.respostas && data.respostas.length > 0) {
+                            // Pega TODAS as respostas não vistas
                             for (const r of data.respostas) {
-                                const chave = r.texto?.substring(0, 100) || '';
-                                if (chave && !respostasVistas.has(chave)) {
+                                if (!r.texto || r.texto.trim() === '') continue;
+                                
+                                const chave = r.texto.substring(0, 200);
+                                if (!respostasVistas.has(chave)) {
                                     respostasVistas.add(chave);
-                                    if (r.texto && !r.texto.includes('Desculpe') && !r.texto.includes('Tô sem conseguir')) {
+                                    
+                                    // Verifica se é uma resposta válida
+                                    if (!r.texto.includes('Desculpe') && 
+                                        !r.texto.includes('Tô sem conseguir') &&
+                                        !r.texto.includes('estou sem conseguir')) {
+                                        
+                                        console.log('✅ Resposta válida encontrada:', r.texto);
                                         resposta = r.texto;
                                         break;
                                     }
                                 }
                             }
                         }
-                    } catch (e) {
-                        // Tenta fallback local
-                        try {
-                            const respLocal = await fetch(`http://localhost:8081/api/chatAtendenteRespostas?leadId=${sessionId}`);
-                            const dataLocal = await respLocal.json();
-                            
-                            if (dataLocal.respostas && dataLocal.respostas.length > 0) {
-                                const ultima = dataLocal.respostas[dataLocal.respostas.length - 1];
-                                if (ultima.texto && !respostasVistas.has(ultima.texto.substring(0, 100))) {
-                                    respostasVistas.add(ultima.texto.substring(0, 100));
-                                    resposta = ultima.texto;
-                                    break;
+                        
+                        // Se não encontrou, tenta local
+                        if (!resposta) {
+                            try {
+                                const respLocal = await fetch(`http://localhost:8081/api/chatAtendenteRespostas?leadId=${sessionId}`);
+                                const dataLocal = await respLocal.json();
+                                
+                                console.log(`📥 Resposta local (tentativa ${tentativas}):`, dataLocal);
+                                
+                                if (dataLocal.respostas && dataLocal.respostas.length > 0) {
+                                    // Pega a ÚLTIMA resposta
+                                    const ultima = dataLocal.respostas[dataLocal.respostas.length - 1];
+                                    
+                                    if (ultima.texto && ultima.texto.trim() !== '') {
+                                        const chave = ultima.texto.substring(0, 200);
+                                        
+                                        if (!respostasVistas.has(chave)) {
+                                            respostasVistas.add(chave);
+                                            
+                                            if (!ultima.texto.includes('Desculpe') && 
+                                                !ultima.texto.includes('Tô sem conseguir')) {
+                                                
+                                                console.log('✅ Resposta local válida:', ultima.texto);
+                                                resposta = ultima.texto;
+                                            }
+                                        }
+                                    }
                                 }
+                            } catch (e2) {
+                                console.log('ℹ️ Falha ao consultar local:', e2.message);
                             }
-                        } catch (e2) {
-                            // Silencioso
                         }
+                        
+                    } catch (e) {
+                        console.log('❌ Erro no polling:', e.message);
                     }
                 }
                 
                 removerDigitando();
                 
                 if (resposta) {
+                    console.log('🎯 Resposta final completa:', resposta);
                     adicionarMensagem('ai', resposta);
                 } else {
-                    // 🔥 RESPOSTA FALLBACK MAIS INTELIGENTE
-                    const fallbackMsg = `👋 Olá! Recebemos sua solicitação de orçamento.\n\n` +
+                    console.log('⚠️ Nenhuma resposta encontrada após', tentativas, 'tentativas');
+                    
+                    // Fallback
+                    const fallbackMsg = `👋 Olá! Recebemos sua solicitação.\n\n` +
                         `📋 Nossa equipe técnica já foi notificada e analisará seu pedido.\n\n` +
-                        `⏱️ Em breve, um de nossos especialistas entrará em contato para agendar uma visita técnica e apresentar uma proposta detalhada.\n\n` +
-                        `📱 Enquanto isso, você pode nos chamar no WhatsApp para atendimento mais rápido:\n` +
+                        `⏱️ Em breve, um de nossos especialistas entrará em contato.\n\n` +
+                        `📱 Enquanto isso, você pode nos chamar no WhatsApp:\n` +
                         `<a href='https://wa.me/${CONFIG.WHATSAPP_NUMBER}' target='_blank' class='whatsapp-link'>WhatsApp</a>`;
+                    
                     adicionarMensagem('ai', fallbackMsg);
                 }
                 
             } catch (e) {
+                console.error('❌ Erro geral:', e);
                 removerDigitando();
                 adicionarMensagem('ai', "❌ Erro ao conectar. Por favor, tente novamente ou entre em contato pelo WhatsApp.");
             } finally {
