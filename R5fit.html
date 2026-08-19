@@ -2064,41 +2064,76 @@
     function limparRespostaIA(texto) {
         if (!texto) return null;
 
-        // 🔥 REMOVE O PROMPT PADRÃO COMPLETO
-        const promptPadrao = "Você é a assistente virtual da R5 Fit";
+        // ═══════════════════════════════════════════════════════════
+        // 🔥 PASSO 1: Remove "Message..." e textos de UI do Dola
+        // ═══════════════════════════════════════════════════════════
+        const textosUI = [
+            'Message...', 'Message…', 'Message',
+            'Digite sua mensagem', 'Type your message',
+            'Escreva aqui', 'Enviar mensagem', 'Send message',
+            'Novo chat', 'New chat', 'Chat History', 'Histórico de chat'
+        ];
+        
         let textoProcessado = texto;
+        
+        for (const uiText of textosUI) {
+            // Escapa caracteres especiais e remove case insensitive
+            const regex = new RegExp(uiText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+            textoProcessado = textoProcessado.replace(regex, '');
+        }
+        
+        textoProcessado = textoProcessado.trim();
+        
+        if (!textoProcessado || textoProcessado.length < 10) {
+            return null;
+        }
 
-        // Se o prompt estiver no texto, remove tudo até o final do prompt
-        if (texto.includes(promptPadrao)) {
-            const partes = texto.split(promptPadrao);
+        // ═══════════════════════════════════════════════════════════
+        // 🔥 PASSO 2: Remove o prompt padrão
+        // ═══════════════════════════════════════════════════════════
+        const promptPadrao = "Você é a assistente virtual da R5 Fit";
+        
+        if (textoProcessado.includes(promptPadrao)) {
+            const partes = textoProcessado.split(promptPadrao);
             if (partes.length > 1) {
                 textoProcessado = partes[1];
             }
         }
 
-        // 🔥 REMOVE LINHAS DE PROTOCOLO E CLIENTE
+        // ═══════════════════════════════════════════════════════════
+        // 🔥 PASSO 3: Remove linhas de protocolo e sistema
+        // ═══════════════════════════════════════════════════════════
         let linhas = textoProcessado.split('\n');
         let linhasFiltradas = [];
         let encontrouResposta = false;
-        let contadorResposta = 0;
 
         for (let linha of linhas) {
             const linhaTrim = linha.trim();
 
-            // Pula linhas de protocolo
-            if (linhaTrim.startsWith('Atendimento #')) continue;
-            // Pula linhas "Cliente:"
-            if (linhaTrim.startsWith('Cliente:')) continue;
             // Pula linhas vazias
             if (!linhaTrim) continue;
+            
+            // Pula linhas de protocolo
+            if (linhaTrim.startsWith('Atendimento #')) continue;
+            
+            // Pula linhas "Cliente:"
+            if (linhaTrim.startsWith('Cliente:')) continue;
+            
+            // 🔥 Pula linhas que são APENAS "Message" (placeholder residual)
+            if (linhaTrim.toLowerCase() === 'message' || 
+                linhaTrim.toLowerCase() === 'message...' || 
+                linhaTrim.toLowerCase() === 'message…') {
+                continue;
+            }
+            
             // Pula linhas de código/sistema
             if (linhaTrim === 'Stop' || linhaTrim === 'Message is empty') continue;
             if (linhaTrim.includes('```') || linhaTrim.includes('def ')) continue;
             if (linhaTrim.includes('javascript') || linhaTrim.includes('function(')) continue;
             if (linhaTrim.includes('servidor.py') || linhaTrim.includes('extrair_novo_conteudo')) continue;
 
-            // 🔥 SE ENCONTROU UMA LINHA QUE PARECE RESPOSTA REAL
-            if (linhaTrim.length > 15 && 
+            // 🔥 Se encontrou uma linha que parece resposta real
+            if (linhaTrim.length > 10 && 
                 !linhaTrim.includes('Diagnosticou') && 
                 !linhaTrim.includes('Identificou') &&
                 !linhaTrim.includes('A análise final é') &&
@@ -2108,18 +2143,23 @@
 
             if (encontrouResposta) {
                 linhasFiltradas.push(linhaTrim);
-                contadorResposta++;
             }
         }
 
-        // Se encontrou poucas linhas ou nenhuma, tenta pegar a última parte do texto
-        if (linhasFiltradas.length < 2) {
-            // Pega as últimas 3 linhas não vazias
+        // ═══════════════════════════════════════════════════════════
+        // 🔥 PASSO 4: Monta o resultado final
+        // ═══════════════════════════════════════════════════════════
+        
+        // Se encontrou poucas linhas, tenta pegar a última parte do texto
+        if (linhasFiltradas.length < 1) {
             const ultimas = linhas.filter(l => l.trim() && l.trim().length > 10).slice(-3);
             if (ultimas.length > 0) {
                 const resultado = ultimas.join('\n').trim();
-                // Se o resultado ainda for o prompt, retorna null
                 if (resultado.includes(promptPadrao) || resultado.includes('Atendimento #')) {
+                    return null;
+                }
+                // 🔥 Verifica se não é apenas "Message"
+                if (resultado.toLowerCase() === 'message' || resultado.toLowerCase() === 'message...') {
                     return null;
                 }
                 return resultado;
@@ -2129,8 +2169,16 @@
 
         const resultado = linhasFiltradas.join('\n').trim();
 
-        // 🔥 VERIFICA SE O RESULTADO AINDA TEM PROMPT
+        // 🔥 Verificações finais
         if (resultado.includes(promptPadrao) || resultado.includes('Atendimento #')) {
+            return null;
+        }
+        
+        // 🔥 Verifica se não é apenas "Message" ou vazio
+        if (resultado.toLowerCase() === 'message' || 
+            resultado.toLowerCase() === 'message...' || 
+            resultado.toLowerCase() === 'message…' ||
+            resultado.length < 10) {
             return null;
         }
 
