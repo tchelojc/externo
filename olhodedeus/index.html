@@ -1343,6 +1343,26 @@
                 // Polling para resposta
                 let resposta = null;
                 const MAX_TENTATIVAS = 20;
+
+                // 🔥 NOVO: filtro de segurança — se a automação local capturar
+                // por engano um texto de interface do DeepSeek (ex.: o aviso
+                // "Message is empty" quando um clique de reenvio acerta um
+                // campo já vazio) em vez de uma resposta real, isso NÃO deve
+                // ir pro visitante. Melhor esperar a próxima tentativa (ou
+                // cair no fallback de "sem resposta") do que mostrar lixo.
+                function pareceRespostaValidaOlho(texto) {
+                    if (!texto) return false;
+                    const t = texto.trim();
+                    if (t.length < 3) return false;
+                    const tLower = t.toLowerCase();
+                    const gatilhosInvalidos = [
+                        'desculpe',
+                        'message is empty',
+                        'mensagem vazia',
+                        'empty message'
+                    ];
+                    return !gatilhosInvalidos.some(g => tLower.includes(g));
+                }
                 
                 for (let tentativa = 0; tentativa < MAX_TENTATIVAS && !resposta; tentativa++) {
                     await new Promise(r => setTimeout(r, 3000));
@@ -1355,7 +1375,7 @@
                         const ultimas = mensagens.filter(m => m.de === 'atendente');
                         if (ultimas.length > 0) {
                             const ultima = ultimas[ultimas.length - 1];
-                            if (ultima.texto && !ultima.texto.includes('Desculpe')) {
+                            if (pareceRespostaValidaOlho(ultima.texto)) {
                                 resposta = ultima.texto;
                             }
                         }
