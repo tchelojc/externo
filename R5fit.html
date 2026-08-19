@@ -1585,8 +1585,10 @@
         document.getElementById('searchInput').focus();
         document.getElementById('wppLinkBottom').href = `https://wa.me/${WHATSAPP}`;
 
-        document.getElementById('chatOverlay').addEventListener('click', e => {
-            if (e.target === document.getElementById('chatOverlay')) fecharChat();
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && document.getElementById('chatOverlay').classList.contains('active')) {
+                fecharChat();
+            }
         });
 
         // 🔥 CORRIGIDO: remove referência a startPolling
@@ -1647,27 +1649,15 @@
         document.getElementById('homeContainer').classList.add('chat-open');
         document.body.style.overflow = 'hidden';
 
-        // 🔥 FORÇA OCULTAR O FORMULÁRIO SEMPRE
+        // 🔥 RESETAR o timestamp para não exibir mensagens antigas
+        lastResponseTimestamp = null;
+
         document.getElementById('leadIntake').style.display = 'none';
         document.getElementById('chatMessages').style.display = '';
         document.getElementById('chatInputArea').style.display = 'flex';
         
         carregarHistorico();
         iniciarPollingContinuo();
-        // 🔥 CORRIGIDO: aluno já logado (perfil completo) não deve ver o
-        // formulário de cadastro anônimo de novo - isso quebrava a
-        // fluidez pra quem menos precisava de fricção.
-        const usuarioSalvo = usuarioLogado || JSON.parse(localStorage.getItem('r5fit_usuario') || 'null');
-        const perfilSalvo = localStorage.getItem('r5fit_lead_perfil');
-        if (usuarioSalvo || perfilSalvo) {
-            document.getElementById('leadIntake').style.display = 'none';
-            document.getElementById('chatMessages').style.display = '';
-            document.getElementById('chatInputArea').style.display = 'flex';
-            carregarHistorico();
-            iniciarPollingContinuo();
-        }
-        // Se não tem perfil salvo, o formulário (leadIntake) já está visível
-        // por padrão - confirmarLeadIntake() cuida do resto quando enviado.
     }
 
     async function confirmarLeadIntake() {
@@ -1707,21 +1697,21 @@
     }
 
     function fecharChat() {
-        const msgCount = document.getElementById('chatMessages').children.length;
-        if (msgCount > 1) {
-            if (!confirm('Tem certeza que deseja fechar o chat? Sua conversa será salva.')) {
-                return;
-            }
-        }
-
+        // 🔥 CORREÇÃO: NÃO fecha mais abruptamente
+        // Só fecha se o usuário clicar no botão X explicitamente
+        // O clique fora NÃO fecha mais (removido o event listener de overlay click)
+        
         document.getElementById('chatOverlay').classList.remove('active');
         document.getElementById('homeContainer').classList.remove('chat-open');
         document.body.style.overflow = '';
         document.getElementById('searchInput').focus();
+        
         stopPolling();
-
-        // 🔥 PARA POLLING CONTÍNUO
         pararPollingContinuo();
+        
+        // 🔥 RESETAR isProcessing para não travar
+        isProcessing = false;
+        document.getElementById('chatSendBtn').disabled = false;
     }
 
     // 🔥 REMOVIDO: encerrarAtendimento() do lado do cliente. Por decisão sua,
@@ -1733,11 +1723,6 @@
     // 🔥 ADICIONE AQUI:
     async function carregarHistorico() {
         try {
-            // 🔥 CORRIGIDO: estava em http://localhost:8080/... - só funcionava
-            // no seu próprio PC. Pra um visitante remoto isso sempre falhava
-            // silenciosamente ("Histórico offline"), então reabrir o chat (ou
-            // recarregar a página) nunca mostrava as mensagens já salvas no
-            // Drive - inclusive a resposta real da IA que já tinha chegado.
             const resp = await fetch(`${PROXY_CLOUDFLARE}?action=getChatAtendente&leadId=${sessionId}`, {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' }
@@ -1749,7 +1734,16 @@
 
                 document.getElementById('chatMessages').innerHTML = '';
 
+                // 🔥 CORREÇÃO: Usa um Set para rastrear mensagens já exibidas
+                const exibidas = new Set();
+
                 for (const msg of mensagens) {
+                    // Gera uma chave única para cada mensagem
+                    const chave = `${msg.de}-${msg.texto.substring(0, 50)}-${msg.timestamp}`;
+                    
+                    if (exibidas.has(chave)) continue;
+                    exibidas.add(chave);
+
                     if (msg.de === 'lead') {
                         addMessage('user', msg.texto);
                     } else {
@@ -1762,6 +1756,12 @@
                             }
                         }
                     }
+                }
+                
+                // 🔥 Atualiza lastResponseTimestamp com a última mensagem
+                if (mensagens.length > 0) {
+                    const ultima = mensagens[mensagens.length - 1];
+                    lastResponseTimestamp = new Date(ultima.timestamp || Date.now()).getTime();
                 }
             }
         } catch (e) {
@@ -2133,9 +2133,6 @@
         if (isProcessing) return;
 
         try {
-            console.log('🔍 [POLLING] sessionId:', sessionId);
-
-            // 🔥 CORREÇÃO: envia como POST com body JSON
             const response = await fetch(PROXY_CLOUDFLARE, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -2147,58 +2144,28 @@
 
             const data = await response.json();
 
-            console.log('🔍 [POLLING] Resposta:', data.status, data.respostas ? data.respostas.length : 0);
-
-            // 🔥 Verifica se o atendimento foi encerrado
-            if (data.atendimento_status === 'encerrado' && !atendimentoEncerrado) {
-                console.log('🔒 [POLLING] Atendimento encerrado!');
-                mostrarAtendimentoEncerrado(motivoEncerramento(data.atendimento_encerrado_por));
-            }
-
             if (data.respostas && data.respostas.length > 0) {
-                console.log('📩 [POLLING] Exibindo', data.respostas.length, 'respostas');
+                // 🔥 CORREÇÃO: Filtra apenas respostas NOVAS (após lastResponseTimestamp)
+                const respostasNovas = data.respostas.filter(resp => {
+                    if (!lastResponseTimestamp) return true;
+                    const respTime = new Date(resp.timestamp).getTime();
+                    return respTime > lastResponseTimestamp;
+                });
 
-                for (const resp of data.respostas) {
+                for (const resp of respostasNovas) {
                     const textoLimpo = resp.respondido_por_ia ? limparRespostaIA(resp.texto) : (resp.texto || '').trim();
-
-                    console.log('📝 [POLLING] Resposta:', textoLimpo ? textoLimpo.substring(0, 50) + '...' : 'VAZIA');
-
-                    // 🔥 CORRIGIDO: o mínimo de 15 caracteres é um filtro pra
-                    // descartar capturas de IA incompletas/lixo - fazia sentido
-                    // pra respostas de IA, mas estava sendo aplicado também às
-                    // respostas do atendente humano, que podem ser curtas de
-                    // propósito ("oi", "ok", "sim"). Isso derrubava silenciosamente
-                    // qualquer resposta manual curta do painel - o texto chegava
-                    // certinho até aqui e sumia só por causa desse filtro.
-                    const passaFiltro = resp.respondido_por_ia
-                        ? (textoLimpo && textoLimpo.length > 15)
-                        : !!textoLimpo;
-
-                    if (passaFiltro && !respostaJaExibida(textoLimpo)) {
+                    
+                    if (textoLimpo && !respostaJaExibida(textoLimpo)) {
                         if (resp.respondido_por_ia) {
                             addMessage('ai', textoLimpo + botoesResposta());
                         } else {
                             addMessage('atendente-msg', textoLimpo);
                         }
-
-                        document.getElementById('newMsgNotification')?.classList.add('show');
-                        // (elemento de notificação visual removido da UI)
-                        tocarSomNotificacao();
+                        
+                        // 🔥 Atualiza o timestamp da última resposta exibida
+                        lastResponseTimestamp = new Date(resp.timestamp || Date.now()).getTime();
                     }
                 }
-
-                // 🔥 Limpa a fila após exibir
-                try {
-                    await fetch(`http://localhost:8080/api/chat-atendente/limpar-pendentes`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ leadId: sessionId })
-                    });
-                } catch (e) {
-                    // Silencioso
-                }
-            } else {
-                console.log('📭 [POLLING] Nenhuma resposta pendente');
             }
         } catch (e) {
             console.log('❌ [POLLING] Erro:', e.message);
