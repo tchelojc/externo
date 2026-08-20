@@ -1668,35 +1668,34 @@
     }
 
     async function enviarMensagem() {
-        if (isProcessing) {
-            mostrarToast('Aguarde a resposta anterior...');
-            return;
-        }
-        
         const input = document.getElementById('chatInput');
+        if (!input) return;
+            
         const texto = input.value.trim();
-        
-        if (!texto && !arquivoStaged) return;
-
-        // 🔥 EXIBE A MENSAGEM DO USUÁRIO PRIMEIRO
-        if (arquivoStaged) {
-            if (arquivoStaged.tipo.startsWith('image/')) {
-                addImageMessage('user', arquivoStaged.base64);
-            } else {
-                addDocumentMessage('user', arquivoStaged.nome);
-            }
-        }
-        if (texto) {
-            addMessage('user', texto);
-        }
-
-        // Limpa input
+            
+        if (!texto || isProcessingChat) return;
+            
+        // 🔥 CORRIGIDO: Gera NOVO sessionId a cada mensagem enviada
+        // Isso evita que o backend busque histórico antigo
+        sessionId = "user_kpg_" + Date.now();
+        localStorage.setItem('kpg_session_id', sessionId);
+            
+        adicionarMensagem('user', texto);
         input.value = '';
-        const arquivoParaEnviar = arquivoStaged;
-        removerAnexoStaged();
-        
-        // 🔥 ENVIA PARA IA
-        await enviarParaIA(texto, arquivoParaEnviar);
+            
+        await enviarParaIA(texto);
+    }
+
+    function iniciarNovaConversa() {
+        // Limpa o chat visual
+        document.getElementById('chatMessages').innerHTML = '';
+            
+        // Gera novo sessionId
+        sessionId = "user_kpg_" + Date.now();
+        localStorage.setItem('kpg_session_id', sessionId);
+            
+        // Limpa rastreamento
+        respostasExibidas = new Set();
     }
 
     async function enviarParaIA(mensagem, arquivo = null) {
