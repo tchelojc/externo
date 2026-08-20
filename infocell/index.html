@@ -1517,8 +1517,41 @@
     const WHATSAPP = "5521964814751";
     const PROXY_CLOUDFLARE = "https://almafluxo.uk/proxy/infocell";
 
-    // ═══════════════ FOTOS DOS PRODUTOS (VIA WORKER) ═══════════════
-    const WORKER_GITHUB_URL = "https://almafluxo.uk/github/arquivos/infocell/imagens";
+    // ═══════════════ LISTA MANUAL DE IMAGENS (SEM API - SEM WORKER) ═══════════════
+    const IMAGENS_INFOCELL = [
+        'cabo-P2-P2.jpeg',
+        'cabo-V8.jpeg',
+        'cabo-carreagador-micro-USB.jpeg',
+        'cabo-carregamento-tipoC-turbo.jpeg',
+        'cabo-dados-iphone.jpeg',
+        'cabo-de-forca.jpeg',
+        'cabo-de-rede.jpeg',
+        'cabo-entrada-2saidas-P2.jpeg',
+        'cabo-hdtv.jpeg',
+        'cabo-iphone.jpeg',
+        'cabo-micro-USB-dados.jpeg',
+        'cabo-tipoC-Iphone.jpeg',
+        'cabo-tipoC-Turbo.jpeg',
+        'cabo-tipoC-para-tipoC.jpeg',
+        'cabo-tipoC-preto.jpeg',
+        'cabo-tipoC-tipoC.jpeg',
+        'cabo-turbo-iphone.jpeg',
+        'carraegador-completo-turbo.jpeg',
+        'carregador-completo-micro-USB.jpeg',
+        'carregador-completo-turbo-Iphone.jpeg',
+        'carregador-completo-turbo-TipoC.jpeg',
+        'carregador-completo-turbo-micro-USB-preto.jpeg',
+        'carregador-completo-turbo-micro-USB.jpeg',
+        'carregador-completo.jpeg',
+        'carregador-lcd-universal.jpeg',
+        'carregador-veicular-preto-Iphone.jpeg',
+        'carregador-veicular-preto.jpeg',
+        'carregador-veiculo.jpeg',
+        'chaveiro-boom.jpeg'
+    ];
+
+    // URL base para as imagens (direto do GitHub, sem API)
+    const GITHUB_RAW_BASE = "https://raw.githubusercontent.com/tchelojc/externo/main/infocell/imagens";
 
     let pastasImagensProdutos = null;
     const cacheImagensPorPasta = {};
@@ -2408,41 +2441,27 @@
         setTimeout(() => t.remove(), 3000);
     }
 
-    // ═══════════════ FUNÇÃO CORRIGIDA: CARREGAR PRODUTOS VIA WORKER ═══════════════
     async function carregarProdutosDoGitHub() {
         const content = document.getElementById('lojaContent');
         content.innerHTML = `<div class="loja-loading"><div class="loading-spinner"></div><p>Carregando produtos...</p></div>`;
         
         try {
-            // ✅ CHAMA O WORKER (não a API do GitHub)
-            const response = await fetch(WORKER_GITHUB_URL);  // 🔥 CORRIGIDO AQUI
+            // ✅ USA LISTA MANUAL (sem API, sem Worker, sem limite)
+            produtosDoGitHub = IMAGENS_INFOCELL.map((nomeArquivo, index) => ({
+                id: 'img_' + index,
+                nome: formatarNomeProduto(nomeArquivo),
+                nomeArquivo: nomeArquivo,
+                url: `${GITHUB_RAW_BASE}/${nomeArquivo}`,
+                tamanho: 0
+            }));
             
-            if (!response.ok) {
-                throw new Error('Erro HTTP: ' + response.status);
-            }
-            
-            const data = await response.json();
-            
-            if (data.ok && data.imagens) {
-                produtosDoGitHub = data.imagens.map((img, index) => ({
-                    id: 'img_' + index,
-                    nome: formatarNomeProduto(img.nome),
-                    nomeArquivo: img.nome,
-                    url: img.url,
-                    tamanho: img.tamanho || 0
-                }));
-                
-                renderizarProdutosDoGitHub();
-            } else {
-                throw new Error(data.error || 'Erro ao carregar imagens');
-            }
+            renderizarProdutosDoGitHub();
         } catch (error) {
             console.error('Erro ao carregar produtos:', error);
             content.innerHTML = `
                 <div style="text-align:center;padding:3rem;color:var(--cinza);">
                     <p style="font-size:3rem;margin-bottom:1rem;">⚠️</p>
                     <p>Erro ao carregar produtos</p>
-                    <p style="font-size:0.8rem;">${error.message}</p>
                     <button onclick="carregarProdutosDoGitHub()" style="margin-top:1rem;padding:10px 20px;background:var(--vermelho);color:white;border:none;border-radius:8px;cursor:pointer;">🔄 Tentar Novamente</button>
                 </div>
             `;
