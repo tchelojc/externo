@@ -917,6 +917,7 @@
     let pollEmExecucao = false;
     // Adicione no topo do script, junto com as outras variáveis:
     let respostasExibidas = new Set();
+    let jornadaIniciada = false;
 
     function abrirModalLogin() {
         document.getElementById('loginModalOverlay').classList.add('active');
@@ -1652,15 +1653,16 @@
         document.getElementById('homeContainer').classList.add('chat-open');
         document.body.style.overflow = 'hidden';
 
-        // 🔥 CORREÇÃO: Reseta o Set de respostas exibidas
-        respostasExibidas = new Set();
-        lastResponseTimestamp = null;
-
         document.getElementById('leadIntake').style.display = 'none';
         document.getElementById('chatMessages').style.display = '';
         document.getElementById('chatInputArea').style.display = 'flex';
         
-        carregarHistorico();
+        // 🔥 Só carrega histórico se NÃO for uma nova jornada
+        // (quando é nova jornada, o chat já começa limpo)
+        if (!jornadaIniciada) {
+            carregarHistorico();
+        }
+        
         iniciarPollingContinuo();
     }
 
@@ -1729,13 +1731,22 @@
             if (data.conversas && data.conversas[sessionId]) {
                 const mensagens = data.conversas[sessionId].mensagens || [];
 
-                document.getElementById('chatMessages').innerHTML = '';
+                // 🔥 Filtra apenas mensagens dos ÚLTIMOS 30 minutos
+                const agora = Date.now();
+                const TRINTA_MINUTOS = 30 * 60 * 1000;
+                
+                const mensagensRecentes = mensagens.filter(msg => {
+                    if (!msg.timestamp) return true;
+                    const msgTime = new Date(msg.timestamp).getTime();
+                    return (agora - msgTime) <= TRINTA_MINUTOS;
+                });
 
-                // 🔥 CORREÇÃO: Usa Set para rastrear mensagens já exibidas
+                document.getElementById('chatMessages').innerHTML = '';
+                respostasExibidas = new Set();
+
                 const exibidasNoHistorico = new Set();
 
-                for (const msg of mensagens) {
-                    // Gera uma chave única para cada mensagem
+                for (const msg of mensagensRecentes) {
                     const chave = `${msg.de}-${(msg.texto || '').substring(0, 100)}`;
                     
                     if (exibidasNoHistorico.has(chave)) continue;
@@ -1752,7 +1763,6 @@
                                 addMessage('atendente-msg', textoLimpo);
                             }
                             
-                            // 🔥 Adiciona ao Set global para não exibir novamente no polling
                             const chaveResposta = textoLimpo
                                 .replace(/[^\w\sáéíóúãõç]/g, ' ')
                                 .replace(/\s+/g, ' ')
@@ -1763,9 +1773,8 @@
                     }
                 }
                 
-                // Atualiza lastResponseTimestamp com a última mensagem
-                if (mensagens.length > 0) {
-                    const ultima = mensagens[mensagens.length - 1];
+                if (mensagensRecentes.length > 0) {
+                    const ultima = mensagensRecentes[mensagensRecentes.length - 1];
                     lastResponseTimestamp = new Date(ultima.timestamp || Date.now()).getTime();
                 }
             }
@@ -1819,6 +1828,15 @@
             return; 
         }
 
+        // 🔥 GERA NOVO sessionId para não carregar conversas antigas
+        sessionId = "user_" + Date.now();
+        localStorage.setItem('r5fit_session_id', sessionId);
+
+        // 🔥 Limpa rastreamento
+        respostasExibidas = new Set();
+        lastResponseTimestamp = null;
+        jornadaIniciada = true; // 🔥 PRECISA ADICIONAR ESTA LINHA!
+
         switchChatMode('ia');
         abrirChat();
         document.getElementById('chatMessages').innerHTML = '';
@@ -1833,20 +1851,11 @@
             document.getElementById('homePreviewStrip').style.display = 'none';
         }
 
-        // 🔥 CORRIGIDO: iniciarJornada() chama enviarParaIA() diretamente, sem
-        // passar por enviarMensagem() - e só enviarMensagem() fazia
-        // addMessage('user', texto). Resultado: a mensagem digitada na home
-        // nunca aparecia no chat, só o anexo (quando tinha). Mostra a
-        // mensagem do próprio cliente aqui, como em qualquer chat normal.
         if (query) {
             addMessage('user', query);
-            
-            // 🔥 EXTRAI DADOS DA MENSAGEM ANTES DE ENVIAR PARA IA
             extrairDadosDaMensagem(query, sessionId);
         }
 
-        // ✅ ENVIA PARA A IA
-        // ✅ APENAS ENVIA PARA A IA
         setTimeout(() => enviarParaIA(query, anexo), 800);
         input.value = '';
     }
