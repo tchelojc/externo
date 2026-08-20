@@ -2537,13 +2537,6 @@
             let nomeFinal = nomeLimpo;
             let local = 'Rio de Janeiro - RJ';
             
-            // Tenta extrair ano
-            const anoMatch = nomeLimpo.match(/-(\d{4})$/);
-            if (anoMatch) {
-                ano = anoMatch[1];
-                nomeFinal = nomeLimpo.replace(/-\d{4}$/, '');
-            }
-            
             // Tenta extrair local
             const cidades = ['rio-de-janeiro', 'niteroi', 'sao-goncalo', 'duque-de-caxias', 'nova-iguacu'];
             let cidadeEncontrada = null;
@@ -2573,7 +2566,6 @@
             return {
                 titulo,
                 local,
-                ano,
                 status: status,
                 statusLabel: statusInfo.label,
                 statusClass: statusInfo.class,
@@ -2633,8 +2625,6 @@
                         <h4>${obra.titulo}</h4>
                         <div class="obra-local">
                             <i class="fas fa-map-marker-alt"></i> ${obra.local}
-                            <span style="color:var(--texto-suave);margin:0 4px;">•</span>
-                            <i class="fas fa-calendar"></i> ${obra.ano}
                         </div>
                         <div>
                             <span class="portfolio-status ${obra.statusBadge}">${statusInfo.label}</span>
