@@ -1941,11 +1941,12 @@
         // 🔥 CORRIGIDO: era "isProcessingChat", agora é "isProcessing"
         if (!texto || isProcessing) return;
             
-        // 🔥 CORRIGIDO: Gera NOVO sessionId a cada mensagem enviada
+        // 🔥 Gera NOVO sessionId
         sessionId = "user_" + Date.now();
         localStorage.setItem('infocell_session_id', sessionId);
             
-        adicionarMensagem('user', texto);
+        // 🔥 CORRIGIDO: era "adicionarMensagem", agora é "addMessage"
+        addMessage('user', texto);
         input.value = '';
             
         await enviarParaIA(texto);
