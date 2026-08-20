@@ -2409,33 +2409,36 @@
         setTimeout(() => t.remove(), 3000);
     }
 
-    // Função para carregar produtos diretamente do GitHub
+    // ═══════════════ FUNÇÃO CORRIGIDA: CARREGAR PRODUTOS VIA WORKER ═══════════════
     async function carregarProdutosDoGitHub() {
         const content = document.getElementById('lojaContent');
         content.innerHTML = `<div class="loja-loading"><div class="loading-spinner"></div><p>Carregando produtos...</p></div>`;
         
         try {
-            const response = await fetch(CONFIG_GITHUB.GITHUB_API_URL);
-            if (!response.ok) throw new Error('GitHub API error: ' + response.status);
+            // ✅ CHAMA O WORKER (não a API do GitHub)
+            const response = await fetch(WORKER_GITHUB_URL);
             
-            const arquivos = await response.json();
+            if (!response.ok) {
+                throw new Error('Erro HTTP: ' + response.status);
+            }
             
-            // Filtra apenas imagens
-            const extensoesImagem = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'];
-            produtosDoGitHub = arquivos
-                .filter(arquivo => arquivo.type === 'file')
-                .filter(arquivo => extensoesImagem.some(ext => arquivo.name.toLowerCase().endsWith(ext)))
-                .map(arquivo => ({
-                    id: arquivo.sha,
-                    nome: formatarNomeProduto(arquivo.name),
-                    nomeArquivo: arquivo.name,
-                    url: arquivo.download_url || `${CONFIG_GITHUB.GITHUB_RAW_BASE}/${arquivo.name}`,
-                    tamanho: arquivo.size
+            const data = await response.json();
+            
+            if (data.ok && data.imagens) {
+                produtosDoGitHub = data.imagens.map((img, index) => ({
+                    id: 'img_' + index,
+                    nome: formatarNomeProduto(img.nome),
+                    nomeArquivo: img.nome,
+                    url: img.url,
+                    tamanho: img.tamanho || 0
                 }));
-            
-            renderizarProdutosDoGitHub();
+                
+                renderizarProdutosDoGitHub();
+            } else {
+                throw new Error(data.error || 'Erro ao carregar imagens');
+            }
         } catch (error) {
-            console.error('Erro ao carregar produtos do GitHub:', error);
+            console.error('Erro ao carregar produtos:', error);
             content.innerHTML = `
                 <div style="text-align:center;padding:3rem;color:var(--cinza);">
                     <p style="font-size:3rem;margin-bottom:1rem;">⚠️</p>
@@ -2566,176 +2569,6 @@
         const total = carrinho.reduce((s, i) => s + i.quantidade, 0);
         badge.textContent = total;
         badge.style.display = total > 0 ? 'inline-flex' : 'none';
-    }
-
-    function fecharLoja() {
-        document.getElementById('lojaModalOverlay').classList.remove('active');
-        document.body.style.overflow = '';
-    }
-
-    // ───────────── Fotos dos produtos via GitHub (mesma lógica do KPG) ─────────────
-    function slugificar(texto) {
-        return (texto || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-            .toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-    }
-
-    async function carregarPastasImagensProdutos() {
-        if (pastasImagensProdutos !== null) return pastasImagensProdutos;
-        try {
-            const resp = await fetch(CONFIG_GITHUB.GITHUB_API_URL);
-            if (!resp.ok) throw new Error('GitHub ' + resp.status);
-            const dados = await resp.json();
-            pastasImagensProdutos = Array.isArray(dados) ? dados.filter(i => i.type === 'dir').map(i => i.name) : [];
-        } catch (e) {
-            console.warn('⚠️ Não consegui listar as fotos dos produtos no GitHub:', e.message);
-            pastasImagensProdutos = [];
-        }
-        return pastasImagensProdutos;
-    }
-
-    function encontrarPastaDoProduto(pastas, nomeProduto) {
-        const alvo = slugificar(nomeProduto);
-        if (!alvo) return null;
-        let pasta = pastas.find(p => slugificar(p) === alvo);
-        if (!pasta) pasta = pastas.find(p => slugificar(p).includes(alvo) || alvo.includes(slugificar(p)));
-        return pasta || null;
-    }
-
-    async function carregarImagensDaPasta(pasta) {
-        if (cacheImagensPorPasta[pasta]) return cacheImagensPorPasta[pasta];
-        try {
-            const url = `https://api.github.com/repos/${CONFIG_GITHUB.GITHUB_USER}/${CONFIG_GITHUB.GITHUB_REPO}/contents/${CONFIG_GITHUB.GITHUB_PATH}/${pasta}?ref=${CONFIG_GITHUB.GITHUB_BRANCH}`;
-            const resp = await fetch(url);
-            if (!resp.ok) throw new Error('GitHub ' + resp.status);
-            const arquivos = await resp.json();
-            const extensoesImagem = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'];
-            const imagens = (Array.isArray(arquivos) ? arquivos : [])
-                .filter(a => a.type === 'file')
-                .filter(a => extensoesImagem.some(ext => a.name.toLowerCase().endsWith(ext)))
-                .map(a => a.name);
-            const capa = imagens.find(i => /capa|destaque|cover/i.test(i)) || imagens[0] || null;
-            const resultado = { pasta, imagens, capa };
-            cacheImagensPorPasta[pasta] = resultado;
-            return resultado;
-        } catch (e) {
-            const vazio = { pasta, imagens: [], capa: null };
-            cacheImagensPorPasta[pasta] = vazio;
-            return vazio;
-        }
-    }
-
-    function getImagemProdutoUrl(pasta, imagem) {
-        return `${CONFIG_GITHUB.GITHUB_RAW_BASE}/${pasta}/${imagem}`;
-    }
-
-    async function renderizarProdutos() {
-        const content = document.getElementById('lojaContent');
-        
-        if (produtosLoja.length === 0) {
-            content.innerHTML = `
-                <div style="text-align:center;padding:3rem;color:var(--cinza);">
-                    <p style="font-size:3rem;margin-bottom:1rem;">📦</p>
-                    <p>Nenhum produto cadastrado ainda</p>
-                    <p style="font-size:0.8rem;color:var(--text2);">Cadastre produtos na Área Restrita</p>
-                </div>
-            `;
-            return;
-        }
-
-        const pastas = await carregarPastasImagensProdutos();
-        let html = '<div class="produtos-grid">';
-        
-        produtosLoja.forEach(produto => {
-            const pastaMatch = encontrarPastaDoProduto(pastas, produto.nome);
-            let imagemHTML;
-            
-            if (produto.driveFileId) {
-                const driveUrl = `https://drive.google.com/thumbnail?id=${produto.driveFileId}&sz=w400`;
-                imagemHTML = `<img src="${driveUrl}" alt="${produto.nome}" loading="lazy" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23333333%22 width=%22200%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23CC0000%22 font-size=%2260%22%3E📱%3C/text%3E%3C/svg%3E'" style="width:100%;height:100%;object-fit:cover;">`;
-            } else {
-                imagemHTML = `<span style="font-size:3rem;">📱</span>`;
-            }
-            
-            const estoqueInfo = produto.estoque > 0 ? `<span style="font-size:0.7rem;color:var(--verde-wpp);">✓ ${produto.estoque} em estoque</span>` : `<span style="font-size:0.7rem;color:#FF4444;">✗ Esgotado</span>`;
-            
-            html += `
-                <div class="produto-card" onclick="abrirProdutoDetalhe('${produto.id}')">
-                    <div class="produto-imagem" id="img-produto-${produto.id}">${imagemHTML}</div>
-                    <div class="produto-info">
-                        <div class="produto-nome">${produto.nome}</div>
-                        <div class="produto-preco">${produto.preco}</div>
-                        <div class="produto-descricao">${produto.descricao}</div>
-                        ${estoqueInfo}
-                        <div class="produto-btns">
-                            <button class="produto-btn-carrinho" onclick="event.stopPropagation();adicionarAoCarrinho('${produto.id}')">🛒 Carrinho</button>
-                            <button class="produto-btn-comprar" onclick="event.stopPropagation();comprarAgora('${produto.id}')">⚡ Comprar</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            // Troca a miniatura pela foto do GitHub assim que carregar (não trava a grade)
-            if (pastaMatch) {
-                carregarImagensDaPasta(pastaMatch).then(info => {
-                    if (info.capa) {
-                        const el = document.getElementById('img-produto-' + produto.id);
-                        if (el) {
-                            el.innerHTML = `<img src="${getImagemProdutoUrl(pastaMatch, info.capa)}" alt="${produto.nome}" loading="lazy" onerror="this.parentElement.innerHTML='<span style=\\'font-size:3rem;\\'>📱</span>'" style="width:100%;height:100%;object-fit:cover;">`;
-                        }
-                    }
-                });
-            }
-        });
-        
-        html += '</div>';
-        content.innerHTML = html;
-    }
-
-    async function abrirProdutoDetalhe(produtoId) {
-        const produto = produtosLoja.find(p => String(p.id) === String(produtoId));
-        if (!produto) return;
-
-        document.getElementById('produtoDetalheNome').textContent = produto.nome;
-        const content = document.getElementById('produtoDetalheContent');
-        content.innerHTML = `<div class="loja-loading"><div class="loading-spinner"></div><p>Carregando fotos...</p></div>`;
-        document.getElementById('produtoDetalheOverlay').classList.add('active');
-        document.body.style.overflow = 'hidden';
-
-        const pastas = await carregarPastasImagensProdutos();
-        const pastaMatch = encontrarPastaDoProduto(pastas, produto.nome);
-        let imagensHTML = '';
-
-        if (pastaMatch) {
-            const info = await carregarImagensDaPasta(pastaMatch);
-            if (info.imagens.length > 0) {
-                imagensHTML = '<div class="produto-galeria">' + info.imagens.map(img =>
-                    `<img src="${getImagemProdutoUrl(pastaMatch, img)}" loading="lazy" alt="${produto.nome}">`
-                ).join('') + '</div>';
-            }
-        }
-        if (!imagensHTML && produto.driveFileId) {
-            imagensHTML = `<div class="produto-galeria"><img src="https://drive.google.com/thumbnail?id=${produto.driveFileId}&sz=w600" alt="${produto.nome}"></div>`;
-        }
-        if (!imagensHTML) {
-            imagensHTML = `<div style="text-align:center;padding:2rem;font-size:4rem;">📱</div>`;
-        }
-
-        const estoqueInfo = produto.estoque > 0
-            ? `<span style="color:var(--verde-wpp);">✓ ${produto.estoque} em estoque</span>`
-            : `<span style="color:#FF4444;">✗ Esgotado</span>`;
-
-        content.innerHTML = `
-            ${imagensHTML}
-            <div style="padding:1rem 0;">
-                <div class="produto-preco" style="font-size:1.4rem;">${produto.preco}</div>
-                <p style="color:var(--cinza);margin:0.5rem 0;">${produto.descricao || ''}</p>
-                <div style="margin-bottom:1rem;">${estoqueInfo}</div>
-                <div style="display:flex;gap:0.6rem;">
-                    <button class="produto-btn-carrinho" style="flex:1;padding:12px;" onclick="adicionarAoCarrinho('${produto.id}')">🛒 Adicionar ao Carrinho</button>
-                    <button class="produto-btn-comprar" style="flex:1;padding:12px;" onclick="comprarAgora('${produto.id}')">⚡ Comprar Agora</button>
-                </div>
-            </div>
-        `;
     }
 
     // ───────────── Carrinho ─────────────
