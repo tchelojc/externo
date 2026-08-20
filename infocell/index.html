@@ -1278,11 +1278,12 @@
     // Dentro de cada subpasta, as imagens (a que tiver "capa"/"destaque"/
     // "cover" no nome vira a miniatura; senão usa a primeira).
     // 🔧 Ajuste GITHUB_PATH se a pasta real das fotos ficar em outro lugar.
-    const CONFIG_GITHUB = {
-        GITHUB_USER: "tchelojc",
-        GITHUB_REPO: "externo",
-        GITHUB_BRANCH: "alma",
-        GITHUB_PATH: "infocell/produtos",
+        const CONFIG = {
+            ORIGEM: "infocell",
+            GITHUB_USER: "tchelojc",
+            GITHUB_REPO: "externo",
+            GITHUB_BRANCH: "alma",
+            GITHUB_PATH: "infocell/imagens",
         get GITHUB_API_URL() {
             return `https://api.github.com/repos/${this.GITHUB_USER}/${this.GITHUB_REPO}/contents/${this.GITHUB_PATH}?ref=${this.GITHUB_BRANCH}`;
         },
@@ -1290,6 +1291,7 @@
             return `https://raw.githubusercontent.com/${this.GITHUB_USER}/${this.GITHUB_REPO}/${this.GITHUB_BRANCH}/${this.GITHUB_PATH}`;
         }
     };
+
     let pastasImagensProdutos = null;
     const cacheImagensPorPasta = {};
 
