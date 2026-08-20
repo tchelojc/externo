@@ -1517,12 +1517,18 @@
     const WHATSAPP = "5521964814751";
     const PROXY_CLOUDFLARE = "https://almafluxo.uk/proxy/infocell";
 
+    // ═══════════════ IMAGENS - CAMINHO CORRETO ═══════════════
+    // As imagens estão em: "célula de informação/imagens/"
+    // URL com encoding: célula%20de%20informação/imagens
+    const GITHUB_RAW_BASE = "https://raw.githubusercontent.com/tchelojc/externo/main/c%C3%A9lula%20de%20informa%C3%A7%C3%A3o/imagens";
+
     // ═══════════════ LISTA MANUAL DE IMAGENS (SEM API - SEM WORKER) ═══════════════
+    // ═══════════════ LISTA MANUAL DE IMAGENS ═══════════════
     const IMAGENS_INFOCELL = [
         'cabo-P2-P2.jpeg',
         'cabo-V8.jpeg',
         'cabo-carreagador-micro-USB.jpeg',
-        'cabo-carregamento-tipoC-turbo.jpeg',
+        'cabo-carregamento-tipoC-%20turbo.jpeg', // 🔥 CORRIGIDO: tem espaço antes de "turbo"
         'cabo-dados-iphone.jpeg',
         'cabo-de-forca.jpeg',
         'cabo-de-rede.jpeg',
@@ -1549,9 +1555,6 @@
         'carregador-veiculo.jpeg',
         'chaveiro-boom.jpeg'
     ];
-
-    // URL base para as imagens (direto do GitHub, sem API)
-    const GITHUB_RAW_BASE = "https://raw.githubusercontent.com/tchelojc/externo/main/infocell/imagens";
 
     let pastasImagensProdutos = null;
     const cacheImagensPorPasta = {};
@@ -2446,12 +2449,11 @@
         content.innerHTML = `<div class="loja-loading"><div class="loading-spinner"></div><p>Carregando produtos...</p></div>`;
         
         try {
-            // ✅ USA LISTA MANUAL (sem API, sem Worker, sem limite)
             produtosDoGitHub = IMAGENS_INFOCELL.map((nomeArquivo, index) => ({
                 id: 'img_' + index,
                 nome: formatarNomeProduto(nomeArquivo),
                 nomeArquivo: nomeArquivo,
-                url: `${GITHUB_RAW_BASE}/${nomeArquivo}`,
+                url: `${GITHUB_RAW_BASE}/${encodeURIComponent(nomeArquivo)}`,
                 tamanho: 0
             }));
             
