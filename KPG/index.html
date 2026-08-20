@@ -711,16 +711,6 @@
             .chat-container { height: 500px; max-height: 60vh; min-height: 400px; max-width: 100%; }
             .nav-links { display: none; }
         }
-
-        @media (max-width: 600px) {
-            .hero-content h1 { font-size: 1.6rem; }
-            .hero-buttons .btn-primary, .hero-buttons .btn-outline { width: 100%; text-align: center; }
-            .services-grid { grid-template-columns: 1fr; }
-            .portfolio-grid { grid-template-columns: 1fr; }
-            #navbar { padding: 0.5rem 0.8rem; }
-            .chat-container { height: 450px; max-height: 55vh; min-height: 350px; }
-            .chat-messages { min-height: 250px; }
-        }
         /* ============================================
         PORTFOLIO - CARDS CIRCULARES
         ============================================ */
@@ -884,20 +874,6 @@
             font-size: 0.7rem;
             color: var(--texto-suave);
             margin-top: 0.3rem;
-        }
-
-        /* ─── RESPONSIVO ─── */
-        @media (max-width: 600px) {
-            .portfolio-img-circle {
-                width: 130px;
-                height: 130px;
-                padding: 5px;
-            }
-            .portfolio-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 1rem;
-            }
-            .portfolio-info h4 { font-size: 0.9rem; }
         }
 
         @media (max-width: 400px) {
@@ -1086,13 +1062,151 @@
                 grid-template-columns: 1fr;
             }
         }
+        /* ═══════════════════════════════════════════════════════════════
+        CORREÇÃO PARA CELULAR - TECLADO NÃO COBRE O CHAT
+        ═══════════════════════════════════════════════════════════════ */
 
         @media (max-width: 600px) {
-            .orcamento-form {
-                padding: 1.2rem;
+            /* Ajusta a altura do chat para caber na tela com teclado */
+            .chat-container {
+                height: calc(100vh - 200px);
+                max-height: none;
+                min-height: 300px;
+                margin-bottom: 0;
             }
-            .orcamento-resultado .valor {
-                font-size: 1.6rem;
+            
+            /* Ajusta a área de input para ficar visível */
+            .chat-input-area {
+                position: sticky;
+                bottom: 0;
+                background: var(--branco);
+                z-index: 10;
+                padding: 0.5rem;
+                gap: 5px;
+            }
+            
+            /* Input menor para caber melhor */
+            .chat-input {
+                font-size: 0.8rem;
+                padding: 0.5rem 0.7rem;
+                min-height: 35px;
+            }
+            
+            /* Botão de envio menor */
+            .chat-send-btn {
+                width: 35px;
+                height: 35px;
+                font-size: 0.9rem;
+            }
+            
+            /* Sugestões rápidas compactas */
+            .quick-suggestions {
+                padding: 0.4rem 0.5rem;
+                gap: 4px;
+            }
+            
+            .suggestion-chip {
+                font-size: 0.6rem;
+                padding: 4px 8px;
+            }
+            
+            /* Mensagens mais compactas */
+            .chat-messages {
+                padding: 0.7rem;
+                gap: 0.5rem;
+            }
+            
+            .message {
+                font-size: 0.8rem;
+                padding: 0.6rem 0.7rem;
+                max-width: 90%;
+            }
+            
+            /* Header do chat compacto */
+            .chat-header {
+                padding: 0.6rem 0.8rem;
+            }
+            
+            .chat-avatar {
+                width: 32px;
+                height: 32px;
+                font-size: 0.9rem;
+            }
+            
+            .chat-title {
+                font-size: 0.8rem;
+            }
+            
+            /* Footer compacto */
+            .chat-footer {
+                font-size: 0.6rem;
+                padding: 0.3rem;
+            }
+            
+            /* Hero section ajustada */
+            .hero-section {
+                margin-top: 4rem;
+                padding: 0.5rem 0.8rem 1rem;
+                gap: 1rem;
+            }
+            
+            .hero-content h1 {
+                font-size: 1.4rem;
+            }
+            
+            .hero-sub {
+                font-size: 0.85rem;
+                margin-bottom: 1rem;
+            }
+            
+            /* Ajuste para evitar que o teclado empurre o layout */
+            html, body {
+                height: 100%;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* Evita zoom automático no input */
+            .chat-input {
+                font-size: 16px !important; /* iOS não dá zoom se font-size >= 16px */
+            }
+        }
+
+        /* Para telas MUITO pequenas (iPhone SE, etc) */
+        @media (max-width: 375px) {
+            .chat-container {
+                height: calc(100vh - 180px);
+                min-height: 280px;
+            }
+            
+            .chat-input {
+                font-size: 0.75rem;
+                padding: 0.4rem 0.5rem;
+                min-height: 30px;
+            }
+            
+            .chat-send-btn {
+                width: 30px;
+                height: 30px;
+            }
+            
+            .suggestion-chip {
+                font-size: 0.55rem;
+                padding: 3px 6px;
+            }
+            
+            .message {
+                font-size: 0.75rem;
+                padding: 0.5rem 0.6rem;
+            }
+        }
+
+        /* Para tablets */
+        @media (min-width: 601px) and (max-width: 992px) {
+            .chat-container {
+                height: 500px;
+                max-height: 65vh;
+                min-height: 400px;
             }
         }
     </style>
@@ -1535,20 +1649,20 @@
             WHATSAPP_NUMBER: "5521964700935",
             API_URL: "https://almafluxo.uk/proxy/infocell",
             ORIGEM: "kpgconstrucoes",
-            GITHUB_USER: "tchelojc",
-            GITHUB_REPO: "externo",
-            GITHUB_BRANCH: "alma",
-            GITHUB_PATH: "KPG/portfolio/obras",
             
-            get GITHUB_API_URL() {
-                return `https://api.github.com/repos/${this.GITHUB_USER}/${this.GITHUB_REPO}/contents/${this.GITHUB_PATH}?ref=${this.GITHUB_BRANCH}`;
-            },
-            
-            get GITHUB_RAW_BASE() {
-                return `https://raw.githubusercontent.com/${this.GITHUB_USER}/${this.GITHUB_REPO}/${this.GITHUB_BRANCH}/${this.GITHUB_PATH}`;
-            }
+            // ═══════════════════════════════════════════════════════════
+            // 🔥 CORRIGIDO: Agora usa o WORKER (não a API do GitHub direto)
+            // O Worker tem o token escondido e faz a chamada à API do GitHub
+            // ═══════════════════════════════════════════════════════════
+            WORKER_GITHUB_OBRAS: "https://almafluxo.uk/github/kpg/obras",
+            WORKER_GITHUB_OBRA: "https://almafluxo.uk/github/kpg/obra",
         };
+        // ═══════════════════════════════════════════════════════════════
+        // CORREÇÃO PARA CELULAR - SCROLL E FOCO
+        // ═══════════════════════════════════════════════════════════════
 
+        // Detecta se é mobile
+        const isMobile = window.innerWidth <= 600;
         // 🔥 CORRIGIDO: Gera NOVO sessionId a cada nova conversa
         let sessionId = "user_kpg_" + Date.now();
         localStorage.setItem('kpg_session_id', sessionId);
@@ -2558,25 +2672,47 @@
         }
 
         // ═══════════════════════════════════════════════════════════════
-        // PORTFÓLIO - LEITURA AUTOMÁTICA
+        // PORTFÓLIO - VIA WORKER (CORRIGIDO)
         // ═══════════════════════════════════════════════════════════════
         async function carregarPortfolioAutomatico() {
             try {
-                const response = await fetch(CONFIG.GITHUB_API_URL);
+                // ✅ CHAMA O WORKER (não a API do GitHub)
+                const response = await fetch(CONFIG.WORKER_GITHUB_OBRAS);
                 
                 if (!response.ok) {
                     throw new Error(`Erro ${response.status}`);
                 }
                 
-                const conteudo = await response.json();
-                const pastas = conteudo.filter(item => item.type === 'dir');
+                const data = await response.json();
+                
+                if (!data.ok || !data.obras) {
+                    throw new Error('Resposta inválida do Worker');
+                }
                 
                 obrasCarregadas = [];
                 
-                for (const pasta of pastas) {
-                    const obra = await processarPastaObra(pasta);
-                    if (obra) {
-                        obrasCarregadas.push(obra);
+                for (const obra of data.obras) {
+                    const info = extrairInfoDoNomePasta(obra.nome);
+                    
+                    if (obra.imagens && obra.imagens.length > 0) {
+                        // Procura por "capa" ou "destaque" como primeira imagem
+                        let capa = obra.imagens.find(img => 
+                            img.nome.toLowerCase().includes('capa') || 
+                            img.nome.toLowerCase().includes('destaque') || 
+                            img.nome.toLowerCase().includes('cover')
+                        );
+                        
+                        if (!capa) {
+                            capa = obra.imagens[0];
+                        }
+                        
+                        obrasCarregadas.push({
+                            ...info,
+                            imagens: obra.imagens.map(img => img.nome),
+                            capa: capa ? capa.nome : null,
+                            totalImagens: obra.imagens.length,
+                            pasta: obra.nome
+                        });
                     }
                 }
                 
@@ -2691,7 +2827,12 @@
         }
 
         function getImagemUrl(obra, imagem) {
-            return `${CONFIG.GITHUB_RAW_BASE}/${obra.pasta}/${imagem}`;
+            // ✅ Agora usa o Worker para construir a URL da imagem
+            // O Worker já retorna as URLs completas no formato raw.githubusercontent.com
+            const nomePasta = obra.pasta;
+            const nomeImagem = typeof imagem === 'string' ? imagem : imagem.nome;
+            
+            return `https://raw.githubusercontent.com/tchelojc/externo/main/KPG/portfolio/obras/${nomePasta}/${nomeImagem}`;
         }
 
         function renderizarPortfolio() {
@@ -2799,6 +2940,46 @@
             ];
         }
 
+        // Ajusta o scroll quando o teclado abre
+        if (isMobile) {
+            const chatInput = document.getElementById('chatInput');
+            const searchInput = document.getElementById('searchInput');
+            
+            if (chatInput) {
+                chatInput.addEventListener('focus', () => {
+                    // Delay para o teclado abrir
+                    setTimeout(() => {
+                        chatInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        // Garante que a última mensagem esteja visível
+                        const chatMessages = document.getElementById('chatMessages');
+                        if (chatMessages) {
+                            chatMessages.scrollTop = chatMessages.scrollHeight;
+                        }
+                    }, 300);
+                });
+            }
+            
+            if (searchInput) {
+                searchInput.addEventListener('focus', () => {
+                    setTimeout(() => {
+                        searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 300);
+                });
+            }
+        }
+
+        // Ajusta viewport para celular
+        function ajustarViewport() {
+            const viewport = document.querySelector('meta[name="viewport"]');
+            if (viewport) {
+                if (window.innerWidth <= 600) {
+                    viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', ajustarViewport);
+        window.addEventListener('resize', ajustarViewport);
         // ═══════════════════════════════════════════════════════════════
         // INICIALIZAÇÃO
         // ═══════════════════════════════════════════════════════════════
