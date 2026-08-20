@@ -1559,6 +1559,8 @@
 
         let obrasCarregadas = [];
         let isProcessingChat = false;
+        let respostasVistas = new Set();
+        let ultimoTimestamp = 0;
 
         // STATUS MAP para o portfólio
         const STATUS_MAP = {
@@ -2216,6 +2218,48 @@
         // CHAT DE ATENDIMENTO - CORRIGIDO
         // ═══════════════════════════════════════════════════════════════
 
+        function gerarSessionId() {
+            return "user_kpg_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
+        }
+
+        async function esperarRespostaIA(sessionId, timeoutMs = 30000) {
+            const startTime = Date.now();
+            const intervalMs = 1500;
+            
+            while (Date.now() - startTime < timeoutMs) {
+                await new Promise(r => setTimeout(r, intervalMs));
+                
+                try {
+                    // Tenta buscar respostas
+                    const resp = await fetch(`${CONFIG.API_URL}?action=chatAtendenteRespostas&leadId=${sessionId}`);
+                    const data = await resp.json();
+                    
+                    if (data.respostas && data.respostas.length > 0) {
+                        // Pega apenas respostas novas
+                        for (const r of data.respostas) {
+                            if (!r.texto || r.texto.trim() === '') continue;
+                            
+                            const chave = r.texto.substring(0, 100) + r.timestamp;
+                            
+                            if (!respostasVistas.has(chave) && !r.consumida) {
+                                respostasVistas.add(chave);
+                                
+                                // Verifica se é uma resposta válida
+                                if (!r.texto.includes('Desculpe') && 
+                                    !r.texto.includes('Tô sem conseguir')) {
+                                    return r.texto;
+                                }
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.log('ℹ️ Polling:', e.message);
+                }
+            }
+            
+            return null;
+        }
+
         async function enviarParaIA(mensagem) {
             isProcessingChat = true;
             const sendBtn = document.getElementById('sendBtn');
@@ -2225,13 +2269,28 @@
             console.log('📤 Enviando mensagem para IA:', mensagem);
             
             try {
+                // 🔥 CORREÇÃO 1: Limpa o cache do lead antes de enviar
+                try {
+                    const clearResponse = await fetch(`${CONFIG.API_URL}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'limparCacheLead',
+                            leadId: sessionId
+                        })
+                    });
+                    console.log('🧹 Cache limpo para lead:', sessionId);
+                } catch (e) {
+                    console.log('ℹ️ Não foi possível limpar cache:', e.message);
+                }
+                
                 // 🔥 PASSO 1: Salva a mensagem completa no Drive
                 const payload = {
                     action: 'saveChatAtendente',
                     leadId: sessionId,
                     nomeLead: 'Cliente KPG',
                     de: 'lead',
-                    texto: mensagem, // Mensagem COMPLETA
+                    texto: mensagem,
                     origem: CONFIG.ORIGEM
                 };
                 
@@ -2267,11 +2326,12 @@
                 
                 // 🔥 PASSO 3: Polling por resposta - MAIS ROBUSTO
                 let resposta = null;
-                const MAX_TENTATIVAS = 50; // Aumentado para 50 tentativas
-                const INTERVALO_MS = 3000; // 3 segundos entre tentativas
+                const MAX_TENTATIVAS = 50;
+                const INTERVALO_MS = 3000;
                 let tentativas = 0;
                 
-                const respostasVistas = new Set();
+                // 🔥 CORREÇÃO 2: Usa a variável global, não local
+                // const respostasVistas = new Set(); // REMOVER - usar a global
                 
                 console.log('🔍 Iniciando polling por resposta...');
                 
@@ -2282,8 +2342,9 @@
                     await new Promise(r => setTimeout(r, INTERVALO_MS));
                     
                     try {
-                        // Tenta primeiro via proxy
-                        const resp = await fetch(`${CONFIG.API_URL}?action=chatAtendenteRespostas&leadId=${sessionId}`);
+                        // 🔥 CORREÇÃO 3: Adiciona timestamp para evitar cache do navegador
+                        const timestamp = Date.now();
+                        const resp = await fetch(`${CONFIG.API_URL}?action=chatAtendenteRespostas&leadId=${sessionId}&_=${timestamp}`);
                         const data = await resp.json();
                         
                         console.log(`📥 Resposta do proxy (tentativa ${tentativas}):`, data);
@@ -2293,18 +2354,24 @@
                             for (const r of data.respostas) {
                                 if (!r.texto || r.texto.trim() === '') continue;
                                 
-                                const chave = r.texto.substring(0, 200);
+                                // 🔥 CORREÇÃO 4: Usa timestamp + texto como chave
+                                const chave = r.texto.substring(0, 200) + (r.timestamp || '');
                                 if (!respostasVistas.has(chave)) {
                                     respostasVistas.add(chave);
                                     
-                                    // Verifica se é uma resposta válida
-                                    if (!r.texto.includes('Desculpe') && 
-                                        !r.texto.includes('Tô sem conseguir') &&
-                                        !r.texto.includes('estou sem conseguir')) {
-                                        
+                                    // Verifica se é uma resposta válida (NÃO é fallback)
+                                    const isFallback = r.texto.includes('Desculpe') || 
+                                                    r.texto.includes('Tô sem conseguir') ||
+                                                    r.texto.includes('estou sem conseguir') ||
+                                                    r.texto.includes('problemas técnicos') ||
+                                                    r.texto.includes('central agora');
+                                    
+                                    if (!isFallback) {
                                         console.log('✅ Resposta válida encontrada:', r.texto);
                                         resposta = r.texto;
                                         break;
+                                    } else {
+                                        console.log('⚠️ Resposta ignorada (fallback):', r.texto.substring(0, 50));
                                     }
                                 }
                             }
@@ -2313,7 +2380,8 @@
                         // Se não encontrou, tenta local
                         if (!resposta) {
                             try {
-                                const respLocal = await fetch(`http://localhost:8081/api/chatAtendenteRespostas?leadId=${sessionId}`);
+                                const timestampLocal = Date.now();
+                                const respLocal = await fetch(`http://localhost:8081/api/chatAtendenteRespostas?leadId=${sessionId}&_=${timestampLocal}`);
                                 const dataLocal = await respLocal.json();
                                 
                                 console.log(`📥 Resposta local (tentativa ${tentativas}):`, dataLocal);
@@ -2323,14 +2391,17 @@
                                     const ultima = dataLocal.respostas[dataLocal.respostas.length - 1];
                                     
                                     if (ultima.texto && ultima.texto.trim() !== '') {
-                                        const chave = ultima.texto.substring(0, 200);
+                                        const chave = ultima.texto.substring(0, 200) + (ultima.timestamp || '');
                                         
                                         if (!respostasVistas.has(chave)) {
                                             respostasVistas.add(chave);
                                             
-                                            if (!ultima.texto.includes('Desculpe') && 
-                                                !ultima.texto.includes('Tô sem conseguir')) {
-                                                
+                                            const isFallback = ultima.texto.includes('Desculpe') || 
+                                                            ultima.texto.includes('Tô sem conseguir') ||
+                                                            ultima.texto.includes('estou sem conseguir') ||
+                                                            ultima.texto.includes('problemas técnicos');
+                                            
+                                            if (!isFallback) {
                                                 console.log('✅ Resposta local válida:', ultima.texto);
                                                 resposta = ultima.texto;
                                             }
@@ -2355,7 +2426,7 @@
                 } else {
                     console.log('⚠️ Nenhuma resposta encontrada após', tentativas, 'tentativas');
                     
-                    // Fallback
+                    // 🔥 CORREÇÃO 5: Fallback melhorado
                     const fallbackMsg = `👋 Olá! Recebemos sua solicitação.\n\n` +
                         `📋 Nossa equipe técnica já foi notificada e analisará seu pedido.\n\n` +
                         `⏱️ Em breve, um de nossos especialistas entrará em contato.\n\n` +
@@ -2402,11 +2473,31 @@
             document.getElementById('chatMessages').innerHTML = '';
             
             // Gera novo sessionId
-            sessionId = "user_kpg_" + Date.now();
+            sessionId = "user_kpg_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
             localStorage.setItem('kpg_session_id', sessionId);
             
-            // Limpa rastreamento
-            respostasExibidas = new Set();
+            // 🔥 CORREÇÃO: Limpa o cache de respostas vistas
+            respostasVistas = new Set();
+            ultimoTimestamp = 0;
+            
+            // 🔥 CORREÇÃO: Limpa o cache no servidor
+            try {
+                fetch(CONFIG.API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'limparCacheLead',
+                        leadId: sessionId
+                    })
+                });
+            } catch (e) {
+                console.log('ℹ️ Não foi possível limpar cache:', e.message);
+            }
+            
+            // Mensagem de boas-vindas
+            setTimeout(() => {
+                adicionarMensagem('ai', "👋 Olá! Sou o atendente virtual da KPG Construções.\n\nSomos especialistas em obras públicas no Rio de Janeiro. Como posso ajudar?");
+            }, 500);
         }
         // ═══════════════════════════════════════════════════════════════
         // MODAL DE ORÇAMENTO
@@ -2715,10 +2806,8 @@
             renderizarServicos();
             carregarPortfolioAutomatico();
             popularServicos();
+            iniciarNovaConversa();
             
-            setTimeout(() => {
-                adicionarMensagem('ai', "👋 Olá! Sou o atendente virtual da KPG Construções.\n\nSomos especialistas em obras públicas no Rio de Janeiro. Como posso ajudar?");
-            }, 500);
         });
     </script>
 </body>
