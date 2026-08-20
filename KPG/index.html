@@ -1651,12 +1651,68 @@
             ORIGEM: "kpgconstrucoes",
             
             // ═══════════════════════════════════════════════════════════
-            // 🔥 CORRIGIDO: Agora usa o WORKER (não a API do GitHub direto)
-            // O Worker tem o token escondido e faz a chamada à API do GitHub
+            // 🔥 IMAGENS DIRETAS DO GITHUB (SEM API - SEM LIMITE)
+            // Estrutura: KPG/portfolio/obras/{nome-da-obra}/{imagem}
             // ═══════════════════════════════════════════════════════════
-            WORKER_GITHUB_OBRAS: "https://almafluxo.uk/github/kpg/obras",
-            WORKER_GITHUB_OBRA: "https://almafluxo.uk/github/kpg/obra",
+            GITHUB_RAW_BASE: "https://raw.githubusercontent.com/tchelojc/externo/alma/KPG/portfolio/obras",
         };
+
+        // ═══════════════════════════════════════════════════════════════
+        // LISTA MANUAL DE OBRAS (sem API do GitHub)
+        // ═══════════════════════════════════════════════════════════════
+        const OBRAS_KPG = [
+            {
+                nome: "criaad-degase-CONCLUIDA",
+                status: "CONCLUIDA",
+                imagens: ['capa.jpeg', 'foto-01.jpeg', 'foto-02.jpeg', 'foto-03.jpeg', 'foto-04.jpeg', 'foto-05.jpeg', 'foto-06.jpeg', 'foto-07.jpeg', 'foto-08.jpeg', 'foto-09.jpeg', 'foto-10.jpeg', 'foto-11.jpeg']
+            },
+            {
+                nome: "degase-leopoldina-CONCLUIDA",
+                status: "CONCLUIDA",
+                imagens: ['capa.jpeg', 'foto-01.jpeg', 'foto-02.jpeg', 'foto-03.jpeg', 'foto-04.jpeg', 'foto-05.jpeg', 'foto-06.jpeg', 'foto-07.jpeg', 'foto-08.jpeg', 'foto-09.jpeg', 'foto-10.jpeg', 'foto-11.jpeg', 'foto-12.jpeg', 'foto-13.jpeg', 'foto-14.jpeg', 'foto-15.jpeg', 'foto-16.jpeg', 'foto-17.jpeg', 'foto-18.jpeg', 'foto-19.jpeg', 'foto-20.jpeg', 'foto-21.jpeg', 'foto-22.jpeg', 'foto-23.jpeg', 'foto-24.jpeg', 'foto-25.jpeg', 'foto-26.jpeg']
+            },
+            {
+                nome: "demolicao-aparalixo-CONCLUIDA",
+                status: "CONCLUIDA",
+                imagens: ['capa.jpeg', 'foto-01.jpeg', 'foto-02.jpeg', 'foto-03.jpeg', 'foto-04.jpeg', 'foto-05.jpeg', 'foto-06.jpeg', 'foto-07.jpeg', 'foto-08.jpeg', 'foto-09.jpeg', 'foto-10.jpeg', 'foto-11.jpeg', 'foto-12.jpeg']
+            },
+            {
+                nome: "escola-de-musica-vilalobos-EM_ANDAMENTO",
+                status: "EM_ANDAMENTO",
+                imagens: ['capa.jpeg', 'foto-01.jpeg', 'foto-02.jpeg', 'foto-03.jpeg', 'foto-04.jpeg', 'foto-05.jpeg', 'foto-06.jpeg', 'foto-07.jpeg', 'foto-08.jpeg', 'foto-09.jpeg', 'foto-10.jpeg', 'foto-11.jpeg', 'foto-12.jpeg', 'foto-13.jpeg', 'foto-14.jpeg', 'foto-15.jpeg', 'foto-16.jpeg', 'foto-17.jpeg', 'foto-18.jpeg', 'foto-19.jpeg', 'foto-20.jpeg', 'foto-21.jpeg', 'foto-22.jpeg', 'foto-23.jpeg', 'foto-24.jpeg', 'foto-25.jpeg', 'foto-26.jpeg']
+            },
+            {
+                nome: "espaco-15-de-agosto-CONCLUIDA",
+                status: "CONCLUIDA",
+                imagens: ['capa.jpeg', 'foto-01.jpeg', 'foto-02.jpeg', 'foto-03.jpeg', 'foto-04.jpeg']
+            },
+            {
+                nome: "maquinarios-CONCLUIDA",
+                status: "CONCLUIDA",
+                imagens: ['capa.jpeg', 'foto-01.jpeg', 'foto-02.jpeg', 'foto-03.jpeg', 'foto-04.jpeg', 'foto-05.jpeg', 'foto-06.jpeg', 'foto-07.jpeg', 'foto-08.jpeg', 'foto-09.jpeg', 'foto-10.jpeg', 'foto-11.jpeg']
+            },
+            {
+                nome: "praca-da-floresta-CONCLUIDA",
+                status: "CONCLUIDA",
+                imagens: ['capa.jpeg', 'foto-01.jpeg', 'foto-02.jpeg']
+            },
+            {
+                nome: "praca-da-ivete-CONCLUIDA",
+                status: "CONCLUIDA",
+                imagens: ['capa.jpeg', 'foto-01.jpeg']
+            },
+            {
+                nome: "praca-do-gaucho-CONCLUIDA",
+                status: "CONCLUIDA",
+                imagens: ['capa.jpeg', 'foto-01.jpeg', 'foto-02.jpeg']
+            },
+            {
+                nome: "reforma-da-quadra-CONCLUIDA",
+                status: "CONCLUIDA",
+                imagens: ['capa.jpeg', 'foto-01.jpeg', 'foto-02.jpeg', 'foto-03.jpeg', 'foto-04.jpeg', 'foto-05.jpeg', 'foto-06.jpeg', 'foto-07.jpeg', 'foto-08.jpeg']
+            }
+        ];
+
         // ═══════════════════════════════════════════════════════════════
         // CORREÇÃO PARA CELULAR - SCROLL E FOCO
         // ═══════════════════════════════════════════════════════════════
@@ -2676,47 +2732,29 @@
         // ═══════════════════════════════════════════════════════════════
         async function carregarPortfolioAutomatico() {
             try {
-                // ✅ CHAMA O WORKER (não a API do GitHub)
-                const response = await fetch(CONFIG.WORKER_GITHUB_OBRAS);
-                
-                if (!response.ok) {
-                    throw new Error(`Erro ${response.status}`);
-                }
-                
-                const data = await response.json();
-                
-                if (!data.ok || !data.obras) {
-                    throw new Error('Resposta inválida do Worker');
-                }
-                
                 obrasCarregadas = [];
                 
-                for (const obra of data.obras) {
+                for (const obra of OBRAS_KPG) {
                     const info = extrairInfoDoNomePasta(obra.nome);
                     
                     if (obra.imagens && obra.imagens.length > 0) {
-                        // Procura por "capa" ou "destaque" como primeira imagem
-                        let capa = obra.imagens.find(img => 
-                            img.nome.toLowerCase().includes('capa') || 
-                            img.nome.toLowerCase().includes('destaque') || 
-                            img.nome.toLowerCase().includes('cover')
-                        );
-                        
-                        if (!capa) {
-                            capa = obra.imagens[0];
-                        }
+                        const capa = obra.imagens.find(img => 
+                            img.toLowerCase().includes('capa') || 
+                            img.toLowerCase().includes('destaque') || 
+                            img.toLowerCase().includes('cover')
+                        ) || obra.imagens[0];
                         
                         obrasCarregadas.push({
                             ...info,
-                            imagens: obra.imagens.map(img => img.nome),
-                            capa: capa ? capa.nome : null,
+                            imagens: obra.imagens,
+                            capa: capa,
                             totalImagens: obra.imagens.length,
                             pasta: obra.nome
                         });
                     }
                 }
                 
-                // Ordena: Concluídas primeiro, depois Em Andamento, depois Planejamento
+                // Ordena: Concluídas primeiro, depois Em Andamento
                 const ordemStatus = { 'CONCLUIDA': 0, 'EM_ANDAMENTO': 1, 'PLANEJAMENTO': 2 };
                 obrasCarregadas.sort((a, b) => (ordemStatus[a.status] || 3) - (ordemStatus[b.status] || 3));
                 
@@ -2827,12 +2865,10 @@
         }
 
         function getImagemUrl(obra, imagem) {
-            // ✅ Agora usa o Worker para construir a URL da imagem
-            // O Worker já retorna as URLs completas no formato raw.githubusercontent.com
             const nomePasta = obra.pasta;
             const nomeImagem = typeof imagem === 'string' ? imagem : imagem.nome;
             
-            return `https://raw.githubusercontent.com/tchelojc/externo/main/KPG/portfolio/obras/${nomePasta}/${nomeImagem}`;
+            return `${CONFIG.GITHUB_RAW_BASE}/${nomePasta}/${nomeImagem}`;
         }
 
         function renderizarPortfolio() {
