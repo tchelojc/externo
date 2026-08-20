@@ -1590,16 +1590,6 @@
         "orcamento": "🎯 Orçamento é grátis! Traz seu aparelho aqui na loja ou manda foto pelo WhatsApp que a gente te passa o valor."
     };
 
-    // Coloque logo após as constantes de configuração
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-            for (let registration of registrations) {
-                registration.unregister();
-                console.log('🔧 Service Worker desregistrado');
-            }
-        });
-    }
-
     function respostaPronta(tipo) {
         const resposta = RESPOSTAS_PRONTAS[tipo];
         if (!resposta) return;
