@@ -1280,11 +1280,10 @@
     // 🔧 Ajuste GITHUB_PATH se a pasta real das fotos ficar em outro lugar.
     // ═══════════════ FOTOS DOS PRODUTOS (GitHub) ═══════════════
     const CONFIG_GITHUB = {
-        ORIGEM: "infocell",
         GITHUB_USER: "tchelojc",
         GITHUB_REPO: "externo",
         GITHUB_BRANCH: "main", // ✅ CORRIGIDO: era "alma", agora "main"
-        GITHUB_PATH: "imagens", // ✅ CORRIGIDO: era "infocell/imagens", agora só "imagens"
+        GITHUB_PATH: "imagens",
         get GITHUB_API_URL() {
             return `https://api.github.com/repos/${this.GITHUB_USER}/${this.GITHUB_REPO}/contents/${this.GITHUB_PATH}?ref=${this.GITHUB_BRANCH}`;
         },
@@ -1297,6 +1296,7 @@
     const cacheImagensPorPasta = {};
 
     // ═══════════════ CARRINHO ═══════════════
+    let produtosDoGitHub = [];
     let carrinho = JSON.parse(localStorage.getItem('infocell_carrinho') || '[]');
 
     let isProcessing = false;
@@ -2180,11 +2180,163 @@
         setTimeout(() => t.remove(), 3000);
     }
 
-    // ═══════════════ LOJA ONLINE ═══════════════
+    // Função para carregar produtos diretamente do GitHub
+    async function carregarProdutosDoGitHub() {
+        const content = document.getElementById('lojaContent');
+        content.innerHTML = `<div class="loja-loading"><div class="loading-spinner"></div><p>Carregando produtos...</p></div>`;
+        
+        try {
+            const response = await fetch(CONFIG_GITHUB.GITHUB_API_URL);
+            if (!response.ok) throw new Error('GitHub API error: ' + response.status);
+            
+            const arquivos = await response.json();
+            
+            // Filtra apenas imagens
+            const extensoesImagem = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'];
+            produtosDoGitHub = arquivos
+                .filter(arquivo => arquivo.type === 'file')
+                .filter(arquivo => extensoesImagem.some(ext => arquivo.name.toLowerCase().endsWith(ext)))
+                .map(arquivo => ({
+                    id: arquivo.sha,
+                    nome: formatarNomeProduto(arquivo.name),
+                    nomeArquivo: arquivo.name,
+                    url: arquivo.download_url || `${CONFIG_GITHUB.GITHUB_RAW_BASE}/${arquivo.name}`,
+                    tamanho: arquivo.size
+                }));
+            
+            renderizarProdutosDoGitHub();
+        } catch (error) {
+            console.error('Erro ao carregar produtos do GitHub:', error);
+            content.innerHTML = `
+                <div style="text-align:center;padding:3rem;color:var(--cinza);">
+                    <p style="font-size:3rem;margin-bottom:1rem;">⚠️</p>
+                    <p>Erro ao carregar produtos</p>
+                    <p style="font-size:0.8rem;">${error.message}</p>
+                    <button onclick="carregarProdutosDoGitHub()" style="margin-top:1rem;padding:10px 20px;background:var(--vermelho);color:white;border:none;border-radius:8px;cursor:pointer;">🔄 Tentar Novamente</button>
+                </div>
+            `;
+        }
+    }
+
+    // Formata o nome do arquivo para exibição
+    function formatarNomeProduto(nomeArquivo) {
+        // Remove extensão
+        let nome = nomeArquivo.replace(/\.[^/.]+$/, '');
+        
+        // Substitui hífens por espaços
+        nome = nome.replace(/-/g, ' ');
+        
+        // Capitaliza primeira letra de cada palavra
+        nome = nome.replace(/\b\w/g, l => l.toUpperCase());
+        
+        return nome;
+    }
+
+    // Renderiza os produtos na loja
+    function renderizarProdutosDoGitHub() {
+        const content = document.getElementById('lojaContent');
+        
+        if (produtosDoGitHub.length === 0) {
+            content.innerHTML = `
+                <div style="text-align:center;padding:3rem;color:var(--cinza);">
+                    <p style="font-size:3rem;margin-bottom:1rem;">📦</p>
+                    <p>Nenhuma imagem encontrada no GitHub</p>
+                    <p style="font-size:0.8rem;">Adicione imagens na pasta "imagens" do repositório</p>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = '<div class="produtos-grid">';
+        
+        produtosDoGitHub.forEach(produto => {
+            html += `
+                <div class="produto-card" onclick="abrirImagemDetalhe('${produto.id}')">
+                    <div class="produto-imagem">
+                        <img src="${produto.url}" alt="${produto.nome}" loading="lazy" 
+                            onerror="this.onerror=null;this.parentElement.innerHTML='<span style=\\'font-size:3rem;\\'>📱</span>'">
+                    </div>
+                    <div class="produto-info">
+                        <div class="produto-nome">${produto.nome}</div>
+                        <div class="produto-descricao">Disponível na loja</div>
+                        <div class="produto-btns">
+                            <button class="produto-btn-comprar" onclick="event.stopPropagation();consultarProduto('${produto.id}')">💬 Consultar</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+        content.innerHTML = html;
+    }
+
+    // Abre a imagem em detalhe
+    function abrirImagemDetalhe(produtoId) {
+        const produto = produtosDoGitHub.find(p => p.id === produtoId);
+        if (!produto) return;
+        
+        document.getElementById('produtoDetalheNome').textContent = produto.nome;
+        const content = document.getElementById('produtoDetalheContent');
+        
+        content.innerHTML = `
+            <div class="produto-galeria">
+                <img src="${produto.url}" alt="${produto.nome}" style="width:100%;height:auto;border-radius:12px;">
+            </div>
+            <div style="padding:1rem 0;">
+                <div class="produto-nome" style="font-size:1.2rem;margin-bottom:0.5rem;">${produto.nome}</div>
+                <p style="color:var(--cinza);margin-bottom:1rem;">Produto disponível na loja física</p>
+                <button class="produto-btn-comprar" style="width:100%;padding:12px;" onclick="consultarProduto('${produto.id}')">
+                    💬 Consultar Disponibilidade
+                </button>
+            </div>
+        `;
+        
+        document.getElementById('produtoDetalheOverlay').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    // Consulta sobre o produto via chat
+    function consultarProduto(produtoId) {
+        const produto = produtosDoGitHub.find(p => p.id === produtoId);
+        if (!produto) return;
+        
+        const mensagem = `Olá! Tenho interesse no produto: ${produto.nome}. Poderia me passar mais informações?`;
+        
+        fecharLoja();
+        fecharProdutoDetalhe();
+        
+        // Abre o chat com a mensagem
+        abrirChat();
+        addMessage('user', mensagem);
+        enviarParaIA(mensagem);
+    }
+
+    // Abre a loja
     function abrirLoja() {
         document.getElementById('lojaModalOverlay').classList.add('active');
         document.body.style.overflow = 'hidden';
-        carregarProdutos();
+        carregarProdutosDoGitHub();
+    }
+
+    // Fecha a loja
+    function fecharLoja() {
+        document.getElementById('lojaModalOverlay').classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    // Fecha o detalhe do produto
+    function fecharProdutoDetalhe() {
+        document.getElementById('produtoDetalheOverlay').classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    function atualizarBadgeCarrinho() {
+        const badge = document.getElementById('carrinhoBadge');
+        if (!badge) return;
+        const total = carrinho.reduce((s, i) => s + i.quantidade, 0);
+        badge.textContent = total;
+        badge.style.display = total > 0 ? 'inline-flex' : 'none';
     }
 
     function fecharLoja() {
@@ -2357,23 +2509,10 @@
         `;
     }
 
-    function fecharProdutoDetalhe() {
-        document.getElementById('produtoDetalheOverlay').classList.remove('active');
-        document.body.style.overflow = '';
-    }
-
     // ───────────── Carrinho ─────────────
     function salvarCarrinho() {
         localStorage.setItem('infocell_carrinho', JSON.stringify(carrinho));
         atualizarBadgeCarrinho();
-    }
-
-    function atualizarBadgeCarrinho() {
-        const badge = document.getElementById('carrinhoBadge');
-        if (!badge) return;
-        const total = carrinho.reduce((s, i) => s + i.quantidade, 0);
-        badge.textContent = total;
-        badge.style.display = total > 0 ? 'inline-flex' : 'none';
     }
 
     function adicionarAoCarrinho(produtoId, quantidade = 1) {
@@ -2544,6 +2683,7 @@
                 fecharChat();
             }
         });
+        
         window.addEventListener('beforeunload', () => {
             pararPollingContinuo();
         });
