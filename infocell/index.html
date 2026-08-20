@@ -1315,6 +1315,7 @@
     let usuarioLogado = null;
     let produtosLoja = [];
     let chatFechadoManualmente = false;
+    let jornadaIniciada = false;
 
     // ═══════════════ RESPOSTAS PRONTAS ═══════════════
     const RESPOSTAS_PRONTAS = {
@@ -1347,7 +1348,13 @@
         document.body.style.overflow = 'hidden';
         document.getElementById('chatMessages').style.display = '';
         document.getElementById('chatInputArea').style.display = 'flex';
-        carregarHistorico();
+        
+        // 🔥 NOVO: Só carrega histórico se o chat NÃO foi iniciado por nova jornada
+        // O histórico é carregado apenas na primeira abertura
+        if (!window.jornadaIniciada) {
+            carregarHistorico();
+        }
+        
         iniciarPollingContinuo();
     }
     function fecharChat() {
@@ -1357,6 +1364,13 @@
         document.body.style.overflow = '';
         document.getElementById('searchInput').focus();
         pararPollingContinuo();
+    }
+
+    // Adicione após a função carregarHistorico()
+    async function limparHistoricoLocal() {
+        respostasExibidas.clear();
+        mensagensServidorExibidas.clear();
+        document.getElementById('chatMessages').innerHTML = '';
     }
 
     function iniciarJornada() {
@@ -1369,11 +1383,20 @@
             return; 
         }
         
+        // 🔥 GERA NOVO sessionId para não carregar conversas antigas
+        sessionId = "user_" + Date.now();
+        localStorage.setItem('infocell_session_id', sessionId);
+        leadCriado = false; // Permite criar novo lead
+        
+        // Limpa rastreamento
+        respostasExibidas.clear();
+        mensagensServidorExibidas.clear();
+        mensagensProcessadas.clear();
+        
+        jornadaIniciada = true;
+        
         abrirChat();
         document.getElementById('chatMessages').innerHTML = '';
-        
-        // 🔥 REMOVIDO: Não mostra "Olá! Como posso te ajudar?" automaticamente
-        // A IA vai responder diretamente à mensagem do usuário
         
         if (anexo) {
             if (anexo.tipo.startsWith('image/')) {
@@ -1826,7 +1849,6 @@
         }
     }
 
-    // 🔥 CORREÇÃO: carregarHistorico NÃO duplica mensagens
     async function carregarHistorico() {
         try {
             const resp = await fetch(`${PROXY_CLOUDFLARE}?action=getChatAtendente&leadId=${sessionId}`, {
@@ -1840,11 +1862,22 @@
             
             if (data.conversas && data.conversas[sessionId]) {
                 const mensagens = data.conversas[sessionId].mensagens || [];
+                
+                // 🔥 Filtra apenas mensagens dos ÚLTIMOS 30 minutos
+                const agora = Date.now();
+                const TRINTA_MINUTOS = 30 * 60 * 1000;
+                
+                const mensagensRecentes = mensagens.filter(msg => {
+                    if (!msg.timestamp) return true;
+                    const msgTime = new Date(msg.timestamp).getTime();
+                    return (agora - msgTime) <= TRINTA_MINUTOS;
+                });
+                
                 document.getElementById('chatMessages').innerHTML = '';
                 respostasExibidas.clear();
                 mensagensServidorExibidas.clear();
 
-                for (const msg of mensagens) {
+                for (const msg of mensagensRecentes) {
                     const chave = chaveMensagemServidor(msg);
                     if (chave) mensagensServidorExibidas.add(chave);
 
