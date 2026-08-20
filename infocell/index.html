@@ -1938,12 +1938,12 @@
             
         const texto = input.value.trim();
             
-        if (!texto || isProcessingChat) return;
+        // 🔥 CORRIGIDO: era "isProcessingChat", agora é "isProcessing"
+        if (!texto || isProcessing) return;
             
         // 🔥 CORRIGIDO: Gera NOVO sessionId a cada mensagem enviada
-        // Isso evita que o backend busque histórico antigo
-        sessionId = "user_kpg_" + Date.now();
-        localStorage.setItem('kpg_session_id', sessionId);
+        sessionId = "user_" + Date.now();
+        localStorage.setItem('infocell_session_id', sessionId);
             
         adicionarMensagem('user', texto);
         input.value = '';
