@@ -1515,32 +1515,11 @@
     <script>
     // ═══════════════ CONFIGURAÇÃO ═══════════════
     const WHATSAPP = "5521964814751";
-    // 🔥 REMOVIDO: SCRIPT_URL (a URL bruta do script.google.com) ficava
-    // exposta aqui sem nenhum uso real - os comentários mais abaixo já
-    // confirmam "usa PROXY_CLOUDFLARE em vez de SCRIPT_URL". Deixar essa
-    // string parada no código-fonte só entregava de bandeja o endereço
-    // pra quem quisesse chamar o backend direto, sem passar pelo Worker.
     const PROXY_CLOUDFLARE = "https://almafluxo.uk/proxy/infocell";
 
-    // ═══════════════ FOTOS DOS PRODUTOS (GitHub) ═══════════════
-    // Mesma estrutura usada no KPG: uma subpasta por produto dentro de
-    // GITHUB_PATH, com o nome da subpasta = nome do produto (ou parecido).
-    // Dentro de cada subpasta, as imagens (a que tiver "capa"/"destaque"/
-    // "cover" no nome vira a miniatura; senão usa a primeira).
-    // 🔧 Ajuste GITHUB_PATH se a pasta real das fotos ficar em outro lugar.
-    // ═══════════════ FOTOS DOS PRODUTOS (GitHub) ═══════════════
-    const CONFIG_GITHUB = {
-        GITHUB_USER: "tchelojc",
-        GITHUB_REPO: "externo",
-        GITHUB_BRANCH: "alma", // ✅ CORRIGIDO: era "alma", agora "main"
-        GITHUB_PATH: "infocell/imagens",
-        get GITHUB_API_URL() {
-            return `https://api.github.com/repos/${this.GITHUB_USER}/${this.GITHUB_REPO}/contents/${this.GITHUB_PATH}?ref=${this.GITHUB_BRANCH}`;
-        },
-        get GITHUB_RAW_BASE() {
-            return `https://raw.githubusercontent.com/${this.GITHUB_USER}/${this.GITHUB_REPO}/${this.GITHUB_BRANCH}/${this.GITHUB_PATH}`;
-        }
-    };
+    // ═══════════════ FOTOS DOS PRODUTOS (VIA WORKER) ═══════════════
+    // ✅ AGORA CHAMA O WORKER (token escondido, sem limite de API)
+    const WORKER_GITHUB_URL = "https://almafluxo.uk/github/infocell/imagens";
 
     let pastasImagensProdutos = null;
     const cacheImagensPorPasta = {};
