@@ -1549,11 +1549,9 @@
             }
         };
 
-        let sessionId = localStorage.getItem('kpg_session_id');
-        if (!sessionId) {
-            sessionId = "user_kpg_" + Date.now();
-            localStorage.setItem('kpg_session_id', sessionId);
-        }
+        // 🔥 CORRIGIDO: Gera NOVO sessionId a cada nova conversa
+        let sessionId = "user_kpg_" + Date.now();
+        localStorage.setItem('kpg_session_id', sessionId);
 
         // ═══════════════════════════════════════════════════════════════
         // DECLARAÇÕES GLOBAIS (CORRIGIDO)
@@ -2388,12 +2386,28 @@
             
             if (!texto || isProcessingChat) return;
             
+            // 🔥 CORRIGIDO: Gera NOVO sessionId a cada mensagem enviada
+            // Isso evita que o backend busque histórico antigo
+            sessionId = "user_kpg_" + Date.now();
+            localStorage.setItem('kpg_session_id', sessionId);
+            
             adicionarMensagem('user', texto);
             input.value = '';
             
             await enviarParaIA(texto);
         }
 
+        function iniciarNovaConversa() {
+            // Limpa o chat visual
+            document.getElementById('chatMessages').innerHTML = '';
+            
+            // Gera novo sessionId
+            sessionId = "user_kpg_" + Date.now();
+            localStorage.setItem('kpg_session_id', sessionId);
+            
+            // Limpa rastreamento
+            respostasExibidas = new Set();
+        }
         // ═══════════════════════════════════════════════════════════════
         // MODAL DE ORÇAMENTO
         // ═══════════════════════════════════════════════════════════════
