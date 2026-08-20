@@ -1313,129 +1313,13 @@
             }
         }
 
-        // Função para limpar resposta da IA
-        function limparRespostaIAOlho(texto) {
-            if (!texto) return null;
-            
-            // Lista de textos que NÃO devem ser exibidos (partes do prompt)
-            const textosBloqueados = [
-                'O QUE É O OLHO DE DEUS',
-                'Sempre que possível',
-                'NOME:',
-                'EXPERIÊNCIA COM TRADING',
-                'MOTIVO REAL',
-                'PLANO DE INTERESSE',
-                'Use o nome dela',
-                'Se perguntarem se você é IA',
-                'Use linguagem natural',
-                'Mais de 4 frases',
-                'Mais de UMA pergunta',
-                'Perguntar',
-                'Pedir do nada',
-                'Listar perguntas',
-                'Falar',
-                'Responder com frases prontas',
-                'Frases como',
-                'Se perguntarem se é IA',
-                'Se perguntarem sobre celulares',
-                'Se perguntarem sobre construção civil',
-                'Se perguntarem sobre sistema de atendimento',
-                'Se perguntarem como comprar tokens',
-                'Se perguntarem se precisa instalar algo',
-                'Se perguntarem se pode usar no celular',
-                'Se ela passou',
-                'Se não passou ainda',
-                'Visitante:',
-                'Você:',
-                'PERCEBA:',
-                'PHI (φ)',
-                'RESUMO DO TOM E ESTILO',
-                'Tom:',
-                'Estilo:',
-                'Comprimento:',
-                'Perguntas:',
-                'Validação:',
-                'Nome:',
-                'Cliente (Visitante',
-                'Boa pergunta',
-                'A grande vantagem',
-                'Em vez de operar no escuro',
-                '- ',
-                '⚙️ Como funciona?',
-                '💎 Planos',
-                '🆘 Suporte',
-                'Digite sua dúvida',
-                '💬 WhatsApp',
-                '📞 21 98153-3928',
-                '🌌 Motor de Entropia',
-                '📐 Oráculo & Constantes',
-                '🧭 Mesa GPS',
-                '🔐 Acesso Blindado',
-                '⚽ Análise de Partidas',
-                '🎙️ Narração em Áudio',
-                'Planos de Acesso',
-                'Escolha o plano ideal',
-                '⏱️ 1 Hora',
-                '📆 1 Dia',
-                '⭐ Popular',
-                '📆 1 Semana',
-                '📆 1 Mês',
-                '📆 1 Ano',
-                'Comprar',
-                'Perguntas Frequentes',
-                '🪙 Como funcionam os tokens',
-                '💻 Preciso instalar algo',
-                '📱 Posso usar no celular',
-                '💳 Como é feito o pagamento',
-                '🔑 Como acesso a plataforma',
-                'Preços',
-                'FAQ',
-                'Suporte',
-                'Termos',
-                'Política de Privacidade',
-                'ALMAFLUXO © 2026'
-            ];
-            
-            // Verifica se o texto contém algum bloqueio
-            for (const bloqueado of textosBloqueados) {
-                if (texto.includes(bloqueado)) {
-                    // Se contiver, tenta extrair apenas a primeira linha significativa
-                    const linhas = texto.split('\n').filter(l => l.trim().length > 0);
-                    
-                    // Procura a primeira linha que parece uma resposta real (não prompt)
-                    for (const linha of linhas) {
-                        const linhaLimpa = linha.trim();
-                        
-                        // Pula linhas do prompt
-                        let ehPrompt = false;
-                        for (const bloq of textosBloqueados) {
-                            if (linhaLimpa.includes(bloq) || linhaLimpa.startsWith('- ') || linhaLimpa.startsWith('Visitante:') || linhaLimpa.startsWith('Você:') || linhaLimpa.startsWith('Cliente (')) {
-                                ehPrompt = true;
-                                break;
-                            }
-                        }
-                        
-                        // Se não for prompt e tiver conteúdo real, retorna
-                        if (!ehPrompt && linhaLimpa.length > 3) {
-                            return linhaLimpa;
-                        }
-                    }
-                    
-                    return null;
-                }
-            }
-            
-            // Se não contém bloqueios, retorna o texto limpo
-            return texto.trim();
-        }
-
         async function enviarParaIAOlho(mensagem) {
             isProcessingChat = true;
             document.getElementById('chatSendBtnOlho').disabled = true;
             showTypingOlho();
 
             try {
-                // Conta respostas existentes antes
+                // 🔥 ANTES de enviar, conta quantas mensagens do atendente já existem
                 let numeroRespostasAntes = 0;
                 try {
                     const respAntes = await fetch(`https://almafluxo.uk/proxy/infocell?action=getChatAtendente&leadId=${sessionIdChat}`);
@@ -1444,7 +1328,7 @@
                     numeroRespostasAntes = mensagensAntes.filter(m => m.de === 'atendente').length;
                 } catch(e) {}
 
-                // Envia mensagem do lead
+                // Agora envia a mensagem do lead
                 await fetch('https://almafluxo.uk/proxy/infocell', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1458,7 +1342,7 @@
                     })
                 });
 
-                // Polling para resposta nova
+                // Polling para resposta NOVA
                 let resposta = null;
                 const MAX_TENTATIVAS = 20;
                 
@@ -1470,18 +1354,17 @@
                         const data = await resp.json();
                         const mensagens = data.conversas?.[sessionIdChat]?.mensagens || [];
                         
+                        // 🔥 CORREÇÃO: Pega apenas as respostas NOVAS (depois do envio)
                         const mensagensAtendente = mensagens.filter(m => m.de === 'atendente');
                         
+                        // Só pega se houver MAIS respostas do que antes
                         if (mensagensAtendente.length > numeroRespostasAntes) {
                             const ultimaAtendente = mensagensAtendente[mensagensAtendente.length - 1];
                             
-                            if (ultimaAtendente.texto) {
-                                // 🔥 LIMPA A RESPOSTA ANTES DE EXIBIR
-                                const textoLimpo = limparRespostaIAOlho(ultimaAtendente.texto);
-                                
-                                if (textoLimpo && textoLimpo.length > 3) {
-                                    resposta = textoLimpo;
-                                }
+                            if (ultimaAtendente.texto && 
+                                !ultimaAtendente.texto.includes('Desculpe') &&
+                                ultimaAtendente.texto !== resposta) {
+                                resposta = ultimaAtendente.texto;
                             }
                         }
                     } catch (e) {}
@@ -1491,9 +1374,6 @@
 
                 if (resposta) {
                     addMessageOlho('ai', resposta);
-                } else {
-                    // Fallback se não encontrou resposta limpa
-                    addMessageOlho('ai', 'Recebi sua mensagem! Nossa equipe já está verificando e te respondo em instantes. 🙏');
                 }
 
             } catch (e) {
