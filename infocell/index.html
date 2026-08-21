@@ -1555,12 +1555,9 @@
     ];
 
     let pastasImagensProdutos = null;
-    const cacheImagensPorPasta = {};
-
     // ═══════════════ CARRINHO ═══════════════
     let produtosDoGitHub = [];
     let carrinho = JSON.parse(localStorage.getItem('infocell_carrinho') || '[]');
-
     let isProcessing = false;
     let atendimentoEncerrado = false;
     let sessionId = localStorage.getItem('infocell_session_id');
@@ -1581,6 +1578,15 @@
     let produtosLoja = [];
     let chatFechadoManualmente = false;
     let jornadaIniciada = false;
+    let mensagensExibidasPolling = new Set();
+    let aguardandoRespostaIA = false;
+    let mensagensProcessadas = new Set();
+    let respostasExibidas = new Set();
+
+    // Fonte de verdade: histórico real do backend/Apps Script via Worker.
+    const mensagensServidorExibidas = new Set();
+    const cacheImagensPorPasta = {};
+
 
     // ═══════════════ RESPOSTAS PRONTAS ═══════════════
     const RESPOSTAS_PRONTAS = {
@@ -1639,6 +1645,12 @@
     }
 
     function iniciarJornada() {
+        // 🔥 PREVENÇÃO: se já está processando, não faz nada
+        if (isProcessing) {
+            mostrarToast('⏳ Aguarde a resposta atual...');
+            return;
+        }
+        
         const input = document.getElementById('searchInput');
         const query = input.value.trim();
         const anexo = homeArquivoStaged;
@@ -1648,15 +1660,31 @@
             return; 
         }
         
-        // 🔥 GERA NOVO sessionId para não carregar conversas antigas
+        // 🔥 Fecha o chat anterior se estiver aberto
+        if (document.getElementById('chatOverlay').classList.contains('active')) {
+            fecharChat();
+            // Aguarda o fechamento
+            setTimeout(() => {
+                iniciarJornadaInterna(query, anexo);
+            }, 300);
+            return;
+        }
+        
+        iniciarJornadaInterna(query, anexo);
+    }
+
+    function iniciarJornadaInterna(query, anexo) {
+        // Gera NOVO sessionId para não carregar conversas antigas
         sessionId = "user_" + Date.now();
         localStorage.setItem('infocell_session_id', sessionId);
-        leadCriado = false; // Permite criar novo lead
+        leadCriado = false;
         
         // Limpa rastreamento
         respostasExibidas.clear();
         mensagensServidorExibidas.clear();
         mensagensProcessadas.clear();
+        isProcessing = false;
+        aguardandoRespostaIA = false;
         
         jornadaIniciada = true;
         
@@ -1902,17 +1930,6 @@
         reconhecimentoVoz.start();
     }
 
-    // ═══════════════════════════════════════
-    // CORREÇÃO COMPLETA - ENVIO E EXIBIÇÃO
-    // ═══════════════════════════════════════
-    
-    let respostasExibidas = new Set();
-    let aguardandoRespostaIA = false;
-    let mensagensProcessadas = new Set(); // 🔥 Rastreia mensagens já exibidas
-
-    // Fonte de verdade: histórico real do backend/Apps Script via Worker.
-    const mensagensServidorExibidas = new Set();
-
     function chaveMensagemServidor(msg) {
         if (!msg) return '';
         return String(msg.id || `${msg.timestamp || ''}|${msg.de || ''}|${msg.texto || ''}`);
@@ -1938,14 +1955,25 @@
             
         const texto = input.value.trim();
             
-        // 🔥 CORRIGIDO: era "isProcessingChat", agora é "isProcessing"
-        if (!texto || isProcessing) return;
-            
-        // 🔥 Gera NOVO sessionId
-        sessionId = "user_" + Date.now();
-        localStorage.setItem('infocell_session_id', sessionId);
-            
-        // 🔥 CORRIGIDO: era "adicionarMensagem", agora é "addMessage"
+        // 🔥 PREVENÇÃO: se já está processando ou não tem texto
+        if (!texto || isProcessing || aguardandoRespostaIA) {
+            if (isProcessing || aguardandoRespostaIA) {
+                mostrarToast('⏳ Aguarde a resposta atual...');
+            }
+            return;
+        }
+        
+        // 🔥 Gera ID único para esta mensagem
+        const mensagemId = Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+        const chaveMensagem = `${sessionId}_${mensagemId}`;
+        
+        // Verifica se já foi processada
+        if (mensagensProcessadas.has(chaveMensagem)) {
+            console.log('⚠️ Mensagem já processada, ignorando...');
+            return;
+        }
+        mensagensProcessadas.add(chaveMensagem);
+        
         addMessage('user', texto);
         input.value = '';
             
@@ -1965,11 +1993,30 @@
     }
 
     async function enviarParaIA(mensagem, arquivo = null) {
+        // 🔥 PREVENÇÃO: se já está processando, não faz nada
+        if (isProcessing) {
+            console.log('⏳ Já processando, aguarde...');
+            return;
+        }
+        
         isProcessing = true;
         aguardandoRespostaIA = true;
-        chatFechadoManualmente = false; // Reset ao enviar
         document.getElementById('chatSendBtn').disabled = true;
         showTyping();
+
+        // 🔥 Gera um ID único para esta mensagem para evitar duplicação
+        const mensagemId = Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+        const chaveMensagem = `${sessionId}_${mensagemId}`;
+        
+        if (mensagensProcessadas.has(chaveMensagem)) {
+            console.log('⚠️ Mensagem já processada, ignorando...');
+            isProcessing = false;
+            aguardandoRespostaIA = false;
+            document.getElementById('chatSendBtn').disabled = false;
+            removeTyping();
+            return;
+        }
+        mensagensProcessadas.add(chaveMensagem);
 
         await garantirLead();
         if (mensagem) await extrairDadosDaMensagem(mensagem, sessionId);
@@ -2012,13 +2059,10 @@
             }
             console.log('📤 Mensagem salva no backend');
 
-            // Não consulta mais "chatAtendenteRespostas" no cache local.
-            // A fonte de verdade é getChatAtendente -> Apps Script/Drive.
             let resposta = null;
             const MAX_TENTATIVAS = 45;
 
             for (let tentativa = 0; tentativa < MAX_TENTATIVAS && !resposta; tentativa++) {
-                // Se o chat foi fechado manualmente, para de tentar
                 if (chatFechadoManualmente) {
                     console.log('ℹ️ Chat fechado, resposta será mostrada quando reabrir');
                     return;
@@ -2057,14 +2101,17 @@
             removeTyping();
 
             if (resposta && resposta.texto) {
-                mensagensServidorExibidas.add(chaveMensagemServidor(resposta));
+                const chaveServidor = chaveMensagemServidor(resposta);
+                mensagensServidorExibidas.add(chaveServidor);
+                
+                // 🔥 Verifica se a resposta já foi exibida
                 const chaveTexto = resposta.texto.substring(0, 150);
                 if (!respostasExibidas.has(chaveTexto)) {
                     respostasExibidas.add(chaveTexto);
                     addMessage('ai', resposta.texto + botoesResposta());
                 }
             } else {
-                console.warn('⚠️ Nenhuma resposta nova encontrada no histórico após 135s');
+                console.warn('⚠️ Nenhuma resposta nova encontrada após 135s');
             }
 
         } catch (e) {
@@ -2084,8 +2131,6 @@
         }
     }
 
-
-    // 🔥 CORREÇÃO: Polling contínuo NÃO duplica mensagens
     async function pollRespostasContinuo() {
         if (!document.getElementById('chatOverlay').classList.contains('active')) return;
         if (isProcessing || aguardandoRespostaIA) return;
@@ -2094,7 +2139,17 @@
             const mensagens = await obterConversaServidor();
             for (const msg of mensagens) {
                 const chave = chaveMensagemServidor(msg);
-                if (!chave || mensagensServidorExibidas.has(chave)) continue;
+                if (!chave) continue;
+                
+                // 🔥 Pula se já foi exibida no polling
+                if (mensagensExibidasPolling.has(chave)) continue;
+                
+                // Marca como exibida
+                mensagensExibidasPolling.add(chave);
+                
+                // Pula se já foi exibida pelo histórico
+                if (mensagensServidorExibidas.has(chave)) continue;
+                
                 mensagensServidorExibidas.add(chave);
 
                 if (!ehRespostaValidaDoServidor(msg)) continue;
@@ -2112,6 +2167,16 @@
         } catch (e) {
             console.warn('⚠️ Polling contínuo do chat:', e.message);
         }
+    }
+
+    // Limpar polling ao fechar o chat
+    function pararPollingContinuo() {
+        if (pollContinuoInterval) {
+            clearInterval(pollContinuoInterval);
+            pollContinuoInterval = null;
+        }
+        // Limpa o cache de mensagens exibidas no polling
+        mensagensExibidasPolling.clear();
     }
 
     async function carregarHistorico() {
@@ -2282,13 +2347,6 @@
         pollContinuoInterval = setInterval(pollRespostasContinuo, 3000);
     }
 
-    function pararPollingContinuo() {
-        if (pollContinuoInterval) {
-            clearInterval(pollContinuoInterval);
-            pollContinuoInterval = null;
-        }
-    }
-
     function respostaJaExibida(textoResposta) {
         if (!textoResposta || textoResposta.length < 10) return true;
         const msgElements = document.querySelectorAll('.message.ai');
@@ -2327,13 +2385,24 @@
     async function callAPI(action, data = {}, method = 'GET') {
         try {
             let url;
-            let options = { method, headers: { 'Content-Type': 'application/json' } };
+            let options = { 
+                method, 
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                } 
+            };
+            
+            // 🔥 CORREÇÃO: Usa o proxy do servidor local se disponível, senão o Cloudflare
+            const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                ? window.location.origin + '/api'
+                : PROXY_CLOUDFLARE;
             
             if (method === 'GET') {
                 const params = new URLSearchParams({ action, ...data }).toString();
-                url = `${PROXY_CLOUDFLARE}?${params}`;
+                url = `${API_URL}?${params}`;
             } else {
-                url = PROXY_CLOUDFLARE;
+                url = API_URL;
                 options.body = JSON.stringify({ action, ...data });
             }
             
@@ -2341,6 +2410,7 @@
             const json = await resp.json();
             return json;
         } catch (e) {
+            console.error('❌ Erro na API:', e);
             return { status: 'error', message: e.message };
         }
     }
