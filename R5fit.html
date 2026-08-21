@@ -2107,7 +2107,12 @@
             'Message...', 'Message…', 'Message',
             'Digite sua mensagem', 'Type your message',
             'Escreva aqui', 'Enviar mensagem', 'Send message',
-            'Novo chat', 'New chat', 'Chat History', 'Histórico de chat'
+            'Novo chat', 'New chat', 'Chat History', 'Histórico de chat',
+            // 🔥 Banner de update do PWA/app do Dola que aparecia colado
+            // ANTES da resposta real, contaminando a mensagem entregue ao cliente
+            'Finish the update to unlock new features',
+            'your current chat will be saved automatically',
+            'Your current chat will be saved automatically'
         ];
         
         let textoProcessado = texto;
@@ -2348,6 +2353,23 @@
         console.log('🤖 Enviando mensagem para IA...');
 
         try {
+            // 🔥 CORREÇÃO: tira uma "foto" da conversa ANTES de enviar, pra só
+            // aceitar como resposta desta mensagem algo genuinamente NOVO.
+            // Sem isso, o loop de espera aceitava QUALQUER mensagem antiga da
+            // IA que já existisse na conversa (de uma pergunta anterior) como
+            // se fosse a resposta de AGORA - isso destravava isProcessing e o
+            // botão de enviar muito antes da resposta real chegar, e é essa a
+            // causa de "o botão acendeu antes de chegar a mensagem".
+            const chaveMsg = (m) => `${m.timestamp || ''}|${(m.texto || '').substring(0, 80)}`;
+            let chavesAntes = new Set();
+            try {
+                const dadosAntes = await callAPI('getChatAtendente', { leadId: sessionId }, 'GET');
+                const mensagensAntes = dadosAntes?.conversas?.[sessionId]?.mensagens || [];
+                chavesAntes = new Set(mensagensAntes.map(chaveMsg));
+            } catch (e) {
+                console.log('⚠️ Não foi possível capturar o estado anterior da conversa:', e.message);
+            }
+
             // 🔥 GERA UUID ÚNICO PARA A MENSAGEM
             const messageId = 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
             
@@ -2410,20 +2432,11 @@
                     const mensagens = data.conversas[sessionId].mensagens || [];
                     console.log(`📊 [Tentativa ${tentativas}/${MAX_TENTATIVAS}] Mensagens: ${mensagens.length}`);
                     
-                    // Procura resposta da IA (da mais recente para a mais antiga)
+                    // Procura resposta da IA que seja genuinamente NOVA (ausente na foto de antes)
                     for (let i = mensagens.length - 1; i >= 0; i--) {
                         const msg = mensagens[i];
-                        
-                        // Verifica se é resposta da IA para ESTA mensagem
-                        if (msg.de !== 'lead' && 
-                            msg.respondido_por_ia && 
-                            msg.timestamp > new Date().toISOString()) {
-                            resposta = msg;
-                            break;
-                        }
-                        
-                        // Fallback: qualquer resposta da IA
-                        if (msg.de !== 'lead' && msg.respondido_por_ia) {
+
+                        if (msg.de !== 'lead' && msg.respondido_por_ia && !chavesAntes.has(chaveMsg(msg))) {
                             resposta = msg;
                             break;
                         }
