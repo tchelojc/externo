@@ -1633,28 +1633,32 @@
     });
 
     function switchChatMode(mode) {
-        // 🔥 SIMPLIFICADO: não existe mais alternância visível de modo pro
-        // cliente (sem abas, sem "Falar com Atendente") - a conversa é uma
-        // só, sempre com a mesma cara. chatMode continua existindo só como
-        // estado interno (decide qual função de envio é chamada), mas não
-        // muda mais nada na tela.
-        // 🔥 SIMPLIFICADO: sem alternância visível de modo pro cliente -
-        // chatMode continua como estado interno (decide a função de envio),
-        // mas não muda mais nada na tela (mesma cara sempre).
         chatMode = mode;
 
-        // 🔥 Notifica o servidor sobre a escolha do tipo de atendimento
-        fetch('http://localhost:8080/api/atendimento/escolher', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
+        // 🔥 CORRIGIDO: usa callAPI em vez de fetch direto
+        const isLocalhost = window.location.hostname === 'localhost' || 
+                        window.location.hostname === '127.0.0.1';
+        
+        if (isLocalhost) {
+            // No computador: usa servidor local
+            fetch('http://localhost:8080/api/atendimento/escolher', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    leadId: sessionId,
+                    tipo: mode,
+                    nome: usuarioLogado?.nome || 'Visitante'
+                })
+            }).catch(e => console.log('⚠️ Erro ao notificar:', e.message));
+        } else {
+            // No telefone: usa proxy
+            callAPI('escolherAtendimento', {
                 leadId: sessionId,
                 tipo: mode,
                 nome: usuarioLogado?.nome || 'Visitante'
-            })
-        }).catch(e => console.log('⚠️ Erro ao notificar escolha:', e.message));
+            }, 'POST').catch(e => console.log('⚠️ Erro ao notificar:', e.message));
+        }
 
-        // 🔥 INICIA O POLLING (USANDO A MESMA FUNÇÃO PARA AMBOS OS MODOS)
         if (document.getElementById('chatOverlay').classList.contains('active')) {
             iniciarPollingContinuo();
         }
@@ -2344,54 +2348,81 @@
         console.log('🤖 Enviando mensagem para IA...');
 
         try {
-            // 1. Salva no Drive (via proxy - funciona em qualquer lugar)
-            await callAPI('saveChatAtendente', {
+            // 🔥 GERA UUID ÚNICO PARA A MENSAGEM
+            const messageId = 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            
+            // 🔥 VERIFICA SE A MENSAGEM JÁ FOI ENVIADA (evita duplicação)
+            const enviadas = JSON.parse(localStorage.getItem('r5fit_msg_enviadas') || '[]');
+            if (enviadas.includes(messageId)) {
+                console.log('⚠️ Mensagem duplicada detectada, ignorando...');
+                return;
+            }
+
+            // 1. Salva no Drive com ID único
+            const saveResult = await callAPI('saveChatAtendente', {
                 leadId: sessionId,
+                messageId: messageId,  // 🔥 ID ÚNICO
                 nomeLead: usuarioLogado?.nome || 'Visitante',
                 de: 'lead',
                 texto: mensagem || (arquivo ? `📎 ${arquivo.nome}` : ''),
                 respondido_por_ia: false,
-                aguardando_atendente: false
+                aguardando_atendente: false,
+                timestamp: new Date().toISOString()
             }, 'POST');
 
-            // 2. Aciona processamento (se estiver no computador)
+            console.log('📥 Resultado do save:', saveResult);
+
+            // Guarda localmente para evitar reenvio
+            enviadas.push(messageId);
+            localStorage.setItem('r5fit_msg_enviadas', JSON.stringify(enviadas));
+
+            // 2. Aciona processamento (apenas no computador)
             const isLocalhost = window.location.hostname === 'localhost' || 
                             window.location.hostname === '127.0.0.1';
             
             if (isLocalhost) {
-                // No computador: aciona o servidor local
                 try {
                     await fetch('http://localhost:8080/api/processar-pendentes', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ engine: 'dola' })
+                        body: JSON.stringify({ engine: 'dola', messageId: messageId })
                     });
                 } catch (e) {
                     console.log('ℹ️ Servidor local não alcançável');
                 }
             }
-            // No telefone: o servidor local já tem polling automático
 
-            // 3. Aguarda resposta
+            // 3. Aguarda resposta com intervalos maiores
             let resposta = null;
             let tentativas = 0;
-            const MAX_TENTATIVAS = 30;
+            const MAX_TENTATIVAS = 24; // 24 × 5s = 120s máximo
 
             while (!resposta && tentativas < MAX_TENTATIVAS) {
                 tentativas++;
-                await new Promise(r => setTimeout(r, 2000));
-
-                // 🔥 NOVA ESTRATÉGIA: busca no Drive via proxy
+                await new Promise(r => setTimeout(r, 5000)); // 5 segundos
+                
+                // Verifica se a conversa tem mensagem nova
                 const data = await callAPI('getChatAtendente', { 
                     leadId: sessionId 
                 }, 'GET');
-
+                
                 if (data.conversas && data.conversas[sessionId]) {
                     const mensagens = data.conversas[sessionId].mensagens || [];
+                    console.log(`📊 [Tentativa ${tentativas}/${MAX_TENTATIVAS}] Mensagens: ${mensagens.length}`);
                     
-                    // Procura a ÚLTIMA resposta da IA (do final para o início)
+                    // Procura resposta da IA (da mais recente para a mais antiga)
                     for (let i = mensagens.length - 1; i >= 0; i--) {
                         const msg = mensagens[i];
+                        
+                        // Verifica se é resposta da IA para ESTA mensagem
+                        if (msg.de !== 'lead' && 
+                            msg.respondido_por_ia && 
+                            msg.timestamp > new Date().toISOString()) {
+                            resposta = msg;
+                            break;
+                        }
+                        
+                        // Fallback: qualquer resposta da IA
                         if (msg.de !== 'lead' && msg.respondido_por_ia) {
                             resposta = msg;
                             break;
