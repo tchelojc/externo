@@ -1383,89 +1383,106 @@
 
     async function callAPI(action, data = {}, method = 'GET') {
         try {
-            // 🔥 DEFINE QUAIS AÇÕES VÃO PARA O DRIVE (via proxy Cloudflare)
+            // Ações que SEMPRE vão para o Drive (via proxy Cloudflare)
             const actions_drive = [
                 'saveChatAtendente',
-                'getChatAtendenteAll',     // Buscar TODAS as conversas
-                'getChatAtendente',        // 🔥 ADICIONADO DE VOLTA - busca UMA conversa
+                'getChatAtendenteAll',
+                'getChatAtendente',
                 'login',
                 'listarUsuarios',
                 'getLeads',
-                'saveLead',        // 🔥 ADICIONADO - formulário de cadastro inicial
+                'saveLead',
                 'atualizarUsuario',
                 'cadastrarUsuario',
-                'atendenteResponder',      // 🔥 ADICIONADO - resposta do atendente
-                'getHomePage',             // 🔥 ADICIONADO - página HTML
-                'getArquivoDrive',         // 🔥 ADICIONADO - arquivos HTML internos
-                'obterEvolucaoCliente',    // 🔥 ADICIONADO - evolução do cliente
-                'registrarEvolucaoCliente', // 🔥 ADICIONADO - registrar evolução
+                'atendenteResponder',
+                'getHomePage',
+                'getArquivoDrive',
+                'obterEvolucaoCliente',
+                'registrarEvolucaoCliente',
                 'obterUsuarioCompleto'
             ];
 
-            // 🔥 Ações que vão para o servidor local (processamento IA)
-            const actions_local = [
-                'processar-pendentes',
-                'dola/enviar',
-                'dola/verificar',
-                'deepseek/enviar',
-                'deepseek/verificar',
-                'canvas/fila',
-                'canvas/resposta',
-                'canvas/verificar'
-            ];
-
-            // 🔥 Ações que são rotas específicas do servidor local (com path próprio)
-            const actions_local_path = [
-                'chat-atendente/respostas'  // GET /api/chat-atendente/respostas
-            ];
+            // 🔥 NOVA FUNÇÃO: detecta se está no computador ou dispositivo remoto
+            const isLocalhost = window.location.hostname === 'localhost' || 
+                            window.location.hostname === '127.0.0.1';
 
             let url;
-
-            // 🔥 VERIFICA SE É UMA AÇÃO DO DRIVE
-            if (actions_drive.includes(action)) {
-                url = `https://almafluxo.uk/proxy/r5fit?action=${action}`;
-            } 
-            // 🔥 VERIFICA SE É UMA AÇÃO COM PATH ESPECÍFICO
-            else if (actions_local_path.some(p => action.includes(p))) {
-                url = `http://localhost:8080/api/${action}`;
-            }
-            // 🔥 VERIFICA SE É UMA AÇÃO LOCAL
-            else if (actions_local.includes(action)) {
-                url = `http://localhost:8080/api/${action}`;
-            } 
-            // 🔥 FALLBACK: tenta local primeiro, depois proxy
-            else {
-                // Se for GET, tenta como rota específica primeiro
-                if (method === 'GET') {
-                    url = `http://localhost:8080/api/${action}?${new URLSearchParams(data).toString()}`;
-                } else {
-                    url = `http://localhost:8080/api?action=${action}`;
-                }
-            }
-
             let options = { 
                 method, 
                 headers: { 'Content-Type': 'application/json' } 
             };
 
-            // 🔥 CONSTRÓI O BODY APENAS PARA POST E PUT
+            // 🔥 DECISÃO DE ROTEAMENTO INTELIGENTE
+            if (actions_drive.includes(action)) {
+                // SEMPRE via proxy (funciona em qualquer lugar)
+                url = `${PROXY_CLOUDFLARE}?action=${action}`;
+            } 
+            else if (isLocalhost) {
+                // 🔥 NO COMPUTADOR: usa servidor local (mais rápido)
+                if (action.includes('/')) {
+                    url = `http://localhost:8080/api/${action}`;
+                } else {
+                    url = `http://localhost:8080/api/${action}`;
+                }
+            }
+            else {
+                // 🔥 NO TELEFONE: usa proxy Cloudflare (funciona global)
+                url = `${PROXY_CLOUDFLARE}?action=${action}`;
+            }
+
+            // 🔥 CONSTRÓI O BODY
             if (method === 'POST' || method === 'PUT') {
-                // Para ações do Drive, o proxy espera o payload dentro de um campo 'result'
-                if (actions_drive.includes(action)) {
+                if (actions_drive.includes(action) || !isLocalhost) {
                     options.body = JSON.stringify({ action, ...data });
                 } else {
                     options.body = JSON.stringify(data);
                 }
             }
+            // 🔥 Para GET com dados
+            else if (method === 'GET' && Object.keys(data).length > 0) {
+                const queryString = new URLSearchParams(data).toString();
+                url += url.includes('?') ? `&${queryString}` : `?${queryString}`;
+            }
 
             console.log(`📡 ${method} ${action} → ${url}`);
-            const resp = await fetch(url, options);
+
+            // 🔥 TIMEOUT para não travar
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+            const resp = await fetch(url, {
+                ...options,
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!resp.ok) {
+                throw new Error(`HTTP ${resp.status}`);
+            }
+
             const json = await resp.json();
-            console.log(`📥 Resposta ${action}:`, json.status || json.message || '');
+            console.log(`📥 Resposta ${action}:`, json.status || json.message || 'OK');
             return json;
 
         } catch (e) {
-            console.warn('⚠️ API offline:', e.message);
+            console.warn(`⚠️ API offline (${action}):`, e.message);
+            
+            // 🔥 FALLBACK: se falhou no local, tenta proxy
+            if (e.message.includes('fetch') || e.name === 'AbortError') {
+                try {
+                    const fallbackUrl = `${PROXY_CLOUDFLARE}?action=${action}`;
+                    const fallbackResp = await fetch(fallbackUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action, ...data })
+                    });
+                    return await fallbackResp.json();
+                } catch (e2) {
+                    console.warn('⚠️ Fallback também falhou');
+                }
+            }
+            
             return { status: 'error', message: e.message };
         }
     }
@@ -2201,7 +2218,6 @@
     }
 
     async function pollRespostasContinuo() {
-        // 🔥 CORREÇÃO: Evita chamadas simultâneas
         if (pollEmExecucao) return;
         if (!document.getElementById('chatOverlay').classList.contains('active')) return;
         if (isProcessing) return;
@@ -2209,36 +2225,55 @@
         pollEmExecucao = true;
         
         try {
-            // 🔥 CORREÇÃO: Usa proxy Cloudflare para visitantes remotos
+            const isLocalhost = window.location.hostname === 'localhost' || 
+                            window.location.hostname === '127.0.0.1';
+            
             let data;
             
-            try {
-                // Tenta servidor local primeiro (para testes)
-                const response = await fetch(`http://localhost:8080/api/chat-atendente/respostas?leadId=${sessionId}`);
-                data = await response.json();
-            } catch (e) {
-                // Fallback para proxy
+            if (isLocalhost) {
+                // 🔥 NO COMPUTADOR: usa servidor local (mais rápido)
                 try {
-                    const respProxy = await fetch(`${PROXY_CLOUDFLARE}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            action: 'chatAtendenteRespostas',
-                            leadId: sessionId
-                        })
-                    });
-                    data = await respProxy.json();
-                } catch (e2) {
-                    return;
+                    const response = await fetch(`http://localhost:8080/api/chat-atendente/respostas?leadId=${sessionId}`);
+                    data = await response.json();
+                } catch (e) {
+                    // Fallback para proxy
+                    data = await callAPI('getChatAtendente', { leadId: sessionId }, 'GET');
                 }
+            } else {
+                // 🔥 NO TELEFONE: usa proxy Cloudflare (funciona global)
+                data = await callAPI('getChatAtendente', { leadId: sessionId }, 'GET');
             }
 
+            // 🔥 PROCESSAMENTO UNIFICADO
             if (data.respostas && data.respostas.length > 0) {
+                // Respostas pendentes (fila rápida)
                 for (const resp of data.respostas) {
-                    const textoLimpo = resp.respondido_por_ia ? limparRespostaIA(resp.texto) : (resp.texto || '').trim();
+                    const textoLimpo = resp.respondido_por_ia 
+                        ? limparRespostaIA(resp.texto) 
+                        : (resp.texto || '').trim();
                     
                     if (textoLimpo && !respostaJaExibida(textoLimpo)) {
                         if (resp.respondido_por_ia) {
+                            addMessage('ai', textoLimpo + botoesResposta());
+                        } else {
+                            addMessage('atendente-msg', textoLimpo);
+                        }
+                        tocarSomNotificacao();
+                    }
+                }
+            } else if (data.conversas && data.conversas[sessionId]) {
+                // Conversa completa (do Drive)
+                const mensagens = data.conversas[sessionId].mensagens || [];
+                
+                for (const msg of mensagens) {
+                    if (msg.de === 'lead') continue;
+                    
+                    const textoLimpo = msg.respondido_por_ia 
+                        ? limparRespostaIA(msg.texto) 
+                        : (msg.texto || '').trim();
+                    
+                    if (textoLimpo && !respostaJaExibida(textoLimpo)) {
+                        if (msg.respondido_por_ia) {
                             addMessage('ai', textoLimpo + botoesResposta());
                         } else {
                             addMessage('atendente-msg', textoLimpo);
@@ -2301,7 +2336,7 @@
     }
 
     async function enviarParaIA(mensagem, arquivo = null) {
-        if (isProcessing) return; // 🔥 Evita envio duplicado
+        if (isProcessing) return;
         isProcessing = true;
         document.getElementById('chatSendBtn').disabled = true;
         showTyping();
@@ -2309,7 +2344,7 @@
         console.log('🤖 Enviando mensagem para IA...');
 
         try {
-            // Salva no Drive
+            // 1. Salva no Drive (via proxy - funciona em qualquer lugar)
             await callAPI('saveChatAtendente', {
                 leadId: sessionId,
                 nomeLead: usuarioLogado?.nome || 'Visitante',
@@ -2319,18 +2354,25 @@
                 aguardando_atendente: false
             }, 'POST');
 
-            // Aciona processamento
-            try {
-                await fetch('http://localhost:8080/api/processar-pendentes', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ engine: 'dola' })
-                });
-            } catch (e) {
-                console.log('ℹ️ Servidor local não alcançável (normal para visitantes remotos)');
+            // 2. Aciona processamento (se estiver no computador)
+            const isLocalhost = window.location.hostname === 'localhost' || 
+                            window.location.hostname === '127.0.0.1';
+            
+            if (isLocalhost) {
+                // No computador: aciona o servidor local
+                try {
+                    await fetch('http://localhost:8080/api/processar-pendentes', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ engine: 'dola' })
+                    });
+                } catch (e) {
+                    console.log('ℹ️ Servidor local não alcançável');
+                }
             }
+            // No telefone: o servidor local já tem polling automático
 
-            // 🔥 CORREÇÃO: 30 tentativas × 2s = 60s máximos
+            // 3. Aguarda resposta
             let resposta = null;
             let tentativas = 0;
             const MAX_TENTATIVAS = 30;
@@ -2339,45 +2381,29 @@
                 tentativas++;
                 await new Promise(r => setTimeout(r, 2000));
 
-                try {
-                    const respPendentes = await fetch(`http://localhost:8080/api/chat-atendente/respostas?leadId=${sessionId}`);
-                    const pendentesData = await respPendentes.json();
+                // 🔥 NOVA ESTRATÉGIA: busca no Drive via proxy
+                const data = await callAPI('getChatAtendente', { 
+                    leadId: sessionId 
+                }, 'GET');
 
-                    if (pendentesData.respostas && pendentesData.respostas.length > 0) {
-                        const ultimaResposta = pendentesData.respostas[pendentesData.respostas.length - 1];
-                        if (ultimaResposta && ultimaResposta.texto) {
-                            resposta = ultimaResposta;
+                if (data.conversas && data.conversas[sessionId]) {
+                    const mensagens = data.conversas[sessionId].mensagens || [];
+                    
+                    // Procura a ÚLTIMA resposta da IA (do final para o início)
+                    for (let i = mensagens.length - 1; i >= 0; i--) {
+                        const msg = mensagens[i];
+                        if (msg.de !== 'lead' && msg.respondido_por_ia) {
+                            resposta = msg;
                             break;
                         }
                     }
-                } catch (e) {
-                    // Fallback para proxy
-                    try {
-                        const respProxy = await fetch(`${PROXY_CLOUDFLARE}`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                action: 'chatAtendenteRespostas',
-                                leadId: sessionId
-                            })
-                        });
-                        const proxyData = await respProxy.json();
-                        
-                        if (proxyData.respostas && proxyData.respostas.length > 0) {
-                            const ultimaResposta = proxyData.respostas[proxyData.respostas.length - 1];
-                            if (ultimaResposta && ultimaResposta.texto) {
-                                resposta = ultimaResposta;
-                                break;
-                            }
-                        }
-                    } catch (e2) {}
                 }
             }
 
             removeTyping();
 
             if (resposta && resposta.texto) {
-                const textoLimpo = resposta.respondido_por_ia ? limparRespostaIA(resposta.texto) : resposta.texto;
+                const textoLimpo = limparRespostaIA(resposta.texto);
                 if (textoLimpo && !respostaJaExibida(textoLimpo)) {
                     addMessage('ai', textoLimpo + botoesResposta());
                 }
