@@ -631,6 +631,27 @@
         let estadoAtual = null;
         let temaSelecionado = null;
         let conversaAtiva = false;
+        let carregando = false; // 🔥 evita clique duplo enquanto espera resposta (pode levar até ~2min)
+
+        function definirCarregando(ligado, textoStatus) {
+            carregando = ligado;
+            document.querySelectorAll('.btn-acao, .btn-enviar, .login-card button').forEach(btn => {
+                btn.disabled = ligado;
+                btn.style.opacity = ligado ? '0.5' : '1';
+                btn.style.cursor = ligado ? 'not-allowed' : 'pointer';
+            });
+            let statusEl = document.getElementById('statusCarregando');
+            if (!statusEl && ligado) {
+                statusEl = document.createElement('div');
+                statusEl.id = 'statusCarregando';
+                statusEl.style.cssText = 'text-align:center;color:var(--dourado-claro);margin-top:10px;font-style:italic;';
+                document.getElementById('painelAcoes').appendChild(statusEl);
+            }
+            if (statusEl) {
+                statusEl.textContent = textoStatus || '';
+                statusEl.style.display = ligado ? 'block' : 'none';
+            }
+        }
 
         // Função para chamar a API
         async function chamarAPI(action, dados) {
@@ -680,6 +701,7 @@
 
         // Iniciar conversa
         async function iniciarConversa() {
+            if (carregando) return;
             const nomeSimulacao = document.getElementById('nomeSimulacao').value.trim() || 'boteco';
             const mensagemInicial = document.getElementById('mensagemInicial').value.trim();
             const iaInicial = document.getElementById('iaInicial').value;
@@ -689,12 +711,14 @@
                 return;
             }
 
+            definirCarregando(true, `Aguardando ${iaInicial === 'deepseek' ? 'DeepSeek' : 'Dola'} responder...`);
             const resultado = await chamarAPI('boteco/iniciar', {
                 tema_preset: temaSelecionado || 'livre',
                 seed_nome: nomeSimulacao,
                 mensagem_inicial: mensagemInicial,
                 ia_inicial: iaInicial
             });
+            definirCarregando(false);
 
             if (resultado.status === 'success') {
                 estadoAtual = resultado.estado;
@@ -731,10 +755,14 @@
 
         // Continuar conversa
         async function continuarConversa(modo, mensagem = '') {
+            if (carregando) return;
+            const proximaIa = estadoAtual && estadoAtual.ia_vez === 'deepseek' ? 'DeepSeek' : 'Dola';
+            definirCarregando(true, `Aguardando ${proximaIa} responder...`);
             const resultado = await chamarAPI('boteco/continuar', {
                 modo: modo,
                 mensagem_manual: mensagem
             });
+            definirCarregando(false);
 
             if (resultado.status === 'success') {
                 estadoAtual = resultado.estado;
@@ -758,6 +786,7 @@
 
         // Enviar mensagem direta
         async function enviarDireto(ia) {
+            if (carregando) return;
             const inputId = ia === 'deepseek' ? 'inputMsgDeepSeek' : 'inputMsgDola';
             const mensagem = document.getElementById(inputId).value.trim();
             
@@ -767,16 +796,20 @@
             adicionarMensagem('usuario', 'Você (direto)', mensagem);
             document.getElementById(inputId).value = '';
 
+            definirCarregando(true, `Aguardando ${ia === 'deepseek' ? 'DeepSeek' : 'Dola'} responder...`);
             // Envia para o servidor
             const resultado = await chamarAPI('boteco/continuar', {
                 modo: 'participante',
                 mensagem_manual: mensagem,
                 ia_alvo: ia
             });
+            definirCarregando(false);
 
             if (resultado.status === 'success') {
                 estadoAtual = resultado.estado;
                 atualizarInterface();
+            } else {
+                alert(resultado.message || 'Erro ao enviar mensagem');
             }
         }
 
