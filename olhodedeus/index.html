@@ -917,7 +917,7 @@
         <div class="nav-brand">ALMAFLUXO <span>| Olho De Deus</span></div>
         <div class="nav-actions">
             <div class="token-display" id="tokenDisplay">⚡ Carregando...</div>
-            <button class="btn-nav btn-nav-outline" onclick="abrirModalLogin()">🔑 Login</button>
+            <button class="btn-nav btn-nav-outline" id="btnLoginLogout" onclick="toggleLoginLogout()">🔑 Login</button>
             <button class="btn-nav" onclick="irParaPagamentos()">Comprar Tokens</button>
         </div>
     </nav>
@@ -1306,7 +1306,7 @@
                     email: usuarioLogadoOlho.email,
                     sessionToken: usuarioLogadoOlho.sessionToken
                 });
-                window.open(`https://almafluxo.uk/app-olhodedeus?${params.toString()}`, '_blank');
+                window.open('https://almafluxo.uk/app-olhodedeus', '_blank');
 
             } catch (e) {
                 mostrarToastOlho('⚠️ Erro ao acessar: ' + e.message);
@@ -1385,7 +1385,7 @@
                 document.getElementById('chatSendBtnOlho').disabled = false;
                 document.getElementById('chatInputOlho').focus();
             }
-        }
+                    }
         // ======================================================
         // LOGIN
         // ======================================================
@@ -1424,7 +1424,11 @@
                 const response = await fetch('https://almafluxo.uk/proxy/central', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, senha })
+                    body: JSON.stringify({ 
+                        action: 'login', 
+                        email, 
+                        senha 
+                    })
                 });
                 const data = await response.json();
 
@@ -1453,6 +1457,18 @@
             }
         }
 
+        function toggleLoginLogout() {
+            if (usuarioLogadoOlho) {
+                // Logout
+                localStorage.removeItem('olho_de_deus_usuario');
+                usuarioLogadoOlho = null;
+                document.getElementById('tokenDisplay').textContent = '⚡ 0 Tokens';
+                document.getElementById('btnLoginLogout').textContent = '🔑 Login';
+                mostrarToastOlho('✅ Você saiu da conta.');
+            } else {
+                abrirModalLogin();
+            }
+        }
         // ======================================================
         // PLANOS DE ACESSO
         // ======================================================
@@ -1492,15 +1508,17 @@
             const resposta = RESPOSTAS_PRONTAS_OLHO[tipo];
             if (!resposta) return;
             addMessageOlho('ai', resposta);
-            setTimeout(() => enviarParaIAOlho(resposta), 800);
+            // Não enviar para o backend, apenas exibir a resposta automática
+            // Se quiser registrar no backend, use a pergunta original, ex:
+            // enviarParaIAOlho('Como funciona?');
         }
 
         function addMessageOlho(tipo, texto) {
             const c = document.getElementById('chatMessagesOlho');
             const d = document.createElement('div');
             d.className = `message-olho ${tipo === 'user' ? 'user' : 'ai'}`;
-            d.innerHTML = texto.replace(/\n/g, '<br>');
-            c.appendChild(d); 
+            d.textContent = texto; // usa textContent em vez de innerHTML
+            c.appendChild(d);
             c.scrollTop = c.scrollHeight;
         }
 
@@ -1537,11 +1555,23 @@
         document.addEventListener('DOMContentLoaded', () => {
             // Carrega sessão salva
             const sessao = localStorage.getItem('olho_de_deus_usuario');
+            
             if (sessao) {
                 usuarioLogadoOlho = JSON.parse(sessao);
-                document.getElementById('tokenDisplay').textContent = `⚡ ${usuarioLogadoOlho.balance} Tokens`;
+                
+                // Atualiza saldo do servidor
+                consultarSaldoOlho(usuarioLogadoOlho.email, usuarioLogadoOlho.sessionToken).then(data => {
+                    if (data.ok) {
+                        usuarioLogadoOlho.balance = data.balance;
+                        localStorage.setItem('olho_de_deus_usuario', JSON.stringify(usuarioLogadoOlho));
+                        document.getElementById('tokenDisplay').textContent = `⚡ ${data.balance} Tokens`;
+                    }
+                });
+                
+                document.getElementById('btnLoginLogout').textContent = '🚪 Sair';
             } else {
                 document.getElementById('tokenDisplay').textContent = '⚡ 0 Tokens';
+                document.getElementById('btnLoginLogout').textContent = '🔑 Login';
             }
             
             // Mensagem de boas-vindas no chat
