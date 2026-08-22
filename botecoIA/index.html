@@ -79,10 +79,7 @@
             font-size: 0.9em;
             transition: all 0.3s;
         }
-        .logout-btn:hover {
-            background: var(--vermelho);
-            color: white;
-        }
+        .logout-btn:hover { background: var(--vermelho); color: white; }
 
         .triangulo-container {
             display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;
@@ -163,23 +160,24 @@
         .balao-texto { line-height: 1.4; }
 
         .input-area { padding: 15px; background: #241a16; border-top: 2px solid var(--border); }
-        .input-container { display: flex; gap: 10px; align-items: center; }
+        .input-container { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
         .input-mensagem {
-            flex: 1; padding: 12px; background: #1a1210; border: 2px solid var(--border);
+            flex: 1; min-width: 150px; padding: 12px; background: #1a1210; border: 2px solid var(--border);
             border-radius: 25px; color: var(--creme); font-size: 1em; transition: all 0.3s ease;
         }
         .input-mensagem:focus {
             outline: none; border-color: var(--dourado); box-shadow: 0 0 15px rgba(212,165,116,0.3);
         }
-        .btn-enviar, .btn-anexo, .btn-voz {
+        .btn-enviar, .btn-anexo, .btn-voz, .btn-projeto {
             width: 50px; height: 50px; border-radius: 50%; background: var(--dourado);
             color: #1a1210; border: none; font-size: 1.5em; cursor: pointer; transition: all 0.3s ease;
             display: flex; align-items: center; justify-content: center;
         }
         .btn-anexo { background: #4a3a30; font-size: 1.2em; }
         .btn-voz { background: #3a4a30; font-size: 1.2em; }
+        .btn-projeto { background: #3a4a5a; font-size: 1.2em; }
         .btn-enviar:hover { background: var(--dourado-claro); transform: scale(1.1); box-shadow: 0 0 20px rgba(212,165,116,0.5); }
-        .btn-anexo:hover, .btn-voz:hover { transform: scale(1.1); }
+        .btn-anexo:hover, .btn-voz:hover, .btn-projeto:hover { transform: scale(1.1); }
 
         .painel-controle {
             background: linear-gradient(180deg, #3a2a20 0%, #2d1f1a 100%);
@@ -234,6 +232,12 @@
         }
         .login-card button:hover { background: var(--dourado-claro); transform: translateY(-2px); }
 
+        .select-projeto {
+            width: 100%; padding: 12px; background: #1a1210; border: 2px solid var(--border);
+            border-radius: 10px; color: var(--creme); margin-bottom: 10px; font-size: 1em;
+        }
+        .select-projeto:focus { outline: none; border-color: var(--dourado); }
+
         @media (max-width: 768px) {
             .triangulo-container { grid-template-columns: 1fr; }
             .chat-area { height: 300px; }
@@ -283,12 +287,22 @@
                 <div class="btn-tema" onclick="selecionarTema('calculos')" data-tema="calculos">🧮 Cálculos</div>
                 <div class="btn-tema" onclick="selecionarTema('fisica_quantica')" data-tema="fisica_quantica">⚛️ Física Quântica</div>
                 <div class="btn-tema" onclick="selecionarTema('personagens_historicos')" data-tema="personagens_historicos">🎭 Personagens</div>
+                <div class="btn-tema" onclick="selecionarTema('projetos')" data-tema="projetos">📁 Projetos</div>
                 <div class="btn-tema" onclick="selecionarTema('livre')" data-tema="livre">✍️ Tema Livre</div>
             </div>
 
             <input type="text" id="nomeSimulacao" class="campo-input" placeholder="Nome da simulação (seed)... ex: debate_filosofia">
             
             <textarea id="mensagemInicial" class="campo-input" rows="3" placeholder="Mensagem inicial da conversa..."></textarea>
+
+            <!-- Área de seleção de projetos (aparece apenas no tema Projetos) -->
+            <div id="projetosBox" style="display:none; margin-bottom:10px;">
+                <label style="color:var(--dourado); font-size:0.9em;">Selecione um projeto do Drive para análise:</label>
+                <select id="selectProjeto" class="select-projeto" onchange="projetoSelecionado = this.value; atualizarInfoProjeto();">
+                    <option value="">Carregando projetos...</option>
+                </select>
+                <div id="projetoInfo" style="font-size:0.8em; color:var(--cinza); margin-top:5px;"></div>
+            </div>
             
             <div style="display: flex; gap: 10px; margin-top: 10px;">
                 <select id="iaInicial" class="campo-input" style="flex: 1;">
@@ -314,6 +328,7 @@
                 <div class="input-area" style="display: none;" id="inputDeepSeek">
                     <div class="input-container">
                         <button class="btn-anexo" onclick="anexarArquivo('inputMsgDeepSeek', 'deepseek')" title="Anexar arquivo">📎</button>
+                        <button class="btn-projeto" onclick="selecionarProjetoParaAnexo('inputMsgDeepSeek')" title="Anexar projeto">📁</button>
                         <button class="btn-voz" onclick="iniciarVoz('inputMsgDeepSeek')" title="Falar">🎤</button>
                         <input type="text" class="input-mensagem" id="inputMsgDeepSeek" placeholder="Mensagem direta pro DeepSeek..." onkeydown="if(event.key==='Enter')enviarDireto('deepseek')">
                         <button class="btn-enviar" onclick="enviarDireto('deepseek')">➤</button>
@@ -335,6 +350,7 @@
                 <div class="input-area" style="display: none;" id="inputDola">
                     <div class="input-container">
                         <button class="btn-anexo" onclick="anexarArquivo('inputMsgDola', 'dola')" title="Anexar arquivo">📎</button>
+                        <button class="btn-projeto" onclick="selecionarProjetoParaAnexo('inputMsgDola')" title="Anexar projeto">📁</button>
                         <button class="btn-voz" onclick="iniciarVoz('inputMsgDola')" title="Falar">🎤</button>
                         <input type="text" class="input-mensagem" id="inputMsgDola" placeholder="Mensagem direta pro Dola..." onkeydown="if(event.key==='Enter')enviarDireto('dola')">
                         <button class="btn-enviar" onclick="enviarDireto('dola')">➤</button>
@@ -353,10 +369,11 @@
                 <button class="btn-acao" onclick="encerrarConversa()">⏹️ Encerrar</button>
             </div>
             <div id="inputParticipar" style="display: none; margin-top: 15px;">
-                <div style="display: flex; gap: 10px; align-items: center;">
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                     <button class="btn-anexo" onclick="anexarArquivo('msgParticipar', 'participar')" title="Anexar arquivo">📎</button>
+                    <button class="btn-projeto" onclick="selecionarProjetoParaAnexo('msgParticipar')" title="Anexar projeto">📁</button>
                     <button class="btn-voz" onclick="iniciarVoz('msgParticipar')" title="Falar">🎤</button>
-                    <textarea id="msgParticipar" class="campo-input" rows="3" placeholder="Sua intervenção na conversa..." style="margin-bottom:0; flex:1;"></textarea>
+                    <textarea id="msgParticipar" class="campo-input" rows="3" placeholder="Sua intervenção na conversa..." style="margin-bottom:0; flex:1; min-width:200px;"></textarea>
                 </div>
                 <div id="anexoInfoParticipar" style="font-size:0.8em; color:var(--dourado-claro); margin-top:5px;"></div>
                 <button class="btn-acao verde" onclick="participarConversa()" style="margin-top:10px;">Enviar Intervenção</button>
@@ -375,10 +392,12 @@
         let temaSelecionado = null;
         let conversaAtiva = false;
         let carregando = false;
-        const anexosPendentes = {};
+        const anexosPendentes = {};  // chave: inputId, valor: anexo (objeto)
+        let projetoSelecionado = null; // para aba Projetos no painel de controle
+        let projetosCache = [];        // cache da lista de projetos
 
         // ============================================================
-        // NOTIFICAÇÕES (substitui alert)
+        // NOTIFICAÇÕES
         // ============================================================
         function notificar(mensagem, tipo = 'erro') {
             const div = document.createElement('div');
@@ -388,12 +407,9 @@
             setTimeout(() => div.remove(), 3000);
         }
 
-        // ============================================================
-        // UTILITÁRIOS
-        // ============================================================
         function definirCarregando(ligado, textoStatus) {
             carregando = ligado;
-            document.querySelectorAll('.btn-acao, .btn-enviar, .btn-anexo, .btn-voz, .login-card button').forEach(btn => {
+            document.querySelectorAll('.btn-acao, .btn-enviar, .btn-anexo, .btn-voz, .btn-projeto, .login-card button').forEach(btn => {
                 btn.disabled = ligado;
                 btn.style.opacity = ligado ? '0.5' : '1';
                 btn.style.cursor = ligado ? 'not-allowed' : 'pointer';
@@ -420,7 +436,6 @@
         // ============================================================
         // CHAMADAS ÀS APIS
         // ============================================================
-        // Apps Script (autenticação e dados)
         async function chamarAPI(action, dados) {
             try {
                 const resp = await fetch(`${SERVIDOR_URL}/api/boteco/${action}`, {
@@ -435,7 +450,6 @@
             }
         }
 
-        // Servidor Python (orquestração das IAs)
         async function chamarOrquestra(action, dados) {
             try {
                 const resp = await fetch(`${SERVIDOR_URL}/api/boteco/orquestra/${action}`, {
@@ -512,7 +526,7 @@
         }
 
         // ============================================================
-        // UPLOAD DE ANEXOS
+        // UPLOAD DE ANEXOS (ARQUIVO LOCAL)
         // ============================================================
         function anexarArquivo(inputId, tipoIa) {
             const inputFile = document.createElement('input');
@@ -529,12 +543,7 @@
                 if (!file) return;
                 const anexo = await processarAnexo(file);
                 anexosPendentes[inputId] = anexo;
-                const infoDiv = document.getElementById('anexoInfo' + tipoIa.charAt(0).toUpperCase() + tipoIa.slice(1));
-                if (infoDiv) infoDiv.textContent = `📎 ${anexo.nome} (${anexo.tipo})`;
-                else {
-                    const infoPart = document.getElementById('anexoInfoParticipar');
-                    if (infoPart) infoPart.textContent = `📎 ${anexo.nome} (${anexo.tipo})`;
-                }
+                atualizarInfoAnexo(inputId, anexo);
             };
             inputFile.click();
         }
@@ -547,27 +556,11 @@
                     const tipo = file.type || 'texto';
                     const nome = file.name;
                     if (tipo.startsWith('image/')) {
-                        resolve({
-                            nome: nome,
-                            tipo: 'imagem',
-                            base64: dataUrl.split(',')[1]
-                        });
+                        resolve({ nome, tipo: 'imagem', base64: dataUrl.split(',')[1] });
+                    } else if (tipo === 'text/plain' || tipo === 'application/json' || tipo.includes('javascript') || tipo.includes('css') || tipo.includes('html')) {
+                        resolve({ nome, tipo: 'texto', conteudo: dataUrl });
                     } else {
-                        if (tipo === 'text/plain' || tipo === 'application/json' || tipo.includes('javascript') || tipo.includes('css') || tipo.includes('html')) {
-                            const texto = reader.result;
-                            resolve({
-                                nome: nome,
-                                tipo: 'texto',
-                                conteudo: texto
-                            });
-                        } else {
-                            const base64 = dataUrl.split(',')[1];
-                            resolve({
-                                nome: nome,
-                                tipo: 'binario',
-                                base64: base64
-                            });
-                        }
+                        resolve({ nome, tipo: 'binario', base64: dataUrl.split(',')[1] });
                     }
                 };
                 reader.onerror = reject;
@@ -579,28 +572,127 @@
             });
         }
 
+        function atualizarInfoAnexo(inputId, anexo) {
+            // inputId pode ser 'inputMsgDeepSeek', 'inputMsgDola', 'msgParticipar'
+            const infoDivId = inputId === 'inputMsgDeepSeek' ? 'anexoInfoDeepSeek' :
+                              inputId === 'inputMsgDola' ? 'anexoInfoDola' :
+                              'anexoInfoParticipar';
+            const infoDiv = document.getElementById(infoDivId);
+            if (infoDiv) infoDiv.textContent = `📎 ${anexo.nome} (${anexo.tipo})`;
+        }
+
         // ============================================================
-        // ENTRADA POR VOZ (Web Speech API)
+        // SELEÇÃO DE PROJETOS DO DRIVE
         // ============================================================
-        let recognition = null;
-        function iniciarVoz(inputId) {
-            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                notificar('Reconhecimento de voz não suportado neste navegador. Use Chrome ou Edge.');
-                return;
+        async function carregarProjetos() {
+            const email = localStorage.getItem('boteco_email') || '';
+            const resp = await chamarAPI('listarProjetos', { email });
+            const select = document.getElementById('selectProjeto');
+            select.innerHTML = '<option value="">Selecione um projeto...</option>';
+            if (resp.sucesso && resp.projetos && resp.projetos.length > 0) {
+                projetosCache = resp.projetos;
+                resp.projetos.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.nome;
+                    opt.textContent = `${p.nome} (${(p.tamanho/1024).toFixed(1)} KB)`;
+                    select.appendChild(opt);
+                });
+                select.disabled = false;
+            } else {
+                select.innerHTML = '<option value="">Nenhum projeto encontrado</option>';
+                select.disabled = true;
+                projetosCache = [];
             }
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRecognition();
-            recognition.lang = 'pt-BR';
-            recognition.interimResults = false;
-            recognition.maxAlternatives = 1;
-            recognition.onresult = (event) => {
-                const texto = event.results[0][0].transcript;
-                document.getElementById(inputId).value = texto;
+        }
+
+        function atualizarInfoProjeto() {
+            const infoDiv = document.getElementById('projetoInfo');
+            if (projetoSelecionado) {
+                const projeto = projetosCache.find(p => p.nome === projetoSelecionado);
+                if (projeto) {
+                    infoDiv.textContent = `Projeto selecionado: ${projeto.nome} (modificado em ${new Date(projeto.data_modificacao).toLocaleString()})`;
+                } else {
+                    infoDiv.textContent = `Projeto selecionado: ${projetoSelecionado}`;
+                }
+            } else {
+                infoDiv.textContent = '';
+            }
+        }
+
+        async function obterConteudoProjeto(nomeProjeto) {
+            const email = localStorage.getItem('boteco_email') || '';
+            const resp = await chamarAPI('obterProjeto', { email, arquivoNome: nomeProjeto });
+            if (resp.sucesso) {
+                return {
+                    nome: resp.nome,
+                    tipo: 'texto',  // forçando tipo texto para envio
+                    conteudo: resp.conteudo
+                };
+            } else {
+                notificar(resp.mensagem || 'Erro ao obter projeto');
+                return null;
+            }
+        }
+
+        // Função chamada quando o usuário clica no botão 📁 nas janelas de chat ou participação
+        async function selecionarProjetoParaAnexo(inputId) {
+            // Cria um dropdown temporário via prompt? Melhor usar um select dinâmico.
+            // Para simplificar, reutilizamos o carregamento de projetos e criamos um modal simples.
+            // Implementação: usar um prompt não é ideal, mas podemos abrir um diálogo nativo.
+            // Vamos criar um select flutuante.
+            const overlay = document.createElement('div');
+            overlay.style.cssText = 'position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; z-index:3000;';
+            const card = document.createElement('div');
+            card.style.cssText = 'background:#2d1f1a; padding:20px; border-radius:15px; border:2px solid var(--dourado); max-width:400px; width:90%;';
+            const titulo = document.createElement('h3');
+            titulo.textContent = 'Selecione um projeto';
+            titulo.style.color = 'var(--dourado)';
+            card.appendChild(titulo);
+            const select = document.createElement('select');
+            select.className = 'select-projeto';
+            select.innerHTML = '<option value="">Carregando...</option>';
+            card.appendChild(select);
+            const btnOk = document.createElement('button');
+            btnOk.className = 'btn-acao verde';
+            btnOk.textContent = 'Anexar Projeto';
+            btnOk.style.marginTop = '10px';
+            const btnCancelar = document.createElement('button');
+            btnCancelar.className = 'btn-acao';
+            btnCancelar.textContent = 'Cancelar';
+            btnCancelar.style.marginTop = '10px';
+            btnCancelar.onclick = () => document.body.removeChild(overlay);
+            card.appendChild(btnOk);
+            card.appendChild(btnCancelar);
+            overlay.appendChild(card);
+            document.body.appendChild(overlay);
+
+            const email = localStorage.getItem('boteco_email') || '';
+            const resp = await chamarAPI('listarProjetos', { email });
+            if (resp.sucesso && resp.projetos) {
+                select.innerHTML = '<option value="">Escolha...</option>';
+                resp.projetos.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.nome;
+                    opt.textContent = p.nome;
+                    select.appendChild(opt);
+                });
+            } else {
+                select.innerHTML = '<option value="">Nenhum projeto</option>';
+            }
+
+            btnOk.onclick = async () => {
+                const nome = select.value;
+                if (!nome) {
+                    notificar('Selecione um projeto');
+                    return;
+                }
+                const anexo = await obterConteudoProjeto(nome);
+                if (anexo) {
+                    anexosPendentes[inputId] = anexo;
+                    atualizarInfoAnexo(inputId, anexo);
+                    document.body.removeChild(overlay);
+                }
             };
-            recognition.onerror = (event) => {
-                console.error('Erro no reconhecimento de voz:', event.error);
-            };
-            recognition.start();
         }
 
         // ============================================================
@@ -608,10 +700,21 @@
         // ============================================================
         function selecionarTema(tema) {
             temaSelecionado = tema;
-            document.querySelectorAll('.btn-tema').forEach(btn => {
-                btn.classList.remove('ativo');
-            });
-            document.querySelector(`[data-tema="${tema}"]`).classList.add('ativo');
+            document.querySelectorAll('.btn-tema').forEach(btn => btn.classList.remove('ativo'));
+            const btn = document.querySelector(`[data-tema="${tema}"]`);
+            if (btn) btn.classList.add('ativo');
+
+            // Mostra/oculta a caixa de projetos
+            const projetosBox = document.getElementById('projetosBox');
+            if (tema === 'projetos') {
+                projetosBox.style.display = 'block';
+                carregarProjetos();
+                projetoSelecionado = null;
+                atualizarInfoProjeto();
+            } else {
+                projetosBox.style.display = 'none';
+                projetoSelecionado = null;
+            }
         }
 
         // ============================================================
@@ -629,14 +732,27 @@
                 return;
             }
 
+            // Se tema for Projetos, tenta obter o conteúdo do projeto selecionado
+            let anexoProjeto = null;
+            if (temaSelecionado === 'projetos' && projetoSelecionado) {
+                anexoProjeto = await obterConteudoProjeto(projetoSelecionado);
+                if (!anexoProjeto) {
+                    notificar('Não foi possível obter o conteúdo do projeto. Verifique se ele existe.');
+                    return;
+                }
+            }
+
             definirCarregando(true, `Aguardando ${iaInicial === 'deepseek' ? 'DeepSeek' : 'Dola'} responder...`);
-            const resultado = await chamarOrquestra('iniciar', {
+            const dados = {
                 email: email,
                 tema_preset: temaSelecionado || 'livre',
                 seed_nome: nomeSimulacao,
                 mensagem_inicial: mensagemInicial,
                 ia_inicial: iaInicial
-            });
+            };
+            if (anexoProjeto) dados.anexo = anexoProjeto;
+
+            const resultado = await chamarOrquestra('iniciar', dados);
             definirCarregando(false);
 
             if (resultado.status === 'success') {
@@ -662,7 +778,7 @@
         async function participarConversa() {
             const mensagem = document.getElementById('msgParticipar').value.trim();
             if (!mensagem && !anexosPendentes['msgParticipar']) {
-                notificar('Digite uma mensagem ou anexe um arquivo!');
+                notificar('Digite uma mensagem ou anexe um arquivo/projeto!');
                 return;
             }
             const anexo = anexosPendentes['msgParticipar'] || null;
@@ -781,6 +897,10 @@
                     conteudoAnexo = `<img src="data:image/png;base64,${anexo.base64}" style="max-width:100%; border-radius:8px; margin-top:5px;">`;
                 } else {
                     conteudoAnexo = `<div style="font-size:0.8em; margin-top:5px;">📎 <strong>${escapeHtml(anexo.nome)}</strong> (${escapeHtml(anexo.tipo)})</div>`;
+                    // Se for projeto (texto), opcionalmente pode exibir um resumo
+                    if (anexo.tipo === 'texto' && anexo.conteudo && anexo.conteudo.length > 200) {
+                        conteudoAnexo += `<details style="margin-top:5px;"><summary style="cursor:pointer; color:var(--dourado-claro);">Ver conteúdo</summary><pre style="font-size:0.7em; max-height:150px; overflow:auto; background:#1a1210; padding:8px; border-radius:5px; margin-top:5px;">${escapeHtml(anexo.conteudo.substring(0,500))}...</pre></details>`;
+                    }
                 }
             }
 
@@ -831,7 +951,6 @@
         async function verificarEstado() {
             const email = localStorage.getItem('boteco_email') || '';
             
-            // Tenta buscar na orquestração (servidor Python)
             const respOrq = await chamarOrquestra('estado', { email });
             if (respOrq.status === 'success' && respOrq.estado && respOrq.estado.rodando) {
                 estadoAtual = respOrq.estado;
@@ -842,11 +961,10 @@
                 return;
             }
             
-            // Fallback: busca conversa ativa no Apps Script (sem orquestração)
             const respApi = await chamarAPI('obterConversaAtiva', { email });
             if (respApi.conversa) {
                 estadoAtual = respApi.conversa;
-                conversaAtiva = false; // não é possível continuar sem servidor Python
+                conversaAtiva = false;
                 atualizarInterface();
                 notificar('Servidor de orquestração offline. Exibindo histórico salvo.', 'erro');
                 document.getElementById('painelControle').style.display = 'none';
@@ -858,12 +976,9 @@
         // INICIALIZAÇÃO
         // ============================================================
         (async function init() {
-            // Verificar se há token de sessão no localStorage
             if (TOKEN_USUARIO) {
-                // Validar token fazendo uma chamada leve
                 const respValidacao = await chamarAPI('obterConversaAtiva', { email: localStorage.getItem('boteco_email') });
                 if (respValidacao.status === 'error' && respValidacao.message === 'Autenticação inválida.') {
-                    // Token expirado ou inválido, forçar login
                     localStorage.removeItem('boteco_token_usuario');
                     localStorage.removeItem('boteco_email');
                     localStorage.removeItem('boteco_usuario');
@@ -874,16 +989,12 @@
                 await verificarEstado();
             }
 
-            // Ler parâmetros da URL (ex: ?resumo=...&email=...)
             const urlParams = new URLSearchParams(window.location.search);
             const resumoParam = urlParams.get('resumo');
             const emailParam = urlParams.get('email');
             if (resumoParam) {
                 document.getElementById('mensagemInicial').value = resumoParam;
-                // Se veio email, preenche o campo de login automaticamente
-                if (emailParam) {
-                    document.getElementById('emailLogin').value = emailParam;
-                }
+                if (emailParam) document.getElementById('emailLogin').value = emailParam;
             }
         })();
     </script>
