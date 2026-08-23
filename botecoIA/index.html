@@ -255,7 +255,7 @@
                 <input type="email" id="emailLogin" placeholder="Email">
                 <input type="password" id="senhaLogin" placeholder="Senha" onkeydown="if(event.key==='Enter')fazerLogin()">
                 <button onclick="fazerLogin()">Entrar</button>
-                <p style="margin-top:10px;">Não tem conta? <a href="#" onclick="mostrarCadastro()" style="color:var(--dourado);">Cadastre-se</a></p>
+                <p style="margin-top:10px;">Não tem conta? <a href="?cadastro=1" onclick="mostrarCadastro()" style="color:var(--dourado);">Cadastre-se</a></p>
             </div>
             <div id="formCadastro" style="display:none;">
                 <input type="text" id="nomeCadastro" placeholder="Nome">
@@ -387,6 +387,8 @@
         // ============================================================
         const SERVIDOR_URL = 'https://almafluxo.uk'; // Worker (proxy)
         const TOKEN_INTERNO = 'ALMA369UA'; // Token para orquestração (header X-Internal-Token)
+        const API_URL = 'https://almafluxo.uk/proxy/boteco';         // para chamadas ao Apps Script
+        const ORQUESTRA_URL = 'https://almafluxo.uk/api/boteco/orquestra'; // para orquestração Python
         let TOKEN_USUARIO = localStorage.getItem('boteco_token_usuario') || '';
         let estadoAtual = null;
         let temaSelecionado = null;
@@ -438,10 +440,10 @@
         // ============================================================
         async function chamarAPI(action, dados) {
             try {
-                const resp = await fetch(`${SERVIDOR_URL}/api/boteco/${action}`, {
+                const resp = await fetch('https://almafluxo.uk/proxy/boteco', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ...dados, token_usuario: TOKEN_USUARIO })
+                    body: JSON.stringify({ ...dados, action, token_usuario: TOKEN_USUARIO })
                 });
                 return await resp.json();
             } catch (erro) {
@@ -452,7 +454,7 @@
 
         async function chamarOrquestra(action, dados) {
             try {
-                const resp = await fetch(`${SERVIDOR_URL}/api/boteco/orquestra/${action}`, {
+                const resp = await fetch(`${ORQUESTRA_URL}/${action}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -989,9 +991,18 @@
                 await verificarEstado();
             }
 
+            // Ler parâmetros da URL uma única vez
             const urlParams = new URLSearchParams(window.location.search);
             const resumoParam = urlParams.get('resumo');
             const emailParam = urlParams.get('email');
+            const cadastroParam = urlParams.get('cadastro');
+
+            // Se a URL contiver ?cadastro=1, exibe o formulário de cadastro
+            if (cadastroParam === '1') {
+                mostrarCadastro();
+            }
+
+            // Se houver resumo, preenche a mensagem inicial
             if (resumoParam) {
                 document.getElementById('mensagemInicial').value = resumoParam;
                 if (emailParam) document.getElementById('emailLogin').value = emailParam;
