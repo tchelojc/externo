@@ -5,108 +5,66 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🍻 Liberado - Boteco IA</title>
     <style>
-        :root {
-            --preto: #1a1210;
-            --marrom-escuro: #2d1f1a;
-            --dourado: #d4a574;
-            --dourado-claro: #e8c9a0;
-            --creme: #f0e6d8;
-            --verde: #2d7a3e;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #1a1210 0%, #2d1f1a 50%, #1a1210 100%);
-            color: var(--creme);
-            min-height: 100vh;
+            background: #1a1210;
+            color: #f0e6d8;
             display: flex;
             align-items: center;
             justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .loader {
             text-align: center;
-            padding: 20px;
-            position: relative;
         }
-
-        .container {
-            background: linear-gradient(180deg, #2d1f1a 0%, #1a1210 100%);
-            border: 3px solid var(--dourado);
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 480px;
-            width: 100%;
-            box-shadow: 0 0 50px rgba(212, 165, 116, 0.4);
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
         .spinner {
             width: 60px;
             height: 60px;
             border: 5px solid rgba(212, 165, 116, 0.2);
-            border-top-color: var(--dourado);
+            border-top-color: #d4a574;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 20px;
         }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        h1 {
-            color: var(--dourado);
-            font-size: 2em;
-            margin-bottom: 10px;
-        }
-
-        p {
-            color: var(--dourado-claro);
-            font-size: 1.1em;
-        }
-
-        .mensagem {
-            margin-top: 20px;
-            font-size: 0.9em;
-            color: var(--verde);
-            font-weight: bold;
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        p { color: #e8c9a0; }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="loader" id="loader">
         <div class="spinner"></div>
-        <h1>✅ Acesso Liberado!</h1>
-        <p>Você será redirecionado para o Boteco IA em instantes...</p>
-        <div class="mensagem" id="contador">Aguarde...</div>
+        <p>Carregando Boteco IA...</p>
     </div>
 
     <script>
-        // URL da interface principal (ajuste conforme a rota protegida no Worker)
-        const URL_INTERFACE = 'https://almafluxo.uk/boteco-app'; // ou /proxy/boteco-app
+        // URL da rota do Worker que retorna o HTML do boneco.html
+        const WORKER_HTML_URL = 'https://almafluxo.uk/api/boteco/boneco-html';
 
-        // Redireciona após 2 segundos
-        setTimeout(() => {
-            window.location.href = URL_INTERFACE;
-        }, 2000);
+        async function carregarInterface() {
+            try {
+                const resp = await fetch(WORKER_HTML_URL, {
+                    credentials: 'include'  // envia os cookies automaticamente
+                });
 
-        // Atualiza contador opcional
-        let tempo = 2;
-        const contadorEl = document.getElementById('contador');
-        const interval = setInterval(() => {
-            tempo--;
-            if (tempo > 0) {
-                contadorEl.textContent = `Redirecionando em ${tempo}s...`;
-            } else {
-                clearInterval(interval);
-                contadorEl.textContent = 'Carregando interface...';
+                if (!resp.ok) {
+                    // Se não autenticado, redireciona para o login
+                    window.location.href = 'https://almafluxo.uk/botecoIA';
+                    return;
+                }
+
+                const html = await resp.text();
+                // Substitui o conteúdo da página pelo HTML recebido
+                document.open();
+                document.write(html);
+                document.close();
+            } catch (erro) {
+                document.getElementById('loader').innerHTML = 
+                    '<p style="color:red;">Erro ao carregar a interface. <a href="https://almafluxo.uk/botecoIA">Voltar ao login</a></p>';
             }
-        }, 1000);
+        }
+
+        carregarInterface();
     </script>
 </body>
 </html>
