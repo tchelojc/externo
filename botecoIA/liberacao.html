@@ -3,68 +3,193 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🍻 Liberado - Boteco IA</title>
+    <title>🍻 Boteco IA | Carregando...</title>
     <style>
+        :root {
+            --preto: #1a1210;
+            --marrom-escuro: #2d1f1a;
+            --dourado: #d4a574;
+            --dourado-claro: #e8c9a0;
+            --vermelho: #cc0000;
+            --verde: #2d7a3e;
+            --creme: #f0e6d8;
+            --cinza: #8a7a6a;
+            --border: #5a4435;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: #1a1210;
-            color: #f0e6d8;
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 100vh;
-            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            padding: 20px;
         }
-        .loader {
+        .container {
             text-align: center;
+            color: var(--creme);
+            max-width: 480px;
+            width: 100%;
         }
         .spinner {
             width: 60px;
             height: 60px;
             border: 5px solid rgba(212, 165, 116, 0.2);
-            border-top-color: #d4a574;
+            border-top-color: var(--dourado);
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 20px;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-        p { color: #e8c9a0; }
+        .title { font-size: 1.2rem; font-weight: 700; margin-bottom: 10px; color: var(--dourado); }
+        .subtitle { font-size: 0.85rem; color: var(--cinza); margin-bottom: 20px; }
+        .btn-enter {
+            display: inline-block;
+            padding: 14px 30px;
+            background: var(--dourado);
+            color: #1a1210;
+            border: none;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        .btn-enter:hover {
+            box-shadow: 0 0 30px rgba(212, 165, 116, 0.4);
+            transform: scale(1.05);
+        }
+        .erro {
+            color: var(--vermelho);
+            background: #2d1f1a;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+        .erro a {
+            color: var(--dourado);
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
-    <div class="loader" id="loader">
-        <div class="spinner"></div>
-        <p>Carregando Boteco IA...</p>
+    <div class="container" id="container">
+        <div class="spinner" id="spinner"></div>
+        <div class="title" id="title">🍻 Verificando acesso...</div>
+        <div class="subtitle" id="status">Confirmando sua sessão...</div>
+        
+        <a href="#" class="btn-enter" id="btnEnter" style="display:none;" onclick="abrirBoteco(event)">
+            ▶ Entrar no Boteco IA
+        </a>
     </div>
 
     <script>
-        // URL da rota do Worker que retorna o HTML do boneco.html
-        const WORKER_HTML_URL = 'https://almafluxo.uk/api/boteco/boneco-html';
+        // ═══════════════════════════════════════════════════════════
+        // CONFIGURAÇÃO
+        // ═══════════════════════════════════════════════════════════
+        const WORKER_URL = 'https://almafluxo.uk';
+        const LOGIN_URL = 'https://almafluxo.uk/botecoIA';
 
-        async function carregarInterface() {
+        async function carregar() {
+            const spinner = document.getElementById('spinner');
+            const title = document.getElementById('title');
+            const status = document.getElementById('status');
+            const btnEnter = document.getElementById('btnEnter');
+
             try {
-                const resp = await fetch(WORKER_HTML_URL, {
-                    credentials: 'include'  // envia os cookies automaticamente
-                });
+                // PASSO 1: Verifica se os cookies existem
+                const cookies = document.cookie.split(';').reduce((acc, c) => {
+                    const [k, v] = c.trim().split('=');
+                    if (k && v) acc[k] = v;
+                    return acc;
+                }, {});
 
-                if (!resp.ok) {
-                    // Se não autenticado, redireciona para o login
-                    window.location.href = 'https://almafluxo.uk/botecoIA';
+                const token = cookies.boteco_token || '';
+                const email = cookies.boteco_email || '';
+
+                if (!token || !email) {
+                    window.location.href = LOGIN_URL;
                     return;
                 }
 
-                const html = await resp.text();
-                // Substitui o conteúdo da página pelo HTML recebido
-                document.open();
-                document.write(html);
-                document.close();
-            } catch (erro) {
-                document.getElementById('loader').innerHTML = 
-                    '<p style="color:red;">Erro ao carregar a interface. <a href="https://almafluxo.uk/botecoIA">Voltar ao login</a></p>';
+                // PASSO 2: Valida a sessão no servidor
+                status.textContent = 'Validando acesso...';
+                const response = await fetch(`${WORKER_URL}/api/boteco/boneco-html`, {
+                    method: 'GET',
+                    credentials: 'include'   // envia cookies automaticamente
+                });
+
+                if (!response.ok) {
+                    throw new Error('Sessão inválida');
+                }
+
+                // Se a resposta for OK, a sessão é válida
+                spinner.style.display = 'none';
+                title.textContent = '🍻 Bem-vindo ao Boteco IA';
+                status.textContent = 'Acesso confirmado. Clique para entrar.';
+                btnEnter.style.display = 'inline-block';
+
+            } catch (e) {
+                window.location.href = `${LOGIN_URL}?erro=${encodeURIComponent(e.message)}`;
             }
         }
 
-        carregarInterface();
+        async function abrirBoteco(event) {
+            event.preventDefault();
+
+            const btnEnter = document.getElementById('btnEnter');
+            const status = document.getElementById('status');
+
+            btnEnter.textContent = '⏳ Carregando boteco...';
+            btnEnter.disabled = true;
+            status.textContent = 'Buscando conteúdo...';
+
+            try {
+                // Busca o HTML do boneco.html no Drive via Worker
+                const response = await fetch(`${WORKER_URL}/api/boteco/boneco-html`, {
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Servidor retornou status ' + response.status);
+                }
+
+                const html = await response.text();
+
+                if (html.includes('<!DOCTYPE') || html.includes('<html')) {
+                    status.textContent = 'Boteco carregado!';
+
+                    // Cria um iframe em tela cheia
+                    const iframe = document.createElement('iframe');
+                    iframe.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:9999;background:#1a1210;';
+                    iframe.srcdoc = html;
+
+                    // Remove o container original
+                    document.getElementById('container').style.display = 'none';
+
+                    // Adiciona o iframe
+                    document.body.appendChild(iframe);
+
+                    // Listener para mensagens do iframe (opcional, se o boneco.html usar postMessage)
+                    window.addEventListener('message', function(event) {
+                        if (event.data === 'voltar-login') {
+                            window.location.href = LOGIN_URL;
+                        }
+                    });
+                } else {
+                    throw new Error('Conteúdo inválido retornado');
+                }
+
+            } catch (e) {
+                btnEnter.textContent = '▶ Entrar no Boteco IA';
+                btnEnter.disabled = false;
+                alert('Erro ao carregar plataforma: ' + e.message);
+            }
+        }
+
+        carregar();
     </script>
 </body>
 </html>
