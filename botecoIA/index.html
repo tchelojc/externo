@@ -388,7 +388,7 @@
         const SERVIDOR_URL = 'https://almafluxo.uk'; // Worker (proxy)
         const TOKEN_INTERNO = 'ALMA369UA'; // Token para orquestração (header X-Internal-Token)
         const API_URL = 'https://almafluxo.uk/proxy/botecoIA';         // para chamadas ao Apps Script
-        const ORQUESTRA_URL = 'https://almafluxo.uk/api/boteco/orquestra'; // para orquestração Python
+        const ORQUESTRA_URL = 'https://almafluxo.uk/proxy/boteco/orquestra';
         let TOKEN_USUARIO = localStorage.getItem('boteco_token_usuario') || '';
         let estadoAtual = null;
         let temaSelecionado = null;
@@ -440,12 +440,14 @@
         // ============================================================
         async function chamarAPI(action, dados) {
             try {
-                const resp = await fetch('https://almafluxo.uk/proxy/boteco', {
+                const resp = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ ...dados, action, token_usuario: TOKEN_USUARIO })
                 });
-                return await resp.json();
+                const json = await resp.json();
+                // Se a resposta tiver result, retorna ele; senão, retorna o json inteiro
+                return json.result || json;
             } catch (erro) {
                 console.error('Erro na API:', erro);
                 return { status: 'error', message: 'Erro de conexão' };
