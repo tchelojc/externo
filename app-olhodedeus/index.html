@@ -183,17 +183,15 @@
                 const sessao = localStorage.getItem('olho_de_deus_usuario');
                 const usuario = JSON.parse(sessao);
                 
-                console.log('📡 [PLATAFORMA] Buscando HTML do Drive...');
+                console.log('📡 [PLATAFORMA] Buscando HTML...');
                 
-                // ✅ CORREÇÃO: Buscar o HTML via /proxy/central
-                // O Worker busca o arquivo no Drive e retorna o HTML
-                // SEM expor o ID no cliente
+                // ✅ CORREÇÃO: Buscar HTML via /proxy/central sem expor ID
                 const response = await fetch(`${WORKER_URL}/proxy/central`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        action: 'buscarConteudoPlataforma',  // ✅ Nova ação
-                        plataforma: 'olhodedeus',             // Nome da plataforma
+                        action: 'buscarConteudoPlataforma',
+                        plataforma: 'olhodedeus',
                         email: usuario.email,
                         sessionToken: usuario.sessionToken,
                         tk: TOKEN_INTERNO
@@ -202,43 +200,47 @@
                 
                 console.log('📡 [PLATAFORMA] Status:', response.status);
                 
-                if (!response.ok) {
-                    throw new Error('Servidor retornou status ' + response.status);
+                const textResponse = await response.text();
+                console.log('📄 [PLATAFORMA] Tamanho:', textResponse.length);
+                
+                let data;
+                try {
+                    data = JSON.parse(textResponse);
+                } catch (e) {
+                    throw new Error('Resposta inválida');
                 }
                 
-                const textResponse = await response.text();
-                console.log('📄 [PLATAFORMA] Tamanho da resposta:', textResponse.length);
-                console.log('📄 [PLATAFORMA] Primeiros 100 chars:', textResponse.substring(0, 100));
-                
-                // Verifica se é JSON (erro) ou HTML puro
-                if (textResponse.startsWith('{')) {
-                    // É JSON - pode ser erro ou HTML encapsulado
-                    try {
-                        const data = JSON.parse(textResponse);
-                        
-                        if (data.ok && data.html) {
-                            // HTML veio dentro do JSON
-                            exibirPlataforma(data.html, status, btnEnter);
-                        } else {
-                            throw new Error(data.error || 'Erro ao carregar conteúdo');
+                if (data.ok && data.html) {
+                    // Exibe o HTML no iframe
+                    status.textContent = 'Plataforma carregada!';
+                    btnEnter.textContent = '✅ Carregado';
+                    btnEnter.disabled = true;
+                    
+                    const iframe = document.createElement('iframe');
+                    iframe.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:9999;background:#030508;';
+                    iframe.srcdoc = data.html;
+                    
+                    document.getElementById('container').style.display = 'none';
+                    document.body.appendChild(iframe);
+                    
+                    window.addEventListener('message', function(event) {
+                        if (event.data === 'fechar-plataforma') {
+                            iframe.remove();
+                            document.getElementById('container').style.display = '';
+                            btnEnter.textContent = '▶ Entrar no Olho De Deus';
+                            btnEnter.disabled = false;
                         }
-                    } catch (e) {
-                        throw new Error('Resposta JSON inválida');
-                    }
-                } else if (textResponse.includes('<!DOCTYPE') || textResponse.includes('<html')) {
-                    // HTML puro retornado diretamente
-                    exibirPlataforma(textResponse, status, btnEnter);
+                    });
                 } else {
-                    console.error('❌ [PLATAFORMA] Conteúdo inesperado:', textResponse.substring(0, 200));
-                    throw new Error('Conteúdo inválido retornado');
+                    throw new Error(data.error || 'Erro ao carregar conteúdo');
                 }
                 
             } catch (e) {
                 console.error('❌ [PLATAFORMA] Erro:', e.message);
                 btnEnter.textContent = '▶ Entrar no Olho De Deus';
                 btnEnter.disabled = false;
-                status.textContent = 'Erro ao carregar. Tente novamente.';
-                alert('Erro ao carregar plataforma: ' + e.message);
+                status.textContent = 'Erro ao carregar.';
+                alert('Erro: ' + e.message);
             }
         }
 
