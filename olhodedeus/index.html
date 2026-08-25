@@ -1460,6 +1460,79 @@
             try {
                 console.log('🔑 [LOGIN] Tentando login para:', email);
                 
+                // ✅ USAR /proxy/central (funciona)
+                const response = await fetch('https://almafluxo.uk/proxy/central', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        action: 'login',
+                        email: email, 
+                        senha: senha,
+                        tk: 'ALMA369UA'
+                    })
+                });
+                
+                console.log('📡 [LOGIN] Status:', response.status);
+                
+                const textResponse = await response.text();
+                console.log('📄 [LOGIN] Resposta:', textResponse.substring(0, 200));
+                
+                let data;
+                try {
+                    data = JSON.parse(textResponse);
+                } catch (e) {
+                    throw new Error('Resposta inválida do servidor');
+                }
+
+                if (data.ok) {
+                    usuarioLogadoOlho = {
+                        nome: data.nome || 'Usuário',
+                        email: email,
+                        balance: data.balance || 0,
+                        sessionToken: data.sessionToken || `session_${Date.now()}`,
+                        master: data.master || false
+                    };
+                    
+                    localStorage.setItem('olho_de_deus_usuario', JSON.stringify(usuarioLogadoOlho));
+                    
+                    document.getElementById('tokenDisplay').textContent = `⚡ ${usuarioLogadoOlho.balance} Tokens`;
+                    document.getElementById('btnLoginLogout').textContent = '🚪 Sair';
+                    statusEl.textContent = '✅ Login realizado!';
+                    statusEl.style.color = '#4caf50';
+                    
+                    if (usuarioLogadoOlho.master) {
+                        mostrarToastOlho('👑 Acesso MASTER ativado!');
+                    } else {
+                        mostrarToastOlho(`✅ Bem-vindo, ${usuarioLogadoOlho.nome}!`);
+                    }
+                    
+                    setTimeout(() => fecharModalLogin(), 1500);
+                } else {
+                    statusEl.textContent = '❌ ' + (data.error || 'Credenciais inválidas.');
+                    statusEl.style.color = '#ff6b6b';
+                }
+            } catch (erro) {
+                console.error('❌ [LOGIN] Erro:', erro);
+                statusEl.textContent = '⚠️ Erro: ' + erro.message;
+                statusEl.style.color = '#ff6b6b';
+            }
+        }
+            const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+            const senha = document.getElementById('loginSenha').value;
+            const statusEl = document.getElementById('loginStatus');
+
+            if (!email || !senha) {
+                statusEl.textContent = '⚠️ Preencha e-mail e senha.';
+                statusEl.style.color = '#ff6b6b';
+                return;
+            }
+
+            statusEl.textContent = '⏳ Entrando...';
+            statusEl.style.color = 'var(--ciano)';
+
+            try {
+                console.log('🔑 [LOGIN] Tentando login para:', email);
+                
                 // ✅ CORRETO: Usar /economy/login
                 const response = await fetch('https://almafluxo.uk/economy/login', {
                     method: 'POST',
