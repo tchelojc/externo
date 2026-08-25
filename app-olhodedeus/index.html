@@ -109,18 +109,30 @@
                 
                 // PASSO 2: Valida acesso no servidor
                 status.textContent = 'Validando acesso...';
-                const response = await fetch(`${WORKER_URL}/proxy/central`, {
+                console.log('🔍 [VALIDAÇÃO] Verificando acesso para:', usuario.email);
+                
+                // ✅ CORREÇÃO 1: Usar rota /economy/verificar-acesso
+                // ✅ CORREÇÃO 2: Incluir token interno (tk)
+                const response = await fetch(`${WORKER_URL}/economy/verificar-acesso`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        action: 'verificarAcesso',
                         email: usuario.email,
                         plataforma: 'olhodedeus',
-                        sessionToken: usuario.sessionToken
+                        sessionToken: usuario.sessionToken,
+                        tk: 'ALMA369UA'  // ✅ Token interno do Worker
                     })
                 });
                 
+                console.log('📡 [VALIDAÇÃO] Status da resposta:', response.status);
+                
+                // Verifica se a resposta HTTP é válida
+                if (!response.ok) {
+                    throw new Error(`Erro do servidor (${response.status})`);
+                }
+                
                 const data = await response.json();
+                console.log('📦 [VALIDAÇÃO] Resposta:', data);
                 
                 if (!data.ok || !data.acessoPermitido) {
                     throw new Error(data.error || 'Acesso negado');
@@ -134,6 +146,7 @@
                 btnEnter.style.display = 'inline-block';
                 
             } catch (e) {
+                console.error('❌ [VALIDAÇÃO] Erro:', e.message);
                 window.location.href = `${LOGIN_URL}?erro=${encodeURIComponent(e.message)}`;
             }
         }
