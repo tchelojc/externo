@@ -180,39 +180,58 @@
             status.textContent = 'Buscando conteúdo...';
             
             try {
-                console.log('📡 [PLATAFORMA] Redirecionando para plataforma...');
+                const sessao = localStorage.getItem('olho_de_deus_usuario');
+                const usuario = JSON.parse(sessao);
                 
-                // 🔒 CORREÇÃO: Usar a rota pública do Worker
-                // O Worker resolve o ID internamente (SEM expor no cliente)
-                const plataformaURL = `${WORKER_URL}/olhodedeus`;
+                console.log('📡 [PLATAFORMA] Buscando HTML do Drive...');
                 
-                // Cria um iframe apontando para a rota do Worker
-                const iframe = document.createElement('iframe');
-                iframe.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:9999;background:#030508;';
-                iframe.src = plataformaURL;
-                
-                // Remove o container original
-                document.getElementById('container').style.display = 'none';
-                
-                // Adiciona o iframe
-                document.body.appendChild(iframe);
-                
-                status.textContent = 'Plataforma carregada!';
-                btnEnter.textContent = '✅ Carregado';
-                btnEnter.disabled = true;
-                
-                // Listener para mensagens do iframe
-                window.addEventListener('message', function(event) {
-                    if (event.data === 'fechar-plataforma') {
-                        iframe.remove();
-                        document.getElementById('container').style.display = '';
-                        btnEnter.textContent = '▶ Entrar no Olho De Deus';
-                        btnEnter.disabled = false;
-                    }
-                    if (event.data === 'voltar-login') {
-                        window.location.href = LOGIN_URL;
-                    }
+                // ✅ CORREÇÃO: Buscar o HTML via /proxy/central
+                // O Worker busca o arquivo no Drive e retorna o HTML
+                // SEM expor o ID no cliente
+                const response = await fetch(`${WORKER_URL}/proxy/central`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'buscarConteudoPlataforma',  // ✅ Nova ação
+                        plataforma: 'olhodedeus',             // Nome da plataforma
+                        email: usuario.email,
+                        sessionToken: usuario.sessionToken,
+                        tk: TOKEN_INTERNO
+                    })
                 });
+                
+                console.log('📡 [PLATAFORMA] Status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error('Servidor retornou status ' + response.status);
+                }
+                
+                const textResponse = await response.text();
+                console.log('📄 [PLATAFORMA] Tamanho da resposta:', textResponse.length);
+                console.log('📄 [PLATAFORMA] Primeiros 100 chars:', textResponse.substring(0, 100));
+                
+                // Verifica se é JSON (erro) ou HTML puro
+                if (textResponse.startsWith('{')) {
+                    // É JSON - pode ser erro ou HTML encapsulado
+                    try {
+                        const data = JSON.parse(textResponse);
+                        
+                        if (data.ok && data.html) {
+                            // HTML veio dentro do JSON
+                            exibirPlataforma(data.html, status, btnEnter);
+                        } else {
+                            throw new Error(data.error || 'Erro ao carregar conteúdo');
+                        }
+                    } catch (e) {
+                        throw new Error('Resposta JSON inválida');
+                    }
+                } else if (textResponse.includes('<!DOCTYPE') || textResponse.includes('<html')) {
+                    // HTML puro retornado diretamente
+                    exibirPlataforma(textResponse, status, btnEnter);
+                } else {
+                    console.error('❌ [PLATAFORMA] Conteúdo inesperado:', textResponse.substring(0, 200));
+                    throw new Error('Conteúdo inválido retornado');
+                }
                 
             } catch (e) {
                 console.error('❌ [PLATAFORMA] Erro:', e.message);
@@ -221,6 +240,38 @@
                 status.textContent = 'Erro ao carregar. Tente novamente.';
                 alert('Erro ao carregar plataforma: ' + e.message);
             }
+        }
+
+        function exibirPlataforma(html, status, btnEnter) {
+            status.textContent = 'Plataforma carregada!';
+            btnEnter.textContent = '✅ Carregado';
+            btnEnter.disabled = true;
+            
+            console.log('✅ [PLATAFORMA] Exibindo HTML no iframe');
+            
+            // Cria um iframe em tela cheia
+            const iframe = document.createElement('iframe');
+            iframe.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:9999;background:#030508;';
+            iframe.srcdoc = html;  // ✅ Carrega o HTML DENTRO do iframe
+            
+            // Remove o container original
+            document.getElementById('container').style.display = 'none';
+            
+            // Adiciona o iframe
+            document.body.appendChild(iframe);
+            
+            // Listener para mensagens do iframe
+            window.addEventListener('message', function(event) {
+                if (event.data === 'fechar-plataforma') {
+                    iframe.remove();
+                    document.getElementById('container').style.display = '';
+                    btnEnter.textContent = '▶ Entrar no Olho De Deus';
+                    btnEnter.disabled = false;
+                }
+                if (event.data === 'voltar-login') {
+                    window.location.href = LOGIN_URL;
+                }
+            });
         }
         
         carregar();
