@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AlmaFluxo Solutions | Atendimento IA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Nunito:wght@400;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        /* ============================
+           RESET & VARIÁVEIS
+           ============================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        :root {
+            --ciano: #00e5ff;
+            --dourado: #ffd700;
+            --verde: #00e676;
+            --bg: #030508;
+            --panel: #0a0e17;
+            --panel2: #060a12;
+            --texto: #e0e0e0;
+            --texto2: #888;
+            --border: #1a1a2e;
+            --font: 'Inter', sans-serif;
+            --body: 'Nunito', sans-serif;
+        }
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: var(--body);
+            background: var(--bg);
+            color: var(--texto);
+            overflow-x: hidden;
+            padding-top: 60px;
+            line-height: 1.5;
+        }
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        /* ============================
+           NAVBAR
+           ============================ */
+        #app-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(3, 5, 8, 0.92);
+            backdrop-filter: blur(14px);
+            padding: 0.7rem 2rem;
+            border-bottom: 1px solid rgba(0, 229, 255, 0.08);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 9999;
+        }
+        .nav-brand {
+            font-family: var(--font);
+            font-weight: 800;
+            color: var(--ciano);
+            font-size: 1.2rem;
+            letter-spacing: 0.5px;
+        }
+        .nav-brand span {
+            color: #fff;
+            font-weight: 400;
+        }
+
+        /* ============================
+           HERO SPLIT
+           ============================ */
+        .hero-split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2.5rem;
+            max-width: 1200px;
+            margin: 2rem auto 0;
+            padding: 0 1.5rem 3rem;
+            align-items: center;
+            min-height: 70vh;
+        }
+        .hero-content .hero-badge {
+            display: inline-block;
+            background: rgba(0, 229, 255, 0.06);
+            padding: 0.3rem 1.2rem;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            color: var(--ciano);
+            border: 1px solid rgba(0, 229, 255, 0.12);
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 1.2rem;
+        }
+        .hero-content h1 {
+            font-family: var(--font);
+            font-size: clamp(2.2rem, 4.5vw, 3.8rem);
+            font-weight: 900;
+            line-height: 1.08;
+            color: #fff;
+            margin-bottom: 1rem;
+        }
+        .hero-content h1 .destaque {
+            color: var(--dourado);
+        }
+        .hero-content .hero-sub {
+            font-size: 1.05rem;
+            color: var(--texto2);
+            max-width: 440px;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        .hero-buttons {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+        .btn-primary {
+            background: var(--ciano);
+            color: #000;
+            border: none;
+            padding: 0.85rem 2.2rem;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 0 25px rgba(0, 229, 255, 0.15);
+            transition: 0.25s;
+            font-family: var(--font);
+        }
+        .btn-primary:hover {
+            box-shadow: 0 0 40px rgba(0, 229, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background: transparent;
+            color: var(--ciano);
+            border: 1px solid rgba(0, 229, 255, 0.3);
+            padding: 0.85rem 2.2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.25s;
+            font-family: var(--font);
+        }
+        .btn-secondary:hover {
+            background: rgba(0, 229, 255, 0.05);
+            border-color: var(--ciano);
+        }
+
+        /* ============================
+           CHAT DE ATENDIMENTO
+           ============================ */
+        .hero-chat-container {
+            position: relative;
+            border-radius: 18px;
+            overflow: hidden;
+            background: var(--panel);
+            border: 2px solid var(--ciano);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 229, 255, 0.15);
+            aspect-ratio: 16 / 9;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header-olho {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.8rem 1.2rem;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.1), transparent);
+            flex-shrink: 0;
+        }
+
+        .chat-header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+
+        .chat-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--ciano);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+            color: #000;
+        }
+
+        .chat-title {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #fff;
+            font-family: var(--font);
+        }
+
+        .chat-subtitle {
+            font-size: 0.7rem;
+            color: var(--texto2);
+        }
+
+        .chat-status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--verde);
+            animation: pulse 1.5s infinite;
+            margin-right: 4px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--verde); }
+            50% { opacity: 0.5; }
+        }
+
+        .chat-messages-olho {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.7rem;
+            min-height: 200px;
+            max-height: 350px;
+        }
+
+        .chat-messages-olho::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .chat-messages-olho::-webkit-scrollbar-thumb {
+            background: var(--ciano);
+            border-radius: 4px;
+        }
+
+        .message-olho {
+            padding: 0.7rem 0.9rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            max-width: 85%;
+            word-break: break-word;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .message-olho.ai {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            color: var(--texto);
+        }
+
+        .message-olho.user {
+            background: linear-gradient(135deg, var(--ciano), #00b8d4);
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+            color: #000;
+            font-weight: 500;
+        }
+
+        .typing-indicator-olho {
+            display: flex;
+            gap: 4px;
+            padding: 0.5rem 0;
+        }
+
+        .typing-dot-olho {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--texto2);
+            animation: bounce 1.4s infinite;
+        }
+
+        .typing-dot-olho:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot-olho:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes bounce {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-8px); opacity: 1; }
+        }
+
+        .chat-input-area-olho {
+            display: flex;
+            gap: 6px;
+            padding: 0.7rem 0.9rem;
+            border-top: 1px solid var(--border);
+            align-items: center;
+            flex-shrink: 0;
+            background: var(--panel2);
+        }
+
+        .chat-input-olho {
+            flex: 1;
+            padding: 0.6rem 0.9rem;
+            border-radius: 25px;
+            border: 1px solid var(--border);
+            background: var(--panel);
+            color: var(--texto);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.8rem;
+            outline: none;
+            min-width: 0;
+        }
+
+        .chat-input-olho:focus {
+            border-color: var(--ciano);
+        }
+
+        .chat-send-btn-olho {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, var(--ciano), #00b8d4);
+            color: #000;
+            font-size: 1rem;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-send-btn-olho:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
+        }
+
+        .quick-suggestions-olho {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            padding: 0.5rem 0.9rem;
+            border-top: 1px solid var(--border);
+            background: var(--panel2);
+            flex-shrink: 0;
+        }
+
+        .suggestion-chip-olho {
+            padding: 5px 12px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            background: var(--panel);
+            color: var(--texto2);
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .suggestion-chip-olho:hover {
+            border-color: var(--ciano);
+            color: var(--ciano);
+            background: rgba(0, 229, 255, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .always-wpp-olho {
+            text-align: center;
+            padding: 0.4rem;
+            font-size: 0.7rem;
+            color: var(--texto2);
+            border-top: 1px solid var(--border);
+            background: var(--panel2);
+        }
+
+        /* ============================
+           SERVIÇOS
+           ============================ */
+        .services-section {
+            padding: 3rem 1.5rem 4rem;
+            background: var(--panel2);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .service-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem 1.2rem;
+            text-align: center;
+            transition: 0.25s;
+            cursor: pointer;
+        }
+        .service-card:hover {
+            border-color: rgba(0, 229, 255, 0.2);
+            transform: translateY(-5px);
+        }
+        .service-icon {
+            font-size: 2.8rem;
+            margin-bottom: 0.6rem;
+            display: block;
+        }
+        .service-card h4 {
+            font-family: var(--font);
+            font-weight: 700;
+            color: #fff;
+            font-size: 1.05rem;
+            letter-spacing: 0.3px;
+            margin-bottom: 0.5rem;
+        }
+        .service-card p {
+            color: var(--texto2);
+            font-size: 0.85rem;
+            line-height: 1.5;
+            margin-bottom: 0.8rem;
+        }
+        .service-price {
+            color: var(--dourado);
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        /* ============================
+           TOAST
+           ============================ */
+        .toast-olho {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--panel);
+            border: 1px solid var(--ciano);
+            color: var(--texto);
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            z-index: 20000;
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 2.5s forwards;
+            box-shadow: 0 8px 30px rgba(0, 229, 255, 0.2);
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        @keyframes toastOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        /* ============================
+           RESPONSIVO
+           ============================ */
+        @media (max-width: 992px) {
+            .hero-split {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+                min-height: auto;
+                padding: 1rem 1.5rem 2.5rem;
+            }
+            .hero-content .hero-sub {
+                max-width: 100%;
+            }
+            .hero-chat-container {
+                aspect-ratio: auto;
+                min-height: 450px;
+                max-width: 100%;
+            }
+        }
+        @media (max-width: 600px) {
+            .hero-content h1 {
+                font-size: 2rem;
+            }
+            .hero-buttons .btn-primary,
+            .hero-buttons .btn-secondary {
+                width: 100%;
+                text-align: center;
+                justify-content: center;
+            }
+            #app-nav {
+                padding: 0.7rem 1rem;
+            }
+            .services-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .hero-chat-container {
+                min-height: 400px;
+            }
+            .chat-messages-olho {
+                max-height: 250px;
+            }
+        }
+        @media (max-width: 420px) {
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== NAVBAR ===== -->
+    <nav id="app-nav">
+        <div class="nav-brand">🌊 ALMAFLUXO <span>| Solutions</span></div>
+    </nav>
+
+    <!-- ===== HERO SPLIT ===== -->
+    <section class="hero-split">
+        <div class="hero-content">
+            <div class="hero-badge">⚡ Atendimento IA 24/7</div>
+            <h1>Serviços Digitais<br /><span class="destaque">Inteligentes</span></h1>
+            <p class="hero-sub">
+                Transformamos ideias em experiências digitais. Fale com nosso assistente virtual ao lado e descubra a solução perfeita para seu negócio.
+            </p>
+            <div class="hero-buttons">
+                <button class="btn-primary" onclick="iniciarContratacao()">🚀 Iniciar Contratação</button>
+                <button class="btn-secondary" onclick="document.getElementById('services').scrollIntoView({behavior:'smooth'})">▶ Ver Serviços</button>
+            </div>
+        </div>
+        
+        <!-- ===== CHAT DE ATENDIMENTO ===== -->
+        <div class="hero-chat-container" id="heroChatContainer">
+            <div class="chat-header-olho">
+                <div class="chat-header-left">
+                    <div class="chat-avatar">🤖</div>
+                    <div>
+                        <div class="chat-title">Assistente AlmaFluxo</div>
+                        <div class="chat-subtitle"><span class="chat-status-dot"></span>Online 24h</div>
+                    </div>
+                </div>
+                <span style="font-size:0.7rem;color:var(--texto2);">💬 Atendimento</span>
+            </div>
+
+            <div class="chat-messages-olho" id="chatMessagesOlho"></div>
+            
+            <div class="quick-suggestions-olho">
+                <div class="suggestion-chip-olho" onclick="enviarSugestao('🤖 Quero saber sobre Células de Atendimento IA')">🤖 Células IA</div>
+                <div class="suggestion-chip-olho" onclick="enviarSugestao('💻 Quero saber sobre Sites e Plataformas')">💻 Sites</div>
+                <div class="suggestion-chip-olho" onclick="enviarSugestao('📊 Quero saber sobre Sistemas de Gestão')">📊 Sistemas</div>
+                <div class="suggestion-chip-olho" onclick="enviarSugestao('🎨 Quero saber sobre Design e Identidade')">🎨 Design</div>
+                <div class="suggestion-chip-olho" onclick="enviarSugestao('💰 Quero saber os preços')">💰 Preços</div>
+            </div>
+            
+            <div class="chat-input-area-olho">
+                <input type="text" class="chat-input-olho" id="chatInputOlho" placeholder="Digite sua dúvida..." onkeydown="if(event.key==='Enter')enviarMensagemOlho()" />
+                <button class="chat-send-btn-olho" onclick="enviarMensagemOlho()" id="chatSendBtnOlho">➤</button>
+            </div>
+            
+            <div class="always-wpp-olho">
+                💬 <a href="https://wa.me/5521981533928" target="_blank" style="color:var(--ciano);">WhatsApp</a>
+                <span style="margin:0 8px;color:var(--border);">|</span>
+                <span style="color:var(--texto2);">📞 21 98153-3928</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== SERVIÇOS ===== -->
+    <section class="services-section" id="services">
+        <div class="services-grid">
+            <div class="service-card" onclick="enviarSugestao('🤖 Quero contratar uma Célula de Atendimento IA')">
+                <span class="service-icon">🤖</span>
+                <h4>Células de Atendimento IA</h4>
+                <p>Sistemas inteligentes com IA para atendimento automatizado 24/7.</p>
+                <div class="service-price">A partir de R$ 1.500</div>
+            </div>
+            <div class="service-card" onclick="enviarSugestao('💻 Quero contratar um Site ou Plataforma')">
+                <span class="service-icon">💻</span>
+                <h4>Sites e Plataformas</h4>
+                <p>Desenvolvimento completo de sites, landing pages e e-commerces.</p>
+                <div class="service-price">A partir de R$ 2.000</div>
+            </div>
+            <div class="service-card" onclick="enviarSugestao('📊 Quero contratar um Sistema de Gestão')">
+                <span class="service-icon">📊</span>
+                <h4>Sistemas de Gestão</h4>
+                <p>Dashboards, automações e integrações para otimizar seu negócio.</p>
+                <div class="service-price">A partir de R$ 2.500</div>
+            </div>
+            <div class="service-card" onclick="enviarSugestao('🎨 Quero contratar Design e Identidade Visual')">
+                <span class="service-icon">🎨</span>
+                <h4>Design & Identidade</h4>
+                <p>Criação de identidade visual completa para sua marca.</p>
+                <div class="service-price">A partir de R$ 800</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FOOTER ===== -->
+    <footer style="padding: 2.5rem 1.5rem; background: var(--panel2); border-top: 1px solid var(--border); text-align: center; color: var(--texto2); font-size: 0.85rem;">
+        <span>🌊 ALMAFLUXO © 2026 – Solutions. Todos os direitos reservados.</span>
+    </footer>
+
+    <!-- ============================
+    SCRIPTS
+    ============================ -->
+    <script>
+        // ======================================================
+        // CONFIGURAÇÃO - ROTAS DO WORKER (não mexer)
+        // ======================================================
+        const PROXY_BOTECO = 'https://almafluxo.uk/proxy/boteco';
+        const PROXY_INFOCELL = 'https://almafluxo.uk/proxy/infocell';
+        const QUESTIONARIO_URL = 'https://almafluxo.uk/solution/questionario';
+        const WHATSAPP_ATENDIMENTO = "5521981533928";
+
+        let isProcessingChat = false;
+        let sessionIdChat = localStorage.getItem('almafluxo_solution_session');
+        if (!sessionIdChat) {
+            sessionIdChat = "solution_" + Date.now() + "_" + Math.random().toString(36).substring(2, 8);
+            localStorage.setItem('almafluxo_solution_session', sessionIdChat);
+        }
+
+        // ======================================================
+        // CHAT DE ATENDIMENTO - ENVIO PARA IA
+        // ======================================================
+        async function enviarParaIAOlho(mensagem) {
+            isProcessingChat = true;
+            document.getElementById('chatSendBtnOlho').disabled = true;
+            showTypingOlho();
+
+            try {
+                // Conta respostas antes
+                let numeroRespostasAntes = 0;
+                try {
+                    const respAntes = await fetch(`${PROXY_INFOCELL}?action=getChatAtendente&leadId=${sessionIdChat}`);
+                    const dataAntes = await respAntes.json();
+                    const mensagensAntes = dataAntes.conversas?.[sessionIdChat]?.mensagens || [];
+                    numeroRespostasAntes = mensagensAntes.filter(m => m.de === 'atendente').length;
+                } catch(e) {
+                    console.log('ℹ️ Primeira mensagem - sem histórico');
+                }
+
+                // Salva mensagem do usuário
+                await fetch(PROXY_INFOCELL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        action: 'saveChatAtendente', 
+                        leadId: sessionIdChat,
+                        nomeLead: 'Visitante Solutions',
+                        de: 'lead',
+                        texto: mensagem,
+                        origem: 'almafluxo_solutions'
+                    })
+                });
+
+                // Aguarda resposta da IA (polling)
+                let resposta = null;
+                const MAX_TENTATIVAS = 20;
+                
+                for (let tentativa = 0; tentativa < MAX_TENTATIVAS && !resposta; tentativa++) {
+                    await new Promise(r => setTimeout(r, 3000));
+                    
+                    try {
+                        const resp = await fetch(`${PROXY_INFOCELL}?action=getChatAtendente&leadId=${sessionIdChat}`);
+                        const data = await resp.json();
+                        const mensagens = data.conversas?.[sessionIdChat]?.mensagens || [];
+                        const mensagensAtendente = mensagens.filter(m => m.de === 'atendente');
+                        
+                        if (mensagensAtendente.length > numeroRespostasAntes) {
+                            const ultimaAtendente = mensagensAtendente[mensagensAtendente.length - 1];
+                            if (ultimaAtendente.texto && 
+                                !ultimaAtendente.texto.includes('Desculpe') &&
+                                ultimaAtendente.texto !== resposta) {
+                                resposta = ultimaAtendente.texto;
+                            }
+                        }
+                    } catch (e) {
+                        console.log('⏳ Aguardando resposta...');
+                    }
+                }
+
+                removeTypingOlho();
+
+                if (resposta) {
+                    addMessageOlho('ai', resposta);
+                } else {
+                    // Fallback: resposta automática
+                    const respostaFallback = gerarRespostaLocal(mensagem);
+                    addMessageOlho('ai', respostaFallback);
+                }
+
+            } catch (e) {
+                removeTypingOlho();
+                console.error('❌ Erro:', e);
+                mostrarToastOlho('❌ Erro ao enviar mensagem');
+            } finally {
+                removeTypingOlho();
+                isProcessingChat = false;
+                document.getElementById('chatSendBtnOlho').disabled = false;
+                document.getElementById('chatInputOlho').focus();
+            }
+        }
+
+        // ======================================================
+        // RESPOSTA LOCAL (FALLBACK)
+        // ======================================================
+        function gerarRespostaLocal(mensagem) {
+            const msg = mensagem.toLowerCase();
+            
+            if (msg.includes('ia') || msg.includes('célula') || msg.includes('atendimento')) {
+                return '🤖 Nossas Células de Atendimento IA são incríveis!\n\nElas podem:\n✅ Atender clientes 24/7\n✅ Responder perguntas frequentes\n✅ Fazer vendas automaticamente\n✅ Capturar leads\n✅ Integrar com WhatsApp\n\nO investimento começa em R$ 1.500. Quer saber mais detalhes?';
+            }
+            
+            if (msg.includes('site') || msg.includes('plataforma') || msg.includes('página')) {
+                return '💻 Desenvolvemos sites e plataformas completas!\n\nOpções:\n🌐 Landing Pages\n🛍️ E-commerce\n📱 Sites Responsivos\n🔐 Áreas de Membros\n\nTodos incluem design personalizado, SEO e painel administrativo. A partir de R$ 2.000.';
+            }
+            
+            if (msg.includes('sistema') || msg.includes('gestão') || msg.includes('dashboard')) {
+                return '📊 Nossos Sistemas de Gestão são completos!\n\nDesenvolvemos:\n📈 Dashboards personalizados\n🤖 Automações\n🔌 Integrações API\n📊 Relatórios automáticos\n\nA partir de R$ 2.500. Qual área do seu negócio precisa de gestão?';
+            }
+            
+            if (msg.includes('design') || msg.includes('identidade') || msg.includes('logo')) {
+                return '🎨 Criamos identidades visuais completas!\n\nServiços:\n✨ Logotipo profissional\n🎨 Paleta de cores\n📝 Tipografia\n🖼️ Material de marketing\n\nA partir de R$ 800. Quer dar uma cara nova ao seu negócio?';
+            }
+            
+            if (msg.includes('preço') || msg.includes('valor') || msg.includes('custo') || msg.includes('quanto')) {
+                return '💰 Nossos preços variam conforme o projeto:\n\n🤖 Células IA: A partir de R$ 1.500\n💻 Sites: A partir de R$ 2.000\n📊 Sistemas: A partir de R$ 2.500\n🎨 Design: A partir de R$ 800\n\nPara um orçamento personalizado, acesse nosso questionário. Gostaria?';
+            }
+            
+            return '😊 Posso te ajudar com:\n\n🤖 Células de Atendimento IA\n💻 Sites e Plataformas\n📊 Sistemas de Gestão\n🎨 Design & Identidade\n💰 Preços\n\nSobre qual desses você gostaria de saber mais?';
+        }
+
+        // ======================================================
+        // FUNÇÕES DO CHAT
+        // ======================================================
+        function addMessageOlho(tipo, texto) {
+            const c = document.getElementById('chatMessagesOlho');
+            const d = document.createElement('div');
+            d.className = `message-olho ${tipo === 'user' ? 'user' : 'ai'}`;
+            d.textContent = texto;
+            c.appendChild(d);
+            c.scrollTop = c.scrollHeight;
+        }
+
+        function showTypingOlho() {
+            const c = document.getElementById('chatMessagesOlho');
+            const t = document.createElement('div');
+            t.className = 'message-olho ai'; 
+            t.id = 'typingIndicatorOlho';
+            t.innerHTML = '<div class="typing-indicator-olho"><div class="typing-dot-olho"></div><div class="typing-dot-olho"></div><div class="typing-dot-olho"></div></div>';
+            c.appendChild(t); 
+            c.scrollTop = c.scrollHeight;
+        }
+
+        function removeTypingOlho() { 
+            const t = document.getElementById('typingIndicatorOlho'); 
+            if (t) t.remove(); 
+        }
+
+        async function enviarMensagemOlho() {
+            const input = document.getElementById('chatInputOlho');
+            const texto = input.value.trim();
+            if (!texto || isProcessingChat) return;
+            addMessageOlho('user', texto);
+            input.value = '';
+            await enviarParaIAOlho(texto);
+        }
+
+        function enviarSugestao(texto) {
+            if (isProcessingChat) return;
+            addMessageOlho('user', texto);
+            enviarParaIAOlho(texto);
+        }
+
+        function mostrarToastOlho(msg) {
+            const t = document.createElement('div');
+            t.className = 'toast-olho'; 
+            t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        }
+
+        // ======================================================
+        // CONTRATAÇÃO
+        // ======================================================
+        function iniciarContratacao() {
+            window.open(QUESTIONARIO_URL, '_blank');
+        }
+
+        // ======================================================
+        // INICIALIZAÇÃO
+        // ======================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                if (document.getElementById('chatMessagesOlho').children.length === 0) {
+                    addMessageOlho('ai', '👋 Olá! Sou o assistente virtual da AlmaFluxo. Como posso ajudar você hoje?\n\nPosso falar sobre:\n🤖 Células de Atendimento IA\n💻 Sites e Plataformas\n📊 Sistemas de Gestão\n🎨 Design & Identidade\n\nO que você gostaria de saber?');
+                }
+            }, 500);
+        });
+    </script>
+
+</body>
+</html>

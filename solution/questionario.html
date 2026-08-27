@@ -1,0 +1,1509 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlmaFluxo - Questionário Inteligente de Adesão v2.0</title>
+    
+    <!-- Bibliotecas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #00cec9;
+            --dark: #2d3436;
+            --light: #f8f9fa;
+            --success: #00b894;
+            --warning: #fdcb6e;
+            --danger: #d63031;
+            --gradient: linear-gradient(135deg, #6c5ce7 0%, #00cec9 100%);
+            --gold: #d4a843;
+            --dark-bg: #0a0a0f;
+            --card-bg: #1a1a2e;
+            --border: #2a2a3e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .header {
+            background: var(--gradient);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 10s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .progress-container {
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+        }
+
+        .progress-bar {
+            background: rgba(255,255,255,0.1);
+            height: 10px;
+            border-radius: 5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: var(--gradient);
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 5px;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .progress-text {
+            text-align: center;
+            padding: 10px;
+            font-weight: bold;
+            color: var(--gold);
+        }
+
+        .form-section {
+            padding: 30px;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .form-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            color: var(--gold);
+            margin-bottom: 30px;
+            text-align: center;
+            border-bottom: 2px solid var(--gold);
+            padding-bottom: 15px;
+        }
+
+        .question-group {
+            margin-bottom: 25px;
+        }
+
+        .question-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #fff;
+            font-size: 1.1em;
+        }
+
+        .question-group input,
+        .question-group select,
+        .question-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s;
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+        }
+
+        .question-group input:focus,
+        .question-group select:focus,
+        .question-group textarea:focus {
+            border-color: var(--primary);
+            outline: none;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .question-group select option {
+            background: var(--card-bg);
+            color: #fff;
+        }
+
+        .question-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .option-card {
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            background: rgba(255,255,255,0.03);
+        }
+
+        .option-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.3);
+        }
+
+        .option-card.selected {
+            border-color: var(--gold);
+            background: rgba(212, 168, 67, 0.1);
+            box-shadow: 0 5px 15px rgba(212, 168, 67, 0.2);
+        }
+
+        .option-card input {
+            display: none;
+        }
+
+        .option-card label {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .option-card .icon {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(255,255,255,0.03);
+        }
+
+        .checkbox-item:hover {
+            border-color: var(--primary);
+        }
+
+        .checkbox-item input {
+            width: auto;
+        }
+
+        /* GRÁFICO DE ESTRUTURA - PLANTA BAIXA */
+        .blueprint-container {
+            background: #1a1a2e;
+            border: 2px solid #2a2a3e;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .blueprint-grid {
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 400px;
+            position: relative;
+        }
+
+        .page-node {
+            background: rgba(108, 92, 231, 0.2);
+            border: 2px solid #6c5ce7;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            min-width: 150px;
+            text-align: center;
+        }
+
+        .page-node:hover {
+            background: rgba(108, 92, 231, 0.4);
+            transform: scale(1.05);
+        }
+
+        .page-node.connected {
+            border-color: #00cec9;
+        }
+
+        .connection-line {
+            position: absolute;
+            background: #00cec9;
+            height: 2px;
+            transform-origin: left center;
+        }
+
+        .node-icon {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .node-title {
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+
+        .node-type {
+            font-size: 0.8em;
+            color: #00cec9;
+        }
+
+        /* CALCULADORA */
+        .calculator-display {
+            background: #0a0a0f;
+            border: 2px solid #2a2a3e;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .calc-line {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #2a2a3e;
+        }
+
+        .calc-line:last-child {
+            border-bottom: none;
+        }
+
+        .calc-total {
+            font-size: 1.5em;
+            color: var(--gold);
+            font-weight: bold;
+            text-align: right;
+            padding-top: 15px;
+            border-top: 2px solid var(--gold);
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px 30px;
+            background: rgba(0,0,0,0.3);
+            border-top: 1px solid var(--border);
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: var(--gradient);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #00a884;
+            transform: translateY(-2px);
+        }
+
+        .btn-pdf {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-pdf:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+
+        .summary {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .total-value {
+            font-size: 2em;
+            color: var(--gold);
+            font-weight: bold;
+        }
+
+        .required::after {
+            content: " *";
+            color: var(--danger);
+        }
+
+        /* TOAST NOTIFICATION */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--success);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 1000;
+            animation: slideIn 0.5s ease;
+            display: none;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* LOADING */
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid var(--gold);
+            z-index: 1000;
+            display: none;
+            text-align: center;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top: 4px solid var(--gold);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .form-section {
+                padding: 20px;
+            }
+            
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .checkbox-group {
+                grid-template-columns: 1fr;
+            }
+            
+            .navigation {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌊 ALMAFLUXO</h1>
+            <p>Questionário Inteligente de Adesão - Projeto Estrutural da Plataforma</p>
+        </div>
+        
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">Etapa 1 de 10</div>
+        </div>
+
+        <form id="questionnaireForm">
+            <!-- ETAPA 1: DADOS DO CLIENTE -->
+            <div class="form-section active" id="section1">
+                <h2 class="section-title">📋 Dados do Cliente</h2>
+                
+                <div class="question-group">
+                    <label class="required">Nome Completo / Empresa</label>
+                    <input type="text" id="clientName" required placeholder="Digite o nome ou razão social">
+                </div>
+                
+                <div class="question-group">
+                    <label class="required">E-mail de Contato</label>
+                    <input type="email" id="clientEmail" required placeholder="email@exemplo.com">
+                </div>
+                
+                <div class="question-group">
+                    <label class="required">Telefone / WhatsApp</label>
+                    <input type="tel" id="clientPhone" required placeholder="(21) 99999-9999">
+                </div>
+                
+                <div class="question-group">
+                    <label>Site Atual (se houver)</label>
+                    <input type="url" id="currentSite" placeholder="https://www.exemplo.com">
+                </div>
+                
+                <div class="question-group">
+                    <label class="required">Segmento do Negócio</label>
+                    <select id="businessSegment" required>
+                        <option value="">Selecione o segmento...</option>
+                        <option value="academia">Academia / Fitness</option>
+                        <option value="construcao">Construção / Engenharia</option>
+                        <option value="loja">Loja / Varejo</option>
+                        <option value="assistencia">Assistência Técnica</option>
+                        <option value="restaurante">Restaurante / Alimentação</option>
+                        <option value="clinica">Clínica / Saúde</option>
+                        <option value="servicos">Serviços em Geral</option>
+                        <option value="tecnologia">Tecnologia / Software</option>
+                        <option value="outro">Outro</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- ETAPA 2: TIPO DE CÉLULA -->
+            <div class="form-section" id="section2">
+                <h2 class="section-title">🎯 Tipo de Célula Desejada</h2>
+                
+                <div class="question-group">
+                    <label class="required">Selecione o modelo de célula</label>
+                    <div class="options-grid" id="cellTypeOptions">
+                        <div class="option-card" data-value="basico" data-price="1500">
+                            <div class="icon">💼</div>
+                            <label>
+                                <input type="radio" name="cellType" value="basico">
+                                <strong>Básico</strong><br>
+                                <small>R$ 1.500</small><br>
+                                <small style="color:#00cec9;">Landing + IA + Loja</small>
+                            </label>
+                        </div>
+                        <div class="option-card" data-value="intermediario" data-price="2500">
+                            <div class="icon">🏗️</div>
+                            <label>
+                                <input type="radio" name="cellType" value="intermediario">
+                                <strong>Intermediário</strong><br>
+                                <small>R$ 2.500</small><br>
+                                <small style="color:#00cec9;">+ Calculadora + Portfólio</small>
+                            </label>
+                        </div>
+                        <div class="option-card" data-value="avancado" data-price="4500">
+                            <div class="icon">🚀</div>
+                            <label>
+                                <input type="radio" name="cellType" value="avancado">
+                                <strong>Avançado</strong><br>
+                                <small>R$ 4.500</small><br>
+                                <small style="color:#00cec9;">+ Área Cliente + Dashboard</small>
+                            </label>
+                        </div>
+                        <div class="option-card" data-value="premium" data-price="7500">
+                            <div class="icon">👑</div>
+                            <label>
+                                <input type="radio" name="cellType" value="premium">
+                                <strong>Premium</strong><br>
+                                <small>R$ 7.500</small><br>
+                                <small style="color:#00cec9;">+ Tokens + IA Preditiva</small>
+                            </label>
+                        </div>
+                        <div class="option-card" data-value="entretenimento" data-price="2000">
+                            <div class="icon">🎮</div>
+                            <label>
+                                <input type="radio" name="cellType" value="entretenimento">
+                                <strong>Entretenimento</strong><br>
+                                <small>R$ 2.000</small><br>
+                                <small style="color:#00cec9;">Multi-IA + Mesa</small>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="question-group">
+                    <label>Descreva brevemente o que sua célula deve fazer</label>
+                    <textarea id="cellDescription" placeholder="Ex: Atender clientes, vender produtos, agendar serviços..."></textarea>
+                </div>
+            </div>
+
+            <!-- ETAPA 3: ESTRUTURA DA PÁGINA (PLANTA BAIXA) -->
+            <div class="form-section" id="section3">
+                <h2 class="section-title">🏗️ Estrutura da Página - Planta Baixa</h2>
+                
+                <p style="text-align:center; margin-bottom:20px; color:#00cec9;">
+                    Selecione as páginas e rotas que deseja incluir no seu projeto
+                </p>
+                
+                <div class="blueprint-container">
+                    <div class="blueprint-grid" id="blueprintGrid">
+                        <!-- Páginas disponíveis -->
+                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:10px;">
+                            <div class="page-node" data-page="home" data-type="principal">
+                                <div class="node-icon">🏠</div>
+                                <div class="node-title">Página Principal</div>
+                                <div class="node-type">Home/Landing</div>
+                            </div>
+                            <div class="page-node" data-page="login" data-type="auth">
+                                <div class="node-icon">🔐</div>
+                                <div class="node-title">Login</div>
+                                <div class="node-type">Autenticação</div>
+                            </div>
+                            <div class="page-node" data-page="admin" data-type="gestao">
+                                <div class="node-icon">📊</div>
+                                <div class="node-title">Área Restrita</div>
+                                <div class="node-type">Painel Admin</div>
+                            </div>
+                            <div class="page-node" data-page="cliente" data-type="usuario">
+                                <div class="node-icon">👤</div>
+                                <div class="node-title">Área Cliente</div>
+                                <div class="node-type">Dashboard User</div>
+                            </div>
+                            <div class="page-node" data-page="loja" data-type="vendas">
+                                <div class="node-icon">🛍️</div>
+                                <div class="node-title">Loja/Produtos</div>
+                                <div class="node-type">E-commerce</div>
+                            </div>
+                            <div class="page-node" data-page="servicos" data-type="conteudo">
+                                <div class="node-icon">🛠️</div>
+                                <div class="node-title">Serviços</div>
+                                <div class="node-type">Catálogo</div>
+                            </div>
+                            <div class="page-node" data-page="portfolio" data-type="conteudo">
+                                <div class="node-icon">📁</div>
+                                <div class="node-title">Portfólio</div>
+                                <div class="node-type">Galeria</div>
+                            </div>
+                            <div class="page-node" data-page="faq" data-type="suporte">
+                                <div class="node-icon">❓</div>
+                                <div class="node-title">FAQ</div>
+                                <div class="node-type">Dúvidas</div>
+                            </div>
+                            <div class="page-node" data-page="contato" data-type="suporte">
+                                <div class="node-icon">📞</div>
+                                <div class="node-title">Contato</div>
+                                <div class="node-type">Suporte</div>
+                            </div>
+                            <div class="page-node" data-page="orcamento" data-type="vendas">
+                                <div class="node-icon">💰</div>
+                                <div class="node-title">Orçamento</div>
+                                <div class="node-type">Calculadora</div>
+                            </div>
+                            <div class="page-node" data-page="blog" data-type="conteudo">
+                                <div class="node-icon">📝</div>
+                                <div class="node-title">Blog/Notícias</div>
+                                <div class="node-type">Conteúdo</div>
+                            </div>
+                            <div class="page-node" data-page="galeria" data-type="conteudo">
+                                <div class="node-icon">🖼️</div>
+                                <div class="node-title">Galeria</div>
+                                <div class="node-type">Imagens</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="question-group">
+                    <label>Estrutura de navegação selecionada:</label>
+                    <div id="selectedPages" style="padding:10px; background:rgba(0,0,0,0.3); border-radius:8px; min-height:40px;">
+                        <span style="color:#666;">Nenhuma página selecionada</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ETAPA 4: DESIGN E IDENTIDADE VISUAL -->
+            <div class="form-section" id="section4">
+                <h2 class="section-title">🎨 Design e Identidade Visual</h2>
+                
+                <div class="question-group">
+                    <label class="required">Você já possui identidade visual?</label>
+                    <div class="options-grid" id="hasBranding">
+                        <div class="option-card" data-value="sim">
+                            <div class="icon">✅</div>
+                            <label>
+                                <input type="radio" name="hasBranding" value="sim">
+                                <strong>Sim, já tenho</strong>
+                            </label>
+                        </div>
+                        <div class="option-card" data-value="nao">
+                            <div class="icon">🎨</div>
+                            <label>
+                                <input type="radio" name="hasBranding" value="nao">
+                                <strong>Não, preciso criar</strong>
+                            </label>
+                        </div>
+                        <div class="option-card" data-value="parcial">
+                            <div class="icon">🔄</div>
+                            <label>
+                                <input type="radio" name="hasBranding" value="parcial">
+                                <strong>Tenho parcial</strong>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="question-group">
+                    <label>Cores desejadas (selecione as principais)</label>
+                    <div class="checkbox-group" id="colorPreferences">
+                        <div class="checkbox-item">
+                            <input type="checkbox" value="roxo">
+                            <span>💜 Roxo</span>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" value="azul">
+                            <span>💙 Azul</span>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" value="verde">
+                            <span>💚 Verde</span>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" value="vermelho">
+                            <span>❤️ Vermelho</span>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" value="laranja">
+                            <span>🧡 Laranja</span>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" value="preto">
+                            <span>🖤 Preto</span>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" value="branco">
+                            <span>🤍 Branco</span>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" value="dourado">
+                            <span>💛 Dourado</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="question-group">
+                    <label>Estilo visual desejado</label>
+                    <select id="visualStyle">
+                        <option value="">Selecione o estilo...</option>
+                        <option value="moderno">Moderno e Clean</option>
+                        <option value="classico">Clássico e Elegante</option>
+                        <option value="minimalista">Minimalista</option>
+                        <option value="bold">Bold e Impactante</option>
+                        <option value="tech">Tech/Futurista</option>
+                        <option value="acolhedor">Acolhedor e Amigável</option>
+                    </select>
+                </div>
+                
+                <div class="question-group">
+                    <label>Referências visuais (links ou descrição)</label>
+                    <textarea id="visualReferences" placeholder="Cole links de sites que você gosta ou descreva o que imagina..."></textarea>
+                </div>
+            </div>
+
+            <!-- ETAPA 5: FUNCIONALIDADES -->
+            <div class="form-section" id="section5">
+                <h2 class="section-title">⚙️ Funcionalidades Desejadas</h2>
+                
+                <div class="question-group">
+                    <label>Selecione as funcionalidades que deseja implementar</label>
+                    <div class="checkbox-group" id="featuresList">
+                        <div class="checkbox-item" data-price="300">
+                            <input type="checkbox" value="whatsapp">
+                            <span>💬 Integração WhatsApp</span>
+                        </div>
+                        <div class="checkbox-item" data-price="500">
+                            <input type="checkbox" value="pagamento">
+                            <span>💳 Pagamento Online (PIX/Cartão)</span>
+                        </div>
+                        <div class="checkbox-item" data-price="800">
+                            <input type="checkbox" value="login">
+                            <span>🔐 Área de Login</span>
+                        </div>
+                        <div class="checkbox-item" data-price="600">
+                            <input type="checkbox" value="dashboard">
+                            <span>📊 Dashboard Personalizado</span>
+                        </div>
+                        <div class="checkbox-item" data-price="400">
+                            <input type="checkbox" value="bluetooth">
+                            <span>📡 Integração Bluetooth</span>
+                        </div>
+                        <div class="checkbox-item" data-price="1500">
+                            <input type="checkbox" value="tokens">
+                            <span>🪙 Sistema de Tokens/Assinatura</span>
+                        </div>
+                        <div class="checkbox-item" data-price="700">
+                            <input type="checkbox" value="relatorios">
+                            <span>📈 Relatórios Automáticos</span>
+                        </div>
+                        <div class="checkbox-item" data-price="1000">
+                            <input type="checkbox" value="api">
+                            <span>🔌 Integração API Externa</span>
+                        </div>
+                        <div class="checkbox-item" data-price="900">
+                            <input type="checkbox" value="multimidia">
+                            <span>🎥 Áudio/Vídeo Chat</span>
+                        </div>
+                        <div class="checkbox-item" data-price="350">
+                            <input type="checkbox" value="newsletter">
+                            <span>📧 Newsletter Automática</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="question-group">
+                    <label>Quantidade de produtos/serviços (se aplicável)</label>
+                    <input type="number" id="productQuantity" min="0" value="0" placeholder="Ex: 50">
+                </div>
+                
+                <div class="question-group">
+                    <label>Necessita de sistema de agendamento?</label>
+                    <select id="scheduling">
+                        <option value="nao">Não</option>
+                        <option value="sim">Sim, agendamento simples</option>
+                        <option value="avancado">Sim, agendamento avançado</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- ETAPA 6: IA E ATENDIMENTO -->
+            <div class="form-section" id="section6">
+                <h2 class="section-title">🤖 Inteligência Artificial e Atendimento</h2>
+                
+                <div class="question-group">
+                    <label class="required">Tipo de atendimento IA</label>
+                    <select id="iaType" required>
+                        <option value="">Selecione o tipo...</option>
+                        <option value="basico">Atendimento Básico (FAQ, dúvidas)</option>
+                        <option value="intermediario">Atendimento Intermediário (vendas, orçamentos)</option>
+                        <option value="avancado">Atendimento Avançado (personalizado, multi-funções)</option>
+                        <option value="premium">Atendimento Premium (IA preditiva, análise)</option>
+                    </select>
+                </div>
+                
+                <div class="question-group">
+                    <label>Quais perguntas a IA deve responder?</label>
+                    <textarea id="iaQuestions" placeholder="Liste as principais perguntas que a IA deve responder..."></textarea>
+                </div>
+                
+                <div class="question-group">
+                    <label>A IA deve capturar leads?</label>
+                    <select id="leadCapture">
+                        <option value="sim">Sim, capturar nome e telefone</option>
+                        <option value="sim_email">Sim, capturar nome, telefone e e-mail</option>
+                        <option value="nao">Não</option>
+                    </select>
+                </div>
+                
+                <div class="question-group">
+                    <label>A IA deve fazer vendas diretas?</label>
+                    <select id="directSales">
+                        <option value="nao">Não</option>
+                        <option value="sim">Sim, vender produtos/serviços</option>
+                        <option value="orcamento">Sim, gerar orçamentos</option>
+                    </select>
+                </div>
+                
+                <div class="question-group">
+                    <label>Personalidade da IA</label>
+                    <select id="iaPersonality">
+                        <option value="profissional">Profissional e formal</option>
+                        <option value="amigavel">Amigável e casual</option>
+                        <option value="tecnica">Técnica e detalhista</option>
+                        <option value="vendedora">Vendedora e persuasiva</option>
+                        <option value="acolhedora">Acolhedora e empática</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- ETAPA 7: CONTEÚDO E DADOS -->
+            <div class="form-section" id="section7">
+                <h2 class="section-title">📦 Conteúdo e Dados</h2>
+                
+                <div class="question-group">
+                    <label class="required">Você já possui os textos e conteúdos?</label>
+                    <select id="hasContent" required>
+                        <option value="">Selecione...</option>
+                        <option value="sim">Sim, tenho tudo pronto</option>
+                        <option value="parcial">Tenho parcialmente</option>
+                        <option value="nao">Não, preciso de ajuda</option>
+                    </select>
+                </div>
+                
+                <div class="question-group">
+                    <label>Imagens e fotos</label>
+                    <select id="hasImages">
+                        <option value="">Selecione...</option>
+                        <option value="sim">Tenho banco de imagens</option>
+                        <option value="stock">Usar banco de imagens gratuito</option>
+                        <option value="premium">Usar banco premium (custo adicional)</option>
+                        <option value="fotografia">Preciso de sessão fotográfica</option>
+                    </select>
+                </div>
+                
+                <div class="question-group">
+                    <label>Logotipo</label>
+                    <select id="hasLogo">
+                        <option value="">Selecione...</option>
+                        <option value="sim">Tenho logotipo pronto</option>
+                        <option value="vetor">Tenho em vetor (SVG/AI)</option>
+                        <option value="nao">Preciso criar logotipo</option>
+                    </select>
+                </div>
+                
+                <div class="question-group">
+                    <label>Domínio personalizado</label>
+                    <select id="customDomain">
+                        <option value="nao">Usar subdomínio almafluxo.uk</option>
+                        <option value="sim">Tenho domínio próprio</option>
+                        <option value="comprar">Preciso comprar domínio</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- ETAPA 8: PLANO DE MENSALIDADE -->
+            <div class="form-section" id="section8">
+                <h2 class="section-title">💎 Plano de Mensalidade</h2>
+                
+                <div class="question-group">
+                    <label class="required">Selecione o plano mensal</label>
+                    <div class="options-grid" id="monthlyPlan">
+                        <div class="option-card" data-value="basico" data-price="147">
+                            <div class="icon">🌱</div>
+                            <label>
+                                <input type="radio" name="monthlyPlan" value="basico">
+                                <strong>Básico</strong><br>
+                                <small>R$ 147/mês</small><br>
+                                <small style="color:#00cec9;">Hospedagem + IA + Suporte</small>
+                            </label>
+                        </div>
+                        <div class="option-card" data-value="profissional" data-price="297">
+                            <div class="icon">🚀</div>
+                            <label>
+                                <input type="radio" name="monthlyPlan" value="profissional">
+                                <strong>Profissional</strong><br>
+                                <small>R$ 297/mês</small><br>
+                                <small style="color:#00cec9;">Básico + Relatórios + Leads</small>
+                            </label>
+                        </div>
+                        <div class="option-card" data-value="premium" data-price="497">
+                            <div class="icon">👑</div>
+                            <label>
+                                <input type="radio" name="monthlyPlan" value="premium">
+                                <strong>Premium</strong><br>
+                                <small>R$ 497/mês</small><br>
+                                <small style="color:#00cec9;">Profissional + Automações</small>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="question-group">
+                    <label>Deseja contrato de fidelidade?</label>
+                    <select id="contractTerm">
+                        <option value="sem">Sem fidelidade</option>
+                        <option value="6">6 meses (5% desconto)</option>
+                        <option value="12">12 meses (10% desconto)</option>
+                        <option value="24">24 meses (15% desconto)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- ETAPA 9: RESUMO E CÁLCULOS -->
+            <div class="form-section" id="section9">
+                <h2 class="section-title">📊 Resumo e Cálculos do Projeto</h2>
+                
+                <div class="calculator-display" id="calculatorDisplay">
+                    <!-- Preenchido dinamicamente -->
+                </div>
+                
+                <div class="summary" id="summaryContainer">
+                    <!-- Preenchido dinamicamente -->
+                </div>
+                
+                <div class="question-group">
+                    <label>Observações adicionais</label>
+                    <textarea id="additionalNotes" placeholder="Alguma observação importante..."></textarea>
+                </div>
+                
+                <div class="question-group">
+                    <label>
+                        <input type="checkbox" id="acceptTerms" required>
+                        Li e aceito os termos e condições do AlmaFluxo
+                    </label>
+                </div>
+            </div>
+
+            <!-- ETAPA 10: CONFIRMAÇÃO -->
+            <div class="form-section" id="section10">
+                <h2 class="section-title">✅ Confirmação Final</h2>
+                
+                <div style="text-align:center; padding:30px;">
+                    <div style="font-size:5em; margin-bottom:20px;">🎉</div>
+                    <h3 style="font-size:1.5em; margin-bottom:20px;">Projeto Pronto para Envio!</h3>
+                    <p style="margin-bottom:30px; color:#00cec9;">
+                        Revise as informações e envie o questionário para nossa equipe.
+                    </p>
+                    
+                    <div style="display:flex; gap:15px; justify-content:center; flex-wrap:wrap;">
+                        <button type="button" class="btn btn-pdf" onclick="generatePDF()">
+                            📄 Gerar PDF da Proposta
+                        </button>
+                        <button type="button" class="btn btn-success" onclick="submitForm()">
+                            📤 Enviar Questionário
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <div class="navigation">
+            <button class="btn btn-secondary" id="prevBtn" onclick="changeSection(-1)" style="display: none;">← Anterior</button>
+            <button class="btn btn-primary" id="nextBtn" onclick="changeSection(1)">Próxima →</button>
+            <button class="btn btn-success" id="submitBtn" onclick="submitForm()" style="display: none;">📤 Enviar</button>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+    
+    <!-- Loading -->
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Enviando dados...</p>
+    </div>
+
+    <script>
+        // CONSTANTES
+        const APPS_SCRIPT_URL = 'https://almafluxo.uk/api/questionario/enviar';
+        
+        let currentSection = 1;
+        const totalSections = 10;
+        let selectedPagesList = [];
+
+        // INICIALIZAÇÃO
+        function updateProgress() {
+            const progress = (currentSection / totalSections) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('progressText').textContent = `Etapa ${currentSection} de ${totalSections}`;
+        }
+
+        function changeSection(direction) {
+            const sections = document.querySelectorAll('.form-section');
+            sections[currentSection - 1].classList.remove('active');
+            currentSection += direction;
+            sections[currentSection - 1].classList.add('active');
+            
+            updateProgress();
+            
+            document.getElementById('prevBtn').style.display = currentSection === 1 ? 'none' : 'block';
+            document.getElementById('nextBtn').style.display = currentSection === totalSections ? 'none' : 'block';
+            document.getElementById('submitBtn').style.display = currentSection === totalSections ? 'block' : 'none';
+            
+            if (currentSection === 9) {
+                updateSummary();
+                updateCalculator();
+            }
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // SELEÇÃO DE PÁGINAS (PLANTA BAIXA)
+        document.querySelectorAll('.page-node').forEach(node => {
+            node.addEventListener('click', function() {
+                const page = this.dataset.page;
+                const title = this.querySelector('.node-title').textContent;
+                
+                this.classList.toggle('selected');
+                this.classList.toggle('connected');
+                
+                if (this.classList.contains('selected')) {
+                    if (!selectedPagesList.includes(page)) {
+                        selectedPagesList.push(page);
+                    }
+                } else {
+                    selectedPagesList = selectedPagesList.filter(p => p !== page);
+                }
+                
+                updateSelectedPagesDisplay();
+            });
+        });
+
+        function updateSelectedPagesDisplay() {
+            const display = document.getElementById('selectedPages');
+            if (selectedPagesList.length === 0) {
+                display.innerHTML = '<span style="color:#666;">Nenhuma página selecionada</span>';
+            } else {
+                display.innerHTML = selectedPagesList.map(page => {
+                    const node = document.querySelector(`[data-page="${page}"]`);
+                    const title = node ? node.querySelector('.node-title').textContent : page;
+                    return `<span style="background:rgba(108,92,231,0.3); padding:5px 10px; border-radius:5px; margin:2px; display:inline-block;">${title}</span>`;
+                }).join('');
+            }
+        }
+
+        // INTERAÇÃO COM CARDS
+        document.querySelectorAll('.option-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const radio = this.querySelector('input[type="radio"]');
+                if (radio) {
+                    radio.checked = true;
+                    this.closest('.options-grid').querySelectorAll('.option-card').forEach(c => {
+                        c.classList.remove('selected');
+                    });
+                    this.classList.add('selected');
+                }
+            });
+        });
+
+        // CALCULADORA
+        function calculateTotal() {
+            let total = 0;
+            let details = [];
+            
+            // Tipo de célula
+            const cellType = document.querySelector('input[name="cellType"]:checked');
+            if (cellType) {
+                const cellPrice = parseInt(cellType.closest('.option-card').dataset.price);
+                const cellName = cellType.closest('.option-card').querySelector('strong').textContent;
+                total += cellPrice;
+                details.push({ item: `Célula ${cellName}`, value: cellPrice });
+            }
+            
+            // Funcionalidades
+            const features = document.querySelectorAll('#featuresList input:checked');
+            features.forEach(feature => {
+                const featurePrice = parseInt(feature.closest('.checkbox-item').dataset.price);
+                const featureName = feature.closest('.checkbox-item').querySelector('span').textContent;
+                total += featurePrice;
+                details.push({ item: featureName, value: featurePrice });
+            });
+            
+            // Páginas adicionais (R$ 100 por página)
+            if (selectedPagesList.length > 3) {
+                const extraPages = selectedPagesList.length - 3;
+                const pagesPrice = extraPages * 100;
+                total += pagesPrice;
+                details.push({ item: `${extraPages} páginas extras`, value: pagesPrice });
+            }
+            
+            // Design personalizado
+            const hasBranding = document.querySelector('input[name="hasBranding"]:checked');
+            if (hasBranding && hasBranding.value === 'nao') {
+                total += 800;
+                details.push({ item: 'Criação de Identidade Visual', value: 800 });
+            }
+            
+            // Conteúdo
+            const hasContent = document.getElementById('hasContent');
+            if (hasContent && hasContent.value === 'nao') {
+                total += 500;
+                details.push({ item: 'Criação de Conteúdo', value: 500 });
+            }
+            
+            // Logotipo
+            const hasLogo = document.getElementById('hasLogo');
+            if (hasLogo && hasLogo.value === 'nao') {
+                total += 500;
+                details.push({ item: 'Criação de Logotipo', value: 500 });
+            }
+            
+            return { total, details };
+        }
+
+        function updateCalculator() {
+            const display = document.getElementById('calculatorDisplay');
+            const { total, details } = calculateTotal();
+            
+            let html = '<h3 style="margin-bottom:15px; color:#d4a843;">📐 Cálculo Estrutural do Projeto</h3>';
+            html += '<div style="font-size:0.9em; color:#666; margin-bottom:15px;">';
+            html += 'Fórmula: Soma(Componentes) + Extras = Total<br>';
+            html += 'Método: Análise por módulos estruturais';
+            html += '</div>';
+            
+            details.forEach(detail => {
+                html += `<div class="calc-line">
+                    <span>${detail.item}</span>
+                    <span>R$ ${detail.value.toFixed(2)}</span>
+                </div>`;
+            });
+            
+            // Plano mensal
+            const monthlyPlan = document.querySelector('input[name="monthlyPlan"]:checked');
+            if (monthlyPlan) {
+                const monthlyPrice = parseInt(monthlyPlan.closest('.option-card').dataset.price);
+                html += `<div class="calc-line">
+                    <span>Plano Mensal (primeiro mês)</span>
+                    <span>R$ ${monthlyPrice.toFixed(2)}</span>
+                </div>`;
+                total += monthlyPrice;
+            }
+            
+            html += `<div class="calc-total">
+                Total do Projeto: R$ ${total.toFixed(2)}
+            </div>`;
+            
+            display.innerHTML = html;
+        }
+
+        function updateSummary() {
+            const summary = document.getElementById('summaryContainer');
+            const { total, details } = calculateTotal();
+            
+            let html = '<h3 style="margin-bottom:15px;">📋 Resumo do Pedido</h3>';
+            
+            // Dados do cliente
+            html += `<div class="summary-item">
+                <span>Cliente:</span>
+                <span>${document.getElementById('clientName').value || 'Não informado'}</span>
+            </div>`;
+            
+            html += `<div class="summary-item">
+                <span>Segmento:</span>
+                <span>${document.getElementById('businessSegment').value || 'Não informado'}</span>
+            </div>`;
+            
+            // Detalhes
+            details.forEach(detail => {
+                html += `<div class="summary-item">
+                    <span>${detail.item}</span>
+                    <span>R$ ${detail.value.toFixed(2)}</span>
+                </div>`;
+            });
+            
+            // Páginas selecionadas
+            if (selectedPagesList.length > 0) {
+                html += `<div class="summary-item">
+                    <span>Páginas selecionadas:</span>
+                    <span>${selectedPagesList.length}</span>
+                </div>`;
+            }
+            
+            // Total
+            html += `<div class="summary-item" style="border-top: 2px solid #d4a843; margin-top: 10px; padding-top: 15px;">
+                <span><strong>Total Estimado:</strong></span>
+                <span class="total-value">R$ ${total.toFixed(2)}</span>
+            </div>`;
+            
+            summary.innerHTML = html;
+        }
+
+        // GERAR PDF
+        async function generatePDF() {
+            try {
+                showLoading();
+                
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                // Capa
+                doc.setFillColor(108, 92, 231);
+                doc.rect(0, 0, 210, 297, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(30);
+                doc.text('ALMAFLUXO', 105, 120, { align: 'center' });
+                doc.setFontSize(16);
+                doc.text('Proposta de Projeto', 105, 140, { align: 'center' });
+                doc.setFontSize(12);
+                doc.text('Estrutura da Plataforma Digital', 105, 155, { align: 'center' });
+                doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 105, 170, { align: 'center' });
+                
+                // Página 2: Dados do Cliente
+                doc.addPage();
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(20);
+                doc.text('Dados do Cliente', 20, 30);
+                doc.setFontSize(12);
+                doc.text(`Nome: ${document.getElementById('clientName').value || 'Não informado'}`, 20, 45);
+                doc.text(`E-mail: ${document.getElementById('clientEmail').value || 'Não informado'}`, 20, 55);
+                doc.text(`Telefone: ${document.getElementById('clientPhone').value || 'Não informado'}`, 20, 65);
+                doc.text(`Segmento: ${document.getElementById('businessSegment').value || 'Não informado'}`, 20, 75);
+                
+                // Página 3: Detalhes do Projeto
+                doc.addPage();
+                doc.setFontSize(20);
+                doc.text('Detalhes do Projeto', 20, 30);
+                doc.setFontSize(12);
+                
+                const { total, details } = calculateTotal();
+                let y = 50;
+                details.forEach(detail => {
+                    doc.text(`${detail.item}: R$ ${detail.value.toFixed(2)}`, 20, y);
+                    y += 10;
+                });
+                
+                const monthlyPlan = document.querySelector('input[name="monthlyPlan"]:checked');
+                if (monthlyPlan) {
+                    const monthlyPrice = parseInt(monthlyPlan.closest('.option-card').dataset.price);
+                    doc.text(`Plano Mensal: R$ ${monthlyPrice.toFixed(2)}/mês`, 20, y);
+                    y += 10;
+                }
+                
+                doc.setFontSize(16);
+                doc.text(`Total: R$ ${total.toFixed(2)}`, 20, y + 10);
+                
+                // Página 4: Estrutura de Páginas
+                if (selectedPagesList.length > 0) {
+                    doc.addPage();
+                    doc.setFontSize(20);
+                    doc.text('Estrutura de Páginas', 20, 30);
+                    doc.setFontSize(12);
+                    let y = 50;
+                    selectedPagesList.forEach(page => {
+                        doc.text(`• ${page}`, 20, y);
+                        y += 10;
+                    });
+                }
+                
+                // Salvar PDF
+                doc.save(`Proposta_AlmaFluxo_${document.getElementById('clientName').value || 'cliente'}.pdf`);
+                
+                hideLoading();
+                showToast('✅ PDF gerado com sucesso!');
+            } catch (error) {
+                hideLoading();
+                showToast('❌ Erro ao gerar PDF: ' + error.message);
+                console.error('Erro PDF:', error);
+            }
+        }
+
+        // ENVIAR FORMULÁRIO
+        async function submitForm() {
+            if (!document.getElementById('acceptTerms').checked) {
+                showToast('⚠️ Por favor, aceite os termos e condições.');
+                return;
+            }
+            
+            showLoading();
+            
+            try {
+                const formData = {
+                    action: 'register_questionnaire',
+                    data: {
+                        clientName: document.getElementById('clientName').value,
+                        clientEmail: document.getElementById('clientEmail').value,
+                        clientPhone: document.getElementById('clientPhone').value,
+                        businessSegment: document.getElementById('businessSegment').value,
+                        cellType: document.querySelector('input[name="cellType"]:checked')?.value,
+                        selectedPages: selectedPagesList,
+                        hasBranding: document.querySelector('input[name="hasBranding"]:checked')?.value,
+                        colors: Array.from(document.querySelectorAll('#colorPreferences input:checked')).map(c => c.value),
+                        visualStyle: document.getElementById('visualStyle').value,
+                        features: Array.from(document.querySelectorAll('#featuresList input:checked')).map(f => f.value),
+                        iaType: document.getElementById('iaType').value,
+                        monthlyPlan: document.querySelector('input[name="monthlyPlan"]:checked')?.value,
+                        contractTerm: document.getElementById('contractTerm').value,
+                        totalPrice: calculateTotal().total,
+                        additionalNotes: document.getElementById('additionalNotes').value,
+                        timestamp: new Date().toISOString()
+                    }
+                };
+                
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.ok) {
+                    showToast('✅ Questionário enviado com sucesso!');
+                    
+                    // Enviar e-mail automático
+                    await sendEmailNotification(formData.data);
+                    
+                    setTimeout(() => {
+                        alert('✅ Questionário enviado com sucesso!\n\nNossa equipe entrará em contato em até 24h com a proposta detalhada.');
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    throw new Error(result.error || 'Erro ao enviar');
+                }
+            } catch (error) {
+                hideLoading();
+                showToast('❌ Erro ao enviar: ' + error.message);
+                console.error('Erro envio:', error);
+            }
+        }
+
+        // ENVIAR E-MAIL
+        async function sendEmailNotification(data) {
+            try {
+                const emailData = {
+                    action: 'send_email',
+                    to: 'tchelojc@gmail.com',
+                    subject: '🌊 Novo Questionário AlmaFluxo - ' + data.clientName,
+                    body: `
+                        <h2>Novo Questionário Recebido</h2>
+                        <p><strong>Cliente:</strong> ${data.clientName}</p>
+                        <p><strong>E-mail:</strong> ${data.clientEmail}</p>
+                        <p><strong>Telefone:</strong> ${data.clientPhone}</p>
+                        <p><strong>Segmento:</strong> ${data.businessSegment}</p>
+                        <p><strong>Tipo de Célula:</strong> ${data.cellType}</p>
+                        <p><strong>Páginas:</strong> ${data.selectedPages.join(', ')}</p>
+                        <p><strong>Funcionalidades:</strong> ${data.features.join(', ')}</p>
+                        <p><strong>Total:</strong> R$ ${data.totalPrice.toFixed(2)}</p>
+                    `
+                };
+                
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(emailData)
+                });
+            } catch (error) {
+                console.error('Erro ao enviar e-mail:', error);
+            }
+        }
+
+        // FUNÇÕES AUXILIARES
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        // INICIALIZAÇÃO
+        updateProgress();
+        console.log('🌊 AlmaFluxo - Questionário Inteligente v2.0 carregado!');
+    </script>
+</body>
+</html>
