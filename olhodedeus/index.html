@@ -1457,13 +1457,27 @@
                     throw new Error('Resposta inválida do servidor');
                 }
 
-                if (data.ok) {
+                // 🔥 CORRIGIDO (bug do login): esse código só reconhecia sucesso
+                // via "data.ok" e lia nome/balance/sessionToken/master direto na
+                // raiz da resposta. Todo Apps Script que já auditei nessa mesma
+                // família (codigo_gs.js do InfoCell e o do R5Fit — os dois com a
+                // MESMA implementação de verificarLogin) retornam, em vez disso,
+                // { autenticado: true/false, usuario: {...}, token, message }.
+                // Isso é quase certamente por que o login "não reconhecia" —
+                // a chamada ia, a senha batia no central.gs, mas a resposta
+                // nunca marcava "data.ok" como verdadeiro pro front aceitar.
+                // Aceita as duas formas (a nova E a antiga) pra não quebrar caso
+                // o central.gs realmente devolva algo diferente dos outros dois.
+                const logouComSucesso = data.ok === true || data.autenticado === true || data.status === 'success';
+                const usuarioResp = data.usuario || data; // usuario aninhado (padrão novo) ou plano (padrão antigo)
+
+                if (logouComSucesso) {
                     usuarioLogadoOlho = {
-                        nome: data.nome || 'Usuário',
+                        nome: usuarioResp.nome || 'Usuário',
                         email: email,
-                        balance: data.balance || 0,
-                        sessionToken: data.sessionToken || `session_${Date.now()}`,
-                        master: data.master || false
+                        balance: usuarioResp.balance ?? usuarioResp.saldo ?? 0,
+                        sessionToken: data.token || data.sessionToken || `session_${Date.now()}`,
+                        master: usuarioResp.master || usuarioResp.admin || false
                     };
                     
                     localStorage.setItem('olho_de_deus_usuario', JSON.stringify(usuarioLogadoOlho));
@@ -1481,7 +1495,7 @@
                     
                     setTimeout(() => fecharModalLogin(), 1500);
                 } else {
-                    statusEl.textContent = '❌ ' + (data.error || 'Credenciais inválidas.');
+                    statusEl.textContent = '❌ ' + (data.error || data.message || 'Credenciais inválidas.');
                     statusEl.style.color = '#ff6b6b';
                 }
             } catch (erro) {
