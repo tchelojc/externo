@@ -387,6 +387,103 @@
         }
 
         /* ============================
+           🔥 NOVO: COMPARADOR DE ATENDIMENTO (2 IAs lado a lado)
+           ============================ */
+        .compare-section {
+            padding: 3rem 1.5rem 4rem;
+            background: var(--fundo, var(--panel2));
+        }
+        .compare-header {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 2.2rem;
+        }
+        .compare-header h2 {
+            font-size: 1.8rem;
+            color: #fff;
+            margin-bottom: 0.6rem;
+        }
+        .compare-header p {
+            color: var(--texto2);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        .compare-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            align-items: start;
+        }
+        .compare-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+        .compare-panel-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-family: var(--font);
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--ciano);
+        }
+        .compare-panel .hero-chat-container {
+            aspect-ratio: auto;
+            min-height: 480px;
+        }
+        .compare-pick-btn {
+            padding: 0.7rem 1rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--panel);
+            color: var(--texto);
+            font-family: var(--font);
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.25s;
+            text-align: center;
+        }
+        .compare-pick-btn:hover {
+            border-color: var(--ciano);
+            color: var(--ciano);
+        }
+        .compare-pick-btn.escolhido {
+            background: linear-gradient(135deg, var(--ciano), #00b8d4);
+            border-color: var(--ciano);
+            color: #000;
+        }
+        .compare-resultado {
+            display: none;
+            max-width: 700px;
+            margin: 2rem auto 0;
+            text-align: center;
+            padding: 1.3rem;
+            border-radius: 14px;
+            border: 1px solid var(--ciano);
+            background: rgba(0, 229, 255, 0.06);
+        }
+        .compare-resultado.visivel { display: block; }
+        .compare-resultado p {
+            color: var(--texto);
+            font-size: 0.9rem;
+            margin-bottom: 0.9rem;
+            line-height: 1.6;
+        }
+        @media (max-width: 900px) {
+            .compare-grid {
+                grid-template-columns: 1fr;
+            }
+            .compare-panel .hero-chat-container {
+                min-height: 420px;
+            }
+        }
+
+        /* ============================
            SERVIÇOS
            ============================ */
         .services-section {
@@ -577,6 +674,73 @@
         </div>
     </section>
 
+    <!-- ===== 🔥 NOVO: COMPARADOR DE ATENDIMENTO (2 IAs lado a lado) ===== -->
+    <section class="compare-section" id="compare">
+        <div class="compare-header">
+            <h2>Teste os dois estilos de atendimento IA</h2>
+            <p>Isso aqui é o próprio ecossistema AlmaFluxo em ação: duas Células de Atendimento IA diferentes, rodando ao vivo, respondendo à mesma pergunta cada uma do seu jeito. Manda a mesma dúvida pras duas e veja qual combina mais com o tom da sua empresa.</p>
+        </div>
+
+        <div class="compare-grid">
+            <!-- PAINEL A -->
+            <div class="compare-panel">
+                <div class="compare-panel-label">🅰️ Atendente A</div>
+                <div class="hero-chat-container">
+                    <div class="chat-header-olho">
+                        <div class="chat-header-left">
+                            <div class="chat-avatar">🤖</div>
+                            <div>
+                                <div class="chat-title">Assistente AlmaFluxo · A</div>
+                                <div class="chat-subtitle"><span class="chat-status-dot"></span>Online 24h</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-messages-olho" id="chatMessages_a"></div>
+                    <div class="quick-suggestions-olho">
+                        <div class="suggestion-chip-olho" onclick="enviarSugestaoCanal('a','🤖 Quero saber sobre Células de Atendimento IA')">🤖 Células IA</div>
+                        <div class="suggestion-chip-olho" onclick="enviarSugestaoCanal('a','💰 Quero saber os preços')">💰 Preços</div>
+                    </div>
+                    <div class="chat-input-area-olho">
+                        <input type="text" class="chat-input-olho" id="chatInput_a" placeholder="Digite sua dúvida..." onkeydown="if(event.key==='Enter')enviarMensagem('a')" />
+                        <button class="chat-send-btn-olho" onclick="enviarMensagem('a')" id="chatSendBtn_a">➤</button>
+                    </div>
+                </div>
+                <button class="compare-pick-btn" id="pickBtn_a" onclick="escolherAtendente('a')">👍 Prefiro o Atendente A</button>
+            </div>
+
+            <!-- PAINEL B -->
+            <div class="compare-panel">
+                <div class="compare-panel-label">🅱️ Atendente B</div>
+                <div class="hero-chat-container">
+                    <div class="chat-header-olho">
+                        <div class="chat-header-left">
+                            <div class="chat-avatar">🤖</div>
+                            <div>
+                                <div class="chat-title">Assistente AlmaFluxo · B</div>
+                                <div class="chat-subtitle"><span class="chat-status-dot"></span>Online 24h</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-messages-olho" id="chatMessages_b"></div>
+                    <div class="quick-suggestions-olho">
+                        <div class="suggestion-chip-olho" onclick="enviarSugestaoCanal('b','🤖 Quero saber sobre Células de Atendimento IA')">🤖 Células IA</div>
+                        <div class="suggestion-chip-olho" onclick="enviarSugestaoCanal('b','💰 Quero saber os preços')">💰 Preços</div>
+                    </div>
+                    <div class="chat-input-area-olho">
+                        <input type="text" class="chat-input-olho" id="chatInput_b" placeholder="Digite sua dúvida..." onkeydown="if(event.key==='Enter')enviarMensagem('b')" />
+                        <button class="chat-send-btn-olho" onclick="enviarMensagem('b')" id="chatSendBtn_b">➤</button>
+                    </div>
+                </div>
+                <button class="compare-pick-btn" id="pickBtn_b" onclick="escolherAtendente('b')">👍 Prefiro o Atendente B</button>
+            </div>
+        </div>
+
+        <div class="compare-resultado" id="compareResultado">
+            <p id="compareResultadoTexto"></p>
+            <button class="btn-primary" onclick="iniciarContratacao()">🚀 Quero isso pra minha empresa</button>
+        </div>
+    </section>
+
     <!-- ===== SERVIÇOS ===== -->
     <section class="services-section" id="services">
         <div class="services-grid">
@@ -620,7 +784,11 @@
         // CONFIGURAÇÃO - ROTAS DO WORKER (não mexer)
         // ======================================================
         const PROXY_BOTECO = 'https://almafluxo.uk/proxy/boteco';
-        const PROXY_INFOCELL = 'https://almafluxo.uk/proxy/infocell';
+        // 🔥 CORRIGIDO: essa constante se chamava "PROXY_INFOCELL" mas o VALOR
+        // apontava pra '/proxy/R5fit' — nome e destino não batiam. Agora
+        // existem as duas rotas de verdade, uma pra cada motor de IA:
+        const PROXY_INFOCELL = 'https://almafluxo.uk/proxy/infocell'; // DeepSeek (servidor8081)
+        const PROXY_R5FIT = 'https://almafluxo.uk/proxy/r5fit';       // Dola (servidor8080)
         const QUESTIONARIO_URL = 'https://almafluxo.uk/solution/questionario';
         const WHATSAPP_ATENDIMENTO = "5521981533928";
 
@@ -793,6 +961,177 @@
         }
 
         // ======================================================
+        // 🔥 NOVO: COMPARADOR — DOIS ATENDENTES LADO A LADO
+        // (canal 'a' = DeepSeek via PROXY_INFOCELL, canal 'b' = Dola via
+        // PROXY_R5FIT — mesma lógica de envio/polling do chat original do
+        // hero, só parametrizada por canal em vez de duplicar tudo)
+        // ======================================================
+        const CANAIS = {
+            a: {
+                proxy: PROXY_INFOCELL,
+                sessionId: obterOuCriarSessionId('almafluxo_solution_session_a', 'solution_a'),
+                processando: false
+            },
+            b: {
+                proxy: PROXY_R5FIT,
+                sessionId: obterOuCriarSessionId('almafluxo_solution_session_b', 'solution_b'),
+                processando: false
+            }
+        };
+
+        function obterOuCriarSessionId(chave, prefixo) {
+            let sid = localStorage.getItem(chave);
+            if (!sid) {
+                sid = prefixo + "_" + Date.now() + "_" + Math.random().toString(36).substring(2, 8);
+                localStorage.setItem(chave, sid);
+            }
+            return sid;
+        }
+
+        async function enviarParaIA(canalId, mensagem) {
+            const canal = CANAIS[canalId];
+            canal.processando = true;
+            document.getElementById(`chatSendBtn_${canalId}`).disabled = true;
+            showTyping(canalId);
+
+            try {
+                let numeroRespostasAntes = 0;
+                try {
+                    const respAntes = await fetch(`${canal.proxy}?action=getChatAtendente&leadId=${canal.sessionId}`);
+                    const dataAntes = await respAntes.json();
+                    const mensagensAntes = dataAntes.conversas?.[canal.sessionId]?.mensagens || [];
+                    numeroRespostasAntes = mensagensAntes.filter(m => m.de === 'atendente').length;
+                } catch (e) {
+                    console.log(`ℹ️ [${canalId}] Primeira mensagem - sem histórico`);
+                }
+
+                await fetch(canal.proxy, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'saveChatAtendente',
+                        leadId: canal.sessionId,
+                        nomeLead: 'Visitante Solutions',
+                        de: 'lead',
+                        texto: mensagem,
+                        origem: 'almafluxo_solutions'
+                    })
+                });
+
+                let resposta = null;
+                const MAX_TENTATIVAS = 20;
+
+                for (let tentativa = 0; tentativa < MAX_TENTATIVAS && !resposta; tentativa++) {
+                    await new Promise(r => setTimeout(r, 3000));
+
+                    try {
+                        const resp = await fetch(`${canal.proxy}?action=getChatAtendente&leadId=${canal.sessionId}`);
+                        const data = await resp.json();
+                        const mensagens = data.conversas?.[canal.sessionId]?.mensagens || [];
+                        const mensagensAtendente = mensagens.filter(m => m.de === 'atendente');
+
+                        if (mensagensAtendente.length > numeroRespostasAntes) {
+                            const ultimaAtendente = mensagensAtendente[mensagensAtendente.length - 1];
+                            if (ultimaAtendente.texto &&
+                                !ultimaAtendente.texto.includes('Desculpe') &&
+                                ultimaAtendente.texto !== resposta) {
+                                resposta = ultimaAtendente.texto;
+                            }
+                        }
+                    } catch (e) {
+                        console.log(`⏳ [${canalId}] Aguardando resposta...`);
+                    }
+                }
+
+                removeTyping(canalId);
+
+                if (resposta) {
+                    addMessage(canalId, 'ai', resposta);
+                } else {
+                    addMessage(canalId, 'ai', gerarRespostaLocal(mensagem));
+                }
+
+            } catch (e) {
+                removeTyping(canalId);
+                console.error(`❌ [${canalId}] Erro:`, e);
+                mostrarToastOlho('❌ Erro ao enviar mensagem');
+            } finally {
+                removeTyping(canalId);
+                canal.processando = false;
+                document.getElementById(`chatSendBtn_${canalId}`).disabled = false;
+                document.getElementById(`chatInput_${canalId}`).focus();
+            }
+        }
+
+        function addMessage(canalId, tipo, texto) {
+            const c = document.getElementById(`chatMessages_${canalId}`);
+            const d = document.createElement('div');
+            d.className = `message-olho ${tipo === 'user' ? 'user' : 'ai'}`;
+            d.textContent = texto;
+            c.appendChild(d);
+            c.scrollTop = c.scrollHeight;
+        }
+
+        function showTyping(canalId) {
+            const c = document.getElementById(`chatMessages_${canalId}`);
+            const t = document.createElement('div');
+            t.className = 'message-olho ai';
+            t.id = `typingIndicator_${canalId}`;
+            t.innerHTML = '<div class="typing-indicator-olho"><div class="typing-dot-olho"></div><div class="typing-dot-olho"></div><div class="typing-dot-olho"></div></div>';
+            c.appendChild(t);
+            c.scrollTop = c.scrollHeight;
+        }
+
+        function removeTyping(canalId) {
+            const t = document.getElementById(`typingIndicator_${canalId}`);
+            if (t) t.remove();
+        }
+
+        async function enviarMensagem(canalId) {
+            const input = document.getElementById(`chatInput_${canalId}`);
+            const texto = input.value.trim();
+            if (!texto || CANAIS[canalId].processando) return;
+            addMessage(canalId, 'user', texto);
+            input.value = '';
+            await enviarParaIA(canalId, texto);
+        }
+
+        function enviarSugestaoCanal(canalId, texto) {
+            if (CANAIS[canalId].processando) return;
+            addMessage(canalId, 'user', texto);
+            enviarParaIA(canalId, texto);
+        }
+
+        function escolherAtendente(canalId) {
+            const outro = canalId === 'a' ? 'b' : 'a';
+            document.getElementById(`pickBtn_${canalId}`).classList.add('escolhido');
+            document.getElementById(`pickBtn_${outro}`).classList.remove('escolhido');
+
+            const nome = canalId === 'a' ? 'Atendente A' : 'Atendente B';
+            const resultado = document.getElementById('compareResultado');
+            const textoResultado = document.getElementById('compareResultadoTexto');
+            textoResultado.textContent = `Boa escolha! Foi assim que uma Célula de Atendimento IA da AlmaFluxo conversaria com o seu cliente, 24h por dia. Bora configurar uma pro seu negócio?`;
+            resultado.classList.add('visivel');
+            resultado.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // marca a preferência como um lead leve, sem travar a experiência
+            // se a chamada falhar (não é crítico pro fluxo do visitante)
+            try {
+                fetch(PROXY_R5FIT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'saveLead',
+                        id: 'LEAD_' + sessionIdChat,
+                        origem: 'almafluxo_solutions',
+                        interesse: `Preferiu o ${nome} na comparação de atendimento`,
+                        status_lead: 'NOVO'
+                    })
+                }).catch(() => {});
+            } catch (e) {}
+        }
+
+        // ======================================================
         // CONTRATAÇÃO
         // ======================================================
         function iniciarContratacao() {
@@ -807,6 +1146,12 @@
                 if (document.getElementById('chatMessagesOlho').children.length === 0) {
                     addMessageOlho('ai', '👋 Olá! Sou o assistente virtual da AlmaFluxo. Como posso ajudar você hoje?\n\nPosso falar sobre:\n🤖 Células de Atendimento IA\n💻 Sites e Plataformas\n📊 Sistemas de Gestão\n🎨 Design & Identidade\n\nO que você gostaria de saber?');
                 }
+                ['a', 'b'].forEach(canalId => {
+                    const container = document.getElementById(`chatMessages_${canalId}`);
+                    if (container && container.children.length === 0) {
+                        addMessage(canalId, 'ai', '👋 Oi! Manda sua dúvida sobre Células de Atendimento IA, sites, sistemas ou preços — e compare com o outro atendente ao lado.');
+                    }
+                });
             }, 500);
         });
     </script>
