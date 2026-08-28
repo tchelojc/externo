@@ -1083,7 +1083,7 @@
     <div class="faq-card">
       <h3 class="card-title">💰 Preço Justo <span class="status-badge">Online</span></h3>
       <p class="card-description">
-        Plataforma colaborativa de comparação de preços de supermercado. Envie preços com foto da etiqueta, ajude sua comunidade a economizar e descubra onde está o menor preço dos它 produtos do dia a dia.
+        Plataforma colaborativa de comparação de preços de supermercado. Envie preços com foto da etiqueta, ajude sua comunidade a economizar e descubra onde está o menor preço dos produtos do dia a dia.
       </p>
       <div class="card-actions">
         <a href="https://tchelojc.github.io/preco_justo/index.html" target="_blank" class="card-link">Acessar Preço Justo</a>
@@ -1632,7 +1632,7 @@
             <button class="card-link" onclick="window.open('https://almafluxo.uk', '_blank')" style="background:rgba(212,168,67,0.35); border:none; cursor:pointer;">
               🔗 Portal Principal · almafluxo.uk
             </button>
-            <button class="card-link light" onclick="window.open('https://almafluxo.uk/contato', '_blank')" style="border:none; cursor:pointer; font-size:0.83rem;">
+            <button class="card-link light" onclick="window.open('https://almafluxo.uk/pagamentos', '_blank')" style="border:none; cursor:pointer; font-size:0.83rem;">
               📩 Contato & Licenças
             </button>
           </div>
@@ -1993,6 +1993,215 @@
       }
     }
 
+    // ═══════════════════════════════════════════════
+    // ATENDIMENTO ALMAFLUXO — IA NO RODAPÉ
+    // ═══════════════════════════════════════════════
+    const PROXY_INFOCELL_ALMA = 'https://almafluxo.uk/proxy/infocell'; // DeepSeek
+    const PROXY_R5FIT_ALMA = 'https://almafluxo.uk/proxy/r5fit';       // Dola (backup)
+
+    let sessionIdAtendimentoAlma = localStorage.getItem('almafluxo_portal_session');
+    if (!sessionIdAtendimentoAlma) {
+        sessionIdAtendimentoAlma = "portal_" + Date.now() + "_" + Math.random().toString(36).substring(2, 8);
+        localStorage.setItem('almafluxo_portal_session', sessionIdAtendimentoAlma);
+    }
+
+    let isProcessingAtendimentoAlma = false;
+
+    // ── Função principal: envia a mensagem para o Worker e aguarda resposta ──
+    async function enviarParaIAAlma(mensagem) {
+        isProcessingAtendimentoAlma = true;
+        const botao = document.getElementById('atendimentoSendAlma');
+        if (botao) botao.disabled = true;
+        mostrarDigitandoAlma();
+
+        try {
+            // 1) Conta quantas respostas da IA já existem antes de enviar
+            let numeroRespostasAntes = 0;
+            try {
+                const respAntes = await fetch(`${PROXY_INFOCELL_ALMA}?action=getChatAtendente&leadId=${sessionIdAtendimentoAlma}`);
+                const dataAntes = await respAntes.json();
+                const mensagensAntes = dataAntes.conversas?.[sessionIdAtendimentoAlma]?.mensagens || [];
+                numeroRespostasAntes = mensagensAntes.filter(m => m.de === 'atendente').length;
+            } catch (e) {
+                console.log('ℹ️ Primeira mensagem - sem histórico');
+            }
+
+            // 2) Salva a mensagem do usuário (lead)
+            await fetch(PROXY_INFOCELL_ALMA, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'saveChatAtendente',
+                    leadId: sessionIdAtendimentoAlma,
+                    nomeLead: 'Visitante Portal ALMAFLUXO',
+                    de: 'lead',
+                    texto: mensagem,
+                    origem: 'almafluxo_solutions'  // mesmo origem do solution.html
+                })
+            });
+
+            // 3) Polling: aguarda a resposta da IA (máx. 60s)
+            let resposta = null;
+            const MAX_TENTATIVAS = 20; // 20 x 3s = 60s
+            for (let tentativa = 0; tentativa < MAX_TENTATIVAS && !resposta; tentativa++) {
+                await new Promise(r => setTimeout(r, 3000));
+                try {
+                    const resp = await fetch(`${PROXY_INFOCELL_ALMA}?action=getChatAtendente&leadId=${sessionIdAtendimentoAlma}`);
+                    const data = await resp.json();
+                    const mensagens = data.conversas?.[sessionIdAtendimentoAlma]?.mensagens || [];
+                    const mensagensAtendente = mensagens.filter(m => m.de === 'atendente');
+
+                    if (mensagensAtendente.length > numeroRespostasAntes) {
+                        const ultimaAtendente = mensagensAtendente[mensagensAtendente.length - 1];
+                        if (ultimaAtendente.texto &&
+                            !ultimaAtendente.texto.includes('Desculpe') &&
+                            ultimaAtendente.texto !== resposta) {
+                            resposta = ultimaAtendente.texto;
+                        }
+                    }
+                } catch (e) {
+                    console.log('⏳ Aguardando resposta...');
+                }
+            }
+
+            removeDigitandoAlma();
+
+            if (resposta) {
+                adicionarMensagemAtendimentoAlma(resposta, 'ai');
+            } else {
+                // Fallback local somente se a IA não responder
+                adicionarMensagemAtendimentoAlma(gerarRespostaLocalAlma(mensagem), 'ai');
+            }
+
+        } catch (e) {
+            removeDigitandoAlma();
+            console.error('❌ Erro no atendimento IA:', e);
+            adicionarMensagemAtendimentoAlma('⚠️ Erro de conexão. Tente novamente.', 'ai');
+        } finally {
+            removeDigitandoAlma();
+            isProcessingAtendimentoAlma = false;
+            const botao = document.getElementById('atendimentoSendAlma');
+            if (botao) botao.disabled = false;
+            const input = document.getElementById('atendimentoInputAlma');
+            if (input) input.focus();
+        }
+    }
+
+    // ── Fallback local (caso o Worker esteja offline) ──
+    function gerarRespostaLocalAlma(mensagem) {
+        const msg = mensagem.toLowerCase();
+        if (msg.includes('pag') || msg.includes('pix') || msg.includes('cartão') || msg.includes('valor') || msg.includes('preço') || msg.includes('licença')) {
+            return "💳 **Pagamentos no ALMAFLUXO**\n\n" +
+                "Todas as plataformas pagas usam o sistema de licenças. Você pode pagar via:\n" +
+                "• PIX\n• Cartão de crédito\n• TOKEN-ALMA (moeda interna)\n\n" +
+                "Após o pagamento, você recebe um e-mail com a senha de acesso. " +
+                "A licença fica vinculada ao seu e-mail e pode ser validada na hora de acessar a plataforma.";
+        }
+        if (msg.includes('ecossistema') || msg.includes('o que é') || msg.includes('almafluxo') || msg.includes('plataforma')) {
+            return "🌐 **O que é o ecossistema ALMAFLUXO?**\n\n" +
+                "É um sistema integrado que une:\n" +
+                "• Filosofia e autoconhecimento\n" +
+                "• Matemática sagrada e física quântica\n" +
+                "• Trading esportivo com hedge dinâmico\n" +
+                "• Ferramentas de criação (vídeo, áudio, QR code)\n" +
+                "• Literatura filosófica (7 livros do Fluxo)\n\n" +
+                "Tudo conectado pela mesma base: a consciência do observador.";
+        }
+        if (msg.includes('célula') || msg.includes('celula') || msg.includes('ia') || msg.includes('atendimento')) {
+            return "🤖 **Células de Atendimento IA**\n\n" +
+                "Cada plataforma ALMAFLUXO possui uma 'Célula' — um módulo de IA treinado " +
+                "especificamente para aquele contexto.\n\n" +
+                "Para criar uma Célula personalizada para o seu negócio, acesse:\n" +
+                "**almafluxo.uk/celulas**";
+        }
+        return "🤔 Não tenho certeza se entendi. Posso te ajudar com pagamentos, ecossistema, células IA, livros ou ferramentas.";
+    }
+
+    // ── Funções de interface (mesmos nomes já usados no HTML) ──
+    function adicionarMensagemAtendimentoAlma(texto, tipo) {
+        const container = document.getElementById('atendimentoMessagesAlma');
+        if (!container) return;
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `message-olho ${tipo}`;
+        msgDiv.textContent = texto;
+        container.appendChild(msgDiv);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function mostrarDigitandoAlma() {
+        const container = document.getElementById('atendimentoMessagesAlma');
+        if (!container) return;
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'message-olho ai';
+        typingDiv.id = 'typingIndicatorAlma';
+        typingDiv.innerHTML = '<div class="typing-indicator-alma"><div class="typing-dot-alma"></div><div class="typing-dot-alma"></div><div class="typing-dot-alma"></div></div>';
+        container.appendChild(typingDiv);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function removerDigitandoAlma() {
+        const typing = document.getElementById('typingIndicatorAlma');
+        if (typing) typing.remove();
+    }
+
+    async function enviarMensagemAtendimentoAlma() {
+        const input = document.getElementById('atendimentoInputAlma');
+        const botao = document.getElementById('atendimentoSendAlma');
+        if (!input || isProcessingAtendimentoAlma) return;
+        const texto = input.value.trim();
+        if (!texto) return;
+        adicionarMensagemAtendimentoAlma(texto, 'user');
+        input.value = '';
+        input.focus();
+        await enviarParaIAAlma(texto);
+    }
+
+    async function enviarSugestaoAtendimentoAlma(sugestao) {
+        const input = document.getElementById('atendimentoInputAlma');
+        if (input) input.value = sugestao;
+        await enviarMensagemAtendimentoAlma();
+    }
+
+    document.getElementById('enviar-atendimento-prompt')?.addEventListener('click', async function() {
+        const prompt = almaState.generatedPrompt;
+        if (!prompt) {
+            mostrarNotificacaoAtendimento('⚠️ Gere um prompt primeiro!');
+            return;
+        }
+        document.getElementById('almafluxo-modal').style.display = 'none';
+        const input = document.getElementById('atendimentoInputAlma');
+        if (input) input.value = prompt;
+        await enviarMensagemAtendimentoAlma();
+        document.getElementById('faq-section')?.scrollIntoView({ behavior: 'smooth' });
+        mostrarNotificacaoAtendimento('🚀 Prompt enviado ao Atendimento!');
+    });
+
+    function mostrarNotificacaoAtendimento(texto) {
+        const notif = document.getElementById('notificationAtendimento');
+        if (notif) {
+            notif.textContent = texto;
+            notif.classList.add('show');
+            setTimeout(() => notif.classList.remove('show'), 3000);
+        }
+    }
+
+    function iniciarAtendimentoAlma() {
+        const container = document.getElementById('atendimentoMessagesAlma');
+        if (container && container.children.length === 0) {
+            adicionarMensagemAtendimentoAlma(
+                "👋 Olá! Sou o assistente virtual do ecossistema ALMAFLUXO.\n\n" +
+                "Posso ajudar com:\n" +
+                "• 💳 Pagamentos e licenças\n" +
+                "• 🌐 Informações sobre o ecossistema\n" +
+                "• 🤖 Células de Atendimento IA\n" +
+                "• 📖 Os 7 livros do Fluxo\n" +
+                "• 🔧 Ferramentas disponíveis\n\n" +
+                "Como posso ajudar hoje?",
+                'ai'
+            );
+        }
+    }
+
     // ══ AUTENTICAÇÃO E LICENÇAS ══
     const _0x9f2e = [
       'https://script.google.com/macros/s/AKfycbyNaU1OJq-f2P8Jr4iwVjXThhYqQ7slNkFr2UzSj5dEAPSWdOCpwSVMWmF7JcYtEKrp/exec',
@@ -2256,6 +2465,7 @@
       document.querySelectorAll('.nav-item').forEach(btn => { btn.addEventListener('click', () => { _navLocked = true; setTimeout(() => { _navLocked = false; }, 600); }); });
     })();
 
+    // Init
     // Init
     initMic();
     _updateBadge();
