@@ -1161,10 +1161,11 @@
         async function consultarSaldoOlho(email, sessionToken) {
             try {
                 console.log('💰 [SALDO] Consultando saldo para:', email);
-                const response = await fetch('https://almafluxo.uk/economy/saldo', {
+                const response = await fetch('https://almafluxo.uk/proxy/central', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
+                        action: 'consultarSaldo',
                         email: email,
                         sessionToken: sessionToken,
                         tk: TOKEN_INTERNO
@@ -1190,10 +1191,11 @@
         async function debitarTokensOlho(email, quantidade, sessionToken) {
             try {
                 console.log('💳 [DÉBITO] Debitando', quantidade, 'tokens de:', email);
-                const response = await fetch('https://almafluxo.uk/economy/debitar', {
+                const response = await fetch('https://almafluxo.uk/proxy/central', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
+                        action: 'debitarTokens',
                         email: email,
                         quantidade: quantidade,
                         plataforma: 'olhodedeus',
