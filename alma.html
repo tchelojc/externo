@@ -1996,8 +1996,10 @@
     // ═══════════════════════════════════════════════
     // ATENDIMENTO ALMAFLUXO — IA NO RODAPÉ
     // ═══════════════════════════════════════════════
-    const PROXY_BOTECO = 'https://almafluxo.uk/proxy/boteco';// DeepSeek
-    const PROXY_R5FIT_ALMA = 'https://almafluxo.uk/proxy/r5fit';       // Dola (backup)
+    // ═══════════════════════════════════════════════
+    // CONFIGURAÇÃO DA ROTA DO ATENDIMENTO
+    // ═══════════════════════════════════════════════
+    const PROXY_DOLA_ALMA = 'https://almafluxo.uk/proxy/r5fit'; // Dola (servidor8080)
 
     let sessionIdAtendimentoAlma = localStorage.getItem('almafluxo_portal_session');
     if (!sessionIdAtendimentoAlma) {
@@ -2007,7 +2009,6 @@
 
     let isProcessingAtendimentoAlma = false;
 
-    // ── Função principal: envia a mensagem para o Worker e aguarda resposta ──
     async function enviarParaIAAlma(mensagem) {
         isProcessingAtendimentoAlma = true;
         const botao = document.getElementById('atendimentoSendAlma');
@@ -2015,10 +2016,10 @@
         mostrarDigitandoAlma();
 
         try {
-            // 1) Conta quantas respostas da IA já existem antes de enviar
+            // 1) Conta respostas anteriores
             let numeroRespostasAntes = 0;
             try {
-                const respAntes = await fetch(`${PROXY_INFOCELL_ALMA}?action=getChatAtendente&leadId=${sessionIdAtendimentoAlma}`);
+                const respAntes = await fetch(`${PROXY_DOLA_ALMA}?action=getChatAtendente&leadId=${sessionIdAtendimentoAlma}`);
                 const dataAntes = await respAntes.json();
                 const mensagensAntes = dataAntes.conversas?.[sessionIdAtendimentoAlma]?.mensagens || [];
                 numeroRespostasAntes = mensagensAntes.filter(m => m.de === 'atendente').length;
@@ -2026,8 +2027,8 @@
                 console.log('ℹ️ Primeira mensagem - sem histórico');
             }
 
-            // 2) Salva a mensagem do usuário (lead)
-            await fetch(PROXY_INFOCELL_ALMA, {
+            // 2) Salva mensagem do usuário
+            await fetch(PROXY_DOLA_ALMA, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -2036,17 +2037,17 @@
                     nomeLead: 'Visitante Portal ALMAFLUXO',
                     de: 'lead',
                     texto: mensagem,
-                    origem: 'almafluxo_solutions'  // mesmo origem do solution.html
+                    origem: 'almafluxo_solutions'
                 })
             });
 
-            // 3) Polling: aguarda a resposta da IA (máx. 60s)
+            // 3) Polling para resposta
             let resposta = null;
-            const MAX_TENTATIVAS = 20; // 20 x 3s = 60s
+            const MAX_TENTATIVAS = 20;
             for (let tentativa = 0; tentativa < MAX_TENTATIVAS && !resposta; tentativa++) {
                 await new Promise(r => setTimeout(r, 3000));
                 try {
-                    const resp = await fetch(`${PROXY_INFOCELL_ALMA}?action=getChatAtendente&leadId=${sessionIdAtendimentoAlma}`);
+                    const resp = await fetch(`${PROXY_DOLA_ALMA}?action=getChatAtendente&leadId=${sessionIdAtendimentoAlma}`);
                     const data = await resp.json();
                     const mensagens = data.conversas?.[sessionIdAtendimentoAlma]?.mensagens || [];
                     const mensagensAtendente = mensagens.filter(m => m.de === 'atendente');
@@ -2064,10 +2065,8 @@
                 }
             }
 
-            // Remove o indicador de digitação
             removerDigitandoAlma();
 
-            // Exibe a resposta (ou fallback se não houver)
             if (resposta) {
                 adicionarMensagemAtendimentoAlma(resposta, 'ai');
             } else {
@@ -2075,18 +2074,14 @@
             }
 
         } catch (e) {
-            // Em caso de erro geral, remove o indicador e mostra mensagem de erro
             removerDigitandoAlma();
             console.error('❌ Erro no atendimento IA:', e);
             adicionarMensagemAtendimentoAlma('⚠️ Erro de conexão. Tente novamente.', 'ai');
         } finally {
-            // Garante que o indicador de digitação sempre seja removido
             removerDigitandoAlma();
             isProcessingAtendimentoAlma = false;
-
             const botao = document.getElementById('atendimentoSendAlma');
             if (botao) botao.disabled = false;
-
             const input = document.getElementById('atendimentoInputAlma');
             if (input) input.focus();
         }
