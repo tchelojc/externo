@@ -88,8 +88,7 @@
         // CONFIGURAÇÃO
         // ═══════════════════════════════════════════════════════════
         const WORKER_URL = 'https://almafluxo.uk';
-        const LOGIN_URL = 'https://almafluxo.uk/olhodedeus?erro=sessao_nao_encontrada';
-        const TOKEN_INTERNO = 'ALMA369UA';
+        const LOGIN_URL = 'https://almafluxo.uk/proxy/central';
         
         async function carregar() {
             const spinner = document.getElementById('spinner');
@@ -99,35 +98,17 @@
             const btnEnter = document.getElementById('btnEnter');
             
             try {
-                // PASSO 1: Verifica sessão (URL primeiro, depois localStorage)
-                let usuario = null;
-                
-                // Tentar pegar da URL primeiro
-                const urlParams = new URLSearchParams(window.location.search);
-                const emailURL = urlParams.get('email');
-                const tokenURL = urlParams.get('sessionToken');
-                
-                if (emailURL && tokenURL) {
-                    console.log('✅ [SESSÃO] Obtida da URL:', emailURL);
-                    usuario = { email: emailURL, sessionToken: tokenURL };
-                    localStorage.setItem('olho_de_deus_usuario', JSON.stringify(usuario));
-                } else {
-                    // Fallback: localStorage
-                    const sessao = localStorage.getItem('olho_de_deus_usuario');
-                    if (!sessao) {
-                        console.error('❌ [SESSÃO] Nenhuma sessão encontrada');
-                        window.location.href = LOGIN_URL;
-                        return;
-                    }
-                    usuario = JSON.parse(sessao);
-                    console.log('✅ [SESSÃO] Obtida do localStorage:', usuario.email);
+                // PASSO 1: Verifica sessão no localStorage
+                const sessao = localStorage.getItem('olho_de_deus_usuario');
+                if (!sessao) {
+                    window.location.href = LOGIN_URL;
+                    return;
                 }
                 
-                // PASSO 2: Valida acesso via /proxy/central (que funciona)
-                status.textContent = 'Validando acesso...';
-                console.log('🔍 [VALIDAÇÃO] Verificando acesso para:', usuario.email);
+                const usuario = JSON.parse(sessao);
                 
-                // ✅ CORREÇÃO: Usar /proxy/central (MESMO que funcionou no login)
+                // PASSO 2: Valida acesso no servidor
+                status.textContent = 'Validando acesso...';
                 const response = await fetch(`${WORKER_URL}/proxy/central`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -135,22 +116,11 @@
                         action: 'verificarAcesso',
                         email: usuario.email,
                         plataforma: 'olhodedeus',
-                        sessionToken: usuario.sessionToken,
-                        tk: TOKEN_INTERNO
+                        sessionToken: usuario.sessionToken
                     })
                 });
                 
-                console.log('📡 [VALIDAÇÃO] Status:', response.status);
-                
-                const textResponse = await response.text();
-                console.log('📄 [VALIDAÇÃO] Resposta bruta:', textResponse.substring(0, 200));
-                
-                let data;
-                try {
-                    data = JSON.parse(textResponse);
-                } catch (e) {
-                    throw new Error('Resposta inválida do servidor');
-                }
+                const data = await response.json();
                 
                 if (!data.ok || !data.acessoPermitido) {
                     throw new Error(data.error || 'Acesso negado');
@@ -164,8 +134,7 @@
                 btnEnter.style.display = 'inline-block';
                 
             } catch (e) {
-                console.error('❌ [VALIDAÇÃO] Erro:', e.message);
-                window.location.href = LOGIN_URL;
+                window.location.href = `${LOGIN_URL}?erro=${encodeURIComponent(e.message)}`;
             }
         }
         
@@ -183,97 +152,56 @@
                 const sessao = localStorage.getItem('olho_de_deus_usuario');
                 const usuario = JSON.parse(sessao);
                 
-                console.log('📡 [PLATAFORMA] Buscando HTML...');
-                
-                // ✅ CORREÇÃO: Buscar HTML via /proxy/central sem expor ID
+                // Busca o HTML do Drive via Worker
                 const response = await fetch(`${WORKER_URL}/proxy/central`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        action: 'buscarConteudoPlataforma',
-                        plataforma: 'olhodedeus',
-                        email: usuario.email,
-                        sessionToken: usuario.sessionToken,
-                        tk: TOKEN_INTERNO
+                        action: 'servirHTML',
+                        arquivoId: '16hKYZNJvXkWfk3FrW0gPXWMz0XSx_bFH'
                     })
                 });
                 
-                console.log('📡 [PLATAFORMA] Status:', response.status);
-                
-                const textResponse = await response.text();
-                console.log('📄 [PLATAFORMA] Tamanho:', textResponse.length);
-                
-                let data;
-                try {
-                    data = JSON.parse(textResponse);
-                } catch (e) {
-                    throw new Error('Resposta inválida');
+                if (!response.ok) {
+                    throw new Error('Servidor retornou status ' + response.status);
                 }
                 
-                if (data.ok && data.html) {
-                    // Exibe o HTML no iframe
+                const html = await response.text();
+                
+                if (html.includes('<!DOCTYPE') || html.includes('<html')) {
                     status.textContent = 'Plataforma carregada!';
-                    btnEnter.textContent = '✅ Carregado';
-                    btnEnter.disabled = true;
                     
+                    // 🔥 CORREÇÃO: Usar iframe em vez de document.write
+                    // Cria um iframe em tela cheia
                     const iframe = document.createElement('iframe');
-                    iframe.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:9999;background:#030508;';
-                    iframe.srcdoc = data.html;
+                    iframe.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:9999;';
+                    iframe.srcdoc = html;
                     
+                    // Remove o container original
                     document.getElementById('container').style.display = 'none';
+                    
+                    // Adiciona o iframe
                     document.body.appendChild(iframe);
                     
+                    // Listener para mensagens do iframe
                     window.addEventListener('message', function(event) {
                         if (event.data === 'fechar-plataforma') {
                             iframe.remove();
                             document.getElementById('container').style.display = '';
-                            btnEnter.textContent = '▶ Entrar no Olho De Deus';
-                            btnEnter.disabled = false;
+                        }
+                        if (event.data === 'voltar-login') {
+                            window.location.href = LOGIN_URL;
                         }
                     });
                 } else {
-                    throw new Error(data.error || 'Erro ao carregar conteúdo');
+                    throw new Error('Conteúdo inválido retornado');
                 }
                 
             } catch (e) {
-                console.error('❌ [PLATAFORMA] Erro:', e.message);
                 btnEnter.textContent = '▶ Entrar no Olho De Deus';
                 btnEnter.disabled = false;
-                status.textContent = 'Erro ao carregar.';
-                alert('Erro: ' + e.message);
+                alert('Erro ao carregar plataforma: ' + e.message);
             }
-        }
-
-        function exibirPlataforma(html, status, btnEnter) {
-            status.textContent = 'Plataforma carregada!';
-            btnEnter.textContent = '✅ Carregado';
-            btnEnter.disabled = true;
-            
-            console.log('✅ [PLATAFORMA] Exibindo HTML no iframe');
-            
-            // Cria um iframe em tela cheia
-            const iframe = document.createElement('iframe');
-            iframe.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:9999;background:#030508;';
-            iframe.srcdoc = html;  // ✅ Carrega o HTML DENTRO do iframe
-            
-            // Remove o container original
-            document.getElementById('container').style.display = 'none';
-            
-            // Adiciona o iframe
-            document.body.appendChild(iframe);
-            
-            // Listener para mensagens do iframe
-            window.addEventListener('message', function(event) {
-                if (event.data === 'fechar-plataforma') {
-                    iframe.remove();
-                    document.getElementById('container').style.display = '';
-                    btnEnter.textContent = '▶ Entrar no Olho De Deus';
-                    btnEnter.disabled = false;
-                }
-                if (event.data === 'voltar-login') {
-                    window.location.href = LOGIN_URL;
-                }
-            });
         }
         
         carregar();
