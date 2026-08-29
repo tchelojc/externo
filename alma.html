@@ -2064,24 +2064,29 @@
                 }
             }
 
-            removeDigitandoAlma();
+            // Remove o indicador de digitação
+            removerDigitandoAlma();
 
+            // Exibe a resposta (ou fallback se não houver)
             if (resposta) {
                 adicionarMensagemAtendimentoAlma(resposta, 'ai');
             } else {
-                // Fallback local somente se a IA não responder
                 adicionarMensagemAtendimentoAlma(gerarRespostaLocalAlma(mensagem), 'ai');
             }
 
         } catch (e) {
-            removeDigitandoAlma();
+            // Em caso de erro geral, remove o indicador e mostra mensagem de erro
+            removerDigitandoAlma();
             console.error('❌ Erro no atendimento IA:', e);
             adicionarMensagemAtendimentoAlma('⚠️ Erro de conexão. Tente novamente.', 'ai');
         } finally {
-            removeDigitandoAlma();
+            // Garante que o indicador de digitação sempre seja removido
+            removerDigitandoAlma();
             isProcessingAtendimentoAlma = false;
+
             const botao = document.getElementById('atendimentoSendAlma');
             if (botao) botao.disabled = false;
+
             const input = document.getElementById('atendimentoInputAlma');
             if (input) input.focus();
         }
