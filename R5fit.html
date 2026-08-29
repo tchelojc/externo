@@ -850,7 +850,7 @@
             </div>
 
             <div class="always-wpp">
-                💬 <a href="#" id="wppLinkBottom" target="_blank">Chamar no WhatsApp</a>
+                💬 <a href="#" id="wppLinkBottom" target="_blank" onclick="notificarCliqueWhatsappViaAtendimento()">Chamar no WhatsApp</a>
             </div>
         </div>
     </div>
@@ -1399,7 +1399,8 @@
                 'getArquivoDrive',
                 'obterEvolucaoCliente',
                 'registrarEvolucaoCliente',
-                'obterUsuarioCompleto'
+                'obterUsuarioCompleto',
+                'notificarCliqueWhatsapp'
             ];
 
             // 🔥 NOVA FUNÇÃO: detecta se está no computador ou dispositivo remoto
@@ -1666,7 +1667,28 @@
 
     function botoesResposta() {
         return `<div style="text-align:center;margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
-            <a href="https://wa.me/${WHATSAPP}" target="_blank" class="wpp-btn-inline">WhatsApp</a></div>`;
+            <a href="https://wa.me/${WHATSAPP}" target="_blank" class="wpp-btn-inline" onclick="notificarCliqueWhatsappViaAtendimento()">WhatsApp</a></div>`;
+    }
+
+    // 🔥 NOVO: dispara em qualquer clique num botão de WhatsApp dentro do
+    // atendimento - avisa a academia (via lead na aba Leads do painel) com
+    // o nome do cliente, se ele já tiver dado (no formulário inicial ou
+    // durante a própria conversa). Não bloqueia o clique - o WhatsApp abre
+    // normalmente mesmo se a notificação falhar ou demorar.
+    function notificarCliqueWhatsappViaAtendimento() {
+        let nomeCliente = '';
+        try {
+            const perfilSalvo = JSON.parse(localStorage.getItem('r5fit_lead_perfil') || '{}');
+            if (perfilSalvo.nome && perfilSalvo.nome !== 'Visitante') {
+                nomeCliente = perfilSalvo.nome;
+            }
+        } catch (e) { /* sem perfil salvo ainda, segue sem nome */ }
+
+        callAPI('notificarCliqueWhatsapp', {
+            leadId: sessionId,
+            nomeCliente: nomeCliente,
+            whatsapp: (JSON.parse(localStorage.getItem('r5fit_lead_perfil') || '{}').whatsapp) || ''
+        }, 'POST').catch(e => console.log('⚠️ Erro ao notificar clique WhatsApp:', e.message));
     }
 
     function abrirChat() {
