@@ -3,1147 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALMAFLUXO — Pagamento & Cadastro Biométrico</title>
-    
-    <!-- Dependências -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
-    
-    <!-- Fontes -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
-    
+    <title>ALMAFLUXO — Pagamentos</title>
     <style>
-        /* ============================
-           RESET & VARIÁVEIS
-           ============================ */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
         :root {
-            --ciano: #00e5ff;
-            --dourado: #ffd700;
-            --verde: #00e676;
-            --bg: #030508;
-            --panel: #0a0e17;
-            --panel2: #060a12;
-            --texto: #e0e0e0;
-            --texto2: #888;
-            --border: #1a1a2e;
-            --input-bg: #0d1220;
-            --success: #00e676;
-            --error: #ff6b6b;
-            --primary: #6c5ce7;
-            --font: 'Inter', sans-serif;
-            --body: 'Nunito', sans-serif;
+            --bg: #0a0a0f; --gold: #d4a843;
+            --text: #e0e0e0; --text-secondary: #a0a0b0;
         }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: var(--body);
-            background: var(--bg);
-            color: var(--texto);
-            min-height: 100vh;
-            background-image: 
-                radial-gradient(ellipse at 50% 0%, rgba(0,229,255,0.06) 0%, transparent 70%),
-                radial-gradient(ellipse at 80% 100%, rgba(255,215,0,0.04) 0%, transparent 60%);
-            line-height: 1.5;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg); color: var(--text); min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
         }
-
-        .container {
-            max-width: 520px;
-            margin: 0 auto;
-            padding: 20px;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Header */
-        .header {
-            text-align: center;
-            padding: 30px 0 20px;
-        }
-
+        .loading-container { text-align: center; padding: 40px; }
         .logo {
-            font-family: var(--font);
-            font-size: 2rem;
-            font-weight: 900;
-            background: linear-gradient(135deg, var(--dourado), #fff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: 2px;
+            font-size: 2rem; font-weight: 700;
+            background: linear-gradient(135deg, var(--gold), #f0d078);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            letter-spacing: 2px; margin-bottom: 20px;
         }
-
-        .subtitle {
-            color: var(--texto2);
-            font-size: 0.9rem;
-            margin-top: 5px;
+        .spinner {
+            width: 48px; height: 48px; border: 3px solid rgba(212,168,67,0.2);
+            border-top-color: var(--gold); border-radius: 50%;
+            animation: spin 0.8s linear infinite; margin: 0 auto 20px;
         }
-
-        /* Cards */
-        .card {
-            background: var(--panel);
-            border-radius: 20px;
-            padding: 24px;
-            margin-bottom: 16px;
-            border: 1px solid var(--border);
-            box-shadow: 0 4px 30px rgba(0,0,0,0.4);
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* Container inline (igual ao atendimento.html) */
+        #drivePageContainer {
+            position: fixed; inset: 0; z-index: 5000; background: #0a0a0a;
+            display: none; flex-direction: column;
         }
-
-        .card-title {
-            font-family: var(--font);
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-bottom: 16px;
-            color: var(--dourado);
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        #drivePageContainer.active { display: flex; }
+        #driveInlineWrapper {
+            flex: 1; overflow-y: auto; background: #0a0a0a;
+            width: 100%; height: 100%; display: flex;
+            align-items: flex-start; justify-content: center;
+            padding: 20px; box-sizing: border-box;
         }
-
-        .card-title .icon {
-            font-size: 1.3rem;
+        #driveInlineContent {
+            width: 100%; max-width: 680px; margin: 0 auto;
+            background: transparent; position: relative; color: #ece8f8;
         }
-
-        /* Inputs */
-        .input-group {
-            margin-bottom: 14px;
-        }
-
-        .input-group label {
-            display: block;
-            font-size: 0.8rem;
-            color: var(--texto2);
-            margin-bottom: 6px;
-            font-weight: 600;
-        }
-
-        .input-group input {
-            width: 100%;
-            padding: 12px 14px;
-            background: var(--input-bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            color: var(--texto);
-            font-size: 0.95rem;
-            transition: all 0.3s;
-            outline: none;
-            font-family: var(--font);
-        }
-
-        .input-group input:focus {
-            border-color: var(--ciano);
-            box-shadow: 0 0 0 3px rgba(0,229,255,0.08);
-        }
-
-        /* Botões */
-        .btn {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 50px;
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            font-family: var(--font);
-        }
-
-        .btn-gold {
-            background: linear-gradient(135deg, var(--dourado), #c8963e);
-            color: #000;
-        }
-
-        .btn-gold:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(255,215,0,0.25);
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 1px solid var(--ciano);
-            color: var(--ciano);
-        }
-
-        .btn-outline:hover {
-            background: rgba(0,229,255,0.08);
-        }
-
-        .btn-google {
-            background: #fff;
-            color: #333;
-            border: none;
-        }
-
-        .btn-google:hover {
-            background: #f0f0f0;
-        }
-
-        .btn-biometria {
-            background: linear-gradient(135deg, var(--ciano), #0088cc);
-            color: #000;
-            font-weight: 800;
-        }
-
-        .btn-biometria:hover {
-            box-shadow: 0 8px 25px rgba(0,229,255,0.2);
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* Saldo */
-        .balance-display {
-            text-align: center;
-            padding: 20px;
-            background: linear-gradient(135deg, rgba(0,229,255,0.06), rgba(255,215,0,0.04));
-            border-radius: 16px;
-            margin-bottom: 16px;
-            border: 1px solid rgba(0,229,255,0.1);
-        }
-
-        .balance-amount {
-            font-family: var(--font);
-            font-size: 2.5rem;
-            font-weight: 900;
-            color: var(--dourado);
-        }
-
-        .balance-label {
-            font-size: 0.75rem;
-            color: var(--texto2);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-weight: 700;
-        }
-
-        /* Catálogo */
-        .catalogo-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-
-        .servico-card {
-            background: var(--input-bg);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 14px;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-align: center;
-        }
-
-        .servico-card:hover {
-            border-color: var(--ciano);
-            transform: translateY(-2px);
-        }
-
-        .servico-card.selecionado {
-            border-color: var(--ciano);
-            background: rgba(0,229,255,0.06);
-            box-shadow: 0 0 15px rgba(0,229,255,0.1);
-        }
-
-        .servico-nome {
-            font-family: var(--font);
-            font-size: 0.85rem;
-            font-weight: 700;
-            margin-bottom: 4px;
-            color: #fff;
-        }
-
-        .servico-preco {
-            font-size: 0.75rem;
-            color: var(--texto2);
-        }
-
-        .servico-tokens {
-            color: var(--dourado);
-            font-weight: 700;
-        }
-
-        /* Camera */
-        .camera-container {
-            position: relative;
-            width: 100%;
-            border-radius: 14px;
-            overflow: hidden;
-            margin-bottom: 12px;
-            background: #000;
-        }
-
-        .camera-container video {
-            width: 100%;
-            display: block;
-            border-radius: 14px;
-        }
-
-        .camera-container canvas {
-            display: none;
-        }
-
-        .camera-overlay {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 200px;
-            height: 200px;
-            border: 2px dashed var(--ciano);
-            border-radius: 50%;
-            pointer-events: none;
-        }
-
-        /* Toast */
-        .toast {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 12px 24px;
-            border-radius: 50px;
-            font-weight: 700;
-            z-index: 1000;
-            animation: slideDown 0.3s ease;
-            font-family: var(--font);
-        }
-
-        .toast-success { background: var(--success); color: #000; }
-        .toast-error { background: var(--error); color: #fff; }
-
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
-            to { opacity: 1; transform: translateX(-50%) translateY(0); }
-        }
-
-        /* Tabs */
-        .tabs {
-            display: flex;
-            gap: 4px;
-            margin-bottom: 16px;
-            background: var(--input-bg);
-            border-radius: 14px;
-            padding: 4px;
-            border: 1px solid var(--border);
-        }
-
-        .tab {
-            flex: 1;
-            padding: 10px;
-            text-align: center;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            font-weight: 700;
-            transition: all 0.3s;
-            color: var(--texto2);
-            border: none;
-            background: transparent;
-            font-family: var(--font);
-        }
-
-        .tab.active {
-            background: var(--panel);
-            color: var(--dourado);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-        }
-
-        /* Status biometria */
-        .biometria-status {
-            margin-top: 12px;
-            padding: 8px;
-            border-radius: 10px;
-            font-size: 0.85rem;
-            text-align: center;
-        }
-
-        .biometria-cadastrada {
-            background: rgba(0, 230, 118, 0.08);
-            color: var(--success);
-        }
-
-        .biometria-nao-cadastrada {
-            background: rgba(255, 107, 107, 0.08);
-            color: var(--error);
-        }
-
-        /* Modal */
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(10px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 999;
-        }
-
-        .modal {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 24px;
-            max-width: 400px;
-            width: 90%;
-            text-align: center;
-            animation: fadeUp 0.3s ease;
-        }
-
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(24px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .hidden { display: none !important; }
-        .mt-2 { margin-top: 8px; }
-        .mt-3 { margin-top: 16px; }
-        .text-center { text-align: center; }
-        .text-sm { font-size: 0.8rem; }
-        .text-gold { color: var(--dourado); }
-        .text-error { color: var(--error); }
-        .text-success { color: var(--success); }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <div class="logo">ALMAFLUXO</div>
-            <div class="subtitle">Economia ALMA — Pagamento & Cadastro Biométrico</div>
-        </div>
+    <div class="loading-container" id="loadingContainer">
+        <div class="logo">ALMAFLUXO</div>
+        <div class="spinner"></div>
+        <p style="color:#a0a0b0">Carregando sistema de pagamentos...</p>
+    </div>
 
-        <!-- Toast container -->
-        <div id="toastContainer"></div>
-
-        <!-- Tabs -->
-        <div class="tabs">
-            <button class="tab active" onclick="switchTab('login')">🔑 Entrar</button>
-            <button class="tab" onclick="switchTab('cadastro')">📝 Cadastrar</button>
-            <button class="tab" onclick="switchTab('comprar')">💎 Comprar</button>
-        </div>
-
-        <!-- Painel de Login -->
-        <div id="panelLogin" class="card">
-            <div class="card-title"><span class="icon">🔑</span> Entrar na Carteira</div>
-            
-            <button class="btn btn-google mt-3" onclick="loginComGoogle()">
-                <span>G</span> Entrar com Google
-            </button>
-            
-            <div style="text-align:center; margin: 16px 0; color: var(--text-secondary);">— ou —</div>
-            
-            <div class="input-group">
-                <label>E-mail</label>
-                <input type="email" id="loginEmail" placeholder="seu@email.com">
-            </div>
-            <div class="input-group">
-                <label>Senha</label>
-                <input type="password" id="loginSenha" placeholder="Sua senha">
-            </div>
-            <button class="btn btn-gold mt-2" onclick="fazerLogin()">Entrar</button>
-            
-            <button class="btn btn-biometria mt-2" onclick="loginComBiometria()">
-                📸 Entrar com Reconhecimento Facial
-            </button>
-        </div>
-
-        <!-- Painel de Cadastro -->
-        <div id="panelCadastro" class="card hidden">
-            <div class="card-title"><span class="icon">📝</span> Criar Conta ALMA</div>
-            
-            <button class="btn btn-google mt-3" onclick="cadastrarComGoogle()">
-                <span>G</span> Cadastrar com Google
-            </button>
-            
-            <div style="text-align:center; margin: 16px 0; color: var(--text-secondary);">— ou —</div>
-            
-            <div class="input-group">
-                <label>Nome completo</label>
-                <input type="text" id="cadNome" placeholder="Seu nome">
-            </div>
-            <div class="input-group">
-                <label>E-mail</label>
-                <input type="email" id="cadEmail" placeholder="seu@email.com">
-            </div>
-            <div class="input-group">
-                <label>Senha</label>
-                <input type="password" id="cadSenha" placeholder="Mínimo 6 caracteres">
-            </div>
-            <div class="input-group">
-                <label>Confirmar Senha</label>
-                <input type="password" id="cadConfirmarSenha" placeholder="Repita a senha">
-            </div>
-            
-            <button class="btn btn-gold mt-2" onclick="fazerCadastro()">Criar Conta</button>
-            <button class="btn btn-biometria mt-2" onclick="abrirCameraCadastro()">
-                📸 Cadastrar Biometria Facial
-            </button>
-        </div>
-
-        <!-- Painel de Câmera (Biometria) -->
-        <div id="panelCamera" class="card hidden">
-            <div class="card-title">
-                <span class="icon">📸</span>
-                <span id="cameraTitulo">Reconhecimento Facial</span>
-            </div>
-            <p class="text-sm text-center" style="color: var(--text-secondary); margin-bottom: 16px;">
-                <span id="cameraInstrucao">Posicione seu rosto no centro do círculo</span>
-            </p>
-            <div class="camera-container">
-                <video id="cameraVideo" autoplay playsinline></video>
-                <div class="camera-overlay"></div>
-                <canvas id="cameraCanvas"></canvas>
-            </div>
-            <div id="cameraStatus" class="biometria-status" style="margin-bottom:12px;"></div>
-            <button class="btn btn-biometria" id="btnCameraAction" onclick="executarAcaoCamera()">
-                📸 <span id="btnCameraLabel">Capturar & Verificar</span>
-            </button>
-            <button class="btn btn-outline mt-2" onclick="fecharCamera()">Cancelar</button>
-        </div>
-
-        <!-- Painel de Compra -->
-        <div id="panelComprar" class="card hidden">
-            <div class="card-title"><span class="icon">💎</span> Comprar Tokens ALMA</div>
-            
-            <div id="saldoDisplay" class="balance-display hidden">
-                <div class="balance-label">Seu Saldo</div>
-                <div class="balance-amount" id="saldoValor">0</div>
-                <div class="balance-label">Tokens ALMA</div>
-                <div id="infoConta" class="text-sm mt-2" style="color: var(--text-secondary);"></div>
-                <div id="biometriaInfo" class="text-sm mt-1"></div>
-                <button class="btn btn-outline mt-2" onclick="logout()" style="width:auto; padding:8px 16px; font-size:0.8rem;">
-                    🚪 Sair
-                </button>
-            </div>
-
-            <div class="catalogo-grid" id="catalogoGrid"></div>
-            
-            <div id="servicoSelecionado" class="hidden mt-3" style="text-align:center;">
-                <p class="text-sm">Serviço selecionado: <strong id="nomeServico"></strong></p>
-                <p class="text-sm">Valor: <span class="text-gold" id="precoServico"></span></p>
-            </div>
-            
-            <button class="btn btn-gold mt-3 hidden" id="btnComprar" onclick="iniciarPagamento()">
-                💳 Pagar & Receber Tokens
-            </button>
-        </div>
-
-        <!-- Modal de Pagamento -->
-        <div id="modalPagamento" class="modal-overlay hidden">
-            <div class="modal">
-                <div style="font-size: 3rem;">💎</div>
-                <h3 id="modalTitulo" style="margin: 12px 0;">Redirecionando...</h3>
-                <p id="modalMensagem" class="text-sm"></p>
-                <div id="modalLink" class="mt-3 hidden">
-                    <a id="linkPagamento" href="#" target="_blank" class="btn btn-gold" style="display:inline-block; text-decoration:none; width:auto; padding:12px 24px;">
-                        Ir para Pagamento
-                    </a>
-                </div>
-                <button class="btn btn-outline mt-3" onclick="fecharModal()">Fechar</button>
-            </div>
+    <!-- Container inline (igual ao atendimento.html) -->
+    <div class="drive-page-container" id="drivePageContainer">
+        <div id="driveInlineWrapper">
+            <div id="driveInlineContent"></div>
         </div>
     </div>
 
-    <!-- ═══════════════════════════════════════════════════════ -->
-    <!-- CAPTURA FACIAL MODULE (captura-facial.js integrado)     -->
-    <!-- ═══════════════════════════════════════════════════════ -->
     <script>
-        // ─── CONSTANTES DE ROSTO ───────────────────────────
-        const ALFABETO_ROSTO = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        const BASE_ROSTO = ALFABETO_ROSTO.length;
-        const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
-        
-        let modelosCarregados = false;
-        let cameraStream = null;
-        let modoCamera = null; // 'cadastro' ou 'login'
-        let emailCameraAlvo = null; // email associado à ação da câmera
+        // "central" existe no SCRIPT_MAP do worker — "pagamentos" não existe, por isso caía no fallback.
+        const PROXY_CLOUDFLARE = 'https://almafluxo.uk/proxy/central';
+        let carregado = false;
 
-        async function carregarModelosRosto() {
-            if (modelosCarregados) return true;
+        async function carregarPagamentosHTML() {
+            if (carregado) return;
+            
             try {
-                await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-                await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-                await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
-                modelosCarregados = true;
-                return true;
-            } catch (e) {
-                console.error('Erro ao carregar modelos faciais:', e);
-                return false;
-            }
-        }
-
-        function codificarDescritorRosto(descritor) {
-            let saida = "";
-            for (let i = 0; i < descritor.length; i++) {
-                const v = Math.max(-0.5, Math.min(0.5, descritor[i]));
-                const n = Math.round((v + 0.5) * (BASE_ROSTO * BASE_ROSTO - 1));
-                saida += ALFABETO_ROSTO[Math.floor(n / BASE_ROSTO)] + ALFABETO_ROSTO[n % BASE_ROSTO];
-            }
-            return saida;
-        }
-
-        function capturarFotoBase64(videoEl, qualidade) {
-            const canvas = document.createElement('canvas');
-            canvas.width = videoEl.videoWidth;
-            canvas.height = videoEl.videoHeight;
-            canvas.getContext('2d').drawImage(videoEl, 0, 0);
-            return canvas.toDataURL('image/jpeg', qualidade || 0.85);
-        }
-
-        async function capturarDescritorRosto(videoEl) {
-            await carregarModelosRosto();
-            const deteccao = await faceapi
-                .detectSingleFace(videoEl, new faceapi.TinyFaceDetectorOptions())
-                .withFaceLandmarks()
-                .withFaceDescriptor();
-            if (!deteccao) throw new Error('Nenhum rosto detectado. Aproxime-se e melhore a iluminação.');
-            return codificarDescritorRosto(deteccao.descriptor);
-        }
-
-        async function capturarRostoCompleto(videoEl) {
-            const descritor = await capturarDescritorRosto(videoEl);
-            const foto = capturarFotoBase64(videoEl);
-            return { descritor, foto };
-        }
-    </script>
-
-    <!-- ═══════════════════════════════════════════════════════ -->
-    <!-- LÓGICA PRINCIPAL DO APP                                -->
-    <!-- ═══════════════════════════════════════════════════════ -->
-    <script>
-        // ─── CONFIGURAÇÃO ─────────────────────────────────
-        const API_BASE = 'https://almafluxo.uk/proxy/central';
-        // 🔥 Preencha com o Client ID real do Google Cloud Console (OAuth
-        // 2.0) antes de publicar - com o placeholder abaixo, os botões de
-        // "Entrar/Cadastrar com Google" ficam desativados automaticamente
-        // (ver loginComGoogle()) em vez de tentar autenticar e falhar.
-        const GOOGLE_CLIENT_ID = 'SEU_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
-        const GOOGLE_CONFIGURADO = GOOGLE_CLIENT_ID && !GOOGLE_CLIENT_ID.startsWith('SEU_GOOGLE_CLIENT_ID');
-        
-        let usuarioLogado = null;
-        let servicoSelecionado = null;
-
-        // ─── CATÁLOGO ────────────────────────────────────
-        // Regra: 1 Token = R$ 1,00 = 30 minutos
-        const CATALOGO = [
-            { id: "acesso_1hora", nome: "Acesso 1 Hora", tokens: 1, preco: 2, descricao: "Acesso a qualquer plataforma por 1h" },
-            { id: "acesso_1dia", nome: "Acesso 1 Dia", tokens: 20, preco: 10, descricao: "Acesso 24h em qualquer plataforma (50% OFF)" },
-            { id: "acesso_1mes", nome: "Acesso 1 Mês", tokens: 400, preco: 200, descricao: "Acesso ilimitado por 30 dias (50% OFF)" },
-            { id: "olhodedeus_1hora", nome: "Olho De Deus 1H", tokens: 10, preco: 5, descricao: "Trading ao vivo 1 hora (50% OFF)" },
-            { id: "olhodedeus_1mes", nome: "Olho De Deus 1M", tokens: 300, preco: 150, descricao: "Trading ao vivo 30 dias (50% OFF)" },
-            { id: "numerologia", nome: "Numerologia", tokens: 1000, preco: 500, descricao: "Mapa numerológico completo (50% OFF)" },
-            { id: "tarot", nome: "Tarot", tokens: 80, preco: 160, descricao: "Leitura de Tarot completa (pacote especial)" },
-            { id: "solombo", nome: "Solombo", tokens: 60, preco: 30, descricao: "Pacote de comida (50% OFF)" },
-            { id: "boneco3d", nome: "Boneco 3D", tokens: 400, preco: 200, descricao: "Boneco personalizado 3D (50% OFF)" }
-        ];
-
-        // ─── INICIALIZAÇÃO ───────────────────────────────
-        document.addEventListener('DOMContentLoaded', () => {
-            carregarCatalogo();
-            verificarSessao();
-        });
-
-        function verificarSessao() {
-            const sessao = localStorage.getItem('almafluxo_usuario');
-            if (sessao) {
-                try {
-                    usuarioLogado = JSON.parse(sessao);
-                    mostrarPainelLogado();
-                } catch (e) {
-                    localStorage.removeItem('almafluxo_usuario');
-                }
-            }
-        }
-
-        function switchTab(tab) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('[id^="panel"]').forEach(p => p.classList.add('hidden'));
-            
-            // 🔥 CORREÇÃO: Fecha a câmera SEM chamar switchTab de volta
-            if (cameraStream) {
-                cameraStream.getTracks().forEach(track => track.stop());
-                cameraStream = null;
-            }
-            document.getElementById('panelCamera').classList.add('hidden');
-            modoCamera = null;
-            emailCameraAlvo = null;
-            
-            if (tab === 'login') {
-                document.querySelectorAll('.tab')[0].classList.add('active');
-                document.getElementById('panelLogin').classList.remove('hidden');
-            } else if (tab === 'cadastro') {
-                document.querySelectorAll('.tab')[1].classList.add('active');
-                document.getElementById('panelCadastro').classList.remove('hidden');
-            } else if (tab === 'comprar') {
-                document.querySelectorAll('.tab')[2].classList.add('active');
-                document.getElementById('panelComprar').classList.remove('hidden');
-                if (usuarioLogado) atualizarSaldo();
-            }
-        }
-
-        function fecharCamera() {
-            if (cameraStream) {
-                cameraStream.getTracks().forEach(track => track.stop());
-                cameraStream = null;
-            }
-            document.getElementById('panelCamera').classList.add('hidden');
-            modoCamera = null;
-            emailCameraAlvo = null;
-            
-            // 🔥 CORREÇÃO: Volta ao painel anterior SEM chamar switchTab
-            // (que chamaria fecharCamera de novo, criando loop infinito)
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('[id^="panel"]').forEach(p => p.classList.add('hidden'));
-            
-            if (usuarioLogado) {
-                document.querySelectorAll('.tab')[2].classList.add('active');
-                document.getElementById('panelComprar').classList.remove('hidden');
-                if (usuarioLogado) atualizarSaldo();
-            } else {
-                document.querySelectorAll('.tab')[0].classList.add('active');
-                document.getElementById('panelLogin').classList.remove('hidden');
-            }
-        }
-
-        function mostrarPainelLogado() {
-            switchTab('comprar');
-            document.getElementById('saldoDisplay').classList.remove('hidden');
-            document.getElementById('infoConta').textContent = 
-                `👤 ${usuarioLogado.nome || 'Usuário'} (${usuarioLogado.email})`;
-            
-            // Status da biometria
-            const temBiometria = localStorage.getItem('almafluxo_biometria_' + usuarioLogado.email);
-            const biometriaInfo = document.getElementById('biometriaInfo');
-            if (temBiometria) {
-                biometriaInfo.innerHTML = '<span class="text-success">✅ Biometria facial cadastrada</span>';
-            } else {
-                biometriaInfo.innerHTML = '<span class="text-error">⚠️ Biometria não cadastrada</span> ' +
-                    '<a href="#" onclick="abrirCameraCadastro()" style="color:var(--gold);font-size:0.8rem;">Cadastrar agora</a>';
-            }
-            
-            atualizarSaldo();
-        }
-
-        function logout() {
-            usuarioLogado = null;
-            servicoSelecionado = null;
-            localStorage.removeItem('almafluxo_usuario');
-            document.getElementById('saldoDisplay').classList.add('hidden');
-            document.getElementById('servicoSelecionado').classList.add('hidden');
-            document.getElementById('btnComprar').classList.add('hidden');
-            document.querySelectorAll('.servico-card').forEach(c => c.classList.remove('selecionado'));
-            switchTab('login');
-            mostrarToast('👋 Até logo!', 'success');
-        }
-
-        // ─── API ─────────────────────────────────────────
-        // 🔥 NOVO: o Central.gs agora exige prova de identidade (senha,
-        // rosto ou sessionToken) para consultarSaldo/debitarTokens/
-        // verificarAcesso/acessarPlataforma/historico/listarTokensPorEmail.
-        // Anexa automaticamente o sessionToken de quem está logado (emitido
-        // no login/cadastro/reconhecimento facial) em toda chamada, sem
-        // precisar reenviar a senha em texto puro depois do login.
-        async function apiCall(action, data = {}) {
-            try {
-                const payload = { action, ...data };
-                if (usuarioLogado?.sessionToken && !payload.sessionToken) {
-                    payload.sessionToken = usuarioLogado.sessionToken;
-                }
-                const response = await fetch(API_BASE, {
+                console.log('📄 Buscando pagamentos.html via proxy...');
+                
+                const response = await fetch(PROXY_CLOUDFLARE, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({ action: 'pagamentos' })
                 });
-                return await response.json();
-            } catch (error) {
-                console.error('API Error:', error);
-                return { ok: false, error: 'Erro de conexão com o servidor.' };
-            }
-        }
-
-        // ─── CADASTRO ────────────────────────────────────
-        async function fazerCadastro() {
-            const nome = document.getElementById('cadNome').value.trim();
-            const email = document.getElementById('cadEmail').value.trim().toLowerCase();
-            const senha = document.getElementById('cadSenha').value;
-            const confirmar = document.getElementById('cadConfirmarSenha').value;
-
-            if (!nome || !email || !senha) {
-                return mostrarToast('Preencha todos os campos.', 'error');
-            }
-            if (senha !== confirmar) {
-                return mostrarToast('As senhas não coincidem.', 'error');
-            }
-            if (senha.length < 6) {
-                return mostrarToast('A senha deve ter pelo menos 6 caracteres.', 'error');
-            }
-
-            const resultado = await apiCall('cadastrarUsuario', { nome, email, senha });
-            
-            if (resultado.ok) {
-                mostrarToast('✅ Cadastro realizado! 10 tokens de bônus!', 'success');
-                usuarioLogado = { nome, email, balance: resultado.balance, sessionToken: resultado.sessionToken };
-                localStorage.setItem('almafluxo_usuario', JSON.stringify(usuarioLogado));
-                mostrarPainelLogado();
                 
-                setTimeout(() => {
-                    if (confirm('Deseja cadastrar sua biometria facial agora? (Recomendado)')) {
-                        abrirCameraCadastro();
-                    }
-                }, 1500);
-            } else {
-                mostrarToast(resultado.error || 'Erro ao cadastrar.', 'error');
-            }
-        }
-
-        // ─── LOGIN ───────────────────────────────────────
-        async function fazerLogin() {
-            const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-            const senha = document.getElementById('loginSenha').value;
-
-            if (!email || !senha) {
-                return mostrarToast('Preencha e-mail e senha.', 'error');
-            }
-
-            const resultado = await apiCall('login', { email, senha });
-            
-            if (resultado.ok) {
-                mostrarToast('✅ Login realizado!', 'success');
-                usuarioLogado = { nome: resultado.nome, email, balance: resultado.balance, sessionToken: resultado.sessionToken };
-                localStorage.setItem('almafluxo_usuario', JSON.stringify(usuarioLogado));
-                mostrarPainelLogado();
-            } else {
-                mostrarToast(resultado.error || 'Credenciais inválidas.', 'error');
-            }
-        }
-
-        // ─── GOOGLE AUTH ────────────────────────────────
-        function loginComGoogle() {
-            // 🔥 CORRIGIDO: antes disso tentava autenticar com o Client ID
-            // placeholder ('SEU_GOOGLE_CLIENT_ID...'), o que sempre falhava
-            // silenciosamente/com erro confuso do próprio Google. Agora
-            // avisa direto o que falta configurar.
-            if (!GOOGLE_CONFIGURADO) {
-                mostrarToast('Login com Google ainda não configurado (falta o Client ID). Use e-mail/senha ou reconhecimento facial.', 'error');
-                return;
-            }
-            if (typeof google !== 'undefined' && google.accounts) {
-                google.accounts.id.initialize({
-                    client_id: GOOGLE_CLIENT_ID,
-                    callback: handleCredentialResponse,
-                    auto_select: false,
-                    cancel_on_tap_outside: true
-                });
-                google.accounts.id.prompt();
-            } else {
-                mostrarToast('Google Login indisponível no momento (script não carregou).', 'error');
-            }
-        }
-
-        function cadastrarComGoogle() {
-            loginComGoogle();
-        }
-
-        async function handleCredentialResponse(response) {
-            try {
-                const payload = parseJwt(response.credential);
-                const email = payload.email;
-                const nome = payload.name || payload.given_name || 'Usuário Google';
+                // O Central_gs.js devolve HTML puro (ContentService.MimeType.HTML) para esta ação,
+                // não um objeto { status, html }. O worker reencaminha o corpo como veio.
+                const html = await response.text();
+                console.log('📄 Tamanho recebido:', html.length);
                 
-                let resultado = await apiCall('login', { email, senha: 'google_' + payload.sub });
-                
-                if (!resultado.ok) {
-                    resultado = await apiCall('cadastrarUsuario', { 
-                        nome, email, senha: 'google_' + payload.sub 
-                    });
+                if (response.ok && html && html.length > 100 && !html.trim().startsWith('{')) {
+                    carregado = true;
+                    renderizarHTML(html);
+                } else {
+                    throw new Error('HTML não encontrado — resposta: ' + html.substring(0, 200));
                 }
                 
-                if (resultado.ok) {
-                    usuarioLogado = { nome, email, balance: resultado.balance, sessionToken: resultado.sessionToken };
-                    localStorage.setItem('almafluxo_usuario', JSON.stringify(usuarioLogado));
-                    mostrarToast('✅ Autenticado com Google!', 'success');
-                    mostrarPainelLogado();
-                }
             } catch (e) {
-                console.error('Erro Google Auth:', e);
-                mostrarToast('Erro na autenticação Google.', 'error');
+                console.error('❌ Erro:', e.message);
+                document.getElementById('loadingContainer').innerHTML = `
+                    <div class="logo">ALMAFLUXO</div>
+                    <p style="color:#e74c3c">Não foi possível carregar.</p>
+                    <button onclick="location.reload()" style="margin-top:16px;padding:12px 24px;background:#d4a843;color:#1a1a1a;border:none;border-radius:10px;font-weight:600;cursor:pointer">🔄 Tentar novamente</button>
+                `;
             }
         }
 
-        function parseJwt(token) {
-            const base64Url = token.split('.')[1];
-            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            return JSON.parse(decodeURIComponent(atob(base64).split('').map(c => 
-                '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-            ).join('')));
-        }
-
-        // ─── CÂMERA & BIOMETRIA ─────────────────────────
-        async function abrirCamera(mode, emailAlvo = null) {
-            modoCamera = mode;
-            emailCameraAlvo = emailAlvo;
+        function renderizarHTML(htmlContent) {
+            const loading = document.getElementById('loadingContainer');
+            const container = document.getElementById('drivePageContainer');
+            const inlineDiv = document.getElementById('driveInlineContent');
             
-            // Mostra painel da câmera
-            document.querySelectorAll('[id^="panel"]').forEach(p => p.classList.add('hidden'));
-            document.getElementById('panelCamera').classList.remove('hidden');
+            loading.style.display = 'none';
+            container.classList.add('active');
             
-            if (mode === 'cadastro') {
-                document.getElementById('cameraTitulo').textContent = 'Cadastrar Biometria Facial';
-                document.getElementById('cameraInstrucao').textContent = 'Posicione seu rosto no centro do círculo';
-                document.getElementById('btnCameraLabel').textContent = 'Capturar & Cadastrar';
-            } else if (mode === 'login') {
-                document.getElementById('cameraTitulo').textContent = 'Login com Reconhecimento Facial';
-                document.getElementById('cameraInstrucao').textContent = 'Olhe para a câmera para fazer login';
-                document.getElementById('btnCameraLabel').textContent = 'Verificar & Entrar';
-            }
+            // Limpa o HTML
+            let htmlLimpo = htmlContent
+                .replace(/\\"/g, '"')
+                .replace(/\\'/g, "'")
+                .replace(/\\n/g, '\n')
+                .replace(/\\r/g, '')
+                .replace(/\\t/g, '');
             
-            document.getElementById('cameraStatus').textContent = '';
-            document.getElementById('cameraStatus').className = 'biometria-status';
+            // Insere o HTML
+            inlineDiv.innerHTML = htmlLimpo;
             
-            try {
-                cameraStream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { 
-                        facingMode: 'user',
-                        width: { ideal: 640 },
-                        height: { ideal: 480 }
-                    } 
-                });
-                const video = document.getElementById('cameraVideo');
-                video.srcObject = cameraStream;
-                await video.play();
-                
-                // Pré-carrega modelos
-                const statusEl = document.getElementById('cameraStatus');
-                statusEl.textContent = '⏳ Carregando modelos de IA...';
-                statusEl.className = 'biometria-status';
-                await carregarModelosRosto();
-                statusEl.textContent = '✅ Câmera pronta. Posicione seu rosto.';
-                statusEl.className = 'biometria-status biometria-cadastrada';
-                
-            } catch (error) {
-                console.error('Erro na camera:', error);
-                mostrarToast('Não foi possível acessar a câmera.', 'error');
-                fecharCamera();
-            }
-        }
-
-        function abrirCameraCadastro() {
-            abrirCamera('cadastro');
-        }
-
-        function loginComBiometria() {
-            const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-            if (!email) {
-                return mostrarToast('Informe seu e-mail primeiro.', 'error');
-            }
-            abrirCamera('login', email);
-        }
-
-        async function executarAcaoCamera() {
-            const video = document.getElementById('cameraVideo');
-            const statusEl = document.getElementById('cameraStatus');
-            const btnEl = document.getElementById('btnCameraAction');
-            
-            if (!cameraStream) {
-                return mostrarToast('Câmera não está ativa.', 'error');
-            }
-
-            btnEl.disabled = true;
-            statusEl.textContent = '⏳ Processando rosto...';
-            statusEl.className = 'biometria-status';
-            
-            try {
-                if (modoCamera === 'cadastro') {
-                    await cadastrarBiometria(video);
-                } else if (modoCamera === 'login') {
-                    await verificarBiometriaLogin(video);
-                }
-            } catch (error) {
-                statusEl.textContent = '❌ ' + error.message;
-                statusEl.className = 'biometria-status biometria-nao-cadastrada';
-                mostrarToast(error.message, 'error');
-            } finally {
-                btnEl.disabled = false;
-            }
-        }
-
-        async function cadastrarBiometria(video) {
-            if (!usuarioLogado) {
-                throw new Error('Faça login/cadastro antes de cadastrar biometria.');
-            }
-
-            const { descritor, foto } = await capturarRostoCompleto(video);
-            
-            const resultado = await apiCall('cadastrarRosto', {
-                email: usuarioLogado.email,
-                nome: usuarioLogado.nome,
-                descritor,
-                foto
+            // Reexecuta scripts
+            const scripts = inlineDiv.querySelectorAll('script');
+            scripts.forEach(script => {
+                const newScript = document.createElement('script');
+                newScript.textContent = script.textContent;
+                script.remove();
+                document.body.appendChild(newScript);
+                setTimeout(() => { if (newScript.parentNode) newScript.remove(); }, 100);
             });
             
-            if (resultado.ok) {
-                localStorage.setItem('almafluxo_biometria_' + usuarioLogado.email, 'true');
-                if (resultado.sessionToken) {
-                    usuarioLogado.sessionToken = resultado.sessionToken;
-                    localStorage.setItem('almafluxo_usuario', JSON.stringify(usuarioLogado));
-                }
-                document.getElementById('cameraStatus').textContent = '✅ Biometria cadastrada com sucesso!';
-                document.getElementById('cameraStatus').className = 'biometria-status biometria-cadastrada';
-                mostrarToast('✅ Biometria facial cadastrada!', 'success');
-                
-                setTimeout(() => {
-                    fecharCamera();
-                    mostrarPainelLogado();
-                }, 2000);
-            } else {
-                throw new Error(resultado.error || 'Falha ao cadastrar biometria.');
-            }
+            console.log('✅ Página de pagamentos renderizada!');
         }
 
-        async function verificarBiometriaLogin(video) {
-            const email = emailCameraAlvo;
-            if (!email) {
-                throw new Error('E-mail não informado.');
-            }
-
-            const descritor = await capturarDescritorRosto(video);
-            
-            const resultado = await apiCall('verificarRosto', {
-                email,
-                descritor
-            });
-            
-            if (resultado.ok) {
-                document.getElementById('cameraStatus').textContent = '✅ Rosto reconhecido!';
-                document.getElementById('cameraStatus').className = 'biometria-status biometria-cadastrada';
-                
-                usuarioLogado = { 
-                    nome: resultado.nome, 
-                    email, 
-                    balance: resultado.balance,
-                    sessionToken: resultado.sessionToken
-                };
-                localStorage.setItem('almafluxo_usuario', JSON.stringify(usuarioLogado));
-                mostrarToast('✅ Login biométrico realizado!', 'success');
-                
-                setTimeout(() => {
-                    fecharCamera();
-                    mostrarPainelLogado();
-                }, 1500);
-            } else {
-                throw new Error(resultado.error || 'Rosto não reconhecido.');
-            }
-        }
-
-        // ─── CATÁLOGO & COMPRA ──────────────────────────
-        function carregarCatalogo() {
-            const grid = document.getElementById('catalogoGrid');
-            grid.innerHTML = CATALOGO.map(servico => `
-                <div class="servico-card" onclick="selecionarServico('${servico.id}')" id="card_${servico.id}">
-                    <div class="servico-nome">${servico.nome}</div>
-                    <div class="servico-preco">R$ ${servico.preco.toFixed(2)}</div>
-                    <div class="servico-tokens">+${servico.tokens} tokens</div>
-                    <div class="text-sm" style="color:var(--text-secondary); margin-top:4px;">${servico.descricao}</div>
-                </div>
-            `).join('');
-        }
-
-        function selecionarServico(id) {
-            document.querySelectorAll('.servico-card').forEach(c => c.classList.remove('selecionado'));
-            document.getElementById('card_' + id)?.classList.add('selecionado');
-            
-            servicoSelecionado = CATALOGO.find(s => s.id === id);
-            document.getElementById('servicoSelecionado').classList.remove('hidden');
-            document.getElementById('nomeServico').textContent = servicoSelecionado.nome;
-            document.getElementById('precoServico').textContent = 
-                `R$ ${servicoSelecionado.preco.toFixed(2)} → ${servicoSelecionado.tokens} tokens`;
-            document.getElementById('btnComprar').classList.remove('hidden');
-        }
-
-        async function atualizarSaldo() {
-            if (!usuarioLogado) return;
-            // 🔥 CORRIGIDO: antes mandava usuarioLogado.senha, que NUNCA
-            // existia nesse objeto (por design - a senha não fica salva no
-            // navegador). apiCall() já anexa o sessionToken automaticamente,
-            // que é o que agora prova a identidade nessa chamada.
-            const resultado = await apiCall('consultarSaldo', { email: usuarioLogado.email });
-            if (resultado.ok) {
-                document.getElementById('saldoValor').textContent = resultado.balance;
-                usuarioLogado.balance = resultado.balance;
-            }
-        }
-
-        async function iniciarPagamento() {
-            if (!usuarioLogado) {
-                return mostrarToast('Faça login ou cadastre-se primeiro.', 'error');
-            }
-            if (!servicoSelecionado) {
-                return mostrarToast('Selecione um serviço.', 'error');
-            }
-
-            // Para compras acima de R$ 50, sugere biometria
-            if (servicoSelecionado.preco > 50) {
-                const temBiometria = localStorage.getItem('almafluxo_biometria_' + usuarioLogado.email);
-                if (!temBiometria) {
-                    const querBiometria = confirm(
-                        'Para compras acima de R$ 50, recomendamos cadastrar biometria facial para segurança extra. Deseja cadastrar agora?'
-                    );
-                    if (querBiometria) {
-                        abrirCameraCadastro();
-                        return;
-                    }
-                }
-            }
-
-            const resultado = await apiCall('criarPagamento', {
-                servicoId: servicoSelecionado.id,
-                email: usuarioLogado.email,
-                nome: usuarioLogado.nome
-            });
-
-            if (resultado.ok && resultado.linkPagamento) {
-                document.getElementById('modalPagamento').classList.remove('hidden');
-                document.getElementById('modalTitulo').textContent = '💳 Pagamento';
-                document.getElementById('modalMensagem').textContent = 
-                    `Valor: R$ ${servicoSelecionado.preco.toFixed(2)} → ${servicoSelecionado.tokens} tokens ALMA`;
-                document.getElementById('modalLink').classList.remove('hidden');
-                document.getElementById('linkPagamento').href = resultado.linkPagamento;
-                
-                window.open(resultado.linkPagamento, '_blank');
-            } else {
-                mostrarToast(resultado.error || 'Erro ao gerar pagamento.', 'error');
-            }
-        }
-
-        function fecharModal() {
-            document.getElementById('modalPagamento').classList.add('hidden');
-            atualizarSaldo();
-        }
-
-        // ─── UTILITÁRIOS ────────────────────────────────
-        function mostrarToast(mensagem, tipo = 'success') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = `toast toast-${tipo}`;
-            toast.textContent = mensagem;
-            container.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transition = 'opacity 0.3s';
-                setTimeout(() => toast.remove(), 300);
-            }, 4000);
-        }
+        carregarPagamentosHTML();
     </script>
 </body>
 </html>
