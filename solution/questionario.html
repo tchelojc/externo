@@ -890,7 +890,32 @@
             <!-- ETAPA 6: IA E ATENDIMENTO -->
             <div class="form-section" id="section6">
                 <h2 class="section-title">🤖 Inteligência Artificial e Atendimento</h2>
-                
+
+                <!-- 🔥 NOVO: entrevista guiada — captura Gosto, Necessidade e
+                     Sonho numa ordem definida pela mão de escrita (proposta de
+                     ramificação por hemisfério; ajuste as perguntas/ordem se
+                     quiser outra lógica). Ao final, preenche automaticamente
+                     os campos estáticos abaixo — que continuam editáveis. -->
+                <div class="question-group" id="entrevistaBox" style="border:1px solid var(--line,#333); border-radius:12px; padding:16px; margin-bottom:24px; background:rgba(255,255,255,0.02);">
+                    <div id="entrevistaChat" style="display:flex; flex-direction:column; gap:10px; max-height:340px; overflow-y:auto; padding:4px;"></div>
+                    <div id="entrevistaOpcoes" style="display:flex; flex-direction:column; gap:8px; margin-top:12px;"></div>
+                    <div id="entrevistaResumo" class="hidden" style="margin-top:14px;">
+                        <p class="text-sm" style="opacity:0.85;">✅ Prompt gerado e campos abaixo preenchidos automaticamente. Role pra baixo pra revisar/editar.</p>
+                        <details style="margin-top:8px;">
+                            <summary style="cursor:pointer;">Ver prompt completo gerado</summary>
+                            <pre id="entrevistaPromptPreview" style="white-space:pre-wrap; font-size:0.8rem; opacity:0.8; margin-top:8px;"></pre>
+                        </details>
+                    </div>
+
+                    <div id="entrevistaCadastro" class="hidden" style="margin-top:18px; border-top:1px solid var(--line,#333); padding-top:16px;">
+                        <label>Criar sua conta agora e já receber 10 tokens de bônus?</label>
+                        <input type="email" id="entrevistaEmailCadastro" placeholder="seuemail@exemplo.com" style="margin-top:6px;">
+                        <input type="password" id="entrevistaSenhaCadastro" placeholder="Crie uma senha" style="margin-top:6px;">
+                        <button type="button" class="btn btn-primary" style="margin-top:10px;" onclick="entrevistaCadastrar()">Criar conta e liberar 10 tokens</button>
+                        <p class="text-sm" id="entrevistaMsgCadastro" style="margin-top:8px;"></p>
+                    </div>
+                </div>
+
                 <div class="question-group">
                     <label class="required">Tipo de atendimento IA</label>
                     <select id="iaType" required>
@@ -935,6 +960,10 @@
                         <option value="acolhedora">Acolhedora e empática</option>
                     </select>
                 </div>
+
+                <!-- 🔥 NOVO: guarda o prompt completo gerado pela entrevista
+                     (o iaQuestions acima recebe só o resumo por pergunta) -->
+                <textarea id="iaPromptGerado" class="hidden" readonly></textarea>
             </div>
 
             <!-- ETAPA 7: CONTEÚDO E DADOS -->
@@ -1097,6 +1126,217 @@
     <script>
         // CONSTANTES
         const APPS_SCRIPT_URL = 'https://almafluxo.uk/api/questionario/enviar';
+
+        // ═══════════════════════════════════════════════════════════════
+        // 🔥 NOVO: ENTREVISTA GUIADA (Gosto / Necessidade / Sonho)
+        // Pergunta de abertura ("qual mão você escreve") decide a ORDEM em
+        // que as 3 categorias são perguntadas — não muda O QUE é perguntado,
+        // só a sequência. Isso é uma PROPOSTA de ramificação seguindo o que
+        // foi descrito (destro → hemisfério direito dominante → trilha mais
+        // sensorial/emocional primeiro; canhoto → hemisfério esquerdo →
+        // trilha mais lógica/estrutural primeiro). Ajuste o banco de
+        // perguntas ou a ordem abaixo se quiser outra lógica.
+        // ═══════════════════════════════════════════════════════════════
+        const API_BASE_ENTREVISTA = 'https://almafluxo.uk/proxy/central';
+        const TOKEN_INTERNO_ENTREVISTA = 'ALMA369UA';
+
+        const BANCO_PERGUNTAS = {
+            gosto: [
+                { id: 'gosto_lugar', pergunta: 'Se sua marca fosse um lugar, que lugar seria?',
+                  opcoes: ['🏖️ Praia ao entardecer — leve e acolhedor', '🏙️ Escritório high-tech — moderno e direto', '🌲 Floresta tranquila — natural e confiável', '🎉 Cidade vibrante à noite — ousado e energético'] },
+                { id: 'gosto_sensacao', pergunta: 'Qual sensação você quer que a pessoa sinta ao falar com seu atendimento?',
+                  opcoes: ['🤝 Confiança', '✨ Encantamento', '💛 Acolhimento', '⚡ Agilidade'] }
+            ],
+            necessidade: [
+                { id: 'necessidade_problema', pergunta: 'Qual é o principal problema que esse projeto precisa resolver?',
+                  opcoes: ['📋 Capturar leads qualificados', '💰 Vender direto pelo site/chat', '🕐 Atender clientes fora do horário comercial', '📊 Organizar e automatizar informação'] },
+                { id: 'necessidade_duvida', pergunta: 'Qual pergunta seus clientes mais fazem hoje, que você queria automatizar?', tipo: 'texto' }
+            ],
+            sonho: [
+                { id: 'sonho_1ano', pergunta: 'Se esse projeto der certo além do esperado em 1 ano, o que muda na sua rotina?', tipo: 'texto' },
+                { id: 'sonho_referencia', pergunta: 'Existe uma marca ou atendimento que você admira pelo jeito que ele te faz SENTIR (não pelo que vende)?', tipo: 'texto' }
+            ]
+        };
+
+        const PERGUNTA_ABERTURA = {
+            id: 'mao_escrita',
+            pergunta: '✍️ Pra começar: qual mão você escreve?',
+            opcoes: ['🖐️ Destro', '🤚 Canhoto', '🙌 Ambidestro']
+        };
+
+        let entrevistaFila = [];
+        let entrevistaIndice = -1;
+        let entrevistaRespostas = {};
+        let entrevistaOrdem = null;
+
+        function entrevistaIniciar() {
+            entrevistaFila = [PERGUNTA_ABERTURA];
+            entrevistaIndice = -1;
+            entrevistaRespostas = {};
+            document.getElementById('entrevistaChat').innerHTML = '';
+            document.getElementById('entrevistaResumo').classList.add('hidden');
+            document.getElementById('entrevistaCadastro').classList.add('hidden');
+            entrevistaProxima();
+        }
+
+        function entrevistaMontarOrdem(mao) {
+            // Ordem das CATEGORIAS conforme a mão — mesmo banco de perguntas,
+            // sequência diferente.
+            if (mao.startsWith('🖐️')) { entrevistaOrdem = 'direito'; return ['gosto', 'sonho', 'necessidade']; }
+            if (mao.startsWith('🤚')) { entrevistaOrdem = 'esquerdo'; return ['necessidade', 'gosto', 'sonho']; }
+            entrevistaOrdem = 'ambidestro';
+            return ['necessidade', 'gosto', 'sonho']; // ambidestro: intercala mais abaixo
+        }
+
+        function entrevistaAdicionarBolha(texto, autor) {
+            const chat = document.getElementById('entrevistaChat');
+            const bolha = document.createElement('div');
+            bolha.style.cssText = autor === 'ia'
+                ? 'align-self:flex-start; background:rgba(139,92,246,0.15); border:1px solid rgba(139,92,246,0.3); border-radius:12px; padding:10px 14px; max-width:85%; font-size:0.9rem;'
+                : 'align-self:flex-end; background:rgba(255,255,255,0.08); border-radius:12px; padding:10px 14px; max-width:85%; font-size:0.9rem;';
+            bolha.textContent = texto;
+            chat.appendChild(bolha);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function entrevistaProxima() {
+            entrevistaIndice++;
+
+            // Depois da pergunta de abertura, monta a fila completa na ordem certa
+            if (entrevistaIndice === 1 && entrevistaFila.length === 1) {
+                const categorias = entrevistaMontarOrdem(entrevistaRespostas.mao_escrita || '');
+                if (entrevistaOrdem === 'ambidestro') {
+                    // intercala 1 a 1 entre as 3 categorias
+                    const max = Math.max(...categorias.map(c => BANCO_PERGUNTAS[c].length));
+                    for (let i = 0; i < max; i++) {
+                        categorias.forEach(cat => { if (BANCO_PERGUNTAS[cat][i]) entrevistaFila.push(BANCO_PERGUNTAS[cat][i]); });
+                    }
+                } else {
+                    categorias.forEach(cat => entrevistaFila.push(...BANCO_PERGUNTAS[cat]));
+                }
+            }
+
+            if (entrevistaIndice >= entrevistaFila.length) {
+                entrevistaFinalizar();
+                return;
+            }
+
+            const p = entrevistaFila[entrevistaIndice];
+            entrevistaAdicionarBolha(p.pergunta, 'ia');
+
+            const opcoesBox = document.getElementById('entrevistaOpcoes');
+            opcoesBox.innerHTML = '';
+
+            if (p.tipo === 'texto') {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.placeholder = 'Digite sua resposta...';
+                input.onkeydown = e => { if (e.key === 'Enter' && input.value.trim()) entrevistaResponder(p, input.value.trim()); };
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'btn btn-primary';
+                btn.textContent = 'Enviar';
+                btn.onclick = () => { if (input.value.trim()) entrevistaResponder(p, input.value.trim()); };
+                opcoesBox.appendChild(input);
+                opcoesBox.appendChild(btn);
+                input.focus();
+            } else {
+                p.opcoes.forEach(opcao => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'btn btn-secondary';
+                    btn.style.textAlign = 'left';
+                    btn.textContent = opcao;
+                    btn.onclick = () => entrevistaResponder(p, opcao);
+                    opcoesBox.appendChild(btn);
+                });
+            }
+        }
+
+        function entrevistaResponder(pergunta, valor) {
+            entrevistaRespostas[pergunta.id] = valor;
+            entrevistaAdicionarBolha(valor, 'usuario');
+            entrevistaProxima();
+        }
+
+        function entrevistaFinalizar() {
+            document.getElementById('entrevistaOpcoes').innerHTML = '';
+            const r = entrevistaRespostas;
+            const nome = document.getElementById('clientName')?.value || 'o cliente';
+            const negocio = document.getElementById('businessSegment')?.value || 'o negócio';
+
+            const mapaPersonalidade = {
+                '🤝 Confiança': 'profissional', '✨ Encantamento': 'vendedora',
+                '💛 Acolhimento': 'acolhedora', '⚡ Agilidade': 'tecnica'
+            };
+            const personalidadeInferida = mapaPersonalidade[r.gosto_sensacao] || 'amigavel';
+            document.getElementById('iaPersonality').value = personalidadeInferida;
+
+            const resumoPerguntas = entrevistaFila
+                .filter(p => p.id !== 'mao_escrita')
+                .map(p => `${p.pergunta}\nR: ${r[p.id] || '-'}`)
+                .join('\n\n');
+            document.getElementById('iaQuestions').value = resumoPerguntas;
+
+            const promptCompleto = `# 🧠 Prompt de Atendimento Inteligente — ${nome}
+Hemisfério dominante (mão de escrita: ${r.mao_escrita || '-'}): ${entrevistaOrdem} · Ordem de captura: ${entrevistaFila.filter(p=>p.id!=='mao_escrita').map(p=>p.id.split('_')[0]).filter((v,i,a)=>a.indexOf(v)===i).join(' → ')}
+Segmento: ${negocio}
+
+## Gosto (identidade sensorial)
+- Lugar-símbolo da marca: ${r.gosto_lugar || '-'}
+- Sensação desejada no atendimento: ${r.gosto_sensacao || '-'}
+
+## Necessidade (função prática)
+- Problema principal a resolver: ${r.necessidade_problema || '-'}
+- Dúvida recorrente a automatizar: ${r.necessidade_duvida || '-'}
+
+## Sonho (visão de sucesso)
+- Mudança esperada em 1 ano: ${r.sonho_1ano || '-'}
+- Referência de atendimento admirada: ${r.sonho_referencia || '-'}
+
+## Prompt sugerido para a IA de atendimento
+Você é a assistente de atendimento de ${nome}, no segmento ${negocio}.
+Seu tom transmite ${r.gosto_sensacao || 'confiança'}, remetendo à sensação de "${r.gosto_lugar || 'um ambiente acolhedor'}".
+Seu objetivo principal é: ${r.necessidade_problema || 'atender bem o cliente'}.
+Quando perguntarem sobre "${r.necessidade_duvida || 'dúvidas comuns'}", responda de forma clara e no tom acima.
+Lembre-se que o sucesso desse atendimento, pra quem contratou, significa: ${r.sonho_1ano || 'crescer o negócio com tranquilidade'}.`;
+
+            document.getElementById('iaPromptGerado').value = promptCompleto;
+            document.getElementById('entrevistaPromptPreview').textContent = promptCompleto;
+            document.getElementById('entrevistaResumo').classList.remove('hidden');
+            document.getElementById('entrevistaCadastro').classList.remove('hidden');
+
+            const emailPreCadastro = document.getElementById('clientEmail')?.value || '';
+            if (emailPreCadastro) document.getElementById('entrevistaEmailCadastro').value = emailPreCadastro;
+        }
+
+        async function entrevistaCadastrar() {
+            const email = document.getElementById('entrevistaEmailCadastro').value.trim().toLowerCase();
+            const senha = document.getElementById('entrevistaSenhaCadastro').value;
+            const nome = document.getElementById('clientName')?.value || email;
+            const msg = document.getElementById('entrevistaMsgCadastro');
+
+            if (!email || !senha) { msg.textContent = '⚠️ Preencha e-mail e senha.'; return; }
+            msg.textContent = '⏳ Criando conta...';
+
+            try {
+                const resp = await fetch(API_BASE_ENTREVISTA, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'cadastrarUsuario', tk: TOKEN_INTERNO_ENTREVISTA, email, senha, nome })
+                });
+                const resultado = await resp.json();
+                if (resultado.ok) {
+                    try { localStorage.setItem('almafluxo_usuario', JSON.stringify({ nome, email, balance: resultado.balance, sessionToken: resultado.sessionToken })); } catch (e) {}
+                    msg.textContent = `✅ Conta criada! Você já tem ${resultado.balance} tokens de bônus.`;
+                } else {
+                    msg.textContent = '❌ ' + (resultado.error || 'Erro ao cadastrar.');
+                }
+            } catch (e) {
+                msg.textContent = '❌ Erro de conexão ao criar conta.';
+            }
+        }
+
         
         let currentSection = 1;
         const totalSections = 10;
@@ -1124,6 +1364,12 @@
             if (currentSection === 9) {
                 updateSummary();
                 updateCalculator();
+            }
+
+            // 🔥 NOVO: inicia a entrevista guiada ao entrar na ETAPA 6 (só na
+            // primeira vez — entrevistaFila fica vazia até o primeiro acesso)
+            if (currentSection === 6 && entrevistaFila.length === 0) {
+                entrevistaIniciar();
             }
             
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1412,6 +1658,15 @@
                         visualStyle: document.getElementById('visualStyle').value,
                         features: Array.from(document.querySelectorAll('#featuresList input:checked')).map(f => f.value),
                         iaType: document.getElementById('iaType').value,
+                        // 🔥 NOVO: estes 4 campos já existiam no HTML da ETAPA 6 mas
+                        // nunca eram lidos/enviados aqui — corrigido junto com a
+                        // entrevista guiada, que preenche iaQuestions/iaPersonality/
+                        // iaPromptGerado automaticamente.
+                        iaQuestions: document.getElementById('iaQuestions').value,
+                        iaPersonality: document.getElementById('iaPersonality').value,
+                        leadCapture: document.getElementById('leadCapture').value,
+                        directSales: document.getElementById('directSales').value,
+                        iaPromptGerado: document.getElementById('iaPromptGerado').value,
                         monthlyPlan: document.querySelector('input[name="monthlyPlan"]:checked')?.value,
                         contractTerm: document.getElementById('contractTerm').value,
                         totalPrice: calculateTotal().total,
