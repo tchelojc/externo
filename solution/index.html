@@ -811,7 +811,7 @@
                 // Conta respostas antes
                 let numeroRespostasAntes = 0;
                 try {
-                    const respAntes = await fetch(`${PROXY_INFOCELL}?action=getChatAtendente&leadId=${sessionIdChat}`);
+                    const respAntes = await fetch(`${PROXY_R5FIT}?action=getChatAtendente&leadId=${sessionIdChat}`);
                     const dataAntes = await respAntes.json();
                     const mensagensAntes = dataAntes.conversas?.[sessionIdChat]?.mensagens || [];
                     numeroRespostasAntes = mensagensAntes.filter(m => m.de === 'atendente').length;
@@ -820,7 +820,7 @@
                 }
 
                 // Salva mensagem do usuário
-                await fetch(PROXY_INFOCELL, {
+                await fetch(PROXY_R5FIT, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
@@ -841,7 +841,7 @@
                     await new Promise(r => setTimeout(r, 3000));
                     
                     try {
-                        const resp = await fetch(`${PROXY_INFOCELL}?action=getChatAtendente&leadId=${sessionIdChat}`);
+                        const resp = await fetch(`${PROXY_R5FIT}?action=getChatAtendente&leadId=${sessionIdChat}`);
                         const data = await resp.json();
                         const mensagens = data.conversas?.[sessionIdChat]?.mensagens || [];
                         const mensagensAtendente = mensagens.filter(m => m.de === 'atendente');
