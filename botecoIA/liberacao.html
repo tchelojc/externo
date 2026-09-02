@@ -175,13 +175,16 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error('Sessão inválida ou expirada');
+                    if (response.status === 401) {
+                        throw new Error('Sessão inválida ou expirada. Faça login.');
+                    } else {
+                        throw new Error(`Erro ao carregar (${response.status})`);
+                    }
                 }
 
                 const html = await response.text();
 
                 if (html.includes('<!DOCTYPE') || html.includes('<html')) {
-                    // Exibe o HTML em um iframe
                     const iframe = document.createElement('iframe');
                     iframe.srcdoc = html;
                     document.body.innerHTML = '';
@@ -196,21 +199,9 @@
 
         // ── Verificar cookies e decidir fluxo ──
         async function verificarAcesso() {
-            const cookies = document.cookie.split(';').reduce((acc, c) => {
-                const [k, v] = c.trim().split('=');
-                if (k && v) acc[k] = v;
-                return acc;
-            }, {});
-
-            const token = cookies.boteco_token || '';
-            const email = cookies.boteco_email || '';
-
-            if (!token || !email) {
-                mostrarLogin('Você não está logado.');
-                return;
-            }
-
-            // Tenta carregar o Boteco
+            // Tenta carregar a interface diretamente.
+            // Se houver cookies válidos, o Worker retornará o HTML.
+            // Se não, retornará 401 e o catch exibirá o login.
             await carregarBoteco();
         }
 
