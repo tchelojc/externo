@@ -3,118 +3,267 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🍻 Boteco IA | Carregando...</title>
+    <title>🍻 Boteco IA</title>
     <style>
-        /* (mantenha o estilo que já está) */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #1a1210;
+            color: #f0e6d8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background: #2d1f1a;
+            border-radius: 20px;
+            padding: 40px;
+            border: 2px solid #d4a574;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            text-align: center;
+        }
+        .spinner {
+            border: 4px solid #4a3a30;
+            border-top: 4px solid #d4a574;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .title {
+            font-size: 2rem;
+            color: #d4a574;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #8a7a6a;
+            margin-bottom: 20px;
+        }
+        .btn-enter {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #d4a574;
+            color: #1a1210;
+            border: none;
+            border-radius: 30px;
+            font-weight: bold;
+            text-decoration: none;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-enter:hover {
+            background: #e8c9a0;
+            transform: scale(1.05);
+        }
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+            text-align: left;
+        }
+        .login-form label {
+            font-weight: bold;
+            color: #d4a574;
+        }
+        .login-form input {
+            padding: 12px;
+            background: #1a1210;
+            border: 2px solid #4a3a30;
+            border-radius: 8px;
+            color: #f0e6d8;
+            font-size: 1rem;
+        }
+        .login-form input:focus {
+            outline: none;
+            border-color: #d4a574;
+        }
+        .login-form button {
+            padding: 12px;
+            background: #d4a574;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1rem;
+            color: #1a1210;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .login-form button:hover {
+            background: #e8c9a0;
+        }
+        .error-msg {
+            color: #e74c3c;
+            background: #2d1f1a;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #e74c3c;
+            display: none;
+        }
+        iframe {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            z-index: 9999;
+            background: #1a1210;
+        }
     </style>
 </head>
 <body>
     <div class="container" id="container">
         <div class="spinner" id="spinner"></div>
-        <div class="title" id="title">🍻 Verificando acesso...</div>
-        <div class="subtitle" id="status">Confirmando sua sessão...</div>
+        <div class="title" id="title">🍻 Boteco IA</div>
+        <div class="subtitle" id="status">Verificando acesso...</div>
+
+        <!-- Área de login (oculta por padrão) -->
+        <div id="loginSection" style="display: none;">
+            <p style="color: #8a7a6a; margin-bottom: 15px;">Faça login para acessar o Boteco.</p>
+            <form class="login-form" id="loginForm">
+                <label for="email">E-mail</label>
+                <input type="email" id="email" placeholder="seu@email.com" required>
+                <label for="senha">Senha</label>
+                <input type="password" id="senha" placeholder="••••••••" required>
+                <div class="error-msg" id="errorMsg"></div>
+                <button type="submit">Entrar</button>
+            </form>
+        </div>
+
         <a href="#" class="btn-enter" id="btnEnter" style="display:none;" onclick="abrirBoteco(event)">▶ Entrar no Boteco IA</a>
     </div>
 
     <script>
-        // ═══════════════════════════════════════════════════════════
-        // CONFIGURAÇÃO
-        // ═══════════════════════════════════════════════════════════
         const WORKER_URL = 'https://almafluxo.uk';
         const ROTA_OBTER_HTML = '/proxy/boteco/interface';
-        const LOGIN_URL = 'https://almafluxo.uk/proxy/boteco/login';
+        const ROTA_LOGIN = '/proxy/boteco/login';
 
-        async function carregar() {
-            const spinner = document.getElementById('spinner');
-            const title = document.getElementById('title');
-            const status = document.getElementById('status');
-            const btnEnter = document.getElementById('btnEnter');
+        const spinner = document.getElementById('spinner');
+        const title = document.getElementById('title');
+        const status = document.getElementById('status');
+        const btnEnter = document.getElementById('btnEnter');
+        const loginSection = document.getElementById('loginSection');
+        const loginForm = document.getElementById('loginForm');
+        const errorMsg = document.getElementById('errorMsg');
 
+        // ── Mostrar formulário de login ──
+        function mostrarLogin(mensagemErro) {
+            spinner.style.display = 'none';
+            title.textContent = '🔒 Login necessário';
+            status.textContent = mensagemErro || 'Por favor, faça login.';
+            loginSection.style.display = 'block';
+            btnEnter.style.display = 'none';
+            if (mensagemErro) {
+                errorMsg.textContent = mensagemErro;
+                errorMsg.style.display = 'block';
+            }
+        }
+
+        // ── Carregar o Boteco (HTML) ──
+        async function carregarBoteco() {
             try {
-                // Verifica cookies
-                const cookies = document.cookie.split(';').reduce((acc, c) => {
-                    const [k, v] = c.trim().split('=');
-                    if (k && v) acc[k] = v;
-                    return acc;
-                }, {});
-
-                const token = cookies.boteco_token || '';
-                const email = cookies.boteco_email || '';
-
-                if (!token || !email) {
-                    window.location.href = LOGIN_URL;
-                    return;
-                }
-
-                // Valida sessão chamando a rota do Worker
-                status.textContent = 'Validando acesso...';
                 const response = await fetch(`${WORKER_URL}${ROTA_OBTER_HTML}`, {
                     method: 'GET',
                     credentials: 'include'
                 });
 
                 if (!response.ok) {
-                    throw new Error('Sessão inválida');
-                }
-
-                // Sessão válida
-                spinner.style.display = 'none';
-                title.textContent = '🍻 Bem-vindo ao Boteco IA';
-                status.textContent = 'Acesso confirmado. Clique para entrar.';
-                btnEnter.style.display = 'inline-block';
-
-            } catch (e) {
-                window.location.href = `${LOGIN_URL}?erro=${encodeURIComponent(e.message)}`;
-            }
-        }
-
-        async function abrirBoteco(event) {
-            event.preventDefault();
-            const btnEnter = document.getElementById('btnEnter');
-            const status = document.getElementById('status');
-
-            btnEnter.textContent = '⏳ Carregando boteco...';
-            btnEnter.disabled = true;
-            status.textContent = 'Buscando conteúdo...';
-
-            try {
-                const response = await fetch(`${WORKER_URL}${ROTA_OBTER_HTML}`, {
-                    credentials: 'include'
-                });
-
-                if (!response.ok) {
-                    throw new Error('Servidor retornou status ' + response.status);
+                    throw new Error('Sessão inválida ou expirada');
                 }
 
                 const html = await response.text();
 
                 if (html.includes('<!DOCTYPE') || html.includes('<html')) {
-                    status.textContent = 'Boteco carregado!';
-
+                    // Exibe o HTML em um iframe
                     const iframe = document.createElement('iframe');
-                    iframe.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:9999;background:#1a1210;';
                     iframe.srcdoc = html;
-
-                    document.getElementById('container').style.display = 'none';
+                    document.body.innerHTML = '';
                     document.body.appendChild(iframe);
-
-                    window.addEventListener('message', function(event) {
-                        if (event.data === 'voltar-login') {
-                            window.location.href = LOGIN_URL;
-                        }
-                    });
                 } else {
                     throw new Error('Conteúdo inválido retornado');
                 }
-
             } catch (e) {
-                btnEnter.textContent = '▶ Entrar no Boteco IA';
-                btnEnter.disabled = false;
-                alert('Erro ao carregar plataforma: ' + e.message);
+                mostrarLogin(e.message);
             }
         }
 
-        carregar();
+        // ── Verificar cookies e decidir fluxo ──
+        async function verificarAcesso() {
+            const cookies = document.cookie.split(';').reduce((acc, c) => {
+                const [k, v] = c.trim().split('=');
+                if (k && v) acc[k] = v;
+                return acc;
+            }, {});
+
+            const token = cookies.boteco_token || '';
+            const email = cookies.boteco_email || '';
+
+            if (!token || !email) {
+                mostrarLogin('Você não está logado.');
+                return;
+            }
+
+            // Tenta carregar o Boteco
+            await carregarBoteco();
+        }
+
+        // ── Evento de login ──
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorMsg.style.display = 'none';
+
+            const email = document.getElementById('email').value.trim();
+            const senha = document.getElementById('senha').value.trim();
+
+            if (!email || !senha) {
+                errorMsg.textContent = 'Preencha todos os campos.';
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            const btn = loginForm.querySelector('button');
+            btn.disabled = true;
+            btn.textContent = '⏳ Entrando...';
+            status.textContent = 'Autenticando...';
+
+            try {
+                const resp = await fetch(`${WORKER_URL}${ROTA_LOGIN}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, senha }),
+                    credentials: 'include'
+                });
+
+                const data = await resp.json();
+
+                if (data.autenticado && data.token) {
+                    // Login bem-sucedido – recarrega a página para ler os novos cookies
+                    window.location.reload();
+                } else {
+                    errorMsg.textContent = data.mensagem || 'Falha no login. Verifique suas credenciais.';
+                    errorMsg.style.display = 'block';
+                    btn.disabled = false;
+                    btn.textContent = 'Entrar';
+                    status.textContent = 'Tente novamente.';
+                }
+            } catch (err) {
+                errorMsg.textContent = 'Erro de conexão: ' + err.message;
+                errorMsg.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = 'Entrar';
+                status.textContent = 'Erro ao conectar.';
+            }
+        });
+
+        // ── Inicializar ──
+        verificarAcesso();
     </script>
 </body>
 </html>
