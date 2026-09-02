@@ -166,7 +166,6 @@
             }
         }
 
-        // ── Carregar o Boteco (HTML) ──
         async function carregarBoteco() {
             try {
                 const response = await fetch(ROTA_OBTER_HTML, {
@@ -174,27 +173,37 @@
                     credentials: 'include'
                 });
 
-                if (!response.ok) {
-                    if (response.status === 401) {
-                        throw new Error('Sessão inválida ou expirada. Faça login.');
-                    } else {
-                        throw new Error(`Erro ao carregar (${response.status})`);
+                const text = await response.text();
+
+                // Tenta interpretar como JSON primeiro
+                try {
+                    const json = JSON.parse(text);
+                    if (json.html && (json.html.includes('<!DOCTYPE') || json.html.includes('<html'))) {
+                        exibirHTML(json.html);
+                        return;
+                    } else if (json.error || json.message) {
+                        throw new Error(json.error || json.message);
                     }
+                } catch (e) {
+                    // Se não for JSON, continua com o texto puro
                 }
 
-                const html = await response.text();
-
-                if (html.includes('<!DOCTYPE') || html.includes('<html')) {
-                    const iframe = document.createElement('iframe');
-                    iframe.srcdoc = html;
-                    document.body.innerHTML = '';
-                    document.body.appendChild(iframe);
+                // Verifica se é HTML direto
+                if (text.includes('<!DOCTYPE') || text.includes('<html')) {
+                    exibirHTML(text);
                 } else {
                     throw new Error('Conteúdo inválido retornado');
                 }
             } catch (e) {
                 mostrarLogin(e.message);
             }
+        }
+
+        function exibirHTML(html) {
+            const iframe = document.createElement('iframe');
+            iframe.srcdoc = html;
+            document.body.innerHTML = '';
+            document.body.appendChild(iframe);
         }
 
         // ── Verificar cookies e decidir fluxo ──
