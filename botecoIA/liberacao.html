@@ -142,7 +142,7 @@
 
     <script>
         const WORKER_URL = 'https://almafluxo.uk';
-        const ROTA_OBTER_HTML = 'https://almafluxo.uk/proxy/boteco';
+        const ROTA_OBTER_HTML = 'https://almafluxo.uk/proxy/boteco/interface';
         const ROTA_LOGIN = 'https://almafluxo.uk/proxy/boteco';
 
         const spinner = document.getElementById('spinner');
@@ -234,20 +234,24 @@
             status.textContent = 'Autenticando...';
 
             try {
-                const resp = await fetch(`${WORKER_URL}${ROTA_LOGIN}`, {
+                const resp = await fetch(ROTA_LOGIN, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, senha }),
+                    body: JSON.stringify({ action: 'login', sistema: 'boteco', email, senha }),
                     credentials: 'include'
                 });
 
                 const data = await resp.json();
+                const resultado = data.result || data;
 
-                if (data.autenticado && data.token) {
-                    // Login bem-sucedido – recarrega a página para ler os novos cookies
+                if (resultado.autenticado && resultado.token) {
+                    // 🔥 CORRIGIDO: antes disso nunca acontecia — a página só
+                    // recarregava esperando um cookie que ninguém tinha criado.
+                    document.cookie = `boteco_token=${resultado.token}; path=/; max-age=43200; SameSite=Lax`;
+                    document.cookie = `boteco_email=${email}; path=/; max-age=43200; SameSite=Lax`;
                     window.location.reload();
                 } else {
-                    errorMsg.textContent = data.mensagem || 'Falha no login. Verifique suas credenciais.';
+                    errorMsg.textContent = resultado.mensagem || 'Falha no login. Verifique suas credenciais.';
                     errorMsg.style.display = 'block';
                     btn.disabled = false;
                     btn.textContent = 'Entrar';
