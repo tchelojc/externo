@@ -245,7 +245,7 @@
                 const resp = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'login', email, senha })
+                    body: JSON.stringify({ action: 'login', sistema: 'boteco', email, senha })
                 });
                 const data = await resp.json();
 
@@ -288,7 +288,7 @@
                 const resp = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'cadastro', nome, email, senha })
+                    body: JSON.stringify({ action: 'cadastro', sistema: 'boteco', nome, email, senha })
                 });
                 const data = await resp.json();
 
