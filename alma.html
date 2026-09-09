@@ -693,6 +693,7 @@
       .group-label { font-size: 1rem; }
     }
 
+    /*
     /* ── SORTEIO NUMEROLOGIA ── */
     #sorteioFab {
       display: none;
@@ -849,6 +850,7 @@
       display: none;
     }
 
+    */
     /* ── SETA DE SCROLL ── */
     #scrollArrow {
       position: fixed;
@@ -1032,6 +1034,14 @@
   </style>
 </head>
 <body>
+
+  <!-- 🔥 NOVO: login no canto — mesma conta/rota do Olho de Deus (central.gs) -->
+  <div id="cantoLogin" style="position:fixed; top:14px; right:14px; z-index:999; font-family:inherit;">
+    <button id="cantoLoginBtn" onclick="abrirLoginCanto()" style="background:rgba(20,20,20,0.85); color:#d4a017; border:1px solid #d4a017; border-radius:20px; padding:8px 16px; font-size:0.85rem; cursor:pointer; backdrop-filter:blur(6px);">🔓 Entrar</button>
+    <div id="cantoUsuarioInfo" style="display:none; background:rgba(20,20,20,0.85); color:#f0e6d8; border:1px solid #d4a017; border-radius:20px; padding:8px 16px; font-size:0.8rem; backdrop-filter:blur(6px); text-align:right; cursor:pointer;" onclick="sairCanto()" title="Clique para sair">
+      👤 <span id="cantoNome"></span> · <span id="cantoSaldo"></span> tokens
+    </div>
+  </div>
 
   <!-- ═══ ESFERA ALMA ═══ -->
   <div class="alma-button" id="alma-btn">
@@ -1559,7 +1569,7 @@
             <span class="status-badge" style="background:rgba(255,0,0,0.2);color:#ff9999;border:1px solid rgba(255,0,0,0.4);">Ativo</span>
           </h3>
           <p class="card-description">
-            Todos os vídeos do ecossistema ALMAFLUXO: Navegador Multiverso, SOMA Quântico, Studio Pro Creator AI, O FLUXO — A Consciência do Tempo, Hedge Dinâmico, Fluxo Matemático, Trajeto do Nada ao Tudo, Marido de Aluguel, Sorteio Diário de Numerologia e muito mais.
+            Todos os vídeos do ecossistema ALMAFLUXO: Navegador Multiverso, SOMA Quântico, Studio Pro Creator AI, O FLUXO — A Consciência do Tempo, Hedge Dinâmico, Fluxo Matemático, Trajeto do Nada ao Tudo, Marido de Aluguel e muito mais.
           </p>
           <div style="margin-bottom:12px; padding:10px 12px; background:rgba(255,0,0,0.07); border-radius:10px; border:1px solid rgba(255,0,0,0.2);">
             <div style="font-size:0.78rem; color:rgba(255,255,255,0.6); margin-bottom:6px; letter-spacing:0.05em;">DESTAQUES DO CANAL</div>
@@ -1568,13 +1578,18 @@
               <span style="font-size:0.82rem; color:rgba(255,255,255,0.85);">🔊 SOMA · O Som da Tabela Periódica</span>
               <span style="font-size:0.82rem; color:rgba(255,255,255,0.85);">🎬 Studio Pro Creator AI</span>
               <span style="font-size:0.82rem; color:rgba(255,255,255,0.85);">⚽ Hedge Dinâmico · Gestão de Risco</span>
-              <span style="font-size:0.82rem; color:rgba(255,255,255,0.85);">🔮 Sorteio Diário de Numerologia</span>
+              <!-- SORTEIO DIÁRIO DESATIVADO: 🔮 Sorteio Diário de Numerologia -->
             </div>
           </div>
           <div class="card-actions">
             <button class="card-link" onclick="window.open('https://www.youtube.com/channel/UCo6m4Ey5HOICDBlht-2hElQ', '_blank')" style="background:rgba(255,0,0,0.45); border:none; cursor:pointer;">
               ▶️ Acessar Canal YouTube
             </button>
+            <!-- SORTEIO DIÁRIO DESATIVADO TEMPORARIAMENTE.
+            <button class="card-link light" onclick="window.open('https://www.youtube.com/watch?v=9GhMH6RZmuI', '_blank')" style="border:none; cursor:pointer; font-size:0.83rem;">
+              🔴 Sorteio Diário — Assistir Agora
+            </button>
+            -->
           </div>
         </div>
 
@@ -1798,7 +1813,17 @@
       <polyline points="6 9 12 15 18 9"/>
     </svg>
   </div>
-  
+
+  <!--
+  ═══ CONTADOR DE SORTEIO — DESATIVADO TEMPORARIAMENTE ═══
+  Mantido comentado para reativação futura.
+  <div id="sorteioTimerBadge" style="display: none; position: fixed; top: 14px; right: 14px; z-index: 9998; background: rgba(15,30,60,0.92); backdrop-filter: blur(10px); border: 1px solid rgba(255,215,0,0.5); border-radius: 20px; padding: 7px 14px; font-size: 0.74rem; color: #ffd700; align-items: center; gap: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);">
+    <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #ffd700; box-shadow: 0 0 8px #ffd700; animation: pulse 1.5s infinite;"></span>
+    <span id="sorteioTimerText">⏳ 15:00</span>
+  </div>
+  ═══ FIM DO CONTADOR DE SORTEIO ═══
+  -->
+
   <!-- ═══ BOTÃO DE SOM DO CORAÇÃO ═══ -->
   <button id="heartSoundBtn" onclick="toggleHeartSound()" title="Coração ALMAFLUXO">
     <span class="hs-icon">💓</span>
@@ -2141,9 +2166,28 @@
     function adicionarMensagemAtendimentoAlma(texto, tipo) {
         const container = document.getElementById('atendimentoMessagesAlma');
         if (!container) return;
+
+        const textoMensagem = String(texto || '').trim();
+        if (!textoMensagem) return;
+
         const msgDiv = document.createElement('div');
         msgDiv.className = `message-olho ${tipo}`;
-        msgDiv.textContent = texto;
+
+        const textoEl = document.createElement('div');
+        textoEl.textContent = textoMensagem;
+        msgDiv.appendChild(textoEl);
+
+        // ÁUDIO SOMENTE PARA MENSAGENS RECEBIDAS DO ATENDIMENTO/IA.
+        if (tipo === 'ai') {
+          const audioBtn = document.createElement('button');
+          audioBtn.type = 'button';
+          audioBtn.className = 'atendimento-audio-btn';
+          audioBtn.textContent = '🔊 Ouvir';
+          audioBtn.title = 'Ouvir esta resposta do atendimento em áudio';
+          audioBtn.onclick = () => ouvirMensagemAtendimento(audioBtn, textoMensagem);
+          msgDiv.appendChild(audioBtn);
+        }
+
         container.appendChild(msgDiv);
         container.scrollTop = container.scrollHeight;
     }
@@ -2462,11 +2506,53 @@
         usuarioTokens = { nome: resultado.nome, email, balance: resultado.balance, sessionToken: resultado.sessionToken };
         try { localStorage.setItem('almafluxo_usuario', JSON.stringify(usuarioTokens)); } catch (e) {}
         tgSetMsg('tgMsgLogin', '', '');
-        tgAbrirPassoPlano();
+        atualizarWidgetCanto();
+        // 🔥 NOVO: se veio de "abrir plataforma paga", segue pro passo de
+        // plano; se veio do login avulso do canto, só fecha o modal.
+        if (_tgPendente) {
+          tgAbrirPassoPlano();
+        } else {
+          fecharTokenGateModal();
+        }
       } else {
         tgSetMsg('tgMsgLogin', 'error', '❌ ' + (resultado.error || 'Credenciais inválidas.'));
       }
     }
+
+    // 🔥 NOVO: login no canto — mesma conta/rota do Olho de Deus, sem
+    // depender de estar clicando numa plataforma paga específica.
+    function abrirLoginCanto() {
+      tgCarregarSessao();
+      if (usuarioTokens) { atualizarWidgetCanto(); return; } // já logado, o clique é no card de usuário (sairCanto)
+      _tgPendente = null;
+      document.getElementById('tokenGateModal').style.display = 'flex';
+      document.getElementById('tgEmail').value = '';
+      document.getElementById('tgSenha').value = '';
+      tgSetMsg('tgMsgLogin', '', '');
+      tgMostrarStep('login');
+    }
+
+    function sairCanto() {
+      if (!confirm('Sair da conta ALMA?')) return;
+      usuarioTokens = null;
+      try { localStorage.removeItem('almafluxo_usuario'); } catch (e) {}
+      atualizarWidgetCanto();
+    }
+
+    function atualizarWidgetCanto() {
+      const btn = document.getElementById('cantoLoginBtn');
+      const info = document.getElementById('cantoUsuarioInfo');
+      if (usuarioTokens) {
+        btn.style.display = 'none';
+        info.style.display = 'block';
+        document.getElementById('cantoNome').textContent = usuarioTokens.nome || usuarioTokens.email;
+        document.getElementById('cantoSaldo').textContent = usuarioTokens.balance ?? '—';
+      } else {
+        btn.style.display = 'block';
+        info.style.display = 'none';
+      }
+    }
+    atualizarWidgetCanto(); // estado inicial, ao carregar a página
 
     async function tgAbrirPassoPlano() {
       tgMostrarStep('plano');
@@ -2581,8 +2667,77 @@
     let deferredPrompt;
     const installBtn = document.getElementById('installPwaBtn');
     window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; installBtn.style.display = 'flex'; });
-    function installPWA() { if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then(() => { deferredPrompt = null; installBtn.style.display = 'none'; }); } }
+
+    async function installPWA() {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(() => { deferredPrompt = null; installBtn.style.display = 'none'; });
+    }
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(e => console.warn('SW:', e));
+
+    // ═══════════════════════════════════════════════════════════════
+    // LEITURA POR VOZ — EXCLUSIVA DO ATENDIMENTO
+    // Nenhum card, plataforma ou texto do portal recebe controles de áudio.
+    // O áudio só é gerado para uma resposta recebida do atendimento
+    // quando o visitante clicar em "🔊 Ouvir".
+    // ═══════════════════════════════════════════════════════════════
+    const API_VOZ_PROXY = 'https://almafluxo.uk/proxy/voz';
+    let _audioAtual = null;
+
+    async function chamarVozAtendimento(texto) {
+      const textoLimpo = String(texto || '').trim();
+      if (!textoLimpo) throw new Error('Mensagem vazia.');
+
+      const resp = await fetch(API_VOZ_PROXY, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          texto: textoLimpo,
+          origem: 'almafluxo_atendimento',
+          idioma: 'pt'
+        })
+      });
+
+      if (!resp.ok) {
+        const erro = await resp.json().catch(() => ({ message: 'Erro ao gerar áudio.' }));
+        throw new Error(erro.message || 'Erro ao gerar áudio.');
+      }
+      return await resp.blob();
+    }
+
+    async function ouvirMensagemAtendimento(botao, texto) {
+      const original = botao.textContent;
+      try {
+        botao.disabled = true;
+        botao.textContent = '⏳ Gerando...';
+
+        if (_audioAtual) {
+          const anterior = _audioAtual;
+          _audioAtual = null;
+          anterior.pause();
+          if (anterior.src) URL.revokeObjectURL(anterior.src);
+        }
+
+        const blob = await chamarVozAtendimento(texto);
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        _audioAtual = audio;
+
+        audio.onended = () => {
+          URL.revokeObjectURL(url);
+          if (_audioAtual === audio) _audioAtual = null;
+          botao.disabled = false;
+          botao.textContent = original;
+        };
+
+        await audio.play();
+      } catch (e) {
+        console.error('❌ Áudio do atendimento:', e);
+        botao.disabled = false;
+        botao.textContent = original;
+        alert('Não consegui gerar o áudio: ' + e.message);
+      }
+    }
 
     // ═══ SOM DO CORAÇÃO ═══
     let _audioCtx = null;
@@ -2688,7 +2843,15 @@
     updatePrompt();
   </script>
 
-  <!-- ═══ SCRIPT SORTEIO NUMEROLOGIA ═══ -->
+  <!--
+  ═══════════════════════════════════════════════════════════════
+  SORTEIO DIÁRIO DE NUMEROLOGIA — DESATIVADO TEMPORARIAMENTE
+  O código foi preservado neste comentário para reativação futura.
+  Para reativar, remova este comentário externo e restaure os marcadores
+  [COMENTÁRIO] e [FIM-COMENTÁRIO] para [COMENTÁRIO] e [FIM-COMENTÁRIO].
+  ═══════════════════════════════════════════════════════════════
+
+  [COMENTÁRIO] ═══ SCRIPT SORTEIO NUMEROLOGIA ═══ —>
   <script>
   (function() {
     var TEMPO_MS = 15 * 60 * 1000; // 15 minutos
@@ -2851,7 +3014,7 @@
   })();
   </script>
 
-  <!-- ═══ SORTEIO: BOTÃO + MODAL ═══ -->
+  [COMENTÁRIO] ═══ SORTEIO: BOTÃO + MODAL ═══ —>
   <button id="sorteioFab" onclick="abrirSorteio()">🔮 Sorteio Numerologia</button>
 
   <div id="sorteioModal" role="dialog" aria-modal="true">
@@ -2928,5 +3091,11 @@
     </div>
   </div>
 
+
+  FIM DO SORTEIO DIÁRIO DESATIVADO
+  [FIM-COMENTÁRIO]
+
+  FIM DO SORTEIO DIÁRIO DESATIVADO
+  -->
 </body>
 </html>
