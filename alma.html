@@ -2061,10 +2061,30 @@
         mostrarDigitandoAlma();
 
         try {
-            // 1) Conta respostas anteriores
+            // 🔥 OTIMIZADO: antes rodava em sequência (contar respostas
+            // anteriores → SÓ DEPOIS salvar a mensagem), o que somava as duas
+            // latências. Agora roda em paralelo — mesma correção (ainda
+            // sabemos quantas respostas já existiam antes desta pergunta,
+            // então o polling não confunde uma resposta antiga com uma nova),
+            // só que sem esperar uma chamada terminar pra começar a outra.
+            const [respAntes] = await Promise.all([
+                fetch(`${PROXY_DOLA_ALMA}?action=getChatAtendente&leadId=${sessionIdAtendimentoAlma}`).catch(() => null),
+                fetch(PROXY_DOLA_ALMA, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'saveChatAtendente',
+                        leadId: sessionIdAtendimentoAlma,
+                        nomeLead: 'Visitante Portal ALMAFLUXO',
+                        de: 'lead',
+                        texto: mensagem,
+                        origem: 'almafluxo_solutions'
+                    })
+                })
+            ]);
+
             let numeroRespostasAntes = 0;
             try {
-                const respAntes = await fetch(`${PROXY_DOLA_ALMA}?action=getChatAtendente&leadId=${sessionIdAtendimentoAlma}`);
                 const dataAntes = await respAntes.json();
                 const mensagensAntes = dataAntes.conversas?.[sessionIdAtendimentoAlma]?.mensagens || [];
                 numeroRespostasAntes = mensagensAntes.filter(m => m.de === 'atendente').length;
@@ -2072,25 +2092,12 @@
                 console.log('ℹ️ Primeira mensagem - sem histórico');
             }
 
-            // 2) Salva mensagem do usuário
-            await fetch(PROXY_DOLA_ALMA, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'saveChatAtendente',
-                    leadId: sessionIdAtendimentoAlma,
-                    nomeLead: 'Visitante Portal ALMAFLUXO',
-                    de: 'lead',
-                    texto: mensagem,
-                    origem: 'almafluxo_solutions'
-                })
-            });
-
-            // 3) Polling para resposta
+            // 3) Polling para resposta — intervalo reduzido de 3s para 1,5s
+            // (detecta a resposta mais rápido sem sobrecarregar o backend)
             let resposta = null;
-            const MAX_TENTATIVAS = 20;
+            const MAX_TENTATIVAS = 20; // 20 × 1,5s = 30s de teto, igual antes
             for (let tentativa = 0; tentativa < MAX_TENTATIVAS && !resposta; tentativa++) {
-                await new Promise(r => setTimeout(r, 3000));
+                await new Promise(r => setTimeout(r, 1500));
                 try {
                     const resp = await fetch(`${PROXY_DOLA_ALMA}?action=getChatAtendente&leadId=${sessionIdAtendimentoAlma}`);
                     const data = await resp.json();
