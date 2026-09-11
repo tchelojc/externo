@@ -1033,14 +1033,6 @@
 </head>
 <body>
 
-  <!-- 🔥 NOVO: login no canto — mesma conta/rota do Olho de Deus (central.gs) -->
-  <div id="cantoLogin" style="position:fixed; top:14px; right:14px; z-index:999; font-family:inherit;">
-    <button id="cantoLoginBtn" onclick="abrirLoginCanto()" style="background:rgba(20,20,20,0.85); color:#d4a017; border:1px solid #d4a017; border-radius:20px; padding:8px 16px; font-size:0.85rem; cursor:pointer; backdrop-filter:blur(6px);">🔓 Entrar</button>
-    <div id="cantoUsuarioInfo" style="display:none; background:rgba(20,20,20,0.85); color:#f0e6d8; border:1px solid #d4a017; border-radius:20px; padding:8px 16px; font-size:0.8rem; backdrop-filter:blur(6px); text-align:right; cursor:pointer;" onclick="sairCanto()" title="Clique para sair">
-      👤 <span id="cantoNome"></span> · <span id="cantoSaldo"></span> tokens
-    </div>
-  </div>
-
   <!-- ═══ ESFERA ALMA ═══ -->
   <div class="alma-button" id="alma-btn">
     <span style="font-size:2.5rem;font-weight:bold">ALMA</span>
@@ -2479,54 +2471,11 @@
         usuarioTokens = { nome: resultado.nome, email, balance: resultado.balance, sessionToken: resultado.sessionToken };
         try { localStorage.setItem('almafluxo_usuario', JSON.stringify(usuarioTokens)); } catch (e) {}
         tgSetMsg('tgMsgLogin', '', '');
-        atualizarWidgetCanto();
-        // 🔥 NOVO: se veio de "abrir plataforma paga", segue pro passo de
-        // plano; se veio do login avulso do canto, só fecha o modal.
-        if (_tgPendente) {
-          tgAbrirPassoPlano();
-        } else {
-          fecharTokenGateModal();
-          buscarPreferenciaVoz();
-        }
+        tgAbrirPassoPlano();
       } else {
         tgSetMsg('tgMsgLogin', 'error', '❌ ' + (resultado.error || 'Credenciais inválidas.'));
       }
     }
-
-    // 🔥 NOVO: login no canto — mesma conta/rota do Olho de Deus, sem
-    // depender de estar clicando numa plataforma paga específica.
-    function abrirLoginCanto() {
-      tgCarregarSessao();
-      if (usuarioTokens) { atualizarWidgetCanto(); return; } // já logado, o clique é no card de usuário (sairCanto)
-      _tgPendente = null;
-      document.getElementById('tokenGateModal').style.display = 'flex';
-      document.getElementById('tgEmail').value = '';
-      document.getElementById('tgSenha').value = '';
-      tgSetMsg('tgMsgLogin', '', '');
-      tgMostrarStep('login');
-    }
-
-    function sairCanto() {
-      if (!confirm('Sair da conta ALMA?')) return;
-      usuarioTokens = null;
-      try { localStorage.removeItem('almafluxo_usuario'); } catch (e) {}
-      atualizarWidgetCanto();
-    }
-
-    function atualizarWidgetCanto() {
-      const btn = document.getElementById('cantoLoginBtn');
-      const info = document.getElementById('cantoUsuarioInfo');
-      if (usuarioTokens) {
-        btn.style.display = 'none';
-        info.style.display = 'block';
-        document.getElementById('cantoNome').textContent = usuarioTokens.nome || usuarioTokens.email;
-        document.getElementById('cantoSaldo').textContent = usuarioTokens.balance ?? '—';
-      } else {
-        btn.style.display = 'block';
-        info.style.display = 'none';
-      }
-    }
-    atualizarWidgetCanto(); // estado inicial, ao carregar a página
 
     async function tgAbrirPassoPlano() {
       tgMostrarStep('plano');
@@ -2641,136 +2590,8 @@
     let deferredPrompt;
     const installBtn = document.getElementById('installPwaBtn');
     window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; installBtn.style.display = 'flex'; });
-
-    // 🔥 NOVO: antes de instalar, pergunta se quer ativar leitura por voz —
-    // a preferência fica salva na conta (Drive, via o Apps Script de voz),
-    // então volta a valer em qualquer aparelho que o usuário logar.
-    async function installPWA() {
-      if (!deferredPrompt) return;
-      const ativarVoz = confirm('🔊 Ativar leitura por voz nesta instalação?\n\nAs descrições das plataformas poderão ser ouvidas em voz alta.\n\nOK = ativar · Cancelar = instalar sem voz (pode ativar depois)');
-      await salvarPreferenciaVoz(ativarVoz);
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then(() => { deferredPrompt = null; installBtn.style.display = 'none'; });
-    }
+    function installPWA() { if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then(() => { deferredPrompt = null; installBtn.style.display = 'none'; }); } }
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(e => console.warn('SW:', e));
-
-    // ═══════════════════════════════════════════════════════════════
-    // 🔥 NOVO: LEITURA POR VOZ (ouvir + baixar) nas descrições dos cards
-    // Passa pelo worker (/proxy/voz), que decide o perfil de voz pela
-    // origem ("alma") e cacheia o áudio no Drive via o Apps Script de voz.
-    // A preferência liga/desliga é separada (salvarPreferenciaVoz/
-    // buscarPreferenciaVoz), que fala DIRETO com o Apps Script de voz
-    // (só guarda um JSON pequeno por conta, não precisa do worker/túnel).
-    // ═══════════════════════════════════════════════════════════════
-    const API_VOZ_APPSCRIPT = 'https://script.google.com/macros/s/AKfycbzG7XV7-5dxOPMkA_kozO91Xzd52ZiXZwLSg8nWOV84BcJHU-aVvEn9xpDicPTY043C/exec';
-    const API_VOZ_PROXY = 'https://almafluxo.uk/proxy/voz';
-
-    let leituraPorVozAtiva = false;
-
-    async function buscarPreferenciaVoz() {
-      if (!usuarioTokens?.email) return;
-      try {
-        const resp = await fetch(API_VOZ_APPSCRIPT, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'buscarPreferencia', email: usuarioTokens.email })
-        });
-        const dados = await resp.json();
-        if (dados.status === 'success') leituraPorVozAtiva = !!dados.leituraAtiva;
-      } catch (e) { /* mantém desativado se falhar */ }
-    }
-
-    async function salvarPreferenciaVoz(ativa) {
-      leituraPorVozAtiva = ativa;
-      if (!usuarioTokens?.email) return;
-      try {
-        await fetch(API_VOZ_APPSCRIPT, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'salvarPreferencia', email: usuarioTokens.email, leituraAtiva: ativa })
-        });
-      } catch (e) { /* preferência fica só localmente nesta sessão */ }
-    }
-
-    async function chamarVoz(texto) {
-      const resp = await fetch(API_VOZ_PROXY, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ texto, origem: 'alma', idioma: 'pt' })
-      });
-      if (!resp.ok) {
-        const erro = await resp.json().catch(() => ({ message: 'Erro ao gerar áudio.' }));
-        throw new Error(erro.message || 'Erro ao gerar áudio.');
-      }
-      return await resp.blob();
-    }
-
-    let _audioAtual = null;
-    async function ouvirTexto(botao, texto) {
-      const original = botao.textContent;
-      try {
-        botao.disabled = true; botao.textContent = '⏳';
-        if (_audioAtual) { _audioAtual.pause(); _audioAtual = null; }
-        const blob = await chamarVoz(texto);
-        _audioAtual = new Audio(URL.createObjectURL(blob));
-        _audioAtual.play();
-      } catch (e) {
-        alert('Não consegui gerar o áudio: ' + e.message);
-      } finally {
-        botao.disabled = false; botao.textContent = original;
-      }
-    }
-
-    // 🔥 Download direto do áudio (baixa o arquivo de verdade, sem passar
-    // por um link que só abre/redireciona)
-    async function baixarAudioTexto(botao, texto, nomeArquivo) {
-      const original = botao.textContent;
-      try {
-        botao.disabled = true; botao.textContent = '⏳';
-        const blob = await chamarVoz(texto);
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = (nomeArquivo || 'audio') + '.wav';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 4000);
-      } catch (e) {
-        alert('Não consegui baixar o áudio: ' + e.message);
-      } finally {
-        botao.disabled = false; botao.textContent = original;
-      }
-    }
-
-    function adicionarControlesDeVoz() {
-      document.querySelectorAll('.card-description').forEach((descEl, i) => {
-        const texto = descEl.textContent.trim();
-        if (!texto || descEl.dataset.vozAdicionada) return;
-        descEl.dataset.vozAdicionada = '1';
-
-        const container = document.createElement('div');
-        container.style.cssText = 'display:flex; gap:8px; margin-top:8px;';
-
-        const estiloBotao = 'background:rgba(212,160,23,0.15); border:1px solid #d4a017; color:#d4a017; border-radius:8px; padding:4px 10px; cursor:pointer; font-size:0.85rem;';
-
-        const btnOuvir = document.createElement('button');
-        btnOuvir.type = 'button';
-        btnOuvir.textContent = '🔊 Ouvir';
-        btnOuvir.style.cssText = estiloBotao;
-        btnOuvir.onclick = () => ouvirTexto(btnOuvir, texto);
-
-        const btnBaixar = document.createElement('button');
-        btnBaixar.type = 'button';
-        btnBaixar.textContent = '📥 Baixar';
-        btnBaixar.style.cssText = estiloBotao;
-        btnBaixar.onclick = () => baixarAudioTexto(btnBaixar, texto, 'almafluxo_' + i);
-
-        container.appendChild(btnOuvir);
-        container.appendChild(btnBaixar);
-        descEl.insertAdjacentElement('afterend', container);
-      });
-    }
-    document.addEventListener('DOMContentLoaded', adicionarControlesDeVoz);
-    if (document.readyState !== 'loading') adicionarControlesDeVoz();
-    if (usuarioTokens) buscarPreferenciaVoz();
 
     // ═══ SOM DO CORAÇÃO ═══
     let _audioCtx = null;
