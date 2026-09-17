@@ -1191,7 +1191,7 @@
         // ======================================================
         const API_CENTRAL = 'https://almafluxo.uk/proxy/central';
         const PAGAMENTOS_URL = 'https://almafluxo.uk/proxy/pagamentos';
-        const FLUXOWHATSAPP_DRIVE = 'https://almafluxo.uk/fluxowhatsapp';
+        const FLUXOWHATSAPP_APP = 'https://almafluxo.uk/app-whatsapp/';
         const PROXY_CLOUDFLARE = 'https://almafluxo.uk/proxy/infocell';
         const WHATSAPP_ATENDIMENTO = "5521981533928";
         const TOKEN_INTERNO = 'ALMA369UA';
@@ -1315,11 +1315,15 @@
             try {
                 // 🔓 REGRA NOVA: o acesso NÃO exige saldo.
                 // O login libera o painel e o CarFluxo. O débito acontece por uso.
+                //
+                // 🔥 CORRIGIDO: antes abria /fluxowhatsapp (404). Agora abre o
+                // wrapper correto — /app-whatsapp/ — que injeta o HTML real
+                // do Drive dentro de um iframe e faz toda a ponte com o Worker.
                 const params = new URLSearchParams({
                     email: usuarioLogadoOlho.email,
                     sessionToken: usuarioLogadoOlho.sessionToken
                 });
-                window.open(`${FLUXOWHATSAPP_DRIVE}?${params}`, '_blank');
+                window.open(`${FLUXOWHATSAPP_APP}?${params}`, '_blank');
                 mostrarToastOlho('✅ Painel aberto! A cobrança é por mensagem atendida.');
             } catch (e) {
                 mostrarToastOlho('⚠️ Erro ao acessar: ' + e.message);
