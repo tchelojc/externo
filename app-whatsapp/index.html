@@ -194,7 +194,7 @@
     const LANDING_URL = 'https://almafluxo.uk/whatsapp';
     const APP_ENDPOINT = '/whatsapp/conteudo';           // rota do worker que serve o HTML real do Drive
     const LOGIN_URL = 'https://almafluxo.uk/proxy/central';
-
+    const FLUXOWHATSAPP_APP_ID = '19bge7BgpyYhagCOeKGhDEkmYN4eQFubH';
     const STORAGE_KEY = 'fluxowhatsapp_usuario';         // mesma chave do landing
     const STORAGE_KEY_OLHO = 'olho_de_deus_usuario';     // fallback se o usuário logou por lá
 
@@ -309,19 +309,19 @@
         return data;
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // CARREGAR O HTML REAL DO DRIVE
-    // ═══════════════════════════════════════════════════════════
     async function buscarHtmlDoApp() {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
         try {
-            const resp = await fetch(`${WORKER_URL}${APP_ENDPOINT}?t=${Date.now()}`, {
-                method: 'GET',
-                headers: { 'Accept': 'text/html,application/xhtml+xml' },
-                signal: controller.signal,
-                cache: 'no-store'
+            const resp = await fetch(`${WORKER_URL}/proxy/central`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'servirHTML',
+                    arquivoId: FLUXOWHATSAPP_APP_ID
+                }),
+                signal: controller.signal
             });
 
             clearTimeout(timer);
