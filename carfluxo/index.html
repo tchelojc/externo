@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="google" content="notranslate" />
+<title>CarFluxo | ALMAFLUXO</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+        width: 100%; height: 100%; overflow: hidden;
+        background: #030508; color: #e0e0e0;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    #loadingScreen {
+        position: fixed; inset: 0;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        text-align: center; padding: 24px;
+        background: radial-gradient(circle at 50% 40%, #0a0e17 0%, #030508 80%);
+        z-index: 10;
+        transition: opacity 0.4s ease;
+    }
+    #loadingScreen.hidden { opacity: 0; pointer-events: none; }
+
+    .brand {
+        font-size: 2rem; font-weight: 800;
+        color: #ffd700; letter-spacing: 1px;
+        text-shadow: 0 0 24px rgba(255,215,0,0.35);
+        margin-bottom: 8px;
+    }
+    .brand span { color: #fff; font-weight: 400; }
+    .subtitle { color: #888; font-size: 0.9rem; margin-bottom: 32px; }
+
+    .spinner {
+        width: 56px; height: 56px;
+        border: 3px solid rgba(255,215,0,0.15);
+        border-top-color: #ffd700;
+        border-radius: 50%;
+        animation: spin 0.9s linear infinite;
+        margin-bottom: 20px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #statusText {
+        font-size: 0.9rem; color: #b0b0b0;
+        max-width: 420px; line-height: 1.6;
+        min-height: 1.6em;
+    }
+
+    #btnRetry {
+        display: none;
+        margin-top: 24px;
+        padding: 12px 32px;
+        background: #ffd700; color: #000;
+        border: none; border-radius: 30px;
+        font-weight: 800; font-size: 0.95rem;
+        cursor: pointer; transition: all 0.25s;
+        font-family: inherit;
+    }
+    #btnRetry:hover { box-shadow: 0 0 24px rgba(255,215,0,0.4); transform: translateY(-2px); }
+
+    #btnVoltar {
+        display: none;
+        margin-top: 12px;
+        padding: 10px 24px;
+        background: transparent; color: #888;
+        border: 1px solid #333; border-radius: 30px;
+        font-weight: 600; font-size: 0.85rem;
+        cursor: pointer; transition: all 0.25s;
+        font-family: inherit;
+    }
+    #btnVoltar:hover { color: #fff; border-color: #666; }
+
+    .erro-detalhe {
+        display: none;
+        margin-top: 16px;
+        max-width: 520px;
+        padding: 14px 18px;
+        background: rgba(231,76,60,0.08);
+        border: 1px solid rgba(231,76,60,0.35);
+        border-radius: 10px;
+        font-family: 'Menlo', monospace;
+        font-size: 0.72rem;
+        color: #ffb3ab;
+        text-align: left;
+        word-break: break-word;
+        max-height: 120px;
+        overflow-y: auto;
+    }
+
+    #appFrame {
+        position: fixed; inset: 0;
+        width: 100%; height: 100%;
+        border: none;
+        background: #030508;
+        z-index: 5;
+        display: none;
+    }
+    #appFrame.visible { display: block; }
+
+    #topBar {
+        position: fixed; top: 0; left: 0; right: 0;
+        height: 38px;
+        background: rgba(3,5,8,0.92);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(255,215,0,0.12);
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        z-index: 20;
+        font-size: 0.78rem;
+    }
+    #topBar.visible { display: flex; }
+
+    #topBar .info { color: #888; display: flex; align-items: center; gap: 12px; }
+    #topBar .info strong { color: #ffd700; }
+    #topBar .usuario { color: #b0b0b0; }
+
+    #topBar .acoes { display: flex; gap: 8px; }
+    #topBar button {
+        padding: 5px 12px;
+        background: transparent;
+        border: 1px solid rgba(255,215,0,0.25);
+        color: #ffd700;
+        border-radius: 16px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: inherit;
+    }
+    #topBar button:hover { background: rgba(255,215,0,0.08); border-color: #ffd700; }
+    #topBar button.sair { color: #e74c3c; border-color: rgba(231,76,60,0.35); }
+    #topBar button.sair:hover { background: rgba(231,76,60,0.08); border-color: #e74c3c; }
+
+    #appFrame.withBar { top: 38px; height: calc(100% - 38px); }
+</style>
+</head>
+<body>
+
+<div id="topBar">
+    <div class="info">
+        <span>🚗 <strong>CarFluxo</strong></span>
+        <span class="usuario" id="usuarioInfo"></span>
+    </div>
+    <div class="acoes">
+        <button onclick="voltarLanding()">🏠 Início</button>
+        <button class="sair" onclick="sair()">🚪 Sair</button>
+    </div>
+</div>
+
+<div id="loadingScreen">
+    <div class="brand">ALMAFLUXO <span>| CarFluxo</span></div>
+    <div class="subtitle">Carregando o painel...</div>
+
+    <div class="spinner" id="spinner"></div>
+    <div id="statusText">Verificando sua sessão...</div>
+
+    <button id="btnRetry" onclick="carregarApp()">🔄 Tentar novamente</button>
+    <button id="btnVoltar" onclick="voltarLanding()">← Voltar ao início</button>
+
+    <div class="erro-detalhe" id="erroDetalhe"></div>
+</div>
+
+<iframe
+    id="appFrame"
+    title="CarFluxo — painel"
+    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads allow-popups-to-escape-sandbox allow-geolocation"
+    referrerpolicy="no-referrer"
+    allow="geolocation"
+></iframe>
+
+<script>
+    // ═══════════════════════════════════════════════════════════
+    // CONFIGURAÇÃO
+    // ═══════════════════════════════════════════════════════════
+    const WORKER_URL = 'https://almafluxo.uk';
+    const LANDING_URL = 'https://almafluxo.uk/whatsapp';
+    const CARFLUXO_APP_ID = '1MTii86_WedmDxseTRAo-4DQ88aIXgOs9';  // ID do carfluxo.html no Drive
+    const STORAGE_KEY = 'almafluxo_sessao';              // chave global do ALMAFLUXO
+    const STORAGE_KEY_ATENDIMENTO = 'fluxowhatsapp_usuario';
+    const STORAGE_KEY_OLHO = 'olho_de_deus_usuario';
+    const TIMEOUT_MS = 25000;
+
+    // ═══════════════════════════════════════════════════════════
+    // ELEMENTOS
+    // ═══════════════════════════════════════════════════════════
+    const loadingScreen = document.getElementById('loadingScreen');
+    const spinner = document.getElementById('spinner');
+    const statusText = document.getElementById('statusText');
+    const btnRetry = document.getElementById('btnRetry');
+    const btnVoltar = document.getElementById('btnVoltar');
+    const erroDetalhe = document.getElementById('erroDetalhe');
+    const appFrame = document.getElementById('appFrame');
+    const topBar = document.getElementById('topBar');
+    const usuarioInfo = document.getElementById('usuarioInfo');
+
+    let usuarioAtual = null;
+
+    // ═══════════════════════════════════════════════════════════
+    // HELPERS DE UI
+    // ═══════════════════════════════════════════════════════════
+    function setStatus(texto) { statusText.textContent = texto; }
+
+    function mostrarErro(msg, detalheTecnico) {
+        spinner.style.display = 'none';
+        setStatus('❌ ' + msg);
+        btnRetry.style.display = 'inline-block';
+        btnVoltar.style.display = 'inline-block';
+        if (detalheTecnico) {
+            erroDetalhe.textContent = detalheTecnico;
+            erroDetalhe.style.display = 'block';
+        }
+        console.error('[carfluxo-wrapper]', msg, detalheTecnico || '');
+    }
+
+    function resetarTela() {
+        spinner.style.display = 'block';
+        btnRetry.style.display = 'none';
+        btnVoltar.style.display = 'none';
+        erroDetalhe.style.display = 'none';
+        erroDetalhe.textContent = '';
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // SESSÃO — tenta todas as chaves do ALMAFLUXO em ordem
+    // ═══════════════════════════════════════════════════════════
+    function obterSessao() {
+        const chaves = [STORAGE_KEY, STORAGE_KEY_ATENDIMENTO, STORAGE_KEY_OLHO];
+        for (const chave of chaves) {
+            try {
+                const raw = localStorage.getItem(chave);
+                if (raw) {
+                    const s = JSON.parse(raw);
+                    if (s && s.email && s.sessionToken) {
+                        console.log(`[carfluxo-wrapper] sessão encontrada em "${chave}"`);
+                        return s;
+                    }
+                }
+            } catch (e) {}
+        }
+        return null;
+    }
+
+    function limparSessoes() {
+        try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+    }
+
+    function redirecionarParaLogin(motivo) {
+        setStatus('🔑 Redirecionando para o login...');
+        setTimeout(() => {
+            const url = new URL(LANDING_URL);
+            if (motivo) url.searchParams.set('erro', motivo);
+            window.location.href = url.toString();
+        }, 800);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // VALIDAÇÃO DE SESSÃO
+    // ═══════════════════════════════════════════════════════════
+    async function validarSessaoNoServidor(usuario) {
+        const resp = await fetch(`${WORKER_URL}/proxy/central`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'validarSessionToken',
+                email: usuario.email,
+                sessionToken: usuario.sessionToken,
+                tk: 'ALMA369UA'
+            })
+        });
+
+        if (!resp.ok) {
+            throw new Error(`HTTP ${resp.status} ao validar sessão`);
+        }
+
+        const data = await resp.json();
+        if (!data.ok) {
+            throw new Error(data.error || 'Sessão inválida');
+        }
+        return data;
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // BUSCA O HTML DO CARFLUXO (mesmo mecanismo do FluxoWhatsApp)
+    // ═══════════════════════════════════════════════════════════
+    async function buscarHtmlDoApp() {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+        try {
+            const resp = await fetch(`${WORKER_URL}/proxy/central`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'servirHTML',
+                    arquivoId: CARFLUXO_APP_ID
+                }),
+                signal: controller.signal
+            });
+
+            clearTimeout(timer);
+
+            if (!resp.ok) {
+                const text = await resp.text();
+                let detalhe = `HTTP ${resp.status}`;
+                try {
+                    const j = JSON.parse(text);
+                    if (j.error) detalhe += ' — ' + j.error;
+                } catch (e) {
+                    detalhe += ' — ' + text.slice(0, 200);
+                }
+                throw new Error(detalhe);
+            }
+
+            const html = await resp.text();
+
+            if (!html || html.length < 200) {
+                throw new Error(`Resposta muito curta (${html.length} chars)`);
+            }
+            if (html.trim().startsWith('{')) {
+                try {
+                    const j = JSON.parse(html);
+                    throw new Error(j.error || 'Worker retornou JSON em vez de HTML');
+                } catch (e) {
+                    if (e.message.includes('Worker retornou')) throw e;
+                    throw new Error('Worker retornou JSON inválido');
+                }
+            }
+            const lower = html.toLowerCase();
+            if (!lower.includes('<!doctype') && !lower.includes('<html')) {
+                throw new Error('Resposta não contém HTML válido');
+            }
+
+            return html;
+        } catch (e) {
+            clearTimeout(timer);
+            if (e.name === 'AbortError') {
+                throw new Error(`Timeout após ${TIMEOUT_MS / 1000}s ao buscar o painel`);
+            }
+            throw e;
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // RENDERIZAÇÃO
+    // ═══════════════════════════════════════════════════════════
+    function renderizarApp(html) {
+        appFrame.srcdoc = html;
+
+        loadingScreen.classList.add('hidden');
+        appFrame.classList.add('visible');
+        appFrame.classList.add('withBar');
+        topBar.classList.add('visible');
+
+        const nome = usuarioAtual?.nome || 'Usuário';
+        const saldo = usuarioAtual?.balance ?? '—';
+        usuarioInfo.textContent = `· ${nome} · ⚡ ${saldo} tokens`;
+
+        console.log('✅ [carfluxo-wrapper] App carregado com sucesso');
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // FLUXO PRINCIPAL
+    // ═══════════════════════════════════════════════════════════
+    async function carregarApp() {
+        resetarTela();
+        setStatus('Verificando sua sessão...');
+
+        try {
+            // ── 1) Sessão local ──
+            const sessao = obterSessao();
+            if (!sessao) {
+                redirecionarParaLogin('sessao_ausente');
+                return;
+            }
+            usuarioAtual = sessao;
+
+            // ── 2) Validação no servidor ──
+            setStatus('Validando acesso...');
+            let dadosValidacao;
+            try {
+                dadosValidacao = await validarSessaoNoServidor(sessao);
+            } catch (e) {
+                console.warn('[carfluxo-wrapper] Validação falhou:', e.message);
+                limparSessoes();
+                redirecionarParaLogin('sessao_expirada');
+                return;
+            }
+
+            usuarioAtual.nome = dadosValidacao.nome || usuarioAtual.nome || 'Usuário';
+            usuarioAtual.balance = dadosValidacao.balance ?? usuarioAtual.balance ?? 0;
+            usuarioAtual.master = dadosValidacao.master === true;
+
+            // ── 3) Busca o HTML real ──
+            setStatus('Carregando o painel...');
+            const html = await buscarHtmlDoApp();
+
+            // ── 4) Renderiza ──
+            renderizarApp(html);
+
+        } catch (e) {
+            console.error('[carfluxo-wrapper] Erro:', e);
+            mostrarErro('Não foi possível carregar o painel.', e.message);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // AÇÕES DA TOP BAR
+    // ═══════════════════════════════════════════════════════════
+    function voltarLanding() { window.location.href = LANDING_URL; }
+
+    function sair() {
+        if (!confirm('Deseja sair da conta?')) return;
+        limparSessoes();
+        window.location.href = LANDING_URL;
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // COMUNICAÇÃO COM O IFRAME
+    // ═══════════════════════════════════════════════════════════
+    window.addEventListener('message', (ev) => {
+        const m = ev.data || {};
+        if (!m || typeof m !== 'object') return;
+        if (m.tipo === 'fechar') return voltarLanding();
+        if (m.tipo === 'sair') return sair();
+        if (m.tipo === 'atualizarSaldo' && typeof m.balance === 'number') {
+            if (usuarioAtual) {
+                usuarioAtual.balance = m.balance;
+                usuarioInfo.textContent = `· ${usuarioAtual.nome} · ⚡ ${m.balance} tokens`;
+            }
+        }
+    });
+
+    // ═══════════════════════════════════════════════════════════
+    // INICIALIZAÇÃO
+    // ═══════════════════════════════════════════════════════════
+    document.addEventListener('DOMContentLoaded', () => {
+        const params = new URLSearchParams(window.location.search);
+        const erro = params.get('erro');
+        if (erro === 'sessao_ausente') {
+            setStatus('Você precisa fazer login para acessar o painel.');
+        }
+    });
+
+    carregarApp();
+</script>
+
+</body>
+</html>
