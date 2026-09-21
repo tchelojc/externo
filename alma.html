@@ -1031,6 +1031,261 @@
       .nav-item { font-size: 0.52rem; }
       .nav-icon { font-size: 1.05rem; }
     }
+    /* ═══════════════════════════════════════════════════════════════
+      ALMADITOR · Modal de e-mail + iframe tela cheia
+      Mesmo padrão usado no Karaokê Fluxo (Worker → Drive → srcdoc).
+      ═══════════════════════════════════════════════════════════════ */
+    #almaditorModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.88);
+      backdrop-filter: blur(14px);
+      z-index: 3000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    #almaditorModal.active { display: flex; }
+
+    .almaditor-modal-box {
+      background: rgba(15, 26, 50, 0.97);
+      border-radius: 22px;
+      max-width: 440px;
+      width: 92%;
+      padding: 32px 28px;
+      border: 1px solid rgba(0, 229, 255, 0.25);
+      box-shadow: 0 0 60px rgba(0, 229, 255, 0.28), 0 20px 40px rgba(0,0,0,0.6);
+      position: relative;
+      text-align: center;
+    }
+    .almaditor-modal-box .am-close {
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      font-size: 1.6rem;
+      background: none;
+      border: none;
+      color: rgba(180, 200, 255, 0.4);
+      cursor: pointer;
+      transition: color .2s;
+      line-height: 1;
+    }
+    .almaditor-modal-box .am-close:hover { color: rgba(180, 200, 255, 0.9); }
+
+    .almaditor-modal-box h3 {
+      font-size: 1.35rem;
+      color: #aaccff;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+    .almaditor-modal-box p.am-sub {
+      font-size: 0.85rem;
+      color: rgba(180, 200, 255, 0.5);
+      margin-bottom: 22px;
+      line-height: 1.55;
+    }
+    .almaditor-modal-box input.am-input {
+      width: 100%;
+      padding: 12px 15px;
+      border-radius: 10px;
+      border: 1px solid rgba(100, 150, 255, 0.25);
+      background: rgba(20, 35, 65, 0.8);
+      color: white;
+      font-size: 0.95rem;
+      outline: none;
+      font-family: inherit;
+      margin-bottom: 14px;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .almaditor-modal-box input.am-input:focus {
+      border-color: rgba(0, 229, 255, 0.6);
+      box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.1);
+    }
+    .almaditor-modal-box button.am-btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      background: linear-gradient(135deg, rgba(0, 229, 255, 0.9), rgba(50, 90, 160, 1));
+      color: white;
+      letter-spacing: 0.04em;
+      box-shadow: 0 4px 14px rgba(0, 229, 255, 0.35);
+      transition: all .22s;
+      font-family: inherit;
+    }
+    .almaditor-modal-box button.am-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 229, 255, 0.55);
+    }
+    .almaditor-modal-box button.am-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .almaditor-modal-box .am-msg {
+      margin-top: 12px;
+      padding: 9px 13px;
+      border-radius: 8px;
+      font-size: 0.83rem;
+      display: none;
+      text-align: left;
+      line-height: 1.45;
+    }
+    .almaditor-modal-box .am-msg.error {
+      display: block;
+      background: rgba(255, 80, 80, 0.12);
+      border: 1px solid rgba(255, 80, 80, 0.3);
+      color: #ff9090;
+    }
+    .almaditor-modal-box .am-msg.success {
+      display: block;
+      background: rgba(50, 210, 120, 0.12);
+      border: 1px solid rgba(50, 210, 120, 0.3);
+      color: #80f0b0;
+    }
+    .almaditor-modal-box .am-loader {
+      display: inline-block;
+      width: 13px;
+      height: 13px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spinRing 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    /* Loader em tela cheia enquanto busca o HTML no Drive */
+    #almaditorLoader {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #030508;
+      z-index: 4000;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
+      text-align: center;
+    }
+    #almaditorLoader.active { display: flex; }
+    #almaditorLoader .al-spinner {
+      width: 60px;
+      height: 60px;
+      border: 4px solid rgba(0, 229, 255, 0.15);
+      border-top-color: #00e5ff;
+      border-radius: 50%;
+      animation: spinRing 1s linear infinite;
+    }
+    #almaditorLoader .al-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #00e5ff;
+      letter-spacing: 0.5px;
+    }
+    #almaditorLoader .al-status {
+      font-size: 0.85rem;
+      color: rgba(180, 200, 255, 0.55);
+    }
+
+    /* Iframe tela cheia da plataforma */
+    #almaditorFrame {
+      display: none;
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+      z-index: 4500;
+      background: #030508;
+    }
+    #almaditorFrame.active { display: block; }
+
+    /* Botão flutuante para fechar e voltar ao portal */
+    #almaditorVoltar {
+      display: none;
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      z-index: 4600;
+      background: rgba(0, 229, 255, 0.1);
+      border: 1px solid rgba(0, 229, 255, 0.4);
+      color: #00e5ff;
+      padding: 8px 16px;
+      border-radius: 30px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      transition: background .2s;
+      font-family: inherit;
+    }
+    #almaditorVoltar:hover { background: rgba(0, 229, 255, 0.22); }
+    #almaditorVoltar.active { display: block; }
+    /* SOMA · reaproveita o visual do ALMADITOR, só muda os IDs */
+    #somaModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.88);
+      backdrop-filter: blur(14px);
+      z-index: 3000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    #somaModal.active { display: flex; }
+
+    #somaLoader {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #030508;
+      z-index: 4000;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
+      text-align: center;
+    }
+    #somaLoader.active { display: flex; }
+
+    #somaFrame {
+      display: none;
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+      z-index: 4500;
+      background: #030508;
+    }
+    #somaFrame.active { display: block; }
+
+    #somaVoltar {
+      display: none;
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      z-index: 4600;
+      background: rgba(0, 229, 255, 0.1);
+      border: 1px solid rgba(0, 229, 255, 0.4);
+      color: #00e5ff;
+      padding: 8px 16px;
+      border-radius: 30px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      transition: background .2s;
+      font-family: inherit;
+    }
+    #somaVoltar:hover { background: rgba(0, 229, 255, 0.22); }
+    #somaVoltar.active { display: block; }
   </style>
 </head>
 <body>
@@ -1472,16 +1727,11 @@
             <p class="card-description">
               Engine de som quântico com timeline harmônica baseada na tabela periódica e geometria sagrada. Gere frequências binaurais e prompts musicais através de algoritmos matemáticos. Acesso totalmente liberado para criar paisagens sonoras multidimensionais.
             </p>
-            <p class="card-description" style="margin-top: 8px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px;">
-              🔑 <strong>Senha de acesso:</strong>
-              <span id="senhaSoma" style="cursor: pointer; font-family: monospace; background: #1e1e2f; padding: 4px 8px; border-radius: 6px; user-select: all;" onclick="copiarSenha('G7-A1-I9-C3', this)">G7-A1-I9-C3</span>
-              <span style="font-size: 0.75rem; margin-left: 8px; color: #aaa;">(clique para copiar)</span>
-            </p>
             <p class="card-description" style="color: #44ffaa; font-weight: bold; margin-top: 4px;">
-              🌊 Acesso <strong>totalmente livre</strong> - sem restrições de usuários.
+              🌊 Acesso <strong>totalmente livre</strong> — apenas informe seu e-mail para abrir.
             </p>
             <div class="card-actions">
-              <button class="card-link" onclick="window.open('https://almafluxo.uk/soma/', '_blank')" style="background:rgba(41,121,255,0.5); border:none; cursor:pointer;">🔊 Sincronizar Frequência</button>
+              <button class="card-link" onclick="abrirSomaModal()" style="background:rgba(41,121,255,0.5); border:none; cursor:pointer;">🔊 Sincronizar Frequência</button>
             </div>
           </div>
           
@@ -1512,23 +1762,96 @@
               Editor multidimensional de imagens com sistema de reconstrução por padrões de escrita. Processamento avançado com análise de fluxo direcional, 
               simetria facial, geometria sagrada e renderização por blocos quânticos.
             </p>
-            <p class="card-description" style="margin-top: 8px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px;">
-              🔑 <strong>Senha de acesso:</strong>
-              <span id="senhaAlmaditor" style="cursor: pointer; font-family: monospace; background: #1e1e2f; padding: 4px 8px; border-radius: 6px; user-select: all;" onclick="copiarSenha('E5-D4-C3-A1', this)">E5-D4-C3-A1</span>
-              <span style="font-size: 0.75rem; margin-left: 8px; color: #aaa;">(clique para copiar)</span>
-            </p>
             <p class="card-description" style="color: #44ffaa; font-weight: bold; margin-top: 4px;">
-              🔮 Sistema de reconstrução por padrões de escrita ativado com a chave correta.
+              🌊 Acesso <strong>totalmente livre</strong> — apenas informe seu e-mail para abrir.
             </p>
             <div class="card-actions">
-              <button class="card-link" onclick="window.open('https://almafluxo.uk/almaditor/', '_blank')" style="background:rgba(41,121,255,0.5); border:none; cursor:pointer;">🎨 Abrir ALMADITOR</button>
+              <button class="card-link" onclick="abrirAlmaditorModal()" style="background:rgba(41,121,255,0.5); border:none; cursor:pointer;">🎨 Abrir ALMADITOR</button>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
+  <!-- ═══════════════════════════════════════════════════════════════
+      ALMADITOR · Modal de e-mail + loader + iframe tela cheia
+      Mesmo mecanismo do Karaokê Fluxo (Worker → Drive → srcdoc).
+      ═══════════════════════════════════════════════════════════════ -->
+  <div id="almaditorModal">
+    <div class="almaditor-modal-box">
+      <button class="am-close" onclick="fecharAlmaditorModal()" aria-label="Fechar">×</button>
+      <h3>🎨 Abrir ALMADITOR</h3>
+      <p class="am-sub">
+        Digite seu e-mail para abrir o editor multidimensional.<br>
+        Sem cadastro complicado.
+      </p>
+      <input
+        type="email"
+        id="almaditorEmail"
+        class="am-input"
+        placeholder="seu@email.com"
+        autocomplete="email"
+        onkeydown="if(event.key==='Enter')enviarEmailAlmaditor()"
+      >
+      <button class="am-btn" id="almaditorBtnEnviar" onclick="enviarEmailAlmaditor()">
+        🎬 ABRIR ALMADITOR
+      </button>
+      <div class="am-msg" id="almaditorMsg"></div>
+    </div>
+  </div>
 
+  <div id="almaditorLoader">
+    <div class="al-spinner"></div>
+    <div class="al-title">🎨 Abrindo ALMADITOR...</div>
+    <div class="al-status" id="almaditorLoaderStatus">Buscando plataforma...</div>
+  </div>
+
+  <iframe
+    id="almaditorFrame"
+    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads allow-presentation allow-pointer-lock allow-top-navigation-by-user-activation"
+  ></iframe>
+
+  <button id="almaditorVoltar" onclick="fecharAlmaditorPlataforma()">✕ Voltar ao Portal</button>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+      SOMA · Modal de e-mail + loader + iframe tela cheia
+      Mesmo mecanismo do ALMADITOR e do Karaokê Fluxo.
+      ═══════════════════════════════════════════════════════════════ -->
+  <div id="somaModal">
+    <div class="almaditor-modal-box">
+      <button class="am-close" onclick="fecharSomaModal()" aria-label="Fechar">×</button>
+      <h3>🔊 Abrir SOMA</h3>
+      <p class="am-sub">
+        Digite seu e-mail para abrir o Engine de Som Quântico.<br>
+        Sem cadastro complicado.
+      </p>
+      <input
+        type="email"
+        id="somaEmail"
+        class="am-input"
+        placeholder="seu@email.com"
+        autocomplete="email"
+        onkeydown="if(event.key==='Enter')enviarEmailSoma()"
+      >
+      <button class="am-btn" id="somaBtnEnviar" onclick="enviarEmailSoma()">
+        🎬 ABRIR SOMA
+      </button>
+      <div class="am-msg" id="somaMsg"></div>
+    </div>
+  </div>
+
+  <div id="somaLoader">
+    <div class="al-spinner"></div>
+    <div class="al-title">🔊 Abrindo SOMA...</div>
+    <div class="al-status" id="somaLoaderStatus">Buscando plataforma...</div>
+  </div>
+
+  <iframe
+    id="somaFrame"
+    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads allow-presentation allow-pointer-lock allow-top-navigation-by-user-activation"
+  ></iframe>
+
+  <button id="somaVoltar" onclick="fecharSomaPlataforma()">✕ Voltar ao Portal</button>
   <script>
     function copiarSenha(senha, elemento) {
       navigator.clipboard.writeText(senha).then(() => {
@@ -2835,7 +3158,342 @@
       document.querySelectorAll('.nav-item').forEach(btn => { btn.addEventListener('click', () => { _navLocked = true; setTimeout(() => { _navLocked = false; }, 600); }); });
     })();
 
-    // Init
+    // ═══════════════════════════════════════════════════════════════
+    // ALMADITOR · Abertura via Worker + Drive (mesmo padrão do Karaokê)
+    // O e-mail é registrado; depois o HTML é buscado no Drive pelo ID
+    // e injetado num iframe srcdoc em tela cheia. Sem senha.
+    // ═══════════════════════════════════════════════════════════════
+    const ALMADITOR_ARQUIVO_ID = '1ilkSqa3xyiLL-TOHgHDueiqmrpKbu5bi';
+    const ALMADITOR_WORKER_URL = 'https://almafluxo.uk';
+
+    let _almaditorEmail = '';
+
+    function abrirAlmaditorModal() {
+      document.getElementById('almaditorModal').classList.add('active');
+      document.getElementById('almaditorEmail').value = '';
+      const msg = document.getElementById('almaditorMsg');
+      msg.className = 'am-msg';
+      msg.textContent = '';
+      msg.style.display = 'none';
+      document.getElementById('almaditorBtnEnviar').disabled = false;
+      document.getElementById('almaditorBtnEnviar').innerHTML = '🎬 ABRIR ALMADITOR';
+      setTimeout(() => document.getElementById('almaditorEmail').focus(), 150);
+    }
+
+    function fecharAlmaditorModal() {
+      document.getElementById('almaditorModal').classList.remove('active');
+    }
+
+    document.getElementById('almaditorModal').addEventListener('click', function(e) {
+      if (e.target === this) fecharAlmaditorModal();
+    });
+
+    function _almaditorMsg(tipo, texto) {
+      const el = document.getElementById('almaditorMsg');
+      el.className = 'am-msg ' + tipo;
+      el.textContent = texto;
+      el.style.display = 'block';
+    }
+
+    function _almaditorFingerprint() {
+      try {
+        const dados = [
+          navigator.userAgent, navigator.language,
+          screen.width, screen.height, screen.colorDepth,
+          new Date().getTimezoneOffset(),
+          navigator.hardwareConcurrency || '?',
+          navigator.platform || '?'
+        ].join('|');
+        let h = 2166136261;
+        for (let i = 0; i < dados.length; i++) {
+          h ^= dados.charCodeAt(i);
+          h = (h * 16777619) >>> 0;
+        }
+        return h.toString(36);
+      } catch (e) { return 'na'; }
+    }
+
+    async function _almaditorRegistrarAcesso(email) {
+      try {
+        await fetch(`${ALMADITOR_WORKER_URL}/proxy/karaoke`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'registrarAcesso',
+            tipo: 'temporario',
+            email: email,
+            fingerprint: _almaditorFingerprint(),
+            extra: 'Abertura via ALMADITOR no portal alma.html'
+          })
+        });
+      } catch (e) {
+        // Rastreio é paralelo — não bloqueia a abertura.
+        console.warn('ALMADITOR rastreio falhou:', e.message);
+      }
+    }
+
+    async function enviarEmailAlmaditor() {
+      const email = (document.getElementById('almaditorEmail').value || '').trim().toLowerCase();
+      if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) {
+        _almaditorMsg('error', '❌ Informe um e-mail válido.');
+        return;
+      }
+
+      const btn = document.getElementById('almaditorBtnEnviar');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="am-loader"></span> Abrindo...';
+      _almaditorMsg('success', '✅ Acesso liberado! Abrindo plataforma...');
+
+      _almaditorEmail = email;
+
+      // Rastreio paralelo (não bloqueia)
+      _almaditorRegistrarAcesso(email);
+
+      setTimeout(() => {
+        fecharAlmaditorModal();
+        abrirAlmaditorPlataforma();
+      }, 500);
+    }
+
+    async function abrirAlmaditorPlataforma() {
+      const loader = document.getElementById('almaditorLoader');
+      const loaderStatus = document.getElementById('almaditorLoaderStatus');
+      const frame = document.getElementById('almaditorFrame');
+      const voltarBtn = document.getElementById('almaditorVoltar');
+
+      loader.classList.add('active');
+      loaderStatus.textContent = 'Buscando plataforma no Drive...';
+
+      try {
+        const resp = await fetch(`${ALMADITOR_WORKER_URL}/proxy/central`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'servirHTML',
+            arquivoId: ALMADITOR_ARQUIVO_ID
+          })
+        });
+
+        if (!resp.ok) {
+          throw new Error('Servidor retornou status ' + resp.status);
+        }
+
+        const html = await resp.text();
+
+        if (!html || (!html.includes('<!DOCTYPE') && !html.includes('<html'))) {
+          throw new Error('Conteúdo inválido retornado do Drive.');
+        }
+
+        loaderStatus.textContent = 'Plataforma carregada!';
+
+        frame.srcdoc = html;
+        frame.classList.add('active');
+        voltarBtn.classList.add('active');
+        document.body.style.overflow = 'hidden';
+
+        // Se o ALMADITOR pedir pra fechar, o portal reage
+        window.addEventListener('message', function(e) {
+          if (e.data === 'fechar-plataforma' || e.data === 'fechar-almaditor') {
+            fecharAlmaditorPlataforma();
+          }
+        });
+
+        setTimeout(() => { loader.classList.remove('active'); }, 400);
+
+      } catch (e) {
+        loader.classList.remove('active');
+        document.getElementById('almaditorModal').classList.add('active');
+        _almaditorMsg('error', '❌ Não consegui carregar a plataforma: ' + e.message);
+        document.getElementById('almaditorBtnEnviar').disabled = false;
+        document.getElementById('almaditorBtnEnviar').innerHTML = '🎬 ABRIR ALMADITOR';
+      }
+    }
+
+    function fecharAlmaditorPlataforma() {
+      const frame = document.getElementById('almaditorFrame');
+      frame.classList.remove('active');
+      frame.srcdoc = '';
+      document.getElementById('almaditorVoltar').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        if (document.getElementById('almaditorModal').classList.contains('active')) {
+          fecharAlmaditorModal();
+        } else if (document.getElementById('almaditorFrame').classList.contains('active')) {
+          fecharAlmaditorPlataforma();
+        }
+      }
+    });
+    // ═══════════════════════════════════════════════════════════════
+    // SOMA · Abertura via Worker + Drive (mesmo padrão do ALMADITOR)
+    // O e-mail é registrado; depois o HTML é buscado no Drive pelo ID
+    // e injetado num iframe srcdoc em tela cheia. Sem senha.
+    // ═══════════════════════════════════════════════════════════════
+    const SOMA_ARQUIVO_ID = '12c0Mv0PAVD0Fim-SjTqktFMbbtkqesC2';
+    const SOMA_WORKER_URL = 'https://almafluxo.uk';
+
+    let _somaEmail = '';
+
+    function abrirSomaModal() {
+      document.getElementById('somaModal').classList.add('active');
+      document.getElementById('somaEmail').value = '';
+      const msg = document.getElementById('somaMsg');
+      msg.className = 'am-msg';
+      msg.textContent = '';
+      msg.style.display = 'none';
+      document.getElementById('somaBtnEnviar').disabled = false;
+      document.getElementById('somaBtnEnviar').innerHTML = '🎬 ABRIR SOMA';
+      setTimeout(() => document.getElementById('somaEmail').focus(), 150);
+    }
+
+    function fecharSomaModal() {
+      document.getElementById('somaModal').classList.remove('active');
+    }
+
+    document.getElementById('somaModal').addEventListener('click', function(e) {
+      if (e.target === this) fecharSomaModal();
+    });
+
+    function _somaMsg(tipo, texto) {
+      const el = document.getElementById('somaMsg');
+      el.className = 'am-msg ' + tipo;
+      el.textContent = texto;
+      el.style.display = 'block';
+    }
+
+    function _somaFingerprint() {
+      try {
+        const dados = [
+          navigator.userAgent, navigator.language,
+          screen.width, screen.height, screen.colorDepth,
+          new Date().getTimezoneOffset(),
+          navigator.hardwareConcurrency || '?',
+          navigator.platform || '?'
+        ].join('|');
+        let h = 2166136261;
+        for (let i = 0; i < dados.length; i++) {
+          h ^= dados.charCodeAt(i);
+          h = (h * 16777619) >>> 0;
+        }
+        return h.toString(36);
+      } catch (e) { return 'na'; }
+    }
+
+    async function _somaRegistrarAcesso(email) {
+      try {
+        await fetch(`${SOMA_WORKER_URL}/proxy/karaoke`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'registrarAcesso',
+            tipo: 'temporario',
+            email: email,
+            fingerprint: _somaFingerprint(),
+            extra: 'Abertura via SOMA no portal alma.html'
+          })
+        });
+      } catch (e) {
+        // Rastreio paralelo — não bloqueia a abertura.
+        console.warn('SOMA rastreio falhou:', e.message);
+      }
+    }
+
+    async function enviarEmailSoma() {
+      const email = (document.getElementById('somaEmail').value || '').trim().toLowerCase();
+      if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) {
+        _somaMsg('error', '❌ Informe um e-mail válido.');
+        return;
+      }
+
+      const btn = document.getElementById('somaBtnEnviar');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="am-loader"></span> Abrindo...';
+      _somaMsg('success', '✅ Acesso liberado! Abrindo plataforma...');
+
+      _somaEmail = email;
+
+      // Rastreio paralelo (não bloqueia)
+      _somaRegistrarAcesso(email);
+
+      setTimeout(() => {
+        fecharSomaModal();
+        abrirSomaPlataforma();
+      }, 500);
+    }
+
+    async function abrirSomaPlataforma() {
+      const loader = document.getElementById('somaLoader');
+      const loaderStatus = document.getElementById('somaLoaderStatus');
+      const frame = document.getElementById('somaFrame');
+      const voltarBtn = document.getElementById('somaVoltar');
+
+      loader.classList.add('active');
+      loaderStatus.textContent = 'Buscando plataforma no Drive...';
+
+      try {
+        const resp = await fetch(`${SOMA_WORKER_URL}/proxy/central`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'servirHTML',
+            arquivoId: SOMA_ARQUIVO_ID
+          })
+        });
+
+        if (!resp.ok) {
+          throw new Error('Servidor retornou status ' + resp.status);
+        }
+
+        const html = await resp.text();
+
+        if (!html || (!html.includes('<!DOCTYPE') && !html.includes('<html'))) {
+          throw new Error('Conteúdo inválido retornado do Drive.');
+        }
+
+        loaderStatus.textContent = 'Plataforma carregada!';
+
+        frame.srcdoc = html;
+        frame.classList.add('active');
+        voltarBtn.classList.add('active');
+        document.body.style.overflow = 'hidden';
+
+        // Se a SOMA pedir pra fechar, o portal reage
+        window.addEventListener('message', function(e) {
+          if (e.data === 'fechar-plataforma' || e.data === 'fechar-soma') {
+            fecharSomaPlataforma();
+          }
+        });
+
+        setTimeout(() => { loader.classList.remove('active'); }, 400);
+
+      } catch (e) {
+        loader.classList.remove('active');
+        document.getElementById('somaModal').classList.add('active');
+        _somaMsg('error', '❌ Não consegui carregar a plataforma: ' + e.message);
+        document.getElementById('somaBtnEnviar').disabled = false;
+        document.getElementById('somaBtnEnviar').innerHTML = '🎬 ABRIR SOMA';
+      }
+    }
+
+    function fecharSomaPlataforma() {
+      const frame = document.getElementById('somaFrame');
+      frame.classList.remove('active');
+      frame.srcdoc = '';
+      document.getElementById('somaVoltar').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        if (document.getElementById('somaModal').classList.contains('active')) {
+          fecharSomaModal();
+        } else if (document.getElementById('somaFrame').classList.contains('active')) {
+          fecharSomaPlataforma();
+        }
+      }
+    });
     // Init
     initMic();
     _updateBadge();
