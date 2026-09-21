@@ -677,7 +677,6 @@
             </div>
         </div>
         <div class="hero-video">
-            <!-- TROQUE PELO SEU VÍDEO REAL -->
             <video autoplay muted loop playsinline poster="https://placehold.co/800x450/0a0e17/00e5ff?text=Karaok%C3%AA+Fluxo+Demo">
                 <source src="#" type="video/mp4" />
                 Seu navegador não suporta vídeo.
@@ -699,7 +698,7 @@
         </div>
     </section>
 
-    <!-- ===== PREÇOS (INFORMATIVO – sem backend de pagamento) ===== -->
+    <!-- ===== PREÇOS ===== -->
     <section class="pricing-section" id="pricing">
         <h2 class="pricing-title">Planos de Acesso</h2>
         <p class="pricing-subtitle">Em breve com pagamento via PIX · Hoje o acesso é gratuito por 1 hora</p>
@@ -762,12 +761,11 @@
         <span>ALMAFLUXO © 2026 – Karaokê Fluxo. Todos os direitos reservados.</span>
     </footer>
 
-    <!-- ===== MODAL DE ACESSO (e-mail → senha) ===== -->
+    <!-- ===== MODAL DE ACESSO ===== -->
     <div class="modal-overlay" id="modalAcesso">
         <div class="modal">
             <button class="close-btn" onclick="fecharModalAcesso()">✕</button>
 
-            <!-- Stage 1: e-mail -->
             <div id="stageEmail" class="acesso-stage active">
                 <h2>🎤 Acessar Karaokê</h2>
                 <p style="color:var(--texto2);font-size:0.9rem;text-align:center;margin-bottom:1.5rem;">
@@ -779,7 +777,6 @@
                 <div class="sucesso-msg" id="sucessoEmail"></div>
             </div>
 
-            <!-- Stage 2: senha -->
             <div id="stageSenha" class="acesso-stage">
                 <h2>⚡ SEU ACESSO ESTÁ LIBERADO</h2>
                 <p style="color:var(--texto2);font-size:0.9rem;text-align:center;margin-bottom:0.5rem;">
@@ -799,9 +796,16 @@
     </div>
 
 <script>
-    // ═══════════════ CONFIGURAÇÃO (sem token) ═══════════════
+    // ═══════════════ CONFIGURAÇÃO ═══════════════
     const URL_BACKEND = "/proxy/karaoke";
     const TIMEOUT_MS = 15000;
+
+    // 🎯 ARQUIVO DE DESTINO — karaoke.html na MESMA pasta do Google Drive
+    // Ajuste apenas se o arquivo estiver em outra pasta/ID.
+    // Como o app roda servido pelo Google Drive, "karaoke.html" já resolve
+    // para o arquivo irmão. Se um dia mudar de pasta, use o ID do Drive:
+    //   const KARAOKE_URL = "https://drive.google.com/file/d/SEU_ID_AQUI/view";
+    const KARAOKE_URL = "karaoke.html";
 
     // ═══════════ HELPERS ═══════════
     function mostrarErro(el, msg) {
@@ -871,7 +875,6 @@
                 nome: "",
                 cupom: "",
                 fingerprint: fp
-                // sem tk
             })
         });
         return await resp.json();
@@ -931,7 +934,6 @@
 
     // ═══════════ PASSO 2 — SENHA DO PERÍODO ═══════════
     async function obterChave(senha) {
-        // GET sem tk
         const getUrl = `${URL_BACKEND}?action=getKeyWithPassword&password=${encodeURIComponent(senha)}`;
         let response;
         try {
@@ -940,7 +942,6 @@
             response = await fetch(getUrl, { signal: controller.signal });
             clearTimeout(timeoutId);
         } catch (e) {
-            // Fallback para POST sem tk
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
             response = await fetch(URL_BACKEND, {
@@ -969,27 +970,29 @@
         return await crypto.subtle.decrypt({ name: "AES-GCM", iv: iv, tagLength: 128 }, cryptoKey, new Uint8Array([...data, ...tag]));
     }
 
-    function exibirConteudo(html) {
-        const txt = html.trim();
-        if (txt.toLowerCase().startsWith("<!doctype") || txt.startsWith("<html")) {
-            const iframe = document.createElement("iframe");
-            iframe.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:9999";
-            iframe.srcdoc = txt;
-            document.body.innerHTML = "";
-            document.body.appendChild(iframe);
-        } else {
-            const div = document.createElement("div");
-            div.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;background:#0a121c;overflow:auto";
-            const pre = document.createElement("pre");
-            pre.textContent = txt;
-            pre.style.cssText = "padding:1rem;margin:0;color:#0ff;font-family:monospace;font-size:.9rem;white-space:pre-wrap";
-            div.appendChild(pre);
-            document.body.innerHTML = "";
-            document.body.appendChild(div);
-        }
+    // 🎯 MUDANÇA PRINCIPAL — em vez de mostrar o HTML do backend,
+    //    guarda o conteúdo (opcional, para não quebrar a validação)
+    //    e REDIRECIONA para o karaoke.html que está na MESMA pasta do Drive.
+    //
+    //    O parâmetro "?sessao=..." é opcional — se o seu karaoke.html
+    //    quiser validar que veio de um acesso autenticado, ele pode ler
+    //    esse parâmetro. Se não quiser, é ignorado sem problema.
+    function abrirKaraoke(htmlServidor) {
+        // Guarda o conteúdo do backend em sessionStorage (opcional,
+        // útil se o karaoke.html quiser ler algo do servidor depois).
+        try {
+            if (htmlServidor) {
+                sessionStorage.setItem("af_karaoke_payload", htmlServidor);
+            }
+            sessionStorage.setItem("af_karaoke_email", emailUsuario || "");
+            sessionStorage.setItem("af_karaoke_ts", Date.now().toString());
+        } catch (_) { /* sessionStorage pode estar bloqueado em iframe */ }
+
+        // Redireciona para o karaoke.html na mesma pasta do Google Drive
+        window.location.href = KARAOKE_URL;
     }
 
-    // ═══════════ RASTREIO DE ACESSO (sem tk) ═══════════
+    // ═══════════ RASTREIO DE ACESSO ═══════════
     async function registrarAcessoNoDrive() {
         if (!emailUsuario) return;
         try {
@@ -1001,7 +1004,7 @@
                 licenca_id: "",
                 cupom: "",
                 fingerprint: fp,
-                extra: "Acesso via Karaokê Fluxo (home)"
+                extra: "Acesso via Karaokê Fluxo (home) → karaoke.html"
             };
             const response = await fetch(URL_BACKEND, {
                 method: "POST",
@@ -1026,9 +1029,20 @@
         btn.disabled = true;
         try {
             const { chaveMestra, conteudo } = await obterChave(senha);
-            const buf = await aesDecrypt(conteudo, chaveMestra);
-            exibirConteudo(new TextDecoder().decode(buf));
+            let htmlServidor = "";
+            try {
+                const buf = await aesDecrypt(conteudo, chaveMestra);
+                htmlServidor = new TextDecoder().decode(buf);
+            } catch (eDec) {
+                // Se o backend não tiver mais HTML criptografado, não impede o acesso.
+                console.warn("Sem HTML no backend — seguindo direto para o karaoke.html:", eDec);
+            }
+
+            // Registra o acesso no Drive (como já fazia)
             await registrarAcessoNoDrive();
+
+            // 🎯 Redireciona para karaoke.html (mesma pasta do Drive)
+            abrirKaraoke(htmlServidor);
         } catch (e) {
             mostrarErro(document.getElementById("erroSenha"), e.message);
             btn.innerText = "🔓 ENTRAR NO KARAOKÊ";
@@ -1048,7 +1062,7 @@
         document.getElementById("btnDesbloquear").click();
     };
 
-    // ═══════════ CONTADOR DE ACESSOS (sem tk) ═══════════
+    // ═══════════ CONTADOR DE ACESSOS ═══════════
     async function carregarContador() {
         try {
             const resp = await fetch(`${URL_BACKEND}?action=resumoAdmin`);
