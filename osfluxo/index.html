@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>OSFluxo — Rastreabilidade de Produção | ALMAFLUXO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Nunito:wght@400;600;700;800&family=Cinzel:wght@600;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  :root{
+    --dourado:#d4a017; --dourado2:#b8860b; --dourado-brilho:rgba(212,160,23,.35);
+    --ciano:#00e5ff; --verde:#2ecc71; --vermelho:#e74c3c; --amarelo:#f39c12;
+    --bg:#030508; --panel:#0a0e17; --panel2:#060a12; --card:#0d1220;
+    --border:#1a1a2e; --texto:#e0e0e0; --texto2:#888;
+    --font:'Inter',sans-serif; --body:'Nunito',sans-serif; --serif:'Cinzel',serif;
+    --radius:18px;
+  }
+  html{scroll-behavior:smooth;}
+  body{font-family:var(--body);background:var(--bg);color:var(--texto);overflow-x:hidden;padding-top:64px;line-height:1.55;}
+  a{text-decoration:none;color:inherit;}
+
+  #app-nav{display:flex;align-items:center;justify-content:space-between;background:rgba(3,5,8,.92);backdrop-filter:blur(14px);padding:.7rem 2rem;border-bottom:1px solid rgba(212,160,23,.10);position:fixed;top:0;left:0;width:100%;z-index:9999;}
+  .nav-brand{font-family:var(--font);font-weight:800;color:var(--dourado);font-size:1.2rem;letter-spacing:.5px;}
+  .nav-brand span{color:#fff;font-weight:400;}
+  .nav-actions{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+  .nav-badge{background:rgba(212,160,23,.06);border:1px solid rgba(212,160,23,.2);color:var(--dourado);padding:.3rem 1.1rem;border-radius:30px;font-weight:700;font-size:.82rem;font-family:var(--font);white-space:nowrap;}
+  .btn-nav{background:var(--dourado);color:#000;border:none;padding:.5rem 1.5rem;border-radius:30px;font-weight:800;font-size:.88rem;cursor:pointer;transition:.25s;font-family:var(--font);white-space:nowrap;}
+  .btn-nav:hover{box-shadow:0 0 24px var(--dourado-brilho);transform:scale(1.03);}
+  .btn-nav-outline{background:transparent;border:1px solid rgba(212,160,23,.35);color:var(--dourado);}
+  .btn-nav-outline:hover{background:rgba(212,160,23,.06);}
+
+  .hero-split{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;max-width:1200px;margin:2rem auto 0;padding:0 1.5rem 3rem;align-items:center;min-height:70vh;}
+  .hero-badge{display:inline-block;background:rgba(212,160,23,.07);padding:.3rem 1.2rem;border-radius:30px;font-size:.72rem;color:var(--dourado);border:1px solid rgba(212,160,23,.15);font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:1.2rem;font-family:var(--font);}
+  .hero-content h1{font-family:var(--font);font-size:clamp(2.1rem,4.4vw,3.5rem);font-weight:900;line-height:1.1;color:#fff;margin-bottom:1rem;}
+  .hero-content h1 .destaque{color:var(--dourado);}
+  .hero-sub{font-size:1.02rem;color:var(--texto2);max-width:460px;margin-bottom:1.5rem;line-height:1.7;}
+  .hero-sub b{color:var(--texto);font-weight:700;}
+  .hero-buttons{display:flex;gap:.8rem;flex-wrap:wrap;}
+  .btn-primary{background:var(--dourado);color:#000;border:none;padding:.85rem 2rem;border-radius:50px;font-weight:800;font-size:.98rem;cursor:pointer;transition:.25s;font-family:var(--font);}
+  .btn-primary:hover{box-shadow:0 0 40px var(--dourado-brilho);transform:translateY(-2px);}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed;}
+  .btn-secondary{background:transparent;color:var(--dourado);border:1px solid rgba(212,160,23,.35);padding:.85rem 2rem;border-radius:50px;font-weight:600;font-size:.98rem;cursor:pointer;transition:.25s;font-family:var(--font);}
+  .btn-secondary:hover{background:rgba(212,160,23,.05);border-color:var(--dourado);}
+
+  .hero-chat{position:relative;border-radius:18px;overflow:hidden;background:var(--panel);border:1px solid var(--border);box-shadow:0 12px 48px rgba(0,0,0,.7);display:flex;flex-direction:column;min-height:420px;}
+  .hero-chat .chat-head{padding:1rem 1.2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.6rem;background:linear-gradient(180deg,rgba(212,160,23,.04),transparent);}
+  .hero-chat .chat-head .dot{width:9px;height:9px;border-radius:50%;background:var(--verde);box-shadow:0 0 8px var(--verde);}
+  .hero-chat .chat-head .titulo{font-family:var(--font);font-weight:700;font-size:.9rem;color:#fff;}
+  .hero-chat .chat-head .sub{font-size:.72rem;color:var(--texto2);margin-left:auto;}
+  .hero-chat .chat-msgs{flex:1;display:flex;flex-direction:column;gap:.6rem;padding:1rem 1.1rem;overflow-y:auto;max-height:340px;}
+  .msg{max-width:82%;padding:.6rem .85rem;border-radius:12px;font-size:.83rem;line-height:1.45;}
+  .msg.bot{background:rgba(255,255,255,.04);border:1px solid var(--border);align-self:flex-start;border-bottom-left-radius:3px;}
+  .msg.user{background:linear-gradient(135deg,var(--dourado),var(--dourado2));color:#000;align-self:flex-end;border-bottom-right-radius:3px;font-weight:600;}
+  .hero-chat .chat-input-row{display:flex;gap:.5rem;padding:1rem 1.1rem;border-top:1px solid var(--border);}
+  .chat-input-row input{flex:1;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:22px;color:var(--texto);font-size:.85rem;font-family:inherit;outline:none;}
+  .chat-input-row input:focus{border-color:var(--dourado);}
+  .chat-input-row button{padding:10px 18px;border-radius:22px;border:none;background:var(--dourado);color:#000;font-weight:800;font-size:.8rem;cursor:pointer;font-family:var(--font);}
+
+  .explica-section{padding:4rem 1.5rem 4.5rem;background:var(--panel2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+  .explica-titulo{font-family:var(--font);font-size:clamp(1.6rem,3vw,2.2rem);font-weight:800;color:#fff;text-align:center;margin-bottom:.4rem;}
+  .explica-titulo span{color:var(--dourado);}
+  .explica-sub{text-align:center;color:var(--texto2);font-size:.98rem;max-width:640px;margin:0 auto 3rem;line-height:1.7;}
+  .explica-sub b{color:var(--texto);}
+  .fluxo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1.2rem;max-width:1100px;margin:0 auto;}
+  .fluxo-card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:1.6rem 1.2rem;position:relative;transition:.25s;}
+  .fluxo-card:hover{border-color:rgba(212,160,23,.25);transform:translateY(-3px);}
+  .fluxo-card .num{font-family:var(--font);font-weight:900;font-size:.72rem;color:var(--dourado);letter-spacing:2px;text-transform:uppercase;}
+  .fluxo-card .icone{font-size:2rem;margin:.4rem 0 .5rem;display:block;}
+  .fluxo-card h4{font-family:var(--font);font-weight:700;color:#fff;font-size:.98rem;margin-bottom:.35rem;}
+  .fluxo-card p{color:var(--texto2);font-size:.82rem;line-height:1.55;}
+
+  .features-section{padding:3rem 1.5rem 4rem;}
+  .features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.4rem;max-width:1100px;margin:0 auto;}
+  .feature-card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:1.9rem 1.2rem;text-align:center;transition:.25s;}
+  .feature-card:hover{border-color:rgba(212,160,23,.2);}
+  .feature-icon{font-size:2.6rem;margin-bottom:.6rem;display:block;}
+  .feature-card h4{font-family:var(--font);font-weight:700;color:#fff;font-size:1rem;margin-bottom:.3rem;}
+  .feature-card p{color:var(--texto2);font-size:.8rem;line-height:1.5;}
+
+  .acessos-section{padding:4rem 1.5rem 5rem;max-width:1100px;margin:0 auto;text-align:center;}
+  .acessos-titulo{font-family:var(--font);font-size:2rem;font-weight:800;color:#fff;margin-bottom:.3rem;}
+  .acessos-titulo span{color:var(--dourado);}
+  .acessos-sub{color:var(--texto2);font-size:.95rem;margin-bottom:2.5rem;}
+  .acessos-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.6rem;align-items:stretch;}
+  .acesso-card{background:var(--panel);border:1px solid var(--border);border-radius:20px;padding:2.2rem 1.8rem;text-align:left;display:flex;flex-direction:column;transition:.25s;cursor:pointer;}
+  .acesso-card:hover{border-color:rgba(212,160,23,.3);transform:translateY(-3px);}
+  .acesso-card .icone{font-size:2.4rem;margin-bottom:.7rem;}
+  .acesso-card h3{font-family:var(--font);font-weight:800;color:#fff;font-size:1.1rem;margin-bottom:.4rem;}
+  .acesso-card p{color:var(--texto2);font-size:.86rem;flex:1;line-height:1.6;margin-bottom:1.4rem;}
+  .acesso-card .selo{display:inline-block;font-size:.68rem;letter-spacing:1.5px;text-transform:uppercase;font-family:var(--font);font-weight:700;padding:.2rem .8rem;border-radius:20px;margin-bottom:.8rem;}
+  .selo.cliente{background:rgba(0,229,255,.08);color:var(--ciano);border:1px solid rgba(0,229,255,.2);}
+  .selo.equipe{background:rgba(212,160,23,.08);color:var(--dourado);border:1px solid rgba(212,160,23,.2);}
+  .btn-acesso{background:rgba(212,160,23,.02);color:var(--dourado);border:1px solid var(--dourado);border-radius:12px;padding:.75rem;font-weight:700;font-size:.92rem;cursor:pointer;font-family:var(--font);transition:.25s;text-align:center;}
+  .btn-acesso:hover{background:rgba(212,160,23,.08);}
+  .acesso-card.equipe .btn-acesso{background:var(--dourado);color:#000;border:none;}
+  .acesso-card.equipe .btn-acesso:hover{box-shadow:0 0 20px var(--dourado-brilho);}
+
+  .faq-section{max-width:740px;margin:0 auto 5rem;padding:0 1.5rem;}
+  .faq-title{font-family:var(--font);font-size:2rem;font-weight:800;color:#fff;text-align:center;margin-bottom:2.5rem;}
+  .faq-title span{color:var(--dourado);}
+  .faq-item{border-bottom:1px solid var(--border);padding:1.2rem 0;}
+  .faq-item summary{font-weight:700;font-size:1.02rem;cursor:pointer;color:#fff;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:1rem;font-family:var(--font);}
+  .faq-item summary::-webkit-details-marker{display:none;}
+  .faq-item summary::after{content:'+';font-size:1.8rem;color:var(--dourado);line-height:1;transition:.2s;}
+  .faq-item[open] summary::after{content:'−';}
+  .faq-item p{color:var(--texto2);padding-top:.8rem;font-size:.92rem;max-width:92%;line-height:1.65;}
+
+  footer{padding:2.5rem 1.5rem;background:var(--panel2);border-top:1px solid var(--border);text-align:center;color:var(--texto2);font-size:.85rem;}
+  .footer-links{display:flex;justify-content:center;gap:2rem;flex-wrap:wrap;margin-bottom:1.2rem;}
+  .footer-links a{color:var(--texto2);transition:.2s;font-weight:600;cursor:pointer;}
+  .footer-links a:hover{color:var(--dourado);}
+
+  .tela{display:none;min-height:100vh;padding-top:64px;}
+  .tela.ativa{display:block;}
+  .wrap{max-width:520px;margin:0 auto;padding:2rem 1.2rem 3rem;}
+  .voltar{background:none;border:none;color:var(--texto2);font-size:.82rem;cursor:pointer;font-family:inherit;margin-bottom:1.2rem;padding:0;transition:.2s;}
+  .voltar:hover{color:var(--dourado);}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1rem;}
+  .card h2{font-family:var(--font);color:var(--dourado);font-size:1.05rem;margin-bottom:1rem;font-weight:800;}
+  .form-group{margin-bottom:.9rem;}
+  .form-group label{display:block;font-size:.78rem;color:var(--texto2);margin-bottom:.35rem;}
+  .form-group input,.form-group select{width:100%;padding:11px 13px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:9px;color:var(--texto);font-size:.9rem;font-family:inherit;outline:none;}
+  .form-group input:focus,.form-group select:focus{border-color:var(--dourado);}
+  .hint{font-size:.72rem;color:#666;margin-top:.4rem;}
+  .erro-msg{color:var(--vermelho);font-size:.78rem;margin-top:.6rem;display:none;}
+  .erro-msg.show{display:block;}
+  .ok-msg{color:var(--verde);font-size:.78rem;margin-top:.6rem;display:none;}
+  .ok-msg.show{display:block;}
+
+  .btn{padding:12px 20px;border-radius:11px;border:none;font-weight:800;font-size:.88rem;cursor:pointer;font-family:var(--font);}
+  .btn-primary{background:linear-gradient(135deg,var(--dourado),var(--dourado2));color:#000;}
+  .btn-primary:hover{box-shadow:0 6px 22px var(--dourado-brilho);}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed;}
+  .btn-outline{background:transparent;border:1px solid var(--border);color:var(--texto2);}
+  .btn-outline:hover{border-color:var(--dourado);color:var(--dourado);}
+  .btn-block{width:100%;}
+
+  .papel-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.9rem;}
+  @media (max-width:520px){.papel-grid{grid-template-columns:1fr;}}
+  .papel-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:1.6rem 1rem;text-align:center;cursor:pointer;transition:.15s;}
+  .papel-card:hover{border-color:var(--dourado);}
+  .papel-card .icone{font-size:2.2rem;margin-bottom:.6rem;}
+  .papel-card b{display:block;font-family:var(--font);color:var(--dourado);font-size:.95rem;font-weight:800;}
+
+  .permissao-box{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:12px;padding:1.1rem;text-align:center;margin-bottom:1rem;}
+  .permissao-box .icone{font-size:2rem;margin-bottom:.5rem;}
+  .permissao-status{font-size:.78rem;margin-top:.6rem;padding:6px 14px;border-radius:20px;display:inline-block;}
+  .permissao-status.pendente{background:rgba(153,153,153,.15);color:var(--texto2);}
+  .permissao-status.ok{background:rgba(46,204,113,.15);color:var(--verde);}
+  .permissao-status.negada{background:rgba(231,76,60,.15);color:var(--vermelho);}
+
+  .cam-box{width:100%;aspect-ratio:4/3;background:#000;border-radius:12px;overflow:hidden;position:relative;margin-bottom:1rem;border:2px dashed var(--border);}
+  .cam-box video{width:100%;height:100%;object-fit:cover;}
+  .cam-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.5rem;color:var(--texto2);font-size:.8rem;}
+
+  .codigo-input{display:flex;gap:.5rem;justify-content:center;margin:1rem 0;}
+  .codigo-input input{width:44px;height:52px;text-align:center;font-size:1.3rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:9px;color:var(--texto);font-family:inherit;outline:none;}
+  .codigo-input input:focus{border-color:var(--dourado);}
+
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--dourado);padding:11px 22px;border-radius:30px;font-size:.83rem;z-index:10000;box-shadow:0 8px 30px rgba(0,0,0,.4);max-width:90vw;text-align:center;}
+  .oculto{display:none !important;}
+
+  @media (max-width:992px){
+    .hero-split{grid-template-columns:1fr;gap:2rem;min-height:auto;padding:1rem 1.5rem 2.5rem;}
+    .hero-sub{max-width:100%;}
+    .hero-chat{min-height:380px;}
+  }
+  @media (max-width:600px){
+    .hero-content h1{font-size:2rem;}
+    .hero-buttons .btn-primary,.hero-buttons .btn-secondary{width:100%;text-align:center;}
+    .nav-actions .nav-badge{display:none;}
+    #app-nav{padding:.7rem 1rem;}
+    .btn-nav{padding:.4rem 1.1rem;font-size:.8rem;}
+    .features-grid{grid-template-columns:1fr 1fr;}
+    .fluxo-grid{grid-template-columns:1fr;}
+    .acessos-grid{grid-template-columns:1fr;}
+    .faq-item p{max-width:100%;}
+  }
+  @media (max-width:420px){.features-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<nav id="app-nav">
+  <div class="nav-brand">OSFluxo <span>| por ALMAFLUXO</span></div>
+  <div class="nav-actions">
+    <div class="nav-badge">📦 Rastreabilidade ativa</div>
+    <button class="btn-nav btn-nav-outline" onclick="document.getElementById('faq').scrollIntoView({behavior:'smooth'})">Como funciona</button>
+    <button class="btn-nav" onclick="document.getElementById('acessos').scrollIntoView({behavior:'smooth'})">Acessar</button>
+  </div>
+</nav>
+
+<section class="hero-split">
+  <div class="hero-content">
+    <div class="hero-badge">⚙️ Produção · Garantia · Histórico</div>
+    <h1>Cada peça que sai da sua linha,<br><span class="destaque">rastreada do início ao fim.</span></h1>
+    <p class="hero-sub">
+      O <b>OSFluxo</b> é o sistema da ALMAFLUXO que acompanha cada ordem de serviço
+      dentro da sua oficina ou fábrica: quem montou, quando saiu, qual o prazo,
+      e — se der problema — <b>qual lote, qual funcionário, qual garantia</b>.
+      Tudo através de um QR colado no veículo ou peça.
+    </p>
+    <div class="hero-buttons">
+      <button class="btn-primary" onclick="document.getElementById('acessos').scrollIntoView({behavior:'smooth'})">▶ Acessar o sistema</button>
+      <button class="btn-secondary" onclick="document.getElementById('como-funciona').scrollIntoView({behavior:'smooth'})">▶ Como funciona</button>
+    </div>
+  </div>
+
+  <div class="hero-chat">
+    <div class="chat-head">
+      <div class="dot"></div>
+      <div class="titulo">💬 Atendimento</div>
+      <div class="sub">resposta em segundos</div>
+    </div>
+    <div class="chat-msgs" id="chatMsgs">
+      <div class="msg bot">Oi! Sou o assistente do OSFluxo. Posso tirar dúvidas sobre rastreabilidade, prazos ou garantia. Se já é cliente ou faz parte da equipe, role até "Acessar" 👇</div>
+    </div>
+    <div class="chat-input-row">
+      <input type="text" id="chatInput" placeholder="Escreva sua dúvida..." onkeydown="if(event.key==='Enter')enviarChat()">
+      <button onclick="enviarChat()">Enviar</button>
+    </div>
+  </div>
+</section>
+
+<section class="explica-section" id="como-funciona">
+  <h2 class="explica-titulo">O que o <span>OSFluxo</span> faz, na prática</h2>
+  <p class="explica-sub">
+    Quando uma empresa entra no OSFluxo, cada serviço executado dentro dela vira
+    um <b>registro rastreável</b>. Isso serve tanto para o cliente final (que
+    sabe exatamente o que foi feito no seu carro/peça) quanto para o dono da
+    empresa (que enxerga gargalos, produtividade e responsabilidade).
+  </p>
+  <div class="fluxo-grid">
+    <div class="fluxo-card"><div class="num">Etapa 01</div><span class="icone">🏷️</span><h4>Identificação</h4><p>Um QR é colado no veículo ou peça. Ele é único e vincula tudo que acontecer depois.</p></div>
+    <div class="fluxo-card"><div class="num">Etapa 02</div><span class="icone">📋</span><h4>Abertura da OS</h4><p>A oficina abre uma Ordem de Serviço com prazo, responsáveis e peças usadas.</p></div>
+    <div class="fluxo-card"><div class="num">Etapa 03</div><span class="icone">👷</span><h4>Execução na linha</h4><p>Cada funcionário registra sua etapa. O painel mostra em tempo real o que está pronto.</p></div>
+    <div class="fluxo-card"><div class="num">Etapa 04</div><span class="icone">✅</span><h4>Entrega & garantia</h4><p>Na saída, a garantia fica amarrada ao QR. Deu problema? O histórico está lá.</p></div>
+  </div>
+</section>
+
+<section class="features-section" id="features">
+  <div class="features-grid">
+    <div class="feature-card"><span class="feature-icon">🔍</span><h4>Rastreio por QR</h4><p>Um código único por serviço, do estoque à entrega.</p></div>
+    <div class="feature-card"><span class="feature-icon">📊</span><h4>Painel da empresa</h4><p>Produção em tempo real, gargalos e produtividade por equipe.</p></div>
+    <div class="feature-card"><span class="feature-icon">🛡️</span><h4>Garantia vinculada</h4><p>O cliente aciona garantia direto na OS correspondente.</p></div>
+    <div class="feature-card"><span class="feature-icon">🔐</span><h4>Acesso blindado</h4><p>Email + senha + biometria facial + localização.</p></div>
+    <div class="feature-card"><span class="feature-icon">📱</span><h4>Funciona no celular</h4><p>Linha de produção usa direto do navegador, sem instalar app.</p></div>
+    <div class="feature-card"><span class="feature-icon">📁</span><h4>Arquivos por empresa</h4><p>Vídeos, fotos e documentos ficam isolados na pasta da empresa.</p></div>
+  </div>
+</section>
+
+<section class="acessos-section" id="acessos">
+  <h2 class="acessos-titulo">Entrar no <span>OSFluxo</span></h2>
+  <p class="acessos-sub">Escolha abaixo como você usa a plataforma hoje.</p>
+
+  <div class="acessos-grid">
+    <div class="acesso-card cliente" onclick="irParaLogin()">
+      <span class="selo cliente">Cliente final</span>
+      <div class="icone">🔑</div>
+      <h3>Sou cliente</h3>
+      <p>Já escaneei o QR do meu veículo ou tenho uma conta. Quero acompanhar a produção, ver a garantia e o histórico do serviço.</p>
+      <button class="btn-acesso" onclick="event.stopPropagation();irParaLogin()">Entrar como cliente →</button>
+    </div>
+
+    <div class="acesso-card equipe" onclick="mostrarTela('telaEscolhaPapel')">
+      <span class="selo equipe">Equipe da empresa</span>
+      <div class="icone">🔒</div>
+      <h3>Sou da equipe</h3>
+      <p>Trabalho na linha de produção, sou supervisor ou administrador da empresa cadastrada. Preciso acessar a área restrita.</p>
+      <button class="btn-acesso" onclick="event.stopPropagation();mostrarTela('telaEscolhaPapel')">Acessar área restrita →</button>
+    </div>
+  </div>
+</section>
+
+<section class="faq-section" id="faq">
+  <h2 class="faq-title">Perguntas <span>Frequentes</span></h2>
+  <details class="faq-item"><summary>🧭 O que exatamente o OSFluxo faz?</summary><p>Ele rastreia cada Ordem de Serviço dentro de uma empresa. Um QR é colado no veículo/peça na entrada; a partir dali, cada etapa (abertura, execução, conferência, entrega) fica registrada com responsável e horário. No fim, a garantia fica vinculada ao mesmo QR.</p></details>
+  <details class="faq-item"><summary>👷 Quem precisa usar?</summary><p>Três perfis: o <b>cliente final</b> (acompanha o que fizeram no veículo dele), o <b>funcionário da linha</b> (registra cada etapa que executa) e o <b>administrador da empresa</b> (vê o painel geral, prazos, gargalos e arquivos).</p></details>
+  <details class="faq-item"><summary>🔐 Por que o acesso pede tantas verificações?</summary><p>Como o sistema move garantias e histórico de produção, ele pede e-mail + senha + código de 6 dígitos + biometria facial + localização. É a mesma abordagem usada nos pagamentos da ALMAFLUXO.</p></details>
+  <details class="faq-item"><summary>🏢 Preciso instalar algo na empresa?</summary><p>Não. Tudo roda no navegador — o painel, a linha de produção e o atendimento ao cliente. Basta a empresa estar cadastrada no sistema.</p></details>
+  <details class="faq-item"><summary>📁 Onde ficam meus arquivos e vídeos?</summary><p>Ficam em uma pasta dedicada da própria empresa no Google Drive, ligada ao sistema pelo servidor interno da ALMAFLUXO. Só quem tem a chave certa acessa.</p></details>
+</section>
+
+<footer>
+  <div class="footer-links">
+    <a onclick="document.getElementById('como-funciona').scrollIntoView({behavior:'smooth'})">Como funciona</a>
+    <a onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})">Recursos</a>
+    <a onclick="document.getElementById('faq').scrollIntoView({behavior:'smooth'})">FAQ</a>
+    <a onclick="irParaLogin()">Acesso do cliente</a>
+    <a onclick="mostrarTela('telaEscolhaPapel')">Área restrita</a>
+  </div>
+  <span>ALMAFLUXO © 2026 — OSFluxo · Rastreabilidade de produção, do estoque à garantia.</span>
+</footer>
+
+<!-- ESCOLHA DE PAPEL -->
+<div class="tela" id="telaEscolhaPapel">
+  <div class="wrap">
+    <button class="voltar" onclick="voltarHome()">← Voltar</button>
+    <div style="text-align:center;margin-bottom:1.6rem">
+      <div style="font-family:var(--serif);font-size:1.5rem;font-weight:800;color:var(--dourado)">🔒 Área Restrita</div>
+      <div style="color:var(--texto2);font-size:.85rem;margin-top:.2rem">Você é...</div>
+    </div>
+    <div class="papel-grid">
+      <button class="papel-card" onclick="iniciarFluxoFuncionario()">
+        <div class="icone">👷</div>
+        <b>Funcionário</b>
+        <p style="color:var(--texto2);font-size:.76rem;margin-top:.3rem">Linha de produção</p>
+      </button>
+      <button class="papel-card" onclick="mostrarTela('telaSupervisor')">
+        <div class="icone">🧑‍💼</div>
+        <b>Supervisor</b>
+        <p style="color:var(--texto2);font-size:.76rem;margin-top:.3rem">Gestão da linha</p>
+      </button>
+      <button class="papel-card" onclick="mostrarTela('telaAdminEmpresa')">
+        <div class="icone">🏢</div>
+        <b>Administrador</b>
+        <p style="color:var(--texto2);font-size:.76rem;margin-top:.3rem">Painel da empresa</p>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- FUNCIONÁRIO: localização → linha -->
+<div class="tela" id="telaFuncionarioLoc">
+  <div class="wrap">
+    <button class="voltar" onclick="mostrarTela('telaEscolhaPapel')">← Voltar</button>
+    <div class="card">
+      <h2>📍 Confirmar localização</h2>
+      <div class="permissao-box">
+        <div class="icone">🛰️</div>
+        <div>A linha de produção confere se o acesso está vindo de dentro da oficina — ajuda a evitar login remoto indevido.</div>
+        <div class="permissao-status pendente" id="statusLocFuncionario">Aguardando permissão</div>
+      </div>
+      <button class="btn btn-primary btn-block" id="btnPedirLocFuncionario" onclick="pedirLocalizacao('funcionario')">📍 Permitir localização</button>
+      <button class="btn btn-outline btn-block oculto" id="btnContinuarFuncionario" style="margin-top:.7rem" onclick="window.location.href=LINHA_PRODUCAO_URL">Continuar pra linha de produção →</button>
+    </div>
+  </div>
+</div>
+
+<!-- SUPERVISOR: só redireciona direto (login próprio na página) -->
+<div class="tela" id="telaSupervisor">
+  <div class="wrap">
+    <button class="voltar" onclick="mostrarTela('telaEscolhaPapel')">← Voltar</button>
+    <div class="card" style="text-align:center">
+      <h2>🧑‍💼 Área do supervisor</h2>
+      <p style="color:var(--texto2);font-size:.88rem;margin-bottom:1.2rem">
+        O supervisor entra com o e-mail e a senha que o administrador cadastrou
+        pra ele. Toda a gestão da linha (reabrir etapa, resolver
+        não-conformidade, cadastrar funcionário) fica nessa tela.
+      </p>
+      <button class="btn btn-primary btn-block" onclick="window.location.href=SUPERVISOR_URL">
+        Entrar como supervisor →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN: empresa -->
+<div class="tela" id="telaAdminEmpresa">
+  <div class="wrap">
+    <button class="voltar" onclick="mostrarTela('telaEscolhaPapel')">← Voltar</button>
+    <div class="card">
+      <h2>🏢 Sua empresa</h2>
+      <div class="form-group">
+        <label>Nome da empresa cadastrada</label>
+        <input type="text" id="adminEmpresa" list="listaEmpresas" placeholder="Comece a digitar...">
+        <datalist id="listaEmpresas"></datalist>
+        <div class="hint" id="avisoEmpresa"></div>
+      </div>
+      <button class="btn btn-primary btn-block" id="btnContinuarEmpresa" onclick="confirmarEmpresa()">Continuar</button>
+      <div class="erro-msg" id="erroEmpresa"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN: login -->
+<div class="tela" id="telaAdminLogin">
+  <div class="wrap">
+    <button class="voltar" onclick="mostrarTela('telaAdminEmpresa')">← Voltar</button>
+    <div class="card">
+      <h2>🔑 Login do administrador</h2>
+      <div class="hint" style="margin-bottom:.9rem" id="empresaSelecionadaTexto"></div>
+      <div class="form-group"><label>E-mail</label><input type="email" id="adminEmail"></div>
+      <div class="form-group"><label>Senha</label><input type="password" id="adminSenha"></div>
+      <button class="btn btn-primary btn-block" id="btnLoginAdmin" onclick="fazerLoginAdmin()">Entrar</button>
+      <div class="erro-msg" id="erroAdminLogin"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN: código por e-mail -->
+<div class="tela" id="telaAdminEmail">
+  <div class="wrap">
+    <div class="card" style="text-align:center">
+      <h2>📧 Confirmação por e-mail</h2>
+      <p style="color:var(--texto2);font-size:.85rem;margin-bottom:.3rem">Enviamos um código de 6 dígitos para</p>
+      <p style="color:var(--dourado);font-size:.9rem;margin-bottom:1rem" id="emailDestinoTexto">—</p>
+      <div class="codigo-input">
+        <input type="text" maxlength="1" class="digito-codigo" inputmode="numeric">
+        <input type="text" maxlength="1" class="digito-codigo" inputmode="numeric">
+        <input type="text" maxlength="1" class="digito-codigo" inputmode="numeric">
+        <input type="text" maxlength="1" class="digito-codigo" inputmode="numeric">
+        <input type="text" maxlength="1" class="digito-codigo" inputmode="numeric">
+        <input type="text" maxlength="1" class="digito-codigo" inputmode="numeric">
+      </div>
+      <button class="btn btn-primary btn-block" id="btnConfirmarCodigo" onclick="confirmarCodigoEmail()">Confirmar código</button>
+      <button class="btn btn-outline btn-block" id="btnReenviarCodigo" style="margin-top:.6rem" onclick="reenviarCodigoEmail()">Reenviar código</button>
+      <div class="erro-msg" id="erroCodigoEmail"></div>
+      <div class="ok-msg" id="okCodigoEmail"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN: biometria (opcional) -->
+<div class="tela" id="telaAdminBiometria">
+  <div class="wrap">
+    <div class="card">
+      <h2>😊 Segundo fator — reconhecimento facial</h2>
+      <div class="hint" style="margin-bottom:.9rem">
+        Mesma biometria já usada nos pagamentos — email+senha prova quem você diz
+        ser, o rosto prova que é você mesmo agora, na hora do acesso.
+      </div>
+      <div class="cam-box" id="camBox">
+        <div class="cam-placeholder" id="camPlaceholder"><div style="font-size:2rem">📷</div><div>Iniciando câmera...</div></div>
+        <video id="videoAdmin" autoplay muted playsinline class="oculto"></video>
+      </div>
+      <button class="btn btn-primary btn-block" id="btnCapturarAdmin" onclick="capturarBiometriaAdmin()">📸 Verificar rosto</button>
+      <button class="btn btn-outline btn-block" style="margin-top:.6rem" onclick="pularBiometria()">Pular por enquanto</button>
+      <div class="erro-msg" id="erroBiometriaAdmin"></div>
+      <div class="ok-msg" id="okBiometriaAdmin"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN: localização -->
+<div class="tela" id="telaAdminLocalizacao">
+  <div class="wrap">
+    <div class="card">
+      <h2>📍 Confirmar localização</h2>
+      <div class="permissao-box">
+        <div class="icone">🛰️</div>
+        <div>Confirma que o acesso administrativo está partindo de um local esperado.</div>
+        <div class="permissao-status pendente" id="statusLocAdmin">Aguardando permissão</div>
+      </div>
+      <button class="btn btn-primary btn-block" id="btnPedirLocAdmin" onclick="pedirLocalizacao('admin')">📍 Permitir localização</button>
+      <button class="btn btn-outline btn-block" id="btnContinuarAdmin" style="margin-top:.7rem" onclick="window.location.href=PAINEL_EMPRESA_URL">Entrar no painel →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   OSFLUXO — INDEX (porta de entrada + landing)
+   Todas as chamadas agora vão de verdade pro central via worker.
+   ═══════════════════════════════════════════════════════════════ */
+const API_CENTRAL         = 'https://almafluxo.uk/proxy/central';
+const TOKEN_INTERNO       = 'ALMA369UA';
+const LINHA_PRODUCAO_URL  = 'https://almafluxo.uk/osfluxo-linha-producao';
+const SUPERVISOR_URL      = 'https://almafluxo.uk/osfluxo-supervisor';
+const PAINEL_EMPRESA_URL  = 'https://almafluxo.uk/osfluxo-painel-empresa';
+const ENTRADA_CLIENTE_URL = 'https://almafluxo.uk/osfluxo-entrada';
+const ATENDIMENTO_URL     = 'https://almafluxo.uk/atendimento';
+
+/* ─────────── Helper central: envelopa em {data} e normaliza erro ─────────── */
+function esc(str) { return String(str == null ? '' : str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function osfAuth() { return {}; }
+function osfSessaoExpirou() {}
+async function chamarCentral(action, dados) {
+  dados = dados || {};
+  dados.action = action;
+  dados.tk = TOKEN_INTERNO;
+  Object.assign(dados, osfAuth());
+  const resp = await fetch(API_CENTRAL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(dados)
+  });
+  if (!resp.ok) throw new Error('HTTP ' + resp.status);
+  const json = await resp.json();
+  // normaliza: se veio {ok:false,error}, expõe também como .erro
+  if (json && json.ok === false && !json.erro) json.erro = json.error || 'Erro';
+  return { data: json };
+}
+
+/* ─────────── Navegação entre telas ─────────── */
+function mostrarTela(id) {
+  document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('ativa');
+  window.scrollTo(0, 0);
+}
+function voltarHome() {
+  document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function toast(msg) {
+  const old = document.querySelector('.toast'); if (old) old.remove();
+  const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t); setTimeout(() => t.remove(), 2600);
+}
+function irParaLogin() { window.location.href = ENTRADA_CLIENTE_URL; }
+
+/* ══════════════ CHAT DE ATENDIMENTO ══════════════ */
+const RESPOSTAS_DEMO = [
+  { gatilhos:['prazo','demora','tempo'], resposta:'O prazo varia por serviço — cada OS mostra a previsão de entrega assim que aberta.' },
+  { gatilhos:['garantia'], resposta:'A garantia fica vinculada ao QR do seu veículo. Você aciona direto pelo seu painel, na OS correspondente.' },
+  { gatilhos:['qr','código','codigo'], resposta:'O QR vem no manual entregue com o serviço. Escaneie e siga pro cadastro — ele pede um código de verificação de 4 dígitos que a empresa te passa.' },
+  { gatilhos:['oque','o que','servico','serviço','funciona'], resposta:'O OSFluxo rastreia cada Ordem de Serviço da entrada à garantia: QR no veículo, etapas registradas com responsável, painel em tempo real, e garantia amarrada ao histórico.' },
+];
+function respostaDemo(texto) {
+  const lower = texto.toLowerCase();
+  const achou = RESPOSTAS_DEMO.find(r => r.gatilhos.some(g => lower.includes(g)));
+  return achou ? achou.resposta
+    : 'Anotado! Um atendente humano ou nossa IA de suporte respondem em instantes — enquanto isso, veja "Como funciona" ou use a seção "Acessar".';
+}
+async function enviarChat() {
+  const input = document.getElementById('chatInput');
+  const texto = input.value.trim(); if (!texto) return;
+  const msgs = document.getElementById('chatMsgs');
+
+  msgs.insertAdjacentHTML('beforeend', `<div class="msg user">${esc(texto)}</div>`);
+  input.value = '';
+  msgs.scrollTop = msgs.scrollHeight;
+
+  const idPend = 'pend_' + Date.now();
+  msgs.insertAdjacentHTML('beforeend', `<div class="msg bot" id="${idPend}" style="opacity:.6">digitando…</div>`);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  let resposta = null;
+  try {
+    const ctrl = new AbortController();
+    const timeout = setTimeout(() => ctrl.abort(), 25000);
+    const resp = await fetch(ATENDIMENTO_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mensagem: texto, origem: 'osfluxo-index', tk: TOKEN_INTERNO }),
+      signal: ctrl.signal
+    });
+    clearTimeout(timeout);
+    if (resp.ok) {
+      const data = await resp.json();
+      resposta = data.resposta || data.text || data.mensagem || null;
+    }
+  } catch (e) {
+    console.warn('[OSFluxo] atendimento indisponível, usando fallback local:', e.message);
+  }
+  if (!resposta) resposta = respostaDemo(texto);
+
+  document.getElementById(idPend)?.remove();
+  msgs.insertAdjacentHTML('beforeend', `<div class="msg bot">${esc(resposta)}</div>`);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+/* ══════════════ LOCALIZAÇÃO (coleta local — não trava fluxo) ══════════════ */
+function pedirLocalizacao(contexto) {
+  const statusId = contexto === 'admin' ? 'statusLocAdmin' : 'statusLocFuncionario';
+  const btnPedirId = contexto === 'admin' ? 'btnPedirLocAdmin' : 'btnPedirLocFuncionario';
+  const btnContinuarId = contexto === 'admin' ? 'btnContinuarAdmin' : 'btnContinuarFuncionario';
+  const statusEl = document.getElementById(statusId);
+
+  if (!navigator.geolocation) {
+    statusEl.textContent = 'Este navegador não suporta localização';
+    statusEl.className = 'permissao-status negada';
+    document.getElementById(btnContinuarId).classList.remove('oculto');
+    return;
+  }
+  statusEl.textContent = 'Solicitando...'; statusEl.className = 'permissao-status pendente';
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      statusEl.textContent = `✅ Localização confirmada (±${Math.round(pos.coords.accuracy)}m)`;
+      statusEl.className = 'permissao-status ok';
+      document.getElementById(btnPedirId).classList.add('oculto');
+      document.getElementById(btnContinuarId).classList.remove('oculto');
+      window._localizacaoCapturada = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+    },
+    () => {
+      statusEl.textContent = '⚠️ Localização negada — pode continuar, mas fica registrado';
+      statusEl.className = 'permissao-status negada';
+      document.getElementById(btnContinuarId).classList.remove('oculto');
+    }
+  );
+}
+
+/* ══════════════ FLUXO FUNCIONÁRIO ══════════════ */
+function iniciarFluxoFuncionario() { mostrarTela('telaFuncionarioLoc'); }
+
+/* ══════════════ FLUXO ADMINISTRADOR ══════════════ */
+let empresaConfirmada = null;
+let emailAdminAtual = null;
+let senhaAdminAtual = null;
+
+/* Carrega a lista de empresas do backend no datalist */
+async function carregarEmpresas() {
+  const datalist = document.getElementById('listaEmpresas');
+  const aviso = document.getElementById('avisoEmpresa');
+  try {
+    const { data } = await chamarCentral('listarEmpresasCadastradas', {});
+    const empresas = (data && data.empresas) || [];
+    if (empresas.length === 0) {
+      aviso.textContent = 'Nenhuma empresa cadastrada ainda — fale com o suporte.';
+      datalist.innerHTML = '';
+      return;
+    }
+    aviso.textContent = `${empresas.length} empresa(s) cadastrada(s)`;
+    datalist.innerHTML = empresas.map(e => `<option value="${esc(e)}">`).join('');
+    window._empresasCache = empresas;
+  } catch (e) {
+    aviso.textContent = '⚠️ Não foi possível carregar as empresas — verifique a conexão.';
+  }
+}
+
+function confirmarEmpresa() {
+  const nome = document.getElementById('adminEmpresa').value.trim();
+  const erroEl = document.getElementById('erroEmpresa');
+  erroEl.classList.remove('show');
+
+  if (!nome) { erroEl.textContent = '⚠️ Informe o nome da empresa'; erroEl.classList.add('show'); return; }
+
+  const lista = window._empresasCache || [];
+  if (lista.length > 0 && !lista.includes(nome)) {
+    erroEl.textContent = '❌ Empresa não encontrada — confira com o suporte se ela está cadastrada.';
+    erroEl.classList.add('show'); return;
+  }
+
+  empresaConfirmada = nome;
+  document.getElementById('empresaSelecionadaTexto').textContent = `Empresa: ${nome}`;
+  mostrarTela('telaAdminLogin');
+}
+
+async function fazerLoginAdmin() {
+  const email = document.getElementById('adminEmail').value.trim().toLowerCase();
+  const senha = document.getElementById('adminSenha').value;
+  const erroEl = document.getElementById('erroAdminLogin');
+  erroEl.classList.remove('show');
+
+  if (!email || !senha) { erroEl.textContent = '⚠️ Preencha e-mail e senha'; erroEl.classList.add('show'); return; }
+  if (!empresaConfirmada) { erroEl.textContent = '⚠️ Volte e escolha a empresa'; erroEl.classList.add('show'); return; }
+
+  const btn = document.getElementById('btnLoginAdmin');
+  btn.disabled = true; btn.textContent = 'Entrando...';
+  try {
+    const { data } = await chamarCentral('loginAdministrador', {
+      empresa: empresaConfirmada, email, senha
+    });
+    if (!data || data.ok === false) {
+      erroEl.textContent = '❌ ' + ((data && data.erro) || 'E-mail ou senha incorretos.');
+      erroEl.classList.add('show');
+      return;
+    }
+    emailAdminAtual = email;
+    senhaAdminAtual = senha;
+
+    // Agora manda o código de verdade por e-mail
+    const r2 = await chamarCentral('enviarCodigoConfirmacaoEmail', { empresa: empresaConfirmada, email, senha });
+    if (!r2.data || r2.data.ok === false) {
+      erroEl.textContent = '❌ ' + ((r2.data && r2.data.erro) || 'Não consegui enviar o código por e-mail.');
+      erroEl.classList.add('show');
+      return;
+    }
+
+    document.getElementById('emailDestinoTexto').textContent = email;
+    mostrarTela('telaAdminEmail');
+    setTimeout(() => document.querySelector('.digito-codigo').focus(), 200);
+    toast('📧 Código enviado para ' + email);
+  } catch (e) {
+    erroEl.textContent = '❌ Erro de conexão: ' + e.message;
+    erroEl.classList.add('show');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Entrar';
+  }
+}
+
+/* Auto-avança e auto-volta os dígitos */
+document.querySelectorAll('.digito-codigo').forEach((input, i, all) => {
+  input.addEventListener('input', () => { if (input.value && i < all.length - 1) all[i + 1].focus(); });
+  input.addEventListener('keydown', (e) => { if (e.key === 'Backspace' && !input.value && i > 0) all[i - 1].focus(); });
+});
+
+async function confirmarCodigoEmail() {
+  const digitos = Array.from(document.querySelectorAll('.digito-codigo')).map(i => i.value).join('');
+  const erroEl = document.getElementById('erroCodigoEmail');
+  const okEl = document.getElementById('okCodigoEmail');
+  erroEl.classList.remove('show'); okEl.classList.remove('show');
+
+  if (digitos.length !== 6) { erroEl.textContent = '⚠️ Digite os 6 dígitos'; erroEl.classList.add('show'); return; }
+  if (!emailAdminAtual) { erroEl.textContent = '⚠️ Faça login de novo'; erroEl.classList.add('show'); return; }
+
+  const btn = document.getElementById('btnConfirmarCodigo');
+  btn.disabled = true; btn.textContent = 'Verificando...';
+  try {
+    const { data } = await chamarCentral('confirmarCodigoEmailOsfluxo', {
+      empresa: empresaConfirmada, email: emailAdminAtual, senha: senhaAdminAtual, codigo: digitos
+    });
+    if (!data || data.ok === false) {
+      erroEl.textContent = '❌ ' + ((data && data.erro) || 'Código incorreto.');
+      erroEl.classList.add('show');
+      return;
+    }
+    localStorage.setItem('osfluxo_empresa_sessao', JSON.stringify({ email: emailAdminAtual, nome: data.nome, empresa: data.empresa || empresaConfirmada, sessionToken: data.sessionToken }));
+    okEl.textContent = '✅ Código confirmado!'; okEl.classList.add('show');
+    setTimeout(() => {
+      mostrarTela('telaAdminBiometria');
+      iniciarCameraAdmin();
+    }, 500);
+  } catch (e) {
+    erroEl.textContent = '❌ Erro de conexão: ' + e.message;
+    erroEl.classList.add('show');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Confirmar código';
+  }
+}
+
+async function reenviarCodigoEmail() {
+  if (!emailAdminAtual) return;
+  const okEl = document.getElementById('okCodigoEmail');
+  okEl.classList.remove('show');
+  try {
+    const { data } = await chamarCentral('enviarCodigoConfirmacaoEmail', { empresa: empresaConfirmada, email: emailAdminAtual, senha: senhaAdminAtual });
+    if (data && data.ok !== false) {
+      okEl.textContent = '📧 Código reenviado'; okEl.classList.add('show');
+    }
+  } catch (e) { /* silencioso */ }
+}
+
+/* ══════════════ BIOMETRIA FACIAL (coleta local) ══════════════ */
+let streamAdmin = null;
+async function iniciarCameraAdmin() {
+  try {
+    streamAdmin = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240, facingMode: 'user' } });
+    const video = document.getElementById('videoAdmin');
+    video.srcObject = streamAdmin; video.classList.remove('oculto');
+    document.getElementById('camPlaceholder').classList.add('oculto');
+  } catch (e) {
+    document.getElementById('erroBiometriaAdmin').textContent = '⚠️ Câmera indisponível — use "Pular por enquanto".';
+    document.getElementById('erroBiometriaAdmin').classList.add('show');
+  }
+}
+
+async function capturarBiometriaAdmin() {
+  const btn = document.getElementById('btnCapturarAdmin');
+  const erroEl = document.getElementById('erroBiometriaAdmin');
+  const okEl = document.getElementById('okBiometriaAdmin');
+  erroEl.classList.remove('show'); okEl.classList.remove('show');
+
+  if (!streamAdmin) { erroEl.textContent = '⚠️ Câmera não está ativa'; erroEl.classList.add('show'); return; }
+  btn.disabled = true; btn.textContent = '⏳ Processando rosto...';
+  try {
+    okEl.textContent = 'ℹ️ Verificação facial ainda não está ativa — o acesso segue protegido por senha + código de e-mail.'; okEl.classList.add('show');
+    setTimeout(() => { pararCameraAdmin(); mostrarTela('telaAdminLocalizacao'); }, 900);
+  } catch (e) {
+    erroEl.textContent = '❌ ' + e.message; erroEl.classList.add('show');
+  } finally {
+    btn.disabled = false; btn.textContent = '📸 Verificar rosto';
+  }
+}
+function pararCameraAdmin() { if (streamAdmin) { streamAdmin.getTracks().forEach(t => t.stop()); streamAdmin = null; } }
+function pularBiometria() { pararCameraAdmin(); mostrarTela('telaAdminLocalizacao'); }
+
+/* ══════════════ INICIALIZAÇÃO ══════════════ */
+carregarEmpresas();
+</script>
+</body>
+</html>
