@@ -111,34 +111,94 @@
   .footer-links a{color:var(--texto2);transition:.2s;font-weight:600;cursor:pointer;}
   .footer-links a:hover{color:var(--dourado);}
 
-  .tela{display:none;min-height:100vh;padding-top:64px;}
-  .tela.ativa{display:block;position:relative;z-index:9998;}
-  .wrap{max-width:520px;margin:0 auto;padding:2rem 1.2rem 3rem;}
-  .voltar{background:none;border:none;color:var(--texto2);font-size:.82rem;cursor:pointer;font-family:inherit;margin-bottom:1.2rem;padding:0;transition:.2s;}
-  .voltar:hover{color:var(--dourado);}
-  .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1rem;}
-  .card h2{font-family:var(--font);color:var(--dourado);font-size:1.05rem;margin-bottom:1rem;font-weight:800;}
+  /* ═══════════════════════════════════════════════════════════
+     TELA DE ESCOLHA — overlay fixo. Sem truques de scroll.
+     ═══════════════════════════════════════════════════════════ */
+  .osf-tela{
+    display:none;
+    position:fixed;
+    top:0; right:0; bottom:0; left:0;
+    width:100vw; height:100vh;
+    z-index:9998;
+    background:var(--bg);
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  .osf-tela.aberta{display:block;}
 
-  .papel-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.9rem;}
-  @media (max-width:520px){.papel-grid{grid-template-columns:1fr;}}
-  .papel-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:1.6rem 1rem;text-align:center;cursor:pointer;transition:.15s;}
-  .papel-card:hover{border-color:var(--dourado);}
-  .papel-card:disabled{opacity:.5;cursor:not-allowed;}
-  .papel-card .icone{font-size:2.2rem;margin-bottom:.6rem;}
-  .papel-card b{display:block;font-family:var(--font);color:var(--dourado);font-size:.95rem;font-weight:800;}
+  .osf-tela-header{
+    position:sticky; top:0;
+    background:rgba(3,5,8,.96);
+    backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--border);
+    padding:.8rem 1.4rem;
+    display:flex; align-items:center; gap:.8rem;
+    z-index:2;
+  }
+  .osf-tela-header button{
+    background:none;border:none;color:var(--dourado);
+    font-size:.85rem;cursor:pointer;font-family:inherit;
+    padding:.3rem 0;transition:.2s;
+  }
+  .osf-tela-header button:hover{color:#fff;}
+  .osf-tela-header span{color:var(--texto2);font-size:.78rem;margin-left:auto;}
 
-  /* ─── Overlay do app carregado (mesmo padrão do Olho De Deus) ─── */
+  .osf-tela-corpo{
+    max-width:520px;
+    margin:0 auto;
+    padding:2rem 1.2rem 3rem;
+  }
+  .osf-tela-corpo h2{
+    font-family:var(--serif);
+    font-size:1.5rem;
+    font-weight:800;
+    color:var(--dourado);
+    text-align:center;
+    margin-bottom:.3rem;
+  }
+  .osf-tela-corpo .sub{
+    text-align:center;
+    color:var(--texto2);
+    font-size:.85rem;
+    margin-bottom:1.6rem;
+  }
+  .osf-papeis{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:.9rem;
+  }
+  @media (max-width:520px){ .osf-papeis{grid-template-columns:1fr;} }
+  .osf-papel{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:1.6rem 1rem;
+    text-align:center;
+    cursor:pointer;
+    transition:.15s;
+    color:var(--texto);
+    font-family:inherit;
+    width:100%;
+  }
+  .osf-papel:hover{border-color:var(--dourado);transform:translateY(-2px);}
+  .osf-papel .icone{font-size:2.2rem;margin-bottom:.6rem;display:block;}
+  .osf-papel b{display:block;font-family:var(--font);color:var(--dourado);font-size:.95rem;font-weight:800;}
+  .osf-papel small{display:block;color:var(--texto2);font-size:.76rem;margin-top:.3rem;}
+
+  /* ═══════════════════════════════════════════════════════════
+     OVERLAY DO APP (iframe do Drive)
+     ═══════════════════════════════════════════════════════════ */
   #osfluxoAppOverlay{
-    position:fixed; inset:0; z-index:99999;
+    position:fixed; top:0; right:0; bottom:0; left:0;
+    width:100vw; height:100vh;
+    z-index:99999;
     background:#030508;
     display:none;
   }
-  #osfluxoAppOverlay.ativo{ display:block; }
-  #osfluxoAppOverlay iframe{
-    width:100%; height:100%; border:none; display:block;
-  }
+  #osfluxoAppOverlay.aberto{ display:block; }
+  #osfluxoAppOverlay iframe{ width:100%; height:100%; border:none; display:block; }
   #osfluxoAppLoading{
-    position:absolute; inset:0;
+    position:absolute; top:0; right:0; bottom:0; left:0;
     display:flex; align-items:center; justify-content:center;
     flex-direction:column; gap:1rem;
     color:#d4a017; font-family:'Inter',system-ui,sans-serif;
@@ -150,12 +210,8 @@
     border-radius:50%; animation:spin 1s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
-  #osfluxoAppLoading .titulo{
-    font-size:1rem; font-weight:700; color:#fff;
-  }
-  #osfluxoAppLoading .sub{
-    font-size:.82rem; color:#888;
-  }
+  #osfluxoAppLoading .titulo{ font-size:1rem; font-weight:700; color:#fff; }
+  #osfluxoAppLoading .sub{ font-size:.82rem; color:#888; }
   #osfluxoAppLoading .erro{
     max-width:480px; padding:1rem;
     background:#141414; border:1px solid #e74c3c; border-radius:12px;
@@ -170,6 +226,9 @@
     font-weight:800; font-size:.85rem; cursor:pointer;
     font-family:'Inter',sans-serif;
   }
+
+  /* Trava o scroll da landing quando qualquer overlay está aberto */
+  body.osf-travado{ overflow:hidden !important; }
 
   .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--dourado);padding:11px 22px;border-radius:30px;font-size:.83rem;z-index:100000;box-shadow:0 8px 30px rgba(0,0,0,.4);max-width:90vw;text-align:center;}
 
@@ -267,51 +326,23 @@
   <p class="acessos-sub">Escolha abaixo como você usa a plataforma hoje.</p>
 
   <div class="acessos-grid">
-    <div class="acesso-card cliente" onclick="abrirOsfluxo('osfluxo-entrada', event)">
+    <div class="acesso-card cliente" onclick="abrirOsfluxo('osfluxo-entrada')">
       <span class="selo cliente">Cliente final</span>
       <div class="icone">🔑</div>
       <h3>Sou cliente</h3>
       <p>Já escaneei o QR do meu veículo ou tenho uma conta. Quero acompanhar a produção, ver a garantia e o histórico do serviço.</p>
-      <button type="button" class="btn-acesso" onclick="abrirOsfluxo('osfluxo-entrada', event)">Entrar como cliente →</button>
+      <button type="button" class="btn-acesso" onclick="event.stopPropagation();abrirOsfluxo('osfluxo-entrada')">Entrar como cliente →</button>
     </div>
 
-    <div class="acesso-card equipe" onclick="abrirAreaRestrita(event)">
+    <div class="acesso-card equipe">
       <span class="selo equipe">Equipe da empresa</span>
       <div class="icone">🔒</div>
       <h3>Sou da equipe</h3>
       <p>Trabalho na linha de produção, sou supervisor ou administrador da empresa cadastrada. Preciso acessar a área restrita.</p>
-      <button type="button" class="btn-acesso" onclick="abrirAreaRestrita(event)">Acessar área restrita →</button>
+      <button type="button" class="btn-acesso" onclick="abrirAreaRestrita()">Acessar área restrita →</button>
     </div>
   </div>
 </section>
-
-<!-- ESCOLHA DE PAPEL -->
-<div class="tela" id="telaEscolhaPapel">
-  <div class="wrap">
-    <button type="button" class="voltar" onclick="voltarHome()">← Voltar</button>
-    <div style="text-align:center;margin-bottom:1.6rem">
-      <div style="font-family:var(--serif);font-size:1.5rem;font-weight:800;color:var(--dourado)">🔒 Área Restrita</div>
-      <div style="color:var(--texto2);font-size:.85rem;margin-top:.2rem">Você é...</div>
-    </div>
-    <div class="papel-grid">
-      <button type="button" class="papel-card" onclick="abrirOsfluxo('osfluxo-linha-producao', event)">
-        <div class="icone">👷</div>
-        <b>Funcionário</b>
-        <p style="color:var(--texto2);font-size:.76rem;margin-top:.3rem">Linha de produção</p>
-      </button>
-      <button type="button" class="papel-card" onclick="abrirOsfluxo('osfluxo-supervisor', event)">
-        <div class="icone">🧑‍💼</div>
-        <b>Supervisor</b>
-        <p style="color:var(--texto2);font-size:.76rem;margin-top:.3rem">Gestão da linha</p>
-      </button>
-      <button type="button" class="papel-card" onclick="abrirOsfluxo('osfluxo-painel-empresa', event)">
-        <div class="icone">🏢</div>
-        <b>Administrador</b>
-        <p style="color:var(--texto2);font-size:.76rem;margin-top:.3rem">Painel da empresa</p>
-      </button>
-    </div>
-  </div>
-</div>
 
 <section class="faq-section" id="faq">
   <h2 class="faq-title">Perguntas <span>Frequentes</span></h2>
@@ -327,16 +358,45 @@
     <a onclick="document.getElementById('como-funciona').scrollIntoView({behavior:'smooth'})">Como funciona</a>
     <a onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})">Recursos</a>
     <a onclick="document.getElementById('faq').scrollIntoView({behavior:'smooth'})">FAQ</a>
-    <a onclick="abrirOsfluxo('osfluxo-entrada', event)">Acesso do cliente</a>
-    <a onclick="abrirAreaRestrita(event)">Área restrita</a>
+    <a onclick="abrirOsfluxo('osfluxo-entrada')">Acesso do cliente</a>
+    <a onclick="abrirAreaRestrita()">Área restrita</a>
   </div>
   <span>ALMAFLUXO © 2026 — OSFluxo · Rastreabilidade de produção, do estoque à garantia.</span>
 </footer>
 
 <!-- ═══════════════════════════════════════════════════════════════
-     OVERLAY DO APP — mesmo padrão do Olho De Deus
-     O HTML do Drive é injetado aqui via iframe.srcdoc,
-     o usuário NUNCA vê o Drive
+     TELA DE ESCOLHA DE PAPEL — overlay fixo, fora do fluxo da landing
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="osf-tela" id="telaEscolhaPapel">
+  <div class="osf-tela-header">
+    <button type="button" onclick="fecharTelaEscolha()">← Voltar</button>
+    <span>Área Restrita</span>
+  </div>
+  <div class="osf-tela-corpo">
+    <h2>🔒 Área Restrita</h2>
+    <div class="sub">Você é...</div>
+    <div class="osf-papeis">
+      <button type="button" class="osf-papel" onclick="abrirOsfluxo('osfluxo-linha-producao')">
+        <span class="icone">👷</span>
+        <b>Funcionário</b>
+        <small>Linha de produção</small>
+      </button>
+      <button type="button" class="osf-papel" onclick="abrirOsfluxo('osfluxo-supervisor')">
+        <span class="icone">🧑‍💼</span>
+        <b>Supervisor</b>
+        <small>Gestão da linha</small>
+      </button>
+      <button type="button" class="osf-papel" onclick="abrirOsfluxo('osfluxo-painel-empresa')">
+        <span class="icone">🏢</span>
+        <b>Administrador</b>
+        <small>Painel da empresa</small>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     OVERLAY DO APP (iframe)
      ═══════════════════════════════════════════════════════════════ -->
 <div id="osfluxoAppOverlay">
   <div id="osfluxoAppLoading">
@@ -351,23 +411,20 @@
 
 <script>
 /* ═══════════════════════════════════════════════════════════════
-   OSFLUXO — INDEX (landing + leitor de HTML do Drive)
-   ═══════════════════════════════════════════════════════════════
-
-   Padrão idêntico ao "Olho De Deus":
-   1. Usuário clica num botão
-   2. Index busca o HTML via Worker (action=servirHTML + arquivoId)
-   3. Injeta o HTML via iframe.srcdoc
-   4. Usuário interage com o app DENTRO do iframe
-   5. Ao fechar, overlay some e a landing reaparece
-
-   O usuário NUNCA vê a URL do Drive.
+   OSFLUXO — INDEX
+   ─────────────────────────────────────────────────────────────
+   Regras de ouro deste arquivo:
+   1. NUNCA usar window.scrollTo / window.scrollTop / el.scrollTop.
+   2. Telas são overlays `position:fixed` (não deslocam a landing).
+   3. Cada clique dispara UMA única função (sem duplicar por
+      card+button — o card não tem onclick quando o button existe).
+   4. `body.osf-travado` trava a rolagem da landing quando
+      qualquer overlay está aberto.
    ═══════════════════════════════════════════════════════════════ */
 
 const API_CENTRAL   = 'https://almafluxo.uk/proxy/central';
 const TOKEN_INTERNO = 'ALMA369UA';
 
-/* IDs dos arquivos no Drive (você me passou estes IDs) */
 const ARQUIVOS_OSFLUXO = {
   'osfluxo-entrada':        '1_4_4y31QqmT0B5yaffdM_6TkY1RHld0x',
   'osfluxo-cliente':        '1DL7hoNbc1LiIAEO1N8Hfn_Y40SGL8xbP',
@@ -376,83 +433,80 @@ const ARQUIVOS_OSFLUXO = {
   'osfluxo-supervisor':     '1-7zdNarJrARUv5uoOLJbwZmSqdHkKS-9'
 };
 
-/* ── Utilitário anti-XSS ── */
+/* ── Anti-XSS ── */
 function esc(str) {
   return String(str == null ? '' : str).replace(/[&<>"']/g, c => ({
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   }[c]));
 }
 
-/* ── Navegação entre telas ── */
-function mostrarTela(id) {
-  const el = document.getElementById(id);
-  if (!el) { console.warn('[mostrarTela] não encontrado:', id); return; }
-  document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
-  el.classList.add('ativa');
-  requestAnimationFrame(() => window.scrollTo(0, 0));
-}
-function voltarHome() {
-  document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
+/* ── Toast ── */
 function toast(msg) {
   const old = document.querySelector('.toast'); if (old) old.remove();
   const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
   document.body.appendChild(t); setTimeout(() => t.remove(), 2600);
 }
 
-/* ── Handlers dos cards (à prova de duplo clique) ── */
-function abrirAreaRestrita(ev) {
-  if (ev) { ev.preventDefault(); ev.stopPropagation(); }
-  mostrarTela('telaEscolhaPapel');
-  return false;
+/* ═══════════════════════════════════════════════════════════════
+   TELA DE ESCOLHA DE PAPEL
+   ═══════════════════════════════════════════════════════════════ */
+function abrirAreaRestrita() {
+  const tela = document.getElementById('telaEscolhaPapel');
+  tela.classList.add('aberta');
+  document.body.classList.add('osf-travado');
+}
+function fecharTelaEscolha() {
+  const tela = document.getElementById('telaEscolhaPapel');
+  tela.classList.remove('aberta');
+  // Só libera a landing se o overlay do app não estiver aberto
+  if (!document.getElementById('osfluxoAppOverlay').classList.contains('aberto')) {
+    document.body.classList.remove('osf-travado');
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   LEITOR DO DRIVE — igual ao Olho De Deus
+   ABRIR O ARQUIVO DO DRIVE — iframe.srcdoc
    ═══════════════════════════════════════════════════════════════ */
-const overlay      = () => document.getElementById('osfluxoAppOverlay');
-const iframe       = () => document.getElementById('osfluxoAppIframe');
-const loadBox      = () => document.getElementById('osfluxoAppLoading');
-const tituloLoad   = () => document.getElementById('osfluxoLoadingTitulo');
-const subLoad      = () => document.getElementById('osfluxoLoadingSub');
-const erroLoad     = () => document.getElementById('osfluxoLoadingErro');
-const btnVoltar    = () => document.getElementById('osfluxoLoadingVoltar');
+const ov        = () => document.getElementById('osfluxoAppOverlay');
+const frm       = () => document.getElementById('osfluxoAppIframe');
+const loadBox   = () => document.getElementById('osfluxoAppLoading');
+const titLoad   = () => document.getElementById('osfluxoLoadingTitulo');
+const subLoad   = () => document.getElementById('osfluxoLoadingSub');
+const erroLoad  = () => document.getElementById('osfluxoLoadingErro');
+const btnVolt   = () => document.getElementById('osfluxoLoadingVoltar');
 
 function mostrarLoading(titulo, sub) {
-  tituloLoad().textContent = titulo || 'Carregando...';
+  titLoad().textContent = titulo || 'Carregando...';
   subLoad().textContent = sub || 'Conectando ao servidor...';
   erroLoad().classList.remove('show');
   erroLoad().textContent = '';
-  btnVoltar().style.display = 'none';
+  btnVolt().style.display = 'none';
   loadBox().style.display = 'flex';
-  iframe().style.display = 'none';
+  frm().style.display = 'none';
 }
-
 function mostrarErro(msg) {
   subLoad().textContent = 'Não foi possível carregar.';
   erroLoad().textContent = msg;
   erroLoad().classList.add('show');
-  btnVoltar().style.display = 'inline-block';
+  btnVolt().style.display = 'inline-block';
 }
 
-/* Abre o app do Drive via Worker + iframe.srcdoc */
-async function abrirOsfluxo(nomeArquivo, ev) {
-  if (ev) { ev.preventDefault(); ev.stopPropagation(); }
-
+async function abrirOsfluxo(nomeArquivo) {
   const arquivoId = ARQUIVOS_OSFLUXO[nomeArquivo];
   if (!arquivoId) {
     toast('⚠️ Arquivo "' + nomeArquivo + '" não configurado.');
-    return false;
+    return;
   }
 
-  // Abre o overlay e mostra o spinner
-  overlay().classList.add('ativo');
-  document.body.style.overflow = 'hidden';
+  // Fecha a tela de escolha (se estiver aberta) antes de abrir o app
+  document.getElementById('telaEscolhaPapel').classList.remove('aberta');
+
+  // Abre o overlay
+  ov().classList.add('aberto');
+  document.body.classList.add('osf-travado');
   mostrarLoading('Abrindo OSFluxo...', 'Buscando arquivo no servidor...');
 
   try {
-    // 🔥 PASSO CHAVE: busca o HTML pelo Worker (mesmo padrão do Olho De Deus)
     const resp = await fetch(API_CENTRAL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -467,59 +521,46 @@ async function abrirOsfluxo(nomeArquivo, ev) {
 
     const html = await resp.text();
 
-    // Valida que é HTML de verdade (mesma checagem do Olho De Deus)
     if (!html || html.length < 200 ||
         (!html.includes('<!DOCTYPE') && !html.includes('<html'))) {
       throw new Error('Conteúdo inválido retornado pelo servidor.');
     }
 
-    // Injeta via iframe.srcdoc — o usuário NUNCA vê o Drive
-    const f = iframe();
+    const f = frm();
     f.srcdoc = html;
     f.style.display = 'block';
     loadBox().style.display = 'none';
 
-    // Foca o iframe pra teclado/scroll funcionarem
     setTimeout(() => { try { f.contentWindow?.focus(); } catch (e) {} }, 100);
-
   } catch (e) {
     console.error('[OSFluxo] Erro ao abrir app:', e);
     mostrarErro(e.message + ' — verifique se o arquivo existe no Drive e se o Worker está online.');
   }
-
-  return false;
 }
 
-/* Fecha o overlay e volta pra landing */
 function fecharOsfluxoApp() {
-  const f = iframe();
+  const f = frm();
   try { f.srcdoc = ''; } catch (e) {}
   f.style.display = 'none';
-  overlay().classList.remove('ativo');
-  document.body.style.overflow = '';
+  ov().classList.remove('aberto');
+  document.body.classList.remove('osf-travado');
 }
 
-/* Escuta mensagens do iframe (se o app do Drive quiser fechar/voltar) */
+/* ── postMessage do iframe ── */
 window.addEventListener('message', function(event) {
-  const origemOk = event.origin === window.location.origin ||
-                   (event.origin && event.origin.includes('almafluxo.uk')) ||
-                   (event.origin && event.origin.includes('googleusercontent.com')) ||
-                   (event.origin && event.origin.includes('google.com')) ||
-                   event.origin === 'null';
-  if (!origemOk) return;
-
   const d = event.data;
   const cmd = typeof d === 'string' ? d : (d && (d.tipo || d.acao || d.action || d.comando));
-
   if (cmd === 'osfluxo-fechar' || cmd === 'fechar-plataforma' || cmd === 'voltar-login') {
     fecharOsfluxoApp();
   }
 });
 
-/* Esc fecha o overlay (mesmo padrão de várias plataformas) */
+/* ── ESC fecha o que estiver aberto ── */
 document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape' && overlay().classList.contains('ativo')) {
-    fecharOsfluxoApp();
+  if (e.key !== 'Escape') return;
+  if (ov().classList.contains('aberto')) { fecharOsfluxoApp(); return; }
+  if (document.getElementById('telaEscolhaPapel').classList.contains('aberta')) {
+    fecharTelaEscolha();
   }
 });
 
