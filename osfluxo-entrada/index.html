@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>OSFluxo — Acompanhe sua produção</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0a; --card:#141414; --border:#2a2a2a;
+    --accent:#d4a017; --accent2:#b8860b;
+    --success:#2ecc71; --danger:#e74c3c; --warning:#f39c12; --info:#3498db;
+    --text:#e0e0e0; --text2:#999; --radius:14px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6;}
+  .wrap{max-width:460px;margin:0 auto;padding:2rem 1.2rem 3rem;min-height:100vh;display:flex;flex-direction:column;}
+  .brand{text-align:center;margin-bottom:1.6rem;}
+  .brand .logo{font-family:'Cinzel',serif;font-size:1.7rem;font-weight:800;color:var(--accent);}
+  .brand .sub{color:var(--text2);font-size:.8rem;margin-top:.2rem;}
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.6rem;margin-bottom:1.2rem;box-shadow:0 10px 40px rgba(0,0,0,.35);}
+  .card h2{font-family:'Cinzel',serif;color:var(--accent);font-size:1.05rem;margin-bottom:.9rem;}
+
+  .os-status{display:flex;align-items:center;gap:.9rem;margin-bottom:1rem;}
+  .os-status .icone{font-size:2rem;}
+  .os-status .info b{display:block;font-size:.95rem;}
+  .os-status .info span{color:var(--text2);font-size:.78rem;}
+  .etapa-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:.7rem;font-weight:700;text-transform:uppercase;background:rgba(52,152,219,.18);color:var(--info);margin-top:.4rem;}
+  .previsao{font-size:.8rem;color:var(--text2);margin-top:.5rem;}
+
+  .form-group{margin-bottom:.9rem;}
+  .form-group label{display:block;font-size:.78rem;color:var(--text2);margin-bottom:.35rem;}
+  .form-group input{width:100%;padding:11px 13px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:.92rem;font-family:inherit;}
+  .form-group input:focus{outline:none;border-color:var(--accent);}
+  .hint{font-size:.7rem;color:#666;margin-top:.3rem;}
+
+  .btn{width:100%;padding:12px;border-radius:11px;border:none;font-weight:800;font-size:.9rem;cursor:pointer;font-family:inherit;}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;}
+  .btn-primary:hover{box-shadow:0 6px 22px rgba(212,160,23,.32);}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed;}
+  .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text2);margin-top:.6rem;}
+  .btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+
+  .tabs{display:flex;gap:.5rem;margin-bottom:1.2rem;}
+  .tab{flex:1;padding:9px;text-align:center;border-radius:9px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:.8rem;cursor:pointer;font-family:inherit;font-weight:600;}
+  .tab.ativa{border-color:var(--accent);color:var(--accent);background:rgba(212,160,23,.08);}
+
+  .erro-msg{color:var(--danger);font-size:.78rem;margin-top:.6rem;display:none;}
+  .erro-msg.show{display:block;}
+  .ok-msg{color:var(--success);font-size:.78rem;margin-top:.6rem;display:none;}
+  .ok-msg.show{display:block;}
+
+  .oculto{display:none !important;}
+  .rodape{text-align:center;color:#555;font-size:.68rem;margin-top:auto;padding-top:2rem;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="brand">
+    <div class="logo">✦ OSFluxo</div>
+    <div class="sub">Acompanhe a produção, a garantia e o histórico do seu serviço</div>
+  </div>
+
+  <!-- ═══ CARD 1: status público do veículo (aparece só quando veio de um QR) ═══ -->
+  <div class="card oculto" id="cardOsPublica">
+    <h2>📦 Sua Ordem de Serviço</h2>
+    <div class="os-status">
+      <div class="icone">🚗</div>
+      <div class="info">
+        <b id="osAtivoNome">—</b>
+        <span id="osEmpresaNome">—</span>
+        <div class="etapa-badge" id="osEtapaAtual">—</div>
+      </div>
+    </div>
+    <div class="previsao" id="osPrevisao">—</div>
+    <button class="btn btn-primary" style="margin-top:1.1rem" onclick="mostrarCadastro()">🔗 Vincular à minha conta</button>
+  </div>
+
+  <!-- ═══ CARD 2: login / cadastro ═══ -->
+  <div class="card">
+    <div class="tabs">
+      <button class="tab ativa" id="tabLogin" onclick="trocarAba('login')">Entrar</button>
+      <button class="tab" id="tabCadastro" onclick="trocarAba('cadastro')">Criar conta</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="painelLogin">
+      <div class="form-group">
+        <label>E-mail</label>
+        <input type="email" id="loginEmail" placeholder="seu@email.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label>Senha</label>
+        <input type="password" id="loginSenha" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn btn-primary" id="btnLogin" onclick="fazerLogin()">Entrar</button>
+      <div class="erro-msg" id="loginErro"></div>
+    </div>
+
+    <!-- CADASTRO (via QR) -->
+    <div id="painelCadastro" class="oculto">
+      <div class="hint" style="margin-bottom:.9rem" id="cadastroAviso">
+        Escaneie o QR da sua Ordem de Serviço (está no manual do produto/serviço) pra liberar o cadastro.
+      </div>
+
+      <div id="blocoSemQr">
+        <div class="form-group">
+          <label>Código do veículo (impresso no manual)</label>
+          <input type="text" id="cadCodigoOs" placeholder="Ex: ATV-A1B2C3" autocapitalize="characters">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Código de verificação (4 dígitos, informado pela empresa)</label>
+        <input type="text" id="cadCodigoVerif" maxlength="4" placeholder="0000" inputmode="numeric">
+        <div class="hint">Protege pra que só quem realmente recebeu o serviço vincule essa OS.</div>
+      </div>
+      <div class="form-group">
+        <label>Seu nome</label>
+        <input type="text" id="cadNome" placeholder="Nome completo" autocomplete="name">
+      </div>
+      <div class="form-group">
+        <label>E-mail</label>
+        <input type="email" id="cadEmail" placeholder="seu@email.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label>Crie uma senha</label>
+        <input type="password" id="cadSenha" placeholder="mín. 6 caracteres" autocomplete="new-password">
+      </div>
+      <button class="btn btn-primary" id="btnCadastro" onclick="fazerCadastro()">Criar conta e vincular OS</button>
+      <div class="erro-msg" id="cadastroErro"></div>
+      <div class="ok-msg" id="cadastroOk"></div>
+    </div>
+  </div>
+
+  <div class="rodape">OSFluxo · rastreabilidade de produção e garantia</div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   OSFLUXO — ENTRADA (QR público + login/cadastro do cliente)
+   Conversa de verdade com o central via worker.
+   ═══════════════════════════════════════════════════════════════ */
+const API_CENTRAL         = 'https://almafluxo.uk/proxy/central';
+const TOKEN_INTERNO       = 'ALMA369UA';
+const CLIENTE_URL         = 'https://almafluxo.uk/osfluxo-cliente';
+const SESSAO_KEY          = 'osfluxo_sessao';
+
+/* ─────────── Helper central: envelopa em {data} + normaliza erro ─────────── */
+function osfAuth() { try { const s = JSON.parse(localStorage.getItem('osfluxo_sessao')); if (s && s.sessionToken) return { osfPapel: 'cliente', osfId: s.email, osfToken: s.sessionToken }; } catch (e) {} return {}; }
+function osfSessaoExpirou() { try { localStorage.removeItem('osfluxo_sessao'); } catch (e) {} window._clienteLogado = null; }
+async function chamarCentral(action, dados) {
+  dados = dados || {};
+  dados.action = action;
+  dados.tk = TOKEN_INTERNO;
+  Object.assign(dados, osfAuth());
+  const resp = await fetch(API_CENTRAL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(dados)
+  });
+  if (!resp.ok) throw new Error('HTTP ' + resp.status);
+  const json = await resp.json();
+  if (json && json.ok === false && !json.erro) json.erro = json.error || 'Erro';
+  if (json && json.authErro) osfSessaoExpirou();
+  return { data: json };
+}
+
+function getParam(nome) { return new URLSearchParams(location.search).get(nome); }
+function esc(str) {
+  return String(str || '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   STATUS PÚBLICO DO VEÍCULO (via ?ativo=ATV-XXXX)
+   ═══════════════════════════════════════════════════════════════ */
+async function mostrarOsPublica() {
+  const codigoAtivo = getParam('ativo');
+  if (!codigoAtivo) return;
+
+  try {
+    const { data } = await chamarCentral('consultarAtivoPublico', { codigoAtivo });
+    if (!data || data.ok === false) return;
+
+    const ativo = data.ativo;
+    const ordens = data.ordens || [];
+    if (!ativo) return;
+
+    const atual = ordens.length > 0 ? ordens[ordens.length - 1] : null;
+
+    document.getElementById('cardOsPublica').classList.remove('oculto');
+    document.getElementById('osAtivoNome').textContent =
+      (ativo.descricaoBase || 'Veículo') + (ordens.length > 1 ? ` · ${ordens.length} serviços no histórico` : '');
+    document.getElementById('osEmpresaNome').textContent = ativo.empresa || '—';
+    document.getElementById('osEtapaAtual').textContent = atual ? (atual.etapaAtual || '—') : 'Sem OS';
+    document.getElementById('osPrevisao').textContent = atual ? (atual.previsao || '') : '';
+
+    // Esconde o campo manual de código (já veio do QR)
+    document.getElementById('blocoSemQr').classList.add('oculto');
+    document.getElementById('cadastroAviso').textContent =
+      `Veículo ${ativo.identificador || ativo.codigo} identificado pelo QR — só falta o código de verificação.`;
+
+    window._codigoAtivoAtual = codigoAtivo;
+  } catch (e) {
+    console.warn('[OSFluxo entrada] consultarAtivoPublico falhou:', e.message);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TABS LOGIN / CADASTRO
+   ═══════════════════════════════════════════════════════════════ */
+function trocarAba(qual) {
+  document.getElementById('tabLogin').classList.toggle('ativa', qual === 'login');
+  document.getElementById('tabCadastro').classList.toggle('ativa', qual === 'cadastro');
+  document.getElementById('painelLogin').classList.toggle('oculto', qual !== 'login');
+  document.getElementById('painelCadastro').classList.toggle('oculto', qual !== 'cadastro');
+}
+
+function mostrarCadastro() { trocarAba('cadastro'); }
+
+/* ═══════════════════════════════════════════════════════════════
+   LOGIN DO CLIENTE
+   ═══════════════════════════════════════════════════════════════ */
+async function fazerLogin() {
+  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+  const senha = document.getElementById('loginSenha').value;
+  const erroEl = document.getElementById('loginErro');
+  erroEl.classList.remove('show');
+
+  if (!email || !senha) {
+    erroEl.textContent = '⚠️ Preencha e-mail e senha.';
+    erroEl.classList.add('show'); return;
+  }
+
+  const btn = document.getElementById('btnLogin');
+  btn.disabled = true; btn.textContent = 'Entrando...';
+  try {
+    const { data } = await chamarCentral('loginClienteOsfluxo', { email, senha });
+    if (!data || data.ok === false) {
+      erroEl.textContent = '❌ ' + ((data && data.erro) || 'E-mail ou senha incorretos.');
+      erroEl.classList.add('show');
+      return;
+    }
+    localStorage.setItem(SESSAO_KEY, JSON.stringify({ email, nome: data.nome, sessionToken: data.sessionToken }));
+    window.location.href = CLIENTE_URL;
+  } catch (e) {
+    erroEl.textContent = '❌ Erro de conexão: ' + e.message;
+    erroEl.classList.add('show');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Entrar';
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CADASTRO DO CLIENTE VIA QR
+   ═══════════════════════════════════════════════════════════════ */
+async function fazerCadastro() {
+  const codigoAtivo = (window._codigoAtivoAtual ||
+                       document.getElementById('cadCodigoOs').value.trim().toUpperCase());
+  const codigoVerif = document.getElementById('cadCodigoVerif').value.trim();
+  const nome        = document.getElementById('cadNome').value.trim();
+  const email       = document.getElementById('cadEmail').value.trim().toLowerCase();
+  const senha       = document.getElementById('cadSenha').value;
+
+  const erroEl = document.getElementById('cadastroErro');
+  const okEl   = document.getElementById('cadastroOk');
+  erroEl.classList.remove('show'); okEl.classList.remove('show');
+
+  // Validações comuns
+  if (!codigoAtivo || !codigoVerif) {
+    erroEl.textContent = '⚠️ Informe o código do veículo e o de verificação.';
+    erroEl.classList.add('show'); return;
+  }
+  if (codigoVerif.length !== 4) {
+    erroEl.textContent = '⚠️ O código de verificação tem 4 dígitos.';
+    erroEl.classList.add('show'); return;
+  }
+
+  const jaLogado = !!window._clienteLogado;
+
+  // Validações só pra conta NOVA
+  if (!jaLogado) {
+    if (!nome || !email || !senha) {
+      erroEl.textContent = '⚠️ Preencha todos os campos.';
+      erroEl.classList.add('show'); return;
+    }
+    if (senha.length < 6) {
+      erroEl.textContent = '⚠️ A senha precisa ter pelo menos 6 caracteres.';
+      erroEl.classList.add('show'); return;
+    }
+  }
+
+  const btn = document.getElementById('btnCadastro');
+  btn.disabled = true;
+  btn.textContent = jaLogado ? 'Vinculando...' : 'Criando conta...';
+
+  try {
+    let data;
+    if (jaLogado) {
+      // 🔗 Já logado: só vincula o novo ativo à conta existente
+      const r = await chamarCentral('vincularNovoQrCliente', {
+        email: window._clienteLogado.email,
+        codigoAtivo,
+        codigoVerif
+      });
+      data = r.data;
+    } else {
+      // 🆕 Conta nova: cria + vincula o primeiro ativo
+      const r = await chamarCentral('cadastrarClienteViaQr', {
+        codigoAtivo, codigoVerif, nome, email, senha
+      });
+      data = r.data;
+      if (data && data.ok !== false) {
+        localStorage.setItem(SESSAO_KEY, JSON.stringify({ email, nome: data.nome || nome, sessionToken: data.sessionToken }));
+      }
+    }
+
+    if (!data || data.ok === false) {
+      erroEl.textContent = '❌ ' + ((data && data.erro) || 'Erro ao processar.');
+      erroEl.classList.add('show');
+      return;
+    }
+
+    okEl.textContent = jaLogado
+      ? '✅ Veículo vinculado! Redirecionando...'
+      : '✅ Conta criada! Redirecionando...';
+    okEl.classList.add('show');
+    setTimeout(() => { window.location.href = CLIENTE_URL; }, 900);
+  } catch (e) {
+    erroEl.textContent = '❌ Erro de conexão: ' + e.message;
+    erroEl.classList.add('show');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = jaLogado ? '🔗 Vincular veículo à minha conta' : 'Criar conta e vincular OS';
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   INICIALIZAÇÃO
+   ═══════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════
+   INICIALIZAÇÃO
+   ═══════════════════════════════════════════════════════════════ */
+mostrarOsPublica();
+
+try {
+  const sessaoRaw = localStorage.getItem(SESSAO_KEY);
+  const temSessao = !!sessaoRaw;
+  const veioDeQr  = !!getParam('ativo');
+
+  if (temSessao && !veioDeQr) {
+    // Já logado, sem QR: pula direto pro painel
+    window.location.href = CLIENTE_URL;
+  } else if (temSessao && veioDeQr) {
+    // Já logado + QR novo: modo "só vincular"
+    const s = JSON.parse(sessaoRaw);
+    window._clienteLogado = s;
+
+    // Ajusta UI: título, campos visíveis, botão
+    setTimeout(() => {
+      // Muda o aviso
+      const avisoEl = document.getElementById('cadastroAviso');
+      if (avisoEl) avisoEl.textContent = `Você já está logado como ${s.email}. Só falta o código de verificação do novo veículo.`;
+
+      // Esconde nome/email/senha (já temos)
+      ['cadNome', 'cadEmail', 'cadSenha'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.parentElement.classList.add('oculto');
+      });
+
+      // Troca o texto do botão
+      const btn = document.getElementById('btnCadastro');
+      if (btn) btn.textContent = '🔗 Vincular veículo à minha conta';
+
+      // Pré-preenche (mesmo escondido, pra validação passar)
+      document.getElementById('cadEmail').value = s.email || '';
+      document.getElementById('cadNome').value = s.nome || '';
+      document.getElementById('cadSenha').value = '__sessao_ativa__';
+
+      trocarAba('cadastro');
+    }, 400);
+  }
+} catch (e) {}
+</script>
+</body>
+</html>
