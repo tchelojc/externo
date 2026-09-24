@@ -6,7 +6,6 @@
 <title>OSFluxo — Rastreabilidade de Produção | ALMAFLUXO</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Nunito:wght@400;600;700;800&family=Cinzel:wght@600;800&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;}
   :root{
@@ -119,23 +118,6 @@
   .voltar:hover{color:var(--dourado);}
   .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1rem;}
   .card h2{font-family:var(--font);color:var(--dourado);font-size:1.05rem;margin-bottom:1rem;font-weight:800;}
-  .form-group{margin-bottom:.9rem;}
-  .form-group label{display:block;font-size:.78rem;color:var(--texto2);margin-bottom:.35rem;}
-  .form-group input,.form-group select{width:100%;padding:11px 13px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:9px;color:var(--texto);font-size:.9rem;font-family:inherit;outline:none;}
-  .form-group input:focus,.form-group select:focus{border-color:var(--dourado);}
-  .hint{font-size:.72rem;color:#666;margin-top:.4rem;}
-  .erro-msg{color:var(--vermelho);font-size:.78rem;margin-top:.6rem;display:none;}
-  .erro-msg.show{display:block;}
-  .ok-msg{color:var(--verde);font-size:.78rem;margin-top:.6rem;display:none;}
-  .ok-msg.show{display:block;}
-
-  .btn{padding:12px 20px;border-radius:11px;border:none;font-weight:800;font-size:.88rem;cursor:pointer;font-family:var(--font);}
-  .btn-primary{background:linear-gradient(135deg,var(--dourado),var(--dourado2));color:#000;}
-  .btn-primary:hover{box-shadow:0 6px 22px var(--dourado-brilho);}
-  .btn-primary:disabled{opacity:.5;cursor:not-allowed;}
-  .btn-outline{background:transparent;border:1px solid var(--border);color:var(--texto2);}
-  .btn-outline:hover{border-color:var(--dourado);color:var(--dourado);}
-  .btn-block{width:100%;}
 
   .papel-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.9rem;}
   @media (max-width:520px){.papel-grid{grid-template-columns:1fr;}}
@@ -144,23 +126,7 @@
   .papel-card .icone{font-size:2.2rem;margin-bottom:.6rem;}
   .papel-card b{display:block;font-family:var(--font);color:var(--dourado);font-size:.95rem;font-weight:800;}
 
-  .permissao-box{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:12px;padding:1.1rem;text-align:center;margin-bottom:1rem;}
-  .permissao-box .icone{font-size:2rem;margin-bottom:.5rem;}
-  .permissao-status{font-size:.78rem;margin-top:.6rem;padding:6px 14px;border-radius:20px;display:inline-block;}
-  .permissao-status.pendente{background:rgba(153,153,153,.15);color:var(--texto2);}
-  .permissao-status.ok{background:rgba(46,204,113,.15);color:var(--verde);}
-  .permissao-status.negada{background:rgba(231,76,60,.15);color:var(--vermelho);}
-
-  .cam-box{width:100%;aspect-ratio:4/3;background:#000;border-radius:12px;overflow:hidden;position:relative;margin-bottom:1rem;border:2px dashed var(--border);}
-  .cam-box video{width:100%;height:100%;object-fit:cover;}
-  .cam-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.5rem;color:var(--texto2);font-size:.8rem;}
-
-  .codigo-input{display:flex;gap:.5rem;justify-content:center;margin:1rem 0;}
-  .codigo-input input{width:44px;height:52px;text-align:center;font-size:1.3rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:9px;color:var(--texto);font-family:inherit;outline:none;}
-  .codigo-input input:focus{border-color:var(--dourado);}
-
   .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--dourado);padding:11px 22px;border-radius:30px;font-size:.83rem;z-index:10000;box-shadow:0 8px 30px rgba(0,0,0,.4);max-width:90vw;text-align:center;}
-  .oculto{display:none !important;}
 
   @media (max-width:992px){
     .hero-split{grid-template-columns:1fr;gap:2rem;min-height:auto;padding:1rem 1.5rem 2.5rem;}
@@ -256,12 +222,12 @@
   <p class="acessos-sub">Escolha abaixo como você usa a plataforma hoje.</p>
 
   <div class="acessos-grid">
-    <div class="acesso-card cliente" onclick="irParaLogin()">
+    <div class="acesso-card cliente" onclick="irParaCliente()">
       <span class="selo cliente">Cliente final</span>
       <div class="icone">🔑</div>
       <h3>Sou cliente</h3>
       <p>Já escaneei o QR do meu veículo ou tenho uma conta. Quero acompanhar a produção, ver a garantia e o histórico do serviço.</p>
-      <button class="btn-acesso" onclick="event.stopPropagation();irParaLogin()">Entrar como cliente →</button>
+      <button class="btn-acesso" onclick="event.stopPropagation();irParaCliente()">Entrar como cliente →</button>
     </div>
 
     <div class="acesso-card equipe" onclick="mostrarTela('telaEscolhaPapel')">
@@ -288,13 +254,13 @@
     <a onclick="document.getElementById('como-funciona').scrollIntoView({behavior:'smooth'})">Como funciona</a>
     <a onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})">Recursos</a>
     <a onclick="document.getElementById('faq').scrollIntoView({behavior:'smooth'})">FAQ</a>
-    <a onclick="irParaLogin()">Acesso do cliente</a>
+    <a onclick="irParaCliente()">Acesso do cliente</a>
     <a onclick="mostrarTela('telaEscolhaPapel')">Área restrita</a>
   </div>
   <span>ALMAFLUXO © 2026 — OSFluxo · Rastreabilidade de produção, do estoque à garantia.</span>
 </footer>
 
-<!-- ESCOLHA DE PAPEL -->
+<!-- ESCOLHA DE PAPEL (só redireciona — sem login aqui) -->
 <div class="tela" id="telaEscolhaPapel">
   <div class="wrap">
     <button class="voltar" onclick="voltarHome()">← Voltar</button>
@@ -303,17 +269,17 @@
       <div style="color:var(--texto2);font-size:.85rem;margin-top:.2rem">Você é...</div>
     </div>
     <div class="papel-grid">
-      <button class="papel-card" onclick="iniciarFluxoFuncionario()">
+      <button class="papel-card" onclick="irParaFuncionario()">
         <div class="icone">👷</div>
         <b>Funcionário</b>
         <p style="color:var(--texto2);font-size:.76rem;margin-top:.3rem">Linha de produção</p>
       </button>
-      <button class="papel-card" onclick="mostrarTela('telaSupervisor')">
+      <button class="papel-card" onclick="irParaSupervisor()">
         <div class="icone">🧑‍💼</div>
         <b>Supervisor</b>
         <p style="color:var(--texto2);font-size:.76rem;margin-top:.3rem">Gestão da linha</p>
       </button>
-      <button class="papel-card" onclick="mostrarTela('telaAdminEmpresa')">
+      <button class="papel-card" onclick="irParaAdministrador()">
         <div class="icone">🏢</div>
         <b>Administrador</b>
         <p style="color:var(--texto2);font-size:.76rem;margin-top:.3rem">Painel da empresa</p>
@@ -322,169 +288,25 @@
   </div>
 </div>
 
-<!-- FUNCIONÁRIO: localização → linha -->
-<div class="tela" id="telaFuncionarioLoc">
-  <div class="wrap">
-    <button class="voltar" onclick="mostrarTela('telaEscolhaPapel')">← Voltar</button>
-    <div class="card">
-      <h2>📍 Confirmar localização</h2>
-      <div class="permissao-box">
-        <div class="icone">🛰️</div>
-        <div>A linha de produção confere se o acesso está vindo de dentro da oficina — ajuda a evitar login remoto indevido.</div>
-        <div class="permissao-status pendente" id="statusLocFuncionario">Aguardando permissão</div>
-      </div>
-      <button class="btn btn-primary btn-block" id="btnPedirLocFuncionario" onclick="pedirLocalizacao('funcionario')">📍 Permitir localização</button>
-      <button class="btn btn-outline btn-block oculto" id="btnContinuarFuncionario" style="margin-top:.7rem" onclick="window.location.href=LINHA_PRODUCAO_URL">Continuar pra linha de produção →</button>
-    </div>
-  </div>
-</div>
-
-<!-- SUPERVISOR: só redireciona direto (login próprio na página) -->
-<div class="tela" id="telaSupervisor">
-  <div class="wrap">
-    <button class="voltar" onclick="mostrarTela('telaEscolhaPapel')">← Voltar</button>
-    <div class="card" style="text-align:center">
-      <h2>🧑‍💼 Área do supervisor</h2>
-      <p style="color:var(--texto2);font-size:.88rem;margin-bottom:1.2rem">
-        O supervisor entra com o e-mail e a senha que o administrador cadastrou
-        pra ele. Toda a gestão da linha (reabrir etapa, resolver
-        não-conformidade, cadastrar funcionário) fica nessa tela.
-      </p>
-      <button class="btn btn-primary btn-block" onclick="window.location.href=SUPERVISOR_URL">
-        Entrar como supervisor →
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- ADMIN: empresa -->
-<div class="tela" id="telaAdminEmpresa">
-  <div class="wrap">
-    <button class="voltar" onclick="mostrarTela('telaEscolhaPapel')">← Voltar</button>
-    <div class="card">
-      <h2>🏢 Sua empresa</h2>
-      <div class="form-group">
-        <label>Nome da empresa cadastrada</label>
-        <input type="text" id="adminEmpresa" list="listaEmpresas" placeholder="Comece a digitar...">
-        <datalist id="listaEmpresas"></datalist>
-        <div class="hint" id="avisoEmpresa"></div>
-      </div>
-      <button class="btn btn-primary btn-block" id="btnContinuarEmpresa" onclick="confirmarEmpresa()">Continuar</button>
-      <div class="erro-msg" id="erroEmpresa"></div>
-    </div>
-  </div>
-</div>
-
-<!-- ADMIN: login -->
-<div class="tela" id="telaAdminLogin">
-  <div class="wrap">
-    <button class="voltar" onclick="mostrarTela('telaAdminEmpresa')">← Voltar</button>
-    <div class="card">
-      <h2>🔑 Login do administrador</h2>
-      <div class="hint" style="margin-bottom:.9rem" id="empresaSelecionadaTexto"></div>
-      <div class="form-group"><label>E-mail</label><input type="email" id="adminEmail"></div>
-      <div class="form-group"><label>Senha</label><input type="password" id="adminSenha"></div>
-      <button class="btn btn-primary btn-block" id="btnLoginAdmin" onclick="fazerLoginAdmin()">Entrar</button>
-      <div class="erro-msg" id="erroAdminLogin"></div>
-    </div>
-  </div>
-</div>
-
-<!-- ADMIN: código por e-mail -->
-<div class="tela" id="telaAdminEmail">
-  <div class="wrap">
-    <div class="card" style="text-align:center">
-      <h2>📧 Confirmação por e-mail</h2>
-      <p style="color:var(--texto2);font-size:.85rem;margin-bottom:.3rem">Enviamos um código de 6 dígitos para</p>
-      <p style="color:var(--dourado);font-size:.9rem;margin-bottom:1rem" id="emailDestinoTexto">—</p>
-      <div class="codigo-input">
-        <input type="text" maxlength="1" class="digito-codigo" inputmode="numeric">
-        <input type="text" maxlength="1" class="digito-codigo" inputmode="numeric">
-        <input type="text" maxlength="1" class="digito-codigo" inputmode="numeric">
-        <input type="text" maxlength="1" class="digito-codigo" inputmode="numeric">
-        <input type="text" maxlength="1" class="digito-codigo" inputmode="numeric">
-        <input type="text" maxlength="1" class="digito-codigo" inputmode="numeric">
-      </div>
-      <button class="btn btn-primary btn-block" id="btnConfirmarCodigo" onclick="confirmarCodigoEmail()">Confirmar código</button>
-      <button class="btn btn-outline btn-block" id="btnReenviarCodigo" style="margin-top:.6rem" onclick="reenviarCodigoEmail()">Reenviar código</button>
-      <div class="erro-msg" id="erroCodigoEmail"></div>
-      <div class="ok-msg" id="okCodigoEmail"></div>
-    </div>
-  </div>
-</div>
-
-<!-- ADMIN: biometria (opcional) -->
-<div class="tela" id="telaAdminBiometria">
-  <div class="wrap">
-    <div class="card">
-      <h2>😊 Segundo fator — reconhecimento facial</h2>
-      <div class="hint" style="margin-bottom:.9rem">
-        Mesma biometria já usada nos pagamentos — email+senha prova quem você diz
-        ser, o rosto prova que é você mesmo agora, na hora do acesso.
-      </div>
-      <div class="cam-box" id="camBox">
-        <div class="cam-placeholder" id="camPlaceholder"><div style="font-size:2rem">📷</div><div>Iniciando câmera...</div></div>
-        <video id="videoAdmin" autoplay muted playsinline class="oculto"></video>
-      </div>
-      <button class="btn btn-primary btn-block" id="btnCapturarAdmin" onclick="capturarBiometriaAdmin()">📸 Verificar rosto</button>
-      <button class="btn btn-outline btn-block" style="margin-top:.6rem" onclick="pularBiometria()">Pular por enquanto</button>
-      <div class="erro-msg" id="erroBiometriaAdmin"></div>
-      <div class="ok-msg" id="okBiometriaAdmin"></div>
-    </div>
-  </div>
-</div>
-
-<!-- ADMIN: localização -->
-<div class="tela" id="telaAdminLocalizacao">
-  <div class="wrap">
-    <div class="card">
-      <h2>📍 Confirmar localização</h2>
-      <div class="permissao-box">
-        <div class="icone">🛰️</div>
-        <div>Confirma que o acesso administrativo está partindo de um local esperado.</div>
-        <div class="permissao-status pendente" id="statusLocAdmin">Aguardando permissão</div>
-      </div>
-      <button class="btn btn-primary btn-block" id="btnPedirLocAdmin" onclick="pedirLocalizacao('admin')">📍 Permitir localização</button>
-      <button class="btn btn-outline btn-block" id="btnContinuarAdmin" style="margin-top:.7rem" onclick="window.location.href=PAINEL_EMPRESA_URL">Entrar no painel →</button>
-    </div>
-  </div>
-</div>
-
 <script>
-/* ═══════════════════════════════════════════════════════════════
-   OSFLUXO — INDEX (porta de entrada + landing)
-   Todas as chamadas agora vão de verdade pro central via worker.
-   ═══════════════════════════════════════════════════════════════ */
-const API_CENTRAL         = 'https://almafluxo.uk/proxy/central';
-const TOKEN_INTERNO       = 'ALMA369UA';
-const LINHA_PRODUCAO_URL  = 'https://almafluxo.uk/osfluxo-linha-producao';
-const SUPERVISOR_URL      = 'https://almafluxo.uk/osfluxo-supervisor';
-const PAINEL_EMPRESA_URL  = 'https://almafluxo.uk/osfluxo-painel-empresa';
-const ENTRADA_CLIENTE_URL = 'https://almafluxo.uk/osfluxo-entrada';
-const ATENDIMENTO_URL     = 'https://almafluxo.uk/atendimento';
 
-/* ─────────── Helper central: envelopa em {data} e normaliza erro ─────────── */
-function esc(str) { return String(str == null ? '' : str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
-function osfAuth() { return {}; }
-function osfSessaoExpirou() {}
-async function chamarCentral(action, dados) {
-  dados = dados || {};
-  dados.action = action;
-  dados.tk = TOKEN_INTERNO;
-  Object.assign(dados, osfAuth());
-  const resp = await fetch(API_CENTRAL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(dados)
-  });
-  if (!resp.ok) throw new Error('HTTP ' + resp.status);
-  const json = await resp.json();
-  // normaliza: se veio {ok:false,error}, expõe também como .erro
-  if (json && json.ok === false && !json.erro) json.erro = json.error || 'Erro';
-  return { data: json };
+const URLS = {
+  cliente:       'https://almafluxo.uk/osfluxo-entrada',        // login do cliente
+  funcionario:   'https://almafluxo.uk/osfluxo-linha-producao', // login do funcionário
+  supervisor:    'https://almafluxo.uk/osfluxo-supervisor',     // login do supervisor
+  administrador: 'https://almafluxo.uk/osfluxo-painel-empresa', // login do admin
+  atendimento:   'https://almafluxo.uk/atendimento'             // chat IA do suporte
+};
+const TOKEN_INTERNO = 'ALMA369UA';
+
+/* ── Utilitário anti-XSS pra mensagens do chat ── */
+function esc(str) {
+  return String(str == null ? '' : str).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
 }
 
-/* ─────────── Navegação entre telas ─────────── */
+/* ── Navegação entre telas (só a tela de escolha de papel usa isso) ── */
 function mostrarTela(id) {
   document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
   const el = document.getElementById(id);
@@ -495,20 +317,29 @@ function voltarHome() {
   document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
-
 function toast(msg) {
   const old = document.querySelector('.toast'); if (old) old.remove();
   const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
   document.body.appendChild(t); setTimeout(() => t.remove(), 2600);
 }
-function irParaLogin() { window.location.href = ENTRADA_CLIENTE_URL; }
 
-/* ══════════════ CHAT DE ATENDIMENTO ══════════════ */
+/* ═══════════════════════════════════════════════════════════════
+   REDIRECIONAMENTOS — o coração deste index
+   ═══════════════════════════════════════════════════════════════ */
+function irParaCliente()       { window.location.href = URLS.cliente; }
+function irParaFuncionario()   { window.location.href = URLS.funcionario; }
+function irParaSupervisor()    { window.location.href = URLS.supervisor; }
+function irParaAdministrador() { window.location.href = URLS.administrador; }
+
+/* ═══════════════════════════════════════════════════════════════
+   CHAT DE ATENDIMENTO (opcional — usa o /atendimento do Worker)
+   Se o Worker estiver offline, cai no fallback local.
+   ═══════════════════════════════════════════════════════════════ */
 const RESPOSTAS_DEMO = [
   { gatilhos:['prazo','demora','tempo'], resposta:'O prazo varia por serviço — cada OS mostra a previsão de entrega assim que aberta.' },
   { gatilhos:['garantia'], resposta:'A garantia fica vinculada ao QR do seu veículo. Você aciona direto pelo seu painel, na OS correspondente.' },
   { gatilhos:['qr','código','codigo'], resposta:'O QR vem no manual entregue com o serviço. Escaneie e siga pro cadastro — ele pede um código de verificação de 4 dígitos que a empresa te passa.' },
-  { gatilhos:['oque','o que','servico','serviço','funciona'], resposta:'O OSFluxo rastreia cada Ordem de Serviço da entrada à garantia: QR no veículo, etapas registradas com responsável, painel em tempo real, e garantia amarrada ao histórico.' },
+  { gatilhos:['oque','o que','servico','serviço','funciona'], resposta:'O OSFluxo rastreia cada Ordem de Serviço da entrada à garantia: QR no veículo, etapas registradas com responsável, painel em tempo real, e garantia amarrada ao histórico.' }
 ];
 function respostaDemo(texto) {
   const lower = texto.toLowerCase();
@@ -533,7 +364,7 @@ async function enviarChat() {
   try {
     const ctrl = new AbortController();
     const timeout = setTimeout(() => ctrl.abort(), 25000);
-    const resp = await fetch(ATENDIMENTO_URL, {
+    const resp = await fetch(URLS.atendimento, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ mensagem: texto, origem: 'osfluxo-index', tk: TOKEN_INTERNO }),
@@ -553,214 +384,6 @@ async function enviarChat() {
   msgs.insertAdjacentHTML('beforeend', `<div class="msg bot">${esc(resposta)}</div>`);
   msgs.scrollTop = msgs.scrollHeight;
 }
-
-/* ══════════════ LOCALIZAÇÃO (coleta local — não trava fluxo) ══════════════ */
-function pedirLocalizacao(contexto) {
-  const statusId = contexto === 'admin' ? 'statusLocAdmin' : 'statusLocFuncionario';
-  const btnPedirId = contexto === 'admin' ? 'btnPedirLocAdmin' : 'btnPedirLocFuncionario';
-  const btnContinuarId = contexto === 'admin' ? 'btnContinuarAdmin' : 'btnContinuarFuncionario';
-  const statusEl = document.getElementById(statusId);
-
-  if (!navigator.geolocation) {
-    statusEl.textContent = 'Este navegador não suporta localização';
-    statusEl.className = 'permissao-status negada';
-    document.getElementById(btnContinuarId).classList.remove('oculto');
-    return;
-  }
-  statusEl.textContent = 'Solicitando...'; statusEl.className = 'permissao-status pendente';
-  navigator.geolocation.getCurrentPosition(
-    (pos) => {
-      statusEl.textContent = `✅ Localização confirmada (±${Math.round(pos.coords.accuracy)}m)`;
-      statusEl.className = 'permissao-status ok';
-      document.getElementById(btnPedirId).classList.add('oculto');
-      document.getElementById(btnContinuarId).classList.remove('oculto');
-      window._localizacaoCapturada = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-    },
-    () => {
-      statusEl.textContent = '⚠️ Localização negada — pode continuar, mas fica registrado';
-      statusEl.className = 'permissao-status negada';
-      document.getElementById(btnContinuarId).classList.remove('oculto');
-    }
-  );
-}
-
-/* ══════════════ FLUXO FUNCIONÁRIO ══════════════ */
-function iniciarFluxoFuncionario() { mostrarTela('telaFuncionarioLoc'); }
-
-/* ══════════════ FLUXO ADMINISTRADOR ══════════════ */
-let empresaConfirmada = null;
-let emailAdminAtual = null;
-let senhaAdminAtual = null;
-
-/* Carrega a lista de empresas do backend no datalist */
-async function carregarEmpresas() {
-  const datalist = document.getElementById('listaEmpresas');
-  const aviso = document.getElementById('avisoEmpresa');
-  try {
-    const { data } = await chamarCentral('listarEmpresasCadastradas', {});
-    const empresas = (data && data.empresas) || [];
-    if (empresas.length === 0) {
-      aviso.textContent = 'Nenhuma empresa cadastrada ainda — fale com o suporte.';
-      datalist.innerHTML = '';
-      return;
-    }
-    aviso.textContent = `${empresas.length} empresa(s) cadastrada(s)`;
-    datalist.innerHTML = empresas.map(e => `<option value="${esc(e)}">`).join('');
-    window._empresasCache = empresas;
-  } catch (e) {
-    aviso.textContent = '⚠️ Não foi possível carregar as empresas — verifique a conexão.';
-  }
-}
-
-function confirmarEmpresa() {
-  const nome = document.getElementById('adminEmpresa').value.trim();
-  const erroEl = document.getElementById('erroEmpresa');
-  erroEl.classList.remove('show');
-
-  if (!nome) { erroEl.textContent = '⚠️ Informe o nome da empresa'; erroEl.classList.add('show'); return; }
-
-  const lista = window._empresasCache || [];
-  if (lista.length > 0 && !lista.includes(nome)) {
-    erroEl.textContent = '❌ Empresa não encontrada — confira com o suporte se ela está cadastrada.';
-    erroEl.classList.add('show'); return;
-  }
-
-  empresaConfirmada = nome;
-  document.getElementById('empresaSelecionadaTexto').textContent = `Empresa: ${nome}`;
-  mostrarTela('telaAdminLogin');
-}
-
-async function fazerLoginAdmin() {
-  const email = document.getElementById('adminEmail').value.trim().toLowerCase();
-  const senha = document.getElementById('adminSenha').value;
-  const erroEl = document.getElementById('erroAdminLogin');
-  erroEl.classList.remove('show');
-
-  if (!email || !senha) { erroEl.textContent = '⚠️ Preencha e-mail e senha'; erroEl.classList.add('show'); return; }
-  if (!empresaConfirmada) { erroEl.textContent = '⚠️ Volte e escolha a empresa'; erroEl.classList.add('show'); return; }
-
-  const btn = document.getElementById('btnLoginAdmin');
-  btn.disabled = true; btn.textContent = 'Entrando...';
-  try {
-    const { data } = await chamarCentral('loginAdministrador', {
-      empresa: empresaConfirmada, email, senha
-    });
-    if (!data || data.ok === false) {
-      erroEl.textContent = '❌ ' + ((data && data.erro) || 'E-mail ou senha incorretos.');
-      erroEl.classList.add('show');
-      return;
-    }
-    emailAdminAtual = email;
-    senhaAdminAtual = senha;
-
-    // Agora manda o código de verdade por e-mail
-    const r2 = await chamarCentral('enviarCodigoConfirmacaoEmail', { empresa: empresaConfirmada, email, senha });
-    if (!r2.data || r2.data.ok === false) {
-      erroEl.textContent = '❌ ' + ((r2.data && r2.data.erro) || 'Não consegui enviar o código por e-mail.');
-      erroEl.classList.add('show');
-      return;
-    }
-
-    document.getElementById('emailDestinoTexto').textContent = email;
-    mostrarTela('telaAdminEmail');
-    setTimeout(() => document.querySelector('.digito-codigo').focus(), 200);
-    toast('📧 Código enviado para ' + email);
-  } catch (e) {
-    erroEl.textContent = '❌ Erro de conexão: ' + e.message;
-    erroEl.classList.add('show');
-  } finally {
-    btn.disabled = false; btn.textContent = 'Entrar';
-  }
-}
-
-/* Auto-avança e auto-volta os dígitos */
-document.querySelectorAll('.digito-codigo').forEach((input, i, all) => {
-  input.addEventListener('input', () => { if (input.value && i < all.length - 1) all[i + 1].focus(); });
-  input.addEventListener('keydown', (e) => { if (e.key === 'Backspace' && !input.value && i > 0) all[i - 1].focus(); });
-});
-
-async function confirmarCodigoEmail() {
-  const digitos = Array.from(document.querySelectorAll('.digito-codigo')).map(i => i.value).join('');
-  const erroEl = document.getElementById('erroCodigoEmail');
-  const okEl = document.getElementById('okCodigoEmail');
-  erroEl.classList.remove('show'); okEl.classList.remove('show');
-
-  if (digitos.length !== 6) { erroEl.textContent = '⚠️ Digite os 6 dígitos'; erroEl.classList.add('show'); return; }
-  if (!emailAdminAtual) { erroEl.textContent = '⚠️ Faça login de novo'; erroEl.classList.add('show'); return; }
-
-  const btn = document.getElementById('btnConfirmarCodigo');
-  btn.disabled = true; btn.textContent = 'Verificando...';
-  try {
-    const { data } = await chamarCentral('confirmarCodigoEmailOsfluxo', {
-      empresa: empresaConfirmada, email: emailAdminAtual, senha: senhaAdminAtual, codigo: digitos
-    });
-    if (!data || data.ok === false) {
-      erroEl.textContent = '❌ ' + ((data && data.erro) || 'Código incorreto.');
-      erroEl.classList.add('show');
-      return;
-    }
-    localStorage.setItem('osfluxo_empresa_sessao', JSON.stringify({ email: emailAdminAtual, nome: data.nome, empresa: data.empresa || empresaConfirmada, sessionToken: data.sessionToken }));
-    okEl.textContent = '✅ Código confirmado!'; okEl.classList.add('show');
-    setTimeout(() => {
-      mostrarTela('telaAdminBiometria');
-      iniciarCameraAdmin();
-    }, 500);
-  } catch (e) {
-    erroEl.textContent = '❌ Erro de conexão: ' + e.message;
-    erroEl.classList.add('show');
-  } finally {
-    btn.disabled = false; btn.textContent = 'Confirmar código';
-  }
-}
-
-async function reenviarCodigoEmail() {
-  if (!emailAdminAtual) return;
-  const okEl = document.getElementById('okCodigoEmail');
-  okEl.classList.remove('show');
-  try {
-    const { data } = await chamarCentral('enviarCodigoConfirmacaoEmail', { empresa: empresaConfirmada, email: emailAdminAtual, senha: senhaAdminAtual });
-    if (data && data.ok !== false) {
-      okEl.textContent = '📧 Código reenviado'; okEl.classList.add('show');
-    }
-  } catch (e) { /* silencioso */ }
-}
-
-/* ══════════════ BIOMETRIA FACIAL (coleta local) ══════════════ */
-let streamAdmin = null;
-async function iniciarCameraAdmin() {
-  try {
-    streamAdmin = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240, facingMode: 'user' } });
-    const video = document.getElementById('videoAdmin');
-    video.srcObject = streamAdmin; video.classList.remove('oculto');
-    document.getElementById('camPlaceholder').classList.add('oculto');
-  } catch (e) {
-    document.getElementById('erroBiometriaAdmin').textContent = '⚠️ Câmera indisponível — use "Pular por enquanto".';
-    document.getElementById('erroBiometriaAdmin').classList.add('show');
-  }
-}
-
-async function capturarBiometriaAdmin() {
-  const btn = document.getElementById('btnCapturarAdmin');
-  const erroEl = document.getElementById('erroBiometriaAdmin');
-  const okEl = document.getElementById('okBiometriaAdmin');
-  erroEl.classList.remove('show'); okEl.classList.remove('show');
-
-  if (!streamAdmin) { erroEl.textContent = '⚠️ Câmera não está ativa'; erroEl.classList.add('show'); return; }
-  btn.disabled = true; btn.textContent = '⏳ Processando rosto...';
-  try {
-    okEl.textContent = 'ℹ️ Verificação facial ainda não está ativa — o acesso segue protegido por senha + código de e-mail.'; okEl.classList.add('show');
-    setTimeout(() => { pararCameraAdmin(); mostrarTela('telaAdminLocalizacao'); }, 900);
-  } catch (e) {
-    erroEl.textContent = '❌ ' + e.message; erroEl.classList.add('show');
-  } finally {
-    btn.disabled = false; btn.textContent = '📸 Verificar rosto';
-  }
-}
-function pararCameraAdmin() { if (streamAdmin) { streamAdmin.getTracks().forEach(t => t.stop()); streamAdmin = null; } }
-function pularBiometria() { pararCameraAdmin(); mostrarTela('telaAdminLocalizacao'); }
-
-/* ══════════════ INICIALIZAÇÃO ══════════════ */
-carregarEmpresas();
 </script>
 </body>
 </html>
