@@ -1048,7 +1048,7 @@ footer{padding:2.5rem 1.5rem;background:var(--panel2);border-top:1px solid var(-
 
 <script>
 const ALMA_CENTRAL = "https://almafluxo.uk/proxy/central";
-let isProcessing = false, usuarioALMA = null, saldoALMA = 0, planoSelecionado = null;
+let isProcessing = false, usuarioALMA = null, saldoALMA = 0, planoSelecionado = null, acessoJaLiberado = false;
 // ═══ Container original dos planos (salvo para restaurar depois) ═══
 const hubCardOriginal = document.querySelector('.hub-card').innerHTML;
 
@@ -1182,14 +1182,46 @@ function construirPlanos(){
   }).join('');
   document.getElementById('valorTotal').style.display='none';
   planoSelecionado=null;
-  document.getElementById('btnDesbloquear').disabled=true;
+  acessoJaLiberado=false;
+  atualizarBotaoDesbloquear();
+  verificarAcessoAtual();
 }
 function selecionarPlano(c){
   planoSelecionado=c;
   document.querySelectorAll('.plano-card').forEach(i=>i.classList.toggle('sel',i.dataset.plano===c));
   const p=PLAT.planos[c],el=document.getElementById('valorTotal');
   el.style.display='block';el.innerHTML=`💰 <strong>${p.tokens} tokens</strong> — ${p.label}`;
-  document.getElementById('btnDesbloquear').disabled=false;
+  atualizarBotaoDesbloquear();
+}
+// Reflete no botão se o usuário já tem acesso liberado (não cobra de novo) ou
+// precisa escolher um plano (fluxo normal de compra).
+function atualizarBotaoDesbloquear(){
+  const b=document.getElementById('btnDesbloquear');
+  if(!b) return;
+  if(acessoJaLiberado){
+    b.disabled=false;
+    b.innerText='▶ Você já tem acesso — Entrar';
+  }else{
+    b.innerText='💎 ACESSAR PLATAFORMA';
+    b.disabled=!planoSelecionado;
+  }
+}
+// Checa (sem cobrar) se o acesso à plataforma atual ainda está dentro da
+// janela já paga — mesmo padrão do leitor do Olho De Deus (verificarAcesso).
+async function verificarAcessoAtual(){
+  if(!usuarioALMA || !PLAT || PLAT.externo) return;
+  try{
+    const r=await fetch(ALMA_CENTRAL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'verificarAcesso',email:usuarioALMA.email,plataforma:PLAT.id,sessionToken:usuarioALMA.sessionToken})}),d=await r.json();
+    acessoJaLiberado=!!(d.ok&&d.acessoPermitido);
+  }catch(e){acessoJaLiberado=false;}
+  atualizarBotaoDesbloquear();
+}
+function abrirIframeComHTML(html){
+  const fr=document.createElement('iframe');
+  fr.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:9999';
+  fr.srcdoc=html;
+  document.body.innerHTML='';
+  document.body.appendChild(fr);
 }
 
 function abrirModalLogin(){
@@ -1204,7 +1236,7 @@ async function fazerLogin(){
   if(!e||!s){m.style.display='block';m.textContent='Preencha todos.';m.style.background='rgba(255,90,90,.1)';m.style.color='#f88';return;}
   m.style.display='block';m.textContent='⏳ Entrando...';m.style.background='rgba(0,229,255,.1)';m.style.color='var(--ciano)';
   try{const r=await fetch(ALMA_CENTRAL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'login',email:e,senha:s})}),d=await r.json();
-    if(d.ok){usuarioALMA={nome:d.nome,email:e,balance:d.balance,sessionToken:d.sessionToken};saldoALMA=d.balance;localStorage.setItem('almafluxo_usuario',JSON.stringify(usuarioALMA));document.getElementById('modalLogin').remove();mostrarPainelLogado();}
+    if(d.ok){usuarioALMA={nome:d.nome,email:e,balance:d.balance,sessionToken:d.sessionToken};saldoALMA=d.balance;localStorage.setItem('almafluxo_usuario',JSON.stringify(usuarioALMA));document.getElementById('modalLogin').remove();mostrarPainelLogado();verificarAcessoAtual();}
     else{m.style.background='rgba(255,90,90,.1)';m.style.color='#f88';m.textContent=d.error||'Credenciais inválidas.';}
   }catch(x){m.style.background='rgba(255,90,90,.1)';m.style.color='#f88';m.textContent='Erro.';}
 }
@@ -1215,22 +1247,56 @@ async function fazerCadastro(){
   if(s.length<6){m.style.display='block';m.textContent='Mín. 6 caracteres.';m.style.background='rgba(255,90,90,.1)';m.style.color='#f88';return;}
   m.style.display='block';m.textContent='⏳ Criando...';m.style.background='rgba(0,229,255,.1)';m.style.color='var(--ciano)';
   try{const r=await fetch(ALMA_CENTRAL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'cadastrarUsuario',nome:n,email:e,senha:s})}),d=await r.json();
-    if(d.ok){usuarioALMA={nome:n,email:e,balance:d.balance||10,sessionToken:d.sessionToken};saldoALMA=d.balance||10;localStorage.setItem('almafluxo_usuario',JSON.stringify(usuarioALMA));document.getElementById('modalLogin').remove();mostrarPainelLogado();}
+    if(d.ok){usuarioALMA={nome:n,email:e,balance:d.balance||10,sessionToken:d.sessionToken};saldoALMA=d.balance||10;localStorage.setItem('almafluxo_usuario',JSON.stringify(usuarioALMA));document.getElementById('modalLogin').remove();mostrarPainelLogado();verificarAcessoAtual();}
     else{m.style.background='rgba(255,90,90,.1)';m.style.color='#f88';m.textContent=d.error||'Erro.';}
   }catch(x){m.style.background='rgba(255,90,90,.1)';m.style.color='#f88';m.textContent='Erro.';}
 }
 function mostrarPainelLogado(){const d=document.getElementById('tokenDisplay');if(d){d.textContent=`💎 ${saldoALMA} ALMA`;d.style.color='var(--dourado)';d.onclick=()=>{if(confirm(`${usuarioALMA.nome}\nSaldo:${saldoALMA} tokens\n\nSair?`))fazerLogout();};}document.getElementById('infoSaldo').innerHTML=`Seu saldo: <strong>${saldoALMA} tokens</strong>`;document.getElementById('infoSaldo').style.display='block';}
-function fazerLogout(){usuarioALMA=null;saldoALMA=0;localStorage.removeItem('almafluxo_usuario');const d=document.getElementById('tokenDisplay');if(d){d.textContent='🔑 Fazer Login';d.style.color='var(--ciano)';d.onclick=abrirModalLogin;}}
+function fazerLogout(){usuarioALMA=null;saldoALMA=0;acessoJaLiberado=false;localStorage.removeItem('almafluxo_usuario');const d=document.getElementById('tokenDisplay');if(d){d.textContent='🔑 Fazer Login';d.style.color='var(--ciano)';d.onclick=abrirModalLogin;}atualizarBotaoDesbloquear();}
 
 async function acessarPlataforma(){
-  if(isProcessing)return;if(!usuarioALMA){abrirModalLogin();return;}if(!planoSelecionado){document.getElementById('erroToken').textContent='❌ Selecione um plano.';document.getElementById('erroToken').style.display='block';return;}
+  if(isProcessing)return;
+  if(!usuarioALMA){abrirModalLogin();return;}
+  isProcessing=true;
+  const b=document.getElementById('btnDesbloquear'),o=b.innerText;
+  b.disabled=true;
+  document.getElementById('erroToken').style.display='none';
+
+  // Já tem acesso liberado (dentro da janela do plano já pago)? Abre direto, sem cobrar de novo —
+  // mesmo padrão do leitor do Olho De Deus: verificarAcesso (já feito antes) + servirHTML.
+  if(acessoJaLiberado){
+    b.innerText='⏳ Abrindo...';
+    try{
+      const r=await fetch(ALMA_CENTRAL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'servirHTML',email:usuarioALMA.email,sessionToken:usuarioALMA.sessionToken,plataforma:PLAT.id})});
+      const html=await r.text();
+      if(r.ok&&(html.includes('<!DOCTYPE')||html.includes('<html'))){
+        abrirIframeComHTML(html);
+      }else{
+        let msg='Falha ao carregar a plataforma.';
+        try{msg=JSON.parse(html).error||msg;}catch(e){}
+        document.getElementById('erroToken').textContent='❌ '+msg;document.getElementById('erroToken').style.display='block';
+      }
+    }catch(e){document.getElementById('erroToken').textContent='❌ '+e.message;document.getElementById('erroToken').style.display='block';}
+    finally{b.innerText=o;b.disabled=false;isProcessing=false;}
+    return;
+  }
+
+  // Sem acesso ainda: precisa de plano selecionado e saldo suficiente.
+  if(!planoSelecionado){document.getElementById('erroToken').textContent='❌ Selecione um plano.';document.getElementById('erroToken').style.display='block';b.innerText=o;b.disabled=false;isProcessing=false;return;}
   const p=PLAT.planos[planoSelecionado];
-  if(saldoALMA<p.tokens){document.getElementById('erroToken').innerHTML=`❌ Saldo insuficiente.<br>Necessário: <strong>${p.tokens} tokens</strong><br>Você tem: <strong>${saldoALMA}</strong><br><a href="https://almafluxo.uk/pagamentos/" style="color:var(--dourado)">Comprar tokens →</a>`;document.getElementById('erroToken').style.display='block';return;}
-  document.getElementById('erroToken').style.display='none';isProcessing=true;const b=document.getElementById('btnDesbloquear'),o=b.innerText;b.innerText=`💎 DEBITANDO ${p.tokens}...`;b.disabled=true;
-  try{const r=await fetch(ALMA_CENTRAL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'acessarPlataforma',email:usuarioALMA.email,plataforma:PLAT.id,quantidade:p.tokens,sessionToken:usuarioALMA.sessionToken})}),d=await r.json();
-    if(d.ok){saldoALMA=d.saldoRestante;usuarioALMA.balance=saldoALMA;localStorage.setItem('almafluxo_usuario',JSON.stringify(usuarioALMA));mostrarPainelLogado();
-      if(d.chaveMestra){const kb=Uint8Array.from(atob(d.chaveMestra),c=>c.charCodeAt(0)),ck=await crypto.subtle.importKey('raw',kb,'AES-GCM',false,['decrypt']),iv=Uint8Array.from(atob(d.nonce),c=>c.charCodeAt(0)),tg=Uint8Array.from(atob(d.tag),c=>c.charCodeAt(0)),ct=Uint8Array.from(atob(d.data),c=>c.charCodeAt(0)),bf=await crypto.subtle.decrypt({name:'AES-GCM',iv,tagLength:128},ck,new Uint8Array([...ct,...tg])),h=new TextDecoder().decode(bf),fr=document.createElement('iframe');fr.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:9999';fr.srcdoc=h;document.body.innerHTML='';document.body.appendChild(fr);}
-    }else{document.getElementById('erroToken').textContent='❌ '+(d.error||'Erro.');document.getElementById('erroToken').style.display='block';}
+  if(saldoALMA<p.tokens){document.getElementById('erroToken').innerHTML=`❌ Saldo insuficiente.<br>Necessário: <strong>${p.tokens} tokens</strong><br>Você tem: <strong>${saldoALMA}</strong><br><a href="https://almafluxo.uk/pagamentos/" style="color:var(--dourado)">Comprar tokens →</a>`;document.getElementById('erroToken').style.display='block';b.innerText=o;b.disabled=false;isProcessing=false;return;}
+
+  b.innerText=`💎 DEBITANDO ${p.tokens}...`;
+  try{
+    // buscarConteudoPlataforma debita e já devolve o HTML puro do Drive em um único round-trip.
+    const r=await fetch(ALMA_CENTRAL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'buscarConteudoPlataforma',email:usuarioALMA.email,plataforma:PLAT.id,quantidade:p.tokens,sessionToken:usuarioALMA.sessionToken})}),d=await r.json();
+    if(d.ok){
+      if(typeof d.saldoRestante==='number'){saldoALMA=d.saldoRestante;usuarioALMA.balance=saldoALMA;localStorage.setItem('almafluxo_usuario',JSON.stringify(usuarioALMA));mostrarPainelLogado();}
+      acessoJaLiberado=true;
+      abrirIframeComHTML(d.html);
+    }else{
+      document.getElementById('erroToken').textContent='❌ '+(d.error||'Erro.');document.getElementById('erroToken').style.display='block';
+    }
   }catch(e){document.getElementById('erroToken').textContent='❌ '+e.message;document.getElementById('erroToken').style.display='block';}
   finally{b.innerText=o;b.disabled=false;isProcessing=false;}
 }
