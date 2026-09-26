@@ -141,17 +141,16 @@
     </div>
 
     <script>
-        const WORKER_URL = 'https://almafluxo.uk';
         const ROTA_OBTER_HTML = 'https://almafluxo.uk/proxy/boteco/interface';
-        const ROTA_LOGIN = 'https://almafluxo.uk/proxy/boteco';
+        const ROTA_LOGIN      = 'https://almafluxo.uk/proxy/boteco';
 
-        const spinner = document.getElementById('spinner');
-        const title = document.getElementById('title');
-        const status = document.getElementById('status');
-        const btnEnter = document.getElementById('btnEnter');
+        const spinner      = document.getElementById('spinner');
+        const title        = document.getElementById('title');
+        const status       = document.getElementById('status');
+        const btnEnter     = document.getElementById('btnEnter');
         const loginSection = document.getElementById('loginSection');
-        const loginForm = document.getElementById('loginForm');
-        const errorMsg = document.getElementById('errorMsg');
+        const loginForm    = document.getElementById('loginForm');
+        const errorMsg     = document.getElementById('errorMsg');
 
         // ── Mostrar formulário de login ──
         function mostrarLogin(mensagemErro) {
@@ -166,14 +165,58 @@
             }
         }
 
+        // ── Exibe o HTML do Boteco em iframe fullscreen ──
+        function exibirHTML(html) {
+            const iframe = document.createElement('iframe');
+            iframe.srcdoc = html;
+            document.body.innerHTML = '';
+            document.body.appendChild(iframe);
+        }
+
+        // ── Captura token/email vindos via URL do index.html ──
+        // 🔥 CORRIGIDO: este é o ponto que estava faltando.
+        // Se o index.html está em outro domínio, o cookie não viaja.
+        // A URL viaja. Aqui gravamos os cookies no domínio do Worker (almafluxo.uk),
+        // que é o mesmo domínio onde o /proxy/boteco/interface roda.
+        function capturarTokenDaURL() {
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+            const email = params.get('email');
+
+            if (token && email) {
+                // Grava cookies no domínio atual (almafluxo.uk)
+                document.cookie = 'boteco_token=' + encodeURIComponent(token) + '; path=/; max-age=43200; SameSite=Lax';
+                document.cookie = 'boteco_email=' + encodeURIComponent(email) + '; path=/; max-age=43200; SameSite=Lax';
+
+                // Guarda no localStorage também (reuso)
+                try {
+                    localStorage.setItem('sessionToken', token);
+                    localStorage.setItem('usuarioEmail', email);
+                } catch (e) {}
+
+                // Limpa a URL (não deixa token exposto no histórico)
+                const urlLimpa = window.location.pathname;
+                window.history.replaceState({}, '', urlLimpa);
+
+                return true;
+            }
+            return false;
+        }
+
+        // ── Carrega o HTML do Boteco via Worker ──
         async function carregarBoteco() {
             try {
                 const response = await fetch(ROTA_OBTER_HTML, {
                     method: 'GET',
-                    credentials: 'include'
+                    credentials: 'include'   // envia cookies (agora do domínio certo)
                 });
 
                 const text = await response.text();
+
+                if (response.status === 401) {
+                    mostrarLogin('Sessão expirada ou inválida. Faça login novamente.');
+                    return;
+                }
 
                 // Tenta interpretar como JSON primeiro
                 try {
@@ -185,7 +228,7 @@
                         throw new Error(json.error || json.message);
                     }
                 } catch (e) {
-                    // Se não for JSON, continua com o texto puro
+                    // Se não for JSON, continua com texto puro
                 }
 
                 // Verifica se é HTML direto
@@ -194,27 +237,29 @@
                 } else {
                     throw new Error('Conteúdo inválido retornado');
                 }
+
             } catch (e) {
                 mostrarLogin(e.message);
             }
         }
 
-        function exibirHTML(html) {
-            const iframe = document.createElement('iframe');
-            iframe.srcdoc = html;
-            document.body.innerHTML = '';
-            document.body.appendChild(iframe);
-        }
-
-        // ── Verificar cookies e decidir fluxo ──
+        // ── Fluxo inicial ──
         async function verificarAcesso() {
-            // Tenta carregar a interface diretamente.
-            // Se houver cookies válidos, o Worker retornará o HTML.
-            // Se não, retornará 401 e o catch exibirá o login.
+            // 1. Se veio token via URL (do index.html), grava cookie e recarrega limpo
+            const tinhaToken = capturarTokenDaURL();
+            if (tinhaToken) {
+                spinner.style.display = 'block';
+                status.textContent = 'Validando sessão...';
+                // Recarrega sem query string — agora o cookie está no domínio certo
+                setTimeout(() => { window.location.reload(); }, 100);
+                return;
+            }
+
+            // 2. Tenta carregar direto (cookie já no domínio almafluxo.uk)
             await carregarBoteco();
         }
 
-        // ── Evento de login ──
+        // ── Login na página de liberação (fallback se alguém chegar direto) ──
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             errorMsg.style.display = 'none';
@@ -245,10 +290,12 @@
                 const resultado = data.result || data;
 
                 if (resultado.autenticado && resultado.token) {
-                    // 🔥 CORRIGIDO: antes disso nunca acontecia — a página só
-                    // recarregava esperando um cookie que ninguém tinha criado.
-                    document.cookie = `boteco_token=${resultado.token}; path=/; max-age=43200; SameSite=Lax`;
-                    document.cookie = `boteco_email=${email}; path=/; max-age=43200; SameSite=Lax`;
+                    document.cookie = 'boteco_token=' + encodeURIComponent(resultado.token) + '; path=/; max-age=43200; SameSite=Lax';
+                    document.cookie = 'boteco_email=' + encodeURIComponent(email) + '; path=/; max-age=43200; SameSite=Lax';
+                    try {
+                        localStorage.setItem('sessionToken', resultado.token);
+                        localStorage.setItem('usuarioEmail', email);
+                    } catch (e) {}
                     window.location.reload();
                 } else {
                     errorMsg.textContent = resultado.mensagem || 'Falha no login. Verifique suas credenciais.';
