@@ -2906,6 +2906,7 @@
     const TG_LABEL_PLANO = { hora: '1 Hora', dia: '1 Dia', semana: '1 Semana', mes: '1 Mês' };
 
     let _tgPendente = null; // { url, titulo, plataforma, tipo, abrirEm }
+    let _tgModoGratis = null; // 'almaditor' | 'soma' — plataforma gratuita aguardando login/conta
 
     function abrirCardPagoTokens(url, titulo, plataforma, tipo, abrirEm) {
       _tgPendente = { url, titulo, plataforma, tipo, abrirEm: abrirEm || 'iframe' };
@@ -2952,9 +2953,15 @@
         try { localStorage.setItem('almafluxo_usuario', JSON.stringify(usuarioTokens)); } catch (e) {}
         tgSetMsg('tgMsgLogin', '', '');
         atualizarWidgetCanto();
-        // 🔥 NOVO: se veio de "abrir plataforma paga", segue pro passo de
-        // plano; se veio do login avulso do canto, só fecha o modal.
-        if (_tgPendente) {
+        // Plataforma gratuita (ALMADITOR/SOMA) esperando só o login — abre direto,
+        // sem passar pelo passo de plano/pagamento.
+        if (_tgModoGratis) {
+          const plataformaGratis = _tgModoGratis;
+          _tgModoGratis = null;
+          fecharTokenGateModal();
+          if (plataformaGratis === 'almaditor') abrirAlmaditorPlataforma();
+          else if (plataformaGratis === 'soma') abrirSomaPlataforma();
+        } else if (_tgPendente) {
           tgAbrirPassoPlano();
         } else {
           fecharTokenGateModal();
@@ -3464,15 +3471,21 @@
     let _almaditorEmail = '';
 
     function abrirAlmaditorModal() {
-      document.getElementById('almaditorModal').classList.add('active');
-      document.getElementById('almaditorEmail').value = '';
-      const msg = document.getElementById('almaditorMsg');
-      msg.className = 'am-msg';
-      msg.textContent = '';
-      msg.style.display = 'none';
-      document.getElementById('almaditorBtnEnviar').disabled = false;
-      document.getElementById('almaditorBtnEnviar').innerHTML = '🎬 ABRIR ALMADITOR';
-      setTimeout(() => document.getElementById('almaditorEmail').focus(), 150);
+      // Gratuito, mas exige conta ALMA de verdade (mesmo login das plataformas
+      // pagas) — sem isso não dá pra saber quem usou nem falar com essa pessoa
+      // depois. Se já está logado, abre direto; senão, pede login/conta.
+      tgCarregarSessao();
+      if (usuarioTokens && usuarioTokens.sessionToken) {
+        abrirAlmaditorPlataforma();
+        return;
+      }
+      _tgPendente = null;
+      _tgModoGratis = 'almaditor';
+      document.getElementById('tokenGateModal').style.display = 'flex';
+      document.getElementById('tgEmail').value = '';
+      document.getElementById('tgSenha').value = '';
+      tgSetMsg('tgMsgLogin', '', '');
+      tgMostrarStep('login');
     }
 
     function fecharAlmaditorModal() {
@@ -3551,6 +3564,7 @@
     }
 
     async function abrirAlmaditorPlataforma() {
+      _almaditorRegistrarAcesso(usuarioTokens.email); // rastreio paralelo — não bloqueia a abertura
       const loader = document.getElementById('almaditorLoader');
       const loaderStatus = document.getElementById('almaditorLoaderStatus');
       const frame = document.getElementById('almaditorFrame');
@@ -3565,7 +3579,9 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             action: 'servirHTML',
-            arquivoId: ALMADITOR_ARQUIVO_ID
+            email: usuarioTokens.email,
+            sessionToken: usuarioTokens.sessionToken,
+            plataforma: 'almaditor'
           })
         });
 
@@ -3597,10 +3613,7 @@
 
       } catch (e) {
         loader.classList.remove('active');
-        document.getElementById('almaditorModal').classList.add('active');
-        _almaditorMsg('error', '❌ Não consegui carregar a plataforma: ' + e.message);
-        document.getElementById('almaditorBtnEnviar').disabled = false;
-        document.getElementById('almaditorBtnEnviar').innerHTML = '🎬 ABRIR ALMADITOR';
+        alert('❌ Não consegui carregar o ALMADITOR: ' + e.message);
       }
     }
 
@@ -3632,15 +3645,19 @@
     let _somaEmail = '';
 
     function abrirSomaModal() {
-      document.getElementById('somaModal').classList.add('active');
-      document.getElementById('somaEmail').value = '';
-      const msg = document.getElementById('somaMsg');
-      msg.className = 'am-msg';
-      msg.textContent = '';
-      msg.style.display = 'none';
-      document.getElementById('somaBtnEnviar').disabled = false;
-      document.getElementById('somaBtnEnviar').innerHTML = '🎬 ABRIR SOMA';
-      setTimeout(() => document.getElementById('somaEmail').focus(), 150);
+      // Gratuito, mas exige conta ALMA de verdade — mesma lógica do ALMADITOR.
+      tgCarregarSessao();
+      if (usuarioTokens && usuarioTokens.sessionToken) {
+        abrirSomaPlataforma();
+        return;
+      }
+      _tgPendente = null;
+      _tgModoGratis = 'soma';
+      document.getElementById('tokenGateModal').style.display = 'flex';
+      document.getElementById('tgEmail').value = '';
+      document.getElementById('tgSenha').value = '';
+      tgSetMsg('tgMsgLogin', '', '');
+      tgMostrarStep('login');
     }
 
     function fecharSomaModal() {
@@ -3719,6 +3736,7 @@
     }
 
     async function abrirSomaPlataforma() {
+      _somaRegistrarAcesso(usuarioTokens.email); // rastreio paralelo — não bloqueia a abertura
       const loader = document.getElementById('somaLoader');
       const loaderStatus = document.getElementById('somaLoaderStatus');
       const frame = document.getElementById('somaFrame');
@@ -3733,7 +3751,9 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             action: 'servirHTML',
-            arquivoId: SOMA_ARQUIVO_ID
+            email: usuarioTokens.email,
+            sessionToken: usuarioTokens.sessionToken,
+            plataforma: 'soma'
           })
         });
 
@@ -3765,10 +3785,7 @@
 
       } catch (e) {
         loader.classList.remove('active');
-        document.getElementById('somaModal').classList.add('active');
-        _somaMsg('error', '❌ Não consegui carregar a plataforma: ' + e.message);
-        document.getElementById('somaBtnEnviar').disabled = false;
-        document.getElementById('somaBtnEnviar').innerHTML = '🎬 ABRIR SOMA';
+        alert('❌ Não consegui carregar o SOMA: ' + e.message);
       }
     }
 
