@@ -202,9 +202,7 @@
     </div>
 
     <script>
-        // A rota do Worker é a única exposta; nada de URLs internas.
         const API_URL = 'https://almafluxo.uk/proxy/boteco';
-        // Após login, o Worker valida a sessão e serve a interface (boneco.html).
         const REDIRECT_URL = 'https://almafluxo.uk/botecoIA/liberacao';
 
         function mostrarCadastro() {
@@ -222,7 +220,7 @@
         function mostrarMensagem(texto, tipo) {
             const el = document.getElementById('mensagem');
             el.textContent = texto;
-            el.className = 'mensagem ' + tipo;
+            el.className = 'mensagem ' + (tipo || '');
         }
 
         function limparMensagem() {
@@ -247,22 +245,54 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'login', sistema: 'boteco', email, senha })
                 });
-                const data = await resp.json();
 
-                if (data.result && data.result.autenticado) {
-                    // Salva token e e-mail em cookies (HttpOnly não é possível via JS, mas é suficiente)
-                    document.cookie = `boteco_token=${data.result.token}; path=/; max-age=43200; SameSite=Lax`;
-                    document.cookie = `boteco_email=${email}; path=/; max-age=43200; SameSite=Lax`;
+                if (!resp.ok) {
+                    let detalhe = '';
+                    try { const j = await resp.json(); detalhe = j.message || j.error || j.mensagem || ''; } catch (e) {}
+                    mostrarMensagem('❌ Falha no login (HTTP ' + resp.status + ')' + (detalhe ? ': ' + detalhe : ''), 'erro');
+                    return;
+                }
+
+                const data = await resp.json();
+                const result = data.result || data;
+
+                if (result && result.autenticado) {
+                    const token = result.token || result.sessionToken || '';
+                    if (!token) {
+                        mostrarMensagem('❌ Login OK, mas o servidor não devolveu token.', 'erro');
+                        return;
+                    }
+
+                    // Guarda no localStorage do domínio atual (reuso) — não é o que
+                    // autentica no Worker, mas evita perder a sessão em reloads.
+                    try {
+                        localStorage.setItem('sessionToken', token);
+                        localStorage.setItem('usuarioEmail', email);
+                    } catch (e) {}
+
+                    // Mantém cookies no domínio atual (inofensivo; o token real
+                    // viaja na URL para o domínio do Worker)
+                    try {
+                        document.cookie = 'boteco_token=' + encodeURIComponent(token) + '; path=/; max-age=43200; SameSite=Lax';
+                        document.cookie = 'boteco_email=' + encodeURIComponent(email) + '; path=/; max-age=43200; SameSite=Lax';
+                    } catch (e) {}
 
                     mostrarMensagem('✅ Login realizado! Redirecionando...', 'sucesso');
-                    setTimeout(() => {
-                        window.location.href = REDIRECT_URL;
-                    }, 1000);
+
+                    // 🔥 TOKEN VAI VIA URL — resolve o cookie cross-domain
+                    const url = REDIRECT_URL
+                        + '?token=' + encodeURIComponent(token)
+                        + '&email=' + encodeURIComponent(email);
+
+                    setTimeout(() => { window.location.href = url; }, 800);
+
                 } else {
-                    const msg = (data.result && data.result.mensagem) || 'Erro no login.';
+                    const msg = (result && (result.mensagem || result.message)) || 'E-mail ou senha incorretos.';
                     mostrarMensagem('❌ ' + msg, 'erro');
                 }
+
             } catch (erro) {
+                console.error('Erro no login:', erro);
                 mostrarMensagem('⚠️ Erro de conexão. Tente novamente.', 'erro');
             }
         }
@@ -276,7 +306,6 @@
                 mostrarMensagem('Preencha todos os campos.', 'erro');
                 return;
             }
-
             if (senha.length < 4) {
                 mostrarMensagem('A senha deve ter pelo menos 4 caracteres.', 'erro');
                 return;
@@ -290,18 +319,29 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'cadastro', sistema: 'boteco', nome, email, senha })
                 });
-                const data = await resp.json();
 
-                if (data.result && data.result.sucesso) {
+                if (!resp.ok) {
+                    let detalhe = '';
+                    try { const j = await resp.json(); detalhe = j.message || j.error || j.mensagem || ''; } catch (e) {}
+                    mostrarMensagem('❌ Falha no cadastro (HTTP ' + resp.status + ')' + (detalhe ? ': ' + detalhe : ''), 'erro');
+                    return;
+                }
+
+                const data = await resp.json();
+                const result = data.result || data;
+
+                if (result && result.sucesso) {
                     mostrarMensagem('✅ Cadastro criado! Faça login.', 'sucesso');
                     mostrarLogin();
                     document.getElementById('emailLogin').value = email;
                     document.getElementById('senhaLogin').value = senha;
                 } else {
-                    const msg = (data.result && data.result.mensagem) || 'Erro no cadastro.';
+                    const msg = (result && (result.mensagem || result.message)) || 'Erro no cadastro.';
                     mostrarMensagem('❌ ' + msg, 'erro');
                 }
+
             } catch (erro) {
+                console.error('Erro no cadastro:', erro);
                 mostrarMensagem('⚠️ Erro de conexão. Tente novamente.', 'erro');
             }
         }
