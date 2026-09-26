@@ -152,13 +152,19 @@
                 const sessao = localStorage.getItem('olho_de_deus_usuario');
                 const usuario = JSON.parse(sessao);
                 
-                // Busca o HTML do Drive via Worker
+                // Busca o HTML do Drive via Worker — precisa mandar email/sessionToken/
+                // plataforma: desde a correção de segurança, o worker confere se o acesso
+                // ainda está liberado ANTES de servir o conteúdo (sem isso, dá 401 "Sessão
+                // ou plataforma não informada"). O arquivoId não precisa mais vir do
+                // cliente — o worker já resolve isso sozinho a partir da "plataforma".
                 const response = await fetch(`${WORKER_URL}/proxy/central`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         action: 'servirHTML',
-                        arquivoId: '16hKYZNJvXkWfk3FrW0gPXWMz0XSx_bFH'
+                        email: usuario.email,
+                        sessionToken: usuario.sessionToken,
+                        plataforma: 'olhodedeus'
                     })
                 });
                 
