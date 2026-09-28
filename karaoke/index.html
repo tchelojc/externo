@@ -440,6 +440,10 @@
                 <button class="btn-primary" onclick="abrirModalAcesso()">▶ Acessar Karaokê</button>
                 <button class="btn-secondary" onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})">Explorar recursos</button>
             </div>
+            <div style="margin-top:1rem; padding:0.8rem 1rem; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.2); border-radius:12px; font-size:0.85rem; color:var(--texto2); display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                <span>🎧 Antes de soltar a voz no volume alto, quer testar sua audição? É rápido e <strong>opcional</strong>.</span>
+                <a href="#" onclick="abrirAudivelFluxo(event)" style="color:var(--ciano); font-weight:700; white-space:nowrap; text-decoration:none;">Fazer teste rápido →</a>
+            </div>
         </div>
         <div class="hero-video">
             <video autoplay muted loop playsinline poster="https://placehold.co/800x450/0a0e17/00e5ff?text=Karaok%C3%AA+Fluxo+Demo">
@@ -490,6 +494,16 @@
         </div>
     </section>
 
+    <!-- ===== ALMAFLUXO STUDIO (camada opcional) ===== -->
+    <section class="faq-section" id="studio-info" style="margin-top:0;">
+        <h2 class="faq-title">🎛️ ALMAFLUXO <span>STUDIO</span></h2>
+        <p style="color:var(--texto2);font-size:0.95rem;text-align:center;line-height:1.6;">
+            Depois de gravar no Karaokê, você pode enviar o áudio pro <strong>STUDIO</strong> —
+            a oficina de pós-produção do ecossistema (corte, normalização, fade, exportar MP3).
+            É totalmente opcional: o Karaokê, o SOMA e o ALMADITOR funcionam sem ele, mesmo se o STUDIO estiver offline.
+        </p>
+    </section>
+
     <!-- ===== FAQ ===== -->
     <section class="faq-section" id="faq">
         <h2 class="faq-title">Perguntas <span>Frequentes</span></h2>
@@ -522,7 +536,7 @@
         <span>ALMAFLUXO © 2026 – Karaokê Fluxo. Todos os direitos reservados.</span>
     </footer>
 
-    <!-- ===== MODAL DE ACESSO (só e-mail) ===== -->
+    <!-- ===== MODAL DE ACESSO (login/cadastro real) ===== -->
     <div class="modal-overlay" id="modalAcesso">
         <div class="modal">
             <button class="close-btn" onclick="fecharModalAcesso()">✕</button>
@@ -530,10 +544,13 @@
             <div id="stageEmail" class="acesso-stage active">
                 <h2>🎤 Acessar Karaokê</h2>
                 <p style="color:var(--texto2);font-size:0.9rem;text-align:center;margin-bottom:1.5rem;">
-                    Digite seu e-mail para abrir o Karaokê Fluxo.
+                    Grátis por enquanto — só precisa de uma conta ALMA (é rápido).
                 </p>
-                <input type="email" id="emailAcesso" placeholder="seu@email.com" autocomplete="email">
-                <button id="btnLiberarAcesso" style="width:100%;margin-top:1rem;padding:0.8rem;background:var(--ciano);color:#000;border:none;border-radius:30px;font-weight:800;cursor:pointer;">🎬 ABRIR KARAOKÊ</button>
+                <input type="text" id="nomeAcesso" placeholder="Seu nome (só pra criar conta)" autocomplete="name">
+                <input type="email" id="emailAcesso" placeholder="seu@email.com" autocomplete="email" style="margin-top:0.6rem;">
+                <input type="password" id="senhaAcesso" placeholder="Senha" autocomplete="current-password" style="margin-top:0.6rem;">
+                <button id="btnEntrarAcesso" style="width:100%;margin-top:1rem;padding:0.8rem;background:var(--ciano);color:#000;border:none;border-radius:30px;font-weight:800;cursor:pointer;">🔓 JÁ TENHO CONTA — ENTRAR</button>
+                <button id="btnCriarContaAcesso" style="width:100%;margin-top:0.6rem;padding:0.8rem;background:transparent;color:var(--dourado);border:1px solid rgba(255,215,0,0.4);border-radius:30px;font-weight:700;cursor:pointer;">✨ CRIAR CONTA GRÁTIS E ABRIR</button>
                 <div class="erro-msg" id="erroEmail"></div>
                 <div class="sucesso-msg" id="sucessoEmail"></div>
             </div>
@@ -550,6 +567,7 @@
     <!-- ===== IFRAME DA PLATAFORMA ===== -->
     <iframe id="iframePlataforma" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads allow-presentation allow-pointer-lock allow-top-navigation-by-user-activation"></iframe>
     <button id="btnVoltarPlataforma" onclick="fecharPlataforma()">✕ Voltar</button>
+    <button id="btnAbrirStudio" onclick="window.open('https://studio.almafluxo.uk/?source=karaoke', '_blank')" style="display:none; position:fixed; top:16px; right:150px; z-index:10000; background:var(--dourado); color:#000; border:none; border-radius:30px; padding:0.6rem 1.4rem; font-weight:800; cursor:pointer;">🎛️ Melhorar no STUDIO</button>
 
 <script>
     // ═══════════════════════════════════════════════════════════════
@@ -589,15 +607,31 @@
         return Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2,"0")).join("");
     }
 
+    // ═══════════ SESSÃO REAL (mesma chave usada em servicos.html/alma.html) ═══════════
+    let usuarioKaraoke = null;
+    (function carregarSessaoKaraoke() {
+        try {
+            const s = localStorage.getItem('almafluxo_usuario');
+            if (s) usuarioKaraoke = JSON.parse(s);
+        } catch (e) { usuarioKaraoke = null; }
+    })();
+
     // ═══════════ MODAL ═══════════
     function abrirModalAcesso() {
+        // Já logado de antes (em qualquer página do ecossistema)? Abre direto.
+        if (usuarioKaraoke && usuarioKaraoke.sessionToken) {
+            abrirKaraokeDoDrive();
+            return;
+        }
         document.getElementById('modalAcesso').classList.add('active');
         document.body.style.overflow = 'hidden';
+        document.getElementById('nomeAcesso').value = '';
         document.getElementById('emailAcesso').value = '';
+        document.getElementById('senhaAcesso').value = '';
         document.getElementById('erroEmail').style.display = 'none';
         document.getElementById('sucessoEmail').style.display = 'none';
-        document.getElementById('btnLiberarAcesso').disabled = false;
-        document.getElementById('btnLiberarAcesso').innerHTML = '🎬 ABRIR KARAOKÊ';
+        document.getElementById('btnEntrarAcesso').disabled = false;
+        document.getElementById('btnCriarContaAcesso').disabled = false;
     }
     function fecharModalAcesso() {
         document.getElementById('modalAcesso').classList.remove('active');
@@ -615,29 +649,73 @@
     const tipoAcesso = "temporario";
     let isProcessing = false;
 
-    async function cadastrarEmailTemporarioBackend(email) {
+    // ═══════════ LOGIN / CADASTRO REAL ═══════════
+    async function fazerLoginKaraoke() {
+        const email = document.getElementById('emailAcesso').value.trim().toLowerCase();
+        const senha = document.getElementById('senhaAcesso').value;
+        if (!email || !senha) {
+            mostrarErro(document.getElementById('erroEmail'), 'Informe e-mail e senha.');
+            return;
+        }
+        if (isProcessing) return;
+        isProcessing = true;
+        const btn = document.getElementById('btnEntrarAcesso');
+        btn.disabled = true; btn.innerHTML = '⏳ Entrando...';
         try {
-            const fp = await fingerprint();
-            const resp = await fetch(URL_BACKEND, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain" },
-                body: JSON.stringify({
-                    action: "cadastrarEmailTemporario",
-                    email, nome: "", cupom: "", fingerprint: fp
-                })
+            const r = await fetch(`${WORKER_URL}/proxy/central`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'login', email, senha })
             });
-            if (!resp.ok) throw new Error("Backend respondeu " + resp.status);
-            return await resp.json();
+            const d = await r.json();
+            if (!d.ok) throw new Error(d.error || 'E-mail ou senha inválidos.');
+            usuarioKaraoke = { nome: d.nome, email, balance: d.balance, sessionToken: d.sessionToken };
+            localStorage.setItem('almafluxo_usuario', JSON.stringify(usuarioKaraoke));
+            registrarAcessoNoWorker();
+            mostrarSucesso(document.getElementById('sucessoEmail'), 'Login feito! Abrindo...');
+            setTimeout(abrirKaraokeDoDrive, 400);
         } catch (e) {
-            // Não bloqueia a abertura do karaokê se o backend local falhar.
-            console.warn("Backend local indisponível:", e.message);
-            return { ok: true, aviso: "Cadastro local indisponível — abertura direta." };
+            mostrarErro(document.getElementById('erroEmail'), e.message);
+            btn.disabled = false; btn.innerHTML = '🔓 JÁ TENHO CONTA — ENTRAR';
+            isProcessing = false;
         }
     }
 
-    // ═══════════ RASTREIO NO WORKER (paralelo) ═══════════
+    async function fazerCadastroKaraoke() {
+        const nome = document.getElementById('nomeAcesso').value.trim();
+        const email = document.getElementById('emailAcesso').value.trim().toLowerCase();
+        const senha = document.getElementById('senhaAcesso').value;
+        if (!nome || !email || !senha) {
+            mostrarErro(document.getElementById('erroEmail'), 'Preencha nome, e-mail e senha pra criar a conta.');
+            return;
+        }
+        if (isProcessing) return;
+        isProcessing = true;
+        const btn = document.getElementById('btnCriarContaAcesso');
+        btn.disabled = true; btn.innerHTML = '⏳ Criando conta...';
+        try {
+            const r = await fetch(`${WORKER_URL}/proxy/central`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'cadastro', nome, email, senha })
+            });
+            const d = await r.json();
+            if (!d.ok) throw new Error(d.error || 'Não consegui criar a conta.');
+            usuarioKaraoke = { nome, email, balance: d.balance || 10, sessionToken: d.sessionToken };
+            localStorage.setItem('almafluxo_usuario', JSON.stringify(usuarioKaraoke));
+            registrarAcessoNoWorker();
+            mostrarSucesso(document.getElementById('sucessoEmail'), 'Conta criada! Abrindo...');
+            setTimeout(abrirKaraokeDoDrive, 400);
+        } catch (e) {
+            mostrarErro(document.getElementById('erroEmail'), e.message);
+            btn.disabled = false; btn.innerHTML = '✨ CRIAR CONTA GRÁTIS E ABRIR';
+            isProcessing = false;
+        }
+    }
+
+    // ═══════════ RASTREIO NO WORKER (paralelo, não bloqueia) ═══════════
     async function registrarAcessoNoWorker() {
-        if (!emailUsuario) return;
+        if (!usuarioKaraoke || !usuarioKaraoke.email) return;
         try {
             const fp = await fingerprint();
             await fetch(`${WORKER_URL}/proxy/karaoke`, {
@@ -646,7 +724,7 @@
                 body: JSON.stringify({
                     action: "registrarAcesso",
                     tipo: tipoAcesso,
-                    email: emailUsuario,
+                    email: usuarioKaraoke.email,
                     fingerprint: fp,
                     extra: "Abertura via karaoke.html no Drive"
                 })
@@ -657,6 +735,45 @@
     }
 
     // ═══════════ ABRE O KARAOKE.HTML DO DRIVE VIA WORKER ═══════════
+    async function abrirAudivelFluxo(event) {
+        if (event) event.preventDefault();
+        const lf = document.getElementById('loaderFullscreen');
+        const lfTitle = document.getElementById('lfTitle');
+        const lfStatus = document.getElementById('lfStatus');
+
+        lf.classList.add('active');
+        lfTitle.textContent = '🎧 Abrindo AudívelFluxo...';
+        lfStatus.textContent = 'Buscando teste...';
+
+        try {
+            // Plataforma pública — não precisa de login nem sessão.
+            const response = await fetch(`${WORKER_URL}/proxy/central`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'servirHTML', plataforma: 'audivelfluxo' })
+            });
+
+            if (!response.ok) {
+                throw new Error('Servidor retornou status ' + response.status);
+            }
+
+            const html = await response.text();
+            if (!html || (!html.includes('<!DOCTYPE') && !html.includes('<html'))) {
+                throw new Error('Conteúdo inválido retornado do Drive.');
+            }
+
+            lfStatus.textContent = 'Teste carregado!';
+            const iframe = document.getElementById('iframePlataforma');
+            iframe.srcdoc = html;
+            iframe.classList.add('active');
+            setTimeout(() => { lf.classList.remove('active'); }, 400);
+            document.getElementById('btnVoltarPlataforma').classList.add('active');
+        } catch (e) {
+            lf.classList.remove('active');
+            alert('❌ Não consegui carregar o AudívelFluxo: ' + e.message);
+        }
+    }
+
     async function abrirKaraokeDoDrive() {
         const lf = document.getElementById('loaderFullscreen');
         const lfTitle = document.getElementById('lfTitle');
@@ -673,7 +790,9 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     action: 'servirHTML',
-                    arquivoId: KARAOKE_ARQUIVO_ID
+                    email: usuarioKaraoke.email,
+                    sessionToken: usuarioKaraoke.sessionToken,
+                    plataforma: 'karaoke'
                 })
             });
 
@@ -695,6 +814,7 @@
             iframe.classList.add('active');
 
             document.getElementById('btnVoltarPlataforma').classList.add('active');
+            document.getElementById('btnAbrirStudio').style.display = 'block';
 
             // 3) Esconde o modal e o loader
             fecharModalAcesso();
@@ -715,50 +835,19 @@
                 document.getElementById('erroEmail'),
                 'Não consegui carregar a plataforma: ' + e.message
             );
-            document.getElementById('btnLiberarAcesso').disabled = false;
-            document.getElementById('btnLiberarAcesso').innerHTML = '🎬 ABRIR KARAOKÊ';
+            document.getElementById('btnEntrarAcesso').disabled = false;
+            document.getElementById('btnEntrarAcesso').innerHTML = '🔓 JÁ TENHO CONTA — ENTRAR';
+            document.getElementById('btnCriarContaAcesso').disabled = false;
+            document.getElementById('btnCriarContaAcesso').innerHTML = '✨ CRIAR CONTA GRÁTIS E ABRIR';
             isProcessing = false;
         }
     }
 
-    // ═══════════ BOTÃO LIBERAR ACESSO ═══════════
-    document.getElementById("btnLiberarAcesso").onclick = async () => {
-        if (isProcessing) return;
-        const email = document.getElementById("emailAcesso").value.trim().toLowerCase();
-        if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) {
-            mostrarErro(document.getElementById("erroEmail"), "Informe um e-mail válido.");
-            return;
-        }
-        isProcessing = true;
-        const btn = document.getElementById("btnLiberarAcesso");
-        btn.disabled = true;
-        btn.innerHTML = '🎬 ABRINDO... <span class="loader"></span>';
-
-        try {
-            // 1) Cadastra e-mail no backend (ou ignora se indisponível)
-            await cadastrarEmailTemporarioBackend(email);
-            emailUsuario = email;
-
-            // 2) Avisa o Worker em paralelo (rastreio, não bloqueia)
-            registrarAcessoNoWorker();
-
-            // 3) Mostra feedback rápido e abre a plataforma
-            mostrarSucesso(document.getElementById("sucessoEmail"), "Acesso liberado! Abrindo...");
-
-            setTimeout(() => {
-                abrirKaraokeDoDrive();
-            }, 500);
-
-        } catch (e) {
-            mostrarErro(document.getElementById("erroEmail"), e.message);
-            btn.disabled = false;
-            btn.innerHTML = '🎬 ABRIR KARAOKÊ';
-            isProcessing = false;
-        }
-    };
-
-    document.getElementById("emailAcesso").addEventListener("keypress", e => {
-        if (e.key === "Enter") document.getElementById("btnLiberarAcesso").click();
+    // ═══════════ BOTÕES LOGIN / CADASTRO ═══════════
+    document.getElementById("btnEntrarAcesso").onclick = fazerLoginKaraoke;
+    document.getElementById("btnCriarContaAcesso").onclick = fazerCadastroKaraoke;
+    document.getElementById("senhaAcesso").addEventListener("keypress", e => {
+        if (e.key === "Enter") document.getElementById("btnEntrarAcesso").click();
     });
 
     // ═══════════ FECHAR PLATAFORMA ═══════════
@@ -767,6 +856,7 @@
         iframe.classList.remove('active');
         iframe.srcdoc = '';
         document.getElementById('btnVoltarPlataforma').classList.remove('active');
+        document.getElementById('btnAbrirStudio').style.display = 'none';
         document.body.style.overflow = '';
         isProcessing = false;
     }
