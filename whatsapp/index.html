@@ -1455,11 +1455,17 @@
                         nome: usuarioResp.nome || 'Usuário',
                         email: email,
                         balance: usuarioResp.balance ?? usuarioResp.saldo ?? 0,
-                        sessionToken: data.token || data.sessionToken || `session_${Date.now()}`,
+                        sessionToken: data.token || data.sessionToken || usuarioResp.sessionToken || '',
                         master: usuarioResp.master || usuarioResp.admin || false
                     };
+                    if (!usuarioLogadoOlho.sessionToken) {
+                        usuarioLogadoOlho = null;
+                        throw new Error('Servidor não devolveu sessionToken.');
+                    }
 
                     localStorage.setItem('fluxowhatsapp_usuario', JSON.stringify(usuarioLogadoOlho));
+                    // login único ALMA: outras plataformas do mesmo domínio reaproveitam
+                    try { localStorage.setItem('almafluxo_usuario', JSON.stringify(usuarioLogadoOlho)); } catch (e) {}
                     document.getElementById('tokenDisplay').textContent = `⚡ ${usuarioLogadoOlho.balance} Tokens`;
                     document.getElementById('btnLoginLogout').textContent = '🚪 Sair';
                     statusEl.textContent = '✅ Login realizado! Acesso liberado.';
