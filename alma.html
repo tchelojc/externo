@@ -2880,7 +2880,7 @@
               try { erroJson = await resp.json(); } catch (_) {}
               throw new Error(erroJson.error || 'Acesso negado. Verifique seu plano.');
             }
-            throw new Error('Servidor retornou status ' + resp.status);
+            throw await _erroServidor(resp);
           }
 
           const html = await resp.text();
@@ -3559,6 +3559,17 @@
     // O e-mail é registrado; depois o HTML é buscado no Drive pelo ID
     // e injetado num iframe srcdoc em tela cheia. Sem senha.
     // ═══════════════════════════════════════════════════════════════
+    // Erro de servidor com o motivo que o worker devolveu (error + detalhe)
+    async function _erroServidor(resp) {
+      let d = '';
+      try {
+        const t = await resp.text();
+        try { const j = JSON.parse(t); d = [j.error, j.detalhe].filter(Boolean).join(' | '); }
+        catch (_) { d = t.slice(0, 160); }
+      } catch (_) {}
+      return new Error('Servidor retornou status ' + resp.status + (d ? ' — ' + d : ''));
+    }
+
     const ALMADITOR_ARQUIVO_ID = '1ilkSqa3xyiLL-TOHgHDueiqmrpKbu5bi';
     const ALMADITOR_WORKER_URL = 'https://almafluxo.uk';
 
@@ -3687,7 +3698,7 @@
             });
 
             if (!resp.ok) {
-                throw new Error('Servidor retornou status ' + resp.status);
+                throw await _erroServidor(resp);
             }
 
             const html = await resp.text();
@@ -3865,7 +3876,7 @@
         });
 
         if (!resp.ok) {
-          throw new Error('Servidor retornou status ' + resp.status);
+          throw await _erroServidor(resp);
         }
 
         const html = await resp.text();
