@@ -697,13 +697,12 @@
             <div id="stageEmail" class="acesso-stage active">
                 <h2>🎤 Acessar Karaokê</h2>
                 <p style="color:var(--texto2);font-size:0.9rem;text-align:center;margin-bottom:1.5rem;">
-                    Grátis por enquanto — só precisa de uma conta ALMA (é rápido).
+                    Entre com sua conta ALMA. Ainda não tem? Crie grátis em segundos.
                 </p>
-                <input type="text" id="nomeAcesso" placeholder="Seu nome (só pra criar conta)" autocomplete="name">
-                <input type="email" id="emailAcesso" placeholder="seu@email.com" autocomplete="email" style="margin-top:0.6rem;">
+                <input type="email" id="emailAcesso" placeholder="seu@email.com" autocomplete="email">
                 <input type="password" id="senhaAcesso" placeholder="Senha" autocomplete="current-password" style="margin-top:0.6rem;">
-                <button id="btnEntrarAcesso" style="width:100%;margin-top:1rem;padding:0.8rem;background:var(--ciano);color:#000;border:none;border-radius:30px;font-weight:800;cursor:pointer;">🔓 JÁ TENHO CONTA — ENTRAR</button>
-                <button id="btnCriarContaAcesso" style="width:100%;margin-top:0.6rem;padding:0.8rem;background:transparent;color:var(--dourado);border:1px solid rgba(255,215,0,0.4);border-radius:30px;font-weight:700;cursor:pointer;">✨ CRIAR CONTA GRÁTIS E ABRIR</button>
+                <button id="btnEntrarAcesso" style="width:100%;margin-top:1rem;padding:0.8rem;background:var(--ciano);color:#000;border:none;border-radius:30px;font-weight:800;cursor:pointer;">🔓 ENTRAR E ABRIR</button>
+                <button id="btnIrParaCadastro" style="width:100%;margin-top:0.6rem;padding:0.8rem;background:transparent;color:var(--dourado);border:1px solid rgba(255,215,0,0.4);border-radius:30px;font-weight:700;cursor:pointer;">✨ CRIAR CONTA NO PAGAMENTOS</button>
                 <div class="erro-msg" id="erroEmail"></div>
                 <div class="sucesso-msg" id="sucessoEmail"></div>
             </div>
@@ -727,7 +726,7 @@
     // CONFIGURAÇÃO
     // ═══════════════════════════════════════════════════════════════
     const WORKER_URL = 'https://almafluxo.uk';
-    const URL_BACKEND = "/proxy/karaoke";   // backend do host atual
+    const URL_BACKEND = WORKER_URL + "/proxy/karaoke";
     const TOKEN_INTERNO = 'ALMA369UA';
     const WHATSAPP_ATENDIMENTO = "5521981533928";
 
@@ -908,13 +907,12 @@
         }
         document.getElementById('modalAcesso').classList.add('active');
         document.body.style.overflow = 'hidden';
-        document.getElementById('nomeAcesso').value = '';
         document.getElementById('emailAcesso').value = '';
         document.getElementById('senhaAcesso').value = '';
         document.getElementById('erroEmail').style.display = 'none';
         document.getElementById('sucessoEmail').style.display = 'none';
         document.getElementById('btnEntrarAcesso').disabled = false;
-        document.getElementById('btnCriarContaAcesso').disabled = false;
+        document.getElementById('btnIrParaCadastro').disabled = false;
     }
     function fecharModalAcesso() {
         document.getElementById('modalAcesso').classList.remove('active');
@@ -963,11 +961,16 @@
 
             if (!logouComSucesso) throw new Error(d.error || d.message || 'E-mail ou senha inválidos.');
 
+            const tokenRecebido = d.token || d.sessionToken || usuarioResp.sessionToken;
+            if (!tokenRecebido) {
+                throw new Error('Servidor não retornou sessionToken. Tente novamente ou crie a conta no Pagamentos.');
+            }
+
             usuarioKaraoke = {
                 nome: usuarioResp.nome || 'Usuário',
                 email,
                 balance: usuarioResp.balance ?? usuarioResp.saldo ?? 0,
-                sessionToken: d.token || d.sessionToken || usuarioResp.sessionToken || `session_${Date.now()}`,
+                sessionToken: tokenRecebido,
                 master: usuarioResp.master || usuarioResp.admin || false
             };
             localStorage.setItem('almafluxo_usuario', JSON.stringify(usuarioKaraoke));
@@ -979,60 +982,20 @@
             setTimeout(abrirKaraokeDoDrive, 400);
         } catch (e) {
             mostrarErro(document.getElementById('erroEmail'), e.message);
-            btn.disabled = false; btn.innerHTML = '🔓 JÁ TENHO CONTA — ENTRAR';
+            btn.disabled = false; btn.innerHTML = '🔓 ENTRAR E ABRIR';
             isProcessing = false;
         }
     }
 
-    async function fazerCadastroKaraoke() {
-        const nome = document.getElementById('nomeAcesso').value.trim();
-        const email = document.getElementById('emailAcesso').value.trim().toLowerCase();
-        const senha = document.getElementById('senhaAcesso').value;
-        if (!nome || !email || !senha) {
-            mostrarErro(document.getElementById('erroEmail'), 'Preencha nome, e-mail e senha pra criar a conta.');
-            return;
-        }
-        if (isProcessing) return;
-        isProcessing = true;
-        const btn = document.getElementById('btnCriarContaAcesso');
-        btn.disabled = true; btn.innerHTML = '⏳ Criando conta...';
-        try {
-            const r = await fetch(`${WORKER_URL}/proxy/central`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'cadastro',
-                    nome,
-                    email,
-                    senha,
-                    tk: TOKEN_INTERNO
-                })
-            });
-            const d = await r.json();
-
-            const cadastrouComSucesso = d.ok === true || d.autenticado === true || d.status === 'success';
-            const usuarioResp = d.usuario || d;
-
-            if (!cadastrouComSucesso) throw new Error(d.error || d.message || 'Não consegui criar a conta.');
-
-            usuarioKaraoke = {
-                nome,
-                email,
-                balance: usuarioResp.balance ?? usuarioResp.saldo ?? 10,
-                sessionToken: d.token || d.sessionToken || usuarioResp.sessionToken || `session_${Date.now()}`,
-                master: usuarioResp.master || usuarioResp.admin || false
-            };
-            localStorage.setItem('almafluxo_usuario', JSON.stringify(usuarioKaraoke));
-            try { localStorage.setItem('olho_de_deus_usuario', JSON.stringify(usuarioKaraoke)); } catch(e){}
-
-            registrarAcessoNoWorker();
-            mostrarSucesso(document.getElementById('sucessoEmail'), 'Conta criada! Abrindo...');
-            setTimeout(abrirKaraokeDoDrive, 400);
-        } catch (e) {
-            mostrarErro(document.getElementById('erroEmail'), e.message);
-            btn.disabled = false; btn.innerHTML = '✨ CRIAR CONTA GRÁTIS E ABRIR';
-            isProcessing = false;
-        }
+    // ═══════════ CADASTRO → REDIRECIONA PARA PAGAMENTOS ═══════════
+    // O cadastro vive em UM único lugar (almafluxo.uk/pagamentos) para
+    // não duplicar contas no ecossistema. Aqui só mandamos o usuário pra lá.
+    function irParaPagamentosCadastro() {
+        // Abre a central de cadastro/pagamentos. Volta pro Karaokê depois
+        // pelo botão "Acessar Karaokê" ou pelo próprio fluxo do pagamentos.
+        const urlRetorno = encodeURIComponent(window.location.href);
+        window.open(`https://almafluxo.uk/pagamentos?origem=karaoke&retorno=${urlRetorno}`, '_blank');
+        mostrarToastOlho('✨ Abrimos o cadastro em outra aba. Volte aqui depois de criar a conta!');
     }
 
     // ═══════════ RASTREIO NO WORKER (paralelo, não bloqueia) ═══════════
@@ -1139,30 +1102,37 @@
             lf.classList.remove('active');
             document.body.style.overflow = 'hidden';
 
-            window.addEventListener('message', function(event) {
-                if (event.data === 'fechar-plataforma' || event.data === 'voltar-login') {
-                    fecharPlataforma();
-                }
-            });
-
         } catch (e) {
             lf.classList.remove('active');
             document.body.style.overflow = '';
-            mostrarErro(
-                document.getElementById('erroEmail'),
-                'Não consegui carregar a plataforma: ' + e.message
-            );
+
+            const msg = e.message || '';
+            const pareceSessao = msg.includes('401') || msg.includes('403') || msg.includes('Sessão');
+            if (pareceSessao) {
+                // Apaga sessão inválida e oferece criar conta no Pagamentos
+                try { localStorage.removeItem('almafluxo_usuario'); } catch(_) {}
+                usuarioKaraoke = null;
+                mostrarErro(
+                    document.getElementById('erroEmail'),
+                    'Sua sessão não existe mais no servidor. Crie a conta no Pagamentos ou faça login novamente.'
+                );
+            } else {
+                mostrarErro(
+                    document.getElementById('erroEmail'),
+                    'Não consegui carregar a plataforma: ' + msg
+                );
+            }
+
             document.getElementById('btnEntrarAcesso').disabled = false;
-            document.getElementById('btnEntrarAcesso').innerHTML = '🔓 JÁ TENHO CONTA — ENTRAR';
-            document.getElementById('btnCriarContaAcesso').disabled = false;
-            document.getElementById('btnCriarContaAcesso').innerHTML = '✨ CRIAR CONTA GRÁTIS E ABRIR';
+            document.getElementById('btnEntrarAcesso').innerHTML = '🔓 ENTRAR E ABRIR';
+            document.getElementById('btnIrParaCadastro').disabled = false;
             isProcessing = false;
         }
     }
 
     // ═══════════ BOTÕES LOGIN / CADASTRO ═══════════
     document.getElementById("btnEntrarAcesso").onclick = fazerLoginKaraoke;
-    document.getElementById("btnCriarContaAcesso").onclick = fazerCadastroKaraoke;
+    document.getElementById("btnIrParaCadastro").onclick = irParaPagamentosCadastro;
     document.getElementById("senhaAcesso").addEventListener("keypress", e => {
         if (e.key === "Enter") document.getElementById("btnEntrarAcesso").click();
     });
@@ -1194,18 +1164,29 @@
         }
     }
 
-    // ═══════════ INICIALIZAÇÃO ═══════════
-    document.addEventListener('DOMContentLoaded', () => {
-        carregarContador();
-
-        // Mensagem inicial do chat (igual Olho De Deus)
-        setTimeout(() => {
-            const c = document.getElementById('chatMessagesOlho');
-            if (c && c.children.length === 0) {
-                addMessageOlho('ai', '🎤 Olá! Sou o suporte do Karaokê Fluxo. Como posso te ajudar hoje?');
-            }
-        }, 500);
+    // ═══════════ LISTENER DE MENSAGENS DO IFRAME ═══════════
+    // Registrado UMA VEZ SÓ aqui (antes ficava dentro de abrirKaraokeDoDrive,
+    // o que empilhava um novo listener a cada abertura — chamando
+    // fecharPlataforma() múltiplas vezes por mensagem depois de 3-4 aberturas).
+    window.addEventListener('message', function(event) {
+        if (event.data === 'fechar-plataforma' || event.data === 'voltar-login') {
+            fecharPlataforma();
+        }
     });
+
+    // ═══════════ INICIALIZAÇÃO ═══════════
+    // O <script> está no fim do <body>, então o DOM já está pronto.
+    // Chamamos direto — sem esperar DOMContentLoaded (que já disparou antes
+    // deste listener ser registrado, então nunca rodaria).
+    carregarContador();
+
+    // Mensagem inicial do chat (igual Olho De Deus)
+    setTimeout(() => {
+        const c = document.getElementById('chatMessagesOlho');
+        if (c && c.children.length === 0) {
+            addMessageOlho('ai', '🎤 Olá! Sou o suporte do Karaokê Fluxo. Como posso te ajudar hoje?');
+        }
+    }, 500);
 </script>
 </body>
 </html>
