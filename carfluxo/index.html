@@ -168,7 +168,7 @@
 <iframe
     id="appFrame"
     title="CarFluxo — painel"
-    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads allow-popups-to-escape-sandbox allow-geolocation"
+    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads allow-popups-to-escape-sandbox"
     referrerpolicy="no-referrer"
     allow="geolocation"
 ></iframe>
@@ -183,7 +183,8 @@
     const STORAGE_KEY = 'almafluxo_sessao';              // chave global do ALMAFLUXO
     const STORAGE_KEY_ATENDIMENTO = 'fluxowhatsapp_usuario';
     const STORAGE_KEY_OLHO = 'olho_de_deus_usuario';
-    const TIMEOUT_MS = 25000;
+    const PLATAFORMA = 'carfluxo';                        // chave em PLATAFORMAS_DRIVE (o ID do arquivo fica só no worker)
+    const TIMEOUT_MS = 45000;
 
     // ═══════════════════════════════════════════════════════════
     // ELEMENTOS
@@ -229,7 +230,7 @@
     // SESSÃO — tenta todas as chaves do ALMAFLUXO em ordem
     // ═══════════════════════════════════════════════════════════
     function obterSessao() {
-        const chaves = [STORAGE_KEY, STORAGE_KEY_ATENDIMENTO, STORAGE_KEY_OLHO];
+        const chaves = [STORAGE_KEY, 'almafluxo_usuario', STORAGE_KEY_ATENDIMENTO, STORAGE_KEY_OLHO];
         for (const chave of chaves) {
             try {
                 const raw = localStorage.getItem(chave);
@@ -268,8 +269,7 @@
             body: JSON.stringify({
                 action: 'validarSessionToken',
                 email: usuario.email,
-                sessionToken: usuario.sessionToken,
-                tk: 'ALMA369UA'
+                sessionToken: usuario.sessionToken
             })
         });
 
@@ -297,7 +297,9 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     action: 'servirHTML',
-                    arquivoId: CARFLUXO_APP_ID
+                    plataforma: PLATAFORMA,
+                    email: usuarioAtual.email,
+                    sessionToken: usuarioAtual.sessionToken
                 }),
                 signal: controller.signal
             });
@@ -310,10 +312,13 @@
                 try {
                     const j = JSON.parse(text);
                     if (j.error) detalhe += ' — ' + j.error;
+                    if (j.detalhe) detalhe += ' | ' + j.detalhe;
                 } catch (e) {
                     detalhe += ' — ' + text.slice(0, 200);
                 }
-                throw new Error(detalhe);
+                const err = new Error(detalhe);
+                err.httpStatus = resp.status;
+                throw err;
             }
 
             const html = await resp.text();
@@ -404,6 +409,11 @@
 
         } catch (e) {
             console.error('[carfluxo-wrapper] Erro:', e);
+            if (e.httpStatus === 401 || e.httpStatus === 403) {
+                limparSessoes();
+                redirecionarParaLogin('sessao_expirada');
+                return;
+            }
             mostrarErro('Não foi possível carregar o painel.', e.message);
         }
     }
