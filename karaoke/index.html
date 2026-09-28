@@ -566,7 +566,9 @@
             </p>
             <div class="hero-buttons">
                 <button class="btn-primary" onclick="abrirModalAcesso()">▶ Acessar Karaokê</button>
-                <button class="btn-secondary" onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})">Explorar recursos</button>
+                <button class="btn-secondary" onclick="abrirPlataformaDireta('somakaraoke')">🎵 SOMA Karaokê</button>
+                <button class="btn-secondary" onclick="abrirPlataformaDireta('almaditormusic')">🎨 ALMADITOR Music</button>
+                <button class="btn-secondary" onclick="window.open('https://almafluxo.uk/studio', '_blank')">🎛️ STUDIO</button>
             </div>
             <div style="margin-top:1rem; padding:0.8rem 1rem; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.2); border-radius:12px; font-size:0.85rem; color:var(--texto2); display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
                 <span>🎧 Antes de soltar a voz no volume alto, quer testar sua audição? É rápido e <strong>opcional</strong>.</span>
@@ -719,8 +721,7 @@
     <!-- ===== IFRAME DA PLATAFORMA ===== -->
     <iframe id="iframePlataforma" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads allow-presentation allow-pointer-lock allow-top-navigation-by-user-activation"></iframe>
     <button id="btnVoltarPlataforma" onclick="fecharPlataforma()">✕ Voltar</button>
-    <button id="btnAbrirStudio" onclick="window.open('https://studio.almafluxo.uk/?source=karaoke', '_blank')" style="display:none; position:fixed; top:16px; right:150px; z-index:10000; background:var(--dourado); color:#000; border:none; border-radius:30px; padding:0.6rem 1.4rem; font-weight:800; cursor:pointer;">🎛️ Melhorar no STUDIO</button>
-
+    <button id="btnAbrirStudio" onclick="window.open('https://externo-ervbz7jghvkakbh9rtxrgu.streamlit.app/?source=karaoke', '_blank')" style="display:none; position:fixed; top:16px; right:150px; z-index:10000; background:var(--dourado); color:#000; border:none; border-radius:30px; padding:0.6rem 1.4rem; font-weight:800; cursor:pointer;">🎛️ Melhorar no STUDIO</button>
 <script>
     // ═══════════════════════════════════════════════════════════════
     // CONFIGURAÇÃO
@@ -898,11 +899,91 @@
         }
     }
 
+    // ═══════════ ABRIR OUTRA PLATAFORMA DO ECOSSISTEMA ═══════════
+    async function abrirPlataformaDireta(plataforma) {
+        // ── Bloqueio antecipado: sem sessão, não tem como validar acesso ──
+        if (!usuarioKaraoke || !usuarioKaraoke.sessionToken) {
+            // Abre o modal de login e marca pra onde ir depois
+            window._plataformaPendente = plataforma;
+            mostrarToastOlho('🔑 Faça login para acessar ' + plataforma);
+            abrirModalAcesso();
+            return;
+        }
+
+        const lf = document.getElementById('loaderFullscreen');
+        const lfTitle = document.getElementById('lfTitle');
+        const lfStatus = document.getElementById('lfStatus');
+
+        lf.classList.add('active');
+        lfTitle.textContent = '🚀 Abrindo plataforma...';
+        lfStatus.textContent = 'Carregando...';
+
+        try {
+            // Fecha o modal de login antes de abrir a plataforma
+            fecharModalAcesso();
+
+            const response = await fetch(`${WORKER_URL}/proxy/central`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'servirHTML',
+                    email: usuarioKaraoke.email,
+                    sessionToken: usuarioKaraoke.sessionToken,
+                    plataforma: plataforma
+                })
+            });
+
+            if (!response.ok) {
+                // Trata 401/403 com mensagem específica
+                if (response.status === 401 || response.status === 403) {
+                    let erroJson = {};
+                    try { erroJson = await response.json(); } catch (_) {}
+                    // Limpa sessão inválida
+                    try { localStorage.removeItem('almafluxo_usuario'); } catch (_) {}
+                    usuarioKaraoke = null;
+                    lf.classList.remove('active');
+                    alert('❌ ' + (erroJson.error || 'Sessão expirada. Faça login novamente.'));
+                    window._plataformaPendente = plataforma;
+                    abrirModalAcesso();
+                    return;
+                }
+                throw new Error('Servidor retornou status ' + response.status);
+            }
+
+            const html = await response.text();
+            if (!html || (!html.includes('<!DOCTYPE') && !html.includes('<html'))) {
+                throw new Error('Conteúdo inválido retornado do Drive.');
+            }
+
+            const iframe = document.getElementById('iframePlataforma');
+            iframe.srcdoc = html;
+            iframe.classList.add('active');
+            document.getElementById('btnVoltarPlataforma').classList.add('active');
+            document.getElementById('btnAbrirStudio').style.display = 'block';
+
+            lf.classList.remove('active');
+            document.body.style.overflow = 'hidden';
+        } catch (e) {
+            lf.classList.remove('active');
+            alert('❌ Não consegui carregar ' + plataforma + ': ' + e.message);
+        } finally {
+            // Libera o flag global de processamento (usado por fazerLoginKaraoke)
+            isProcessing = false;
+        }
+    }
     // ═══════════ MODAL ═══════════
     function abrirModalAcesso() {
         // Já logado de antes (em qualquer página do ecossistema)? Abre direto.
         if (usuarioKaraoke && usuarioKaraoke.sessionToken) {
-            abrirKaraokeDoDrive();
+            // Se havia uma plataforma pendente (ex: usuário clicou em SOMA
+            // sem estar logado), abre ELA em vez do Karaokê padrão.
+            const pendente = window._plataformaPendente;
+            window._plataformaPendente = null;
+            if (pendente) {
+                abrirPlataformaDireta(pendente);
+            } else {
+                abrirKaraokeDoDrive();
+            }
             return;
         }
         document.getElementById('modalAcesso').classList.add('active');
@@ -979,7 +1060,18 @@
 
             registrarAcessoNoWorker();
             mostrarSucesso(document.getElementById('sucessoEmail'), 'Login feito! Abrindo...');
-            setTimeout(abrirKaraokeDoDrive, 400);
+
+            // Se o usuário estava tentando abrir uma plataforma específica antes
+            // do login, abre ela. Senão, abre o Karaokê padrão.
+            const plataformaPendente = window._plataformaPendente;
+            window._plataformaPendente = null;
+            setTimeout(() => {
+                if (plataformaPendente) {
+                    abrirPlataformaDireta(plataformaPendente);
+                } else {
+                    abrirKaraokeDoDrive();
+                }
+            }, 400);
         } catch (e) {
             mostrarErro(document.getElementById('erroEmail'), e.message);
             btn.disabled = false; btn.innerHTML = '🔓 ENTRAR E ABRIR';
@@ -1171,6 +1263,10 @@
     window.addEventListener('message', function(event) {
         if (event.data === 'fechar-plataforma' || event.data === 'voltar-login') {
             fecharPlataforma();
+        }
+        if (event.data === 'abrir-modal-acesso') {
+            fecharPlataforma();
+            setTimeout(abrirModalAcesso, 200);
         }
     });
 
