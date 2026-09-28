@@ -6,7 +6,7 @@
 // antigo nunca morre e o site fica "preso" numa versão congelada.
 // ════════════════════════════════════════════════════════════════
 
-const VERSION = 'v2-2026-07-09'; // <- mude isso a cada deploy
+const VERSION = 'v3-2026-09-28'; // <- mude isso a cada deploy
 const CACHE = `almafluxo-${VERSION}`;
 
 // Somente ativos verdadeiramente estáticos (nunca payloads de API/backend)
@@ -23,7 +23,16 @@ const ASSETS = [
 // Cobre chamadas ao Apps Script (script.google.com), ao proxy Cloudflare
 // (rotas /proxy/ e /webhook/ no próprio domínio) e à API do GitHub.
 const NO_CACHE_HOSTS = ['script.google.com', 'api.github.com'];
-const NO_CACHE_PATHS = ['/proxy/', '/webhook/'];
+const NO_CACHE_PATHS = ['/proxy/', '/webhook/', '/economy/', '/api/', '/atendimento', '/status'];
+
+// v3: o SW só mexe nos ASSETS acima. Todo o resto (rotas servidas pelo Worker:
+// /app-whatsapp/, /carfluxo-app, /flow, /osfluxo-*, /olhodedeus, /pagamentos...)
+// passa direto pela rede do navegador. Antes, qualquer requisição que não fosse
+// .html/navegação caía no "cache-first" e, quando a rede falhava, o SW transformava
+// isso em "FetchEvent ... resulted in a network error response" (sw.js:76).
+const ASSET_PATHS = new Set(
+  ASSETS.map(a => new URL(a, self.registration.scope).pathname)
+);
 
 self.addEventListener('install', e => {
   e.waitUntil(
@@ -44,6 +53,11 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
 
+  // 0) Só GET do próprio domínio e só os ativos estáticos da lista.
+  if (e.request.method !== 'GET') return;
+  if (url.origin !== self.location.origin) return;
+  if (!ASSET_PATHS.has(url.pathname)) return;
+
   // 1) Chamadas de API/backend: sempre rede, nunca cache do SW.
   //    (POST já não seria pego pelo caches.match, mas isso também blinda
   //    qualquer GET — ex: geração de token, verificação de e-mail, etc.)
@@ -62,11 +76,15 @@ self.addEventListener('fetch', e => {
     e.respondWith(
       fetch(e.request)
         .then(resp => {
-          const clone = resp.clone();
-          caches.open(CACHE).then(c => c.put(e.request, clone));
+          if (resp.ok && resp.type === 'basic') {
+            const clone = resp.clone();
+            caches.open(CACHE).then(c => c.put(e.request, clone)).catch(() => {});
+          }
           return resp;
         })
-        .catch(() => caches.match(e.request))
+        .catch(() =>
+          caches.match(e.request).then(r => r || Response.error())
+        )
     );
     return;
   }
@@ -74,5 +92,6 @@ self.addEventListener('fetch', e => {
   // 3) Demais estáticos (ícones, manifest): cache-first normal.
   e.respondWith(
     caches.match(e.request).then(cached => cached || fetch(e.request))
+      .catch(() => Response.error())
   );
 });
