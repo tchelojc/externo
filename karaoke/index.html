@@ -1268,6 +1268,12 @@
             fecharPlataforma();
             setTimeout(abrirModalAcesso, 200);
         }
+        // ✅ Handler para os botões ALMADITOR Music / SOMA Karaokê dentro do iframe do Karaokê
+        if (typeof event.data === 'string' && event.data.startsWith('abrir-plataforma:')) {
+            const plataforma = event.data.replace('abrir-plataforma:', '');
+            fecharPlataforma();
+            setTimeout(() => abrirPlataformaDireta(plataforma), 200);
+        }
     });
 
     // ═══════════ INICIALIZAÇÃO ═══════════
