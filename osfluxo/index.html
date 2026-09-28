@@ -249,6 +249,16 @@
     .faq-item p{max-width:100%;}
   }
   @media (max-width:420px){.features-grid{grid-template-columns:1fr;}}
+  #osfLoginOverlay{position:fixed;inset:0;z-index:100000;background:rgba(3,5,8,.92);display:none;align-items:center;justify-content:center;padding:20px;}
+  #osfLoginOverlay.aberto{display:flex;}
+  .osf-login-box{width:100%;max-width:380px;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:26px;box-shadow:0 12px 48px rgba(0,0,0,.7);}
+  .osf-login-box h3{font-family:var(--font);color:var(--dourado);margin-bottom:6px;font-size:1.05rem;}
+  .osf-login-box p{color:var(--texto2);font-size:.82rem;margin-bottom:16px;line-height:1.5;}
+  .osf-login-box input{width:100%;padding:11px 13px;margin-bottom:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--texto);font-size:.9rem;outline:none;font-family:inherit;}
+  .osf-login-box input:focus{border-color:var(--dourado);}
+  .osf-login-box button{width:100%;padding:12px;border:none;border-radius:8px;background:var(--dourado);color:#000;font-weight:800;cursor:pointer;margin-top:4px;font-family:var(--font);}
+  .osf-login-box button.ghost{background:transparent;border:1px solid var(--border);color:var(--texto2);font-weight:600;}
+  #osfLoginErro{display:none;color:var(--vermelho);font-size:.8rem;margin:2px 0 8px;}
 </style>
 </head>
 <body>
@@ -409,6 +419,20 @@
   <iframe id="osfluxoAppIframe" style="display:none;" allow="camera;microphone;geolocation;clipboard-write"></iframe>
 </div>
 
+<!-- ═══════════════ LOGIN ALMA (áreas internas) ═══════════════ -->
+<div id="osfLoginOverlay">
+  <div class="osf-login-box">
+    <h3>🔐 Entrar com sua conta ALMA</h3>
+    <p>As áreas internas do OSFluxo (linha de produção, supervisor e painel da empresa) exigem login.</p>
+    <input type="email" id="osfLoginEmail" placeholder="seu@email.com" autocomplete="email">
+    <input type="password" id="osfLoginSenha" placeholder="Senha" autocomplete="current-password"
+           onkeydown="if(event.key==='Enter')enviarLogin()">
+    <div id="osfLoginErro"></div>
+    <button type="button" id="osfLoginBtn" onclick="enviarLogin()">Entrar</button>
+    <button type="button" class="ghost" onclick="fecharLogin()">Cancelar</button>
+  </div>
+</div>
+
 <script>
 /* ═══════════════════════════════════════════════════════════════
    OSFLUXO — INDEX
@@ -423,15 +447,83 @@
    ═══════════════════════════════════════════════════════════════ */
 
 const API_CENTRAL   = 'https://almafluxo.uk/proxy/central';
-const TOKEN_INTERNO = 'ALMA369UA';
+const TOKEN_INTERNO = 'ALMA369UA'; // ainda usado pelo chat de atendimento (rota /atendimento)
 
-const ARQUIVOS_OSFLUXO = {
-  'osfluxo-entrada':        '1_4_4y31QqmT0B5yaffdM_6TkY1RHld0x',
-  'osfluxo-cliente':        '1DL7hoNbc1LiIAEO1N8Hfn_Y40SGL8xbP',
-  'osfluxo-painel-empresa': '1eGNLRecucyqCnYw4kf88dj92ymvrH-0D',
-  'osfluxo-linha-producao': '17DcSmZl-FWGK68tPTIpfnufjSFnuYGhM',
-  'osfluxo-supervisor':     '1-7zdNarJrARUv5uoOLJbwZmSqdHkKS-9'
+/* Os IDs do Drive e o controle de acesso agora vivem SÓ no worker.js
+   (PLATAFORMAS_DRIVE). Aqui só ficam os nomes das plataformas e se exigem login. */
+const PLATAFORMAS_OSFLUXO = {
+  'osfluxo-entrada':        { login: false }, // cliente final — tem login próprio dentro do HTML
+  'osfluxo-cliente':        { login: false }, // cliente final (QR/garantia)
+  'osfluxo-painel-empresa': { login: true  },
+  'osfluxo-linha-producao': { login: true  },
+  'osfluxo-supervisor':     { login: true  }
 };
+
+/* ── Sessão ALMA (mesma chave do Olho De Deus / hub / flow) ── */
+const CHAVE_SESSAO = 'almafluxo_usuario';
+function obterSessao() {
+  try {
+    const u = JSON.parse(localStorage.getItem(CHAVE_SESSAO) || 'null');
+    if (u && u.email && u.sessionToken) return u;
+  } catch (e) {}
+  return null;
+}
+function limparSessao() { try { localStorage.removeItem(CHAVE_SESSAO); } catch (e) {} }
+
+/* ── Login em overlay (usa a MESMA rota do Olho De Deus: /proxy/central action login) ── */
+let _pendenteAposLogin = null;
+function abrirLogin(nomeArquivo, msg) {
+  _pendenteAposLogin = nomeArquivo || null;
+  const box = document.getElementById('osfLoginOverlay');
+  const erro = document.getElementById('osfLoginErro');
+  erro.textContent = msg || '';
+  erro.style.display = msg ? 'block' : 'none';
+  box.classList.add('aberto');
+  document.body.classList.add('osf-travado');
+  setTimeout(() => document.getElementById('osfLoginEmail').focus(), 50);
+}
+function fecharLogin() {
+  document.getElementById('osfLoginOverlay').classList.remove('aberto');
+  _pendenteAposLogin = null;
+  const algumAberto = document.getElementById('osfluxoAppOverlay').classList.contains('aberto')
+                   || document.getElementById('telaEscolhaPapel').classList.contains('aberta');
+  if (!algumAberto) document.body.classList.remove('osf-travado');
+}
+async function enviarLogin() {
+  const email = document.getElementById('osfLoginEmail').value.trim().toLowerCase();
+  const senha = document.getElementById('osfLoginSenha').value;
+  const erro  = document.getElementById('osfLoginErro');
+  const btn   = document.getElementById('osfLoginBtn');
+  erro.style.display = 'none';
+  if (!email || !senha) { erro.textContent = 'Informe e-mail e senha.'; erro.style.display = 'block'; return; }
+  btn.disabled = true; btn.textContent = '⏳ Entrando...';
+  try {
+    const r = await fetch(API_CENTRAL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'login', email: email, senha: senha })
+    });
+    const d = await r.json();
+    const ok = d.ok === true || d.autenticado === true || d.status === 'success';
+    const u  = d.usuario || d;
+    const token = d.token || d.sessionToken || u.sessionToken;
+    if (!ok) throw new Error(d.error || d.message || 'E-mail ou senha incorretos.');
+    if (!token) throw new Error('Servidor não devolveu sessionToken.');
+    localStorage.setItem(CHAVE_SESSAO, JSON.stringify({
+      nome: u.nome || email.split('@')[0], email: email,
+      balance: u.balance ?? u.saldo ?? 0, sessionToken: token
+    }));
+    document.getElementById('osfLoginSenha').value = '';
+    const seguir = _pendenteAposLogin;
+    document.getElementById('osfLoginOverlay').classList.remove('aberto');
+    _pendenteAposLogin = null;
+    if (seguir) abrirOsfluxo(seguir); else document.body.classList.remove('osf-travado');
+  } catch (e) {
+    erro.textContent = '❌ ' + e.message; erro.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Entrar';
+  }
+}
 
 /* ── Anti-XSS ── */
 function esc(str) {
@@ -492,9 +584,16 @@ function mostrarErro(msg) {
 }
 
 async function abrirOsfluxo(nomeArquivo) {
-  const arquivoId = ARQUIVOS_OSFLUXO[nomeArquivo];
-  if (!arquivoId) {
+  const cfg = PLATAFORMAS_OSFLUXO[nomeArquivo];
+  if (!cfg) {
     toast('⚠️ Arquivo "' + nomeArquivo + '" não configurado.');
+    return;
+  }
+
+  // Áreas internas exigem conta ALMA — sem sessão, pede login antes de qualquer coisa
+  const sessao = obterSessao();
+  if (cfg.login && !sessao) {
+    abrirLogin(nomeArquivo);
     return;
   }
 
@@ -512,11 +611,19 @@ async function abrirOsfluxo(nomeArquivo) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         action: 'servirHTML',
-        arquivoId: arquivoId,
-        tk: TOKEN_INTERNO
+        plataforma: nomeArquivo,
+        email: sessao ? sessao.email : undefined,
+        sessionToken: sessao ? sessao.sessionToken : undefined
       })
     });
 
+    if (resp.status === 401 || resp.status === 403) {
+      // sessão vencida/inválida → limpa, fecha o overlay do app e pede login de novo
+      limparSessao();
+      ov().classList.remove('aberto');
+      abrirLogin(nomeArquivo, 'Sessão expirada ou sem acesso. Entre novamente.');
+      return;
+    }
     if (!resp.ok) throw new Error('Servidor respondeu HTTP ' + resp.status);
 
     const html = await resp.text();
@@ -558,6 +665,7 @@ window.addEventListener('message', function(event) {
 /* ── ESC fecha o que estiver aberto ── */
 document.addEventListener('keydown', function(e) {
   if (e.key !== 'Escape') return;
+  if (document.getElementById('osfLoginOverlay').classList.contains('aberto')) { fecharLogin(); return; }
   if (ov().classList.contains('aberto')) { fecharOsfluxoApp(); return; }
   if (document.getElementById('telaEscolhaPapel').classList.contains('aberta')) {
     fecharTelaEscolha();
