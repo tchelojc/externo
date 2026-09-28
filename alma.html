@@ -2837,21 +2837,87 @@
     }
 
     function _authSuccess() {
-      _saveSess(_validEmail, _activeLic); _updateBadge(); _bioIcon.textContent = '✅';
-      let url = _pendingUrl, title = _pendingTitle||url;
-      _setMsg(_msgBio, 'success', `✅ Acesso autorizado! Sessão: ${_timeLeft()}.`);
-      setTimeout(() => { _pendingUrl = null; closeAuthModal(); _openViewer(url, title); }, 350);
+        _saveSess(_validEmail, _activeLic); _updateBadge(); _bioIcon.textContent = '✅';
+        let url = _pendingUrl, title = _pendingTitle||url;
+        _setMsg(_msgBio, 'success', `✅ Acesso autorizado! Sessão: ${_timeLeft()}.`);
+        setTimeout(() => { _pendingUrl = null; closeAuthModal(); _openViewer(url, title); }, 350);
     }
 
     const _sessionToken = (() => { let ex = sessionStorage.getItem('alma_token'); if (ex) return ex; let n = Array.from(crypto.getRandomValues(new Uint8Array(24))).map(b=>b.toString(16).padStart(2,'0')).join('').slice(0,32); sessionStorage.setItem('alma_token', n); return n; })();
 
-    function _openViewer(url, title) {
-      let frame = document.getElementById('platformFrame'), viewer = document.getElementById('platformViewer');
-      let spinner = document.getElementById('viewerSpinner'), titleEl = document.getElementById('viewerTitle');
-      spinner.style.display = 'block'; titleEl.textContent = title||url;
-      let finalUrl = url + (url.includes('?')?'&':'?') + 'alma_token=' + encodeURIComponent(_sessionToken) + '&alma_ref=' + encodeURIComponent(window.location.href);
-      frame.src = finalUrl; viewer.style.display = 'flex'; document.body.style.overflow = 'hidden';
-      frame.onload = () => { spinner.style.display = 'none'; try { frame.contentWindow.postMessage({ type: 'ALMA_AUTH', token: _sessionToken, email: _validSess()?.email||'' }, '*'); } catch(e) {} };
+    async function _openViewer(url, title, plataforma) {
+      const frame = document.getElementById('platformFrame');
+      const viewer = document.getElementById('platformViewer');
+      const spinner = document.getElementById('viewerSpinner');
+      const titleEl = document.getElementById('viewerTitle');
+
+      spinner.style.display = 'block';
+      titleEl.textContent = title || plataforma || url || 'Plataforma';
+
+      // ── Modo preferencial: plataforma → servirHTML (padrão Olho De Deus) ──
+      if (plataforma) {
+        try {
+          const sessao = usuarioTokens || JSON.parse(localStorage.getItem('almafluxo_usuario') || 'null');
+          if (!sessao || !sessao.sessionToken) {
+            throw new Error('Sessão não encontrada. Faça login novamente.');
+          }
+
+          const resp = await fetch('https://almafluxo.uk/proxy/central', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'servirHTML',
+              email: sessao.email,
+              sessionToken: sessao.sessionToken,
+              plataforma: plataforma
+            })
+          });
+
+          if (!resp.ok) {
+            // 401/403 → sessão inválida OU acesso negado
+            if (resp.status === 401 || resp.status === 403) {
+              let erroJson = {};
+              try { erroJson = await resp.json(); } catch (_) {}
+              throw new Error(erroJson.error || 'Acesso negado. Verifique seu plano.');
+            }
+            throw new Error('Servidor retornou status ' + resp.status);
+          }
+
+          const html = await resp.text();
+          if (!html || (!html.includes('<!DOCTYPE') && !html.includes('<html'))) {
+            throw new Error('Conteúdo inválido retornado do Drive.');
+          }
+
+          frame.removeAttribute('src');   // limpa src anterior
+          frame.srcdoc = html;
+          viewer.style.display = 'flex';
+          document.body.style.overflow = 'hidden';
+          spinner.style.display = 'none';
+
+          frame.onload = () => {
+            try {
+              frame.contentWindow.postMessage({
+                type: 'ALMA_AUTH',
+                email: sessao.email,
+                sessionToken: sessao.sessionToken
+              }, '*');
+            } catch (_) {}
+          };
+          return;
+        } catch (e) {
+          spinner.style.display = 'none';
+          alert('❌ Não consegui carregar a plataforma: ' + e.message);
+          return;
+        }
+      }
+
+      // ── Fallback: URL externa direta (para links que não têm plataforma) ──
+      const finalUrl = url + (url.includes('?') ? '&' : '?') + 'alma_token=' + encodeURIComponent(_sessionToken) + '&alma_ref=' + encodeURIComponent(window.location.href);
+      frame.srcdoc = '';
+      frame.src = finalUrl;
+      viewer.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+      frame.onload = () => { spinner.style.display = 'none'; };
     }
     function fecharViewer() { document.getElementById('platformFrame').src = 'about:blank'; document.getElementById('platformViewer').style.display = 'none'; document.body.style.overflow = ''; }
     document.addEventListener('keydown', e => { if (e.key==='Escape') fecharViewer(); });
@@ -2944,30 +3010,51 @@
     async function tgFazerLogin() {
       const email = document.getElementById('tgEmail').value.trim().toLowerCase();
       const senha = document.getElementById('tgSenha').value;
-      if (!email || !senha) { tgSetMsg('tgMsgLogin', 'error', '⚠️ Preencha e-mail e senha.'); return; }
+      if (!email || !senha) {
+        tgSetMsg('tgMsgLogin', 'error', '⚠️ Preencha e-mail e senha.');
+        return;
+      }
       tgSetMsg('tgMsgLogin', 'info', '⏳ Entrando...');
 
       const resultado = await tgApiCall('login', { email, senha });
-      if (resultado.ok) {
-        usuarioTokens = { nome: resultado.nome, email, balance: resultado.balance, sessionToken: resultado.sessionToken };
-        try { localStorage.setItem('almafluxo_usuario', JSON.stringify(usuarioTokens)); } catch (e) {}
-        tgSetMsg('tgMsgLogin', '', '');
-        atualizarWidgetCanto();
-        // Plataforma gratuita (ALMADITOR/SOMA) esperando só o login — abre direto,
-        // sem passar pelo passo de plano/pagamento.
-        if (_tgModoGratis) {
-          const plataformaGratis = _tgModoGratis;
-          _tgModoGratis = null;
-          fecharTokenGateModal();
-          if (plataformaGratis === 'almaditor') abrirAlmaditorPlataforma();
-          else if (plataformaGratis === 'soma') abrirSomaPlataforma();
-        } else if (_tgPendente) {
-          tgAbrirPassoPlano();
-        } else {
-          fecharTokenGateModal();
-        }
+
+      // Aceita formato novo ({autenticado, usuario, token}) E antigo ({ok, ...})
+      const logouComSucesso = resultado.ok === true || resultado.autenticado === true || resultado.status === 'success';
+      const usuarioResp = resultado.usuario || resultado;
+      const tokenRecebido = resultado.token || resultado.sessionToken || usuarioResp.sessionToken;
+
+      if (!logouComSucesso) {
+        tgSetMsg('tgMsgLogin', 'error', '❌ ' + (resultado.error || resultado.message || 'Credenciais inválidas.'));
+        return;
+      }
+      if (!tokenRecebido) {
+        tgSetMsg('tgMsgLogin', 'error', '❌ Servidor não retornou sessionToken. Tente novamente.');
+        return;
+      }
+
+      usuarioTokens = {
+        nome: usuarioResp.nome || 'Usuário',
+        email,
+        balance: usuarioResp.balance ?? usuarioResp.saldo ?? 0,
+        sessionToken: tokenRecebido,
+        master: usuarioResp.master || usuarioResp.admin || false
+      };
+      try { localStorage.setItem('almafluxo_usuario', JSON.stringify(usuarioTokens)); } catch (e) {}
+      atualizarWidgetCanto();
+      tgSetMsg('tgMsgLogin', '', '');
+
+      // Plataforma gratuita (ALMADITOR/SOMA) esperando só o login — abre direto,
+      // sem passar pelo passo de plano/pagamento.
+      if (_tgModoGratis) {
+        const plataformaGratis = _tgModoGratis;
+        _tgModoGratis = null;
+        fecharTokenGateModal();
+        if (plataformaGratis === 'almaditor') abrirAlmaditorPlataforma();
+        else if (plataformaGratis === 'soma') abrirSomaPlataforma();
+      } else if (_tgPendente) {
+        tgAbrirPassoPlano();
       } else {
-        tgSetMsg('tgMsgLogin', 'error', '❌ ' + (resultado.error || 'Credenciais inválidas.'));
+        fecharTokenGateModal();
       }
     }
 
@@ -3267,13 +3354,20 @@
     }
 
     function tgAbrirPlataformaPendente() {
-      fecharTokenGateModal();
-      const { url, titulo, abrirEm } = _tgPendente;
-      if (abrirEm === 'nova_aba') {
-        window.open(url, '_blank');
-      } else {
-        _openViewer(url, titulo); // reaproveita o viewer em iframe que já existe
-      }
+        fecharTokenGateModal();
+        const { url, titulo, plataforma, abrirEm } = _tgPendente;
+
+        if (abrirEm === 'nova_aba' && url && !plataforma) {
+            window.open(url, '_blank');
+            return;
+        }
+
+        // Se tem plataforma, usa servirHTML (Drive) — mesmo padrão do Olho De Deus
+        if (plataforma) {
+            _openViewer(url, titulo, plataforma);
+        } else if (url) {
+            window.open(url, '_blank');
+        }
     }
 
     document.querySelectorAll('.paid-btn').forEach(btn => btn.addEventListener('click', function(e) {
@@ -3564,57 +3658,64 @@
     }
 
     async function abrirAlmaditorPlataforma() {
-      _almaditorRegistrarAcesso(usuarioTokens.email); // rastreio paralelo — não bloqueia a abertura
-      const loader = document.getElementById('almaditorLoader');
-      const loaderStatus = document.getElementById('almaditorLoaderStatus');
-      const frame = document.getElementById('almaditorFrame');
-      const voltarBtn = document.getElementById('almaditorVoltar');
-
-      loader.classList.add('active');
-      loaderStatus.textContent = 'Buscando plataforma no Drive...';
-
-      try {
-        const resp = await fetch(`${ALMADITOR_WORKER_URL}/proxy/central`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'servirHTML',
-            email: usuarioTokens.email,
-            sessionToken: usuarioTokens.sessionToken,
-            plataforma: 'almaditor'
-          })
-        });
-
-        if (!resp.ok) {
-          throw new Error('Servidor retornou status ' + resp.status);
+        // Sem sessão, não tem como buscar o HTML — pede login de novo e sai.
+        if (!usuarioTokens || !usuarioTokens.email || !usuarioTokens.sessionToken) {
+            alert('Sessão perdida. Faça login novamente para abrir o ALMADITOR.');
+            return;
         }
 
-        const html = await resp.text();
+        _almaditorRegistrarAcesso(usuarioTokens.email); // agora seguro
 
-        if (!html || (!html.includes('<!DOCTYPE') && !html.includes('<html'))) {
-          throw new Error('Conteúdo inválido retornado do Drive.');
+        const loader = document.getElementById('almaditorLoader');
+        const loaderStatus = document.getElementById('almaditorLoaderStatus');
+        const frame = document.getElementById('almaditorFrame');
+        const voltarBtn = document.getElementById('almaditorVoltar');
+
+        loader.classList.add('active');
+        loaderStatus.textContent = 'Buscando plataforma no Drive...';
+
+        try {
+            const resp = await fetch(`${ALMADITOR_WORKER_URL}/proxy/central`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'servirHTML',
+                    email: usuarioTokens.email,
+                    sessionToken: usuarioTokens.sessionToken,
+                    plataforma: 'almaditor'
+                })
+            });
+
+            if (!resp.ok) {
+                throw new Error('Servidor retornou status ' + resp.status);
+            }
+
+            const html = await resp.text();
+
+            if (!html || (!html.includes('<!DOCTYPE') && !html.includes('<html'))) {
+                throw new Error('Conteúdo inválido retornado do Drive.');
+            }
+
+            loaderStatus.textContent = 'Plataforma carregada!';
+
+            frame.srcdoc = html;
+            frame.classList.add('active');
+            voltarBtn.classList.add('active');
+            document.body.style.overflow = 'hidden';
+
+            // Se o ALMADITOR pedir pra fechar, o portal reage
+            window.addEventListener('message', function(e) {
+                if (e.data === 'fechar-plataforma' || e.data === 'fechar-almaditor') {
+                    fecharAlmaditorPlataforma();
+                }
+            });
+
+            setTimeout(() => { loader.classList.remove('active'); }, 400);
+
+        } catch (e) {
+            loader.classList.remove('active');
+            alert('❌ Não consegui carregar o ALMADITOR: ' + e.message);
         }
-
-        loaderStatus.textContent = 'Plataforma carregada!';
-
-        frame.srcdoc = html;
-        frame.classList.add('active');
-        voltarBtn.classList.add('active');
-        document.body.style.overflow = 'hidden';
-
-        // Se o ALMADITOR pedir pra fechar, o portal reage
-        window.addEventListener('message', function(e) {
-          if (e.data === 'fechar-plataforma' || e.data === 'fechar-almaditor') {
-            fecharAlmaditorPlataforma();
-          }
-        });
-
-        setTimeout(() => { loader.classList.remove('active'); }, 400);
-
-      } catch (e) {
-        loader.classList.remove('active');
-        alert('❌ Não consegui carregar o ALMADITOR: ' + e.message);
-      }
     }
 
     function fecharAlmaditorPlataforma() {
@@ -3736,7 +3837,13 @@
     }
 
     async function abrirSomaPlataforma() {
-      _somaRegistrarAcesso(usuarioTokens.email); // rastreio paralelo — não bloqueia a abertura
+      if (!usuarioTokens || !usuarioTokens.email || !usuarioTokens.sessionToken) {
+          alert('Sessão perdida. Faça login novamente para abrir o SOMA.');
+          return;
+      }
+
+      _somaRegistrarAcesso(usuarioTokens.email);
+
       const loader = document.getElementById('somaLoader');
       const loaderStatus = document.getElementById('somaLoaderStatus');
       const frame = document.getElementById('somaFrame');
