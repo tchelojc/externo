@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Karaokê Fluxo | ALMAFLUXO</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Nunito:wght@400;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <style>
         * {
             margin: 0;
@@ -123,33 +123,130 @@
         }
         .btn-secondary:hover { background: rgba(0, 229, 255, 0.05); border-color: var(--ciano); }
 
-        /* VÍDEO */
-        .hero-video {
-            position: relative; border-radius: 18px; overflow: hidden;
-            background: #000; border: 1px solid var(--border);
-            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.7); aspect-ratio: 16 / 9;
+        /* ============================================================
+           CHAT DE ATENDIMENTO (substitui o antigo hero-video)
+           ============================================================ */
+        .hero-chat-container {
+            position: relative;
+            border-radius: 18px;
+            overflow: hidden;
+            background: var(--panel);
+            border: 2px solid var(--ciano);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 229, 255, 0.15);
+            aspect-ratio: 16 / 9;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
         }
-        .hero-video video, .hero-video iframe {
-            width: 100%; height: 100%; display: block;
-            object-fit: cover; border: none;
+        .chat-header-olho {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0.8rem 1.2rem;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.1), transparent);
+            flex-shrink: 0;
         }
-        .hero-video .video-overlay-label {
-            position: absolute; bottom: 12px; left: 16px;
-            background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(4px);
-            padding: 0.3rem 1rem; border-radius: 20px;
-            font-size: 0.7rem; color: var(--texto2);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            font-weight: 600; letter-spacing: 1px; pointer-events: none;
-        }
-        .hero-video .video-play-badge {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 64px; height: 64px;
-            background: rgba(0, 229, 255, 0.15); backdrop-filter: blur(4px);
-            border-radius: 50%; border: 2px solid rgba(0, 229, 255, 0.3);
+        .chat-header-left { display: flex; align-items: center; gap: 0.7rem; }
+        .chat-avatar {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: var(--ciano);
             display: flex; align-items: center; justify-content: center;
-            font-size: 2rem; color: var(--ciano); pointer-events: none;
+            font-size: 1.1rem; flex-shrink: 0; color: #000;
         }
+        .chat-title {
+            font-weight: 700; font-size: 0.9rem; color: #fff;
+            font-family: var(--font);
+        }
+        .chat-subtitle { font-size: 0.7rem; color: var(--texto2); }
+        .chat-status-dot {
+            display: inline-block; width: 8px; height: 8px;
+            border-radius: 50%; background: var(--verde);
+            animation: pulse 1.5s infinite; margin-right: 4px;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--verde); }
+            50% { opacity: 0.5; }
+        }
+        .chat-messages-olho {
+            flex: 1; overflow-y: auto; padding: 1rem;
+            display: flex; flex-direction: column; gap: 0.7rem;
+            min-height: 200px; max-height: 350px;
+        }
+        .chat-messages-olho::-webkit-scrollbar { width: 4px; }
+        .chat-messages-olho::-webkit-scrollbar-thumb {
+            background: var(--ciano); border-radius: 4px;
+        }
+        .message-olho {
+            padding: 0.7rem 0.9rem; border-radius: 12px;
+            font-size: 0.8rem; line-height: 1.5;
+            max-width: 85%; word-break: break-word;
+            font-family: 'Space Grotesk', sans-serif;
+            white-space: pre-line;
+        }
+        .message-olho.ai {
+            background: var(--panel); border: 1px solid var(--border);
+            align-self: flex-start; border-bottom-left-radius: 4px;
+            color: var(--texto);
+        }
+        .message-olho.user {
+            background: linear-gradient(135deg, var(--ciano), #00b8d4);
+            align-self: flex-end; border-bottom-right-radius: 4px;
+            color: #000; font-weight: 500;
+        }
+        .typing-indicator-olho { display: flex; gap: 4px; padding: 0.5rem 0; }
+        .typing-dot-olho {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--texto2); animation: bounce 1.4s infinite;
+        }
+        .typing-dot-olho:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot-olho:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes bounce {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-8px); opacity: 1; }
+        }
+        .chat-input-area-olho {
+            display: flex; gap: 6px; padding: 0.7rem 0.9rem;
+            border-top: 1px solid var(--border); align-items: center;
+            flex-shrink: 0; background: var(--panel2);
+        }
+        .chat-input-olho {
+            flex: 1; padding: 0.6rem 0.9rem; border-radius: 25px;
+            border: 1px solid var(--border); background: var(--panel);
+            color: var(--texto); font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.8rem; outline: none; min-width: 0;
+        }
+        .chat-input-olho:focus { border-color: var(--ciano); }
+        .chat-send-btn-olho {
+            width: 36px; height: 36px; border-radius: 50%; border: none;
+            background: linear-gradient(135deg, var(--ciano), #00b8d4);
+            color: #000; font-size: 1rem; cursor: pointer;
+            flex-shrink: 0; transition: all 0.3s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .chat-send-btn-olho:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
+        }
+        .quick-suggestions-olho {
+            display: flex; gap: 6px; flex-wrap: wrap;
+            padding: 0.5rem 0.9rem; border-top: 1px solid var(--border);
+            background: var(--panel2); flex-shrink: 0;
+        }
+        .suggestion-chip-olho {
+            padding: 5px 12px; border-radius: 16px;
+            border: 1px solid var(--border); background: var(--panel);
+            color: var(--texto2); font-size: 0.7rem; cursor: pointer;
+            transition: all 0.3s; font-family: 'Space Grotesk', sans-serif;
+        }
+        .suggestion-chip-olho:hover {
+            border-color: var(--ciano); color: var(--ciano);
+            background: rgba(0, 229, 255, 0.05); transform: translateY(-2px);
+        }
+        .always-wpp-olho {
+            text-align: center; padding: 0.4rem;
+            font-size: 0.7rem; color: var(--texto2);
+            border-top: 1px solid var(--border); background: var(--panel2);
+        }
+        .always-wpp-olho a { color: var(--ciano); }
 
         /* FEATURES */
         .features-section {
@@ -335,7 +432,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* LOADER EM TELA CHEIA (estilo Olho De Deus) */
+        /* LOADER EM TELA CHEIA */
         .loader-fullscreen {
             position: fixed; inset: 0;
             background: var(--bg); z-index: 10001;
@@ -387,6 +484,31 @@
         }
         #btnVoltarPlataforma.active { display: block; }
 
+        /* TOAST */
+        .toast-olho {
+            position: fixed;
+            bottom: 24px; left: 50%;
+            transform: translateX(-50%);
+            background: var(--panel);
+            border: 1px solid var(--ciano);
+            color: var(--texto);
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 0.8rem; font-weight: 600;
+            z-index: 20000;
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 2.5s forwards;
+            box-shadow: 0 8px 30px rgba(0, 229, 255, 0.2);
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        @keyframes toastOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
         /* RESPONSIVO */
         @media (max-width: 992px) {
             .hero-split {
@@ -394,7 +516,11 @@
                 min-height: auto; padding: 1rem 1.5rem 2.5rem;
             }
             .hero-content .hero-sub { max-width: 100%; }
-            .hero-video { aspect-ratio: 16 / 9; max-width: 100%; }
+            .hero-chat-container {
+                aspect-ratio: auto;
+                min-height: 450px;
+                max-width: 100%;
+            }
             .price-card.featured { transform: none; }
         }
         @media (max-width: 600px) {
@@ -408,6 +534,8 @@
             .pricing-grid { grid-template-columns: 1fr; max-width: 360px; margin: 0 auto; }
             .faq-item p { max-width: 100%; }
             .modal { padding: 1.5rem; }
+            .hero-chat-container { min-height: 400px; }
+            .chat-messages-olho { max-height: 250px; }
         }
         @media (max-width: 420px) {
             .features-grid { grid-template-columns: 1fr; }
@@ -445,13 +573,38 @@
                 <a href="#" onclick="abrirAudivelFluxo(event)" style="color:var(--ciano); font-weight:700; white-space:nowrap; text-decoration:none;">Fazer teste rápido →</a>
             </div>
         </div>
-        <div class="hero-video">
-            <video autoplay muted loop playsinline poster="https://placehold.co/800x450/0a0e17/00e5ff?text=Karaok%C3%AA+Fluxo+Demo">
-                <source src="#" type="video/mp4" />
-                Seu navegador não suporta vídeo.
-            </video>
-            <div class="video-overlay-label">🎥 Demonstração ao vivo</div>
-            <div class="video-play-badge">▶</div>
+
+        <!-- ===== CHAT DE ATENDIMENTO (substitui o antigo vídeo) ===== -->
+        <div class="hero-chat-container" id="heroChatContainer">
+            <div class="chat-header-olho">
+                <div class="chat-header-left">
+                    <div class="chat-avatar">🎤</div>
+                    <div>
+                        <div class="chat-title">Suporte Karaokê Fluxo</div>
+                        <div class="chat-subtitle"><span class="chat-status-dot"></span>Online 24h</div>
+                    </div>
+                </div>
+                <span style="font-size:0.7rem;color:var(--texto2);">💬 Atendimento</span>
+            </div>
+
+            <div class="chat-messages-olho" id="chatMessagesOlho"></div>
+
+            <div class="quick-suggestions-olho">
+                <div class="suggestion-chip-olho" onclick="respostaProntaOlho('como_funciona')">⚙️ Como funciona?</div>
+                <div class="suggestion-chip-olho" onclick="respostaProntaOlho('planos')">💎 Planos</div>
+                <div class="suggestion-chip-olho" onclick="respostaProntaOlho('suporte')">🆘 Suporte</div>
+            </div>
+
+            <div class="chat-input-area-olho">
+                <input type="text" class="chat-input-olho" id="chatInputOlho" placeholder="Digite sua dúvida..." onkeydown="if(event.key==='Enter')enviarMensagemOlho()" />
+                <button class="chat-send-btn-olho" onclick="enviarMensagemOlho()" id="chatSendBtnOlho">➤</button>
+            </div>
+
+            <div class="always-wpp-olho">
+                💬 <a href="https://wa.me/5521981533928" target="_blank">WhatsApp</a>
+                <span style="margin:0 8px;color:var(--border);">|</span>
+                <span style="color:var(--texto2);">📞 21 98153-3928</span>
+            </div>
         </div>
     </section>
 
@@ -494,7 +647,7 @@
         </div>
     </section>
 
-    <!-- ===== ALMAFLUXO STUDIO (camada opcional) ===== -->
+    <!-- ===== ALMAFLUXO STUDIO ===== -->
     <section class="faq-section" id="studio-info" style="margin-top:0;">
         <h2 class="faq-title">🎛️ ALMAFLUXO <span>STUDIO</span></h2>
         <p style="color:var(--texto2);font-size:0.95rem;text-align:center;line-height:1.6;">
@@ -509,7 +662,7 @@
         <h2 class="faq-title">Perguntas <span>Frequentes</span></h2>
         <details class="faq-item">
             <summary>🎤 Como acessar o karaokê?</summary>
-            <p>Clique em "Acessar Karaokê", digite seu e-mail e a plataforma abre na hora.</p>
+            <p>Clique em "Acessar Karaokê", digite seu e-mail e senha da conta ALMA e a plataforma abre na hora.</p>
         </details>
         <details class="faq-item">
             <summary>💻 Preciso instalar algo?</summary>
@@ -521,7 +674,7 @@
         </details>
         <details class="faq-item">
             <summary>⏱️ Quanto tempo dura o acesso?</summary>
-            <p>O acesso é liberado automaticamente após o cadastro do e-mail.</p>
+            <p>O acesso é liberado automaticamente após o login com uma conta ALMA válida.</p>
         </details>
     </section>
 
@@ -575,6 +728,8 @@
     // ═══════════════════════════════════════════════════════════════
     const WORKER_URL = 'https://almafluxo.uk';
     const URL_BACKEND = "/proxy/karaoke";   // backend do host atual
+    const TOKEN_INTERNO = 'ALMA369UA';
+    const WHATSAPP_ATENDIMENTO = "5521981533928";
 
     // 🎯 ID do arquivo karaoke.html no Google Drive
     const KARAOKE_ARQUIVO_ID = '1Rek5Ob3pmIiYeTc4bIctJxx2qYyFVeFp';
@@ -591,6 +746,14 @@
         el.textContent = "✅ " + msg;
         el.style.display = "block";
         setTimeout(() => el.style.display = "none", 8000);
+    }
+
+    function mostrarToastOlho(msg) {
+        const t = document.createElement('div');
+        t.className = 'toast-olho';
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 3000);
     }
 
     // ═══════════ FINGERPRINT ═══════════
@@ -615,6 +778,126 @@
             if (s) usuarioKaraoke = JSON.parse(s);
         } catch (e) { usuarioKaraoke = null; }
     })();
+
+    // ═══════════ CHAT DE ATENDIMENTO ═══════════
+    let isProcessingChat = false;
+    let sessionIdChat = localStorage.getItem('karaoke_session_id');
+    if (!sessionIdChat) {
+        sessionIdChat = "user_karaoke_" + Date.now();
+        localStorage.setItem('karaoke_session_id', sessionIdChat);
+    }
+
+    const RESPOSTAS_PRONTAS_OLHO = {
+        "como_funciona": "⚙️ O Karaokê Fluxo funciona direto no navegador: você escolhe as músicas, entra na fila inteligente e solta a voz com efeitos em tempo real. É só criar uma conta ALMA (grátis) e começar!",
+        "planos": "💎 Hoje o acesso é 100% gratuito por 1 hora. Em breve teremos planos:\n📆 Dia — R$ 25\n📆 Mês — R$ 150\n\nEnquanto isso, aproveite o acesso grátis!",
+        "suporte": "🆘 Para suporte técnico, fale com nosso time pelo WhatsApp ou aguarde um atendente aqui no chat."
+    };
+
+    function respostaProntaOlho(tipo) {
+        const resposta = RESPOSTAS_PRONTAS_OLHO[tipo];
+        if (!resposta) return;
+        addMessageOlho('ai', resposta);
+    }
+
+    function addMessageOlho(tipo, texto) {
+        const c = document.getElementById('chatMessagesOlho');
+        const d = document.createElement('div');
+        d.className = `message-olho ${tipo === 'user' ? 'user' : 'ai'}`;
+        d.textContent = texto;
+        c.appendChild(d);
+        c.scrollTop = c.scrollHeight;
+    }
+
+    function showTypingOlho() {
+        const c = document.getElementById('chatMessagesOlho');
+        const t = document.createElement('div');
+        t.className = 'message-olho ai';
+        t.id = 'typingIndicatorOlho';
+        t.innerHTML = '<div class="typing-indicator-olho"><div class="typing-dot-olho"></div><div class="typing-dot-olho"></div><div class="typing-dot-olho"></div></div>';
+        c.appendChild(t);
+        c.scrollTop = c.scrollHeight;
+    }
+
+    function removeTypingOlho() {
+        const t = document.getElementById('typingIndicatorOlho');
+        if (t) t.remove();
+    }
+
+    async function enviarMensagemOlho() {
+        const input = document.getElementById('chatInputOlho');
+        const texto = input.value.trim();
+        if (!texto || isProcessingChat) return;
+        addMessageOlho('user', texto);
+        input.value = '';
+        await enviarParaIAOlho(texto);
+    }
+
+    async function enviarParaIAOlho(mensagem) {
+        isProcessingChat = true;
+        document.getElementById('chatSendBtnOlho').disabled = true;
+        showTypingOlho();
+
+        try {
+            let numeroRespostasAntes = 0;
+            try {
+                const respAntes = await fetch(`https://almafluxo.uk/proxy/infocell?action=getChatAtendente&leadId=${sessionIdChat}`);
+                const dataAntes = await respAntes.json();
+                const mensagensAntes = dataAntes.conversas?.[sessionIdChat]?.mensagens || [];
+                numeroRespostasAntes = mensagensAntes.filter(m => m.de === 'atendente').length;
+            } catch(e) {}
+
+            await fetch('https://almafluxo.uk/proxy/infocell', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'saveChatAtendente',
+                    leadId: sessionIdChat,
+                    nomeLead: 'Visitante Karaokê Fluxo',
+                    de: 'lead',
+                    texto: mensagem,
+                    origem: 'karaoke'
+                })
+            });
+
+            let resposta = null;
+            const MAX_TENTATIVAS = 20;
+
+            for (let tentativa = 0; tentativa < MAX_TENTATIVAS && !resposta; tentativa++) {
+                await new Promise(r => setTimeout(r, 3000));
+
+                try {
+                    const resp = await fetch(`https://almafluxo.uk/proxy/infocell?action=getChatAtendente&leadId=${sessionIdChat}`);
+                    const data = await resp.json();
+                    const mensagens = data.conversas?.[sessionIdChat]?.mensagens || [];
+                    const mensagensAtendente = mensagens.filter(m => m.de === 'atendente');
+
+                    if (mensagensAtendente.length > numeroRespostasAntes) {
+                        const ultimaAtendente = mensagensAtendente[mensagensAtendente.length - 1];
+                        if (ultimaAtendente.texto &&
+                            !ultimaAtendente.texto.includes('Desculpe') &&
+                            ultimaAtendente.texto !== resposta) {
+                            resposta = ultimaAtendente.texto;
+                        }
+                    }
+                } catch (e) {}
+            }
+
+            removeTypingOlho();
+
+            if (resposta) {
+                addMessageOlho('ai', resposta);
+            }
+
+        } catch (e) {
+            removeTypingOlho();
+            mostrarToastOlho('❌ Erro ao enviar mensagem');
+        } finally {
+            removeTypingOlho();
+            isProcessingChat = false;
+            document.getElementById('chatSendBtnOlho').disabled = false;
+            document.getElementById('chatInputOlho').focus();
+        }
+    }
 
     // ═══════════ MODAL ═══════════
     function abrirModalAcesso() {
@@ -665,12 +948,32 @@
             const r = await fetch(`${WORKER_URL}/proxy/central`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'login', email, senha })
+                body: JSON.stringify({
+                    action: 'login',
+                    email,
+                    senha,
+                    tk: TOKEN_INTERNO
+                })
             });
             const d = await r.json();
-            if (!d.ok) throw new Error(d.error || 'E-mail ou senha inválidos.');
-            usuarioKaraoke = { nome: d.nome, email, balance: d.balance, sessionToken: d.sessionToken };
+
+            // Aceita tanto o formato novo ({autenticado:true, usuario:{}, token}) quanto o antigo ({ok:true, ...})
+            const logouComSucesso = d.ok === true || d.autenticado === true || d.status === 'success';
+            const usuarioResp = d.usuario || d;
+
+            if (!logouComSucesso) throw new Error(d.error || d.message || 'E-mail ou senha inválidos.');
+
+            usuarioKaraoke = {
+                nome: usuarioResp.nome || 'Usuário',
+                email,
+                balance: usuarioResp.balance ?? usuarioResp.saldo ?? 0,
+                sessionToken: d.token || d.sessionToken || usuarioResp.sessionToken || `session_${Date.now()}`,
+                master: usuarioResp.master || usuarioResp.admin || false
+            };
             localStorage.setItem('almafluxo_usuario', JSON.stringify(usuarioKaraoke));
+            // Sincroniza também com a chave usada pelo Olho De Deus, se existir
+            try { localStorage.setItem('olho_de_deus_usuario', JSON.stringify(usuarioKaraoke)); } catch(e){}
+
             registrarAcessoNoWorker();
             mostrarSucesso(document.getElementById('sucessoEmail'), 'Login feito! Abrindo...');
             setTimeout(abrirKaraokeDoDrive, 400);
@@ -697,12 +1000,31 @@
             const r = await fetch(`${WORKER_URL}/proxy/central`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'cadastro', nome, email, senha })
+                body: JSON.stringify({
+                    action: 'cadastro',
+                    nome,
+                    email,
+                    senha,
+                    tk: TOKEN_INTERNO
+                })
             });
             const d = await r.json();
-            if (!d.ok) throw new Error(d.error || 'Não consegui criar a conta.');
-            usuarioKaraoke = { nome, email, balance: d.balance || 10, sessionToken: d.sessionToken };
+
+            const cadastrouComSucesso = d.ok === true || d.autenticado === true || d.status === 'success';
+            const usuarioResp = d.usuario || d;
+
+            if (!cadastrouComSucesso) throw new Error(d.error || d.message || 'Não consegui criar a conta.');
+
+            usuarioKaraoke = {
+                nome,
+                email,
+                balance: usuarioResp.balance ?? usuarioResp.saldo ?? 10,
+                sessionToken: d.token || d.sessionToken || usuarioResp.sessionToken || `session_${Date.now()}`,
+                master: usuarioResp.master || usuarioResp.admin || false
+            };
             localStorage.setItem('almafluxo_usuario', JSON.stringify(usuarioKaraoke));
+            try { localStorage.setItem('olho_de_deus_usuario', JSON.stringify(usuarioKaraoke)); } catch(e){}
+
             registrarAcessoNoWorker();
             mostrarSucesso(document.getElementById('sucessoEmail'), 'Conta criada! Abrindo...');
             setTimeout(abrirKaraokeDoDrive, 400);
@@ -734,7 +1056,7 @@
         }
     }
 
-    // ═══════════ ABRE O KARAOKE.HTML DO DRIVE VIA WORKER ═══════════
+    // ═══════════ ABRE O AUDÍVELFLUXO VIA WORKER ═══════════
     async function abrirAudivelFluxo(event) {
         if (event) event.preventDefault();
         const lf = document.getElementById('loaderFullscreen');
@@ -746,7 +1068,6 @@
         lfStatus.textContent = 'Buscando teste...';
 
         try {
-            // Plataforma pública — não precisa de login nem sessão.
             const response = await fetch(`${WORKER_URL}/proxy/central`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -784,7 +1105,6 @@
         lfStatus.textContent = 'Buscando plataforma...';
 
         try {
-            // 1) Busca o HTML do Drive via Worker (mesma técnica do Olho De Deus)
             const response = await fetch(`${WORKER_URL}/proxy/central`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -806,7 +1126,6 @@
                 throw new Error('Conteúdo inválido retornado do Drive.');
             }
 
-            // 2) Injeta o HTML no iframe em tela cheia (mesma técnica do Olho De Deus)
             lfStatus.textContent = 'Plataforma carregada!';
 
             const iframe = document.getElementById('iframePlataforma');
@@ -816,12 +1135,10 @@
             document.getElementById('btnVoltarPlataforma').classList.add('active');
             document.getElementById('btnAbrirStudio').style.display = 'block';
 
-            // 3) Esconde o modal e o loader
             fecharModalAcesso();
             lf.classList.remove('active');
             document.body.style.overflow = 'hidden';
 
-            // 4) Listener para mensagens do iframe
             window.addEventListener('message', function(event) {
                 if (event.data === 'fechar-plataforma' || event.data === 'voltar-login') {
                     fecharPlataforma();
@@ -880,6 +1197,14 @@
     // ═══════════ INICIALIZAÇÃO ═══════════
     document.addEventListener('DOMContentLoaded', () => {
         carregarContador();
+
+        // Mensagem inicial do chat (igual Olho De Deus)
+        setTimeout(() => {
+            const c = document.getElementById('chatMessagesOlho');
+            if (c && c.children.length === 0) {
+                addMessageOlho('ai', '🎤 Olá! Sou o suporte do Karaokê Fluxo. Como posso te ajudar hoje?');
+            }
+        }, 500);
     });
 </script>
 </body>
