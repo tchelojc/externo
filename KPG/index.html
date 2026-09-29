@@ -3089,55 +3089,5 @@
   });
 })();
 </script>
-(function(){
-  var CENTRAL='https://almafluxo.uk/proxy/central',KPG='https://almafluxo.uk/proxy/kpg',CH='almafluxo_usuario',$=function(i){return document.getElementById(i)};
-  var sess=function(){try{var u=JSON.parse(localStorage.getItem(CH)||'null');return u&&u.email&&u.sessionToken?u:null}catch(e){return null}};
-  function erro(m){var e=$('kpgErr');e.textContent=m||'';e.style.display=m?'block':'none'}
-  window.kpgFechar=function(){$('kpgLogin').classList.remove('on')};
-  window.kpgAbrir=function(){var s=sess();if(s){carregar(s)}else{erro('');$('kpgLogin').classList.add('on');setTimeout(function(){$('kpgEmail').focus()},50)}};
-  // 🔥 CORRIGIDO: kpgSair() agora também remove a sessão do localStorage.
-  // Antes, apenas fechava o painel — a sessão continuava salva e o botão
-  // "Área restrita" reabria o painel direto, sem pedir login novamente.
-  window.kpgSair=function(){
-    try{localStorage.removeItem(CH)}catch(e){}
-    $('kpgApp').classList.remove('on');
-    $('kpgFrame').srcdoc='';
-    document.body.style.overflow='';
-    // Reabre o formulário de login
-    erro('');
-    $('kpgLogin').classList.add('on');
-    setTimeout(function(){$('kpgEmail').focus()},50);
-  };
-  window.kpgEntrar=async function(){
-    var email=$('kpgEmail').value.trim().toLowerCase(),senha=$('kpgSenha').value,b=$('kpgOk');erro('');
-    if(!email||!senha){erro('Informe e-mail e senha.');return}
-    b.disabled=true;b.textContent='Entrando...';
-    try{
-      var r=await fetch(CENTRAL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'login',email:email,senha:senha})});
-      var d=await r.json(),u=d.usuario||d,tok=d.token||d.sessionToken||u.sessionToken;
-      if(!(d.ok===true||d.autenticado===true||d.status==='success'))throw new Error(d.error||d.message||'E-mail ou senha incorretos.');
-      if(!tok)throw new Error('Servidor não devolveu sessionToken.');
-      var s={nome:u.nome||email.split('@')[0],email:email,balance:u.balance||u.saldo||0,sessionToken:tok};
-      localStorage.setItem(CH,JSON.stringify(s));$('kpgSenha').value='';kpgFechar();carregar(s);
-    }catch(e){erro('❌ '+e.message)}finally{b.disabled=false;b.textContent='Entrar'}
-  };
-  async function carregar(s){
-    $('kpgApp').classList.add('on');document.body.style.overflow='hidden';
-    $('kpgFrame').srcdoc='<p style="font:16px system-ui;padding:2rem;color:#5d6d7e">Carregando painel…</p>';
-    try{
-      var r=await fetch(CENTRAL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'servirHTML',plataforma:'kpg',email:s.email,sessionToken:s.sessionToken})});
-      var t=await r.text();
-      if(!r.ok){var j={};try{j=JSON.parse(t)}catch(e){}
-        if(r.status===401||r.status===403){localStorage.removeItem(CH);kpgSair();erro('🚫 '+(j.error||'Acesso negado.'));$('kpgLogin').classList.add('on');return}
-        throw new Error((j.error||'HTTP '+r.status)+(j.detalhe?' | '+j.detalhe:''))}
-      window.__kpgS=s;$('kpgFrame').srcdoc=t;
-    }catch(e){$('kpgFrame').srcdoc='<div style="font:15px system-ui;padding:2rem;color:#c0392b">❌ '+String(e.message).replace(/</g,'&lt;')+'</div>'}
-  }
-  addEventListener('message',function(ev){
-    if(ev.data&&ev.data.type==='kpg-ready'&&window.__kpgS&&ev.source===$('kpgFrame').contentWindow)
-      ev.source.postMessage({type:'kpg-session',email:window.__kpgS.email,sessionToken:window.__kpgS.sessionToken,api:KPG},'*');
-  });
-})();
-</script>
 </body>
 </html>
