@@ -2928,163 +2928,158 @@
         });
     </script>
 
-<!-- ═══════════ ÁREA RESTRITA KPG (login + painel via Worker) ═══════════ -->
-<style>
-  #kpgBtn{position:fixed;left:14px;bottom:14px;z-index:9990;background:var(--azul-primario,#1a5276);color:#fff;border:0;border-radius:24px;padding:.55rem 1rem;font:600 .8rem system-ui,sans-serif;cursor:pointer;opacity:.85;box-shadow:0 4px 14px #0004}
-  #kpgBtn:hover{opacity:1}
-  #kpgLogin{position:fixed;inset:0;z-index:99998;background:#000b;display:none;align-items:center;justify-content:center;padding:16px}
-  #kpgLogin.on{display:flex}
-  .kpgBox{background:#fff;border-radius:14px;padding:24px;width:100%;max-width:360px;font-family:system-ui,sans-serif}
-  .kpgBox h3{color:#1a5276;margin-bottom:6px}
-  .kpgBox p{color:#5d6d7e;font-size:.82rem;margin-bottom:12px}
-  .kpgBox input{width:100%;padding:11px;margin-bottom:9px;border:1px solid #d6dde5;border-radius:8px;font-size:.92rem}
-  .kpgBox button{width:100%;padding:11px;border:0;border-radius:8px;background:#1a5276;color:#fff;font-weight:700;cursor:pointer;margin-top:2px}
-  .kpgBox button.g{background:none;color:#5d6d7e;font-weight:500}
-  #kpgErr{display:none;color:#c0392b;font-size:.82rem;margin-bottom:8px}
-  #kpgApp{position:fixed;inset:0;z-index:99999;background:#f4f7fa;display:none;flex-direction:column}
-  #kpgApp.on{display:flex}
-  #kpgApp .top{background:#0e2f44;color:#fff;padding:6px 12px;display:flex;justify-content:space-between;align-items:center;font:600 .78rem system-ui,sans-serif}
-  #kpgApp .top button{background:#c0392b;color:#fff;border:0;border-radius:6px;padding:4px 12px;cursor:pointer}
-  #kpgApp iframe{flex:1;border:0;width:100%}
-</style>
+    <!-- ═══════════ ÁREA RESTRITA KPG ═══════════ -->
+    <style>
+    #kpgBtn{position:fixed;left:14px;bottom:14px;z-index:9990;background:#1a5276;color:#fff;border:0;border-radius:24px;padding:.55rem 1rem;font:600 .8rem system-ui,sans-serif;cursor:pointer;opacity:.85;box-shadow:0 4px 14px #0004}
+    #kpgBtn:hover{opacity:1}
+    #kpgLogin{position:fixed;inset:0;z-index:99998;background:#000b;display:none;align-items:center;justify-content:center;padding:16px}
+    #kpgLogin.on{display:flex}
+    .kpgBox{background:#fff;border-radius:14px;padding:24px;width:100%;max-width:360px;font-family:system-ui,sans-serif}
+    .kpgBox h3{color:#1a5276;margin-bottom:6px}.kpgBox p{color:#5d6d7e;font-size:.82rem;margin-bottom:12px}
+    .kpgBox input{width:100%;padding:11px;margin-bottom:9px;border:1px solid #d6dde5;border-radius:8px;font-size:.92rem}
+    .kpgBox button{width:100%;padding:11px;border:0;border-radius:8px;background:#1a5276;color:#fff;font-weight:700;cursor:pointer;margin-top:2px}
+    .kpgBox button.g{background:none;color:#5d6d7e;font-weight:500}
+    #kpgErr{display:none;color:#c0392b;font-size:.82rem;margin-bottom:8px}
+    #kpgApp{position:fixed;inset:0;z-index:99999;background:#f4f7fa;display:none;flex-direction:column}
+    #kpgApp.on{display:flex}
+    #kpgApp .top{background:#0e2f44;color:#fff;padding:6px 12px;display:flex;justify-content:space-between;align-items:center;font:600 .78rem system-ui,sans-serif}
+    #kpgApp .top button{background:#c0392b;color:#fff;border:0;border-radius:6px;padding:4px 12px;cursor:pointer}
+    #kpgApp iframe{flex:1;border:0;width:100%}
+    </style>
 
-<!-- Botão que abre a Área Restrita -->
-<button id="kpgBtn" onclick="kpgAbrir()">🔐 Área restrita</button>
+    <button id="kpgBtn" onclick="kpgAbrir()">🔐 Área restrita</button>
 
-<!-- Modal de Login -->
-<div id="kpgLogin">
-  <div class="kpgBox">
-    <h3>🔐 Área restrita KPG</h3>
-    <p>Acesso da equipe com sua conta KPG.</p>
-    <input type="email" id="kpgEmail" placeholder="seu@email.com" autocomplete="email">
-    <input type="password" id="kpgSenha" placeholder="Senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')kpgEntrar()">
-    <div id="kpgErr"></div>
-    <button id="kpgOk" onclick="kpgEntrar()">Entrar</button>
-    <button class="g" onclick="kpgFechar()">Cancelar</button>
-  </div>
-</div>
+    <div id="kpgLogin">
+      <div class="kpgBox">
+        <h3>🔐 Área restrita KPG</h3>
+        <p>Acesso da equipe com sua conta KPG.</p>
+        <input type="email" id="kpgEmail" placeholder="seu@email.com" autocomplete="email">
+        <input type="password" id="kpgSenha" placeholder="Senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')kpgEntrar()">
+        <div id="kpgErr"></div>
+        <button id="kpgOk" onclick="kpgEntrar()">Entrar</button>
+        <button class="g" onclick="kpgFechar()">Cancelar</button>
+      </div>
+    </div>
 
-<!-- Painel (iframe) -->
-<div id="kpgApp">
-  <div class="top">
-    <span>KPG · Área restrita</span>
-    <button onclick="kpgSair()">Sair</button>
-  </div>
-  <iframe id="kpgFrame" title="Painel KPG"></iframe>
-</div>
+    <div id="kpgApp">
+      <div class="top">
+        <span>KPG · Área restrita</span>
+        <button onclick="kpgSair()">Sair</button>
+      </div>
+      <iframe id="kpgFrame" title="Painel KPG"></iframe>
+    </div>
 
-<script>
-(function(){
-  var KPG_API_URL = "https://almafluxo.uk/proxy/kpg";
-  var CHAVE_SESSAO_KPG = "kpg_usuario_sessao";
-  var $ = function(i){ return document.getElementById(i); };
+    <script>
+    (function(){
+      var KPG_API_URL = "https://almafluxo.uk/proxy/kpg";
+      var CHAVE_SESSAO_KPG = "kpg_usuario_sessao";
+      var $ = function(i){ return document.getElementById(i); };
 
-  var sess = function() {
-    try {
-      var u = JSON.parse(localStorage.getItem(CHAVE_SESSAO_KPG) || 'null');
-      return u && u.email ? u : null;
-    } catch(e) { return null; }
-  };
+      var sess = function() {
+        try {
+          var u = JSON.parse(localStorage.getItem(CHAVE_SESSAO_KPG) || 'null');
+          return u && u.email ? u : null;
+        } catch(e) { return null; }
+      };
 
-  function erro(m) { var e = $('kpgErr'); e.textContent = m || ''; e.style.display = m ? 'block' : 'none'; }
+      function erro(m) { var e = $('kpgErr'); e.textContent = m || ''; e.style.display = m ? 'block' : 'none'; }
 
-  window.kpgFechar = function() { $('kpgLogin').classList.remove('on'); };
+      window.kpgFechar = function() { $('kpgLogin').classList.remove('on'); };
 
-  window.kpgAbrir = function() {
-    var s = sess();
-    if (s) {
-      carregar(s);
-    } else {
-      erro('');
-      $('kpgLogin').classList.add('on');
-      setTimeout(function(){ $('kpgEmail').focus(); }, 50);
-    }
-  };
-
-  window.kpgSair = function() {
-    try { localStorage.removeItem(CHAVE_SESSAO_KPG); } catch(e) {}
-    $('kpgApp').classList.remove('on');
-    $('kpgFrame').src = '';
-    document.body.style.overflow = '';
-    erro('');
-    $('kpgLogin').classList.add('on');
-    setTimeout(function(){ $('kpgEmail').focus(); }, 50);
-  };
-
-  window.kpgEntrar = async function() {
-    var email = $('kpgEmail').value.trim().toLowerCase();
-    var senha = $('kpgSenha').value;
-    var b = $('kpgOk');
-    erro('');
-
-    if (!email || !senha) { erro('Informe e-mail e senha.'); return; }
-
-    b.disabled = true;
-    b.textContent = 'Entrando...';
-
-    try {
-      var r = await fetch(KPG_API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'validarLoginKpg',
-          email: email,
-          senha: senha
-        })
-      });
-      var d = await r.json();
-
-      if (!r.ok || !d.ok) {
-        throw new Error(d.error || 'Falha no login.');
-      }
-
-      var usuario = d.usuario;
-      localStorage.setItem(CHAVE_SESSAO_KPG, JSON.stringify(usuario));
-      $('kpgSenha').value = '';
-      kpgFechar();
-      carregar(usuario);
-
-    } catch(e) {
-      erro('❌ ' + e.message);
-    } finally {
-      b.disabled = false;
-      b.textContent = 'Entrar';
-    }
-  };
-
-  async function carregar(s) {
-    $('kpgApp').classList.add('on');
-    document.body.style.overflow = 'hidden';
-    window.__kpgS = s;
-    var frame = $('kpgFrame');
-    frame.src = '/kpg?t=' + Date.now();
-  }
-
-  addEventListener('message', function(ev) {
-    if (ev.data && ev.data.type === 'kpg-ready' && ev.source === $('kpgFrame').contentWindow) {
-      if (window.__kpgS) {
-        ev.source.postMessage({
-          type: 'kpg-session',
-          email: window.__kpgS.email,
-          sessionToken: window.__kpgS.sessionToken
-        }, '*');
-      } else {
+      window.kpgAbrir = function() {
         var s = sess();
-        if (s) {
-          window.__kpgS = s;
-          ev.source.postMessage({
-            type: 'kpg-session',
-            email: s.email,
-            sessionToken: s.sessionToken
-          }, '*');
-        } else {
-          console.error('Sessão não encontrada para enviar ao painel.');
-          ev.source.postMessage({ type: 'kpg-error', error: 'Sessão expirada ou inválida.' }, '*');
+        if (s) { carregar(s); } else {
+          erro('');
+          $('kpgLogin').classList.add('on');
+          setTimeout(function(){ $('kpgEmail').focus(); }, 50);
         }
+      };
+
+      window.kpgSair = function() {
+        try { localStorage.removeItem(CHAVE_SESSAO_KPG); } catch(e) {}
+        $('kpgApp').classList.remove('on');
+        $('kpgFrame').src = '';
+        document.body.style.overflow = '';
+        erro('');
+        $('kpgLogin').classList.add('on');
+        setTimeout(function(){ $('kpgEmail').focus(); }, 50);
+      };
+
+      window.kpgEntrar = async function() {
+        var email = $('kpgEmail').value.trim().toLowerCase();
+        var senha = $('kpgSenha').value;
+        var b = $('kpgOk');
+        erro('');
+
+        if (!email || !senha) { erro('Informe e-mail e senha.'); return; }
+
+        b.disabled = true;
+        b.textContent = 'Entrando...';
+
+        try {
+          var r = await fetch(KPG_API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'validarLoginKpg',
+              email: email,
+              senha: senha
+            })
+          });
+          var d = await r.json();
+
+          if (!r.ok || !d.ok) {
+            throw new Error(d.error || 'Falha no login.');
+          }
+
+          var usuario = d.usuario;
+          localStorage.setItem(CHAVE_SESSAO_KPG, JSON.stringify(usuario));
+          $('kpgSenha').value = '';
+          kpgFechar();
+          carregar(usuario);
+
+        } catch(e) {
+          erro('❌ ' + e.message);
+        } finally {
+          b.disabled = false;
+          b.textContent = 'Entrar';
+        }
+      };
+
+      async function carregar(s) {
+        $('kpgApp').classList.add('on');
+        document.body.style.overflow = 'hidden';
+        window.__kpgS = s;
+
+        var frame = $('kpgFrame');
+        frame.src = '/kpg?t=' + Date.now();
       }
-    }
-  });
-})();
-</script>
+
+      addEventListener('message', function(ev) {
+        if (ev.data && ev.data.type === 'kpg-ready' && ev.source === $('kpgFrame').contentWindow) {
+          if (window.__kpgS) {
+            ev.source.postMessage({
+              type: 'kpg-session',
+              email: window.__kpgS.email,
+              sessionToken: window.__kpgS.sessionToken
+            }, '*');
+          } else {
+            var s = sess();
+            if (s) {
+              window.__kpgS = s;
+              ev.source.postMessage({
+                type: 'kpg-session',
+                email: s.email,
+                sessionToken: s.sessionToken
+              }, '*');
+            } else {
+              console.error('Sessão não encontrada para enviar ao painel.');
+              ev.source.postMessage({ type: 'kpg-error', error: 'Sessão expirada ou inválida.' }, '*');
+            }
+          }
+        }
+      });
+    })();
+    </script>
 </body>
 </html>
