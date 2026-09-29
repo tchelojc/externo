@@ -2928,35 +2928,12 @@
         });
     </script>
 
-<!-- ═══════════ ÁREA RESTRITA KPG (login ALMA + painel do Drive via Worker) ═══════════ -->
-<!-- ═══════════ ÁREA RESTRITA KPG (login KPG + painel do Drive via Worker) ═══════════ -->
-<style>
-#kpgBtn{position:fixed;left:14px;bottom:14px;z-index:9990;background:var(--azul-primario,#1a5276);color:#fff;border:0;border-radius:24px;padding:.55rem 1rem;font:600 .8rem system-ui,sans-serif;cursor:pointer;opacity:.85;box-shadow:0 4px 14px #0004}
-#kpgBtn:hover{opacity:1}
-#kpgLogin{position:fixed;inset:0;z-index:99998;background:#000b;display:none;align-items:center;justify-content:center;padding:16px}
-#kpgLogin.on{display:flex}
-.kpgBox{background:#fff;border-radius:14px;padding:24px;width:100%;max-width:360px;font-family:system-ui,sans-serif}
-.kpgBox h3{color:var(--azul-primario,#1a5276);margin-bottom:6px}.kpgBox p{color:#5d6d7e;font-size:.82rem;margin-bottom:12px}
-.kpgBox input{width:100%;padding:11px;margin-bottom:9px;border:1px solid #d6dde5;border-radius:8px;font-size:.92rem}
-.kpgBox button{width:100%;padding:11px;border:0;border-radius:8px;background:var(--azul-primario,#1a5276);color:#fff;font-weight:700;cursor:pointer;margin-top:2px}
-.kpgBox button.g{background:none;color:#5d6d7e;font-weight:500}
-#kpgErr{display:none;color:#c0392b;font-size:.82rem;margin-bottom:8px}
-#kpgApp{position:fixed;inset:0;z-index:99999;background:#f4f7fa;display:none;flex-direction:column}
-#kpgApp.on{display:flex}#kpgApp .top{background:#0e2f44;color:#fff;padding:6px 12px;display:flex;justify-content:space-between;align-items:center;font:600 .78rem system-ui,sans-serif}
-#kpgApp .top button{background:#c0392b;color:#fff;border:0;border-radius:6px;padding:4px 12px;cursor:pointer}#kpgApp iframe{flex:1;border:0;width:100%}
-</style>
-<button id="kpgBtn" onclick="kpgAbrir()">🔐 Área restrita</button>
-<div id="kpgLogin"><div class="kpgBox"><h3>🔐 Área restrita KPG</h3><p>Acesso da equipe com sua conta KPG.</p>
-<input type="email" id="kpgEmail" placeholder="seu@email.com" autocomplete="email"><input type="password" id="kpgSenha" placeholder="Senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')kpgEntrar()">
-<div id="kpgErr"></div><button id="kpgOk" onclick="kpgEntrar()">Entrar</button><button class="g" onclick="kpgFechar()">Cancelar</button></div></div>
-<div id="kpgApp"><div class="top"><span>KPG · Área restrita</span><button onclick="kpgSair()">Sair</button></div><iframe id="kpgFrame" title="Painel KPG"></iframe></div>
 <script>
 (function(){
-  var KPG_API_URL = "https://almafluxo.uk/proxy/kpg"; // API correta do KPG
-  var CHAVE_SESSAO_KPG = "kpg_usuario_sessao"; // Chave de sessão específica para KPG
+  var KPG_API_URL = "https://almafluxo.uk/proxy/kpg";
+  var CHAVE_SESSAO_KPG = "kpg_usuario_sessao";
   var $ = function(i){ return document.getElementById(i); };
 
-  // A sessão do KPG é separada da sessão ALMA principal
   var sess = function() {
     try {
       var u = JSON.parse(localStorage.getItem(CHAVE_SESSAO_KPG) || 'null');
@@ -2999,7 +2976,6 @@
     b.textContent = 'Entrando...';
 
     try {
-      // 🔥 A MUDANÇA PRINCIPAL: chama a API do KPG, não a do sistema ALMA
       var r = await fetch(KPG_API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -3015,7 +2991,6 @@
         throw new Error(d.error || 'Falha no login.');
       }
 
-      // A sessão do KPG não usa sessionToken, mas guardamos os dados do usuário
       var usuario = d.usuario;
       localStorage.setItem(CHAVE_SESSAO_KPG, JSON.stringify(usuario));
       $('kpgSenha').value = '';
@@ -3033,58 +3008,40 @@
   async function carregar(s) {
     $('kpgApp').classList.add('on');
     document.body.style.overflow = 'hidden';
-    $('kpgFrame').srcdoc = '<p style="font:16px system-ui;padding:2rem;color:#5d6d7e">Carregando painel…</p>';
 
-    try {
-      // 🔥 O painel KPG (index.html) espera uma mensagem com a sessão.
-      // Vamos garantir que a sessão salva seja passada para ele.
-      window.__kpgS = s;
+    // Armazena a sessão globalmente para acesso no listener
+    window.__kpgS = s;
 
-      // Não precisamos mais buscar o HTML aqui. O iframe carregará o próprio index.html
-      // que, por sua vez, esperará a mensagem 'kpg-session'.
-      // A lógica de carregar o HTML do painel KPG (index.html) a partir do GitHub Pages
-      // ou do Drive já é feita pelo próprio arquivo kpg-index.html que está sendo servido.
-      // O que precisamos é garantir que a sessão seja passada corretamente para o iframe.
-      
-      // A forma mais segura é definir o `srcdoc` com o conteúdo do painel, mas como
-      // o painel é um arquivo separado (index.html), vamos apenas carregar o próprio
-      // kpg-index.html dentro do iframe, que já contém toda a lógica.
-      // No entanto, para simplicidade e para garantir que o painel funcione como esperado,
-      // vamos carregar o HTML do painel KPG (index.html) diretamente.
-      
-      // O worker já tem uma rota para servir o painel KPG. Vamos usá-la.
-      // A rota é `/kpg` e o worker a mapeia para o arquivo correto no Drive.
-      // Se o painel não carregar, o iframe mostrará um erro.
-      
-      // A melhor abordagem é definir o `src` do iframe para a URL do painel KPG.
-      // O próprio painel KPG (index.html) irá então postar a mensagem 'kpg-ready'
-      // e esperar pela sessão. Nós, do lado de fora, ouvimos esse 'kpg-ready'
-      // e respondemos com a sessão salva.
-      
-      // O iframe já está no HTML, vamos apenas definir seu src.
-      var frame = $('kpgFrame');
-      frame.src = '/kpg'; // A rota que serve o painel KPG (index.html)
-
-      // O listener de mensagem já está configurado para ouvir 'kpg-ready'
-      // e responder com a sessão.
-
-    } catch(e) {
-      $('kpgFrame').srcdoc = '<div style="font:15px system-ui;padding:2rem;color:#c0392b">❌ ' + String(e.message).replace(/</g,'&lt;') + '</div>';
-    }
+    // Define o src do iframe para a rota do painel
+    var frame = $('kpgFrame');
+    // Adiciona um timestamp para evitar cache
+    frame.src = '/kpg?t=' + Date.now();
   }
 
-  // Ouve a mensagem do painel KPG (index.html) pedindo a sessão
+  // Listener para a mensagem 'kpg-ready' do painel
   addEventListener('message', function(ev) {
-    // A mensagem 'kpg-ready' é enviada pelo index.html do painel.
-    // Verificamos se a origem é o iframe do painel.
-    if (ev.data && ev.data.type === 'kpg-ready' && window.__kpgS && ev.source === $('kpgFrame').contentWindow) {
-      // Responde com a sessão salva.
-      // O index.html do painel espera uma mensagem com `type: 'kpg-session'`.
-      ev.source.postMessage({
-        type: 'kpg-session',
-        email: window.__kpgS.email,
-        sessionToken: window.__kpgS.sessionToken // Pode ser undefined, o painel lida com isso
-      }, '*');
+    // Verifica se a mensagem é do iframe do painel
+    if (ev.data && ev.data.type === 'kpg-ready' && ev.source === $('kpgFrame').contentWindow) {
+      if (window.__kpgS) {
+        ev.source.postMessage({
+          type: 'kpg-session',
+          email: window.__kpgS.email,
+          sessionToken: window.__kpgS.sessionToken
+        }, '*');
+      } else {
+        var s = sess();
+        if (s) {
+          window.__kpgS = s;
+          ev.source.postMessage({
+            type: 'kpg-session',
+            email: s.email,
+            sessionToken: s.sessionToken
+          }, '*');
+        } else {
+          console.error('Sessão não encontrada para enviar ao painel.');
+          ev.source.postMessage({ type: 'kpg-error', error: 'Sessão expirada ou inválida.' }, '*');
+        }
+      }
     }
   });
 })();
