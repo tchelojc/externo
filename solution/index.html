@@ -572,6 +572,105 @@
         @media (max-width: 420px) {
             .services-grid { grid-template-columns: 1fr; }
         }
+        /* ============================
+           FLOW — TABELA DE COBRANÇA
+           ============================ */
+        .flow-pricing-section {
+            padding: 3rem 1.5rem 4rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .flow-pricing-title {
+            font-family: var(--font);
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #fff;
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+        .flow-pricing-title span { color: var(--dourado); }
+        .flow-pricing-sub {
+            color: var(--texto2);
+            font-size: 0.95rem;
+            text-align: center;
+            max-width: 620px;
+            margin: 0 auto 2rem;
+            line-height: 1.6;
+        }
+        .flow-pricing-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+            font-family: var(--font);
+        }
+        .flow-pricing-table thead {
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.08), rgba(255, 215, 0, 0.04));
+        }
+        .flow-pricing-table th {
+            padding: 0.9rem 1rem;
+            text-align: left;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--ciano);
+            font-weight: 800;
+            border-bottom: 1px solid var(--border);
+        }
+        .flow-pricing-table td {
+            padding: 0.95rem 1rem;
+            font-size: 0.88rem;
+            color: var(--texto);
+            border-bottom: 1px solid var(--border);
+            line-height: 1.5;
+        }
+        .flow-pricing-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        .flow-pricing-table tbody tr:hover {
+            background: rgba(0, 229, 255, 0.03);
+        }
+        .flow-pricing-table .col-tokens {
+            color: var(--dourado);
+            font-weight: 800;
+            font-family: 'Space Grotesk', sans-serif;
+            white-space: nowrap;
+        }
+        .flow-pricing-table .col-mercado {
+            color: var(--texto2);
+            font-size: 0.82rem;
+            white-space: nowrap;
+        }
+        .flow-pricing-table .row-destaque {
+            background: rgba(255, 215, 0, 0.04);
+        }
+        .flow-pricing-table .row-destaque td {
+            font-weight: 600;
+        }
+        .flow-pricing-note {
+            margin-top: 1.2rem;
+            padding: 0.9rem 1.2rem;
+            border-radius: 12px;
+            background: rgba(0, 229, 255, 0.05);
+            border: 1px solid rgba(0, 229, 255, 0.15);
+            color: var(--texto2);
+            font-size: 0.82rem;
+            line-height: 1.6;
+            text-align: center;
+        }
+        .flow-pricing-note strong { color: var(--dourado); }
+        @media (max-width: 600px) {
+            .flow-pricing-table th,
+            .flow-pricing-table td {
+                padding: 0.7rem 0.6rem;
+                font-size: 0.78rem;
+            }
+            .flow-pricing-table .col-mercado {
+                font-size: 0.72rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -585,6 +684,7 @@
         <div class="nav-actions">
             <div class="token-display" id="tokenDisplay">⚡ 0 Tokens</div>
             <button class="btn-nav btn-nav-outline" id="btnLoginLogout" onclick="toggleLoginLogout()">🔑 Login</button>
+            <button class="btn-nav btn-nav-outline" onclick="irParaPagamentos()">💎 Tokens</button>
             <button class="btn-nav btn-nav-gold" onclick="abrirFlow()">🚀 Abrir FLOW</button>
         </div>
     </nav>
@@ -741,6 +841,57 @@
         <div class="flow-cta">
             <button class="btn-gold" onclick="abrirFlow()">🚀 Abrir FLOW</button>
             <button class="btn-secondary" onclick="document.getElementById('pricingFlow').scrollIntoView({behavior:'smooth'})">💎 Ver como cobra</button>
+        </div>
+    </section>
+
+    <!-- ===== FLOW — COMO COBRA (TABELA) ===== -->
+    <section class="flow-pricing-section" id="pricingFlow">
+        <h2 class="flow-pricing-title">💰 Como o <span>FLOW</span> cobra</h2>
+        <p class="flow-pricing-sub">
+            Você paga apenas pela estrutura que montar. Cada bloco é um componente do seu sistema; cada conexão é uma integração entre eles. O valor em tokens é simbólico perto do que custaria contratar esse mesmo desenho no mercado.
+        </p>
+
+        <table class="flow-pricing-table">
+            <thead>
+                <tr>
+                    <th>O que você monta</th>
+                    <th>Custo em Tokens</th>
+                    <th>Equivale no mercado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>🧱 1 Bloco (componente do sistema)</td>
+                    <td class="col-tokens">10 Tokens</td>
+                    <td class="col-mercado">R$ 1.500 – 5.000</td>
+                </tr>
+                <tr>
+                    <td>🔗 1 Conexão (integração entre sistemas)</td>
+                    <td class="col-tokens">5 Tokens</td>
+                    <td class="col-mercado">R$ 8.000 – 40.000</td>
+                </tr>
+                <tr class="row-destaque">
+                    <td>📦 Arquitetura mínima (3 blocos + 2 conexões)</td>
+                    <td class="col-tokens">40 Tokens</td>
+                    <td class="col-mercado">R$ 20.000 – 50.000 (MVP)</td>
+                </tr>
+                <tr class="row-destaque">
+                    <td>🏗️ Projeto típico (6 blocos + 6 conexões)</td>
+                    <td class="col-tokens">90 Tokens</td>
+                    <td class="col-mercado">R$ 40.000 – 120.000 (SaaS)</td>
+                </tr>
+                <tr>
+                    <td>🌐 Ecossistema completo (10+ blocos, 15+ conexões)</td>
+                    <td class="col-tokens">175+ Tokens</td>
+                    <td class="col-mercado">R$ 150.000 – 400.000 (ERP)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="flow-pricing-note">
+            💎 <strong>Cobrança transparente:</strong> os tokens só são debitados quando você clica em
+            <em>Salvar e cobrar estrutura</em> dentro do FLOW. Montar, testar e exportar é livre.
+            Precisa de mais tokens? <a href="https://almafluxo.uk/pagamentos" target="_blank" style="color:var(--ciano);font-weight:700;">Compre aqui</a>.
         </div>
     </section>
 
@@ -1358,9 +1509,20 @@
     function abrirFlowFallback() {
         // Fallback útil para desenvolvimento: abre flow.html numa nova aba
         // enquanto o Worker não tem a plataforma 'flow' registrada.
+        // Passa a sessão via query string pra que o flow.html (numa aba separada)
+        // consiga ler localStorage OU os parâmetros — do jeito que for mais fácil.
         mostrarToastOlho('⚠️ Abrindo FLOW em modo local (fallback)');
+
+        const params = new URLSearchParams();
+        if (usuarioLogado && usuarioLogado.email) {
+            params.set('email', usuarioLogado.email);
+            params.set('sessionToken', usuarioLogado.sessionToken || '');
+        }
+        const qs = params.toString();
+        const url = 'flow.html' + (qs ? ('?' + qs) : '');
+
         setTimeout(() => {
-            window.open('flow.html', '_blank');
+            window.open(url, '_blank');
         }, 500);
     }
 
@@ -1422,6 +1584,7 @@
             });
 
             const data = await resp.json().catch(() => ({}));
+            const iframe = document.getElementById('iframePlataforma');
 
             if (data.ok || data.status === 'success') {
                 const saldoRestante = data.saldoRestante ?? (data.balance ?? usuarioLogado.balance);
@@ -1429,20 +1592,45 @@
                 localStorage.setItem('almafluxo_usuario', JSON.stringify(usuarioLogado));
                 atualizarUIUsuario();
                 mostrarToastOlho(`✅ Estrutura cobrada! Saldo: ${saldoRestante} tokens`);
-                // Envia feedback pro iframe do FLOW
-                const iframe = document.getElementById('iframePlataforma');
+
+                // Feedback de sucesso pro iframe do FLOW
                 if (iframe && iframe.contentWindow) {
                     iframe.contentWindow.postMessage({
                         tipo: 'flow:cobranca-ok',
+                        custo: data.custo,
+                        blocos: data.blocos,
+                        conexoes: data.conexoes,
                         saldoRestante: saldoRestante
                     }, '*');
                 }
             } else {
-                mostrarToastOlho('⚠️ ' + (data.error || 'Não foi possível cobrar a estrutura.'));
+                const erroMsg = data.error || 'Não foi possível cobrar a estrutura.';
+                mostrarToastOlho('⚠️ ' + erroMsg);
+
+                // Feedback de ERRO pro iframe do FLOW (destrava o botão "Cobrar")
+                if (iframe && iframe.contentWindow) {
+                    iframe.contentWindow.postMessage({
+                        tipo: 'flow:cobranca-erro',
+                        error: erroMsg,
+                        custo: data.custo,
+                        blocos: data.blocos,
+                        conexoes: data.conexoes
+                    }, '*');
+                }
             }
         } catch (e) {
             console.error('❌ Erro ao cobrar estrutura:', e);
-            mostrarToastOlho('❌ Erro ao cobrar estrutura do FLOW.');
+            const erroMsg = 'Erro de conexão ao cobrar estrutura do FLOW.';
+            mostrarToastOlho('❌ ' + erroMsg);
+
+            // Feedback de erro pro iframe mesmo em falha de rede
+            const iframe = document.getElementById('iframePlataforma');
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage({
+                    tipo: 'flow:cobranca-erro',
+                    error: erroMsg
+                }, '*');
+            }
         }
     }
 
