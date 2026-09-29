@@ -1716,9 +1716,11 @@
 
         // Detecta se é mobile
         const isMobile = window.innerWidth <= 600;
-        // 🔥 CORRIGIDO: Gera NOVO sessionId a cada nova conversa
-        let sessionId = "user_kpg_" + Date.now();
-        localStorage.setItem('kpg_session_id', sessionId);
+
+        // 🔥 CORRIGIDO: sessionId é GERADO apenas quando começa uma nova conversa.
+        // Antes ele era criado no carregamento da página E recriado em cada mensagem,
+        // causando colisão de IDs e o backend nunca encontrar a resposta certa.
+        let sessionId = null;
 
         // ═══════════════════════════════════════════════════════════════
         // DECLARAÇÕES GLOBAIS (CORRIGIDO)
@@ -2293,16 +2295,6 @@
             alert(detalhes);
         }
 
-        // Inicializa os serviços no select
-        function popularServicos() {
-            const select = document.getElementById('tipoServicoOrcamento');
-            if (!select) return;
-            
-            // O select já tem os optgroups no HTML, mas podemos adicionar dinamicamente se necessário
-            // Esta função é apenas para garantir que os dados estão disponíveis
-            console.log('✅ Sistema de orçamento carregado com ' + Object.keys(SERVICOS_DADOS).length + ' serviços');
-        }
-
         function extrairStatusDoNome(nomePasta) {
             const nomeUpper = nomePasta.toUpperCase();
             
@@ -2385,7 +2377,7 @@
         // CHAT DE ATENDIMENTO - CORRIGIDO
         // ═══════════════════════════════════════════════════════════════
 
-        function gerarSessionId() {
+        function gerarNovoSessionId() {
             return "user_kpg_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
         }
 
@@ -2479,18 +2471,6 @@
                 
                 console.log('✅ Mensagem salva com sucesso');
                 
-                // 🔥 PASSO 2: Acionar processamento
-                try {
-                    const processResponse = await fetch('http://localhost:8081/api/processar-pendentes', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ engine: 'deepseek' })
-                    });
-                    console.log('🔄 Processamento acionado:', processResponse.status);
-                } catch (e) {
-                    console.log('ℹ️ Polling de fundo irá processar');
-                }
-                
                 // 🔥 PASSO 3: Polling por resposta - MAIS ROBUSTO
                 let resposta = null;
                 const MAX_TENTATIVAS = 50;
@@ -2544,42 +2524,6 @@
                             }
                         }
                         
-                        // Se não encontrou, tenta local
-                        if (!resposta) {
-                            try {
-                                const timestampLocal = Date.now();
-                                const respLocal = await fetch(`http://localhost:8081/api/chatAtendenteRespostas?leadId=${sessionId}&_=${timestampLocal}`);
-                                const dataLocal = await respLocal.json();
-                                
-                                console.log(`📥 Resposta local (tentativa ${tentativas}):`, dataLocal);
-                                
-                                if (dataLocal.respostas && dataLocal.respostas.length > 0) {
-                                    // Pega a ÚLTIMA resposta
-                                    const ultima = dataLocal.respostas[dataLocal.respostas.length - 1];
-                                    
-                                    if (ultima.texto && ultima.texto.trim() !== '') {
-                                        const chave = ultima.texto.substring(0, 200) + (ultima.timestamp || '');
-                                        
-                                        if (!respostasVistas.has(chave)) {
-                                            respostasVistas.add(chave);
-                                            
-                                            const isFallback = ultima.texto.includes('Desculpe') || 
-                                                            ultima.texto.includes('Tô sem conseguir') ||
-                                                            ultima.texto.includes('estou sem conseguir') ||
-                                                            ultima.texto.includes('problemas técnicos');
-                                            
-                                            if (!isFallback) {
-                                                console.log('✅ Resposta local válida:', ultima.texto);
-                                                resposta = ultima.texto;
-                                            }
-                                        }
-                                    }
-                                }
-                            } catch (e2) {
-                                console.log('ℹ️ Falha ao consultar local:', e2.message);
-                            }
-                        }
-                        
                     } catch (e) {
                         console.log('❌ Erro no polling:', e.message);
                     }
@@ -2624,10 +2568,13 @@
             
             if (!texto || isProcessingChat) return;
             
-            // 🔥 CORRIGIDO: Gera NOVO sessionId a cada mensagem enviada
-            // Isso evita que o backend busque histórico antigo
-            sessionId = "user_kpg_" + Date.now();
-            localStorage.setItem('kpg_session_id', sessionId);
+            // 🔥 CORRIGIDO: gera um sessionId novo SOMENTE se ainda não existir.
+            // Antes, gerava um ID novo a CADA mensagem enviada — isso fazia com que
+            // o worker (e o kpg.gs) nunca encontrassem a conversa anterior, e o
+            // polling buscasse respostas de uma sessão que acabou de nascer (vazia).
+            if (!sessionId) {
+                sessionId = gerarNovoSessionId();
+            }
             
             adicionarMensagem('user', texto);
             input.value = '';
@@ -2639,9 +2586,10 @@
             // Limpa o chat visual
             document.getElementById('chatMessages').innerHTML = '';
             
-            // Gera novo sessionId
-            sessionId = "user_kpg_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
-            localStorage.setItem('kpg_session_id', sessionId);
+            // 🔥 CORRIGIDO: usa gerarNovoSessionId() em vez de duplicar a lógica.
+            // Antes, o mesmo padrão "user_kpg_ + Date.now() + random" era escrito
+            // em dois lugares diferentes, dificultando manutenção.
+            sessionId = gerarNovoSessionId();
             
             // 🔥 CORREÇÃO: Limpa o cache de respostas vistas
             respostasVistas = new Set();
@@ -2761,49 +2709,6 @@
                 console.log('ℹ️ Usando fallback:', e.message);
                 obrasCarregadas = getObrasFallback();
                 renderizarPortfolio();
-            }
-        }
-
-        async function processarPastaObra(pasta) {
-            try {
-                const nomePasta = pasta.name;
-                const info = extrairInfoDoNomePasta(nomePasta);
-                
-                const imagensUrl = `https://api.github.com/repos/${CONFIG.GITHUB_USER}/${CONFIG.GITHUB_REPO}/contents/${CONFIG.GITHUB_PATH}/${nomePasta}?ref=${CONFIG.GITHUB_BRANCH}`;
-                
-                const response = await fetch(imagensUrl);
-                if (!response.ok) return null;
-                
-                const arquivos = await response.json();
-                
-                const extensoesImagem = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'];
-                const imagens = arquivos
-                    .filter(arquivo => arquivo.type === 'file')
-                    .filter(arquivo => extensoesImagem.some(ext => arquivo.name.toLowerCase().endsWith(ext)))
-                    .map(arquivo => arquivo.name);
-                
-                // Procura por "capa" ou "destaque" como primeira imagem
-                let capa = imagens.find(img => 
-                    img.toLowerCase().includes('capa') || 
-                    img.toLowerCase().includes('destaque') || 
-                    img.toLowerCase().includes('cover')
-                );
-                
-                if (!capa && imagens.length > 0) {
-                    capa = imagens[0];
-                }
-                
-                if (imagens.length === 0) return null;
-                
-                return {
-                    ...info,
-                    imagens: imagens,
-                    capa: capa,
-                    totalImagens: imagens.length
-                };
-                
-            } catch (e) {
-                return null;
             }
         }
 
@@ -3019,9 +2924,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             renderizarServicos();
             carregarPortfolioAutomatico();
-            popularServicos();
             iniciarNovaConversa();
-            
         });
     </script>
 
@@ -3053,7 +2956,19 @@
   function erro(m){var e=$('kpgErr');e.textContent=m||'';e.style.display=m?'block':'none'}
   window.kpgFechar=function(){$('kpgLogin').classList.remove('on')};
   window.kpgAbrir=function(){var s=sess();if(s){carregar(s)}else{erro('');$('kpgLogin').classList.add('on');setTimeout(function(){$('kpgEmail').focus()},50)}};
-  window.kpgSair=function(){$('kpgApp').classList.remove('on');$('kpgFrame').srcdoc='';document.body.style.overflow=''};
+  // 🔥 CORRIGIDO: kpgSair() agora também remove a sessão do localStorage.
+  // Antes, apenas fechava o painel — a sessão continuava salva e o botão
+  // "Área restrita" reabria o painel direto, sem pedir login novamente.
+  window.kpgSair=function(){
+    try{localStorage.removeItem(CH)}catch(e){}
+    $('kpgApp').classList.remove('on');
+    $('kpgFrame').srcdoc='';
+    document.body.style.overflow='';
+    // Reabre o formulário de login
+    erro('');
+    $('kpgLogin').classList.add('on');
+    setTimeout(function(){$('kpgEmail').focus()},50);
+  };
   window.kpgEntrar=async function(){
     var email=$('kpgEmail').value.trim().toLowerCase(),senha=$('kpgSenha').value,b=$('kpgOk');erro('');
     if(!email||!senha){erro('Informe e-mail e senha.');return}
