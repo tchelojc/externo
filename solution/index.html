@@ -970,7 +970,6 @@
     <!-- ===== IFRAME FLOW ===== -->
     <iframe id="iframePlataforma" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads allow-presentation allow-pointer-lock allow-top-navigation-by-user-activation allow-storage-access-by-user-activation"></iframe>
     <button id="btnVoltarPlataforma" onclick="fecharPlataforma()">✕ Voltar</button>
-    <button id="btnAbrirStudio" onclick="abrirStudio()">🎛️ Abrir STUDIO</button>
 
     <!-- ============================
     SCRIPTS
@@ -1491,7 +1490,6 @@
             iframe.srcdoc = html;
             iframe.classList.add('active');
             document.getElementById('btnVoltarPlataforma').classList.add('active');
-            document.getElementById('btnAbrirStudio').classList.add('active');
 
             fecharModalLogin();
             lf.classList.remove('active');
@@ -1535,12 +1533,7 @@
         iframe.classList.remove('active');
         iframe.srcdoc = '';
         document.getElementById('btnVoltarPlataforma').classList.remove('active');
-        document.getElementById('btnAbrirStudio').classList.remove('active');
         document.body.style.overflow = '';
-    }
-
-    function abrirStudio() {
-        window.open('https://externo-ervbz7jghvkakbh9rtxrgu.streamlit.app/?source=flow', '_blank');
     }
 
     // ======================================================
