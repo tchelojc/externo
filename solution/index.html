@@ -1479,10 +1479,9 @@
             const html = await response.text();
 
             if (!html || (!html.includes('<!DOCTYPE') && !html.includes('<html'))) {
-                // Fallback: Worker ainda não tem a plataforma 'flow' cadastrada
-                console.warn('⚠️ Worker não retornou HTML válido para flow. Tentando fallback local.');
+                console.warn('⚠️ Worker não retornou HTML válido para flow.');
                 lf.classList.remove('active');
-                abrirFlowFallback();
+                abrirFlowFallback('HTML inválido do Worker');
                 return;
             }
 
@@ -1501,17 +1500,22 @@
         } catch (e) {
             console.error('❌ Erro ao abrir FLOW:', e);
             lf.classList.remove('active');
-            // Fallback: abre flow.html local em nova aba
-            abrirFlowFallback();
+            abrirFlowFallback(e.message || 'erro de rede');
         }
     }
 
-    function abrirFlowFallback() {
-        // Fallback útil para desenvolvimento: abre flow.html numa nova aba
-        // enquanto o Worker não tem a plataforma 'flow' registrada.
-        // Passa a sessão via query string pra que o flow.html (numa aba separada)
-        // consiga ler localStorage OU os parâmetros — do jeito que for mais fácil.
-        mostrarToastOlho('⚠️ Abrindo FLOW em modo local (fallback)');
+    function abrirFlowFallback(motivo) {
+        // Fallback: quando o Worker não entrega o flow.html (502, sessão,
+        // rede), abre a ROTA /flow do Worker em nova aba. Essa rota tem
+        // tela de login embutida (FLOW_ENTRY_HTML no worker.js) e cuida
+        // de buscar o HTML real do Drive internamente.
+        //
+        // 🐛 BUG ANTIGO: window.open('flow.html') resolvia relativo à
+        // página atual (/solution/flow.html), que NÃO existe — o
+        // flow.html real está no Drive e é servido pelo Worker em /flow.
+        // Agora usa URL ABSOLUTA a partir de WORKER_URL.
+        const motivoTexto = motivo ? ` — ${motivo}` : '';
+        mostrarToastOlho(`⚠️ Abrindo FLOW em modo alternativo${motivoTexto}`);
 
         const params = new URLSearchParams();
         if (usuarioLogado && usuarioLogado.email) {
@@ -1519,10 +1523,10 @@
             params.set('sessionToken', usuarioLogado.sessionToken || '');
         }
         const qs = params.toString();
-        const url = 'flow.html' + (qs ? ('?' + qs) : '');
+        const url = WORKER_URL + '/flow' + (qs ? ('?' + qs) : '');
 
         setTimeout(() => {
-            window.open(url, '_blank');
+            window.open(url, '_blank', 'noopener');
         }, 500);
     }
 
