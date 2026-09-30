@@ -164,7 +164,7 @@
   }
   .osf-papeis{
     display:grid;
-    grid-template-columns:1fr 1fr 1fr;
+    grid-template-columns:1fr 1fr;
     gap:.9rem;
   }
   @media (max-width:520px){ .osf-papeis{grid-template-columns:1fr;} }
@@ -401,6 +401,11 @@
         <b>Administrador</b>
         <small>Painel da empresa</small>
       </button>
+      <button type="button" class="osf-papel" onclick="abrirOsfluxo('osfluxo-estoque')">
+        <span class="icone">📦</span>
+        <b>Estoque</b>
+        <small>Painel de controle</small>
+      </button>
     </div>
   </div>
 </div>
@@ -452,11 +457,12 @@ const TOKEN_INTERNO = 'ALMA369UA'; // ainda usado pelo chat de atendimento (rota
 /* Os IDs do Drive e o controle de acesso agora vivem SÓ no worker.js
    (PLATAFORMAS_DRIVE). Aqui só ficam os nomes das plataformas e se exigem login. */
 const PLATAFORMAS_OSFLUXO = {
-  'osfluxo-entrada':        { login: false }, // cliente final — tem login próprio dentro do HTML
-  'osfluxo-cliente':        { login: false }, // cliente final (QR/garantia)
+  'osfluxo-entrada':        { login: false },
+  'osfluxo-cliente':        { login: false },
   'osfluxo-painel-empresa': { login: true  },
   'osfluxo-linha-producao': { login: true  },
-  'osfluxo-supervisor':     { login: true  }
+  'osfluxo-supervisor':     { login: true  },
+  'osfluxo-estoque':        { login: true  }
 };
 
 /* ── Sessão ALMA (mesma chave do Olho De Deus / hub / flow) ── */
