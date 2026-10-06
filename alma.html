@@ -3024,8 +3024,8 @@
 
     function fecharTokenGateModal() {
       document.getElementById('tokenGateModal').style.display = 'none';
-      // 🔥 NOVO: limpa o estado pendente pra não vazar pra próxima abertura
-      if (!_tgModoGratis) _tgPendente = null;
+      // Não zera mais _tgPendente aqui — o consumidor (tgAbrirPlataformaPendente)
+      // captura o valor antes de fechar. Zerar aqui causava race condition.
     }
     document.getElementById('tokenGateModal').addEventListener('click', e => {
       if (e.target === document.getElementById('tokenGateModal')) fecharTokenGateModal();
@@ -3197,6 +3197,13 @@
       tgMostrarStep('plano');
       _tgPlanoSelecionado = null;
 
+      // 🔥 Blindagem: se _tgPendente foi zerado por algum fluxo paralelo
+      // (ex.: login do canto abriu o modal), sai sem estourar TypeError.
+      if (!_tgPendente) {
+        console.warn('tgAbrirPassoPlano chamado sem _tgPendente');
+        fecharTokenGateModal();
+        return;
+      }
       const { plataforma, titulo, tipo } = _tgPendente;
       document.getElementById('tgTituloPlataforma').textContent = titulo;
       tgSetMsg('tgMsgPlano', '', '');
@@ -3309,6 +3316,12 @@
 
     // 🆕 Usuário escolheu um plano → mostra CONFIRMAÇÃO antes de debitar
     function tgSelecionarPlano(plataforma, plano) {
+      // 🔥 Blindagem: se _tgPendente foi zerado, não tem como montar
+      // o texto da confirmação (usa _tgPendente.titulo). Sai limpo.
+      if (!_tgPendente) {
+        console.warn('tgSelecionarPlano chamado sem _tgPendente');
+        return;
+      }
       _tgPlanoSelecionado = plano;
       const saldo = usuarioTokens.balance || 0;
       const sobra = saldo - plano.tokens;
@@ -3345,9 +3358,15 @@
     }
 
     async function tgConfirmarCompra() {
-      if (!_tgPlanoSelecionado) return;
+      // 🔥 Blindagem: exige plano selecionado E pendente vivo. Sem isso,
+      // o payload usaria _tgPendente.plataforma = undefined.
+      if (!_tgPlanoSelecionado || !_tgPendente) {
+        console.warn('tgConfirmarCompra sem plano ou sem _tgPendente');
+        return;
+      }
 
       const plano = _tgPlanoSelecionado;
+      const plataformaPendente = _tgPendente.plataforma; // 🔥 captura local
       const btn = document.getElementById('tgBtnConfirmar');
       btn.disabled = true;
       btn.innerHTML = '<span class="spin"></span> Processando...';
@@ -3357,8 +3376,8 @@
       const isAvulso = plano.chave === 'avulso';
       const action = isAvulso ? 'acessarPlataformaAvulsa' : 'comprarAcessoPorTempo';
       const payload = isAvulso
-        ? { email: usuarioTokens.email, plataforma: _tgPendente.plataforma }
-        : { email: usuarioTokens.email, plataforma: _tgPendente.plataforma, plano: plano.chave };
+        ? { email: usuarioTokens.email, plataforma: plataformaPendente }
+        : { email: usuarioTokens.email, plataforma: plataformaPendente, plano: plano.chave };
 
       const resultado = await tgApiCall(action, payload);
 
@@ -3390,11 +3409,18 @@
     }
 
     function tgAbrirPlataformaPendente() {
+        // 🔥 CORRIGIDO: captura o pendente ANTES de fechar o modal,
+        // porque fecharTokenGateModal() agora zera _tgPendente.
+        const pendente = _tgPendente;
         fecharTokenGateModal();
-        const { url, titulo, plataforma, abrirEm } = _tgPendente;
 
-        // 🔥 CORRIGIDO: se o botão pediu nova_aba E a URL é externa (não é do Drive),
-        // abre direto — mesmo tendo plataforma (o débito já aconteceu no passo anterior)
+        if (!pendente) {
+            console.warn('tgAbrirPlataformaPendente chamado sem _tgPendente');
+            return;
+        }
+
+        const { url, titulo, plataforma, abrirEm } = pendente;
+
         const urlExterna = url && !url.startsWith('/') && !url.includes('almafluxo.uk/proxy');
         if (abrirEm === 'nova_aba' && urlExterna) {
             window.open(url, '_blank');
@@ -3430,7 +3456,11 @@
       deferredPrompt.prompt();
       deferredPrompt.userChoice.then(() => { deferredPrompt = null; installBtn.style.display = 'none'; });
     }
-    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(e => console.warn('SW:', e));
+    // 🔥 Cache buster versionado: incremente a data a cada deploy pra forçar
+    // o navegador a baixar o sw.js novo (e, por consequência, os assets).
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js?v=2026-10-06-1').catch(e => console.warn('SW:', e));
+    }
 
     // ═══════════════════════════════════════════════════════════════
     // LEITURA POR VOZ — EXCLUSIVA DO ATENDIMENTO
