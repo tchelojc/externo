@@ -583,7 +583,11 @@
       backdrop-filter: blur(14px);
       z-index: 2000;
       justify-content: center; align-items: center;
+      padding: 20px;             /* 🔥 NOVO — evita o modal tocar as bordas */
+      overflow-y: auto;          /* 🔥 NOVO — se o conteúdo for maior que a tela, o modal rola */
     }
+
+    .auth-modal.active { display: flex; }   /* 🔥 opcional: padroniza a abertura */
     .auth-modal-content {
       background: rgba(15, 26, 50, 0.97);
       border-radius: 22px;
@@ -593,6 +597,26 @@
       text-align: center;
       box-shadow: 0 0 60px rgba(0, 229, 255, 0.3), 0 20px 40px rgba(0,0,0,0.6);
       position: relative;
+
+      /* 🔥 CORRIGIDO — barra de rolagem que funciona em qualquer tela */
+      max-height: calc(100dvh - 40px);   /* 100dvh respeita a barra do iOS */
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;                     /* Firefox */
+      scrollbar-color: rgba(0,229,255,0.3) transparent;
+    }
+    .auth-modal-content::-webkit-scrollbar { width: 6px; }
+    .auth-modal-content::-webkit-scrollbar-thumb {
+      background: rgba(0,229,255,0.3);
+      border-radius: 3px;
+    }
+    #tgPlanosGrid {
+      max-height: 42vh;
+      overflow-y: auto;
+      padding-right: 4px;
+      -webkit-overflow-scrolling: touch;
+      min-height: 0;   /* 🔥 essencial: permite o grid encolher dentro do flex pai */
     }
     .auth-ring {
       width: 68px; height: 68px; border-radius: 50%;
@@ -2878,7 +2902,14 @@
 
           if (!resp.ok) {
             // 401/403 → sessão inválida OU acesso negado
-            if (resp.status === 401 || resp.status === 403) {
+            if (resp.status === 401) {
+              // Sessão inválida/expirada — limpa pra forçar novo login
+              usuarioTokens = null;
+              try { localStorage.removeItem('almafluxo_usuario'); } catch (_) {}
+              atualizarWidgetCanto();
+              throw new Error('Sua sessão expirou. Faça login novamente.');
+            }
+            if (resp.status === 403) {
               let erroJson = {};
               try { erroJson = await resp.json(); } catch (_) {}
               throw new Error(erroJson.error || 'Acesso negado. Verifique seu plano.');
@@ -2993,6 +3024,8 @@
 
     function fecharTokenGateModal() {
       document.getElementById('tokenGateModal').style.display = 'none';
+      // 🔥 NOVO: limpa o estado pendente pra não vazar pra próxima abertura
+      if (!_tgModoGratis) _tgPendente = null;
     }
     document.getElementById('tokenGateModal').addEventListener('click', e => {
       if (e.target === document.getElementById('tokenGateModal')) fecharTokenGateModal();
@@ -3246,7 +3279,7 @@
       Object.entries(planos).forEach(([chave, dados]) => {
         const tokens = typeof dados === 'object' ? dados.tokens : dados;
         const desc = typeof dados === 'object' ? dados.desc : '';
-        const label = TG_LABEL_PLANO[chave] || chave;
+        const label = (typeof dados === 'object' && dados.label) ? dados.label : (TG_LABEL_PLANO[chave] || chave);
 
         const btn = document.createElement('button');
         btn.className = 'auth-btn';
@@ -3360,12 +3393,14 @@
         fecharTokenGateModal();
         const { url, titulo, plataforma, abrirEm } = _tgPendente;
 
-        if (abrirEm === 'nova_aba' && url && !plataforma) {
+        // 🔥 CORRIGIDO: se o botão pediu nova_aba E a URL é externa (não é do Drive),
+        // abre direto — mesmo tendo plataforma (o débito já aconteceu no passo anterior)
+        const urlExterna = url && !url.startsWith('/') && !url.includes('almafluxo.uk/proxy');
+        if (abrirEm === 'nova_aba' && urlExterna) {
             window.open(url, '_blank');
             return;
         }
 
-        // Se tem plataforma, usa servirHTML (Drive) — mesmo padrão do Olho De Deus
         if (plataforma) {
             _openViewer(url, titulo, plataforma);
         } else if (url) {
