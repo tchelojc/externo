@@ -2878,10 +2878,14 @@
       const spinner = document.getElementById('viewerSpinner');
       const titleEl = document.getElementById('viewerTitle');
 
+      // 🔥 ABRE O VIEWER PRIMEIRO — o spinner aparece imediatamente
+      viewer.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
       spinner.style.display = 'block';
+      frame.removeAttribute('src');
+      frame.srcdoc = '';
       titleEl.textContent = title || plataforma || url || 'Plataforma';
 
-      // ── Modo preferencial: plataforma → servirHTML (padrão Olho De Deus) ──
       if (plataforma) {
         try {
           const sessao = usuarioTokens || JSON.parse(localStorage.getItem('almafluxo_usuario') || 'null');
@@ -2901,9 +2905,7 @@
           });
 
           if (!resp.ok) {
-            // 401/403 → sessão inválida OU acesso negado
             if (resp.status === 401) {
-              // Sessão inválida/expirada — limpa pra forçar novo login
               usuarioTokens = null;
               try { localStorage.removeItem('almafluxo_usuario'); } catch (_) {}
               atualizarWidgetCanto();
@@ -2922,10 +2924,7 @@
             throw new Error('Conteúdo inválido retornado do Drive.');
           }
 
-          frame.removeAttribute('src');   // limpa src anterior
           frame.srcdoc = html;
-          viewer.style.display = 'flex';
-          document.body.style.overflow = 'hidden';
           spinner.style.display = 'none';
 
           frame.onload = () => {
@@ -2941,16 +2940,16 @@
         } catch (e) {
           spinner.style.display = 'none';
           alert('❌ Não consegui carregar a plataforma: ' + e.message);
+          // 🔥 Fecha o viewer se deu erro, pra não deixar tela vazia
+          document.getElementById('platformViewer').style.display = 'none';
+          document.body.style.overflow = '';
           return;
         }
       }
 
-      // ── Fallback: URL externa direta (para links que não têm plataforma) ──
+      // ── Fallback: URL externa direta ──
       const finalUrl = url + (url.includes('?') ? '&' : '?') + 'alma_token=' + encodeURIComponent(_sessionToken) + '&alma_ref=' + encodeURIComponent(window.location.href);
-      frame.srcdoc = '';
       frame.src = finalUrl;
-      viewer.style.display = 'flex';
-      document.body.style.overflow = 'hidden';
       frame.onload = () => { spinner.style.display = 'none'; };
     }
     function fecharViewer() { document.getElementById('platformFrame').src = 'about:blank'; document.getElementById('platformViewer').style.display = 'none'; document.body.style.overflow = ''; }
@@ -3400,7 +3399,7 @@
         atualizarWidgetCanto();
 
         // Aguarda 1,2s pra o usuário ler e abre
-        setTimeout(tgAbrirPlataformaPendente, 1200);
+        setTimeout(tgAbrirPlataformaPendente, 400);
       } else {
         tgSetMsg('tgMsgPlano', 'error', '❌ ' + (resultado.error || 'Erro ao processar a compra.'));
         btn.disabled = false;
