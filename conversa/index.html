@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#000000">
+<title>CONVERSA · ALMAFLUXO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  :root{
+    --bg:#030508; --panel:#0a0e17; --panel2:#060a12;
+    --ciano:#00e5ff; --dourado:#d4a843; --roxo:#9a5fd8; --verde:#2ecc71;
+    --texto:#e8e6e3; --texto2:#8b93a7; --borda:#1a1a2e;
+  }
+  html,body{height:100%;}
+  body{
+    font-family:'Roboto',sans-serif;
+    background: radial-gradient(ellipse at top, rgba(0,229,255,0.06), transparent 60%), var(--bg);
+    color:var(--texto);
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+
+  /* ═══════════ LOGIN ═══════════ */
+  #telaLogin{
+    position:fixed; inset:0; z-index:100;
+    display:flex; align-items:center; justify-content:center;
+    background: radial-gradient(ellipse at center, #0a1628 0%, #030508 70%);
+    padding:20px;
+  }
+  .login-box{
+    background:rgba(15,26,50,0.97);
+    border:1px solid rgba(0,229,255,0.25);
+    border-radius:22px;
+    padding:38px 32px;
+    width:100%; max-width:420px;
+    box-shadow:0 0 60px rgba(0,229,255,0.2), 0 20px 40px rgba(0,0,0,0.6);
+    text-align:center;
+    position:relative;
+  }
+  .login-orb{
+    width:72px; height:72px; border-radius:50%;
+    background:linear-gradient(135deg, var(--ciano), #0066aa);
+    margin:0 auto 18px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:2rem;
+    box-shadow:0 0 30px rgba(0,229,255,0.5);
+    animation: pulsar 3s ease-in-out infinite;
+  }
+  @keyframes pulsar{0%,100%{transform:scale(1);box-shadow:0 0 30px rgba(0,229,255,0.5);}50%{transform:scale(1.05);box-shadow:0 0 50px rgba(0,229,255,0.8);}}
+  .login-box h1{
+    font-family:'Orbitron',sans-serif;
+    font-size:1.6rem; font-weight:700;
+    letter-spacing:0.15em;
+    background:linear-gradient(90deg, var(--dourado), var(--ciano), var(--roxo));
+    -webkit-background-clip:text; background-clip:text;
+    color:transparent;
+    margin-bottom:6px;
+  }
+  .login-box .sub{
+    font-size:0.72rem; color:var(--texto2);
+    letter-spacing:0.3em; text-transform:uppercase;
+    margin-bottom:28px;
+  }
+  .login-input{
+    width:100%; padding:13px 16px;
+    border-radius:10px;
+    border:1px solid rgba(0,229,255,0.25);
+    background:rgba(20,35,65,0.7);
+    color:var(--texto);
+    font-size:0.95rem;
+    outline:none;
+    margin-bottom:12px;
+    font-family:inherit;
+    transition:border-color .2s, box-shadow .2s;
+  }
+  .login-input:focus{border-color:var(--ciano); box-shadow:0 0 0 3px rgba(0,229,255,0.1);}
+  .login-btn{
+    width:100%; padding:13px;
+    border-radius:10px; border:none;
+    background:linear-gradient(135deg, var(--ciano), #0088cc);
+    color:#000; font-weight:700; font-size:0.95rem;
+    cursor:pointer; letter-spacing:0.05em;
+    transition:transform .2s, box-shadow .2s;
+    font-family:inherit;
+    margin-top:8px;
+  }
+  .login-btn:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,229,255,0.4);}
+  .login-btn:disabled{opacity:0.5; cursor:not-allowed; transform:none;}
+  .login-msg{
+    margin-top:14px; padding:10px 14px;
+    border-radius:8px; font-size:0.85rem;
+    display:none; text-align:left;
+  }
+  .login-msg.error{display:block; background:rgba(255,80,80,0.12); border:1px solid rgba(255,80,80,0.3); color:#ff9090;}
+  .login-msg.info{display:block; background:rgba(0,229,255,0.12); border:1px solid rgba(0,229,255,0.3); color:#aaccff;}
+  .login-msg.success{display:block; background:rgba(50,210,120,0.12); border:1px solid rgba(50,210,120,0.3); color:#80f0b0;}
+  .login-foot{
+    margin-top:22px; font-size:0.72rem;
+    color:var(--texto2); letter-spacing:0.05em;
+  }
+  .login-foot a{color:var(--ciano); text-decoration:none;}
+  .spin{
+    display:inline-block; width:14px; height:14px;
+    border:2px solid rgba(0,0,0,0.3); border-top-color:#000;
+    border-radius:50%; animation:spin .7s linear infinite;
+    vertical-align:middle; margin-right:6px;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* ═══════════ APP ═══════════ */
+  #app{display:none; min-height:100vh; padding-bottom:70px;}
+  #app.ativo{display:block;}
+
+  /* HEADER */
+  .topbar{
+    position:sticky; top:0; z-index:50;
+    background:rgba(8,12,28,0.96);
+    backdrop-filter:blur(18px);
+    border-bottom:1px solid rgba(0,229,255,0.2);
+    padding:12px 20px;
+    display:flex; align-items:center; justify-content:space-between;
+    gap:12px;
+  }
+  .topbar-brand{
+    display:flex; align-items:center; gap:10px;
+    font-family:'Orbitron',sans-serif;
+    font-size:1rem; letter-spacing:0.12em;
+    color:var(--ciano);
+  }
+  .topbar-brand span.dot{
+    width:8px; height:8px; border-radius:50%;
+    background:var(--verde);
+    box-shadow:0 0 8px var(--verde);
+    animation:pulsar 2s infinite;
+  }
+  .topbar-user{
+    display:flex; align-items:center; gap:10px;
+    font-size:0.82rem; color:var(--texto2);
+  }
+  .topbar-user strong{color:var(--texto);}
+  .btn-sair{
+    background:rgba(255,80,80,0.15);
+    border:1px solid rgba(255,80,80,0.35);
+    color:#ff9090;
+    padding:6px 12px; border-radius:20px;
+    font-size:0.75rem; cursor:pointer;
+    font-family:inherit;
+    transition:background .2s;
+  }
+  .btn-sair:hover{background:rgba(255,80,80,0.3);}
+
+  /* TABS */
+  .tabs{
+    display:flex; gap:4px;
+    padding:14px 20px 0;
+    overflow-x:auto;
+    border-bottom:1px solid rgba(255,255,255,0.06);
+    position:sticky; top:57px; z-index:49;
+    background:rgba(8,12,28,0.94);
+    backdrop-filter:blur(18px);
+  }
+  .tab{
+    padding:10px 18px;
+    border:none; background:transparent;
+    color:var(--texto2);
+    font-size:0.85rem; font-weight:500;
+    cursor:pointer;
+    border-bottom:2px solid transparent;
+    transition:color .2s, border-color .2s;
+    white-space:nowrap;
+    font-family:inherit;
+    letter-spacing:0.03em;
+  }
+  .tab:hover{color:var(--texto);}
+  .tab.ativa{color:var(--ciano); border-bottom-color:var(--ciano);}
+  .tab .badge{
+    display:inline-block; margin-left:6px;
+    background:rgba(0,229,255,0.2);
+    border-radius:10px; padding:1px 7px;
+    font-size:0.7rem; color:var(--ciano);
+  }
+
+  /* CONTEÚDO */
+  .conteudo{padding:24px 20px; max-width:1200px; margin:0 auto;}
+  .painel{display:none;}
+  .painel.ativo{display:block; animation:fadeIn .35s ease;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(6px);}to{opacity:1; transform:translateY(0);}}
+
+  .acoes-topo{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:12px; margin-bottom:20px; flex-wrap:wrap;
+  }
+  .acoes-topo h2{
+    font-family:'Orbitron',sans-serif;
+    font-size:1.15rem; letter-spacing:0.08em;
+    color:var(--texto); font-weight:400;
+  }
+  .acoes-topo h2 small{
+    display:block; font-family:'Roboto',sans-serif;
+    font-size:0.75rem; color:var(--texto2);
+    letter-spacing:0.02em; margin-top:4px; font-weight:300;
+  }
+  .btn{
+    padding:10px 18px; border-radius:10px;
+    border:none; cursor:pointer;
+    font-family:inherit; font-size:0.85rem; font-weight:600;
+    letter-spacing:0.03em;
+    transition:transform .2s, box-shadow .2s, background .2s;
+    display:inline-flex; align-items:center; gap:6px;
+  }
+  .btn-primario{
+    background:linear-gradient(135deg, var(--ciano), #0088cc);
+    color:#000;
+    box-shadow:0 4px 14px rgba(0,229,255,0.35);
+  }
+  .btn-primario:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,229,255,0.55);}
+  .btn-secundario{
+    background:rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.15);
+    color:var(--texto);
+  }
+  .btn-secundario:hover{background:rgba(255,255,255,0.12);}
+  .btn-perigo{
+    background:rgba(255,80,80,0.15);
+    border:1px solid rgba(255,80,80,0.35);
+    color:#ff9090;
+  }
+  .btn-perigo:hover{background:rgba(255,80,80,0.3);}
+  .btn:disabled{opacity:0.5; cursor:not-allowed; transform:none;}
+
+  /* GRID */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
+    gap:16px;
+  }
+  .card-arquivo{
+    background:rgba(15,25,45,0.7);
+    border:1px solid rgba(0,229,255,0.12);
+    border-radius:14px;
+    overflow:hidden;
+    transition:transform .25s, border-color .25s, box-shadow .25s;
+    cursor:pointer;
+    display:flex; flex-direction:column;
+    position:relative;
+  }
+  .card-arquivo:hover{
+    transform:translateY(-4px);
+    border-color:rgba(0,229,255,0.45);
+    box-shadow:0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(0,229,255,0.15);
+  }
+  .card-preview{
+    height:150px;
+    background:rgba(0,0,0,0.4);
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
+    position:relative;
+  }
+  .card-preview img,
+  .card-preview video{
+    width:100%; height:100%; object-fit:cover;
+  }
+  .card-preview .icone{
+    font-size:3rem; opacity:0.7;
+  }
+  .card-info{
+    padding:12px 14px;
+    flex:1; display:flex; flex-direction:column;
+    gap:6px;
+  }
+  .card-nome{
+    font-size:0.88rem; font-weight:600;
+    color:var(--texto);
+    overflow:hidden; text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .card-meta{
+    font-size:0.72rem; color:var(--texto2);
+    display:flex; justify-content:space-between;
+    gap:8px;
+  }
+  .card-acoes{
+    display:flex; gap:6px; margin-top:8px;
+  }
+  .card-acoes .btn{
+    flex:1; padding:7px 10px; font-size:0.75rem;
+    justify-content:center;
+  }
+  .pasta-tag{
+    position:absolute; top:8px; left:8px;
+    background:rgba(0,0,0,0.75);
+    backdrop-filter:blur(6px);
+    border-radius:20px;
+    padding:3px 10px;
+    font-size:0.68rem; color:var(--ciano);
+    border:1px solid rgba(0,229,255,0.3);
+  }
+
+  /* VAZIO */
+  .vazio{
+    text-align:center; padding:60px 20px;
+    color:var(--texto2); font-size:0.9rem;
+  }
+  .vazio .icone{font-size:3rem; margin-bottom:12px; opacity:0.5;}
+
+  /* UPLOAD */
+  .upload-area{
+    border:2px dashed rgba(0,229,255,0.3);
+    border-radius:16px;
+    padding:40px 20px;
+    text-align:center;
+    margin-bottom:22px;
+    cursor:pointer;
+    transition:background .2s, border-color .2s;
+    background:rgba(0,229,255,0.03);
+  }
+  .upload-area:hover,
+  .upload-area.arrastando{
+    background:rgba(0,229,255,0.08);
+    border-color:var(--ciano);
+  }
+  .upload-area .icone{font-size:2.5rem; margin-bottom:10px;}
+  .upload-area .titulo{font-size:1rem; color:var(--texto); margin-bottom:4px;}
+  .upload-area .sub{font-size:0.78rem; color:var(--texto2);}
+  .upload-progresso{
+    margin-top:16px; display:none;
+  }
+  .upload-progresso.ativo{display:block;}
+  .barra{
+    height:6px; background:rgba(255,255,255,0.08);
+    border-radius:3px; overflow:hidden; margin-top:8px;
+  }
+  .barra-fill{
+    height:100%; width:0%;
+    background:linear-gradient(90deg, var(--ciano), var(--dourado));
+    transition:width .3s;
+  }
+
+  /* MODAL */
+  .modal{
+    display:none; position:fixed; inset:0;
+    background:rgba(0,0,0,0.9);
+    backdrop-filter:blur(10px);
+    z-index:200;
+    padding:20px;
+  }
+  .modal.ativo{display:flex; align-items:center; justify-content:center;}
+  .modal-box{
+    background:rgba(15,26,50,0.98);
+    border:1px solid rgba(0,229,255,0.3);
+    border-radius:18px;
+    width:100%; max-width:900px;
+    max-height:90vh;
+    display:flex; flex-direction:column;
+    overflow:hidden;
+    box-shadow:0 0 60px rgba(0,229,255,0.2);
+  }
+  .modal-header{
+    padding:14px 20px;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+    display:flex; align-items:center; justify-content:space-between;
+    gap:12px;
+  }
+  .modal-titulo{
+    font-size:0.95rem; font-weight:600;
+    color:var(--texto);
+    overflow:hidden; text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .modal-close{
+    background:transparent; border:none;
+    color:var(--texto2); font-size:1.6rem;
+    cursor:pointer; padding:0 6px;
+    transition:color .2s;
+    font-family:inherit;
+  }
+  .modal-close:hover{color:#ff9090;}
+  .modal-body{
+    flex:1; overflow:auto; padding:20px;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(0,0,0,0.3);
+  }
+  .modal-body img,
+  .modal-body video{
+    max-width:100%; max-height:70vh;
+    border-radius:8px;
+  }
+  .modal-body iframe{
+    width:100%; height:70vh;
+    border:none; border-radius:8px;
+    background:#fff;
+  }
+  .modal-body textarea{
+    width:100%; height:60vh;
+    background:#0a0e17; color:var(--texto);
+    border:1px solid rgba(0,229,255,0.2);
+    border-radius:8px; padding:14px;
+    font-family:'Courier New',monospace;
+    font-size:0.85rem; line-height:1.5;
+    resize:vertical; outline:none;
+  }
+  .modal-body textarea:focus{border-color:var(--ciano);}
+  .modal-footer{
+    padding:14px 20px;
+    border-top:1px solid rgba(255,255,255,0.08);
+    display:flex; gap:8px; justify-content:flex-end;
+    flex-wrap:wrap;
+  }
+
+  /* OVERLAY CARREGANDO */
+  #overlay{
+    display:none; position:fixed; inset:0;
+    background:rgba(0,0,0,0.85);
+    backdrop-filter:blur(8px);
+    z-index:300;
+    align-items:center; justify-content:center;
+    flex-direction:column; gap:16px;
+  }
+  #overlay.ativo{display:flex;}
+  #overlay .loader{
+    width:50px; height:50px;
+    border:3px solid rgba(0,229,255,0.2);
+    border-top-color:var(--ciano);
+    border-radius:50%;
+    animation:spin 0.9s linear infinite;
+  }
+  #overlay .msg{color:var(--texto2); font-size:0.9rem;}
+
+  /* TOAST */
+  .toast{
+    position:fixed; bottom:80px; right:20px;
+    background:rgba(15,26,50,0.98);
+    border:1px solid rgba(0,229,255,0.4);
+    border-left:3px solid var(--ciano);
+    border-radius:10px;
+    padding:12px 18px;
+    color:var(--texto);
+    font-size:0.85rem;
+    box-shadow:0 10px 30px rgba(0,0,0,0.5);
+    transform:translateX(150%);
+    transition:transform .35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index:400;
+    max-width:320px;
+  }
+  .toast.ativo{transform:translateX(0);}
+  .toast.erro{border-left-color:#ff5555; border-color:rgba(255,80,80,0.4);}
+
+  @media (max-width:600px){
+    .topbar{padding:10px 14px;}
+    .topbar-brand{font-size:0.85rem;}
+    .topbar-user{font-size:0.75rem;}
+    .topbar-user .nome-user{display:none;}
+    .tabs{padding:10px 14px 0; top:52px;}
+    .tab{padding:9px 14px; font-size:0.78rem;}
+    .conteudo{padding:18px 14px;}
+    .grid{grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:12px;}
+    .card-preview{height:120px;}
+    .modal{padding:10px;}
+    .modal-box{max-height:95vh;}
+    .modal-body iframe{height:60vh;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════ TELA DE LOGIN ══════════════ -->
+<div id="telaLogin">
+  <div class="login-box">
+    <div class="login-orb">🌀</div>
+    <h1>CONVERSA</h1>
+    <div class="sub">ALMAFLUXO · Acesso Restrito</div>
+
+    <input type="email" id="loginEmail" class="login-input" placeholder="seu@email.com" autocomplete="email">
+    <input type="password" id="loginSenha" class="login-input" placeholder="Senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')fazerLogin()">
+
+    <button class="login-btn" id="btnLogin" onclick="fazerLogin()">🔓 Entrar</button>
+
+    <div class="login-msg" id="loginMsg"></div>
+
+    <div class="login-foot">
+      Rota: <strong>almafluxo.uk/conversa</strong><br>
+      Pasta CONVERSA · Drive
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ APP ══════════════ -->
+<div id="app">
+
+  <div class="topbar">
+    <div class="topbar-brand">
+      <span class="dot"></span>
+      CONVERSA · ALMAFLUXO
+    </div>
+    <div class="topbar-user">
+      <span class="nome-user">👤 <strong id="nomeUsuario">—</strong></span>
+      <button class="btn-sair" onclick="fazerLogout()">Sair</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab ativa" data-painel="painel-conversa">📁 Conversa <span class="badge" id="badge-conversa">0</span></button>
+    <button class="tab" data-painel="painel-fotos">🖼️ Fotos <span class="badge" id="badge-fotos">0</span></button>
+    <button class="tab" data-painel="painel-videos">🎬 Vídeos <span class="badge" id="badge-videos">0</span></button>
+    <button class="tab" data-painel="painel-htmls">🌐 HTMLs <span class="badge" id="badge-htmls">0</span></button>
+    <button class="tab" data-painel="painel-projetos">📦 Projetos <span class="badge" id="badge-projetos">0</span></button>
+    <button class="tab" data-painel="painel-upload">⬆️ Upload</button>
+  </div>
+
+  <div class="conteudo">
+
+    <!-- PAINEL CONVERSA -->
+    <div class="painel ativo" id="painel-conversa">
+      <div class="acoes-topo">
+        <h2>Pasta CONVERSA
+          <small>Todos os arquivos da pasta principal</small>
+        </h2>
+        <button class="btn btn-secundario" onclick="carregarTudo()">🔄 Atualizar</button>
+      </div>
+      <div class="grid" id="grid-conversa"></div>
+      <div class="vazio" id="vazio-conversa" style="display:none;">
+        <div class="icone">📂</div>
+        Nenhum arquivo na pasta CONVERSA.
+      </div>
+    </div>
+
+    <!-- PAINEL FOTOS -->
+    <div class="painel" id="painel-fotos">
+      <div class="acoes-topo">
+        <h2>Fotos
+          <small>Imagens da pasta CONVERSA</small>
+        </h2>
+      </div>
+      <div class="grid" id="grid-fotos"></div>
+      <div class="vazio" id="vazio-fotos" style="display:none;">
+        <div class="icone">🖼️</div>
+        Nenhuma foto encontrada.
+      </div>
+    </div>
+
+    <!-- PAINEL VÍDEOS -->
+    <div class="painel" id="painel-videos">
+      <div class="acoes-topo">
+        <h2>Vídeos
+          <small>Arquivos de vídeo da pasta CONVERSA</small>
+        </h2>
+      </div>
+      <div class="grid" id="grid-videos"></div>
+      <div class="vazio" id="vazio-videos" style="display:none;">
+        <div class="icone">🎬</div>
+        Nenhum vídeo encontrado.
+      </div>
+    </div>
+
+    <!-- PAINEL HTMLS -->
+    <div class="painel" id="painel-htmls">
+      <div class="acoes-topo">
+        <h2>HTMLs
+          <small>Páginas e templates editáveis</small>
+        </h2>
+      </div>
+      <div class="grid" id="grid-htmls"></div>
+      <div class="vazio" id="vazio-htmls" style="display:none;">
+        <div class="icone">🌐</div>
+        Nenhum HTML encontrado.
+      </div>
+    </div>
+
+    <!-- PAINEL PROJETOS -->
+    <div class="painel" id="painel-projetos">
+      <div class="acoes-topo">
+        <h2>Projetos
+          <small>JSONs, textos e arquivos diversos</small>
+        </h2>
+      </div>
+      <div class="grid" id="grid-projetos"></div>
+      <div class="vazio" id="vazio-projetos" style="display:none;">
+        <div class="icone">📦</div>
+        Nenhum projeto encontrado.
+      </div>
+    </div>
+
+    <!-- PAINEL UPLOAD -->
+    <div class="painel" id="painel-upload">
+      <div class="acoes-topo">
+        <h2>Upload
+          <small>Envie fotos, vídeos, HTMLs e projetos para a pasta CONVERSA</small>
+        </h2>
+      </div>
+
+      <div class="upload-area" id="uploadArea" onclick="document.getElementById('inputFile').click()">
+        <div class="icone">⬆️</div>
+        <div class="titulo">Clique ou arraste arquivos aqui</div>
+        <div class="sub">Até 50MB por arquivo · Fotos, vídeos, HTMLs, JSONs</div>
+      </div>
+      <input type="file" id="inputFile" multiple style="display:none" onchange="processarUpload(this.files)">
+
+      <div style="margin-top:18px; display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn btn-secundario" onclick="abrirCriarPasta()">📁 Criar subpasta</button>
+        <button class="btn btn-secundario" onclick="document.getElementById('inputFilePasta').click()">📂 Escolher pasta do PC</button>
+        <input type="file" id="inputFilePasta" webkitdirectory directory multiple style="display:none" onchange="processarUpload(this.files)">
+      </div>
+
+      <div class="upload-progresso" id="uploadProgresso">
+        <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--texto2);">
+          <span id="uploadStatus">Enviando...</span>
+          <span id="uploadPct">0%</span>
+        </div>
+        <div class="barra"><div class="barra-fill" id="uploadBarra"></div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════ MODAL VISUALIZADOR ══════════════ -->
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-titulo" id="modalTitulo">Arquivo</div>
+      <button class="modal-close" onclick="fecharModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer" id="modalFooter"></div>
+  </div>
+</div>
+
+<!-- ══════════════ OVERLAY CARREGANDO ══════════════ -->
+<div id="overlay">
+  <div class="loader"></div>
+  <div class="msg" id="overlayMsg">Carregando...</div>
+</div>
+
+<!-- ══════════════ TOAST ══════════════ -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   CONFIGURAÇÃO — MESMA ROTA DO codigo.gs.js
+   ═══════════════════════════════════════════════════════════════ */
+const API_URL = 'https://script.google.com/macros/s/AKfycby_VlkOZ8Ja8PADpeEaVCsuB1epYXkJdu09cZPa4DSLddhBNkZI8PjCzpVc_X4NSkks/exec';
+const TOKEN_INTERNO = 'ALMA369UA';
+const SISTEMA = 'boteco';
+const PASTA_CONVERSA_ID = '1wAawhUi5JtgorzjjK2XzVUp5l2eUl20z';
+const PASTA_BOTECO_ID = '1vht7fAibqldxaFp25PzG5cwwYok0vMD9';
+
+/* ═══════════ ESTADO ═══════════ */
+let sessao = null;
+let arquivosCache = [];
+
+/* ═══════════ PERSISTÊNCIA ═══════════ */
+function salvarSessao() {
+  try { localStorage.setItem('almafluxo_conversa_sessao', JSON.stringify(sessao)); } catch(e){}
+}
+function carregarSessaoSalva() {
+  try {
+    const raw = localStorage.getItem('almafluxo_conversa_sessao');
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+    if (!s.email || !s.token) return null;
+    return s;
+  } catch(e) { return null; }
+}
+function limparSessao() {
+  try { localStorage.removeItem('almafluxo_conversa_sessao'); } catch(e){}
+}
+
+/* ═══════════ API ═══════════ */
+async function api(action, dados = {}) {
+  const payload = {
+    action,
+    tk: TOKEN_INTERNO,
+    sistema: SISTEMA,
+    ...dados
+  };
+  if (sessao && sessao.token) {
+    payload.token_usuario = sessao.token;
+    payload.email = sessao.email;
+  }
+  const resp = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload)
+  });
+  return await resp.json();
+}
+
+/* ═══════════ LOGIN ═══════════ */
+async function fazerLogin() {
+  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+  const senha = document.getElementById('loginSenha').value;
+  const btn = document.getElementById('btnLogin');
+
+  if (!email || !senha) {
+    mostrarMsgLogin('error', '⚠️ Preencha e-mail e senha.');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Entrando...';
+  mostrarMsgLogin('info', '⏳ Verificando credenciais...');
+
+  try {
+    const resp = await api('login', { email, senha });
+    const r = resp.result || resp;
+
+    if (r.autenticado === true && r.token) {
+      sessao = {
+        email: email,
+        token: r.token,
+        nome: (r.usuario && r.usuario.nome) || email.split('@')[0],
+        admin: (r.usuario && r.usuario.admin) === true
+      };
+      salvarSessao();
+      mostrarMsgLogin('success', '✅ Login autorizado! Abrindo portal...');
+      setTimeout(() => {
+        document.getElementById('telaLogin').style.display = 'none';
+        document.getElementById('app').classList.add('ativo');
+        document.getElementById('nomeUsuario').textContent = sessao.nome;
+        carregarTudo();
+      }, 700);
+    } else {
+      mostrarMsgLogin('error', '❌ ' + (r.mensagem || 'Credenciais inválidas.'));
+    }
+  } catch (e) {
+    mostrarMsgLogin('error', '⚠️ Erro de conexão: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '🔓 Entrar';
+  }
+}
+
+function mostrarMsgLogin(tipo, texto) {
+  const el = document.getElementById('loginMsg');
+  el.className = 'login-msg ' + tipo;
+  el.textContent = texto;
+}
+
+async function fazerLogout() {
+  if (sessao && sessao.token) {
+    try { await api('logout', { token_usuario: sessao.token }); } catch(e){}
+  }
+  sessao = null;
+  limparSessao();
+  location.reload();
+}
+
+/* ═══════════ CARREGAR ARQUIVOS ═══════════ */
+async function carregarTudo() {
+  mostrarOverlay('Lendo pasta CONVERSA...');
+  try {
+    const resp = await api('listarPastaPorId', { pastaId: PASTA_CONVERSA_ID });
+    const r = resp.result || resp;
+
+    if (r.sucesso && Array.isArray(r.projetos)) {
+      arquivosCache = r.projetos;
+    } else {
+      arquivosCache = [];
+      if (r.mensagem) mostrarToast('⚠️ ' + r.mensagem, true);
+    }
+
+    classificarERenderizar();
+  } catch (e) {
+    mostrarToast('Erro ao carregar: ' + e.message, true);
+  } finally {
+    esconderOverlay();
+  }
+}
+
+/* ═══════════ CLASSIFICAR POR TIPO ═══════════ */
+function tipoDoArquivo(nome, mimeType) {
+  const n = (nome || '').toLowerCase();
+  const m = (mimeType || '').toLowerCase();
+
+  if (m.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp|svg|bmp|ico)$/i.test(n)) return 'foto';
+  if (m.startsWith('video/') || /\.(mp4|webm|ogg|mov|avi|mkv|m4v)$/i.test(n)) return 'video';
+  if (m.includes('html') || /\.(html|htm)$/i.test(n)) return 'html';
+  if (m.includes('json') || /\.(json)$/i.test(n)) return 'json';
+  if (m.includes('text') || /\.(txt|md|csv|xml|css|js)$/i.test(n)) return 'texto';
+  return 'outro';
+}
+
+function classificarERenderizar() {
+  const fotos = [];
+  const videos = [];
+  const htmls = [];
+  const projetos = [];
+  const outros = [];
+
+  arquivosCache.forEach(a => {
+    const tipo = tipoDoArquivo(a.nome, a.tipo || '');
+    if (tipo === 'foto') fotos.push(a);
+    else if (tipo === 'video') videos.push(a);
+    else if (tipo === 'html') htmls.push(a);
+    else if (tipo === 'json' || tipo === 'texto') projetos.push(a);
+    else outros.push(a);
+  });
+
+  document.getElementById('badge-conversa').textContent = arquivosCache.length;
+  document.getElementById('badge-fotos').textContent = fotos.length;
+  document.getElementById('badge-videos').textContent = videos.length;
+  document.getElementById('badge-htmls').textContent = htmls.length;
+  document.getElementById('badge-projetos').textContent = projetos.length + outros.length;
+
+  renderizarGrid('grid-conversa', 'vazio-conversa', arquivosCache);
+  renderizarGrid('grid-fotos', 'vazio-fotos', fotos);
+  renderizarGrid('grid-videos', 'vazio-videos', videos);
+  renderizarGrid('grid-htmls', 'vazio-htmls', htmls);
+  renderizarGrid('grid-projetos', 'vazio-projetos', projetos.concat(outros));
+}
+
+function renderizarGrid(gridId, vazioId, lista) {
+  const grid = document.getElementById(gridId);
+  const vazio = document.getElementById(vazioId);
+  grid.innerHTML = '';
+
+  if (!lista || lista.length === 0) {
+    if (vazio) vazio.style.display = 'block';
+    return;
+  }
+  if (vazio) vazio.style.display = 'none';
+
+  lista.forEach(a => {
+    const tipo = tipoDoArquivo(a.nome, a.tipo || '');
+    const card = document.createElement('div');
+    card.className = 'card-arquivo';
+
+    const preview = document.createElement('div');
+    preview.className = 'card-preview';
+
+    if (tipo === 'foto') {
+      const img = document.createElement('img');
+      img.loading = 'lazy';
+      img.src = `https://drive.google.com/thumbnail?id=${a.id}&sz=w400`;
+      img.onerror = () => { preview.innerHTML = '<div class="icone">🖼️</div>'; };
+      preview.appendChild(img);
+    } else if (tipo === 'video') {
+      // Preview de vídeo: usa lh3.googleusercontent.com
+      const vid = document.createElement('video');
+      vid.muted = true;
+      vid.playsInline = true;
+      vid.preload = 'metadata';
+      vid.src = `https://drive.google.com/thumbnail?id=${a.id}&sz=w400`;
+      vid.onerror = () => { preview.innerHTML = '<div class="icone">🎬</div>'; };
+      preview.appendChild(vid);
+    } else if (tipo === 'html') {
+      preview.innerHTML = '<div class="icone">🌐</div>';
+    } else if (tipo === 'json') {
+      preview.innerHTML = '<div class="icone">🧩</div>';
+    } else if (tipo === 'texto') {
+      preview.innerHTML = '<div class="icone">📄</div>';
+    } else {
+      preview.innerHTML = '<div class="icone">📎</div>';
+    }
+
+    if (a.pasta) {
+      const tag = document.createElement('div');
+      tag.className = 'pasta-tag';
+      tag.textContent = '📁 ' + a.pasta;
+      preview.appendChild(tag);
+    }
+
+    const info = document.createElement('div');
+    info.className = 'card-info';
+
+    const nome = document.createElement('div');
+    nome.className = 'card-nome';
+    nome.textContent = a.nome;
+    nome.title = a.nome;
+
+    const meta = document.createElement('div');
+    meta.className = 'card-meta';
+    const tam = a.tamanho ? formatarTamanho(a.tamanho) : '—';
+    const data = a.data_modificacao ? new Date(a.data_modificacao).toLocaleDateString('pt-BR') : '—';
+    meta.innerHTML = `<span>${tam}</span><span>${data}</span>`;
+
+    const acoes = document.createElement('div');
+    acoes.className = 'card-acoes';
+
+    const btnAbrir = document.createElement('button');
+    btnAbrir.className = 'btn btn-primario';
+    btnAbrir.textContent = '👁️ Abrir';
+    btnAbrir.onclick = (e) => { e.stopPropagation(); abrirArquivo(a); };
+    acoes.appendChild(btnAbrir);
+
+    if (tipo === 'html' || tipo === 'texto' || tipo === 'json') {
+      const btnEditar = document.createElement('button');
+      btnEditar.className = 'btn btn-secundario';
+      btnEditar.textContent = '✏️';
+      btnEditar.title = 'Editar';
+      btnEditar.onclick = (e) => { e.stopPropagation(); editarArquivo(a); };
+      acoes.appendChild(btnEditar);
+    }
+
+    const btnExcluir = document.createElement('button');
+    btnExcluir.className = 'btn btn-perigo';
+    btnExcluir.textContent = '🗑️';
+    btnExcluir.title = 'Excluir';
+    btnExcluir.onclick = (e) => { e.stopPropagation(); excluirArquivo(a); };
+    acoes.appendChild(btnExcluir);
+
+    info.appendChild(nome);
+    info.appendChild(meta);
+    info.appendChild(acoes);
+
+    card.appendChild(preview);
+    card.appendChild(info);
+    card.onclick = () => abrirArquivo(a);
+
+    grid.appendChild(card);
+  });
+}
+
+function formatarTamanho(bytes) {
+  if (!bytes) return '—';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+}
+
+/* ═══════════ ABRIR ARQUIVO ═══════════ */
+async function abrirArquivo(a) {
+  const tipo = tipoDoArquivo(a.nome, a.tipo || '');
+  const modal = document.getElementById('modal');
+  const titulo = document.getElementById('modalTitulo');
+  const body = document.getElementById('modalBody');
+  const footer = document.getElementById('modalFooter');
+
+  titulo.textContent = a.nome;
+  body.innerHTML = '';
+  footer.innerHTML = '';
+  modal.classList.add('ativo');
+
+  /* ─── FOTO ─── */
+  if (tipo === 'foto') {
+    const img = document.createElement('img');
+    img.src = `https://drive.google.com/thumbnail?id=${a.id}&sz=w1600`;
+    img.onerror = () => {
+      body.innerHTML = '<div style="color:#ff9090; text-align:center;">Não foi possível carregar a imagem.<br><br><a href="https://drive.google.com/file/d/' + a.id + '/view" target="_blank" style="color:var(--ciano);">Abrir no Drive</a></div>';
+    };
+    body.appendChild(img);
+
+    const btnDrive = document.createElement('a');
+    btnDrive.className = 'btn btn-secundario';
+    btnDrive.href = `https://drive.google.com/file/d/${a.id}/view`;
+    btnDrive.target = '_blank';
+    btnDrive.textContent = '🔗 Abrir no Drive';
+    footer.appendChild(btnDrive);
+    return;
+  }
+
+  /* ─── VÍDEO ─── */
+  if (tipo === 'video') {
+    // Tenta reproduzir via preview do Drive (funciona para vídeos públicos/na conta)
+    const video = document.createElement('video');
+    video.controls = true;
+    video.preload = 'metadata';
+    video.playsInline = true;
+    video.src = `https://drive.google.com/uc?export=download&id=${a.id}`;
+    video.onerror = () => {
+      // Fallback: abre o player do Drive em iframe
+      body.innerHTML = '';
+      const iframe = document.createElement('iframe');
+      iframe.src = `https://drive.google.com/file/d/${a.id}/preview`;
+      iframe.allow = 'autoplay';
+      iframe.style.cssText = 'width:100%; height:70vh; border:none; border-radius:8px;';
+      body.appendChild(iframe);
+    };
+    body.appendChild(video);
+
+    const btnDrive = document.createElement('a');
+    btnDrive.className = 'btn btn-secundario';
+    btnDrive.href = `https://drive.google.com/file/d/${a.id}/view`;
+    btnDrive.target = '_blank';
+    btnDrive.textContent = '🔗 Abrir no Drive';
+    footer.appendChild(btnDrive);
+    return;
+  }
+
+  /* ─── HTML ─── */
+  if (tipo === 'html') {
+    mostrarOverlay('Carregando HTML...');
+    try {
+      const resp = await api('obterProjetoPorId', { arquivoId: a.id });
+      const r = resp.result || resp;
+      if (r.sucesso && r.conteudo) {
+        const iframe = document.createElement('iframe');
+        iframe.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads';
+        iframe.srcdoc = r.conteudo;
+        body.appendChild(iframe);
+
+        const btnEditar = document.createElement('button');
+        btnEditar.className = 'btn btn-primario';
+        btnEditar.textContent = '✏️ Editar';
+        btnEditar.onclick = () => { fecharModal(); editarArquivo(a); };
+        footer.appendChild(btnEditar);
+
+        const btnNova = document.createElement('button');
+        btnNova.className = 'btn btn-secundario';
+        btnNova.textContent = '↗️ Abrir em nova aba';
+        btnNova.onclick = () => {
+          const w = window.open('', '_blank');
+          w.document.write(r.conteudo);
+          w.document.close();
+        };
+        footer.appendChild(btnNova);
+      } else {
+        body.innerHTML = '<div style="color:#ff9090;">' + (r.mensagem || 'Erro ao carregar HTML.') + '</div>';
+      }
+    } catch (e) {
+      body.innerHTML = '<div style="color:#ff9090;">Erro: ' + e.message + '</div>';
+    } finally {
+      esconderOverlay();
+    }
+    return;
+  }
+
+  /* ─── JSON / TEXTO / OUTROS ─── */
+  mostrarOverlay('Carregando arquivo...');
+  try {
+    const resp = await api('obterProjetoPorId', { arquivoId: a.id });
+    const r = resp.result || resp;
+
+    if (r.sucesso && r.conteudo) {
+      const pre = document.createElement('pre');
+      pre.style.cssText = 'width:100%; max-height:65vh; overflow:auto; background:#0a0e17; padding:16px; border-radius:8px; font-family:Courier New,monospace; font-size:0.82rem; line-height:1.5; white-space:pre-wrap; word-break:break-word;';
+      pre.textContent = r.conteudo;
+      body.appendChild(pre);
+
+      const btnEditar = document.createElement('button');
+      btnEditar.className = 'btn btn-primario';
+      btnEditar.textContent = '✏️ Editar';
+      btnEditar.onclick = () => { fecharModal(); editarArquivo(a); };
+      footer.appendChild(btnEditar);
+
+      const btnBaixar = document.createElement('button');
+      btnBaixar.className = 'btn btn-secundario';
+      btnBaixar.textContent = '⬇️ Baixar';
+      btnBaixar.onclick = () => {
+        const blob = new Blob([r.conteudo], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = a.nome;
+        link.click();
+        URL.revokeObjectURL(url);
+      };
+      footer.appendChild(btnBaixar);
+    } else if (r.base64) {
+      const mime = r.tipo || 'application/octet-stream';
+      const a2 = document.createElement('a');
+      a2.href = 'data:' + mime + ';base64,' + r.base64;
+      a2.download = a.nome;
+      a2.className = 'btn btn-primario';
+      a2.textContent = '⬇️ Baixar arquivo';
+      body.appendChild(a2);
+    } else {
+      body.innerHTML = '<div style="color:#ff9090;">' + (r.mensagem || 'Erro ao carregar.') + '</div>';
+    }
+  } catch (e) {
+    body.innerHTML = '<div style="color:#ff9090;">Erro: ' + e.message + '</div>';
+  } finally {
+    esconderOverlay();
+  }
+}
+
+/* ═══════════ EDITAR ARQUIVO ═══════════ */
+async function editarArquivo(a) {
+  mostrarOverlay('Abrindo editor...');
+  try {
+    const resp = await api('obterProjetoPorId', { arquivoId: a.id });
+    const r = resp.result || resp;
+    if (!r.sucesso || r.conteudo === null || r.conteudo === undefined) {
+      mostrarToast('Não foi possível carregar para edição.', true);
+      return;
+    }
+
+    const modal = document.getElementById('modal');
+    const titulo = document.getElementById('modalTitulo');
+    const body = document.getElementById('modalBody');
+    const footer = document.getElementById('modalFooter');
+
+    titulo.textContent = '✏️ ' + a.nome;
+    body.innerHTML = '';
+    footer.innerHTML = '';
+    modal.classList.add('ativo');
+
+    const ta = document.createElement('textarea');
+    ta.value = r.conteudo;
+    ta.spellcheck = false;
+    body.appendChild(ta);
+
+    const btnSalvar = document.createElement('button');
+    btnSalvar.className = 'btn btn-primario';
+    btnSalvar.textContent = '💾 Salvar';
+    btnSalvar.onclick = async () => {
+      btnSalvar.disabled = true;
+      btnSalvar.textContent = '💾 Salvando...';
+      try {
+        const resp2 = await api('editarProjetoPorId', {
+          arquivoId: a.id,
+          novoConteudo: ta.value
+        });
+        const r2 = resp2.result || resp2;
+        if (r2.sucesso) {
+          mostrarToast('✅ Salvo com sucesso!');
+          fecharModal();
+          carregarTudo();
+        } else {
+          mostrarToast('❌ ' + (r2.mensagem || 'Erro ao salvar.'), true);
+          btnSalvar.disabled = false;
+          btnSalvar.textContent = '💾 Salvar';
+        }
+      } catch (e) {
+        mostrarToast('❌ Erro: ' + e.message, true);
+        btnSalvar.disabled = false;
+        btnSalvar.textContent = '💾 Salvar';
+      }
+    };
+
+    const btnCancelar = document.createElement('button');
+    btnCancelar.className = 'btn btn-secundario';
+    btnCancelar.textContent = 'Cancelar';
+    btnCancelar.onclick = fecharModal;
+
+    footer.appendChild(btnCancelar);
+    footer.appendChild(btnSalvar);
+  } catch (e) {
+    mostrarToast('Erro ao abrir editor: ' + e.message, true);
+  } finally {
+    esconderOverlay();
+  }
+}
+
+/* ═══════════ EXCLUIR ARQUIVO ═══════════ */
+async function excluirArquivo(a) {
+  if (!confirm(`Excluir "${a.nome}"? Esta ação não pode ser desfeita.`)) return;
+  mostrarOverlay('Excluindo...');
+  try {
+    const resp = await api('excluirArquivo', {
+      arquivoNome: a.id,
+      pastaId: PASTA_CONVERSA_ID
+    });
+    const r = resp.result || resp;
+    if (r.sucesso) {
+      mostrarToast('🗑️ Excluído.');
+      carregarTudo();
+    } else {
+      mostrarToast('❌ ' + (r.mensagem || 'Erro ao excluir.'), true);
+    }
+  } catch (e) {
+    mostrarToast('❌ Erro: ' + e.message, true);
+  } finally {
+    esconderOverlay();
+  }
+}
+
+/* ═══════════ UPLOAD ═══════════ */
+async function processarUpload(files) {
+  if (!files || files.length === 0) return;
+
+  const progresso = document.getElementById('uploadProgresso');
+  const status = document.getElementById('uploadStatus');
+  const pct = document.getElementById('uploadPct');
+  const barra = document.getElementById('uploadBarra');
+
+  progresso.classList.add('ativo');
+
+  let enviados = 0;
+  let erros = 0;
+  const total = files.length;
+
+  for (let i = 0; i < total; i++) {
+    const file = files[i];
+
+    if (file.size > 50 * 1024 * 1024) {
+      erros++;
+      status.textContent = `⏭️ Pulando ${file.name} (${formatarTamanho(file.size)} > 50MB)`;
+      continue;
+    }
+
+    status.textContent = `📤 Enviando ${i + 1}/${total}: ${file.name}`;
+    pct.textContent = Math.round(((i) / total) * 100) + '%';
+    barra.style.width = ((i) / total) * 100 + '%';
+
+    try {
+      const base64 = await lerArquivoBase64(file);
+      const resp = await api('uploadArquivo', {
+        nomeArquivo: file.name,
+        base64: base64,
+        mimeType: file.type || 'application/octet-stream',
+        subpasta: file.webkitRelativePath ? file.webkitRelativePath.split('/')[0] : '',
+        pastaId: PASTA_CONVERSA_ID
+      });
+      const r = resp.result || resp;
+      if (r.sucesso) {
+        enviados++;
+      } else {
+        erros++;
+        console.error('Erro upload:', r.mensagem);
+      }
+    } catch (e) {
+      erros++;
+      console.error('Erro upload:', e);
+    }
+  }
+
+  pct.textContent = '100%';
+  barra.style.width = '100%';
+  status.textContent = `✅ ${enviados} enviado(s), ${erros} erro(s)`;
+
+  setTimeout(() => {
+    progresso.classList.remove('ativo');
+    barra.style.width = '0%';
+    document.getElementById('inputFile').value = '';
+    document.getElementById('inputFilePasta').value = '';
+    carregarTudo();
+  }, 1500);
+
+  if (enviados > 0) mostrarToast(`✅ ${enviados} arquivo(s) enviado(s)!`);
+  if (erros > 0) mostrarToast(`⚠️ ${erros} arquivo(s) com erro.`, true);
+}
+
+function lerArquivoBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result.split(',')[1];
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+/* ═══════════ CRIAR PASTA ═══════════ */
+async function abrirCriarPasta() {
+  const nome = prompt('Nome da nova subpasta:');
+  if (!nome) return;
+  mostrarOverlay('Criando pasta...');
+  try {
+    const resp = await api('criarPasta', {
+      nome: nome,
+      pastaId: PASTA_CONVERSA_ID
+    });
+    const r = resp.result || resp;
+    if (r.sucesso) {
+      mostrarToast('📁 Pasta criada!');
+      carregarTudo();
+    } else {
+      mostrarToast('❌ ' + (r.mensagem || 'Erro ao criar pasta.'), true);
+    }
+  } catch (e) {
+    mostrarToast('❌ Erro: ' + e.message, true);
+  } finally {
+    esconderOverlay();
+  }
+}
+
+/* ═══════════ DRAG & DROP ═══════════ */
+(function() {
+  const area = document.getElementById('uploadArea');
+  if (!area) return;
+
+  ['dragenter', 'dragover'].forEach(evt => {
+    area.addEventListener(evt, e => {
+      e.preventDefault();
+      area.classList.add('arrastando');
+    });
+  });
+  ['dragleave', 'drop'].forEach(evt => {
+    area.addEventListener(evt, e => {
+      e.preventDefault();
+      area.classList.remove('arrastando');
+    });
+  });
+  area.addEventListener('drop', e => {
+    if (e.dataTransfer && e.dataTransfer.files) {
+      processarUpload(e.dataTransfer.files);
+    }
+  });
+})();
+
+/* ═══════════ MODAL / OVERLAY / TOAST ═══════════ */
+function fecharModal() {
+  document.getElementById('modal').classList.remove('ativo');
+  document.getElementById('modalBody').innerHTML = '';
+  document.getElementById('modalFooter').innerHTML = '';
+}
+function mostrarOverlay(msg) {
+  document.getElementById('overlayMsg').textContent = msg || 'Carregando...';
+  document.getElementById('overlay').classList.add('ativo');
+}
+function esconderOverlay() {
+  document.getElementById('overlay').classList.remove('ativo');
+}
+let _toastTimer = null;
+function mostrarToast(msg, erro) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ativo' + (erro ? ' erro' : '');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => { t.classList.remove('ativo'); }, 3500);
+}
+
+/* ═══════════ TABS ═══════════ */
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('ativa'));
+    document.querySelectorAll('.painel').forEach(p => p.classList.remove('ativo'));
+    tab.classList.add('ativa');
+    const alvo = document.getElementById(tab.dataset.painel);
+    if (alvo) alvo.classList.add('ativo');
+  });
+});
+
+/* ═══════════ FECHAR MODAL COM ESC ═══════════ */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') fecharModal();
+});
+document.getElementById('modal').addEventListener('click', e => {
+  if (e.target.id === 'modal') fecharModal();
+});
+
+/* ═══════════ INICIALIZAÇÃO ═══════════ */
+(function init() {
+  const s = carregarSessaoSalva();
+  if (s) {
+    sessao = s;
+    document.getElementById('telaLogin').style.display = 'none';
+    document.getElementById('app').classList.add('ativo');
+    document.getElementById('nomeUsuario').textContent = sessao.nome || sessao.email;
+    carregarTudo();
+  }
+})();
+</script>
+</body>
+</html>
