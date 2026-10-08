@@ -641,8 +641,8 @@
 /* ═══════════════════════════════════════════════════════════════
    CONFIGURAÇÃO — MESMA ROTA DO codigo.gs.js
    ═══════════════════════════════════════════════════════════════ */
-const API_URL = 'https://script.google.com/macros/s/AKfycby_VlkOZ8Ja8PADpeEaVCsuB1epYXkJdu09cZPa4DSLddhBNkZI8PjCzpVc_X4NSkks/exec';
-const TOKEN_INTERNO = 'ALMA369UA';
+// Passa pelo Worker (o token interno fica só no servidor — nunca no HTML público)
+const API_URL = 'https://almafluxo.uk/proxy/boteco';
 const SISTEMA = 'boteco';
 const PASTA_CONVERSA_ID = '1wAawhUi5JtgorzjjK2XzVUp5l2eUl20z';
 const PASTA_BOTECO_ID = '1vht7fAibqldxaFp25PzG5cwwYok0vMD9';
@@ -672,17 +672,17 @@ function limparSessao() {
 async function api(action, dados = {}) {
   const payload = {
     action,
-    tk: TOKEN_INTERNO,
     sistema: SISTEMA,
     ...dados
   };
+  delete payload.tk;
   if (sessao && sessao.token) {
     payload.token_usuario = sessao.token;
     payload.email = sessao.email;
   }
   const resp = await fetch(API_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   });
   return await resp.json();
