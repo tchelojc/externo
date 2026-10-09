@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#000000">
 <title>CONVERSA · ALMAFLUXO</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -462,6 +462,12 @@
     .modal-box{max-height:95vh;}
     .modal-body iframe{height:60vh;}
   }
+
+  /* ═══════════ EDITOR DE VÍDEO (arquivo HTML do Drive, tela cheia) ═══════════ */
+  .ve-frame-wrap{position:fixed; inset:0; z-index:300; background:#05070c; display:none;}
+  .ve-frame-wrap.on{display:block;}
+  .ve-frame-wrap iframe{width:100%; height:100%; border:0; display:block; background:#05070c;}
+  .btn-ve{background:linear-gradient(135deg,#9a5fd8,#6b3fa8); color:#fff; border:0;}
 </style>
 </head>
 <body>
@@ -547,6 +553,7 @@
         <h2>Vídeos
           <small>Arquivos de vídeo da pasta CONVERSA</small>
         </h2>
+        <button class="btn btn-ve" onclick="abrirEditorDrive()">🎬 Editor de vídeo</button>
       </div>
       <div class="grid" id="grid-videos"></div>
       <div class="vazio" id="vazio-videos" style="display:none;">
@@ -617,6 +624,8 @@
 </div>
 
 <!-- ══════════════ MODAL VISUALIZADOR ══════════════ -->
+<div class="ve-frame-wrap" id="veFrameWrap"></div>
+
 <div class="modal" id="modal">
   <div class="modal-box">
     <div class="modal-header">
@@ -886,6 +895,15 @@ function renderizarGrid(gridId, vazioId, lista) {
     btnAbrir.onclick = (e) => { e.stopPropagation(); abrirArquivo(a); };
     acoes.appendChild(btnAbrir);
 
+    if (tipo === 'video') {
+      const btnVe = document.createElement('button');
+      btnVe.className = 'btn btn-ve';
+      btnVe.textContent = '✂️ Editar';
+      btnVe.title = 'Abrir no editor de vídeo';
+      btnVe.onclick = (e) => { e.stopPropagation(); abrirEditorDrive(a); };
+      acoes.appendChild(btnVe);
+    }
+
     if (tipo === 'html' || tipo === 'texto' || tipo === 'json') {
       const btnEditar = document.createElement('button');
       btnEditar.className = 'btn btn-secundario';
@@ -925,6 +943,8 @@ function formatarTamanho(bytes) {
 /* ═══════════ ABRIR ARQUIVO ═══════════ */
 async function abrirArquivo(a) {
   const tipo = tipoDoArquivo(a.nome, a.tipo || '');
+  /* o próprio editor_video.html abre pela ponte segura (e não no visualizador genérico de HTML) */
+  if ((a.nome || '').toLowerCase() === EDITOR_ARQUIVO) { abrirEditorDrive(); return; }
   const modal = document.getElementById('modal');
   const titulo = document.getElementById('modalTitulo');
   const body = document.getElementById('modalBody');
@@ -971,6 +991,12 @@ async function abrirArquivo(a) {
       body.appendChild(iframe);
     };
     body.appendChild(video);
+
+    const btnVeModal = document.createElement('button');
+    btnVeModal.className = 'btn btn-ve';
+    btnVeModal.textContent = '✂️ Editar este vídeo';
+    btnVeModal.onclick = () => { fecharModal(); abrirEditorDrive(a); };
+    footer.appendChild(btnVeModal);
 
     const btnDrive = document.createElement('a');
     btnDrive.className = 'btn btn-secundario';
@@ -1337,6 +1363,80 @@ document.getElementById('modal').addEventListener('click', e => {
     carregarTudo();
   }
 })();
+
+/* ═══════════ EDITOR DE VÍDEO — vive dentro do Drive (editor_video.html) ═══════════
+   O portal lê o arquivo da pasta CONVERSA e o abre em tela cheia num iframe ISOLADO
+   (sem allow-same-origin: o editor não enxerga a sessão do usuário). O editor pede
+   as operações de arquivo ao portal por postMessage; o portal usa a sessão e só
+   libera as ações de leitura/escrita em blocos. */
+const EDITOR_ARQUIVO = 'editor_video.html';
+const EDITOR_ACOES = new Set(['driveArquivoInfo', 'driveLerChunk', 'driveUploadIniciar', 'driveUploadChunk']);
+let veFrame = null;
+let veAlvo = null;
+
+async function abrirEditorDrive(alvo) {
+  const ed = (arquivosCache || []).find(a => (a.nome || '').toLowerCase() === EDITOR_ARQUIVO);
+  if (!ed) {
+    mostrarToast('Suba o arquivo editor_video.html para a pasta CONVERSA do Drive.', true);
+    return;
+  }
+  mostrarOverlay('Abrindo o editor…');
+  try {
+    const resp = await api('obterProjetoPorId', { arquivoId: ed.id });
+    const r = resp.result || resp;
+    if (!r.sucesso || !r.conteudo) throw new Error(r.mensagem || 'Não consegui ler o editor no Drive.');
+    fecharEditorDrive();
+    const f = document.createElement('iframe');
+    f.setAttribute('sandbox', 'allow-scripts allow-downloads allow-modals');
+    f.setAttribute('allow', 'autoplay; screen-wake-lock; fullscreen');
+    f.srcdoc = r.conteudo;
+    veAlvo = (alvo && alvo.id) ? alvo : null;
+    veFrame = f;
+    const wrap = document.getElementById('veFrameWrap');
+    wrap.appendChild(f);
+    wrap.classList.add('on');
+    document.body.style.overflow = 'hidden';
+  } catch (e) {
+    mostrarToast('❌ ' + e.message, true);
+  } finally {
+    esconderOverlay();
+  }
+}
+
+function fecharEditorDrive() {
+  const wrap = document.getElementById('veFrameWrap');
+  wrap.classList.remove('on');
+  wrap.innerHTML = '';
+  veFrame = null;
+  veAlvo = null;
+  document.body.style.overflow = '';
+}
+
+window.addEventListener('message', async (ev) => {
+  if (!veFrame || ev.source !== veFrame.contentWindow) return;   // só o nosso iframe
+  const m = ev.data || {};
+  if (m.type === 'ready') {
+    ev.source.postMessage({ type: 'init', arquivos: arquivosCache, pastaId: PASTA_CONVERSA_ID, abrir: veAlvo }, '*');
+    veAlvo = null;
+  } else if (m.type === 'api') {
+    let result;
+    if (!EDITOR_ACOES.has(m.action)) {
+      result = { sucesso: false, mensagem: 'Ação não permitida.' };
+    } else {
+      try {
+        const resp = await api(m.action, m.dados || {});
+        result = resp.result || resp;
+      } catch (e) {
+        result = { sucesso: false, mensagem: e.message };
+      }
+    }
+    if (veFrame && ev.source) ev.source.postMessage({ type: 'api-result', id: m.id, result }, '*');
+  } else if (m.type === 'close') {
+    fecharEditorDrive();
+  } else if (m.type === 'saved') {
+    carregarTudo();
+  }
+});
 </script>
 </body>
 </html>
