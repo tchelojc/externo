@@ -1132,9 +1132,9 @@
         // ======================================================
         // CONFIGURAÇÃO
         // ======================================================
-        const API_URL_OLHO = 'https://almafluxo.uk/proxy/pagamentos';
+        const API_URL_OLHO = 'https://almafluxo.uk/pagamentos';
+        const PAGAMENTOS_URL = 'https://almafluxo.uk/pagamentos';
         const API_CENTRAL = 'https://almafluxo.uk/proxy/central';
-        const PAGAMENTOS_URL = 'https://almafluxo.uk/proxy/pagamentos';
         const OLHO_DE_DEUS_DRIVE = 'https://almafluxo.uk/olhodedeus';
         const PROXY_CLOUDFLARE = 'https://almafluxo.uk/proxy/infocell';
         const WHATSAPP_ATENDIMENTO = "5521981533928";
@@ -1250,12 +1250,19 @@
                 if (debitoData.ok) {
                     usuarioLogadoOlho.balance = debitoData.saldoRestante || (saldoData.balance - tokensNecessarios);
                     localStorage.setItem('olho_de_deus_usuario', JSON.stringify(usuarioLogadoOlho));
+                    localStorage.setItem('almafluxo_usuario', JSON.stringify({
+                        email: usuarioLogadoOlho.email,
+                        sessionToken: usuarioLogadoOlho.sessionToken,
+                        nome: usuarioLogadoOlho.nome,
+                        balance: usuarioLogadoOlho.balance,
+                        master: usuarioLogadoOlho.master
+                    }));
                     document.getElementById('tokenDisplay').textContent = `⚡ ${usuarioLogadoOlho.balance} Tokens`;
-                    
+
                     statusEl.textContent = '✅ Acesso ativado!';
                     statusEl.style.color = '#4caf50';
                     mostrarToastOlho('✅ Acesso ativado com sucesso!');
-                    
+
                     setTimeout(() => {
                         fecharModalPlanos();
                         acessarConteudoOlho();
@@ -1274,7 +1281,8 @@
         // ======================================================
         async function acessarPlataforma() {
             if (!usuarioLogadoOlho) {
-                const sessao = localStorage.getItem('olho_de_deus_usuario');
+                const sessao = localStorage.getItem('almafluxo_usuario')
+                            || localStorage.getItem('olho_de_deus_usuario');
                 if (sessao) {
                     usuarioLogadoOlho = JSON.parse(sessao);
                 } else {
@@ -1288,6 +1296,18 @@
         }
 
         async function acessarConteudoOlho() {
+            // Validação defensiva: sem token, nem tenta abrir
+            if (!usuarioLogadoOlho || !usuarioLogadoOlho.email || !usuarioLogadoOlho.sessionToken) {
+                mostrarToastOlho('⚠️ Sessão expirada. Faça login novamente.');
+                localStorage.removeItem('olho_de_deus_usuario');
+                localStorage.removeItem('almafluxo_usuario');
+                usuarioLogadoOlho = null;
+                document.getElementById('btnLoginLogout').textContent = '🔑 Login';
+                document.getElementById('tokenDisplay').textContent = '⚡ 0 Tokens';
+                abrirModalLogin();
+                return;
+            }
+
             try {
                 const data = await consultarSaldoOlho(usuarioLogadoOlho.email, usuarioLogadoOlho.sessionToken);
 
@@ -1483,6 +1503,13 @@
                     };
                     
                     localStorage.setItem('olho_de_deus_usuario', JSON.stringify(usuarioLogadoOlho));
+                    localStorage.setItem('almafluxo_usuario', JSON.stringify({
+                        email: usuarioLogadoOlho.email,
+                        sessionToken: usuarioLogadoOlho.sessionToken,
+                        nome: usuarioLogadoOlho.nome,
+                        balance: usuarioLogadoOlho.balance,
+                        master: usuarioLogadoOlho.master
+                    }));
                     
                     document.getElementById('tokenDisplay').textContent = `⚡ ${usuarioLogadoOlho.balance} Tokens`;
                     document.getElementById('btnLoginLogout').textContent = '🚪 Sair';
@@ -1515,6 +1542,7 @@
         function toggleLoginLogout() {
             if (usuarioLogadoOlho) {
                 localStorage.removeItem('olho_de_deus_usuario');
+                localStorage.removeItem('almafluxo_usuario');
                 usuarioLogadoOlho = null;
                 document.getElementById('tokenDisplay').textContent = '⚡ 0 Tokens';
                 document.getElementById('btnLoginLogout').textContent = '🔑 Login';
@@ -1605,25 +1633,33 @@
         // INICIALIZAÇÃO
         // ======================================================
         document.addEventListener('DOMContentLoaded', () => {
-            const sessao = localStorage.getItem('olho_de_deus_usuario');
-            
+            const sessao = localStorage.getItem('almafluxo_usuario')
+                        || localStorage.getItem('olho_de_deus_usuario');
+
             if (sessao) {
                 usuarioLogadoOlho = JSON.parse(sessao);
-                
+
                 consultarSaldoOlho(usuarioLogadoOlho.email, usuarioLogadoOlho.sessionToken).then(data => {
                     if (data.ok) {
                         usuarioLogadoOlho.balance = data.balance;
                         localStorage.setItem('olho_de_deus_usuario', JSON.stringify(usuarioLogadoOlho));
+                        localStorage.setItem('almafluxo_usuario', JSON.stringify({
+                            email: usuarioLogadoOlho.email,
+                            sessionToken: usuarioLogadoOlho.sessionToken,
+                            nome: usuarioLogadoOlho.nome,
+                            balance: usuarioLogadoOlho.balance,
+                            master: usuarioLogadoOlho.master
+                        }));
                         document.getElementById('tokenDisplay').textContent = `⚡ ${data.balance} Tokens`;
                     }
                 });
-                
+
                 document.getElementById('btnLoginLogout').textContent = '🚪 Sair';
             } else {
                 document.getElementById('tokenDisplay').textContent = '⚡ 0 Tokens';
                 document.getElementById('btnLoginLogout').textContent = '🔑 Login';
             }
-            
+
             setTimeout(() => {
                 if (document.getElementById('chatMessagesOlho').children.length === 0) {
                     addMessageOlho('ai', '👁️ Olá! Sou o suporte do Olho De Deus. Como posso te ajudar hoje?');
