@@ -6,19 +6,22 @@
     <title>Olho De Deus | Carregando...</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
+        html, body {
             background: #030508;
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             font-family: 'Inter', system-ui, sans-serif;
+            color: #00e5ff;
         }
         .container {
             text-align: center;
-            color: #00e5ff;
             max-width: 480px;
             padding: 20px;
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
         }
         .spinner {
             width: 60px;
@@ -44,6 +47,7 @@
             cursor: pointer;
             text-decoration: none;
             transition: all 0.3s;
+            font-family: inherit;
         }
         .btn-enter:hover {
             box-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
@@ -63,6 +67,25 @@
         }
         .prompt-box p { margin-bottom: 10px; }
         .prompt-box p:last-child { margin-bottom: 0; }
+        .error-box {
+            background: #1a0d12;
+            border: 1px solid #ff4060;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 18px;
+            font-size: 0.88rem;
+            line-height: 1.6;
+            color: #ffb0c0;
+            text-align: left;
+            display: none;
+        }
+        .error-box code {
+            background: #030508;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #ffd700;
+            font-size: 0.85rem;
+        }
     </style>
 </head>
 <body>
@@ -71,170 +94,269 @@
         <div class="spinner" id="spinner"></div>
         <div class="title" id="title">👁️ Verificando acesso...</div>
         <div class="subtitle" id="status">Confirmando sua sessão...</div>
-        
+
         <div class="prompt-box" id="promptBox">
             <p><strong>⚙️ Como funciona:</strong> o Olho De Deus lê as odds e os dados da partida/mercado em tempo real.</p>
             <p><strong>🧭 Como usar:</strong> acompanhe a Mesa GPS pra ver a leitura atual.</p>
             <p><strong>🔐 Seu acesso:</strong> saldo confirmado.</p>
         </div>
-        
-        <a href="#" class="btn-enter" id="btnEnter" style="display:none;" onclick="abrirPlataforma(event)">
+
+        <div class="error-box" id="errorBox"></div>
+
+        <button class="btn-enter" id="btnEnter" style="display:none;">
             ▶ Entrar no Olho De Deus
-        </a>
+        </button>
     </div>
 
+    <!-- iframe oculto onde o linear.html é injetado depois da validação -->
+    <iframe id="odFrame" style="position:fixed;inset:0;width:100%;height:100%;border:none;background:#030508;z-index:9999;display:none;"></iframe>
+
     <script>
+    (function () {
+        'use strict';
+
         // ═══════════════════════════════════════════════════════════
         // CONFIGURAÇÃO
         // ═══════════════════════════════════════════════════════════
         const WORKER_URL = 'https://almafluxo.uk';
-        const LOGIN_URL  = 'https://almafluxo.uk/olhodedeus';   // página de entrada/login do Olho De Deus
+        const LOGIN_URL  = 'https://almafluxo.uk/olhodedeus';
 
-        // ─── A chave de sessão usada em TODO o ecossistema é 'almafluxo_usuario'.
-        // O antigo 'olho_de_deus_usuario' não é mais gravado por ninguém, então
-        // ler dele aqui garantia 100% de redirect pro login (loop).
-        function lerUsuario() {
-        for (const k of ['almafluxo_usuario', 'olho_de_deus_usuario']) {
-            try {
-            const s = localStorage.getItem(k);
-            if (!s) continue;
-            const u = JSON.parse(s);
-            if (u && u.email && u.sessionToken) return u;
-            } catch (e) {}
-        }
-        return null;
-        }
-
-        // ─── Anti-loop: este carregador NUNCA deveria ser servido em /app-olhodedeus (lá deve abrir o linear).
-        // Se estiver, o botão "Entrar" navega pra mesma tela. Em vez de girar, mostra o diagnóstico na tela.
-        async function diagnosticoLoop() {
-        const u = lerUsuario() || {};
-        document.getElementById('spinner').style.display = 'none';
-        document.getElementById('title').textContent = '⚠️ O linear não foi entregue';
-        document.getElementById('status').textContent = 'O servidor devolveu esta tela de carregamento no lugar do Olho De Deus.';
-        const box = document.getElementById('promptBox');
-        box.style.display = 'block';
-        box.style.fontFamily = 'monospace'; box.style.fontSize = '0.75rem'; box.style.whiteSpace = 'pre-wrap'; box.style.wordBreak = 'break-all';
-        box.textContent = 'Consultando o worker...';
-        try {
-            const qs = new URLSearchParams({ email: u.email || '', sessionToken: u.sessionToken || '' });
-            const r = await fetch(`${WORKER_URL}/app-olhodedeus/_diag?${qs}&_=${Date.now()}`, { cache: 'no-store' });
-            const t = await r.text();
-            let j = null; try { j = JSON.parse(t); } catch (e) {}
-            let sw = 'indisponível';
-            try { const regs = await navigator.serviceWorker.getRegistrations(); sw = regs.length ? regs.map(g => g.scope).join(', ') : 'nenhum'; } catch (e) {}
-            let cs = 'indisponível';
-            try { cs = (await caches.keys()).join(', ') || 'nenhum'; } catch (e) {}
-            const cab = 'status: ' + r.status + '\ncontent-type: ' + r.headers.get('content-type') +
-                '\nX-ALMA-Worker: ' + (r.headers.get('x-alma-worker') || '(ausente → NÃO é o worker v4.7.3 respondendo)') +
-                '\nserviceWorkers registrados: ' + sw + '\ncaches do navegador: ' + cs + '\n\n';
-            if (j && j.worker) box.textContent = cab + JSON.stringify(j, null, 2);
-            else box.textContent = cab + 'corpo (início): ' + t.slice(0, 160).replace(/\s+/g, ' ');
-            const b = document.createElement('button');
-            b.textContent = '🧹 Limpar service worker + cache e recarregar';
-            b.style.cssText = 'display:block;margin-top:14px;padding:10px 16px;border-radius:20px;border:0;background:#ffd700;font-weight:800;cursor:pointer';
-            b.onclick = async () => {
-                try { (await navigator.serviceWorker.getRegistrations()).forEach(g => g.unregister()); } catch (e) {}
-                try { (await caches.keys()).forEach(k => caches.delete(k)); } catch (e) {}
-                setTimeout(() => location.reload(true), 400);
-            };
-            box.appendChild(b);
-        } catch (e) { box.textContent = 'Falha ao consultar o worker: ' + e.message; }
-        }
-
-        async function carregar() {
-        if (location.pathname.indexOf('/app-olhodedeus') === 0) { await diagnosticoLoop(); return; }
         const spinner   = document.getElementById('spinner');
         const title     = document.getElementById('title');
-        const status    = document.getElementById('status');
+        const statusEl  = document.getElementById('status');
         const promptBox = document.getElementById('promptBox');
+        const errorBox  = document.getElementById('errorBox');
         const btnEnter  = document.getElementById('btnEnter');
+        const odFrame   = document.getElementById('odFrame');
 
-        const usuario = lerUsuario();
-        if (!usuario) {
-            window.location.href = LOGIN_URL;
-            return;
+        // ═══════════════════════════════════════════════════════════
+        // LÊ SESSÃO DO localStorage (padrão do ecossistema ALMA)
+        // ═══════════════════════════════════════════════════════════
+        function lerUsuario() {
+            for (const k of ['almafluxo_usuario', 'olho_de_deus_usuario']) {
+                try {
+                    const s = localStorage.getItem(k);
+                    if (!s) continue;
+                    const u = JSON.parse(s);
+                    if (u && u.email && u.sessionToken) return u;
+                } catch (e) {}
+            }
+            return null;
         }
 
-        try {
-            // Valida acesso no servidor (mesma rota que o worker já expõe)
-            status.textContent = 'Validando acesso...';
+        // ═══════════════════════════════════════════════════════════
+        // MOSTRA ERRO NA TELA (sem redirecionar pra login)
+        // ═══════════════════════════════════════════════════════════
+        function mostrarErro(msg, detalhe) {
+            spinner.style.display = 'none';
+            title.textContent = '⚠️ Não foi possível abrir o Olho De Deus';
+            statusEl.textContent = '';
+            errorBox.style.display = 'block';
+            errorBox.innerHTML = '<strong>' + msg + '</strong>' +
+                (detalhe ? '<br><br><code>' + String(detalhe).slice(0, 400) + '</code>' : '') +
+                '<br><br>Toque abaixo para tentar novamente.';
+            btnEnter.textContent = '🔄 Tentar novamente';
+            btnEnter.style.display = 'inline-block';
+            btnEnter.disabled = false;
+            btnEnter.onclick = function (ev) {
+                ev.preventDefault();
+                location.reload();
+            };
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // ETAPA 1 — VALIDA SESSÃO NO WORKER
+        // ═══════════════════════════════════════════════════════════
+        async function validarSessao(usuario) {
+            statusEl.textContent = 'Validando acesso...';
             const ctl = new AbortController();
             const tmo = setTimeout(() => ctl.abort(), 30000);
-            const response = await fetch(`${WORKER_URL}/proxy/central`, {
-            signal: ctl.signal,
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                action: 'validarSessionToken',   // mesma checagem do portão /app-olhodedeus e do /proxy/motor
-                email: usuario.email,
-                plataforma: 'olhodedeus',
-                sessionToken: usuario.sessionToken
-            })
+
+            const response = await fetch(WORKER_URL + '/proxy/central', {
+                signal: ctl.signal,
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'validarSessionToken',
+                    email: usuario.email,
+                    plataforma: 'olhodedeus',
+                    sessionToken: usuario.sessionToken
+                })
             });
 
             clearTimeout(tmo);
             const data = await response.json();
             console.log('[OD] validarSessionToken →', response.status, data);
 
-            // Considera liberado só se o servidor confirmar. Mantém também o
-            // caso de master (às vezes o backend devolve só {ok:true}).
             if (!(data.ok === true || data.autenticado === true || data.status === 'success')) {
-            throw new Error(data.error || 'Acesso negado');
+                throw new Error(data.error || 'Sessão recusada pelo servidor.');
+            }
+            return data;
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // ETAPA 2 — PEDE O linear.html DO DRIVE AO WORKER
+        // ═══════════════════════════════════════════════════════════
+        // O Worker (central.gs por trás) valida a sessão de novo e busca
+        // o HTML do linear.html no Drive, devolvendo HTML puro (não JSON).
+        // É a mesma rota que o wrapper do CarFluxo usa (/carfluxo/conteudo)
+        // e que o FLOW_ENTRY_HTML usa (servirHTML → flow.html).
+        async function buscarLinearHTML(usuario) {
+            statusEl.textContent = 'Baixando o Olho De Deus...';
+
+            const response = await fetch(WORKER_URL + '/proxy/central', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'servirHTML',
+                    plataforma: 'olhodedeus',           // ← mapeado em PLATAFORMAS_DRIVE
+                    email: usuario.email,
+                    sessionToken: usuario.sessionToken
+                })
+            });
+
+            if (!response.ok) {
+                let msg = 'Servidor retornou status ' + response.status;
+                try {
+                    const j = await response.json();
+                    msg = j.error || j.message || msg;
+                } catch (e) {}
+                throw new Error(msg);
             }
 
-            spinner.style.display   = 'none';
-            title.textContent       = '👁️ Bem-vindo ao Olho De Deus';
-            status.textContent      = 'Acesso confirmado. Clique para entrar.';
-            promptBox.style.display = 'block';
-            btnEnter.style.display  = 'inline-block';
-        } catch (e) {
-            if (e && e.name === 'AbortError') {   // servidor lento (Apps Script frio): NÃO é sessão inválida, não manda pro login
-                spinner.style.display = 'none';
-                title.textContent = '⏳ O servidor demorou a responder';
-                status.textContent = 'Sua sessão não foi recusada. Toque para tentar de novo.';
-                btnEnter.textContent = '🔄 Tentar de novo';
-                btnEnter.style.display = 'inline-block';
-                btnEnter.onclick = ev => { ev.preventDefault(); location.reload(); };
+            const html = await response.text();
+
+            // Sanidade: precisa ser HTML de verdade, e precisa ser o linear.html
+            // (não a página de login, não o carregador do GitHub).
+            const lower = html.toLowerCase();
+            const ehHtml = lower.indexOf('<!doctype') !== -1 || lower.indexOf('<html') !== -1;
+            if (!ehHtml) {
+                throw new Error('O servidor não devolveu HTML válido.');
+            }
+            if (/<title>\s*Olho De Deus \|\s*Carregando/i.test(html.slice(0, 3000))) {
+                throw new Error('O arquivo devolvido é o carregador (index.html), não o linear.html. Confira o ID em PLATAFORMAS_DRIVE.olhodedeus no Worker.');
+            }
+            if (html.indexOf('function urlIrmao') === -1 && html.indexOf('_linearEntropia') === -1) {
+                throw new Error('O arquivo devolvido não parece ser o linear.html (não tem urlIrmao nem motor de entropia).');
+            }
+
+            console.log('[OD] linear.html recebido:', html.length, 'chars');
+            return html;
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // ETAPA 3 — INJETA O HTML E MOSTRA
+        // ═══════════════════════════════════════════════════════════
+        // Injeta window.ALMA_SESSION no <head> (o Worker já faz isso quando
+        // serve por /app-olhodedeus/*, mas quando servimos via /proxy/central
+        // + servirHTML, o HTML chega cru — então injetamos aqui no cliente).
+        //
+        // Usa iframe com srcdoc (não document.write) porque:
+        //   - preserva o escopo/JS do linear.html sem sujar o index.html
+        //   - mantém a URL em almafluxo.uk/olhodedeus (o iframe herda a origem)
+        //   - permite reload independente sem perder o login
+        //
+        // Dentro do srcdoc, `location.origin` vira "null", mas o linear.html
+        // NÃO depende de location.origin — ele usa localStorage (que no
+        // Chrome/Edge funciona em srcdoc same-origin) e o window.ALMA_SESSION
+        // que injetamos no <head>.
+        function injetarSessaoNoHtml(html, usuario) {
+            const ctx = '<script>' +
+                'window.ALMA_SESSION = {' +
+                    'email: ' + JSON.stringify(usuario.email) + ',' +
+                    'sessionToken: ' + JSON.stringify(usuario.sessionToken) + ',' +
+                    'master: ' + (usuario.master ? 'true' : 'false') + ',' +
+                    'arquivo: "linear.html",' +
+                    'ts: Date.now()' +
+                '};' +
+                'try {' +
+                    'localStorage.setItem("almafluxo_usuario", JSON.stringify({' +
+                        'email: window.ALMA_SESSION.email,' +
+                        'sessionToken: window.ALMA_SESSION.sessionToken' +
+                    '}));' +
+                '} catch (e) {}' +
+            '<\/script>';
+
+            if (/<head[^>]*>/i.test(html)) {
+                return html.replace(/<head([^>]*)>/i, '<head$1>' + ctx);
+            }
+            return ctx + html;
+        }
+
+        function mostrarLinear(html) {
+            odFrame.srcdoc = html;
+            odFrame.style.display = 'block';
+            // Esconde o container de carregamento
+            document.getElementById('container').style.display = 'none';
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // ORQUESTRAÇÃO
+        // ═══════════════════════════════════════════════════════════
+        async function abrirOlhoDeDeus() {
+            const usuario = lerUsuario();
+            if (!usuario) {
+                window.location.href = LOGIN_URL;
                 return;
             }
-            window.location.href = `${LOGIN_URL}?erro=${encodeURIComponent(e.message)}`;
-        }
-        }
 
-        // ─── Entrar: navega DIRETO para /app-olhodedeus/ (mesma página, sem iframe)
-        // em vez de baixar o HTML via fetch e injetar com srcdoc.
-        // MOTIVO: dentro de srcdoc, location.origin vira "null", o localStorage não
-        // compartilha com almafluxo.uk em Firefox/Safari, e o BroadcastChannel não
-        // conecta. Isso quebrava o login, o urlIrmao() e o motor de entropia.
-        // Navegando direto, o linear roda como página real no domínio, e o worker
-        // injeta window.ALMA_SESSION no <head> a partir da query string.
-        function abrirPlataforma(event) {
-        event.preventDefault();
+            btnEnter.disabled = true;
+            btnEnter.textContent = '⏳ Carregando plataforma...';
+            statusEl.textContent = 'Redirecionando...';
+            errorBox.style.display = 'none';
 
-        const btnEnter = document.getElementById('btnEnter');
-        const status   = document.getElementById('status');
-
-        btnEnter.textContent = '⏳ Carregando plataforma...';
-        btnEnter.disabled    = true;
-        status.textContent   = 'Redirecionando...';
-
-        const usuario = lerUsuario();
-        if (!usuario) {
-            window.location.href = LOGIN_URL;
-            return;
-        }
-
-        const qs = new URLSearchParams({
-            email:        usuario.email,
-            sessionToken: usuario.sessionToken,
-            master:       usuario.master ? 'true' : 'false'
-        }).toString();
-
-        window.location.href = `${WORKER_URL}/app-olhodedeus/?${qs}`;
+            try {
+                await validarSessao(usuario);
+                const html = await buscarLinearHTML(usuario);
+                const htmlFinal = injetarSessaoNoHtml(html, usuario);
+                mostrarLinear(htmlFinal);
+            } catch (e) {
+                if (e && e.name === 'AbortError') {
+                    mostrarErro(
+                        'O servidor demorou a responder.',
+                        'Sua sessão não foi recusada. Pode ser o Apps Script "frio" (primeira execução do dia). Toque em "Tentar novamente".'
+                    );
+                    return;
+                }
+                console.error('[OD] Erro ao abrir:', e);
+                mostrarErro(
+                    'Falha ao carregar o Olho De Deus.',
+                    e && e.message ? e.message : String(e)
+                );
+            }
         }
 
-        carregar();
+        // ═══════════════════════════════════════════════════════════
+        // BOOT
+        // ═══════════════════════════════════════════════════════════
+        (function boot() {
+            const usuario = lerUsuario();
+            if (!usuario) {
+                window.location.href = LOGIN_URL;
+                return;
+            }
+
+            // Mostra a tela de carregamento e já dispara o carregamento.
+            // Não precisa de clique do usuário — quem chegou aqui já tem sessão.
+            spinner.style.display = 'block';
+            title.textContent = '👁️ Verificando acesso...';
+            statusEl.textContent = 'Confirmando sua sessão...';
+            btnEnter.style.display = 'none';
+
+            // Botão de emergência: se a auto-carga falhar, o usuário pode
+            // tentar de novo manualmente.
+            btnEnter.textContent = '▶ Entrar no Olho De Deus';
+            btnEnter.onclick = function (ev) {
+                ev.preventDefault();
+                abrirOlhoDeDeus();
+            };
+
+            // Auto-dispara. Se demorar >30s, o AbortController acima dispara
+            // e o catch mostra a mensagem de "servidor demorou".
+            abrirOlhoDeDeus();
+        })();
+
+    })();
     </script>
 </body>
 </html>
