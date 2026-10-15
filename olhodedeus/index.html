@@ -1645,7 +1645,7 @@
                 usuarioLogadoOlho = JSON.parse(sessao);
 
                 consultarSaldoOlho(usuarioLogadoOlho.email, usuarioLogadoOlho.sessionToken).then(data => {
-                    if (data.ok) {
+                    if (data.ok && usuarioLogadoOlho) {
                         usuarioLogadoOlho.balance = data.balance;
                         localStorage.setItem('olho_de_deus_usuario', JSON.stringify(usuarioLogadoOlho));
                         localStorage.setItem('almafluxo_usuario', JSON.stringify({
