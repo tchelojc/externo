@@ -1493,12 +1493,17 @@
                 const logouComSucesso = data.ok === true || data.autenticado === true || data.status === 'success';
                 const usuarioResp = data.usuario || data; // usuario aninhado (padrão novo) ou plano (padrão antigo)
 
+                if (logouComSucesso && !(data.token || data.sessionToken)) {
+                    // Sem token real não existe sessão: o servidor valida a sessão antes de abrir o app.
+                    throw new Error('O servidor não devolveu o token de sessão. Tente entrar de novo.');
+                }
+
                 if (logouComSucesso) {
                     usuarioLogadoOlho = {
                         nome: usuarioResp.nome || 'Usuário',
                         email: email,
                         balance: usuarioResp.balance ?? usuarioResp.saldo ?? 0,
-                        sessionToken: data.token || data.sessionToken || `session_${Date.now()}`,
+                        sessionToken: data.token || data.sessionToken || '',
                         master: usuarioResp.master || usuarioResp.admin || false
                     };
                     
