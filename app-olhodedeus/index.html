@@ -121,7 +121,10 @@
         try {
             // Valida acesso no servidor (mesma rota que o worker já expõe)
             status.textContent = 'Validando acesso...';
+            const ctl = new AbortController();
+            const tmo = setTimeout(() => ctl.abort(), 12000);
             const response = await fetch(`${WORKER_URL}/proxy/central`, {
+            signal: ctl.signal,
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -132,7 +135,9 @@
             })
             });
 
+            clearTimeout(tmo);
             const data = await response.json();
+            console.log('[OD] validarSessionToken →', response.status, data);
 
             // Considera liberado só se o servidor confirmar. Mantém também o
             // caso de master (às vezes o backend devolve só {ok:true}).
