@@ -88,128 +88,100 @@
         // CONFIGURAÇÃO
         // ═══════════════════════════════════════════════════════════
         const WORKER_URL = 'https://almafluxo.uk';
-        const LOGIN_URL = 'https://almafluxo.uk/proxy/central';
-        
+        const LOGIN_URL  = 'https://almafluxo.uk/pagamentos';   // mesma entrada que o worker usa p/ quem está sem sessão
+
+        // ─── A chave de sessão usada em TODO o ecossistema é 'almafluxo_usuario'.
+        // O antigo 'olho_de_deus_usuario' não é mais gravado por ninguém, então
+        // ler dele aqui garantia 100% de redirect pro login (loop).
+        function lerUsuario() {
+        for (const k of ['almafluxo_usuario', 'olho_de_deus_usuario']) {
+            try {
+            const s = localStorage.getItem(k);
+            if (!s) continue;
+            const u = JSON.parse(s);
+            if (u && u.email && u.sessionToken) return u;
+            } catch (e) {}
+        }
+        return null;
+        }
+
         async function carregar() {
-            const spinner = document.getElementById('spinner');
-            const title = document.getElementById('title');
-            const status = document.getElementById('status');
-            const promptBox = document.getElementById('promptBox');
-            const btnEnter = document.getElementById('btnEnter');
-            
-            try {
-                // PASSO 1: Verifica sessão no localStorage
-                const sessao = localStorage.getItem('olho_de_deus_usuario');
-                if (!sessao) {
-                    window.location.href = LOGIN_URL;
-                    return;
-                }
-                
-                const usuario = JSON.parse(sessao);
-                
-                // PASSO 2: Valida acesso no servidor
-                status.textContent = 'Validando acesso...';
-                const response = await fetch(`${WORKER_URL}/proxy/central`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'verificarAcesso',
-                        email: usuario.email,
-                        plataforma: 'olhodedeus',
-                        sessionToken: usuario.sessionToken
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (!data.ok || !data.acessoPermitido) {
-                    throw new Error(data.error || 'Acesso negado');
-                }
-                
-                // PASSO 3: Mostra botão de entrada
-                spinner.style.display = 'none';
-                title.textContent = '👁️ Bem-vindo ao Olho De Deus';
-                status.textContent = 'Acesso confirmado. Clique para entrar.';
-                promptBox.style.display = 'block';
-                btnEnter.style.display = 'inline-block';
-                
-            } catch (e) {
-                window.location.href = `${LOGIN_URL}?erro=${encodeURIComponent(e.message)}`;
-            }
+        const spinner   = document.getElementById('spinner');
+        const title     = document.getElementById('title');
+        const status    = document.getElementById('status');
+        const promptBox = document.getElementById('promptBox');
+        const btnEnter  = document.getElementById('btnEnter');
+
+        const usuario = lerUsuario();
+        if (!usuario) {
+            window.location.href = LOGIN_URL;
+            return;
         }
-        
-        async function abrirPlataforma(event) {
-            event.preventDefault();
-            
-            const btnEnter = document.getElementById('btnEnter');
-            const status = document.getElementById('status');
-            
-            btnEnter.textContent = '⏳ Carregando plataforma...';
-            btnEnter.disabled = true;
-            status.textContent = 'Buscando conteúdo...';
-            
-            try {
-                const sessao = localStorage.getItem('olho_de_deus_usuario');
-                const usuario = JSON.parse(sessao);
-                
-                // Busca o HTML do Drive via Worker — precisa mandar email/sessionToken/
-                // plataforma: desde a correção de segurança, o worker confere se o acesso
-                // ainda está liberado ANTES de servir o conteúdo (sem isso, dá 401 "Sessão
-                // ou plataforma não informada"). O arquivoId não precisa mais vir do
-                // cliente — o worker já resolve isso sozinho a partir da "plataforma".
-                const response = await fetch(`${WORKER_URL}/proxy/central`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'servirHTML',
-                        email: usuario.email,
-                        sessionToken: usuario.sessionToken,
-                        plataforma: 'olhodedeus'
-                    })
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Servidor retornou status ' + response.status);
-                }
-                
-                const html = await response.text();
-                
-                if (html.includes('<!DOCTYPE') || html.includes('<html')) {
-                    status.textContent = 'Plataforma carregada!';
-                    
-                    // 🔥 CORREÇÃO: Usar iframe em vez de document.write
-                    // Cria um iframe em tela cheia
-                    const iframe = document.createElement('iframe');
-                    iframe.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:9999;';
-                    iframe.srcdoc = html;
-                    
-                    // Remove o container original
-                    document.getElementById('container').style.display = 'none';
-                    
-                    // Adiciona o iframe
-                    document.body.appendChild(iframe);
-                    
-                    // Listener para mensagens do iframe
-                    window.addEventListener('message', function(event) {
-                        if (event.data === 'fechar-plataforma') {
-                            iframe.remove();
-                            document.getElementById('container').style.display = '';
-                        }
-                        if (event.data === 'voltar-login') {
-                            window.location.href = LOGIN_URL;
-                        }
-                    });
-                } else {
-                    throw new Error('Conteúdo inválido retornado');
-                }
-                
-            } catch (e) {
-                btnEnter.textContent = '▶ Entrar no Olho De Deus';
-                btnEnter.disabled = false;
-                alert('Erro ao carregar plataforma: ' + e.message);
+
+        try {
+            // Valida acesso no servidor (mesma rota que o worker já expõe)
+            status.textContent = 'Validando acesso...';
+            const response = await fetch(`${WORKER_URL}/proxy/central`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'validarSessionToken',   // mesma checagem do portão /app-olhodedeus e do /proxy/motor
+                email: usuario.email,
+                plataforma: 'olhodedeus',
+                sessionToken: usuario.sessionToken
+            })
+            });
+
+            const data = await response.json();
+
+            // Considera liberado só se o servidor confirmar. Mantém também o
+            // caso de master (às vezes o backend devolve só {ok:true}).
+            if (!(data.ok === true || data.autenticado === true || data.status === 'success')) {
+            throw new Error(data.error || 'Acesso negado');
             }
+
+            spinner.style.display   = 'none';
+            title.textContent       = '👁️ Bem-vindo ao Olho De Deus';
+            status.textContent      = 'Acesso confirmado. Clique para entrar.';
+            promptBox.style.display = 'block';
+            btnEnter.style.display  = 'inline-block';
+        } catch (e) {
+            window.location.href = `${LOGIN_URL}?erro=${encodeURIComponent(e.message)}`;
         }
-        
+        }
+
+        // ─── Entrar: navega DIRETO para /app-olhodedeus/ (mesma página, sem iframe)
+        // em vez de baixar o HTML via fetch e injetar com srcdoc.
+        // MOTIVO: dentro de srcdoc, location.origin vira "null", o localStorage não
+        // compartilha com almafluxo.uk em Firefox/Safari, e o BroadcastChannel não
+        // conecta. Isso quebrava o login, o urlIrmao() e o motor de entropia.
+        // Navegando direto, o linear roda como página real no domínio, e o worker
+        // injeta window.ALMA_SESSION no <head> a partir da query string.
+        function abrirPlataforma(event) {
+        event.preventDefault();
+
+        const btnEnter = document.getElementById('btnEnter');
+        const status   = document.getElementById('status');
+
+        btnEnter.textContent = '⏳ Carregando plataforma...';
+        btnEnter.disabled    = true;
+        status.textContent   = 'Redirecionando...';
+
+        const usuario = lerUsuario();
+        if (!usuario) {
+            window.location.href = LOGIN_URL;
+            return;
+        }
+
+        const qs = new URLSearchParams({
+            email:        usuario.email,
+            sessionToken: usuario.sessionToken,
+            master:       usuario.master ? 'true' : 'false'
+        }).toString();
+
+        window.location.href = `${WORKER_URL}/app-olhodedeus/?${qs}`;
+        }
+
         carregar();
     </script>
 </body>
