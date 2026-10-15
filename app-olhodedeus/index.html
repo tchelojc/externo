@@ -118,17 +118,27 @@
         box.textContent = 'Consultando o worker...';
         try {
             const qs = new URLSearchParams({ email: u.email || '', sessionToken: u.sessionToken || '' });
-            const r = await fetch(`${WORKER_URL}/app-olhodedeus/_diag?${qs}`, { cache: 'no-store' });
+            const r = await fetch(`${WORKER_URL}/app-olhodedeus/_diag?${qs}&_=${Date.now()}`, { cache: 'no-store' });
             const t = await r.text();
             let j = null; try { j = JSON.parse(t); } catch (e) {}
-            if (j && j.worker) {
-                box.textContent = 'WORKER NOVO NO AR (' + j.worker + ')\n\n' + JSON.stringify(j, null, 2);
-            } else if (j) {
-                box.textContent = 'Resposta do worker (status ' + r.status + '):\n' + JSON.stringify(j, null, 2);
-            } else {
-                box.textContent = 'WORKER ANTIGO: a rota /app-olhodedeus ainda é atendida por uma versão sem o diagnóstico.\n' +
-                    'Publique o worker.js v4.7.3 (Deploy) e confira se ele é o worker ligado a almafluxo.uk.';
-            }
+            let sw = 'indisponível';
+            try { const regs = await navigator.serviceWorker.getRegistrations(); sw = regs.length ? regs.map(g => g.scope).join(', ') : 'nenhum'; } catch (e) {}
+            let cs = 'indisponível';
+            try { cs = (await caches.keys()).join(', ') || 'nenhum'; } catch (e) {}
+            const cab = 'status: ' + r.status + '\ncontent-type: ' + r.headers.get('content-type') +
+                '\nX-ALMA-Worker: ' + (r.headers.get('x-alma-worker') || '(ausente → NÃO é o worker v4.7.3 respondendo)') +
+                '\nserviceWorkers registrados: ' + sw + '\ncaches do navegador: ' + cs + '\n\n';
+            if (j && j.worker) box.textContent = cab + JSON.stringify(j, null, 2);
+            else box.textContent = cab + 'corpo (início): ' + t.slice(0, 160).replace(/\s+/g, ' ');
+            const b = document.createElement('button');
+            b.textContent = '🧹 Limpar service worker + cache e recarregar';
+            b.style.cssText = 'display:block;margin-top:14px;padding:10px 16px;border-radius:20px;border:0;background:#ffd700;font-weight:800;cursor:pointer';
+            b.onclick = async () => {
+                try { (await navigator.serviceWorker.getRegistrations()).forEach(g => g.unregister()); } catch (e) {}
+                try { (await caches.keys()).forEach(k => caches.delete(k)); } catch (e) {}
+                setTimeout(() => location.reload(true), 400);
+            };
+            box.appendChild(b);
         } catch (e) { box.textContent = 'Falha ao consultar o worker: ' + e.message; }
         }
 
