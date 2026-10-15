@@ -105,7 +105,35 @@
         return null;
         }
 
+        // ─── Anti-loop: este carregador NUNCA deveria ser servido em /app-olhodedeus (lá deve abrir o linear).
+        // Se estiver, o botão "Entrar" navega pra mesma tela. Em vez de girar, mostra o diagnóstico na tela.
+        async function diagnosticoLoop() {
+        const u = lerUsuario() || {};
+        document.getElementById('spinner').style.display = 'none';
+        document.getElementById('title').textContent = '⚠️ O linear não foi entregue';
+        document.getElementById('status').textContent = 'O servidor devolveu esta tela de carregamento no lugar do Olho De Deus.';
+        const box = document.getElementById('promptBox');
+        box.style.display = 'block';
+        box.style.fontFamily = 'monospace'; box.style.fontSize = '0.75rem'; box.style.whiteSpace = 'pre-wrap'; box.style.wordBreak = 'break-all';
+        box.textContent = 'Consultando o worker...';
+        try {
+            const qs = new URLSearchParams({ email: u.email || '', sessionToken: u.sessionToken || '' });
+            const r = await fetch(`${WORKER_URL}/app-olhodedeus/_diag?${qs}`, { cache: 'no-store' });
+            const t = await r.text();
+            let j = null; try { j = JSON.parse(t); } catch (e) {}
+            if (j && j.worker) {
+                box.textContent = 'WORKER NOVO NO AR (' + j.worker + ')\n\n' + JSON.stringify(j, null, 2);
+            } else if (j) {
+                box.textContent = 'Resposta do worker (status ' + r.status + '):\n' + JSON.stringify(j, null, 2);
+            } else {
+                box.textContent = 'WORKER ANTIGO: a rota /app-olhodedeus ainda é atendida por uma versão sem o diagnóstico.\n' +
+                    'Publique o worker.js v4.7.3 (Deploy) e confira se ele é o worker ligado a almafluxo.uk.';
+            }
+        } catch (e) { box.textContent = 'Falha ao consultar o worker: ' + e.message; }
+        }
+
         async function carregar() {
+        if (location.pathname.indexOf('/app-olhodedeus') === 0) { await diagnosticoLoop(); return; }
         const spinner   = document.getElementById('spinner');
         const title     = document.getElementById('title');
         const status    = document.getElementById('status');
