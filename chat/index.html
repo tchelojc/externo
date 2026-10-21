@@ -5,114 +5,120 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#030508">
-<title>ALMAFLUXO | Chat — Canal direto</title>
+<title>ALMAFLUXO | Chat — Escolha um canal</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   :root{
     --ciano:#00e5ff;--dourado:#ffd700;--bg:#030508;--panel:#0a0e17;
-    --panel2:#060a12;--texto:#e0e0e0;--texto2:#8a8a99;--border:#1a1a2e;
-    --font:'Inter',system-ui,sans-serif;--body:'Nunito',system-ui,sans-serif
+    --panel2:#060a12;--texto:#e0e0e0;--texto2:#8a8a99;--border:#1a1a2e
   }
   body{
-    font-family:var(--body);background:var(--bg);color:var(--texto);
+    font-family:'Nunito',system-ui,sans-serif;background:var(--bg);color:var(--texto);
     min-height:100vh;display:flex;align-items:center;justify-content:center;
-    padding:1.5rem;line-height:1.6
+    padding:1.5rem;line-height:1.5
   }
   .card{
     background:var(--panel);border:1px solid var(--border);border-radius:20px;
-    max-width:560px;width:100%;padding:2.5rem 2rem;text-align:center;
+    max-width:460px;width:100%;padding:2rem;text-align:center;
     box-shadow:0 20px 60px rgba(0,0,0,.6)
   }
-  .logo{
-    font-family:var(--font);font-weight:900;font-size:1.1rem;
-    color:var(--ciano);letter-spacing:.5px;margin-bottom:.4rem
-  }
-  .logo span{color:#fff;font-weight:400}
   h1{
-    font-family:var(--font);font-size:clamp(1.8rem,4vw,2.4rem);
-    font-weight:900;color:#fff;line-height:1.15;margin:1rem 0 .6rem
+    font-family:'Inter',system-ui,sans-serif;font-size:1.4rem;
+    color:#fff;margin:.6rem 0 .3rem
   }
-  h1 .destaque{color:var(--dourado)}
-  .sub{color:var(--texto2);font-size:1rem;margin-bottom:1.8rem;max-width:420px;margin-left:auto;margin-right:auto}
-  .sub strong{color:var(--ciano)}
+  h1 span{color:var(--dourado)}
+  p{color:var(--texto2);font-size:.9rem;margin-bottom:1.4rem}
   .badge{
     display:inline-block;background:rgba(0,229,255,.06);color:var(--ciano);
     border:1px solid rgba(0,229,255,.12);padding:.3rem 1rem;border-radius:30px;
-    font-size:.78rem;font-weight:700;margin-bottom:1.2rem
+    font-size:.75rem;font-weight:700
   }
+  label{
+    display:block;text-align:left;font-size:.8rem;font-weight:700;
+    color:var(--texto2);margin-bottom:.3rem
+  }
+  input{
+    width:100%;padding:.8rem 1rem;background:var(--panel2);
+    border:1px solid var(--border);border-radius:10px;color:#fff;
+    font-size:1rem;outline:none;margin-bottom:1rem;font-family:inherit
+  }
+  input:focus{border-color:var(--ciano)}
   .btn{
-    display:inline-block;background:var(--ciano);color:#000;
-    padding:.9rem 2.2rem;border-radius:50px;font-weight:800;font-size:1rem;
-    font-family:var(--font);text-decoration:none;transition:.25s;border:none;cursor:pointer
+    width:100%;background:var(--ciano);color:#000;border:none;padding:.85rem;
+    border-radius:50px;font-weight:800;font-size:1rem;cursor:pointer;
+    font-family:'Inter',system-ui,sans-serif;transition:.2s
   }
-  .btn:hover{box-shadow:0 0 40px rgba(0,229,255,.35);transform:translateY(-2px)}
-  .btn-sec{
-    display:inline-block;background:transparent;color:var(--ciano);
-    padding:.8rem 1.8rem;border-radius:50px;font-weight:600;font-size:.92rem;
-    font-family:var(--font);text-decoration:none;transition:.25s;
-    border:1px solid rgba(0,229,255,.3);margin-left:.5rem
+  .btn:hover{box-shadow:0 0 30px rgba(0,229,255,.35)}
+  .hint{font-size:.75rem;color:var(--texto2);margin-top:.4rem;text-align:left}
+  .erro{color:#ff6b6b;font-size:.85rem;margin-top:.6rem;min-height:1.1rem;text-align:left}
+  .exemplos{margin-top:1.4rem;padding-top:1.2rem;border-top:1px solid var(--border)}
+  .exemplos p{margin-bottom:.6rem}
+  .chips{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center}
+  .chip{
+    background:var(--panel2);border:1px solid var(--border);color:var(--ciano);
+    padding:.4rem 1rem;border-radius:30px;font-size:.85rem;font-weight:700;
+    text-decoration:none;transition:.2s
   }
-  .btn-sec:hover{background:rgba(0,229,255,.05);border-color:var(--ciano)}
-  .info{
-    display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;
-    margin-top:2rem;text-align:left
-  }
-  .info div{
-    background:var(--panel2);border:1px solid var(--border);
-    border-radius:12px;padding:.9rem
-  }
-  .info h4{font-family:var(--font);color:var(--ciano);font-size:.85rem;margin-bottom:.25rem}
-  .info p{color:var(--texto2);font-size:.8rem}
+  .chip:hover{border-color:var(--ciano);background:rgba(0,229,255,.06)}
   .aviso{
-    margin-top:1.5rem;padding:.8rem 1rem;background:rgba(255,215,0,.06);
+    margin-top:1.4rem;padding:.8rem;background:rgba(255,215,0,.06);
     border:1px solid rgba(255,215,0,.2);border-radius:10px;
-    color:var(--dourado);font-size:.8rem;text-align:left
+    color:var(--dourado);font-size:.78rem;text-align:left
   }
   .aviso code{background:rgba(0,0,0,.3);padding:1px 5px;border-radius:4px;color:#fff}
-  @media(max-width:600px){
-    .info{grid-template-columns:1fr}
-    .btn-sec{margin-left:0;margin-top:.6rem}
-  }
 </style>
 </head>
 <body>
   <div class="card">
-    <div class="logo">✦ ALMAFLUXO <span>| Chat</span></div>
-    <div class="badge">💬 Canal direto, sem intermediário</div>
+    <div class="badge">💬 Canal direto</div>
+    <h1>Fale com <span>quem você confia</span></h1>
+    <p>Digite o nome do canal (handle) de quem você quer falar.</p>
 
-    <h1>Fale direto com quem você <span class="destaque">confia</span></h1>
-    <p class="sub">
-      Entre com sua conta ALMAFLUXO. Sua mensagem
-      <strong>chega direto</strong> para o dono do canal, sem intermediário.
-    </p>
+    <form id="form">
+      <label for="handle">Nome do canal</label>
+      <input id="handle" name="handle" placeholder="ex.: marcelo, joao, tchelo" maxlength="40" autocomplete="off" autofocus>
+      <div class="hint">Só letras, números, <code>_</code> e <code>-</code>. Mínimo 2 caracteres.</div>
+      <div class="erro" id="erro"></div>
+      <button class="btn" type="submit">Abrir chat →</button>
+    </form>
 
-    <a class="btn" href="https://proxy-ua.tchelojc.workers.dev/chat/">
-      Abrir o chat →
-    </a>
-    <a class="btn-sec" href="https://almafluxo.uk/pagamentos">
-      Conhecer o ecossistema
-    </a>
-
-    <div class="info">
-      <div>
-        <h4>Um cadastro só</h4>
-        <p>O mesmo login ALMAFLUXO vale para todas as plataformas do ecossistema.</p>
-      </div>
-      <div>
-        <h4>Conversa guardada</h4>
-        <p>Suas mensagens e as respostas ficam no seu cadastro.</p>
-      </div>
-      <div>
-        <h4>Respostas identificadas</h4>
-        <p>Quando a resposta é automática, aparece escrito. Se for do dono do canal, aparece o nome dele.</p>
+    <div class="exemplos">
+      <p>Canais disponíveis:</p>
+      <div class="chips">
+        <a class="chip" href="https://proxy-ua.tchelojc.workers.dev/chat/marcelo">/chat/marcelo</a>
       </div>
     </div>
 
     <div class="aviso">
-      ⚠️ Esta página é apenas uma <strong>porta de entrada</strong>.
-      O chat em si roda em <code>proxy-ua.tchelojc.workers.dev</code>.
-      Ao clicar no botão, você será levado para o endereço definitivo do chat.
+      ⚠️ O chat roda em <code>proxy-ua.tchelojc.workers.dev</code>. Ao clicar em
+      "Abrir chat", você será levado para o endereço definitivo.
     </div>
   </div>
+  <script>
+    var WORKER = 'https://proxy-ua.tchelojc.workers.dev';
+    var f = document.getElementById('form');
+    var inp = document.getElementById('handle');
+    var err = document.getElementById('erro');
+    f.addEventListener('submit', function(ev){
+      ev.preventDefault();
+      err.textContent = '';
+      var h = String(inp.value || '').trim().toLowerCase();
+      if (!/^[a-z0-9_-]{2,40}$/.test(h)) {
+        err.textContent = 'Use 2 a 40 caracteres: letras, números, _ ou -.';
+        return;
+      }
+      location.href = WORKER + '/chat/' + encodeURIComponent(h);
+    });
+    inp.addEventListener('input', function(){ err.textContent = ''; });
+    // Se a pessoa acessar /externo/chat/marcelo, pula direto para o Worker
+    (function(){
+      var path = location.pathname.replace(/\/+$/, '').replace(/\/index\.html$/i, '');
+      var partes = path.split('/').filter(Boolean);
+      var handle = partes[partes.length - 1] || '';
+      if (handle && handle !== 'chat' && /^[a-z0-9_-]{2,40}$/i.test(handle)) {
+        location.replace(WORKER + '/chat/' + encodeURIComponent(handle));
+      }
+    })();
+  </script>
 </body>
 </html>
