@@ -1210,6 +1210,46 @@
             }
         }
     </style>
+<style id="gb-css">#gbRoot{--gb-bg:#fff;max-width:1100px;margin:0 auto 2rem;color:var(--texto)}
+#gbRoot *{box-sizing:border-box}
+.gb-steps{display:flex;gap:6px;margin:0 0 1rem;overflow-x:auto;padding-bottom:4px}
+.gb-step{flex:1;min-width:84px;text-align:center;font-size:.72rem;font-weight:700;padding:.5rem .3rem;border-radius:10px;background:var(--azul-branco);color:var(--texto-suave);border:1px solid var(--border)}
+.gb-step.on{background:var(--azul-primario);color:#fff;border-color:var(--azul-primario)}.gb-step.ok{background:#e8f6ee;color:var(--verde);border-color:#bfe5cd}
+.gb-card{background:#fff;border:1px solid var(--border);border-radius:18px;padding:1.2rem;box-shadow:var(--sombra);margin-bottom:1rem}
+.gb-card h3{margin:0 0 .3rem;color:var(--azul-primario);font-size:1.15rem}.gb-sub{color:var(--texto-suave);font-size:.85rem;margin:0 0 .9rem}
+.gb-tipos{display:grid;gap:.8rem;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.gb-tipo{cursor:pointer;border:2px solid var(--border);border-radius:16px;padding:1rem;text-align:left;background:#fff;font:inherit;color:inherit;transition:.15s}
+.gb-tipo:hover{border-color:var(--azul-claro);transform:translateY(-2px)}.gb-tipo.on{border-color:var(--dourado);background:#fff8ec}
+.gb-tipo .ic{font-size:2rem}.gb-tipo b{display:block;margin:.3rem 0 .15rem;color:var(--azul-primario)}.gb-tipo span.d{font-size:.8rem;color:var(--texto-suave)}
+.gb-grid{display:grid;gap:.8rem;grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.gb-f{display:flex;flex-direction:column;gap:.25rem;font-size:.78rem;font-weight:700;color:var(--texto-suave)}
+.gb-f input,.gb-f select,.gb-f textarea,.gb-in{border:1px solid var(--border);border-radius:10px;padding:.55rem .6rem;font:inherit;font-size:.95rem;color:var(--texto);background:#fff;width:100%}
+.gb-f textarea{min-height:90px;resize:vertical}
+.gb-row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
+.gb-btn{border:0;border-radius:12px;padding:.7rem 1.1rem;font:inherit;font-weight:700;cursor:pointer;background:var(--azul-primario);color:#fff}
+.gb-btn.gold{background:var(--dourado);color:#fff}.gb-btn.ghost{background:var(--azul-branco);color:var(--azul-primario);border:1px solid var(--border)}.gb-btn.sm{padding:.4rem .7rem;font-size:.8rem;border-radius:9px}.gb-btn.red{background:#fdecea;color:#c0392b}
+.gb-btn[disabled]{opacity:.5;cursor:not-allowed}
+.gb-room{border:1px solid var(--border);border-radius:14px;margin-bottom:.7rem;overflow:hidden;background:#fff}
+.gb-room>.hd{display:flex;align-items:center;gap:.6rem;padding:.7rem .9rem;background:var(--azul-branco);cursor:pointer}
+.gb-room>.hd b{flex:1;color:var(--azul-primario)}.gb-room>.hd small{color:var(--texto-suave)}
+.gb-room>.bd{padding:.9rem;display:none}.gb-room.open>.bd{display:block}
+.gb-sec{border-top:1px dashed var(--border);margin-top:.8rem;padding-top:.7rem}.gb-sec h4{margin:0 0 .4rem;font-size:.9rem;color:var(--azul-medio)}
+.gb-step-q{display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.gb-step-q button{border:0;background:var(--azul-branco);width:34px;height:34px;font-size:1.1rem;cursor:pointer;color:var(--azul-primario)}
+.gb-step-q input{width:52px;text-align:center;border:0;font:inherit;font-weight:700;padding:0}
+.gb-chip{border:1px solid var(--border);background:#fff;border-radius:99px;padding:.3rem .7rem;font-size:.78rem;cursor:pointer;font-weight:600;color:var(--azul-primario)}
+.gb-chip:hover{background:var(--azul-branco)}
+.gb-line{display:grid;gap:.5rem;grid-template-columns:repeat(auto-fit,minmax(110px,1fr)) auto;align-items:end;margin-bottom:.5rem}
+.gb-total{position:sticky;bottom:10px;z-index:5;background:linear-gradient(135deg,var(--azul-primario),var(--azul-medio));color:#fff;border-radius:16px;padding:.8rem 1.1rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;box-shadow:0 10px 30px rgba(26,82,118,.35);margin-top:1rem}
+.gb-total .v{font-size:1.5rem;font-weight:800}.gb-total small{opacity:.85}
+.gb-big{font-size:2.2rem;font-weight:800;color:var(--azul-primario)}
+.gb-bar{height:10px;border-radius:6px;background:var(--azul-claro)}.gb-barbg{background:var(--azul-branco);border-radius:6px;margin:.2rem 0 .6rem}
+.gb-tb{width:100%;border-collapse:collapse;font-size:.85rem}.gb-tb th,.gb-tb td{padding:.45rem .5rem;border-bottom:1px solid var(--border);text-align:left}.gb-tb th{color:var(--texto-suave);font-size:.72rem;text-transform:uppercase}.gb-tb .n{text-align:right;white-space:nowrap}
+.gb-ok{background:#e8f6ee;border:1px solid #bfe5cd;color:#1e7b46;border-radius:14px;padding:1rem;margin-top:1rem}
+.gb-warn{background:#fff8ec;border:1px solid #f5d9a6;color:#8a5a00;border-radius:12px;padding:.7rem .9rem;font-size:.85rem;margin-top:.7rem}
+.gb-note{font-size:.76rem;color:var(--texto-suave);margin-top:.5rem}
+@media(max-width:600px){.gb-line{grid-template-columns:1fr 1fr}.gb-total .v{font-size:1.25rem}}
+</style>
 </head>
 <body>
 
@@ -1288,10 +1328,11 @@
     <!-- ════════════════════════════════════════════════════════════ -->
     <section class="services-section" id="servicos">
         <div class="container">
-            <h2 class="section-title">Soluções Para Sua Obra</h2>
-            <p class="section-subtitle">Selecione o serviço e calcule um orçamento estimado</p>
+            <h2 class="section-title">Monte Sua Obra</h2>
+            <p class="section-subtitle">Obra fechada do jeito que você sonha: escolha o módulo, configure cômodo por cômodo e veja o valor na hora</p>
             
-            <div class="orcamento-wrapper">
+            <div id="gbRoot"></div>
+                <div class="orcamento-wrapper" id="oldOrc" style="display:none">
                 
                 <!-- FORMULÁRIO DE ORÇAMENTO -->
                 <div class="orcamento-form">
@@ -3087,6 +3128,299 @@
         }
     });
 })();
+</script>
+<script id="gb-js">
+(function(){
+'use strict';
+const KEY='kpg_gb_v1';
+const root=document.getElementById('gbRoot'); if(!root)return;
+const CFG=()=>{try{return typeof CONFIG!=='undefined'?CONFIG:{}}catch(e){return {}}};
+const R$=v=>(+v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
+const N1=v=>(+v||0).toLocaleString('pt-BR',{maximumFractionDigits:1});
+const N2=v=>(+v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const E=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const num=v=>{const x=parseFloat(String(v).replace(',','.'));return isFinite(x)?x:0};
+
+/* ===== BASE DE PREÇOS (referência — ajuste com a tabela da KPG; pode ser sobrescrita pelo Drive: action "obterTabelaPrecos") ===== */
+let PR={
+  bdi:.22,reserva:.05,faixaMin:-.08,faixaMax:.12,
+  estrutura:{economico:1350,medio:1750,alto:2300},      // R$/m² — fundação, estrutura, alvenaria, cobertura e impermeabilização
+  tipoFator:{casa:1,chale:1.08},
+  piso:{ceramica:95,porcelanato:160,laminado:130,vinilico:140,cimento:85},   // R$/m² (material + mão de obra)
+  parede:{pintura:38,textura:52,ceramica:120,porcelanato:190},               // R$/m² de parede
+  forro:{laje:0,gesso:85,pvc:62},
+  tomada:135,luz:120,interruptor:95,quadroBase:1800,quadroCirc:190,tue:340,
+  hid:{banheiro:6800,lavabo:4200,cozinha:3600,servico:2400,outro:0},
+  janela:{aluminio:780,temperado:1150,acustica:1650,madeira:620,pvc:1050},   // R$/m² de esquadria instalada
+  porta:{madeira:780,cortachamas:3200,sanfonada:520,aluminio:1150,vidro:2400},// R$/un instalada
+  ar:{9000:2900,12000:3300,18000:4700,24000:6200,30000:7900,36000:9800,48000:13200},
+  arTipo:{split:1,parede:.75,pisoteto:1.25,cassete:1.5},arInfra:600,
+  vent:{teto:480,parede:360},
+  muro:{ml:1150,acab:120,portao:{nenhum:0,social:1900,garagem:6800,deslizante:9800}},
+  reforma:{leve:1300,media:2100,pesada:3200,demol:120},
+  offgrid:{nenhum:0,A:7000,B:9500,C:18500}   // cenários do projeto do Chalé: backup / híbrido / off-grid completo
+};
+const L={
+  tipo:{muro:['🧱','Muro','Muro de divisa, fechamento e portão'],chale:['🏡','Chalé','Chalé completo, obra fechada'],casa:['🏠','Casa','Casa nova, do projeto à entrega'],reforma:['🔧','Reforma total','Reformar toda a construção']},
+  padrao:{economico:'Econômico',medio:'Médio',alto:'Alto padrão'},
+  piso:{ceramica:'Cerâmica',porcelanato:'Porcelanato',laminado:'Laminado',vinilico:'Vinílico',cimento:'Cimento queimado'},
+  parede:{pintura:'Pintura',textura:'Textura',ceramica:'Revestimento cerâmico',porcelanato:'Porcelanato'},
+  forro:{laje:'Laje aparente + pintura',gesso:'Forro de gesso',pvc:'Forro de PVC'},
+  janela:{aluminio:'Alumínio',temperado:'Vidro temperado (blindex)',acustica:'Esquadria acústica',madeira:'Madeira',pvc:'PVC'},
+  porta:{madeira:'Madeira',cortachamas:'Corta-chamas',sanfonada:'Sanfonada',aluminio:'Alumínio',vidro:'Vidro de correr'},
+  arTipo:{split:'Split (hi-wall)',parede:'De parede (janela)',pisoteto:'Piso-teto',cassete:'Cassete'},
+  vent:{teto:'Ventilador de teto',parede:'Ventilador de parede'},
+  acab:{reboco:'Reboco e pintura',aparente:'Bloco aparente',textura:'Textura'},
+  portao:{nenhum:'Sem portão',social:'Portão social',garagem:'Portão de garagem (basculante)',deslizante:'Portão deslizante'},
+  estado:{leve:'Leve (pintura e ajustes)',media:'Média (troca de pisos, elétrica e hidráulica parciais)',pesada:'Pesada (refazer instalações e estrutura leve)'},
+  offgrid:{nenhum:'Ligado na rede (sem solar)',A:'Backup (estação ~1 kWh + 2 placas)',B:'Híbrido (2 baterias + 3 placas + inversor 1,5 kW)',C:'Off-grid completo (4 baterias + 2 placas + inversor 1500 W)'},
+  hid:{banheiro:'Banheiro',lavabo:'Lavabo',cozinha:'Cozinha',servico:'Área de serviço',outro:'Seco (sem hidráulica)'}
+};
+const TPL={
+  sala:{nome:'Sala',w:4,h:5,tom:6,luz:2,jan:1,por:1,hid:'outro'},
+  quarto:{nome:'Quarto',w:3,h:3.5,tom:5,luz:1,jan:1,por:1,hid:'outro'},
+  suite:{nome:'Suíte',w:3.5,h:4,tom:6,luz:1,jan:1,por:1,hid:'outro'},
+  cozinha:{nome:'Cozinha',w:3,h:3.5,tom:8,luz:1,jan:1,por:1,hid:'cozinha',itens:[['Geladeira',250],['Micro-ondas',1200]],piso:'porcelanato',parede:'ceramica'},
+  banheiro:{nome:'Banheiro',w:1.8,h:2.4,tom:1,luz:1,jan:1,por:1,hid:'banheiro',itens:[['Chuveiro elétrico',5500]],piso:'ceramica',parede:'ceramica',jw:.6,jh:.6},
+  lavabo:{nome:'Lavabo',w:1.2,h:1.6,tom:1,luz:1,jan:0,por:1,hid:'lavabo',piso:'porcelanato',parede:'ceramica'},
+  servico:{nome:'Área de serviço',w:2,h:2.5,tom:3,luz:1,jan:1,por:1,hid:'servico',itens:[['Máquina de lavar',1000]],piso:'ceramica',parede:'ceramica'},
+  varanda:{nome:'Varanda',w:3,h:4,tom:2,luz:1,jan:0,por:1,hid:'outro',pt:'vidro'},
+  garagem:{nome:'Garagem',w:3,h:5.5,tom:2,luz:1,jan:0,por:1,hid:'outro',piso:'cimento',parede:'textura'},
+  escritorio:{nome:'Escritório',w:3,h:3,tom:6,luz:1,jan:1,por:1,hid:'outro',itens:[['Computador',300]]},
+  outro:{nome:'Cômodo',w:3,h:3,tom:3,luz:1,jan:1,por:1,hid:'outro'}
+};
+const QUICK=[['TV',150],['Geladeira',250],['Micro-ondas',1200],['Chuveiro elétrico',5500],['Forno elétrico',2000],['Máquina de lavar',1000],['Computador',300],['Freezer',200],['Bomba d’água',750],['Outro aparelho',200]];
+
+let G=load();
+function fresh(){return {passo:1,tipo:'',padrao:'medio',offgrid:'nenhum',pe:2.8,muro:{comp:20,alt:2.2,acab:'reboco',portao:'garagem',pw:3.5},reforma:{area:80,estado:'media',demol:true},comodos:[],cliente:{nome:'',whats:'',cidade:'',obs:''},enviado:null}}
+function load(){try{const r=JSON.parse(localStorage.getItem(KEY)||'null');if(r&&r.passo)return Object.assign(fresh(),r)}catch(e){}return fresh()}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(G))}catch(e){}};
+const uid=()=>Math.random().toString(36).slice(2,8);
+
+function newRoom(k){
+  const t=TPL[k]||TPL.outro;
+  const c={id:uid(),tipo:k,nome:t.nome,w:t.w,h:t.h,piso:t.piso||'ceramica',parede:t.parede||'pintura',forro:'laje',hid:t.hid,tom:t.tom,luz:t.luz,itens:(t.itens||[]).map(x=>({nome:x[0],w:x[1]})),janelas:[],portas:[],ar:[],vent:[],open:true};
+  if(t.jan)c.janelas.push({tipo:'aluminio',w:t.jw||1.2,h:t.jh||1,q:t.jan});
+  if(t.por)c.portas.push({tipo:t.pt||'madeira',q:t.por});
+  return c;
+}
+
+/* ===== cálculo ===== */
+function san(g){const c=JSON.parse(JSON.stringify(g));const P=v=>Math.max(0,+v||0),I=v=>Math.round(P(v));
+  c.pe=Math.max(2,P(c.pe)||2.8);c.muro.comp=P(c.muro.comp);c.muro.alt=P(c.muro.alt);c.muro.pw=P(c.muro.pw);c.reforma.area=P(c.reforma.area);
+  c.comodos.forEach(r=>{r.w=P(r.w);r.h=P(r.h);r.tom=I(r.tom);r.luz=I(r.luz);r.itens.forEach(i=>i.w=P(i.w));r.janelas.forEach(j=>{j.w=P(j.w);j.h=P(j.h);j.q=I(j.q)});r.portas.forEach(x=>x.q=I(x.q));r.ar.forEach(x=>x.q=I(x.q));r.vent.forEach(x=>x.q=I(x.q))});return c}
+function calc(g){
+  g=san(g);
+  const it=[];const add=(cat,desc,un,q,pr,com)=>{q=+q;pr=+pr;if(q>0&&pr>=0)it.push({cat,desc,un,qtd:+q.toFixed(2),preco:+pr.toFixed(2),total:+(q*pr).toFixed(2),comodo:com||''})};
+  let area=0,tomT=0,luzT=0,tueT=0;const porCom={};
+  const CAT={civ:'Estrutura e obra civil',acab:'Acabamentos',ele:'Elétrica',hid:'Hidráulica',esq:'Esquadrias (janelas e portas)',clima:'Climatização e ventilação',muro:'Muro e portão',ref:'Reforma'};
+  if(g.tipo==='muro'){
+    const m=g.muro,L0=Math.max(0,num(m.comp)),H=Math.max(.5,num(m.alt));
+    add(CAT.muro,'Muro — fundação, estrutura e alvenaria ('+N1(L0)+' m × '+N1(H)+' m)','m',L0,PR.muro.ml*(H/2)*(H>3?1.5:1));
+    add(CAT.muro,'Acabamento do muro — '+L.acab[m.acab]+' (2 faces)','m²',L0*H*2,PR.muro.acab*(m.acab==='aparente'?.4:m.acab==='textura'?1.35:1));
+    if(m.portao&&m.portao!=='nenhum')add(CAT.muro,L.portao[m.portao]+' ('+N1(m.pw)+' m)','un',1,PR.muro.portao[m.portao]*Math.max(.7,num(m.pw)/(m.portao==='social'?1:3.5)));
+    area=L0*.3;
+  }else{
+    if(g.tipo==='reforma'){const a=Math.max(0,num(g.reforma.area));add(CAT.ref,'Reforma geral — '+L.estado[g.reforma.estado],'m²',a,PR.reforma[g.reforma.estado]);if(g.reforma.demol)add(CAT.ref,'Demolição, retirada de entulho e proteção','m²',a,PR.reforma.demol);area=a}
+    g.comodos.forEach(c=>{
+      const A=Math.max(0,c.w*c.h),per=2*(c.w+c.h);let sub=0;const n0=it.length;const com=c.nome;
+      if(g.tipo!=='reforma')area+=A;
+      add(CAT.acab,'Piso '+L.piso[c.piso],'m²',A,PR.piso[c.piso],com);
+      const jArea=c.janelas.reduce((a,j)=>a+j.w*j.h*j.q,0),pArea=c.portas.reduce((a,p)=>a+1.6*p.q,0);
+      add(CAT.acab,'Parede — '+L.parede[c.parede],'m²',Math.max(0,per*g.pe-jArea-pArea),PR.parede[c.parede],com);
+      add(CAT.acab,L.forro[c.forro],'m²',A,PR.forro[c.forro],com);
+      add(CAT.ele,'Tomadas','un',c.tom,PR.tomada,com);tomT+=c.tom;
+      add(CAT.ele,'Pontos de luz + interruptor','un',c.luz,PR.luz+PR.interruptor,com);luzT+=c.luz;
+      const tues=c.itens.filter(x=>x.w>=1500);tueT+=tues.length;
+      if(tues.length)add(CAT.ele,'Circuito dedicado ('+tues.map(x=>x.nome).join(', ')+')','un',tues.length,PR.tue,com);
+      if(PR.hid[c.hid])add(CAT.hid,'Kit hidráulico e louças — '+L.hid[c.hid],'vb',1,PR.hid[c.hid],com);
+      c.janelas.forEach(j=>add(CAT.esq,'Janela '+L.janela[j.tipo]+' '+N2(j.w)+'×'+N2(j.h),'m²',j.w*j.h*j.q,PR.janela[j.tipo],com));
+      c.portas.forEach(p=>add(CAT.esq,'Porta '+L.porta[p.tipo],'un',p.q,PR.porta[p.tipo],com));
+      c.ar.forEach(a=>add(CAT.clima,'Ar-condicionado '+L.arTipo[a.tipo]+' '+(a.btu/1000)+'.000 BTU','un',a.q,PR.ar[a.btu]*PR.arTipo[a.tipo]+PR.arInfra,com));
+      c.vent.forEach(v=>add(CAT.clima,L.vent[v.tipo],'un',v.q,PR.vent[v.tipo],com));
+      porCom[c.id]=it.slice(n0).reduce((a,x)=>a+x.total,0);
+    });
+    if(g.tipo!=='reforma'&&area>0)add(CAT.civ,'Fundação, estrutura, alvenaria, cobertura e impermeabilização ('+L.padrao[g.padrao]+')','m²',area*1.12,PR.estrutura[g.padrao]*(PR.tipoFator[g.tipo]||1));
+    const circ=Math.ceil(tomT/8)+Math.ceil(luzT/10)+tueT;
+    if((g.tipo==='casa'||g.tipo==='chale')&&g.offgrid&&g.offgrid!=='nenhum')add(CAT.ele,'Energia solar — '+L.offgrid[g.offgrid],'vb',1,PR.offgrid[g.offgrid]);
+    if(g.comodos.length)add(CAT.ele,'Quadro de distribuição (DR/DPS) e entrada — '+circ+' circuitos','vb',1,PR.quadroBase+circ*PR.quadroCirc);
+  }
+  const subtotal=it.reduce((a,x)=>a+x.total,0);const bdi=subtotal*PR.bdi,res=(subtotal+bdi)*PR.reserva,total=subtotal+bdi+res;
+  const porDisc={};it.forEach(x=>porDisc[x.cat]=(porDisc[x.cat]||0)+x.total);
+  const k=1+PR.bdi;Object.keys(porDisc).forEach(c=>porDisc[c]=porDisc[c]*k*(1+PR.reserva));
+  let prazo=0;
+  if(g.tipo==='muro')prazo=Math.round(8+num(g.muro.comp)*.5);else if(g.tipo==='reforma')prazo=Math.round(20+num(g.reforma.area)*1+(g.reforma.demol?7:0));else prazo=Math.round(45+area*1.5);
+  Object.keys(porCom).forEach(i=>porCom[i]=porCom[i]*k*(1+PR.reserva));
+  return {itens:it,subtotal,bdi,reserva:res,total,min:total*(1+PR.faixaMin),max:total*(1+PR.faixaMax),prazo,area,porDisc,porCom};
+}
+
+/* ===== interface ===== */
+const STEPS=['Obra','Medidas','Cômodos','Orçamento','Seus dados'];
+function stepsFor(){return G.tipo==='muro'?[1,2,4,5]:[1,2,3,4,5]}
+function head(){
+  const ss=stepsFor();
+  return `<div class="gb-steps">${ss.map((s,i)=>`<div class="gb-step ${G.passo===s?'on':ss.indexOf(G.passo)>i?'ok':''}">${i+1}. ${STEPS[s-1]}</div>`).join('')}</div>`;
+}
+function totalBar(){
+  if(!G.tipo)return '';const c=calc(G);
+  return `<div class="gb-total"><div><small>Estimativa da obra fechada</small><div class="v" id="gbTV">${R$(c.total)}</div></div><div style="text-align:right"><small>Prazo estimado</small><div style="font-weight:800" id="gbTP">${c.prazo} dias</div></div></div>`;
+}
+function nav(back,next,nextLabel,nextOk){
+  return `<div class="gb-row" style="justify-content:space-between;margin-top:1rem">${back?`<button class="gb-btn ghost" data-a="go" data-i="${back}">← Voltar</button>`:'<span></span>'}${next?`<button class="gb-btn gold" data-a="go" data-i="${next}" ${nextOk===false?'disabled':''}>${nextLabel||'Continuar'} →</button>`:''}</div>`;
+}
+function vTipo(){
+  return `<div class="gb-card"><h3>O que vamos construir hoje?</h3><p class="gb-sub">Trabalhamos com obra fechada: você escolhe o módulo e configura do seu jeito — nós entregamos pronto.</p>
+  <div class="gb-tipos">${Object.keys(L.tipo).map(k=>`<button class="gb-tipo ${G.tipo===k?'on':''}" data-a="tipo" data-i="${k}"><div class="ic">${L.tipo[k][0]}</div><b>${L.tipo[k][1]}</b><span class="d">${L.tipo[k][2]}</span></button>`).join('')}</div></div>${nav(0,G.tipo?2:0,'Continuar',!!G.tipo)}`;
+}
+const fld=(label,html)=>`<label class="gb-f">${label}${html}</label>`;
+const sel=(k,opts,cur,extra)=>`<select data-k="${k}" ${extra||''}>${Object.keys(opts).map(o=>`<option value="${o}" ${String(cur)===o?'selected':''}>${E(opts[o])}</option>`).join('')}</select>`;
+const numIn=(k,v,step)=>`<input type="number" inputmode="decimal" step="${step||'any'}" min="0" data-k="${k}" data-t="n" value="${v}">`;
+function vBase(){
+  let b='';
+  if(G.tipo==='muro'){
+    b=`<div class="gb-grid">${fld('Comprimento (m)',numIn('muro.comp',G.muro.comp,'0.5'))}${fld('Altura (m)',numIn('muro.alt',G.muro.alt,'0.1'))}${fld('Acabamento',sel('muro.acab',L.acab,G.muro.acab))}${fld('Portão',sel('muro.portao',L.portao,G.muro.portao))}${G.muro.portao!=='nenhum'?fld('Largura do portão (m)',numIn('muro.pw',G.muro.pw,'0.1')):''}</div><div class="gb-warn" id="gbMuroWarn" style="display:${G.muro.alt>3?'block':'none'}">Muro acima de 3 m exige projeto estrutural e sondagem; o valor é uma estimativa inicial.</div>`;
+  }else{
+    b=`<div class="gb-grid">${fld('Padrão de acabamento',sel('padrao',L.padrao,G.padrao))}${fld('Pé-direito (m)',numIn('pe',G.pe,'0.1'))}${(G.tipo==='casa'||G.tipo==='chale')?fld('Energia',sel('offgrid',L.offgrid,G.offgrid)):''}${G.tipo==='reforma'?fld('Área existente (m²)',numIn('reforma.area',G.reforma.area,'1'))+fld('Estado da construção',sel('reforma.estado',L.estado,G.reforma.estado))+fld('Demolição necessária',sel('reforma.demol',{true:'Sim',false:'Não'},String(G.reforma.demol)))+'':''}</div>`;
+  }
+  return `<div class="gb-card"><h3>${L.tipo[G.tipo][0]} ${L.tipo[G.tipo][1]} — medidas básicas</h3><p class="gb-sub">${G.tipo==='muro'?'Informe as medidas do muro.':'Defina o padrão. No próximo passo você monta cômodo por cômodo.'}</p>${b}</div>${nav(1,G.tipo==='muro'?4:3)}`;
+}
+function roomHTML(c,i){
+  const A=c.w*c.h;
+  const lineJ=c.janelas.map((j,x)=>`<div class="gb-line">${fld('Tipo',sel(`comodos.${i}.janelas.${x}.tipo`,L.janela,j.tipo))}${fld('Larg. (m)',numIn(`comodos.${i}.janelas.${x}.w`,j.w,'0.1'))}${fld('Alt. (m)',numIn(`comodos.${i}.janelas.${x}.h`,j.h,'0.1'))}${fld('Qtd',numIn(`comodos.${i}.janelas.${x}.q`,j.q,'1'))}<button class="gb-btn red sm" data-a="del" data-i="${i}" data-s="janelas" data-x="${x}">✕</button></div>`).join('');
+  const lineP=c.portas.map((p,x)=>`<div class="gb-line">${fld('Tipo',sel(`comodos.${i}.portas.${x}.tipo`,L.porta,p.tipo))}${fld('Qtd',numIn(`comodos.${i}.portas.${x}.q`,p.q,'1'))}<button class="gb-btn red sm" data-a="del" data-i="${i}" data-s="portas" data-x="${x}">✕</button></div>`).join('');
+  const btus={};Object.keys(PR.ar).forEach(b=>btus[b]=(b/1000)+'.000 BTU');
+  const lineA=c.ar.map((a,x)=>`<div class="gb-line">${fld('Tipo',sel(`comodos.${i}.ar.${x}.tipo`,L.arTipo,a.tipo))}${fld('Potência',sel(`comodos.${i}.ar.${x}.btu`,btus,a.btu))}${fld('Qtd',numIn(`comodos.${i}.ar.${x}.q`,a.q,'1'))}<button class="gb-btn red sm" data-a="del" data-i="${i}" data-s="ar" data-x="${x}">✕</button></div>`).join('');
+  const lineV=c.vent.map((v,x)=>`<div class="gb-line">${fld('Tipo',sel(`comodos.${i}.vent.${x}.tipo`,L.vent,v.tipo))}${fld('Qtd',numIn(`comodos.${i}.vent.${x}.q`,v.q,'1'))}<button class="gb-btn red sm" data-a="del" data-i="${i}" data-s="vent" data-x="${x}">✕</button></div>`).join('');
+  const lineI=c.itens.map((t,x)=>`<div class="gb-line">${fld('O que vai ligar',`<input class="gb-in" data-k="comodos.${i}.itens.${x}.nome" value="${E(t.nome)}">`)}${fld('Potência (W)',numIn(`comodos.${i}.itens.${x}.w`,t.w,'50'))}<button class="gb-btn red sm" data-a="del" data-i="${i}" data-s="itens" data-x="${x}">✕</button></div>`).join('');
+  return `<div class="gb-room ${c.open?'open':''}"><div class="hd" data-a="toggle" data-i="${i}"><b>${E(c.nome)}</b><small>${N1(A)} m²</small><small id="gbRC${i}"></small><span>${c.open?'▲':'▼'}</span></div><div class="bd">
+   <div class="gb-grid">${fld('Nome do cômodo',`<input class="gb-in" data-k="comodos.${i}.nome" value="${E(c.nome)}">`)}${fld('Largura (m)',numIn(`comodos.${i}.w`,c.w,'0.1'))}${fld('Comprimento (m)',numIn(`comodos.${i}.h`,c.h,'0.1'))}${fld('Piso',sel(`comodos.${i}.piso`,L.piso,c.piso))}${fld('Parede',sel(`comodos.${i}.parede`,L.parede,c.parede))}${fld('Forro',sel(`comodos.${i}.forro`,L.forro,c.forro))}${fld('Hidráulica',sel(`comodos.${i}.hid`,L.hid,c.hid))}</div>
+   <div class="gb-sec"><h4>🔌 Tomadas e pontos de luz</h4><div class="gb-grid">${fld('Quantidade de tomadas',numIn(`comodos.${i}.tom`,c.tom,'1'))}${fld('Pontos de luz',numIn(`comodos.${i}.luz`,c.luz,'1'))}</div>
+    <div style="margin-top:.6rem"><b style="font-size:.8rem;color:var(--texto-suave)">O que vai ligar neste cômodo:</b>${lineI||'<div class="gb-note">Nada informado ainda.</div>'}<div class="gb-row">${QUICK.map(q=>`<button class="gb-chip" data-a="addItem" data-i="${i}" data-n="${E(q[0])}" data-w="${q[1]}">＋ ${E(q[0])}</button>`).join('')}</div></div></div>
+   <div class="gb-sec"><h4>🪟 Janelas</h4>${lineJ||'<div class="gb-note">Sem janelas.</div>'}<button class="gb-btn ghost sm" data-a="add" data-i="${i}" data-s="janelas">＋ Janela</button></div>
+   <div class="gb-sec"><h4>🚪 Portas</h4>${lineP||'<div class="gb-note">Sem portas.</div>'}<button class="gb-btn ghost sm" data-a="add" data-i="${i}" data-s="portas">＋ Porta</button></div>
+   <div class="gb-sec"><h4>❄️ Ar-condicionado</h4>${lineA||'<div class="gb-note">Sem ar-condicionado.</div>'}<button class="gb-btn ghost sm" data-a="add" data-i="${i}" data-s="ar">＋ Ar-condicionado</button></div>
+   <div class="gb-sec"><h4>🌀 Ventilador</h4>${lineV||'<div class="gb-note">Sem ventilador.</div>'}<button class="gb-btn ghost sm" data-a="add" data-i="${i}" data-s="vent">＋ Ventilador</button></div>
+   <div class="gb-row" style="margin-top:.8rem"><button class="gb-btn ghost sm" data-a="dup" data-i="${i}">Duplicar cômodo</button><button class="gb-btn red sm" data-a="rm" data-i="${i}">Remover cômodo</button></div></div></div>`;
+}
+function vComodos(){
+  return `<div class="gb-card"><h3>Monte sua obra cômodo por cômodo</h3><p class="gb-sub">Adicione os cômodos e configure tomadas (e o que vai ligar), janelas, portas, ar-condicionado e ventiladores. O valor acompanha cada escolha.</p>
+  <div class="gb-row" style="margin-bottom:.8rem">${Object.keys(TPL).map(k=>`<button class="gb-chip" data-a="addRoom" data-i="${k}">＋ ${TPL[k].nome}</button>`).join('')}</div>
+  ${G.comodos.length?G.comodos.map(roomHTML).join(''):'<div class="gb-warn">Toque em um cômodo acima para começar.</div>'}</div>${nav(2,4,'Ver orçamento',G.tipo==='reforma'||G.comodos.length>0)}`;
+}
+function vResumo(){
+  const c=calc(G),mx=Math.max(1,...Object.values(c.porDisc));
+  return `<div class="gb-card"><h3>Seu orçamento guiado</h3><p class="gb-sub">${L.tipo[G.tipo][1]} · ${N1(c.area)} m² · obra fechada (mão de obra, material, administração e reserva incluídos)</p>
+  <div class="gb-big">${R$(c.total)}</div><div class="gb-note">Faixa provável: ${R$(c.min)} a ${R$(c.max)} · Prazo estimado: ${c.prazo} dias</div>
+  <div style="margin-top:1rem">${Object.keys(c.porDisc).map(k=>`<div style="display:flex;justify-content:space-between;font-size:.85rem"><span>${E(k)}</span><b>${R$(c.porDisc[k])}</b></div><div class="gb-barbg"><div class="gb-bar" style="width:${Math.max(2,c.porDisc[k]/mx*100)}%"></div></div>`).join('')}</div></div>
+  ${G.comodos.length?`<div class="gb-card"><h3>Por cômodo</h3><table class="gb-tb"><tr><th>Cômodo</th><th class="n">m²</th><th class="n">Tomadas</th><th class="n">Janelas</th><th class="n">Portas</th><th class="n">Ar</th><th class="n">Valor</th></tr>${G.comodos.map(r=>`<tr><td>${E(r.nome)}</td><td class="n">${N1(r.w*r.h)}</td><td class="n">${r.tom}</td><td class="n">${r.janelas.reduce((a,x)=>a+x.q,0)}</td><td class="n">${r.portas.reduce((a,x)=>a+x.q,0)}</td><td class="n">${r.ar.reduce((a,x)=>a+x.q,0)}</td><td class="n"><b>${R$(c.porCom[r.id]||0)}</b></td></tr>`).join('')}<tr><td>Obra geral (estrutura, cobertura, energia e quadro)</td><td class="n" colspan="5"></td><td class="n"><b>${R$(c.total-Object.values(c.porCom).reduce((a,b)=>a+b,0))}</b></td></tr></table></div>`:''}
+  <div class="gb-warn">Valor de referência para validar o seu projeto. O orçamento final é fechado após visita técnica e projeto executivo.</div>${nav(G.tipo==='muro'?2:3,5,'Enviar para a KPG')}`;
+}
+function vEnvio(){
+  const c=calc(G);
+  if(G.enviado){const e=G.enviado;
+    return `<div class="gb-card"><h3>${e.ok?'Projeto criado ✅':'Pedido recebido ✅'}</h3><div class="${e.ok?'gb-ok':'gb-warn'}"><b>Código: ${E(e.id)}</b><br>${e.ok?'Seu projeto foi salvo na KPG e já está disponível para a nossa equipe montar a simulação.':'Guardamos o seu projeto neste aparelho e vamos enviá-lo automaticamente assim que a conexão estiver estável. Para agilizar, fale com a gente agora pelo WhatsApp.'}</div>
+  <div class="gb-row" style="margin-top:1rem"><button class="gb-btn gold" data-a="wpp">Falar no WhatsApp</button><button class="gb-btn ghost" data-a="dl">Baixar projeto (.json)</button><button class="gb-btn ghost" data-a="novo">Montar outro</button></div></div>`}
+  const ok=G.cliente.nome.trim().length>1&&G.cliente.whats.replace(/\D/g,'').length>=10;
+  return `<div class="gb-card"><h3>Seus dados</h3><p class="gb-sub">Criamos o seu projeto com tudo que você configurou e nossa equipe entra em contato.</p>
+  <div class="gb-grid">${fld('Nome',`<input class="gb-in" data-k="cliente.nome" value="${E(G.cliente.nome)}" autocomplete="name">`)}${fld('WhatsApp (com DDD)',`<input class="gb-in" inputmode="tel" data-k="cliente.whats" value="${E(G.cliente.whats)}" autocomplete="tel">`)}${fld('Cidade / bairro da obra',`<input class="gb-in" data-k="cliente.cidade" value="${E(G.cliente.cidade)}">`)}</div>
+  <div style="margin-top:.8rem">${fld('Conte o seu sonho (referências, prazos, o que não pode faltar)',`<textarea data-k="cliente.obs">${E(G.cliente.obs)}</textarea>`)}</div>
+  <div class="gb-note">Estimativa: ${R$(c.total)} · ${c.prazo} dias · ${G.comodos.length} cômodos</div><div id="gbMsg"></div>
+  <div class="gb-row" style="margin-top:1rem;justify-content:space-between"><button class="gb-btn ghost" data-a="go" data-i="4">← Voltar</button><button class="gb-btn gold" id="gbSend" data-a="send" ${ok?'':'disabled'}>Criar meu projeto</button></div></div>`;
+}
+function render(){
+  const v=G.passo===1?vTipo():G.passo===2?vBase():G.passo===3?vComodos():G.passo===4?vResumo():vEnvio();
+  root.innerHTML=head()+v+(G.passo>=2&&G.passo<=3?totalBar():'');
+  upd();
+}
+function upd(){
+  if(!G.tipo)return;const c=calc(G);const a=document.getElementById('gbTV');if(a)a.textContent=R$(c.total);const b=document.getElementById('gbTP');if(b)b.textContent=c.prazo+' dias';
+  G.comodos.forEach((r,i)=>{const e=document.getElementById('gbRC'+i);if(e)e.textContent=R$(c.porCom[r.id]||0)});
+  const mw=document.getElementById('gbMuroWarn');if(mw)mw.style.display=G.muro.alt>3?'block':'none';
+  const s=document.getElementById('gbSend');if(s){const ok=G.cliente.nome.trim().length>1&&G.cliente.whats.replace(/\D/g,'').length>=10;s.disabled=!ok}
+}
+function setPath(p,v){const k=p.split('.');let o=G;for(let i=0;i<k.length-1;i++)o=o[k[i]];o[k[k.length-1]]=v}
+
+/* ===== envio ===== */
+function payload(){
+  const c=calc(G);const hoje=new Date();const pad=n=>String(n).padStart(2,'0');
+  if(!G.enviado)G.enviado=null;const id=(G._id)||(G._id='KPG-'+hoje.getFullYear()+pad(hoje.getMonth()+1)+pad(hoje.getDate())+'-'+uid().toUpperCase().slice(0,4));
+  return {formato:'kpg-orcamento-guiado',v:1,id,criadoEm:hoje.toISOString(),origem:(CFG().ORIGEM||'kpgconstrucoes'),cliente:G.cliente,tipo:G.tipo,padrao:G.padrao,offgrid:G.offgrid,pe:G.pe,muro:G.tipo==='muro'?G.muro:null,reforma:G.tipo==='reforma'?G.reforma:null,
+    comodos:G.comodos.map(r=>({id:r.id,tipo:r.tipo,nome:r.nome,w:r.w,h:r.h,piso:r.piso,parede:r.parede,forro:r.forro,hid:r.hid,tomadas:r.tom,luz:r.luz,aparelhos:r.itens,janelas:r.janelas,portas:r.portas,ar:r.ar,vent:r.vent})),
+    itens:c.itens,totais:{subtotal:c.subtotal,bdi:c.bdi,reserva:c.reserva,total:c.total,min:c.min,max:c.max,prazo:c.prazo,area:c.area,porDisciplina:c.porDisc,porComodo:c.porCom},
+    precosBase:PR};
+}
+const OUTK='kpg_outbox_v1';
+const outGet=()=>{try{return JSON.parse(localStorage.getItem(OUTK)||'[]')}catch(e){return []}};
+const outSet=a=>{try{localStorage.setItem(OUTK,JSON.stringify(a))}catch(e){}};
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function postOnce(p){
+  const url=(CFG().API_URL||'https://almafluxo.uk/proxy/kpg');
+  const ac=new AbortController();const to=setTimeout(()=>ac.abort(),20000);
+  try{
+    const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'salvarOrcamentoGuiado',origem:p.origem,projeto:p}),signal:ac.signal});
+    const d=await r.json().catch(()=>({}));
+    return !!(r.ok&&d&&(d.success||d.ok||d.status==='ok'||d.status==='success'));
+  }catch(e){return false}finally{clearTimeout(to)}
+}
+async function postProjeto(p){for(const w of [0,1500,4000]){if(w)await sleep(w);if(await postOnce(p))return true}return false}
+let retrying=false;
+async function retryOutbox(){
+  if(retrying)return;const q=outGet();if(!q.length)return;retrying=true;
+  try{
+    const rest=[];
+    for(const p of q){const ok=await postOnce(p);if(ok){if(G.enviado&&G.enviado.id===p.id){G.enviado.ok=true;G.enviado.pend=false;save();if(G.passo===5)render()}}else rest.push(p)}
+    outSet(rest);
+  }finally{retrying=false}
+}
+async function enviar(){
+  const p=payload();const btn=document.getElementById('gbSend');
+  if(btn){btn.disabled=true;btn.textContent='Criando projeto…'}
+  G.enviado={id:p.id,ok:false,pend:true,quando:Date.now()};save();
+  const ok=await postProjeto(p);
+  if(ok){G.enviado.ok=true;G.enviado.pend=false;outSet(outGet().filter(x=>x.id!==p.id))}
+  else{const q=outGet().filter(x=>x.id!==p.id);q.push(p);outSet(q)}
+  save();render();
+}
+addEventListener('online',()=>retryOutbox());
+setInterval(()=>{if(outGet().length)retryOutbox()},60000);
+setTimeout(()=>retryOutbox(),3000);
+function resumoTxt(){const c=calc(G);return `Olá, KPG! Montei meu projeto no site.\nCódigo: ${(G._id||'—')}\nObra: ${L.tipo[G.tipo][1]} (${N1(c.area)} m²)\nEstimativa: ${R$(c.total)} · ${c.prazo} dias\nCômodos: ${G.comodos.map(r=>r.nome).join(', ')||'—'}\nCliente: ${G.cliente.nome} ${G.cliente.whats}`}
+
+/* ===== eventos ===== */
+root.addEventListener('click',ev=>{
+  const b=ev.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,i=b.dataset.i;
+  if(a==='tipo'){G.tipo=i;if(!G.comodos.length&&i!=='muro'&&i!=='reforma')G.comodos=[newRoom('sala'),newRoom('quarto'),newRoom('cozinha'),newRoom('banheiro')];G.comodos.forEach(c=>c.open=false);if(G.comodos[0])G.comodos[0].open=true;save();render();return}
+  if(a==='go'){G.passo=+i;save();render();window.scrollTo({top:root.getBoundingClientRect().top+scrollY-70,behavior:'smooth'});return}
+  if(a==='addRoom'){G.comodos.forEach(c=>c.open=false);G.comodos.push(newRoom(i));save();render();return}
+  if(a==='toggle'){const c=G.comodos[+i];c.open=!c.open;save();render();return}
+  if(a==='rm'){G.comodos.splice(+i,1);save();render();return}
+  if(a==='dup'){const c=JSON.parse(JSON.stringify(G.comodos[+i]));c.id=uid();c.nome+=' (2)';G.comodos.splice(+i+1,0,c);save();render();return}
+  if(a==='add'){const c=G.comodos[+i],s=b.dataset.s;c[s].push(s==='janelas'?{tipo:'aluminio',w:1.2,h:1,q:1}:s==='portas'?{tipo:'madeira',q:1}:s==='ar'?{tipo:'split',btu:12000,q:1}:{tipo:'teto',q:1});save();render();return}
+  if(a==='del'){G.comodos[+i][b.dataset.s].splice(+b.dataset.x,1);save();render();return}
+  if(a==='addItem'){G.comodos[+i].itens.push({nome:b.dataset.n,w:+b.dataset.w});save();render();return}
+  if(a==='send'){enviar();return}
+  if(a==='wpp'){const n=(CFG().WHATSAPP_NUMBER||'5521964700935');window.open('https://wa.me/'+n+'?text='+encodeURIComponent(resumoTxt()),'_blank');return}
+  if(a==='dl'){const p=payload();const x=document.createElement('a');x.href=URL.createObjectURL(new Blob([JSON.stringify(p,null,1)],{type:'application/json'}));x.download=p.id+'.json';document.body.appendChild(x);x.click();setTimeout(()=>x.remove(),400);return}
+  if(a==='novo'){G=fresh();save();render();return}
+});
+function onField(ev){
+  const el=ev.target.closest('[data-k]');if(!el)return;
+  let v=el.dataset.t==='n'?num(el.value):el.value;
+  if(el.dataset.k==='reforma.demol')v=el.value==='true';
+  if(el.dataset.k.endsWith('.btu'))v=+v;
+  setPath(el.dataset.k,v);save();
+  if(ev.type==='change'&&el.tagName==='SELECT'){render()}else upd();
+}
+root.addEventListener('input',onField);root.addEventListener('change',onField);
+render();
+
+/* tabela de preços opcional do Drive (não bloqueia se falhar) */
+(async()=>{try{const url=(CFG().API_URL||'');if(!url)return;const ac=new AbortController();setTimeout(()=>ac.abort(),6000);
+  const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'obterTabelaPrecos',origem:(CFG().ORIGEM||'kpgconstrucoes')}),signal:ac.signal});
+  const d=await r.json();if(d&&d.precos&&typeof d.precos==='object'){PR=Object.assign({},PR,d.precos);render()}}catch(e){}})();
+window.GB={calc:()=>calc(G),estado:()=>G,precos:()=>PR};
+})();
+
 </script>
 </body>
 </html>
