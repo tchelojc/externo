@@ -1,124 +1,311 @@
 <!DOCTYPE html>
+<!-- ALMAFLUXO-CHAT-CASCA v2
+     Um único arquivo, duas funções:
+       • salvo em  chat/index.html  → vira a ENTRADA (abrir canal, criar conta, criar canal)
+       • salvo em  404.html (raiz)  → vira a CASCA de qualquer endereço /chat/<canal>
+     O código do chat NÃO fica aqui: ele roda no Worker (WORKER). Esta página só guarda o login
+     (para o usuário continuar conectado) e mostra o canal dentro de um quadro. -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#030508">
-<title>ALMAFLUXO | Chat — Escolha um canal</title>
+<meta name="almafluxo-chat-casca" content="1">
+<title>ALMAFLUXO | Chat</title>
 <style>
-  *{margin:0;padding:0;box-sizing:border-box}
-  :root{
-    --ciano:#00e5ff;--dourado:#ffd700;--bg:#030508;--panel:#0a0e17;
-    --panel2:#060a12;--texto:#e0e0e0;--texto2:#8a8a99;--border:#1a1a2e
-  }
-  body{
-    font-family:'Nunito',system-ui,sans-serif;background:var(--bg);color:var(--texto);
-    min-height:100vh;display:flex;align-items:center;justify-content:center;
-    padding:1.5rem;line-height:1.5
-  }
-  .card{
-    background:var(--panel);border:1px solid var(--border);border-radius:20px;
-    max-width:460px;width:100%;padding:2rem;text-align:center;
-    box-shadow:0 20px 60px rgba(0,0,0,.6)
-  }
-  h1{
-    font-family:'Inter',system-ui,sans-serif;font-size:1.4rem;
-    color:#fff;margin:.6rem 0 .3rem
-  }
-  h1 span{color:var(--dourado)}
-  p{color:var(--texto2);font-size:.9rem;margin-bottom:1.4rem}
-  .badge{
-    display:inline-block;background:rgba(0,229,255,.06);color:var(--ciano);
-    border:1px solid rgba(0,229,255,.12);padding:.3rem 1rem;border-radius:30px;
-    font-size:.75rem;font-weight:700
-  }
-  label{
-    display:block;text-align:left;font-size:.8rem;font-weight:700;
-    color:var(--texto2);margin-bottom:.3rem
-  }
-  input{
-    width:100%;padding:.8rem 1rem;background:var(--panel2);
-    border:1px solid var(--border);border-radius:10px;color:#fff;
-    font-size:1rem;outline:none;margin-bottom:1rem;font-family:inherit
-  }
-  input:focus{border-color:var(--ciano)}
-  .btn{
-    width:100%;background:var(--ciano);color:#000;border:none;padding:.85rem;
-    border-radius:50px;font-weight:800;font-size:1rem;cursor:pointer;
-    font-family:'Inter',system-ui,sans-serif;transition:.2s
-  }
-  .btn:hover{box-shadow:0 0 30px rgba(0,229,255,.35)}
-  .hint{font-size:.75rem;color:var(--texto2);margin-top:.4rem;text-align:left}
-  .erro{color:#ff6b6b;font-size:.85rem;margin-top:.6rem;min-height:1.1rem;text-align:left}
-  .exemplos{margin-top:1.4rem;padding-top:1.2rem;border-top:1px solid var(--border)}
-  .exemplos p{margin-bottom:.6rem}
-  .chips{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center}
-  .chip{
-    background:var(--panel2);border:1px solid var(--border);color:var(--ciano);
-    padding:.4rem 1rem;border-radius:30px;font-size:.85rem;font-weight:700;
-    text-decoration:none;transition:.2s
-  }
-  .chip:hover{border-color:var(--ciano);background:rgba(0,229,255,.06)}
-  .aviso{
-    margin-top:1.4rem;padding:.8rem;background:rgba(255,215,0,.06);
-    border:1px solid rgba(255,215,0,.2);border-radius:10px;
-    color:var(--dourado);font-size:.78rem;text-align:left
-  }
-  .aviso code{background:rgba(0,0,0,.3);padding:1px 5px;border-radius:4px;color:#fff}
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--ciano:#00e5ff;--dourado:#ffd700;--bg:#030508;--panel:#0a0e17;--panel2:#060a12;--texto:#e0e0e0;--texto2:#8a8a99;--border:#1a1a2e;--erro:#ff6b6b}
+html,body{height:100%}
+body{font-family:'Nunito',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--texto);line-height:1.5}
+[hidden]{display:none!important}
+.centro{min-height:100%;display:flex;align-items:center;justify-content:center;padding:1.5rem}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:20px;max-width:460px;width:100%;padding:2rem;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.badge{display:inline-block;background:rgba(0,229,255,.06);color:var(--ciano);border:1px solid rgba(0,229,255,.12);padding:.3rem 1rem;border-radius:30px;font-size:.75rem;font-weight:700}
+h1{font-size:1.4rem;color:#fff;margin:.6rem 0 .3rem}
+h1 span{color:var(--dourado)}
+p.sub{color:var(--texto2);font-size:.9rem;margin-bottom:1.4rem}
+label{display:block;text-align:left;font-size:.8rem;font-weight:700;color:var(--texto2);margin-bottom:.3rem}
+input[type=text],input[type=email],input[type=password]{width:100%;padding:.8rem 1rem;background:var(--panel2);border:1px solid var(--border);border-radius:10px;color:#fff;font-size:1rem;outline:none;margin-bottom:.8rem;font-family:inherit}
+input:focus{border-color:var(--ciano)}
+.btn{width:100%;background:var(--ciano);color:#000;border:none;padding:.85rem;border-radius:50px;font-weight:800;font-size:1rem;cursor:pointer;font-family:inherit}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.sec{background:transparent;color:var(--ciano);border:1px solid rgba(0,229,255,.3);margin-top:.6rem}
+.previa{font-size:.8rem;color:var(--texto2);text-align:left;margin:-.3rem 0 .9rem;word-break:break-all}
+.previa b{color:var(--dourado)}
+.msg{min-height:1.2rem;font-size:.85rem;margin:.6rem 0;text-align:left}
+.criar{margin-top:1.2rem;padding-top:1.2rem;border-top:1px solid var(--border);text-align:left}
+.criar h2{font-size:1rem;color:#fff;margin-bottom:.2rem}
+.criar p{font-size:.82rem;color:var(--texto2);margin-bottom:.8rem}
+.abas{display:flex;gap:.4rem;margin-bottom:.9rem}
+.aba{flex:1;padding:.5rem;border-radius:30px;border:1px solid var(--border);background:none;color:var(--texto2);font-weight:700;cursor:pointer;font-family:inherit}
+.aba.on{border-color:var(--ciano);color:var(--ciano);background:rgba(0,229,255,.08)}
+.aceite{display:flex;gap:.5rem;align-items:flex-start;text-align:left;font-size:.78rem;color:var(--texto2);margin-bottom:.9rem}
+.aceite input{margin-top:.2rem;flex-shrink:0}
+.conectado{font-size:.8rem;color:var(--texto2);margin-bottom:1rem}
+.conectado button{background:none;border:none;color:var(--ciano);cursor:pointer;font:inherit;font-weight:700;text-decoration:underline}
+/* casca do canal */
+#viewCasca{position:fixed;inset:0;background:var(--bg)}
+#quadro{border:0;width:100%;height:100%;display:block;background:var(--bg)}
+#carregando{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);color:var(--texto2);font-size:.9rem;pointer-events:none;transition:opacity .25s}
+#carregando.fim{opacity:0}
 </style>
 </head>
 <body>
+
+<!-- ENTRADA: abrir canal / criar conta / criar canal -->
+<div id="viewEntrada" class="centro" hidden>
   <div class="card">
-    <div class="badge">💬 Canal direto</div>
-    <h1>Fale com <span>quem você confia</span></h1>
-    <p>Digite o nome do canal (handle) de quem você quer falar.</p>
+    <div class="badge">ALMAFLUXO Chat</div>
+    <h1>Abrir um <span>canal</span></h1>
+    <p class="sub">Digite o nome ou apelido do canal.</p>
 
-    <form id="form">
-      <label for="handle">Nome do canal</label>
-      <input id="handle" name="handle" placeholder="ex.: marcelo, joao, tchelo" maxlength="40" autocomplete="off" autofocus>
-      <div class="hint">Só letras, números, <code>_</code> e <code>-</code>. Mínimo 2 caracteres.</div>
-      <div class="erro" id="erro"></div>
-      <button class="btn" type="submit">Abrir chat →</button>
-    </form>
+    <div class="conectado" id="boxConectado" hidden>Conectado como <b id="nomeConectado"></b> · <button type="button" id="btnSairConta">Sair</button></div>
 
-    <div class="exemplos">
-      <p>Canais disponíveis:</p>
-      <div class="chips">
-        <a class="chip" href="https://proxy-ua.tchelojc.workers.dev/chat/marcelo">/chat/marcelo</a>
+    <label for="nome">Nome do canal</label>
+    <input id="nome" type="text" placeholder="ex.: marcelo, tchelo, marcelo insulfilm" maxlength="40" autocomplete="off" autofocus>
+    <div class="previa">Endereço: almafluxo.uk/chat/<b id="previa">…</b></div>
+    <button class="btn" id="btnAbrir" type="button">Abrir chat →</button>
+    <div class="msg" id="msg" role="status"></div>
+
+    <div class="criar" id="boxCriar" hidden>
+      <h2>Criar o canal <span id="criarNome" style="color:var(--dourado)"></span></h2>
+      <p id="criarTexto">Esse canal ainda não existe. Entre ou crie sua conta ALMAFLUXO para criá-lo em seu nome. A criação de canais está liberada só para algumas contas por enquanto; se a sua ainda não estiver, você verá um aviso.</p>
+
+      <div id="boxConta">
+        <div class="abas">
+          <button class="aba on" type="button" id="abaEntrar">Já tenho conta</button>
+          <button class="aba" type="button" id="abaCadastro">Criar conta</button>
+        </div>
+        <div id="blocoNome" hidden>
+          <label for="nomePessoa">Seu nome</label>
+          <input id="nomePessoa" type="text" maxlength="80" autocomplete="name">
+        </div>
+        <label for="email">E-mail</label>
+        <input id="email" type="email" autocomplete="email" maxlength="120">
+        <label for="senha">Senha</label>
+        <input id="senha" type="password" autocomplete="current-password" maxlength="80">
+        <label class="aceite" id="blocoAceite" hidden><input type="checkbox" id="aceite"><span>Concordo em criar uma conta ALMAFLUXO e com o uso dos meus dados para operar o meu canal.</span></label>
       </div>
-    </div>
-
-    <div class="aviso">
-      ⚠️ O chat roda em <code>proxy-ua.tchelojc.workers.dev</code>. Ao clicar em
-      "Abrir chat", você será levado para o endereço definitivo.
+      <button class="btn" id="btnCriar" type="button">Criar meu canal</button>
     </div>
   </div>
-  <script>
-    var WORKER = 'https://proxy-ua.tchelojc.workers.dev';
-    var f = document.getElementById('form');
-    var inp = document.getElementById('handle');
-    var err = document.getElementById('erro');
-    f.addEventListener('submit', function(ev){
-      ev.preventDefault();
-      err.textContent = '';
-      var h = String(inp.value || '').trim().toLowerCase();
-      if (!/^[a-z0-9_-]{2,40}$/.test(h)) {
-        err.textContent = 'Use 2 a 40 caracteres: letras, números, _ ou -.';
-        return;
-      }
-      location.href = WORKER + '/chat/' + encodeURIComponent(h);
-    });
-    inp.addEventListener('input', function(){ err.textContent = ''; });
-    // Se a pessoa acessar /externo/chat/marcelo, pula direto para o Worker
-    (function(){
-      var path = location.pathname.replace(/\/+$/, '').replace(/\/index\.html$/i, '');
-      var partes = path.split('/').filter(Boolean);
-      var handle = partes[partes.length - 1] || '';
-      if (handle && handle !== 'chat' && /^[a-z0-9_-]{2,40}$/i.test(handle)) {
-        location.replace(WORKER + '/chat/' + encodeURIComponent(handle));
-      }
-    })();
-  </script>
+</div>
+
+<!-- CASCA: mostra o canal (o código do chat roda no Worker) -->
+<div id="viewCasca" hidden>
+  <iframe id="quadro" title="Chat" referrerpolicy="origin" allow="microphone; clipboard-write; autoplay; fullscreen"></iframe>
+  <div id="carregando">Abrindo canal…</div>
+</div>
+
+<!-- Endereço que não é de chat -->
+<div id="view404" class="centro" hidden>
+  <div class="card">
+    <div class="badge">ALMAFLUXO</div>
+    <h1>Página <span>não encontrada</span></h1>
+    <p class="sub">Esse endereço não existe.</p>
+    <a class="btn" style="display:block;text-decoration:none" href="/chat/">Abrir um canal de chat</a>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ───────── CONFIGURAÇÃO ───────── */
+var WORKER = 'https://proxy-ua.tchelojc.workers.dev';   // motor: todo o código do chat fica lá
+var CHAVE = 'chat_usuario';
+
+var $ = function(i){ return document.getElementById(i); };
+
+/* ───────── utilitários ───────── */
+function slug(v){
+  return String(v || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
+    .replace(/[^a-z0-9_-]+/g, '_').replace(/^[_-]+|[_-]+$/g, '').slice(0, 40);
+}
+function lerUsuario(){
+  try{
+    var u = JSON.parse(localStorage.getItem(CHAVE) || 'null');
+    return u && u.email && u.sessionToken ? u : null;
+  }catch(e){ return null; }
+}
+function gravarUsuario(u){
+  try{
+    if(u){
+      var v = JSON.stringify({ nome: String(u.nome || '').slice(0, 80), email: String(u.email), sessionToken: String(u.sessionToken), master: !!u.master });
+      localStorage.setItem(CHAVE, v);
+      localStorage.setItem('almafluxo_usuario', v);
+    } else {
+      localStorage.removeItem(CHAVE);
+      localStorage.removeItem('almafluxo_usuario');
+    }
+  }catch(e){}
+}
+async function post(rota, corpo){
+  var ctl = new AbortController(), tm = setTimeout(function(){ ctl.abort(); }, 20000), r;
+  try{ r = await fetch(WORKER + rota, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo), signal: ctl.signal }); }
+  catch(e){ throw new Error(e && e.name === 'AbortError' ? 'O servidor demorou para responder. Tente de novo.' : 'Sem conexão com o servidor.'); }
+  finally{ clearTimeout(tm); }
+  var t = await r.text(), d = null;
+  try{ d = JSON.parse(t); }catch(e){}
+  if(!d) throw new Error('Resposta inválida do servidor.');
+  d._status = r.status;
+  return d;
+}
+function okResp(d){ return d && (d.ok === true || d.autenticado === true || d.status === 'success'); }
+
+/* ───────── qual canal estou mostrando? ───────── */
+function pegarCanal(){
+  var q = new URLSearchParams(location.search).get('c');
+  if(q) return slug(q);
+  var m = location.pathname.match(/^\/chat\/([^\/]+)\/?$/i);
+  if(!m) return '';
+  var seg = m[1];
+  if(/^index\.html?$/i.test(seg)) return '';
+  try{ return slug(decodeURIComponent(seg)); }catch(e){ return ''; }
+}
+
+/* ═══════════════ CASCA DO CANAL ═══════════════ */
+function mostrarCasca(canal){
+  document.title = 'Chat | ' + canal + ' | ALMAFLUXO';
+  $('viewCasca').hidden = false;
+  var quadro = $('quadro');
+  var origemWorker = new URL(WORKER).origin;
+
+  /* o chat avisa que está pronto e a casca entrega o login guardado; o chat avisa login/logout */
+  window.addEventListener('message', function(ev){
+    if(ev.origin !== origemWorker || ev.source !== quadro.contentWindow) return;
+    var m = ev.data || {};
+    if(m.tipo === 'chat-pronto'){
+      var u = lerUsuario();
+      if(u) quadro.contentWindow.postMessage({ tipo: 'chat-login', usuario: u }, origemWorker);
+    } else if(m.tipo === 'chat-usuario'){
+      if(m.usuario && m.usuario.email && m.usuario.sessionToken) gravarUsuario(m.usuario);
+      else if(m.usuario === null) gravarUsuario(null);
+    }
+  });
+  quadro.addEventListener('load', function(){ $('carregando').classList.add('fim'); });
+  setTimeout(function(){ $('carregando').classList.add('fim'); }, 8000);
+  quadro.src = WORKER + '/chat/' + encodeURIComponent(canal);
+}
+
+/* ═══════════════ ENTRADA ═══════════════ */
+var handle = '';
+var modoConta = 'entrar';
+var temCasca404 = null;
+
+function aviso(txt, erro){ var m = $('msg'); m.textContent = txt; m.style.color = erro ? 'var(--erro)' : 'var(--ciano)'; }
+
+/* Se o 404.html da raiz também for esta casca, o endereço bonito /chat/<canal> funciona.
+   Senão usamos /chat/?c=<canal>, que funciona sempre. */
+async function verificarCasca404(){
+  if(temCasca404 !== null) return temCasca404;
+  try{
+    var r = await fetch('/404.html', { cache: 'no-store' });
+    var t = r.ok ? await r.text() : '';
+    temCasca404 = t.indexOf('ALMAFLUXO-CHAT-CASCA') >= 0;
+  }catch(e){ temCasca404 = false; }
+  return temCasca404;
+}
+async function irParaCanal(h){
+  var bonito = await verificarCasca404();
+  location.href = bonito ? '/chat/' + encodeURIComponent(h) : '/chat/?c=' + encodeURIComponent(h);
+}
+
+function atualizarConectado(){
+  var u = lerUsuario();
+  $('boxConectado').hidden = !u;
+  if(u) $('nomeConectado').textContent = u.nome || u.email;
+  $('boxConta').hidden = !!u;
+  $('btnCriar').textContent = 'Criar meu canal';
+}
+function trocarModo(m){
+  modoConta = m;
+  var cad = m === 'cadastro';
+  $('abaEntrar').classList.toggle('on', !cad);
+  $('abaCadastro').classList.toggle('on', cad);
+  $('blocoNome').hidden = !cad;
+  $('blocoAceite').hidden = !cad;
+  $('senha').autocomplete = cad ? 'new-password' : 'current-password';
+}
+
+async function abrir(){
+  handle = slug($('nome').value);
+  if(handle.length < 2){ aviso('Digite pelo menos 2 letras ou números.', true); return; }
+  var b = $('btnAbrir'); b.disabled = true; aviso('Procurando o canal...');
+  try{
+    var d = await post('/proxy/chat', { action: 'chatInfoCanal', dono: handle });
+    if(d.existe === true){ await irParaCanal(handle); return; }
+    aviso('Não existe canal com esse nome. Confira a grafia ou crie o seu abaixo.', true);
+    $('criarNome').textContent = '/' + handle;
+    $('boxCriar').hidden = false;
+    atualizarConectado();
+    setTimeout(function(){ var f = lerUsuario() ? null : $('email'); if(f) f.focus(); }, 50);
+  }catch(e){
+    aviso(e.message || 'Não consegui consultar o servidor.', true);
+  }finally{ b.disabled = false; }
+}
+
+async function criar(){
+  var u = lerUsuario();
+  var b = $('btnCriar'); b.disabled = true;
+  try{
+    if(!u){
+      var email = $('email').value.trim().toLowerCase(), senha = $('senha').value;
+      if(!/^\S+@\S+\.\S+$/.test(email)){ aviso('Digite um e-mail válido.', true); return; }
+      if(!senha){ aviso('Digite a senha.', true); return; }
+      var cad = modoConta === 'cadastro';
+      if(cad && !$('aceite').checked){ aviso('Marque a concordância para criar a conta.', true); return; }
+      aviso(cad ? 'Criando sua conta...' : 'Entrando...');
+      var corpo = { action: cad ? 'cadastro' : 'login', email: email, senha: senha };
+      if(cad) corpo.nome = $('nomePessoa').value.trim() || email.split('@')[0];
+      var d = await post('/proxy/central', corpo);
+      if(!okResp(d)) throw new Error(d.error || d.message || 'Falha no login.');
+      var x = d.usuario || d;
+      var tok = d.token || d.sessionToken || x.sessionToken;
+      if(!tok) throw new Error('Servidor não devolveu sessionToken.');
+      u = { nome: x.nome || corpo.nome || email.split('@')[0], email: email, sessionToken: tok, master: !!(d.master || x.master) };
+      gravarUsuario(u);
+      atualizarConectado();
+    }
+    aviso('Criando o canal...');
+    var c = await post('/proxy/chat', { action: 'chatCriarCanal', dono: handle, email: u.email, sessionToken: u.sessionToken });
+    if(c._status === 401 || c._status === 403){
+      gravarUsuario(null); atualizarConectado();
+      throw new Error('Sua sessão expirou. Entre de novo para criar o canal.');
+    }
+    if(!okResp(c)) throw new Error(c.error || 'Não consegui criar o canal.');
+    await irParaCanal(handle);
+  }catch(e){
+    aviso(e.message || 'Não foi possível criar.', true);
+  }finally{ b.disabled = false; }
+}
+
+function mostrarEntrada(){
+  $('viewEntrada').hidden = false;
+  atualizarConectado();
+  $('nome').addEventListener('input', function(){
+    handle = slug($('nome').value);
+    $('previa').textContent = handle || '…';
+    $('boxCriar').hidden = true;
+    aviso('');
+  });
+  $('nome').addEventListener('keydown', function(e){ if(e.key === 'Enter') abrir(); });
+  $('btnAbrir').addEventListener('click', abrir);
+  $('btnCriar').addEventListener('click', criar);
+  $('senha').addEventListener('keydown', function(e){ if(e.key === 'Enter') criar(); });
+  $('abaEntrar').addEventListener('click', function(){ trocarModo('entrar'); });
+  $('abaCadastro').addEventListener('click', function(){ trocarModo('cadastro'); });
+  $('btnSairConta').addEventListener('click', function(){ gravarUsuario(null); atualizarConectado(); aviso('Você saiu da conta.'); });
+}
+
+/* ═══════════════ ROTEAMENTO ═══════════════ */
+var canal = pegarCanal();
+if(canal.length >= 2) mostrarCasca(canal);
+else if(/^\/chat(\/|$)/i.test(location.pathname)) mostrarEntrada();
+else $('view404').hidden = false;
+
+})();
+</script>
 </body>
 </html>
