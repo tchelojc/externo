@@ -11,6 +11,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#030508">
+<link rel="manifest" href="/chat/manifest.json">
+<link rel="icon" type="image/png" href="/chat/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/chat/icons/icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ALMA Chat">
 <meta name="almafluxo-chat-casca" content="1">
 <title>ALMAFLUXO | Chat</title>
 <style>
@@ -67,9 +73,11 @@ input:focus{border-color:var(--ciano)}
     <div class="previa">Endereço: almafluxo.uk/chat/<b id="previa">…</b></div>
     <button class="btn" id="btnAbrir" type="button">Abrir chat →</button>
     <div class="msg" id="msg" role="status"></div>
+    <div id="boxMeus" hidden></div>
+    <button class="btn sec" id="btnDono" type="button">Sou dono: abrir meu painel</button>
 
     <div class="criar" id="boxCriar" hidden>
-      <h2>Criar o canal <span id="criarNome" style="color:var(--dourado)"></span></h2>
+      <h2 id="criarTitulo">Criar o canal <span id="criarNome" style="color:var(--dourado)"></span></h2>
       <p id="criarTexto">Esse canal ainda não existe. Entre ou crie sua conta ALMAFLUXO para criá-lo em seu nome. A criação de canais está liberada só para algumas contas por enquanto; se a sua ainda não estiver, você verá um aviso.</p>
 
       <div id="boxConta">
@@ -88,6 +96,7 @@ input:focus{border-color:var(--ciano)}
         <label class="aceite" id="blocoAceite" hidden><input type="checkbox" id="aceite"><span>Concordo em criar uma conta ALMAFLUXO e com o uso dos meus dados para operar o meu canal.</span></label>
       </div>
       <button class="btn" id="btnCriar" type="button">Criar meu canal</button>
+      <button class="btn" id="btnEntrarDono" type="button" hidden>Entrar no meu painel</button>
     </div>
   </div>
 </div>
@@ -115,6 +124,15 @@ input:focus{border-color:var(--ciano)}
 /* ───────── CONFIGURAÇÃO ───────── */
 var WORKER = 'https://proxy-ua.tchelojc.workers.dev';   // motor: todo o código do chat fica lá
 var CHAVE = 'chat_usuario';
+var ORIGEM_WORKER = new URL(WORKER).origin;
+
+/* app instalável (Messenger ALMAFLUXO): service worker + convite de instalação */
+var eventoInstalar = null, swPronto = null;
+if('serviceWorker' in navigator && /^\/chat(\/|$)/i.test(location.pathname)){
+  swPronto = navigator.serviceWorker.register('/chat/sw.js', { scope: '/chat/' }).catch(function(){ return null; });
+}
+window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); eventoInstalar = e; enviarEstado(); });
+window.addEventListener('appinstalled', function(){ eventoInstalar = null; enviarEstado(); });
 
 var $ = function(i){ return document.getElementById(i); };
 
@@ -166,8 +184,71 @@ function pegarCanal(){
 }
 
 /* ═══════════════ CASCA DO CANAL ═══════════════ */
+function paraQuadro(msg){ var q = $('quadro'); try{ if(q && q.contentWindow) q.contentWindow.postMessage(msg, ORIGEM_WORKER); }catch(e){} }
+function instaladoComoApp(){ return (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; }
+function eIOS(){ return /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); }
+async function estadoApp(){
+  var pushOk = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+  var permissao = pushOk ? Notification.permission : 'unsupported', ativo = false;
+  if(pushOk && swPronto){
+    try{
+      var reg = await Promise.race([navigator.serviceWorker.ready, new Promise(function(r){ setTimeout(function(){ r(null); }, 1500); })]);
+      if(reg) ativo = !!(await reg.pushManager.getSubscription());
+    }catch(e){}
+  }
+  return { standalone: instaladoComoApp(), podeInstalar: !!eventoInstalar, ios: eIOS(), pushSuportado: pushOk, permissao: permissao, pushAtivo: ativo && permissao === 'granted' };
+}
+async function enviarEstado(extra){ paraQuadro(Object.assign({ tipo: 'casca-estado', estado: await estadoApp() }, extra || {})); }
+async function instalarApp(){
+  if(!eventoInstalar){
+    await enviarEstado({ tipo: 'casca-resultado', acao: 'instalar', ok: false, erro: eIOS() ? 'No iPhone: toque em Compartilhar e depois em Adicionar à Tela de Início.' : 'O navegador ainda não liberou a instalação.' });
+    return;
+  }
+  try{
+    eventoInstalar.prompt();
+    var r = await eventoInstalar.userChoice;
+    eventoInstalar = null;
+    await enviarEstado({ tipo: 'casca-resultado', acao: 'instalar', ok: r.outcome === 'accepted', msg: 'Instalando o Messenger ALMAFLUXO…', erro: 'Instalação cancelada.' });
+  }catch(e){ await enviarEstado({ tipo: 'casca-resultado', acao: 'instalar', ok: false, erro: 'Não consegui abrir a instalação.' }); }
+}
+function b64uBytes(s){
+  s = String(s).replace(/-/g, '+').replace(/_/g, '/');
+  while(s.length % 4) s += '=';
+  var b = atob(s), a = new Uint8Array(b.length);
+  for(var i = 0; i < b.length; i++) a[i] = b.charCodeAt(i);
+  return a;
+}
+async function ativarAvisos(papel, dono){
+  var u = lerUsuario();
+  if(!u) throw new Error('Entre na sua conta primeiro.');
+  if(!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) throw new Error('Este navegador não suporta avisos. No iPhone, instale o app primeiro (Compartilhar e Adicionar à Tela de Início).');
+  if(!swPronto || !(await swPronto)) throw new Error('Avisos indisponíveis neste navegador.');
+  var perm = await Notification.requestPermission();
+  if(perm !== 'granted') throw new Error('Permissão negada. Libere as notificações deste site nas configurações do navegador.');
+  var reg = await navigator.serviceWorker.ready;
+  var ch = await post('/proxy/chat', { action: 'chatPushChave', email: u.email, sessionToken: u.sessionToken, dono: dono });
+  if(!ch.chave) throw new Error(ch.error || 'Os avisos ainda não estão disponíveis no servidor.');
+  var sub = await reg.pushManager.getSubscription();
+  if(!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64uBytes(ch.chave) });
+  var corpo = { email: u.email, sessionToken: u.sessionToken, dono: dono, subscription: sub.toJSON() };
+  var r = papel === 'dono'
+    ? await post('/proxy/chat-admin', Object.assign({ action: 'chatPushDonoAssinar' }, corpo))
+    : await post('/proxy/chat', Object.assign({ action: 'chatPushAssinar' }, corpo));
+  if(!okResp(r)) throw new Error(r.error || 'Não consegui registrar este aparelho.');
+}
+async function ativarAvisosPedido(m){
+  var papel = m.papel === 'dono' ? 'dono' : 'visitante', dono = slug(m.dono || '');
+  try{
+    await ativarAvisos(papel, dono);
+    await enviarEstado({ tipo: 'casca-resultado', acao: 'avisos', ok: true, msg: 'Avisos ativados neste aparelho.' });
+  }catch(e){
+    await enviarEstado({ tipo: 'casca-resultado', acao: 'avisos', ok: false, erro: e.message || 'Não consegui ativar os avisos.' });
+  }
+}
+
 function mostrarCasca(canal){
   document.title = 'Chat | ' + canal + ' | ALMAFLUXO';
+  try{ localStorage.setItem('chat_ultimo_canal', canal); }catch(e){}
   $('viewCasca').hidden = false;
   var quadro = $('quadro');
   var origemWorker = new URL(WORKER).origin;
@@ -179,6 +260,10 @@ function mostrarCasca(canal){
     if(m.tipo === 'chat-pronto'){
       var u = lerUsuario();
       if(u) quadro.contentWindow.postMessage({ tipo: 'chat-login', usuario: u }, origemWorker);
+    } else if(m.tipo === 'casca-pedir-estado'){ enviarEstado();
+    } else if(m.tipo === 'casca-instalar'){ instalarApp();
+    } else if(m.tipo === 'casca-avisos'){ ativarAvisosPedido(m);
+    } else if(m.tipo === 'casca-entrada'){ location.href = '/chat/?entrada=1';
     } else if(m.tipo === 'chat-usuario'){
       if(m.usuario && m.usuario.email && m.usuario.sessionToken) gravarUsuario(m.usuario);
       else if(m.usuario === null) gravarUsuario(null);
@@ -217,6 +302,7 @@ function atualizarConectado(){
   $('boxConectado').hidden = !u;
   if(u) $('nomeConectado').textContent = u.nome || u.email;
   $('boxConta').hidden = !!u;
+  $('btnDono').hidden = !!u;
   $('btnCriar').textContent = 'Criar meu canal';
 }
 function trocarModo(m){
@@ -238,6 +324,7 @@ async function abrir(){
     if(d.existe === true){ await irParaCanal(handle); return; }
     aviso('Não existe canal com esse nome. Confira a grafia ou crie o seu abaixo.', true);
     $('criarNome').textContent = '/' + handle;
+    modoCriarUI(false);
     $('boxCriar').hidden = false;
     atualizarConectado();
     setTimeout(function(){ var f = lerUsuario() ? null : $('email'); if(f) f.focus(); }, 50);
@@ -268,6 +355,7 @@ async function criar(){
       gravarUsuario(u);
       atualizarConectado();
     }
+    if(modoPainel){ await donoAtalho(true); return; }
     aviso('Criando o canal...');
     var c = await post('/proxy/chat', { action: 'chatCriarCanal', dono: handle, email: u.email, sessionToken: u.sessionToken });
     if(c._status === 401 || c._status === 403){
@@ -279,6 +367,50 @@ async function criar(){
   }catch(e){
     aviso(e.message || 'Não foi possível criar.', true);
   }finally{ b.disabled = false; }
+}
+
+var modoPainel = false, textoCriarOriginal = null;
+function modoCriarUI(painel){
+  if(textoCriarOriginal === null) textoCriarOriginal = $('criarTexto').textContent;
+  $('criarTitulo').hidden = painel;
+  $('btnCriar').hidden = painel;
+  $('btnEntrarDono').hidden = !painel;
+  $('criarTexto').textContent = painel ? 'Entre com a sua conta ALMAFLUXO para abrir o painel do seu canal.' : textoCriarOriginal;
+}
+async function entrarDono(){
+  modoPainel = true;
+  try{ await criar(); } finally{ modoPainel = false; }
+}
+function mostrarMeus(lista){
+  var box = $('boxMeus'); box.textContent = '';
+  var t = document.createElement('p'); t.className = 'sub'; t.textContent = 'Seus canais — escolha o painel que quer abrir:';
+  box.appendChild(t);
+  lista.forEach(function(c){
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'btn sec'; b.textContent = c.nome + ' (/' + c.handle + ')';
+    b.addEventListener('click', function(){ irParaCanal(c.handle); });
+    box.appendChild(b);
+  });
+  box.hidden = false;
+}
+/* dono logado: /chat abre direto o painel do canal (use /chat/?entrada para ver a tela de entrada) */
+async function donoAtalho(manual){
+  var u = lerUsuario();
+  if(!u) return false;
+  try{
+    var d = await post('/proxy/chat', { action: 'chatMeusCanais', email: u.email, sessionToken: u.sessionToken });
+    if(d._status === 401 || d._status === 403){ gravarUsuario(null); atualizarConectado(); if(manual) aviso('Sua sessão expirou. Entre de novo.', true); return false; }
+    var lista = Array.isArray(d.canais) ? d.canais : [];
+    if(lista.length === 1){ await irParaCanal(lista[0].handle); return true; }
+    if(lista.length > 1){ mostrarMeus(lista); return true; }
+    if(manual) aviso('Esta conta ainda não é dona de nenhum canal.', true);
+  }catch(e){ if(manual) aviso(e.message || 'Não consegui abrir o painel.', true); }
+  return false;
+}
+/* app instalado: reabre o último canal (use /chat/?entrada=1 ou o botão Trocar canal para escolher outro) */
+function abrirUltimo(){
+  if(!instaladoComoApp()) return;
+  var ult = ''; try{ ult = localStorage.getItem('chat_ultimo_canal') || ''; }catch(e){}
+  if(ult) irParaCanal(ult);
 }
 
 function mostrarEntrada(){
@@ -296,7 +428,13 @@ function mostrarEntrada(){
   $('senha').addEventListener('keydown', function(e){ if(e.key === 'Enter') criar(); });
   $('abaEntrar').addEventListener('click', function(){ trocarModo('entrar'); });
   $('abaCadastro').addEventListener('click', function(){ trocarModo('cadastro'); });
-  $('btnSairConta').addEventListener('click', function(){ gravarUsuario(null); atualizarConectado(); aviso('Você saiu da conta.'); });
+  $('btnSairConta').addEventListener('click', function(){ gravarUsuario(null); $('boxMeus').hidden = true; atualizarConectado(); aviso('Você saiu da conta.'); });
+  $('btnDono').addEventListener('click', function(){ modoCriarUI(true); $('boxCriar').hidden = false; aviso(''); setTimeout(function(){ var f = lerUsuario() ? null : $('email'); if(f) f.focus(); }, 50); });
+  $('btnEntrarDono').addEventListener('click', entrarDono);
+  if(!new URLSearchParams(location.search).has('entrada')){
+    if(lerUsuario()) donoAtalho(false).then(function(foi){ if(!foi) abrirUltimo(); });
+    else abrirUltimo();
+  }
 }
 
 /* ═══════════════ ROTEAMENTO ═══════════════ */
