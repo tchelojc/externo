@@ -50,6 +50,9 @@ footer{padding:10px 16px;color:var(--mu);font-size:11px;display:flex;justify-con
 .sysb .chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.sysb .chip{padding:5px 9px;border:1px solid var(--ln);border-radius:20px;background:#0a1d3a;font-size:11px;cursor:pointer}.sysb .chip.on{border-color:var(--cy);background:#0f3a73}
 .sysb .row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.sysb .row .btn{flex:1;min-width:92px;font-size:11px;padding:7px 6px}.sysb .row .btn.act{background:var(--bl)}
 .sysb .nota{margin-top:8px;border-left:3px solid var(--am);padding:7px 9px;background:#2a2210;color:#f6dca0;font-size:12px;border-radius:0 6px 6px 0}
+.ovl{position:fixed;inset:0;z-index:9999;background:#050d1acc;display:grid;place-items:center;padding:16px}.mdl{background:#071a33;border:1px solid var(--cy);border-radius:12px;padding:16px;width:100%;max-width:480px;max-height:88vh;overflow:auto}.mdl h3{color:var(--cy);margin-bottom:10px}.mdl h4{margin:10px 0 4px;color:var(--mu);font-size:12px}.mdl label{display:block;color:var(--mu);font-size:11px;margin-bottom:3px}
+.lst{max-height:230px;overflow:auto;border:1px solid var(--ln);border-radius:8px;padding:6px;background:#0a1d3a}.ck{display:block;color:var(--tx);font-size:12px;padding:4px 0;margin:0}.ck small{display:block;color:var(--mu);margin-left:22px}.mdl .row{display:flex;gap:8px;margin-top:10px}.mdl .row .btn{flex:1}.btn.p{background:var(--bl)}
+.pj .btn{display:block;width:100%;margin-bottom:6px;text-align:left}.pj p{color:var(--mu);font-size:11px;line-height:1.45;margin-bottom:8px}
 @media(max-width:1100px){main{grid-template-columns:1fr}.stage{height:480px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -64,6 +67,9 @@ footer{padding:10px 16px;color:var(--mu);font-size:11px;display:flex;justify-con
   <section>
     <div class="box"><h2>1. SELECIONE O VEÍCULO</h2><select id="veic"></select><div class="car"><i></i><div id="carinfo"></div></div></div>
     <div class="box"><h2>2. SISTEMA / CONJUNTO</h2><ul class="sys" id="sys"></ul></div>
+    <div class="box pj"><h2>3. PROJETO · IMPORTAR / EXPORTAR</h2><p>Importe uma lista de peças (Excel, CSV, Word, PDF com texto, texto ou JSON) ou solte o arquivo sobre o 3D.</p>
+      <input type="file" id="fimp" accept=".pdf,.docx,.doc,.xlsx,.xls,.csv,.tsv,.txt,.md,.json,image/*" style="display:none">
+      <button class="btn" id="bimp">📥 Importar lista de peças…</button><button class="btn" id="bjson">💾 Exportar projeto (.json)</button><button class="btn" id="bpdf">📄 Relatório em PDF…</button><button class="btn" id="bpng">🖼 Salvar imagem da vista</button><button class="btn" id="bvid">🎬 Gravar animação 3D</button><button class="btn" id="bdel" style="color:#ffb0b6">🗑 Excluir projeto importado</button></div>
   </section>
   <section>
     <div class="stage" id="stage">
@@ -167,6 +173,7 @@ function build(p){const g=new THREE.Group(),c=M(p.cor,p.metal),dk=M('#0b0d11',.3
  case'carter':g.add(bx(6.8,1.5,3.4,c,0,0,0));g.add(bx(7.2,.2,3.8,M('#22262d',.6),0,.8,0));g.add(cy(.2,.3,M('#888',.9),'y',-2.2,-.85,0));break;
  case'admissao':g.add(bx(6.4,1.1,1.4,c,0,.7,-.9));XS.forEach(x=>{g.add(cy(.28,1.8,c,'z',x,.1,.3));g.add(bx(.7,.15,.7,c,x,0,1.1))});g.add(cy(.6,1.2,c,'z',-3.3,.7,-.9));break;
  case'escape':XS.forEach((x,i)=>{g.add(cy(.22,1.7,c,'y',x,.2,.2));const e=cy(.22,1.2,c,'z',x,-.55,1.1);g.add(e)});g.add(cy(.38,7,c,'x',0,-.55,1.8));g.add(cy(.55,1,M('#9a5226',.8),'z',-3.7,-.55,1.8));break;
+ case'generico':g.add(bx(2,1,1.4,c));g.add(cy(.18,.2,M('#d9dde3',.9),'y',-.6,.55,0,10));g.add(cy(.18,.2,M('#d9dde3',.9),'y',.6,.55,0,10));break;
  case'volante':g.add(cy(1.7,.45,c,'x'));g.add(cy(1.75,.18,M('#4a5059',.9),'x',.15,0,0,48));g.add(cy(.55,.6,M('#2c3036',.8),'x',-.1,0,0));break}
  g.traverse(o=>{if(o.isMesh)o.userData.id=p.id});return g}
 // ── cena ──
@@ -239,7 +246,7 @@ cv.addEventListener('contextmenu',e=>{
   e.preventDefault();
   const ray=_ponteiro(e);
   const hit=ray.intersectObjects([...G.values()].map(o=>o.g).filter(g=>g.visible),true)[0];
-  if(!hit)return;
+  if(!hit){menuGeral(e.clientX,e.clientY);return;}
   const id=hit.object.userData.id;
   if(!id||!G.has(id))return;
   abrirMenuPeca(e.clientX,e.clientY,id);
@@ -265,6 +272,7 @@ function tick(){
     o.g.traverse(m=>{if(m.isMesh){m.material.emissive=m.material.emissive||new THREE.Color();m.material.emissive.set(id===sel?'#0b4a8c':(sysIds&&!fora?'#06335f':'#000'));const mt=m.material;if(mt.transparent!==fora){mt.transparent=fora;mt.depthWrite=!fora;mt.needsUpdate=true}mt.opacity=fora?.12:1}})
   });
   R.render(S,C);
+  if(_rec)_rec();
   const w=cv.clientWidth,h=cv.clientHeight;
   D.pecas.forEach(p=>{const l=$('lb'+p.id),o=G.get(p.id);if(!l)return;const v=o.g.position.clone().project(C);l.style.display=(o.g.visible&&v.z<1&&(!sysIds||sysIds.has(p.id)))?'flex':'none';l.style.left=((v.x*.5+.5)*w+(p.pos[0]<0?-70:70))+'px';l.style.top=((-v.y*.5+.5)*h+(p.pos[1]>2?-40:p.pos[1]<-2?40:0))+'px'})
 }
@@ -518,7 +526,10 @@ function abrirMenuPeca(x,y,pecaId){
   t.textContent=p.nome;m.appendChild(t);
   const itens=[
     ['🔁 Implantar peça de outro motor',()=>abrirPainelTroca(pecaId)],
-    ['🤖 Pedir sugestão à IA',()=>abrirIAPeca(pecaId)]
+    ['🤖 Pedir sugestão à IA',()=>abrirIAPeca(pecaId)],
+    ['🔎 Ver peça (aproximar)',()=>{choose(pecaId);focar()}],
+    ['🕳 Mostrar/ocultar furos',()=>{showHoles=!showHoles;renderSys()}],
+    ['📄 Relatório em PDF…',menuPdf]
   ];
   itens.forEach(function(par){
     const b=document.createElement('button');
@@ -534,6 +545,7 @@ function abrirMenuPeca(x,y,pecaId){
 }
 
 async function abrirPainelTroca(pecaId){
+  if(D&&D.local){toast('Motor importado: o servidor não conhece este motor, então a troca com outros motores não está disponível.');return}
   const ov=_overlay();
   ov.innerHTML='';ov.style.display='flex';
   const box=_ovBox(ov);
@@ -617,6 +629,7 @@ function aplicarTroca(pecaId,motorEscolhido,info){
 }
 
 async function abrirIAPeca(pecaId,motorAlvo){
+  if(D&&D.local){toast('Motor importado: a IA depende do cadastro no servidor, que este motor não tem.');return}
   const ov=_overlay();
   ov.innerHTML='';ov.style.display='flex';
   const box=_ovBox(ov);
@@ -644,7 +657,191 @@ async function abrirIAPeca(pecaId,motorAlvo){
     if(c)c.onclick=fecharOverlay;
   }
 }
-function boot(){post('/api/mecanica/motores',SES()).then(j=>{if(!j.ok){if(/Entre/.test(j.error||''))gate();throw 1}$('veic').innerHTML=j.motores.map(m=>'<option value="'+esc(m.id)+'">'+esc(m.nome)+'</option>').join('');$('veic').onchange=()=>carregar($('veic').value);return carregar(j.motores[0].id)}).catch(e=>{if(e===1)return;const l=$('load');if(l)l.textContent='Não foi possível carregar os motores.'})}
+function boot(){post('/api/mecanica/motores',SES()).then(j=>{if(!j.ok){if(/Entre/.test(j.error||''))gate();throw 1}$('veic').innerHTML=j.motores.map(m=>'<option value="'+esc(m.id)+'">'+esc(m.nome)+'</option>').join('');Object.keys(IMP).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent='📥 '+IMP[k].titulo+' (importado)';$('veic').appendChild(o)});$('veic').onchange=()=>{const v=$('veic').value;v.indexOf('imp_')===0?abrirLocal(v):carregar(v)};return carregar(j.motores[0].id)}).catch(e=>{if(e===1)return;const l=$('load');if(l)l.textContent='Não foi possível carregar os motores.'})}
+// ── IMPORTAR LISTA DE PEÇAS -> motor local (puro, testável) ──
+const MP=(()=>{
+  const sem=t=>String(t==null?'':t).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+  const KS=['tampa','comando','cabecote','junta','bloco','correia','alternador','partida','carter','admissao','escape','volante'];
+  const KR=[['junta',/junta/],['tampa',/tampa/],['comando',/comando|eixo de cames|\bcames?\b/],['correia',/correia|corrente de distrib|distribuicao/],['alternador',/alternador|dinamo/],['partida',/partida|arranque/],['carter',/carter/],['admissao',/admiss|plenum/],['escape',/escape|descarga/],['volante',/volante|flywheel/],['cabecote',/cabecote|cabeca do motor/],['bloco',/bloco|monobloco/]];
+  const kindOf=n=>{const s=sem(n);const k=KR.find(x=>x[1].test(s));return k?k[0]:'generico'};
+  const DEF={tampa:[[0,4.1,0],[0,5.2,0],'#1b1f27',.3],comando:[[0,3.5,0],[0,3.4,0],'#9aa3ad',.9],cabecote:[[0,2.9,0],[0,1.9,0],'#a9b2bc',.85],junta:[[0,2.15,0],[0,.9,0],'#e8742a',.2],bloco:[[0,0,0],[0,0,0],'#8d96a0',.85],correia:[[-4.6,1.2,0],[-3.6,1.2,0],'#15171b',.1],alternador:[[-5.2,-.3,2.4],[-3.4,-.3,2.6],'#4a4f57',.7],partida:[[4.7,-.8,-2.1],[3.6,-.9,-3.4],'#5d636b',.8],carter:[[0,-3.1,0],[0,-3.9,0],'#14181d',.6],admissao:[[0,3,-3],[0,3.2,-4.4],'#16191f',.25],escape:[[0,2.6,3],[0,1.4,4.6],'#b5622f',.8],volante:[[4.5,-.3,0],[3.4,-.3,0],'#6b727b',.9]};
+  const SYN={nome:/^(nome|peca|componente|item|part|descricao)$/,cod:/^(cod|codigo|part ?number|pn|ref|referencia)/,torque:/^torque/,parafusos:/parafuso|furo|fixac/,material:/^material/,func:/^(funcao|func)/,compat:/^compat/,aviso:/^(aviso|atencao|obs)/};
+  const colDe=c=>{const s=sem(c);for(const k in SYN)if(SYN[k].test(s))return k;return null};
+  const RT=/(\d+(?:[.,]\d+)?\s*(?:n\.?\s?m|kgf\.?m)(?:\s*\+\s*\d+\s*°)?)/i,RP=/(\d+)\s*(?:parafusos?|furos?|fixa)/i,RM=/\b(aco|aluminio|ferro|fundido|plastic|poliamida|borracha|liga|cobre|latao|inox|nylon)/;
+  const num=v=>{const m=String(v||'').match(/\d+/);return m?Math.min(99,+m[0]):0};
+  function classifica(cells){const r={nome:cells[0]};
+    cells.slice(1).forEach(c=>{if(!c)return;const s=sem(c);
+      if(RT.test(c)&&!r.torque)r.torque=c.match(RT)[1];
+      else if(RP.test(c)&&!r.parafusos)r.parafusos=+c.match(RP)[1];
+      else if(RM.test(s)&&!r.material)r.material=c;
+      else if(/\d/.test(c)&&c.length<=22&&!r.cod)r.cod=c;
+      else if(!r.func&&c.length>12)r.func=c});
+    return r}
+  function parseRows(rows){
+    const out=[];let map=null;
+    rows.forEach(row=>{const cells=(row||[]).map(c=>String(c==null?'':c).trim());if(!cells.some(Boolean))return;
+      const cols=cells.map(colDe);if(cols.filter(Boolean).length>=2&&(cols.includes('nome')||cols.includes('cod'))){map=cols;return}
+      let q;
+      if(map){q={};cells.forEach((c,i)=>{const k=map[i];if(k&&c)q[k]=c});if(!q.nome){const i=map.indexOf('nome');if(i<0)q.nome=cells.find(c=>c&&!/^\d+$/.test(c))}}
+      else{const c2=cells.filter(Boolean);q=classifica(c2);if(!q.nome||q.nome.length>42||(kindOf(q.nome)==='generico'&&!q.torque&&!q.parafusos&&!q.cod))return}
+      if(!q.nome||q.nome.length>60)return;
+      out.push({nome:q.nome,kind:kindOf(q.nome),cod:q.cod||'',torque:q.torque||'',parafusos:num(q.parafusos),material:q.material||'',func:q.func||'',compat:q.compat||'',aviso:q.aviso||''})});
+    return out}
+  const linhasParaRows=txt=>String(txt||'').split(/\r?\n/).map(l=>l.split(/\s*[|;\t]\s*|\s+[-–—:]\s+|\s{3,}/).map(s=>s.trim()).filter(Boolean));
+  const ORDEM=['tampa','admissao','escape','correia','comando','cabecote','junta','bloco','alternador','partida','carter','volante'];
+  function montar(titulo,parts,opt){opt=opt||{};
+    const usados={};let gi=0;
+    const pecas=parts.map((q,i)=>{let kind=KS.includes(q.kind)?q.kind:'generico',id,pos,ex,cor,metal;
+      if(kind!=='generico'&&!usados[kind]){usados[kind]=1;id=kind;const d=DEF[kind];pos=d[0].slice();ex=d[1].slice();cor=d[2];metal=d[3]}
+      else{kind='generico';gi++;id='x'+gi;pos=[-6+((gi-1)%4)*4,-5.5-Math.floor((gi-1)/4)*2.2,4.5];ex=[pos[0],pos[1]-1,pos[2]+2];cor='#7a8796';metal=.6}
+      const f=v=>v&&String(v).trim()?String(v).trim().slice(0,160):'a cadastrar';
+      return{id,n:i+1,nome:String(q.nome).slice(0,60),cod:f(q.cod),kind,pos,ex,cor,metal,parafusos:Math.max(0,Math.min(99,+q.parafusos||0)),torque:f(q.torque),material:f(q.material),func:q.func&&String(q.func).trim()?String(q.func).trim().slice(0,200):'Peça importada de uma lista; função a cadastrar.',compat:f(q.compat),aviso:q.aviso&&String(q.aviso).trim()?String(q.aviso).trim().slice(0,200):'Valores importados: confira no manual do fabricante.',compatMap:{}}});
+    const ord=p=>{const i=ORDEM.indexOf(p.kind);return i<0?99:i};
+    const passos=[...pecas].sort((a,b)=>ord(a)-ord(b)).map(p=>({peca:p.id,titulo:(p.kind==='generico'?'Retirar ':'Remover ')+p.nome.toLowerCase(),itens:[p.parafusos?'Remova os '+p.parafusos+' parafusos de fixação'+(p.torque!=='a cadastrar'?' (torque '+p.torque+' na montagem).':'.'):'Retire a peça com cuidado.','Guarde parafusos e vedações na ordem original.'],info:p.aviso}));
+    const slug=sem(titulo).replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'').slice(0,24)||'motor';
+    return{id:opt.id||'imp_'+slug+'_'+Date.now().toString(36).slice(-4),local:true,veiculo:{nome:String(titulo).slice(0,60),ano:'—',motor:'Importado',potencia:'—',cambio:'—'},titulo:String(titulo).slice(0,60),pecas,passos,
+      erroCompat:{titulo:'Peça importada',texto:'Sem regra de compatibilidade cadastrada para este motor.',solucao:['Confirmar a peça no manual do fabricante','Conferir furação e medidas antes de trocar']},
+      dica:'Motor criado a partir de uma lista de peças. Complete códigos e torques conforme o manual.',aviso:'Motor importado: os valores não foram conferidos. Confirme no manual do fabricante.'}}
+  // JSON exportado pelo próprio sistema -> motor local (valida tudo)
+  function deJson(o){
+    if(!o||!Array.isArray(o.pecas)||!o.pecas.length)return null;
+    const v3=(a,d)=>Array.isArray(a)&&a.length===3&&a.every(Number.isFinite)?a.map(x=>Math.max(-30,Math.min(30,x))):d;
+    const usados=new Set();
+    const pecas=o.pecas.slice(0,60).map((p,i)=>{const kind=KS.includes(p.kind)?p.kind:'generico',d=DEF[kind]||[[0,-5.5,4.5],[0,-6.5,6.5],'#7a8796',.6];let id=String(p.id||'').replace(/[^a-z0-9_]/gi,'').slice(0,20)||('x'+(i+1));while(usados.has(id))id+='_';usados.add(id);
+      const t=(v,def)=>v!=null&&String(v).trim()?String(v).slice(0,200):def;
+      return{id,n:i+1,nome:t(p.nome,'Peça '+(i+1)).slice(0,60),cod:t(p.cod,'a cadastrar'),kind,pos:v3(p.pos,d[0].slice()),ex:v3(p.ex,d[1].slice()),cor:/^#[0-9a-f]{6}$/i.test(p.cor)?p.cor:d[2],metal:Number.isFinite(p.metal)?Math.max(0,Math.min(1,p.metal)):d[3],parafusos:Math.max(0,Math.min(99,+p.parafusos||0)),torque:t(p.torque,'a cadastrar'),material:t(p.material,'a cadastrar'),func:t(p.func,'Função a cadastrar.'),compat:t(p.compat,'a cadastrar'),aviso:t(p.aviso,'Confira no manual do fabricante.'),compatMap:{}}});
+    const ids=new Set(pecas.map(p=>p.id));
+    let passos=(Array.isArray(o.passos)?o.passos:[]).filter(s=>s&&ids.has(s.peca)).slice(0,60).map(s=>({peca:s.peca,titulo:String(s.titulo||'').slice(0,100)||'Passo',itens:(Array.isArray(s.itens)?s.itens:[]).slice(0,10).map(x=>String(x).slice(0,160)),info:String(s.info||'').slice(0,200)}));
+    const base=montar(String(o.titulo||o.veiculo&&o.veiculo.nome||'Projeto').slice(0,60),pecas.map(p=>({nome:p.nome,kind:p.kind})),{});
+    if(!passos.length)passos=base.passos.map((s,i)=>({...s,peca:pecas[i]?pecas[i].id:s.peca})).filter(s=>ids.has(s.peca));
+    if(!passos.length)passos=[{peca:pecas[0].id,titulo:'Inspecionar '+pecas[0].nome,itens:['Inspecione a peça.'],info:''}];
+    const vv=o.veiculo||{};
+    const ad={};if(o.adaptacoes&&typeof o.adaptacoes==='object')Object.keys(o.adaptacoes).forEach(k=>{if(!ids.has(k))return;const a=o.adaptacoes[k];if(!a||typeof a!=='object')return;ad[k]={motorOrigem:String(a.motorOrigem||'').slice(0,40),compativel:!!a.compativel,offset:v3(a.offset,null),rot:v3(a.rot,null),motivo:a.motivo?String(a.motivo).slice(0,200):null,adaptacao:a.adaptacao?String(a.adaptacao).slice(0,200):null,_manual:!!a._manual&&!!v3(a.offset,null)}});
+    return{id:'imp_'+(sem(o.titulo||'projeto').replace(/[^a-z0-9]+/g,'_').slice(0,20)||'projeto')+'_'+Date.now().toString(36).slice(-4),local:true,veiculo:{nome:String(vv.nome||o.titulo||'Projeto').slice(0,60),ano:String(vv.ano||'—').slice(0,10),motor:String(vv.motor||'Importado').slice(0,60),potencia:String(vv.potencia||'—').slice(0,20),cambio:String(vv.cambio||'—').slice(0,40)},titulo:String(o.titulo||'Projeto').slice(0,60),pecas,passos,
+      erroCompat:o.erroCompat&&o.erroCompat.titulo?{titulo:String(o.erroCompat.titulo).slice(0,80),texto:String(o.erroCompat.texto||'').slice(0,200),solucao:(Array.isArray(o.erroCompat.solucao)?o.erroCompat.solucao:[]).slice(0,6).map(x=>String(x).slice(0,120))}:base.erroCompat,dica:String(o.dica||base.dica).slice(0,300),aviso:String(o.aviso||base.aviso).slice(0,300),adaptacoes:ad}}
+  return{kindOf,parseRows,linhasParaRows,montar,deJson,KS}
+})();
+
+// ── PROJETO: importar / exportar JSON, PDF, imagem e vídeo 3D ──
+const IMPK='alma_mecanica_importados';
+let IMP={};try{IMP=JSON.parse(localStorage.getItem(IMPK)||'{}')||{}}catch(e){IMP={}}
+const salvaIMP=()=>{try{const ks=Object.keys(IMP);while(ks.length>12)delete IMP[ks.shift()];localStorage.setItem(IMPK,JSON.stringify(IMP))}catch(e){toast('Não consegui guardar no navegador (espaço cheio?). O projeto fica só nesta sessão.')}};
+let _rec=null,_gravando=null;
+const baixa=(blob,nome)=>{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nome;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),6000)};
+const nomeArq=()=>String(D&&D.titulo||'motor').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9]+/g,'_').replace(/^_|_$/g,'').slice(0,30)||'motor';
+// modal
+function fechaOvM(){const o=$('ovM');if(o)o.remove()}
+function ovM(html){fechaOvM();const o=document.createElement('div');o.id='ovM';o.className='ovl';o.innerHTML='<div class="mdl">'+html+'</div>';o.onclick=e=>{if(e.target===o)fechaOvM()};document.body.appendChild(o);return o.firstChild}
+addEventListener('keydown',e=>{if(e.key==='Escape')fechaOvM()});
+const LIB={xlsx:'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',mammoth:'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js',pdf:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',jspdf:'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'};
+const _ld={};
+function lib(k){return _ld[k]||(_ld[k]=new Promise((ok,no)=>{const s=document.createElement('script');s.src=LIB[k];s.onload=ok;s.onerror=()=>{delete _ld[k];no(new Error('Não consegui carregar o leitor ('+k+'). Verifique a conexão.'))};document.head.appendChild(s)}))}
+// 1) JSON
+function exportaJson(){if(!D)return;
+  const o={versao:1,fonte:'ALMAFLUXO Mecânica',origem:D.local?'importado':D.id,titulo:D.titulo,veiculo:D.veiculo,
+    pecas:D.pecas.map(p=>({id:p.id,n:p.n,nome:p.nome,cod:p.cod,kind:p.kind,pos:p.pos,ex:p.ex,cor:p.cor,metal:p.metal,parafusos:p.parafusos,torque:p.torque,material:p.material,func:p.func,compat:p.compat,aviso:p.aviso})),
+    passos:D.passos,erroCompat:D.erroCompat,dica:D.dica,aviso:D.aviso,adaptacoes:D.adaptacoes||{}};
+  baixa(new Blob([JSON.stringify(o,null,1)],{type:'application/json'}),'projeto-'+nomeArq()+'.json');toast('Projeto exportado (.json).')}
+// 2) imagem da vista atual (fundo escuro, pronta para PDF/PNG)
+function imagemVista(){R.render(S,C);const W=cv.width,H=cv.height,c2=document.createElement('canvas');c2.width=W;c2.height=H;const x=c2.getContext('2d'),g=x.createRadialGradient(W/2,H*.55,10,W/2,H*.55,W*.7);g.addColorStop(0,'#12356a');g.addColorStop(1,'#061226');x.fillStyle=g;x.fillRect(0,0,W,H);x.drawImage(cv,0,0);return c2}
+function salvaPng(){if(!D)return;imagemVista().toBlob(b=>baixa(b,'vista-'+nomeArq()+'.png'),'image/png')}
+// 3) relatório PDF
+const pdfSafe=s=>String(s==null?'':s).replace(/[–—]/g,'-').replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/→/g,'->').replace(/[^\u0000-\u00ff]/g,'');
+async function relatorioPDF(soSistema,imgUrl){
+  await lib('jspdf');const doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'}),M=14,WP=182;let y=M;
+  const ids=soSistema&&sysIds?sysIds:null,pecas=D.pecas.filter(p=>!ids||ids.has(p.id)),passos=D.passos.filter(s=>!ids||ids.has(s.peca));
+  const esc2=s=>pdfSafe(s),nl=h=>{y+=h;if(y>282){doc.addPage();y=M}};
+  const texto=(t,x,w,sz,bold,cor)=>{doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(sz);doc.setTextColor(cor||30);const ls=doc.splitTextToSize(esc2(t),w);ls.forEach(l=>{if(y>282){doc.addPage();y=M}doc.text(l,x,y);y+=sz*.42});return ls.length};
+  texto('ALMAFLUXO - Oficina Mecânica Interativa',M,WP,10,true,'#1f7bff');y+=1;
+  texto('Relatório: '+D.titulo,M,WP,17,true);y+=1;
+  const v=D.veiculo||{};texto([v.nome,v.motor,v.potencia&&v.potencia!=='—'?v.potencia:'',v.cambio&&v.cambio!=='—'?v.cambio:''].filter(Boolean).join(' · '),M,WP,10,false,80);
+  texto('Gerado em '+new Date().toLocaleString('pt-BR')+(ids?' · escopo: '+SYS[sysIdx].n:' · escopo: motor completo'),M,WP,9,false,110);y+=3;
+  if(imgUrl){try{const w=WP,h=Math.min(95,w*cv.height/cv.width);if(y+h>282){doc.addPage();y=M}doc.addImage(imgUrl,'JPEG',M,y,w,h);y+=h+4}catch(e){}}
+  texto('Peças ('+pecas.length+')',M,WP,12,true,'#0e3a7a');y+=1;
+  const col=[8,50,34,30,12,48],hd=['Nº','Peça','Código','Torque','Furos','Material'];
+  const linha=(cells,bold,fundo)=>{doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(8.5);const L=cells.map((c,i)=>doc.splitTextToSize(esc2(c),col[i]-2)),h=Math.max(...L.map(a=>a.length))*3.7+2;
+    if(y+h>284){doc.addPage();y=M}if(fundo){doc.setFillColor(...fundo);doc.rect(M,y-3.6,WP,h,'F')}doc.setTextColor(bold?255:30);let x=M;L.forEach((a,i)=>{doc.text(a,x+1,y);x+=col[i]});y+=h};
+  linha(hd,true,[14,58,122]);
+  pecas.forEach((p,i)=>linha([String(p.n),p.nome,p.cod,p.torque,p.parafusos?String(p.parafusos):'-',p.material],false,i%2?[238,242,248]:null));
+  y+=5;
+  texto('Ordem de desmontagem',M,WP,12,true,'#0e3a7a');y+=1;
+  if(!passos.length)texto('Sem passos para este escopo.',M,WP,9);
+  passos.forEach((s,i)=>{if(y>270){doc.addPage();y=M}texto((i+1)+'. '+s.titulo,M,WP,10,true);(s.itens||[]).forEach(t=>texto('- '+t,M+4,WP-4,9));if(s.info)texto('Atenção: '+s.info,M+4,WP-4,8.5,false,'#a06a00');y+=1.5});
+  const ad=D.adaptacoes?Object.keys(D.adaptacoes).filter(k=>!ids||ids.has(k)):[];
+  if(ad.length){y+=3;texto('Peças trocadas / adaptadas',M,WP,12,true,'#0e3a7a');y+=1;ad.forEach(k=>{const a=D.adaptacoes[k],p=P[k];texto('- '+(p?p.nome:k)+' (de '+(a.motorOrigem||'?')+'): '+(a.compativel?'compatível':'não compatível')+(a.motivo?' - '+a.motivo:'')+(a.adaptacao?' | '+a.adaptacao:''),M,WP,9)})}
+  y+=4;texto(D.aviso||'Valores didáticos. Confirme torque e códigos no manual do fabricante antes de aplicar.',M,WP,8.5,false,'#a06a00');
+  const n=doc.getNumberOfPages();for(let i=1;i<=n;i++){doc.setPage(i);doc.setFontSize(8);doc.setTextColor(120);doc.text('ALMAFLUXO · página '+i+' de '+n,105,292,{align:'center'})}
+  return doc}
+function menuPdf(){if(!D)return;const sys=!!sysIds;const m=ovM('<h3>Relatório em PDF</h3><p style="color:var(--mu);line-height:1.5;margin-bottom:8px">Inclui a imagem da vista 3D atual, a lista de peças com código, torque e furos, e a ordem de desmontagem.</p>'+(sys?'<label class="ck"><input type="checkbox" id="pso" checked> Só o sistema selecionado: '+esc(SYS[sysIdx].n)+'</label>':'')+'<div class="row"><button class="btn" id="px">Cancelar</button><button class="btn p" id="pg">Gerar PDF</button></div>');
+  m.querySelector('#px').onclick=fechaOvM;m.querySelector('#pg').onclick=async()=>{const so=!!(m.querySelector('#pso')&&m.querySelector('#pso').checked);let img=null;try{img=imagemVista().toDataURL('image/jpeg',.85)}catch(e){}fechaOvM();toast('Gerando PDF…');try{const d=await relatorioPDF(so,img);d.save('relatorio-'+nomeArq()+'.pdf');toast('PDF gerado.')}catch(e){toast(e.message||'Falha ao gerar o PDF.')}}}
+// 4) vídeo 3D
+function gravarVideo(){
+  if(!D)return;if(_gravando){toast('Já está gravando.');return}
+  if(!window.MediaRecorder||!cv.captureStream){toast('Este navegador não grava vídeo (MediaRecorder). Tente Chrome, Edge ou Firefox.');return}
+  const mime=['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm','video/mp4'].find(m=>MediaRecorder.isTypeSupported(m));
+  if(!mime){toast('Nenhum formato de vídeo suportado neste navegador.');return}
+  const W=Math.round(Math.min(1280,Math.max(640,cv.clientWidth*Math.min(devicePixelRatio||1,2)))),H=Math.round(W*cv.clientHeight/cv.clientWidth),comp=document.createElement('canvas');comp.width=W;comp.height=H;const cx=comp.getContext('2d');
+  const orig={expl,modo,si,sel,spin,tab:document.querySelector('#tabs button.on')};const tabBtn=t=>document.querySelector('#tabs button[data-t="'+t+'"]');
+  const n=D.passos.length,pedacos=[];let rec;
+  try{rec=new MediaRecorder(comp.captureStream(30),{mimeType:mime,videoBitsPerSecond:4e6})}catch(e){toast('Não consegui iniciar a gravação: '+e.message);return}
+  rec.ondataavailable=e=>{if(e.data&&e.data.size)pedacos.push(e.data)};
+  _rec=()=>{const g=cx.createRadialGradient(W/2,H*.55,10,W/2,H*.55,W*.7);g.addColorStop(0,'#12356a');g.addColorStop(1,'#061226');cx.fillStyle=g;cx.fillRect(0,0,W,H);cx.drawImage(cv,0,0,W,H);
+    cx.shadowColor='#000';cx.shadowBlur=6;cx.fillStyle='#fff';cx.font='bold '+Math.round(W/46)+'px system-ui,sans-serif';cx.fillText(D.titulo+' - '+(expl?'VISTA EXPLODIDA':'VISTA MONTADA'),W*.02,H*.07);
+    const st=D.passos[Math.min(si,n-1)];if(modo==='desmontar'&&expl&&st){cx.font=Math.round(W/60)+'px system-ui,sans-serif';cx.fillText('Passo '+Math.min(si+1,n)+' / '+n+' · '+st.titulo,W*.02,H*.95)}cx.shadowBlur=0};
+  const tm=[];const at=(ms,f)=>tm.push(setTimeout(f,ms));
+  const click=t=>{const b=tabBtn(t);if(b)b.click()};
+  let t0=0;at(t0,()=>{spin=true;click('3d')});
+  t0=3500;at(t0,()=>click('ex'));
+  t0=7000;at(t0,()=>click('desm'));
+  for(let k=0;k<n;k++){at(t0+(k+1)*1500,()=>$('next').onclick())}
+  t0=t0+n*1500+1800;
+  for(let k=0;k<n;k++){at(t0+k*900,()=>$('prev').onclick())}
+  const fim=t0+n*900+1500;at(fim,()=>click('3d'));at(fim+2200,()=>parar());
+  const bar=document.createElement('div');bar.style.cssText='position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:10002;background:#2a0d14;border:1px solid #ff4d57;color:#fff;padding:8px 14px;border-radius:30px;font:13px system-ui;display:flex;gap:12px;align-items:center';document.body.appendChild(bar);
+  const ini=Date.now(),total=fim+2200;const iv=setInterval(()=>{bar.innerHTML='<span style="color:#ff4d57">●</span> Gravando · '+Math.max(0,Math.ceil((total-(Date.now()-ini))/1000))+' s <button class="btn" id="vstop" style="padding:4px 10px">Parar e salvar</button>';const b=document.getElementById('vstop');if(b)b.onclick=parar},500);
+  function parar(){if(!_gravando)return;_gravando=null;tm.forEach(clearTimeout);clearInterval(iv);bar.remove();
+    rec.onstop=()=>{_rec=null;const blob=new Blob(pedacos,{type:mime.split(';')[0]});baixa(blob,'animacao-'+nomeArq()+'.'+(mime.includes('mp4')?'mp4':'webm'));toast('Vídeo salvo.')};
+    try{rec.stop()}catch(e){_rec=null}
+    expl=orig.expl;modo=orig.modo;si=orig.si;sel=orig.sel;spin=orig.spin;if(orig.tab)orig.tab.click();render()}
+  _gravando=parar;rec.start(500);toast('Gravando a animação: vista montada, explodida e desmontagem passo a passo.')}
+// 5) importar
+async function leLinhas(f){
+  const ext=(f.name.toLowerCase().split('.').pop()||'');
+  if(/^(png|jpe?g|webp|gif|bmp)$/.test(ext)||/^image\//.test(f.type))throw new Error('Imagem de planta: ainda não leio imagens nem desenhos. Use uma lista de peças em texto, planilha ou PDF com texto.');
+  if(ext==='crv'||ext==='clv')throw new Error('CRV e CLV são documentos do veículo e não trazem a planta do motor.');
+  if(ext==='doc')throw new Error('Arquivo .doc antigo: salve como .docx e importe de novo.');
+  if(ext==='json'){return{json:JSON.parse(await f.text())}}
+  if(ext==='txt'||ext==='md')return{rows:MP.linhasParaRows(await f.text())};
+  if(ext==='csv'||ext==='tsv')return{rows:(await f.text()).split(/\r?\n/).map(l=>l.split(/[;\t]|,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(s=>s.replace(/^"|"$/g,'').trim()))};
+  if(ext==='xlsx'||ext==='xls'){await lib('xlsx');const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});let rows=[];wb.SheetNames.forEach(s=>{rows=rows.concat(XLSX.utils.sheet_to_json(wb.Sheets[s],{header:1,raw:false,defval:''}))});return{rows}}
+  if(ext==='docx'){await lib('mammoth');const h=(await mammoth.convertToHtml({arrayBuffer:await f.arrayBuffer()})).value,d=new DOMParser().parseFromString(h,'text/html'),rows=[];
+    d.body.querySelectorAll('table,p,li').forEach(el=>{if(el.tagName==='TABLE')el.querySelectorAll('tr').forEach(tr=>rows.push([...tr.children].map(c=>c.textContent.trim())));else if(!el.closest('table'))rows.push(...MP.linhasParaRows(el.textContent))});return{rows}}
+  if(ext==='pdf'){await lib('pdf');pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';const doc=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise,rows=[];
+    for(let p=1;p<=Math.min(doc.numPages,30);p++){const tc=await (await doc.getPage(p)).getTextContent();let y=null,ln='',fx=0;const flush=()=>{if(ln.trim())rows.push(ln.split(' | ').map(s=>s.trim()).filter(Boolean))};
+      tc.items.forEach(it=>{const yy=Math.round(it.transform[5]),x=it.transform[4];if(y!==null&&Math.abs(yy-y)>3){flush();ln='';fx=0}if(ln&&x-fx>10)ln+=' | ';ln+=it.str;fx=x+(it.width||0);y=yy});flush()}
+    if(rows.flat().join('').length<20)throw new Error('Este PDF não tem texto (parece escaneado ou só desenho). Ainda não leio desenhos.');return{rows}}
+  return{rows:MP.linhasParaRows(await f.text())}}
+function registra(d){IMP[d.id]=d;salvaIMP();let o=[...$('veic').options].find(x=>x.value===d.id);if(!o){o=document.createElement('option');o.value=d.id;o.textContent='📥 '+d.titulo+' (importado)';$('veic').appendChild(o)}$('veic').value=d.id;abrirLocal(d.id)}
+function restauraAdapt(){const ad=D.adaptacoes||{};Object.keys(ad).forEach(k=>{const a=ad[k],o=G.get(k),p=P[k];if(!o||!p)return;if(a.motorOrigem)p._adaptada=a.motorOrigem;if(a._manual&&Array.isArray(a.offset)){o.g.position.set(p.pos[0]+a.offset[0],p.pos[1]+a.offset[1],p.pos[2]+a.offset[2]);if(Array.isArray(a.rot))o.g.rotation.set(a.rot[0],a.rot[1],a.rot[2])}});render()}
+function abrirLocal(id){const s=IMP[id];if(!s)return;D=JSON.parse(JSON.stringify(s));D.id=id;D.local=true;ui();fit();const l=$('load');if(l)l.remove();restauraAdapt();renderSys()}
+async function importa(f){
+  if(!U){toast('Entre na sua conta primeiro.');return}
+  toast('Lendo '+f.name+'…');let r;try{r=await leLinhas(f)}catch(e){toast(e.message||'Não consegui ler o arquivo.');return}
+  if(r.json){const d=MP.deJson(r.json);if(!d){toast('Este JSON não parece um projeto da Mecânica (sem lista de peças).');return}registra(d);toast('Projeto aberto: '+d.titulo+' ('+d.pecas.length+' peças).');return}
+  const parts=MP.parseRows(r.rows);
+  if(!parts.length){toast('Não encontrei uma lista de peças neste arquivo. Use colunas como Peça, Código, Torque e Parafusos.');return}
+  const nomePad=f.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').slice(0,50),KN={tampa:'Tampa de válvulas',comando:'Comando',cabecote:'Cabeçote',junta:'Junta',bloco:'Bloco',correia:'Correia',alternador:'Alternador',partida:'Partida',carter:'Cárter',admissao:'Admissão',escape:'Escape',volante:'Volante',generico:'Bloco genérico'};
+  const m=ovM('<h3>Importar lista de peças</h3><label>Nome do motor</label><input class="in" id="inm2" maxlength="50" value="'+esc(nomePad)+'"><h4>Peças entendidas ('+parts.length+')</h4><div class="lst">'+parts.map((p,k)=>'<div class="ck"><input type="checkbox" data-k="'+k+'" checked> <b>'+esc(p.nome)+'</b> <select data-s="'+k+'" style="background:#071a33;color:var(--tx);border:1px solid var(--ln);border-radius:6px;font-size:11px">'+Object.keys(KN).map(x=>'<option value="'+x+'"'+(x===p.kind?' selected':'')+'>'+KN[x]+'</option>').join('')+'</select><small>'+esc([p.cod,p.torque,p.parafusos?p.parafusos+' parafusos':'',p.material].filter(Boolean).join(' · ')||'sem dados adicionais')+'</small></div>').join('')+'</div><p style="color:var(--mu);font-size:11px;margin:6px 0">Cada peça usa uma das formas 3D existentes, escolhida pelo nome. Nome desconhecido vira bloco genérico: você pode trocar o tipo acima. Se duas peças ficarem com o mesmo tipo, a segunda vira genérica.</p><div class="row"><button class="btn" id="ix2">Cancelar</button><button class="btn p" id="ic2">Criar motor</button></div>');
+  m.querySelector('#ix2').onclick=fechaOvM;
+  m.querySelector('#ic2').onclick=()=>{const sel2=[...m.querySelectorAll('[data-k]:checked')].map(x=>{const k=+x.dataset.k;return{...parts[k],kind:m.querySelector('[data-s="'+k+'"]').value}});if(!sel2.length)return;const nome=m.querySelector('#inm2').value.trim()||'Motor importado';fechaOvM();registra(MP.montar(nome,sel2));toast('Motor criado com '+sel2.length+' peça(s). Complete códigos e torques depois.')}}
+function excluirImportado(){if(!D||!D.local){toast('Só projetos importados podem ser excluídos.');return}const id=D.id;delete IMP[id];salvaIMP();const o=[...$('veic').options].find(x=>x.value===id);if(o)o.remove();toast('Projeto importado excluído.');if($('veic').options.length){$('veic').selectedIndex=0;carregar($('veic').value)}}
+function menuGeral(x,y){const m=_menuCtx();m.innerHTML='';const it=[['📥 Importar lista de peças…',()=>$('fimp').click()],['💾 Exportar projeto (.json)',exportaJson],['📄 Relatório em PDF…',menuPdf],['🖼 Salvar imagem da vista',salvaPng],['🎬 Gravar animação 3D',gravarVideo]];
+  it.forEach(par=>{const b=document.createElement('button');b.style.cssText='display:block;width:100%;text-align:left;background:none;border:0;color:#e8f1ff;padding:7px 10px;border-radius:6px;cursor:pointer;font:inherit';b.onmouseenter=()=>b.style.background='#12325a';b.onmouseleave=()=>b.style.background='none';b.textContent=par[0];b.onclick=()=>{m.style.display='none';par[1]()};m.appendChild(b)});
+  m.style.left=Math.min(x,innerWidth-240)+'px';m.style.top=Math.min(y,innerHeight-200)+'px';m.style.display='block'}
+$('fimp').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)importa(f)};
+$('bimp').onclick=()=>$('fimp').click();$('bjson').onclick=exportaJson;$('bpdf').onclick=menuPdf;$('bpng').onclick=salvaPng;$('bvid').onclick=gravarVideo;$('bdel').onclick=excluirImportado;
+const stg=$('stage');stg.addEventListener('dragover',e=>e.preventDefault());stg.addEventListener('drop',e=>{e.preventDefault();const f=e.dataTransfer&&e.dataTransfer.files[0];if(f)importa(f)});
+
 U?boot():gate();
 addEventListener('resize',fit);fit();cam();tick();
 </script>
