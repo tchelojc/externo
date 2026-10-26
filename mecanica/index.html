@@ -139,17 +139,35 @@ function gate(){let l=$('load');if(!l){l=document.createElement('div');l.id='loa
  $('gc').onclick=()=>window.open(WK+'/','_blank');
  $('gl').onclick=()=>login($('ge').value.trim().toLowerCase(),$('gs').value).then(boot).catch(e=>{$('gm').textContent=e.message})}
 function carregar(id){
-  return post('/api/mecanica/motor',Object.assign({},SES(),{id})).then(function(j){
-    if(!j.ok){if(/Entre/.test(j.error||''))gate();throw 1;}
-    D=j.motor;
-    D.id=id;                       // ← ESSENCIAL
-    ui();fit();
-    const l=$('load');if(l)l.remove();
-  }).catch(function(e){
-    if(e===1)return;
-    const l=$('load');
-    if(l)l.innerHTML='Não foi possível carregar o motor do worker.<br>Confira as rotas <b>/api/mecanica/</b>.';
-  });
+  // limpa imediatamente para evitar tick() sobre estado antigo
+  const l=$('load');
+  if(l){ l.style.display='grid'; l.textContent='Carregando motor…'; }
+  return post('/api/mecanica/motor', Object.assign({},SES(),{id}))
+    .then(function(j){
+      if(!j.ok){
+        if(/Entre/.test(j.error||'')) gate();
+        throw new Error(j.error||'Falha ao carregar motor');
+      }
+      const m = j.motor;
+      // ── VALIDAÇÃO ── o tick() depende desses campos; se faltar, não monta
+      if(!m || !Array.isArray(m.pecas) || !m.pecas.length ||
+         !Array.isArray(m.passos) || !m.passos.length || !m.veiculo){
+        throw new Error('Motor com dados incompletos');
+      }
+      m.id = id;                 // garante id mesmo se o worker omitir
+      D = m;
+      ui();                      // ui() limpa G, P, sel, si e reconstrói tudo
+      fit();
+      const l2=$('load'); if(l2) l2.remove();
+      return D;
+    })
+    .catch(function(e){
+      if(e && /Entre/.test(e.message||'')) return;
+      const l2=$('load');
+      if(l2) l2.textContent='Não foi possível carregar o motor: '+(e.message||e);
+      // NÃO deixa D "meio preenchido" — zera para o tick() sair cedo
+      D = null;
+    });
 }
 const $=id=>document.getElementById(id);
 let D,P={},sel=null,si=0,modo='desmontar',expl=false,vista='3d';
@@ -258,23 +276,50 @@ function pick(e){const r=cv.getBoundingClientRect();RC.setFromCamera(new THREE.V
 // ── estado/animação ──
 function tick(){
   requestAnimationFrame(tick);
-  if(!D)return;
-  if(spin)O.t+=.0025;
+  if(!D || !D.pecas || !D.pecas.length) return;
+  if(spin) O.t += 0.0025;
   cam();
   G.forEach((o,id)=>{
-    const p=P[id],k=expl?1:0;o.k+=(k-o.k)*.08;
-    // se a peça foi movida com Ctrl+drag, não sobrescreve a posição
-    if(!(dragPeca&&dragPeca.id===id)&&!(D.adaptacoes&&D.adaptacoes[id]&&D.adaptacoes[id]._manual)){
-      o.g.position.set(p.pos[0]+p.ex[0]*o.k,p.pos[1]+p.ex[1]*o.k,p.pos[2]+p.ex[2]*o.k);
+    const p = P[id];
+    if(!p || !o || !o.g) return;          // ← guarda
+    const k = expl ? 1 : 0;
+    o.k += (k - o.k) * 0.08;
+    if(!(dragPeca && dragPeca.id === id) &&
+       !(D.adaptacoes && D.adaptacoes[id] && D.adaptacoes[id]._manual)){
+      o.g.position.set(p.pos[0]+p.ex[0]*o.k, p.pos[1]+p.ex[1]*o.k, p.pos[2]+p.ex[2]*o.k);
     }
-    const rm=removido(id),fora=!!(sysIds&&!sysIds.has(id));o.g.visible=!rm&&!(iso&&fora);
-    if(o.holes)o.holes.visible=showHoles&&(id===sel||(!!sysIds&&!fora));
-    o.g.traverse(m=>{if(m.isMesh){m.material.emissive=m.material.emissive||new THREE.Color();m.material.emissive.set(id===sel?'#0b4a8c':(sysIds&&!fora?'#06335f':'#000'));const mt=m.material;if(mt.transparent!==fora){mt.transparent=fora;mt.depthWrite=!fora;mt.needsUpdate=true}mt.opacity=fora?.12:1}})
+    const rm = removido(id);
+    const fora = !!(sysIds && !sysIds.has(id));
+    o.g.visible = !rm && !(iso && fora);
+    if(o.holes) o.holes.visible = showHoles && (id===sel || (!!sysIds && !fora));
+    o.g.traverse(m=>{
+      if(!m.isMesh) return;
+      const mt = m.material;
+      if(mt.isMeshStandardMaterial || mt.isMeshPhongMaterial || mt.isMeshLambertMaterial){
+        if(!mt.emissive) mt.emissive = new THREE.Color('#000');
+        mt.emissive.set(id===sel ? '#0b4a8c' : (sysIds && !fora ? '#06335f' : '#000'));
+      }
+      if(mt.transparent !== fora){
+        mt.transparent = fora;
+        mt.depthWrite = !fora;
+        mt.needsUpdate = true;
+      }
+      mt.opacity = fora ? 0.12 : 1;
+    });
   });
-  R.render(S,C);
-  if(_rec)_rec();
-  const w=cv.clientWidth,h=cv.clientHeight;
-  D.pecas.forEach(p=>{const l=$('lb'+p.id),o=G.get(p.id);if(!l)return;const v=o.g.position.clone().project(C);l.style.display=(o.g.visible&&v.z<1&&(!sysIds||sysIds.has(p.id)))?'flex':'none';l.style.left=((v.x*.5+.5)*w+(p.pos[0]<0?-70:70))+'px';l.style.top=((-v.y*.5+.5)*h+(p.pos[1]>2?-40:p.pos[1]<-2?40:0))+'px'})
+  R.render(S, C);
+  if(_rec) _rec();
+  // labels — também com guarda
+  if(!D.pecas) return;
+  const w = cv.clientWidth, h = cv.clientHeight;
+  D.pecas.forEach(p=>{
+    const l = $('lb'+p.id), o = G.get(p.id);
+    if(!l || !o || !o.g) { if(l) l.style.display='none'; return; }
+    const v = o.g.position.clone().project(C);
+    l.style.display = (o.g.visible && v.z<1 && (!sysIds || sysIds.has(p.id))) ? 'flex' : 'none';
+    l.style.left = ((v.x*0.5+0.5)*w + (p.pos[0]<0?-70:70)) + 'px';
+    l.style.top  = ((-v.y*0.5+0.5)*h + (p.pos[1]>2?-40:p.pos[1]<-2?40:0)) + 'px';
+  });
 }
 function removido(id){if(modo!=='desmontar')return false;return D.passos.slice(0,si).some(s=>s.peca===id)}
 function choose(id,fromScene){sel=id;const i=D.passos.findIndex(s=>s.peca===id);if(i>=0)si=i;render();if(typeof renderSys==='function'&&D)renderSys()}
@@ -413,23 +458,29 @@ function renderSys(){
 }
 function ui(){
   // limpa a cena anterior
-  G.forEach(o => S.remove(o.g));
+  G.forEach(o => { if(o && o.g) S.remove(o.g); });
   G.clear();
   P = {};
+  sel = null;
   si = 0;
   expl = false;
   modo = 'desmontar';
-  D.pecas.forEach(p => { P[p.id] = p; });
-  sel = D.passos[0].peca;
 
-  const v = D.veiculo;
+  if(!D || !D.pecas || !D.pecas.length) return;
+
+  D.pecas.forEach(p => { P[p.id] = p; });
+
+  const passoInicial = (D.passos && D.passos[0] && D.passos[0].peca) || D.pecas[0].id;
+  sel = passoInicial;
+
+  const v = D.veiculo || { nome:'—', motor:'—', potencia:'—', cambio:'—', ano:'—' };
   $('carinfo').innerHTML =
-    '<b>' + v.nome.replace('Volkswagen', 'VW') + '</b><br>' +
-    'Motor: ' + v.motor.split(' · ')[0] + '<br>' +
-    'Potência: ' + v.potencia + '<br>' +
-    'Câmbio: ' + v.cambio;
-  $('tit').innerHTML = D.titulo + ' <span>— VISTA ' + (expl ? 'EXPLODIDA' : 'MONTADA') + '</span>';
-  $('ft').textContent = 'Sistema carregado · ' + v.nome + ' - ' + v.ano;
+    '<b>' + String(v.nome||'—').replace('Volkswagen','VW') + '</b><br>' +
+    'Motor: ' + String(v.motor||'—').split(' · ')[0] + '<br>' +
+    'Potência: ' + (v.potencia||'—') + '<br>' +
+    'Câmbio: ' + (v.cambio||'—');
+  $('tit').innerHTML = (D.titulo||'Motor') + ' <span>— VISTA ' + (expl?'EXPLODIDA':'MONTADA') + '</span>';
+  $('ft').textContent = 'Sistema carregado · ' + (v.nome||'—') + ' - ' + (v.ano||'—');
 
   $('nav').innerHTML = ['Início', 'Manual', 'Ferramentas', 'Configurações']
     .map(t => '<button>' + t + '</button>').join('');
@@ -475,12 +526,19 @@ function ui(){
     };
   });
 
-  // constrói o 3D
   D.pecas.forEach(p => {
-    const g = build(p);
-    S.add(g);
-    const holes = addHoles(g, p);
-    G.set(p.id, { g: g, k: 0, holes: holes });
+    try {
+      const g = build(p);
+      S.add(g);
+      const holes = addHoles(g, p);
+      G.set(p.id, { g, k: 0, holes });
+    } catch(err) {
+      console.error('Falha ao construir peça', p.id, err);
+      // cria um grupo vazio para o tick() não quebrar
+      const g = new THREE.Group();
+      S.add(g);
+      G.set(p.id, { g, k: 0, holes: null });
+    }
   });
 
   render();
@@ -657,8 +715,33 @@ async function abrirIAPeca(pecaId,motorAlvo){
     if(c)c.onclick=fecharOverlay;
   }
 }
-function boot(){post('/api/mecanica/motores',SES()).then(j=>{if(!j.ok){if(/Entre/.test(j.error||''))gate();throw 1}$('veic').innerHTML=j.motores.map(m=>'<option value="'+esc(m.id)+'">'+esc(m.nome)+'</option>').join('');Object.keys(IMP).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent='📥 '+IMP[k].titulo+' (importado)';$('veic').appendChild(o)});$('veic').onchange=()=>{const v=$('veic').value;v.indexOf('imp_')===0?abrirLocal(v):carregar(v)};return carregar(j.motores[0].id)}).catch(e=>{if(e===1)return;const l=$('load');if(l)l.textContent='Não foi possível carregar os motores.'})}
-// ── IMPORTAR LISTA DE PEÇAS -> motor local (puro, testável) ──
+function boot(){
+  post('/api/mecanica/motores', SES()).then(j=>{
+    if(!j.ok){ if(/Entre/.test(j.error||'')) gate(); throw 1; }
+    if(!j.motores || !j.motores.length){
+      const l=$('load'); if(l) l.textContent='Nenhum motor disponível no servidor.';
+      throw 1;
+    }
+    $('veic').innerHTML = j.motores.map(m=>
+      '<option value="'+esc(m.id)+'">'+esc(m.nome)+'</option>'
+    ).join('');
+    Object.keys(IMP).forEach(k=>{
+      const o=document.createElement('option');
+      o.value=k; o.textContent='📥 '+IMP[k].titulo+' (importado)';
+      $('veic').appendChild(o);
+    });
+    $('veic').onchange=()=>{
+      const v=$('veic').value;
+      v.indexOf('imp_')===0 ? abrirLocal(v) : carregar(v);
+    };
+    // Carrega o primeiro motor REAL da lista (não assume ea111_10)
+    return carregar(j.motores[0].id);
+  }).catch(e=>{
+    if(e===1) return;
+    const l=$('load');
+    if(l) l.textContent='Não foi possível carregar os motores.';
+  });
+}
 const MP=(()=>{
   const sem=t=>String(t==null?'':t).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
   const KS=['tampa','comando','cabecote','junta','bloco','correia','alternador','partida','carter','admissao','escape','volante'];
