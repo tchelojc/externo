@@ -33,6 +33,11 @@ label{display:block;color:var(--mu);font-size:11px;margin-bottom:3px}
 .leg{display:flex;gap:10px;flex-wrap:wrap;color:var(--mu);font-size:11px;margin-top:8px}.leg i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px}
 #gate{position:fixed;inset:0;z-index:50;background:#050d1af2;display:grid;place-items:center;padding:20px}#gate>div{max-width:300px;width:100%}
 .pub{border:1px solid var(--ln);border-radius:8px;padding:9px;margin-bottom:8px;background:#0a1d3a}.pub b{display:block}.pub small{color:var(--mu)}.bd{padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700}
+#bd{touch-action:none;user-select:none}.cmp{cursor:grab}.wire{cursor:context-menu}
+.ctx{position:fixed;z-index:10000;min-width:200px;background:#08162b;border:1px solid var(--cy);border-radius:10px;padding:5px;box-shadow:0 10px 30px #000b;display:flex;flex-direction:column}
+.ctx button{background:none;border:0;color:var(--tx);text-align:left;padding:8px 10px;border-radius:6px;cursor:pointer;font:13px system-ui}.ctx button:hover{background:#0f3a73}.ctx button.dng{color:#ffb0b6}.ctx hr{border:0;border-top:1px solid #12335a;margin:4px 0;width:100%}
+.ovl{position:fixed;inset:0;z-index:9999;background:#050d1acc;display:grid;place-items:center;padding:16px}.mdl{background:#071a33;border:1px solid var(--cy);border-radius:12px;padding:16px;width:100%;max-width:460px;max-height:88vh;overflow:auto}.mdl h3{color:var(--cy);margin-bottom:10px}.mdl h4{margin:10px 0 4px;color:var(--mu);font-size:12px}
+.lst{max-height:170px;overflow:auto;border:1px solid var(--ln);border-radius:8px;padding:6px;background:#0a1d3a}.ck{display:block;color:var(--tx);font-size:12px;padding:3px 0;margin:0}.ck small{display:block;color:var(--mu);margin-left:22px}.mdl .row{margin-top:10px}
 footer{padding:10px 16px;color:var(--mu);font-size:11px;border-top:1px solid var(--ln)}
 @media(max-width:1100px){main{grid-template-columns:1fr}}
 </style>
@@ -50,12 +55,14 @@ footer{padding:10px 16px;color:var(--mu);font-size:11px;border-top:1px solid var
     <button class="btn" data-x="gg">Dois GPIO ligados</button>
     <button class="btn" data-x="ok">Ligação segura (GND ↔ GND)</button>
     <button class="btn" data-x="lim">Limpar fios</button></div>
+  <div class="box"><h2>3. IMPORTAR / EXPORTAR</h2><p style="color:var(--mu);font-size:12px;line-height:1.5;margin-bottom:8px">PDF com texto, Word (.docx), Excel (.xlsx), CSV, texto ou JSON. Também dá para soltar o arquivo sobre a placa.</p>
+    <input type="file" id="fimp" accept=".pdf,.docx,.doc,.xlsx,.xls,.csv,.tsv,.txt,.md,.json,image/*" style="display:none"><div class="row"><button class="btn" id="bimp">Importar arquivo…</button><button class="btn" id="bexp">Exportar .json</button></div></div>
   <div class="box"><h2>FIOS</h2><div id="fios"></div></div>
 </section>
 <section>
   <svg id="bd" viewBox="0 0 640 780"></svg>
   <div class="leg"><span><i style="background:#ff4d57"></i>5V / VIN</span><span><i style="background:#f0a830"></i>3V3</span><span><i style="background:#7f8da3"></i>GND</span><span><i style="background:#27c8ff"></i>GPIO</span></div>
-  <p style="color:var(--mu);margin-top:8px">Clique em um pino e depois em outro para ligar um fio. Clique no mesmo pino para cancelar.</p>
+  <p style="color:var(--mu);margin-top:8px">Para ligar: arraste de um pino até outro (com Ctrl também funciona), ou clique em um e depois no outro. Botão direito (ou segurar o dedo) abre o menu do pino, do fio, do componente e da placa. Arraste um componente até um pino para ligá-lo.</p>
 </section>
 <section>
   <div class="box"><h2>OBSERVADOR <span id="ost" class="st"></span></h2><div id="obs"></div></div>
@@ -90,13 +97,15 @@ const pos=i=>{const n=B.pinos.length,pi=B.layout==='par-impar',L=pi?i%2===0:i<Ma
 function draw(){const n=B.pinos.length,pi=B.layout==='par-impar',rows=pi?n/2:Math.ceil(n/2),h=rows*(pi?34:(n>25?22:26))+60;
  $('bd').setAttribute('viewBox','0 0 640 '+Math.max(300,h+40));
  let s='<rect x="170" y="20" width="300" height="'+h+'" rx="14" fill="#0b3a2e" stroke="#2fd48a" stroke-width="2"/><text x="320" y="'+(h+4)+'" fill="#8fa8c8" font-size="12" text-anchor="middle">'+esc(B.nome)+' · lógica '+esc(B.logica)+'</text>';
- wires.forEach(([a,b],k)=>{const A=pos(a),C=pos(b),o=70+k*8,col=['#ffd24d','#4dffb8','#ff7ad9','#7aa8ff','#ffa14d'][k%5];s+='<path d="M'+A.x+' '+A.y+' C'+(A.x+(A.L?-1:1)*o)+' '+A.y+' '+(C.x+(C.L?-1:1)*o)+' '+C.y+' '+C.x+' '+C.y+'" fill="none" stroke="'+col+'" stroke-width="3" opacity=".9"/>'});
+ wires.forEach(([a,b],k)=>{const A=pos(a),C=pos(b),o=70+k*8,col=['#ffd24d','#4dffb8','#ff7ad9','#7aa8ff','#ffa14d'][k%5],d='M'+A.x+' '+A.y+' C'+(A.x+(A.L?-1:1)*o)+' '+A.y+' '+(C.x+(C.L?-1:1)*o)+' '+C.y+' '+C.x+' '+C.y;s+='<path d="'+d+'" fill="none" stroke="'+col+'" stroke-width="3" opacity=".9" pointer-events="none"/><path class="wire" data-k="'+k+'" d="'+d+'" fill="none" stroke="transparent" stroke-width="14"/>'});
+ cargas.forEach((c,k)=>{if(c.x==null)Object.assign(c,slot(k));if(c.pin!=null&&c.pin<n){const P=pos(c.pin),cx=c.x<320?c.x+CW:c.x,cy=c.y+CH/2;s+='<path d="M'+cx+' '+cy+' L'+P.x+' '+P.y+'" stroke="#9fb4d0" stroke-width="1.6" stroke-dasharray="5 3" fill="none" pointer-events="none"/>'}});
  B.pinos.forEach((nm,i)=>{const p=pos(i),t=tipo(nm);s+='<g class="pin" data-i="'+i+'"><circle cx="'+p.x+'" cy="'+p.y+'" r="8" fill="'+COR[t]+'" stroke="'+(pend===i?'#fff':'#06101f')+'" stroke-width="'+(pend===i?3:1.5)+'"/><text x="'+(p.L?p.x+14:p.x-14)+'" y="'+(p.y+4)+'" fill="#e8f1ff" font-size="11" text-anchor="'+(p.L?'start':'end')+'">'+esc(nm)+'</text></g>'});
- $('bd').innerHTML=s;$('bd').querySelectorAll('.pin').forEach(g=>g.onclick=()=>click(+g.dataset.i))}
+ cargas.forEach((c,k)=>{const col=c.r==='3V3'?'#f0a830':'#ff4d57',t=(c.n.length>14?c.n.slice(0,13)+'…':c.n)+' · '+c.mA+'mA';s+='<g class="cmp" data-k="'+k+'"><rect x="'+c.x+'" y="'+c.y+'" width="'+CW+'" height="'+CH+'" rx="8" fill="#0a1d3a" stroke="'+(c.pin!=null?col:'#6b7f9c')+'" stroke-width="1.8"/><text x="'+(c.x+8)+'" y="'+(c.y+19)+'" fill="#e8f1ff" font-size="11" pointer-events="none">'+esc(t)+'</text><text x="'+(c.x+CW-6)+'" y="'+(c.y+19)+'" fill="'+col+'" font-size="9" text-anchor="end" pointer-events="none">'+esc(c.r)+'</text></g>'});
+ $('bd').innerHTML=s}
 function click(i){if(pend===null)pend=i;else if(pend===i)pend=null;else{if(!wires.some(w=>(w[0]===pend&&w[1]===i)||(w[0]===i&&w[1]===pend)))wires.push([pend,i]);pend=null}run()}
 const par=()=>({q:$('bq').value,h:$('bh').value,ef:$('be').value,mm:$('bm').value,metal:$('bt').value,pr:$('bp').value});
 const al=a=>'<div class="al '+a[0]+'">'+esc(a[1])+(a[2]?'<small>'+esc(a[2])+'</small>':'')+'</div>';
-function calc(){clearTimeout(tmr);tmr=setTimeout(()=>post('/api/eletrica/calcular',{...SES(),placa:B.id,fios:wires,cargas,params:par()}).then(r=>{if(!r.ok){if(/Entre/.test(r.error||''))gate();throw r}show(r)}).catch(r=>{$('obs').innerHTML='<div class="al bad">'+esc((r&&r.error)||'Falha ao calcular')+'</div>'}),250)}
+function calc(){clearTimeout(tmr);tmr=setTimeout(()=>post('/api/eletrica/calcular',{...SES(),placa:B.id,fios:wires,cargas:cg(),params:par()}).then(r=>{if(!r.ok){if(/Entre/.test(r.error||''))gate();throw r}show(r)}).catch(r=>{$('obs').innerHTML='<div class="al bad">'+esc((r&&r.error)||'Falha ao calcular')+'</div>'}),250)}
 function show(r){last=r;const A=r.alertas,bad=A.some(a=>a[0]==='bad'),o=$('ost'),b=r.bateria;
  o.textContent=bad?'CURTO/RISCO':A.length?A.length+' alerta(s)':'OK';o.style.background=bad?'#a02834':A.length?'#7a5a10':'#1f7a50';
  $('obs').innerHTML=A.length?A.map(al).join(''):'<div class="al ok">Nenhum problema encontrado nos fios e nas cargas atuais.</div>';
@@ -110,12 +119,12 @@ function run(){draw();
 const first=(t,n=0)=>B.pinos.map((x,i)=>tipo(x)===t?i:-1).filter(i=>i>=0)[n];
 const EX={curto:()=>[[first('p5'),first('g')]],g5:()=>[[first('p5'),first('io')]],g3:()=>[[first('p3'),first('io')]],gg:()=>[[first('io'),first('io',1)]],ok:()=>[[first('g'),first('g',1)]],lim:()=>[]};
 document.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>{wires=EX[b.dataset.x]().filter(w=>w[0]>=0&&w[1]>=0);pend=null;run()});
-$('ca').onclick=()=>{const m=+$('cm').value;if(!(m>=0))return;cargas.push({n:($('cn').value||'Carga').slice(0,30),mA:m,r:$('cr').value});$('cn').value='';run()};
+$('ca').onclick=()=>{const m=+$('cm').value;if(!(m>=0))return;addCarga($('cn').value||'Carga',m,$('cr').value);$('cn').value=''};
 ['bq','bh','be','bp','bm','bt'].forEach(id=>$(id).oninput=calc);
 function usar(i){B=PL[i];$('sp').value=i;wires=[];cargas=[];pend=null;$('dica').textContent=B.dica;$('cr').innerHTML=B.trilhos.map(k=>'<option>'+esc(k)+'</option>').join('');run()}
 const wmsg=(t,ok)=>{const m=$('wmsg');m.textContent=t;m.style.color=ok?'var(--gr)':'#ffb0b6'};
 $('wp').onclick=()=>{if(!last||last.alertas.some(a=>a[0]==='bad'))return wmsg('Corrija os curtos e riscos antes de publicar.',0);const t=$('wt').value.trim();if(!t)return wmsg('Dê um título ao projeto.',0);
- post('/api/wiki/publicar',{...SES(),tipo:'eletrica',titulo:t,descricao:$('wd').value,projeto:{placa:B.id,fios:wires,cargas,params:par()}}).then(d=>{wmsg(d.ok?(d.existente?'Esse projeto já está na wiki.':'Publicado! Outros podem reproduzir e confirmar.'):d.error,d.ok);if(d.ok)loadWiki()}).catch(()=>wmsg('Falha de conexão',0))};
+ post('/api/wiki/publicar',{...SES(),tipo:'eletrica',titulo:t,descricao:$('wd').value,projeto:{placa:B.id,fios:wires,cargas:cg(),params:par()}}).then(d=>{wmsg(d.ok?(d.existente?'Esse projeto já está na wiki.':'Publicado! Outros podem reproduzir e confirmar.'):d.error,d.ok);if(d.ok)loadWiki()}).catch(()=>wmsg('Falha de conexão',0))};
 async function loadWiki(){const j=await fetch(WK+'/api/wiki/lista').then(r=>r.json()).catch(()=>null);
  if(!j||!j.ok){$('wk').innerHTML='<p style="color:var(--mu)">Wiki indisponível no momento.</p>';return}
  WL=j.itens;const i=j.insights,fb=Object.keys(i.fatorBateria).map(q=>esc(q)+' ×'+i.fatorBateria[q].media+' (n='+i.fatorBateria[q].n+')').join(' · ');
@@ -126,6 +135,153 @@ async function loadWiki(){const j=await fetch(WK+'/api/wiki/lista').then(r=>r.js
 function boot(){post('/api/eletrica/placas',SES()).then(j=>{if(!j.ok){if(/Entre/.test(j.error||''))gate();return}$('gate').style.display='none';PL=j.placas;
  $('sp').innerHTML=PL.map((p,i)=>'<option value="'+i+'">'+esc(p.nome)+'</option>').join('');$('sp').onchange=()=>usar(+$('sp').value);
  $('bq').innerHTML=j.quimicas.map(k=>'<option>'+esc(k)+'</option>').join('');usar(0);loadWiki()}).catch(()=>{$('obs').innerHTML='<div class="al bad">Não foi possível carregar as placas do worker.<small>Confira as rotas /api/eletrica/.</small></div>'})}
+// ── IMPORTAÇÃO: leitor de texto/tabela -> proposta de ligações e cargas (pura, testável) ──
+const EP=(()=>{
+  const ALIAS={uno:['arduino uno','uno r3','uno'],esp32:['esp32','esp-32'],rpi4:['raspberry pi 4','raspberry','rpi4','rpi'],nano:['arduino nano','nano'],pico:['raspberry pi pico','rp2040','pico'],nodemcu:['nodemcu','esp8266'],bluepill:['blue pill','bluepill','stm32f103','stm32']};
+  const norm=t=>String(t==null?'':t).replace(/[\u2010-\u2015\u2212]/g,'-').replace(/3\s*[.,]\s*3\s*V\b/gi,'3V3').replace(/\+\s*5\s*V\b/gi,'5V').replace(/\b(GPIO|GP|PA|PB|PC|D|A)\s+(\d{1,2})\b/gi,'$1$2');
+  const rx=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const pinRe=B=>new RegExp('(?<![A-Za-z0-9_])('+[...new Set(B.pinos)].sort((a,b)=>b.length-a.length).map(rx).join('|')+')(?![A-Za-z0-9_])','gi');
+  const CON=/->|=>|→|<->|↔|<=>|--|-|–|—|=|\||\bpara\b|\bto\b|\bliga(?:d[oa])?\b|\bconect(?:ad[oa])?\b|\bem\b|\bao?\b/gi;
+  function detectaPlaca(texto,PL){
+    const t=' '+norm(texto).toLowerCase().replace(/[-_]/g,' ')+' ';let best=null,bs=0;
+    PL.forEach(B=>{const al=(ALIAS[B.id]||[]).concat([String(B.nome).toLowerCase().replace(/\(.*?\)/g,'').trim()]);let sc=0;
+      al.forEach(a=>{const r=new RegExp('(?<![a-z0-9])'+rx(a.replace(/[-_]/g,' '))+'(?![a-z0-9])','g');const m=t.match(r);if(m)sc+=m.length*(a.length>4?2:1)});
+      if(sc>bs){bs=sc;best=B}});
+    return best?best.id:null}
+  function fromJson(o,B){
+    const nome=v=>typeof v==='number'?B.pinos[v]:String(v);const r={fios:[],cargas:[],avisos:[],params:o.params||null};
+    (o.fios||[]).forEach(w=>{if(Array.isArray(w)&&w.length>=2){const a=nome(w[0]),b=nome(w[1]);if(a&&b&&a!==b)r.fios.push({a,b,ia:typeof w[0]==='number'?w[0]:null,ib:typeof w[1]==='number'?w[1]:null,l:'JSON'})}});
+    (o.cargas||[]).forEach(c=>{if(c&&Number(c.mA)>=0)r.cargas.push({n:String(c.n||'Carga').slice(0,30),mA:Number(c.mA),r:c.r&&B.trilhos.includes(c.r)?c.r:B.trilhos[0],x:c.x,y:c.y,pin:c.pin})});
+    return r}
+  function parse(texto,B){
+    const r={fios:[],cargas:[],avisos:[]},raw=String(texto||'').trim();
+    if(raw[0]==='{'){try{const o=JSON.parse(raw);if(o&&(o.fios||o.cargas))return fromJson(o,B)}catch(e){}}
+    const linhas=norm(raw).split(/\r?\n/),seen=new Set(),seenC=new Set();
+    linhas.forEach((ln,li)=>{
+      if(!ln.trim())return;
+      const re=pinRe(B),ms=[];let m;while((m=re.exec(ln)))ms.push({n:m[1].toUpperCase(),i:m.index,e:m.index+m[1].length});
+      for(let k=0;k+1<ms.length;k++){
+        const gap=ln.slice(ms[k].e,ms[k+1].i);
+        if(!gap||gap.length>30||!/->|=>|→|<->|↔|<=>|--|-|–|—|=|\||\bpara\b|\bto\b|\bliga|\bconect|\bem\b|\bao?\b/i.test(gap))continue;
+        if(gap.replace(CON,'').replace(/[\s,.:()\[\]]/g,'')!=='')continue;
+        const a=ms[k].n,b=ms[k+1].n,key=[a,b].sort().join('|');
+        if(a===b||seen.has(key))continue;seen.add(key);r.fios.push({a,b,l:ln.trim().slice(0,70)})}
+      const rl=/([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ0-9 \/._-]{0,28}?)\s*[:=\-–·|]?\s*(\d+(?:[.,]\d+)?)\s*mA\b/gi;let c;
+      while((c=rl.exec(ln))){
+        let n=c[1].trim().replace(/[:=\-–·|\s]+$/,'');if(!n||/^\d+$/.test(n))continue;
+        const mA=parseFloat(c[2].replace(',','.')),rail=/3V3/i.test(ln)&&B.trilhos.includes('3V3')?'3V3':(B.trilhos.includes('5V')?'5V':B.trilhos[0]),key=n.toLowerCase()+'|'+mA;
+        if(seenC.has(key))continue;seenC.add(key);r.cargas.push({n:n.slice(0,30),mA,r:rail})}
+    });
+    if(!r.fios.length&&!r.cargas.length)r.avisos.push('Não encontrei ligações entre pinos nem cargas em mA neste arquivo.');
+    return r}
+  // linhas de planilha -> texto (cabeçalho com "mA" vira "nome: N mA")
+  function linhasDeTabela(rows){
+    let col=-1;const out=[];
+    rows.forEach(row=>{const cells=(row||[]).map(c=>c==null?'':String(c).trim());if(!cells.some(Boolean))return;
+      const h=cells.findIndex(c=>/^(ma|corrente.*|consumo.*)(\s*\(?ma\)?)?$/i.test(c)||/\bmA\b/.test(c)&&c.length<20);
+      if(h>=0&&!cells.some(c=>/^\d/.test(c))){col=h;return}
+      if(col>=0&&cells[col]&&/^\d/.test(cells[col])){const rail=cells.find(c=>/^(5V|3V3|3[.,]3\s*V)$/i.test(c))||'';out.push((cells[0]||'Carga')+': '+cells[col].replace(',','.')+' mA '+rail);return}
+      out.push(cells.filter(Boolean).join(' | '))});
+    return out.join('\n')}
+  return{detectaPlaca,parse,linhasDeTabela,norm}
+})();
+
+// ── COMPONENTES, ARRASTAR, BOTÃO DIREITO, IMPORTAR/EXPORTAR ──
+const cg=()=>cargas.map(c=>({n:c.n,mA:c.mA,r:c.r}));
+const PRESETS=[['LED',20,'5V'],['Buzzer',30,'5V'],['Relé (módulo)',70,'5V'],['Servo SG90',250,'5V'],['Motor DC pequeno',250,'5V'],['Sensor DHT22',2.5,'3V3'],['Display OLED I2C',20,'3V3'],['Ultrassônico HC-SR04',15,'5V'],['ESP-01 (Wi-Fi)',170,'3V3']];
+const MK='alma_eletrica_modelos';
+const modelos=()=>{try{return JSON.parse(localStorage.getItem(MK)||'[]').filter(m=>m&&m.n&&m.mA>=0).slice(0,40)}catch(e){return[]}};
+const salvaModelos=a=>{try{localStorage.setItem(MK,JSON.stringify(a.slice(0,40)))}catch(e){}};
+const railOk=r=>B.trilhos.includes(r)?r:B.trilhos[0];
+function toast(t){let e=$('toastE');if(!e){e=document.createElement('div');e.id='toastE';e.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#08162b;border:1px solid #27c8ff;color:#e8f1ff;padding:10px 18px;border-radius:30px;font:13px system-ui;z-index:10001;max-width:90vw;text-align:center';document.body.appendChild(e)}e.textContent=t;e.style.display='block';clearTimeout(e._t);e._t=setTimeout(()=>e.style.display='none',3400)}
+const CW=146,CH=30;
+function slot(k){return k<12?{x:486,y:44+k*40}:{x:8,y:44+(k-12)*40}}
+function addCarga(n,mA,r,pin){const c={n:String(n).slice(0,30)||'Carga',mA:Math.max(0,Math.min(5000,+mA||0)),r:railOk(r)};Object.assign(c,slot(cargas.length));if(pin!=null)ligaPino(c,pin);cargas.push(c);run()}
+function ligaPino(c,i){c.pin=i;const t=tipo(B.pinos[i]);if(t==='p5'&&B.trilhos.includes('5V'))c.r='5V';else if(t==='p3'&&B.trilhos.includes('3V3'))c.r='3V3'}
+// svg helpers
+const svg=$('bd');
+function svgPt(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse())}
+function nearPin(pt,max=22){let b=-1,bd=max;B.pinos.forEach((_,i)=>{const p=pos(i),d=Math.hypot(p.x-pt.x,p.y-pt.y);if(d<bd){bd=d;b=i}});return b}
+// menu de contexto
+function fechaMenu(){const m=$('ctxE');if(m)m.remove()}
+function menu(x,y,itens){fechaMenu();const m=document.createElement('div');m.id='ctxE';m.className='ctx';
+  itens.forEach(it=>{if(it==='-'){m.appendChild(document.createElement('hr'));return}const b=document.createElement('button');b.textContent=it[0];if(it[2])b.className='dng';b.onclick=()=>{fechaMenu();it[1]()};m.appendChild(b)});
+  document.body.appendChild(m);const w=m.offsetWidth,h=m.offsetHeight;m.style.left=Math.max(6,Math.min(x,innerWidth-w-6))+'px';m.style.top=Math.max(6,Math.min(y,innerHeight-h-6))+'px'}
+addEventListener('pointerdown',e=>{if(!e.target.closest('#ctxE'))fechaMenu()},true);addEventListener('keydown',e=>{if(e.key==='Escape'){fechaMenu();fechaOv()}});
+function addMenu(pin){return[...PRESETS.map(p=>[p[0]+' · '+p[1]+' mA',()=>addCarga(p[0],p[1],p[2],pin)]),...modelos().map(m=>['★ '+m.n+' · '+m.mA+' mA',()=>addCarga(m.n,m.mA,m.r,pin)]),['Outro componente…',()=>formCarga(null,pin)]]}
+function menuPara(x,y,alvo){
+  if(alvo.pin!=null){const i=alvo.pin,nm=B.pinos[i];
+    menu(x,y,[['Ligar fio a partir de '+nm,()=>{pend=i;run();toast('Agora toque no pino de destino.')}],['Remover fios de '+nm,()=>{wires=wires.filter(w=>w[0]!==i&&w[1]!==i);run()}],'-',['Adicionar componente neste pino ▸',()=>{menu(x,y,addMenu(i))}]]);return}
+  if(alvo.wire!=null){const w=wires[alvo.wire];menu(x,y,[['Remover fio '+B.pinos[w[0]]+' ↔ '+B.pinos[w[1]],()=>{wires.splice(alvo.wire,1);run()},1]]);return}
+  if(alvo.cmp!=null){const k=alvo.cmp,c=cargas[k];
+    menu(x,y,[['Editar nome, mA e trilho…',()=>formCarga(k)],c.pin!=null?['Desligar do pino '+B.pinos[c.pin],()=>{delete c.pin;run()}]:['Mover para perto de um pino para ligar',()=>toast('Arraste o componente até um pino.')],['Duplicar',()=>addCarga(c.n,c.mA,c.r)],['Salvar como modelo ★',()=>{const a=modelos().filter(m=>m.n!==c.n);a.unshift({n:c.n,mA:c.mA,r:c.r});salvaModelos(a);toast('Modelo salvo neste navegador.')}],'-',['Remover componente',()=>{cargas.splice(k,1);run()},1]]);return}
+  menu(x,y,[['Adicionar componente ▸',()=>menu(x,y,addMenu(null))],['Importar arquivo…',()=>$('fimp').click()],['Exportar projeto (.json)',exporta],'-',['Limpar fios',()=>{wires=[];pend=null;run()},1]])}
+function alvoDe(el){const p=el.closest('.pin'),c=el.closest('.cmp'),w=el.closest('.wire');return p?{pin:+p.dataset.i}:c?{cmp:+c.dataset.k}:w?{wire:+w.dataset.k}:{}}
+svg.addEventListener('contextmenu',e=>{e.preventDefault();clearTimeout(lp);dr=null;menuPara(e.clientX,e.clientY,alvoDe(e.target))});
+// arrastar: pino -> pino cria fio; componente move (Ctrl é opcional) e liga ao soltar perto de um pino
+let dr=null,lp=null;
+svg.addEventListener('pointerdown',e=>{if(e.button===2)return;const p=e.target.closest('.pin'),c=e.target.closest('.cmp');if(!p&&!c)return;
+  const pt=svgPt(e);dr=p?{k:'pin',i:+p.dataset.i}:{k:'cmp',i:+c.dataset.k,ox:pt.x-cargas[+c.dataset.k].x,oy:pt.y-cargas[+c.dataset.k].y};
+  dr.x0=e.clientX;dr.y0=e.clientY;dr.m=false;try{svg.setPointerCapture(e.pointerId)}catch(x){}
+  const cx=e.clientX,cy=e.clientY,al=alvoDe(e.target);lp=setTimeout(()=>{if(dr&&!dr.m){dr=null;menuPara(cx,cy,al)}},600);e.preventDefault()});
+svg.addEventListener('pointermove',e=>{if(!dr)return;if(!dr.m&&Math.hypot(e.clientX-dr.x0,e.clientY-dr.y0)>6){dr.m=true;clearTimeout(lp)}if(!dr.m)return;const pt=svgPt(e);
+  if(dr.k==='pin'){let t=$('tmpw');if(!t){t=document.createElementNS('http://www.w3.org/2000/svg','path');t.id='tmpw';t.setAttribute('fill','none');t.setAttribute('stroke','#fff');t.setAttribute('stroke-width','2.5');t.setAttribute('stroke-dasharray','6 4');t.style.pointerEvents='none';svg.appendChild(t)}const A=pos(dr.i);t.setAttribute('d','M'+A.x+' '+A.y+' L'+pt.x+' '+pt.y)}
+  else{const c=cargas[dr.i];const vh=svg.viewBox.baseVal.height;c.x=Math.max(2,Math.min(640-CW-2,pt.x-dr.ox));c.y=Math.max(4,Math.min(vh-CH-4,pt.y-dr.oy));delete c.pin;draw()}});
+svg.addEventListener('pointerup',e=>{clearTimeout(lp);if(!dr)return;const d=dr;dr=null;const t=$('tmpw');if(t)t.remove();
+  if(d.k==='pin'){if(!d.m){click(d.i);return}const pt=svgPt(e),j=nearPin(pt,26);if(j>=0&&j!==d.i){if(!wires.some(w=>(w[0]===d.i&&w[1]===j)||(w[0]===j&&w[1]===d.i)))wires.push([d.i,j]);pend=null;run()}else draw()}
+  else if(d.m){const c=cargas[d.i],j=nearPin({x:c.x+CW/2,y:c.y+CH/2},40);if(j>=0){ligaPino(c,j);toast(c.n+' ligado em '+B.pinos[j]+(c.r?' · trilho '+c.r:''))}run()}});
+svg.addEventListener('pointercancel',()=>{clearTimeout(lp);dr=null;const t=$('tmpw');if(t)t.remove()});
+// arquivo solto sobre a placa
+svg.addEventListener('dragover',e=>e.preventDefault());svg.addEventListener('drop',e=>{e.preventDefault();const f=e.dataTransfer&&e.dataTransfer.files[0];if(f)importa(f)});
+// modal
+function fechaOv(){const o=$('ovE');if(o)o.remove()}
+function ov(html){fechaOv();const o=document.createElement('div');o.id='ovE';o.className='ovl';o.innerHTML='<div class="mdl">'+html+'</div>';o.onclick=e=>{if(e.target===o)fechaOv()};document.body.appendChild(o);return o.firstChild}
+function formCarga(k,pin){const c=k!=null?cargas[k]:{n:'',mA:20,r:B.trilhos[0]};
+  const m=ov('<h3>'+(k!=null?'Editar componente':'Novo componente')+'</h3><label>Nome</label><input class="in" id="fn" maxlength="30" value="'+esc(c.n)+'"><div class="row"><div><label>Corrente (mA)</label><input class="in" id="fm" type="number" min="0" max="5000" step="0.5" value="'+c.mA+'"></div><div><label>Trilho</label><select id="fr">'+B.trilhos.map(t=>'<option'+(t===c.r?' selected':'')+'>'+esc(t)+'</option>').join('')+'</select></div></div><div class="row"><button class="btn" id="fc">Cancelar</button><button class="btn p" id="fo">OK</button></div>');
+  m.querySelector('#fc').onclick=fechaOv;m.querySelector('#fo').onclick=()=>{const n=m.querySelector('#fn').value.trim()||'Carga',mA=+m.querySelector('#fm').value,r=m.querySelector('#fr').value;if(!(mA>=0))return;fechaOv();if(k!=null){Object.assign(cargas[k],{n:n.slice(0,30),mA:Math.min(5000,mA),r});run()}else addCarga(n,mA,r,pin)}}
+// exportar
+function exporta(){const o={versao:1,fonte:'ALMAFLUXO Elétrica',placa:B.id,fios:wires,cargas:cargas.map(c=>({n:c.n,mA:c.mA,r:c.r,x:c.x,y:c.y,pin:c.pin})),params:par()};
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(o,null,1)],{type:'application/json'}));a.download='projeto-'+B.id+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}
+// importar
+const LIB={xlsx:'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',mammoth:'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js',pdf:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js'};
+const loaded={};
+function lib(k){return loaded[k]||(loaded[k]=new Promise((ok,no)=>{const s=document.createElement('script');s.src=LIB[k];s.onload=ok;s.onerror=()=>{delete loaded[k];no(new Error('Não consegui carregar o leitor de '+k+'. Verifique a conexão.'))};document.head.appendChild(s)}))}
+async function leTexto(f){const nm=f.name.toLowerCase(),ext=(nm.split('.').pop()||'');
+  if(/^(png|jpe?g|webp|gif|bmp)$/.test(ext)||/^image\//.test(f.type))throw new Error('Imagem de esquema: ainda não leio imagens. Exporte o esquema em PDF com texto, ou descreva as ligações em texto/planilha.');
+  if(ext==='crv'||ext==='clv')throw new Error('CRV e CLV são documentos do veículo e não trazem circuito.');
+  if(ext==='json'||ext==='txt'||ext==='md')return await f.text();
+  if(ext==='csv'||ext==='tsv'){const t=await f.text();return EP.linhasDeTabela(t.split(/\r?\n/).map(l=>l.split(/[;,\t]/)))}
+  if(ext==='xlsx'||ext==='xls'){await lib('xlsx');const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});return wb.SheetNames.map(s=>EP.linhasDeTabela(XLSX.utils.sheet_to_json(wb.Sheets[s],{header:1,raw:false,defval:''}))).join('\n')}
+  if(ext==='docx'){await lib('mammoth');return (await mammoth.extractRawText({arrayBuffer:await f.arrayBuffer()})).value}
+  if(ext==='doc')throw new Error('Arquivo .doc antigo: salve como .docx e importe de novo.');
+  if(ext==='pdf'){await lib('pdf');pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';const doc=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise;let out=[];
+    for(let p=1;p<=Math.min(doc.numPages,30);p++){const tc=await (await doc.getPage(p)).getTextContent();let y=null,ln='';tc.items.forEach(it=>{const yy=Math.round(it.transform[5]);if(y!==null&&Math.abs(yy-y)>3){out.push(ln);ln=''}y=yy;ln+=it.str+' '});out.push(ln)}
+    const t=out.join('\n');if(t.replace(/\s/g,'').length<20)throw new Error('Este PDF não tem texto (parece escaneado ou só desenho). Ainda não leio desenhos.');return t}
+  return await f.text()}
+async function importa(f){
+  if(!B){toast('Entre e escolha uma placa primeiro.');return}
+  toast('Lendo '+f.name+'…');let txt;try{txt=await leTexto(f)}catch(e){toast(e.message);return}
+  const det=EP.detectaPlaca(txt,PL),start=det||B.id;let cur=PL.find(p=>p.id===start)||B,R=EP.parse(txt,cur);
+  const m=ov('');
+  const pinIdx=(B2,nm,pre)=>pre!=null&&B2.pinos[pre]===nm?pre:B2.pinos.findIndex(x=>x.toUpperCase()===nm);
+  function mostra(){R=EP.parse(txt,cur);
+    const fi=R.fios.map(w=>{const a=pinIdx(cur,w.a,w.ia),b=pinIdx(cur,w.b,w.ib);return{...w,ia:a,ib:b}});
+    m.innerHTML='<h3>Importar '+esc(f.name)+'</h3><label>Placa'+(det?' (detectada no arquivo)':' (não detectada: escolha)')+'</label><select id="ip">'+PL.map(p=>'<option value="'+p.id+'"'+(p.id===cur.id?' selected':'')+'>'+esc(p.nome)+'</option>').join('')+'</select>'+
+    (R.avisos.map(a=>'<div class="al warn">'+esc(a)+'</div>').join(''))+
+    '<h4>Ligações ('+fi.length+')</h4><div class="lst">'+(fi.length?fi.map((w,k)=>'<label class="ck"><input type="checkbox" data-w="'+k+'"'+(w.ia>=0&&w.ib>=0?' checked':' disabled')+'> '+esc(w.a)+' ↔ '+esc(w.b)+'<small>'+esc(w.l)+'</small></label>').join(''):'<p style="color:var(--mu)">Nenhuma.</p>')+'</div>'+
+    '<h4>Cargas ('+R.cargas.length+')</h4><div class="lst">'+(R.cargas.length?R.cargas.map((c,k)=>'<label class="ck"><input type="checkbox" data-c="'+k+'" checked> '+esc(c.n)+' · '+c.mA+' mA · '+esc(c.r)+'</label>').join(''):'<p style="color:var(--mu)">Nenhuma.</p>')+'</div>'+
+    '<p style="color:var(--mu);font-size:11px;margin:6px 0">Confira antes de aplicar: o leitor entende texto, tabelas e JSON, e não adivinha o que o desenho mostra. Aplicar substitui os fios e as cargas atuais.</p><div class="row"><button class="btn" id="ix">Cancelar</button><button class="btn p" id="ia">Aplicar selecionados</button></div>';
+    m.querySelector('#ip').onchange=e=>{cur=PL.find(p=>p.id===e.target.value);mostra()};m.querySelector('#ix').onclick=fechaOv;
+    m.querySelector('#ia').onclick=()=>{const wsel=[...m.querySelectorAll('[data-w]:checked')].map(x=>fi[+x.dataset.w]),csel=[...m.querySelectorAll('[data-c]:checked')].map(x=>R.cargas[+x.dataset.c]);
+      const ix=PL.findIndex(p=>p.id===cur.id);usar(ix);
+      wsel.forEach(w=>{if(w.ia!==w.ib&&!wires.some(x=>(x[0]===w.ia&&x[1]===w.ib)||(x[0]===w.ib&&x[1]===w.ia)))wires.push([w.ia,w.ib])});
+      csel.forEach(c=>{const o={n:c.n,mA:c.mA,r:railOk(c.r)};Object.assign(o,c.x!=null&&c.y!=null?{x:+c.x,y:+c.y}:slot(cargas.length));if(Number.isInteger(c.pin)&&c.pin>=0&&c.pin<B.pinos.length)o.pin=c.pin;cargas.push(o)});
+      if(R.params){const p=R.params;if(p.q)$('bq').value=p.q;if(p.h)$('bh').value=p.h;if(p.ef)$('be').value=p.ef;if(p.mm!=null)$('bm').value=p.mm;if(p.metal)$('bt').value=p.metal;if(p.pr!=null)$('bp').value=p.pr}
+      fechaOv();run();toast('Importado: '+wsel.length+' fio(s) e '+csel.length+' carga(s).')}}
+  mostra()}
+$('fimp').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)importa(f)};
+$('bimp').onclick=()=>$('fimp').click();$('bexp').onclick=()=>{if(B)exporta()};
+
 U?boot():gate();
 </script>
 </body>
