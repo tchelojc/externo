@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ALMAFLUXO · Oficina Mecânica Interativa</title>
+<style>
+:root{color-scheme:dark;--bg:#050d1a;--p:#08162b;--p2:#0c2142;--ln:#1b4a7a;--tx:#e8f1ff;--mu:#8fa8c8;--cy:#27c8ff;--bl:#1f7bff;--gr:#2fd48a;--rd:#ff4d57;--am:#f0a830}
+*{box-sizing:border-box;margin:0}
+body{background:radial-gradient(ellipse at 50% 0,#0b2347,var(--bg) 60%);color:var(--tx);font:13px system-ui,Segoe UI,Arial;min-height:100vh}
+header{display:flex;align-items:center;gap:14px;padding:10px 16px;border-bottom:1px solid var(--ln);background:#06122399;flex-wrap:wrap}
+.logo{width:46px;height:46px;border-radius:10px;background:linear-gradient(135deg,#1f9bff,#0a4fbf);display:grid;place-items:center;font-weight:900;font-size:20px}
+header h1{font-size:20px;letter-spacing:.5px}header small{color:var(--cy);display:block;font-size:12px}
+nav{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+nav button,.tabs button,.btn{background:#0a1d3a;border:1px solid var(--ln);color:var(--tx);border-radius:8px;padding:8px 12px;cursor:pointer;font-weight:600}
+nav button.on,.tabs button.on{background:linear-gradient(#1b5fb8,#0e3a7a);border-color:var(--cy)}
+main{display:grid;grid-template-columns:270px minmax(0,1fr) 340px;gap:12px;padding:12px;max-width:1700px;margin:auto}
+.box{background:linear-gradient(#0a1a33,#07142a);border:1px solid var(--ln);border-radius:10px;padding:12px;margin-bottom:12px}
+.box h2{font-size:13px;color:var(--cy);margin-bottom:10px;letter-spacing:.4px}
+select{width:100%;padding:10px;background:#071a33;color:var(--tx);border:1px solid var(--ln);border-radius:8px}
+.car{display:flex;gap:10px;margin-top:10px;color:var(--mu);line-height:1.6}.car b{color:var(--tx)}
+.car i{width:64px;height:48px;border-radius:8px;background:linear-gradient(135deg,#2b3d55,#7f93ad);flex:none}
+.sys{list-style:none;padding:0}.sys li{padding:10px;border:1px solid transparent;border-bottom-color:#12335a;cursor:pointer;display:flex;justify-content:space-between}
+.sys li.on{background:#0f3a73;border-color:var(--cy);border-radius:8px}
+.stage{position:relative;height:620px;border-radius:10px;overflow:hidden;border:1px solid var(--ln);background:radial-gradient(ellipse at 50% 55%,#12356a,#061226 70%)}
+#cv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab}
+.tit{position:absolute;left:14px;top:10px;font-weight:800;font-size:16px;z-index:2}.tit span{color:var(--mu);font-weight:500;font-size:12px}
+.lb{position:absolute;z-index:2;transform:translate(-50%,-50%);display:flex;gap:6px;align-items:center;background:#07203dcc;border:1.5px solid var(--cy);border-radius:14px;padding:3px 9px 3px 3px;font-size:11px;white-space:nowrap;cursor:pointer}
+.lb b{background:var(--bl);border-radius:50%;width:18px;height:18px;display:grid;place-items:center;font-size:10px}
+.lb.on{background:#0e4a8c;border-color:#fff}.lb.out{border-color:var(--rd)}
+.tabs{position:absolute;left:12px;bottom:12px;display:flex;gap:6px;z-index:2;flex-wrap:wrap}
+.tools{position:absolute;right:12px;bottom:12px;display:flex;gap:6px;z-index:2}.tools button{width:38px;padding:8px 0}
+.step{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #12335a;cursor:pointer;color:var(--mu)}
+.step b{width:24px;height:24px;border-radius:50%;background:#14396b;display:grid;place-items:center;font-size:12px;flex:none}
+.step.done b{background:#2dd3c0;color:#052}.step.cur{color:var(--tx)}.step.cur b{background:var(--bl)}
+.ok{color:var(--gr);margin-left:auto;font-size:11px}
+.dets{display:flex;gap:10px}.dets i{width:92px;height:72px;border-radius:8px;flex:none;border:1px solid var(--ln)}
+.dets p{color:var(--mu);line-height:1.55;font-size:12px}.dets b{color:var(--tx)}
+.warn{margin-top:8px;border-left:3px solid var(--am);padding:7px 9px;background:#2a2210;color:#f6dca0;font-size:12px;border-radius:0 6px 6px 0}
+.err{border-color:#a02834;background:linear-gradient(#2a0d14,#1a0a10)}.err h2{color:var(--rd)}
+.gold{border-color:#1f8a5b;background:linear-gradient(#08301f,#071c14)}.gold h2{color:#6af0b0}
+.car2{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.pc{flex:none;width:118px;border:1px solid var(--ln);border-radius:8px;background:#0a1d3a;cursor:pointer;overflow:hidden}
+.pc.on{border-color:var(--cy)}.pc i{display:block;height:64px}.pc p{padding:5px 7px;font-size:11px;line-height:1.35}.pc small{color:var(--mu)}
+.nav2{display:flex;gap:8px;margin-top:10px}.nav2 .btn{flex:1}
+#load{position:absolute;inset:0;display:grid;place-items:center;z-index:5;background:#050d1a;color:var(--mu);text-align:center;padding:20px}
+input.in,select.in{width:100%;padding:9px;margin-bottom:8px;background:#071a33;color:var(--tx);border:1px solid var(--ln);border-radius:8px}
+footer{padding:10px 16px;color:var(--mu);font-size:11px;display:flex;justify-content:space-between;border-top:1px solid var(--ln);flex-wrap:wrap;gap:6px}
+@media(max-width:1100px){main{grid-template-columns:1fr}.stage{height:480px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">AF</div>
+  <h1>ALMAFLUXO<small>Oficina Mecânica Interativa · Aprenda · Monte · Resolva</small></h1>
+  <nav id="nav"></nav>
+</header>
+<main>
+  <section>
+    <div class="box"><h2>1. SELECIONE O VEÍCULO</h2><select id="veic"></select><div class="car"><i></i><div id="carinfo"></div></div></div>
+    <div class="box"><h2>2. SISTEMA / CONJUNTO</h2><ul class="sys" id="sys"></ul></div>
+  </section>
+  <section>
+    <div class="stage" id="stage">
+      <div id="load">Carregando motor do ALMAFLUXO…</div>
+      <div class="tit" id="tit"></div>
+      <canvas id="cv"></canvas><div id="lbs"></div>
+      <div class="tabs" id="tabs"></div>
+      <div class="tools"><button class="btn" id="rst" title="Resetar vista">⟳</button><button class="btn" id="zi" title="Aproximar">＋</button><button class="btn" id="zo" title="Afastar">－</button></div>
+    </div>
+    <div class="box" style="margin-top:12px"><h2>PEÇAS DO CONJUNTO</h2><div class="car2" id="car2"></div></div>
+  </section>
+  <section>
+    <div class="box"><h2 id="sh"></h2><div id="steps"></div><div class="nav2"><button class="btn" id="prev">‹ Anterior</button><button class="btn" id="next" style="background:var(--bl)">Próximo ›</button></div></div>
+    <div class="box"><h2>DETALHES DA PEÇA</h2><div id="det"></div></div>
+    <div class="box"><h2>CONTRIBUIR COM DADOS</h2><div id="ctb"></div></div>
+    <div class="box"><h2>ASSISTENTE IA</h2><div id="iab"></div></div>
+    <div class="box err"><h2>⚠ ERRO DE COMPATIBILIDADE</h2><div id="cer"></div></div>
+    <div class="box gold"><h2>DICA DE OURO</h2><div id="dica"></div></div>
+  </section>
+</main>
+<footer><span id="ft">ALMAFLUXO · Oficina Mecânica Interativa</span><span>Valores didáticos · confirme no manual do fabricante</span></footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const WK='https://almafluxo.uk',API=WK+'/api/mecanica/';
+let U=null;try{U=JSON.parse(localStorage.getItem('almafluxo_usuario')||'null')}catch(e){}
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const CAMPOS={cod:'Código',torque:'Torque',material:'Material',parafusos:'Nº de parafusos',aviso:'Aviso',compat:'Compatibilidade',func:'Função'};
+const falta=v=>!v||v==='—'||v==='a cadastrar';
+const post=(p,b)=>fetch(WK+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).then(r=>r.json());
+const say=(t,ok)=>{const m=$('cmsg');if(m){m.textContent=t;m.style.color=ok?'var(--gr)':'#ffb0b6'}};
+function ctb(){const b=$('ctb');if(!b||!P[sel])return;const p=P[sel];
+ if(!U){b.innerHTML='<p style="color:var(--mu);line-height:1.5;margin-bottom:8px">Crie sua conta grátis para enviar dados que faltam e ajudar a plataforma a evoluir.</p><input class="in" id="ce" type="email" placeholder="E-mail"><input class="in" id="cs" type="password" placeholder="Senha"><div class="nav2"><button class="btn" id="cl" style="background:var(--bl)">Entrar</button><button class="btn" id="cc">Criar conta no ALMAFLUXO</button></div><p id="cmsg" style="margin-top:8px;font-size:12px"></p>';
+  $('cl').onclick=()=>post('/proxy/central',{action:'login',email:$('ce').value.trim().toLowerCase(),senha:$('cs').value}).then(d=>{const u=d.usuario||d,tk=d.token||d.sessionToken||u.sessionToken;if(!(d.ok===true||d.autenticado===true||d.status==='success')||!tk)throw new Error(d.error||d.message||'E-mail ou senha incorretos');U={nome:u.nome||'Usuário',email:$('ce').value.trim().toLowerCase(),balance:u.balance??u.saldo??0,sessionToken:tk,master:!!(u.master||u.admin)};localStorage.setItem('almafluxo_usuario',JSON.stringify(U));ctb();iab()}).catch(e=>say(e.message));
+  $('cc').onclick=()=>window.open(WK+'/','_blank');return}
+ const f0=Object.keys(CAMPOS).find(k=>falta(p[k]))||'torque';
+ b.innerHTML='<p style="color:var(--mu);margin-bottom:8px">Peça: <b style="color:var(--tx)">'+esc(p.nome)+'</b></p><select id="cf" class="in">'+Object.keys(CAMPOS).map(k=>'<option value="'+k+'"'+(k===f0?' selected':'')+'>'+CAMPOS[k]+(falta(p[k])?' · falta':'')+'</option>').join('')+'</select><input class="in" id="cv2" maxlength="200" placeholder="Valor (ex.: 25 Nm)"><input class="in" id="cfo" maxlength="200" placeholder="Fonte (manual, catálogo, medição própria)"><div class="nav2"><button class="btn" id="cenv" style="background:var(--bl)">Enviar para revisão</button><button class="btn" id="cx">Sair</button></div><p id="cmsg" style="margin-top:8px;font-size:12px"></p><p style="color:var(--mu);font-size:11px;margin-top:6px">Todo dado passa por revisão antes de aparecer para os outros usuários.</p>';
+ $('cenv').onclick=()=>post('/api/mecanica/contribuir',{email:U.email,sessionToken:U.sessionToken,motor:D.id,peca:sel,campo:$('cf').value,valor:$('cv2').value,fonte:$('cfo').value}).then(d=>{say(d.ok?'Enviado! Entra na plataforma após revisão.':(d.error||'Erro'),d.ok);if(d.ok)$('cv2').value=''}).catch(()=>say('Falha de conexão'));
+ $('cx').onclick=()=>{U=null;localStorage.removeItem('almafluxo_usuario');location.reload()}}
+
+const IAPH={duvida:'Ex.: Qual a ordem de aperto do cabeçote?',corrigir:'Ex.: O torque do coletor de escape é 25 Nm segundo o manual',criar:'Ex.: Motor Fiat Fire 1.0 8V, 4 cilindros, 5 marchas'};
+function iab(){const b=$('iab');if(!b)return;const k=U?U.email:'';if(b.dataset.u===k&&b.innerHTML)return;b.dataset.u=k;
+ if(!U){b.innerHTML='<p style="color:var(--mu);line-height:1.5">Entre na sua conta (caixa acima) para tirar dúvidas, corrigir dados ou propor um motor novo com ajuda da IA.</p>';return}
+ b.innerHTML='<select id="im" class="in"><option value="duvida">Tirar dúvida</option><option value="corrigir">Corrigir dado da peça</option><option value="criar">Propor motor novo</option></select><textarea id="ip" class="in" rows="3" maxlength="600" placeholder="'+IAPH.duvida+'"></textarea><button class="btn" id="ig" style="background:var(--bl);width:100%">Perguntar à IA</button><div id="ires" style="margin-top:10px;line-height:1.55"></div><p style="color:var(--mu);font-size:11px;margin-top:6px">A IA pode errar. Nada vira dado oficial sem sua confirmação e a revisão do ALMAFLUXO.</p>';
+ $('im').onchange=()=>$('ip').placeholder=IAPH[$('im').value];
+ $('ig').onclick=()=>{const r=$('ires');if(!$('ip').value.trim())return;r.textContent='Pensando…';$('ig').disabled=true;
+  post('/api/mecanica/ia',{email:U.email,sessionToken:U.sessionToken,motor:D.id,peca:sel,modo:$('im').value,pergunta:$('ip').value}).then(d=>{
+   if(!d.ok){r.innerHTML='<span style="color:#ffb0b6">'+esc(d.error||'Erro')+'</span>';return}
+   let x='<div class="note" style="border-left:3px solid var(--cy);padding:8px 10px;background:#0a1c2a;border-radius:5px">'+esc(d.resposta)+'</div>';
+   (d.propostas||[]).forEach((p,i)=>{x+='<div class="warn" style="border-color:var(--cy);background:#0a1c2a;color:var(--tx)"><b>'+esc(P[p.peca]?P[p.peca].nome:p.peca)+'</b> · '+esc(CAMPOS[p.campo])+': <b>'+esc(p.valor)+'</b><br><button class="btn" data-i="'+i+'" style="margin-top:6px">Confirmar e enviar para revisão</button></div>'});
+   if(d.novoMotor)x+='<pre style="white-space:pre-wrap;font-size:11px;background:#06101f;padding:8px;border-radius:6px;margin-top:8px;max-height:200px;overflow:auto">'+esc(JSON.stringify(d.novoMotor,null,1))+'</pre><button class="btn" id="inm" style="margin-top:6px">Confirmar e enviar proposta de motor</button>';
+   r.innerHTML=x;
+   r.querySelectorAll('button[data-i]').forEach(bt=>bt.onclick=()=>{const p=d.propostas[+bt.dataset.i];bt.disabled=true;post('/api/mecanica/contribuir',{email:U.email,sessionToken:U.sessionToken,motor:D.id,peca:p.peca,campo:p.campo,valor:p.valor,fonte:'IA + confirmação do usuário'}).then(o=>bt.textContent=o.ok?'Enviado para revisão ✔':(o.error||'Erro'))});
+   if($('inm'))$('inm').onclick=()=>{$('inm').disabled=true;post('/api/mecanica/contribuir',{email:U.email,sessionToken:U.sessionToken,motor:'novo',peca:'novo',campo:'novo_motor',valor:JSON.stringify(d.novoMotor),fonte:'IA + confirmação do usuário'}).then(o=>$('inm').textContent=o.ok?'Proposta enviada ✔':(o.error||'Erro'))};
+  }).catch(()=>{r.textContent='Falha de conexão'}).finally(()=>{$('ig').disabled=false})}}
+const SES=()=>({email:U.email,sessionToken:U.sessionToken});
+function login(e,s){return post('/proxy/central',{action:'login',email:e,senha:s}).then(d=>{const u=d.usuario||d,tk=d.token||d.sessionToken||u.sessionToken;if(!(d.ok===true||d.autenticado===true||d.status==='success')||!tk)throw new Error(d.error||d.message||'E-mail ou senha incorretos');U={nome:u.nome||'Usuário',email:e,balance:u.balance??u.saldo??0,sessionToken:tk,master:!!(u.master||u.admin)};localStorage.setItem('almafluxo_usuario',JSON.stringify(U))})}
+function gate(){let l=$('load');if(!l){l=document.createElement('div');l.id='load';$('stage').appendChild(l)}l.style.display='grid';l.innerHTML='<div style="max-width:290px;width:100%;text-align:left"><h2 style="color:var(--cy);margin-bottom:6px">Entre para abrir a oficina</h2><p style="line-height:1.5;margin-bottom:10px">Ferramenta gratuita. Use a mesma conta do ALMAFLUXO.</p><input class="in" id="ge" type="email" placeholder="E-mail"><input class="in" id="gs" type="password" placeholder="Senha"><button class="btn" id="gl" style="background:var(--bl);width:100%;margin-bottom:6px">Entrar</button><button class="btn" id="gc" style="width:100%">Criar conta no ALMAFLUXO</button><p id="gm" style="color:#ffb0b6;margin-top:8px;font-size:12px"></p></div>';
+ $('gc').onclick=()=>window.open(WK+'/','_blank');
+ $('gl').onclick=()=>login($('ge').value.trim().toLowerCase(),$('gs').value).then(boot).catch(e=>{$('gm').textContent=e.message})}
+function carregar(id){return post('/api/mecanica/motor',{...SES(),id}).then(j=>{if(!j.ok){if(/Entre/.test(j.error||''))gate();throw 1}D=j.motor;ui();fit();const l=$('load');if(l)l.remove()}).catch(e=>{if(e===1)return;const l=$('load');if(l)l.innerHTML='Não foi possível carregar o motor do worker.<br>Confira as rotas <b>/api/mecanica/</b>.'})}
+const $=id=>document.getElementById(id);
+let D,P={},sel=null,si=0,modo='desmontar',expl=false,vista='3d';
+const G=new Map();
+// ── motor 3D procedural (geometria no navegador; DADOS vêm do worker) ──
+function M(c,m,r){return new THREE.MeshStandardMaterial({color:c,metalness:m,roughness:r==null?.45:r})}
+function bx(w,h,d,mat,x=0,y=0,z=0){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);return m}
+function cy(r,l,mat,ax,x=0,y=0,z=0,seg=28){const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,l,seg),mat);if(ax==='x')m.rotation.z=Math.PI/2;if(ax==='z')m.rotation.x=Math.PI/2;m.position.set(x,y,z);return m}
+const XS=[-2.7,-0.9,0.9,2.7];
+function build(p){const g=new THREE.Group(),c=M(p.cor,p.metal),dk=M('#0b0d11',.3,.7);
+ switch(p.kind){
+ case'tampa':g.add(bx(7.6,.9,3.3,c));g.add(bx(2.2,.15,1.2,M('#2a2f3a',.4),0,.5,0));g.add(cy(.45,.1,M('#cfd8e3',.9,.2),'y',0,.55,0));XS.forEach(x=>g.add(cy(.12,.2,M('#8a929c',.9),'y',x,.5,1.3,10)));break;
+ case'comando':g.add(cy(.22,7.2,c,'x'));XS.forEach(x=>{g.add(bx(.5,.7,.25,c,x-.3,0,0));g.add(bx(.5,.7,.25,c,x+.3,0,.1))});g.add(cy(.5,.4,M('#555c66',.8),'x',-3.8,0,0));break;
+ case'cabecote':g.add(bx(7.8,1.5,3.6,c));XS.forEach(x=>{g.add(cy(.38,.2,dk,'y',x,.78,0));g.add(cy(.12,.4,M('#d9dde3',.9),'y',x,.9,-.7,10))});g.add(bx(7.8,.3,.3,M('#7d858f',.9),0,-.6,1.8));break;
+ case'junta':{const s=new THREE.Shape();s.moveTo(-4,-1.8);s.lineTo(4,-1.8);s.lineTo(4,1.8);s.lineTo(-4,1.8);XS.forEach(x=>{const h=new THREE.Path();h.absarc(x,0,.62,0,Math.PI*2,true);s.holes.push(h)});const m=new THREE.Mesh(new THREE.ExtrudeGeometry(s,{depth:.08,bevelEnabled:false}),M(p.cor,.3,.5));m.rotation.x=-Math.PI/2;g.add(m);break}
+ case'bloco':g.add(bx(8,4,3.6,c));XS.forEach(x=>g.add(cy(.6,.1,dk,'y',x,2.02,0)));g.add(bx(8.2,.3,3.8,M('#737b85',.9),0,-1.9,0));g.add(bx(.5,3,3.8,M('#7a828c',.9),-4.1,0,0));break;
+ case'correia':{const t=new THREE.Mesh(new THREE.TorusGeometry(1.5,.14,10,40),c);t.rotation.y=Math.PI/2;t.scale.set(1,1.3,1);g.add(t);g.add(cy(.7,.4,M('#3a3f47',.8),'x',-.5,-.9,0));g.add(cy(.7,.4,M('#3a3f47',.8),'x',-.5,1.5,0));break}
+ case'alternador':g.add(cy(1,1.7,c,'x'));g.add(cy(.7,.3,M('#222',.5),'x',.95,0,0));g.add(cy(.45,.5,M('#9aa3ad',.8),'x',-1,0,0));for(let i=0;i<8;i++){const a=i*Math.PI/4;g.add(bx(.6,.12,.2,M('#d3452e',.5),-.2,Math.sin(a)*1.02,Math.cos(a)*1.02))}break;
+ case'partida':g.add(cy(.7,2,c,'x'));g.add(cy(.9,.8,M('#3b4048',.7),'x',1.2,0,0));g.add(cy(.28,.6,M('#a8b0ba',.9),'x',-1.2,0,0));break;
+ case'carter':g.add(bx(6.8,1.5,3.4,c,0,0,0));g.add(bx(7.2,.2,3.8,M('#22262d',.6),0,.8,0));g.add(cy(.2,.3,M('#888',.9),'y',-2.2,-.85,0));break;
+ case'admissao':g.add(bx(6.4,1.1,1.4,c,0,.7,-.9));XS.forEach(x=>{g.add(cy(.28,1.8,c,'z',x,.1,.3));g.add(bx(.7,.15,.7,c,x,0,1.1))});g.add(cy(.6,1.2,c,'z',-3.3,.7,-.9));break;
+ case'escape':XS.forEach((x,i)=>{g.add(cy(.22,1.7,c,'y',x,.2,.2));const e=cy(.22,1.2,c,'z',x,-.55,1.1);g.add(e)});g.add(cy(.38,7,c,'x',0,-.55,1.8));g.add(cy(.55,1,M('#9a5226',.8),'z',-3.7,-.55,1.8));break;
+ case'volante':g.add(cy(1.7,.45,c,'x'));g.add(cy(1.75,.18,M('#4a5059',.9),'x',.15,0,0,48));g.add(cy(.55,.6,M('#2c3036',.8),'x',-.1,0,0));break}
+ g.traverse(o=>{if(o.isMesh)o.userData.id=p.id});return g}
+// ── cena ──
+const cv=$('cv'),R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true}),S=new THREE.Scene(),C=new THREE.PerspectiveCamera(36,1,.1,100);
+S.add(new THREE.AmbientLight('#8fb2e0',.9));
+const L1=new THREE.DirectionalLight('#fff',1.5);L1.position.set(6,10,8);S.add(L1);
+const L2=new THREE.PointLight('#27c8ff',1.2,40);L2.position.set(-9,3,-6);S.add(L2);
+const L3=new THREE.PointLight('#ff7a3a',.7,30);L3.position.set(8,-2,7);S.add(L3);
+const O={t:-.7,p:1.05,d:26,ud:0,tgt:new THREE.Vector3(0,.8,0)};
+function cam(){C.position.set(O.tgt.x+O.d*Math.sin(O.p)*Math.sin(O.t),O.tgt.y+O.d*Math.cos(O.p),O.tgt.z+O.d*Math.sin(O.p)*Math.cos(O.t));C.lookAt(O.tgt)}
+function fit(){const w=cv.clientWidth,h=cv.clientHeight;R.setPixelRatio(Math.min(devicePixelRatio,2));R.setSize(w,h,false);C.aspect=w/h;C.updateProjectionMatrix()}
+let drag=null,spin=true;
+cv.onpointerdown=e=>{drag={x:e.clientX,y:e.clientY,m:0};spin=false;cv.setPointerCapture(e.pointerId)};
+cv.onpointermove=e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.m+=Math.abs(dx)+Math.abs(dy);drag.x=e.clientX;drag.y=e.clientY;O.t-=dx*.008;O.p=Math.min(2.2,Math.max(.3,O.p-dy*.008))};
+cv.onpointerup=e=>{if(drag&&drag.m<5)pick(e);drag=null};
+cv.onwheel=e=>{e.preventDefault();O.d=Math.min(45,Math.max(10,O.d+e.deltaY*.02))};
+$('zi').onclick=()=>O.d=Math.max(10,O.d-3);$('zo').onclick=()=>O.d=Math.min(45,O.d+3);
+$('rst').onclick=()=>{O.t=-.7;O.p=1.05;O.d=26;spin=true};
+const RC=new THREE.Raycaster();
+function pick(e){const r=cv.getBoundingClientRect();RC.setFromCamera(new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1),C);const h=RC.intersectObjects([...G.values()].map(o=>o.g).filter(g=>g.visible),true)[0];if(h)choose(h.object.userData.id,true)}
+// ── estado/animação ──
+function tick(){requestAnimationFrame(tick);if(!D)return;if(spin)O.t+=.0025;cam();
+ G.forEach((o,id)=>{const p=P[id],k=expl?1:0;o.k+=(k-o.k)*.08;o.g.position.set(p.pos[0]+p.ex[0]*o.k,p.pos[1]+p.ex[1]*o.k,p.pos[2]+p.ex[2]*o.k);
+  const rm=removido(id);o.g.visible=!rm;
+  o.g.traverse(m=>{if(m.isMesh){m.material.emissive=m.material.emissive||new THREE.Color();m.material.emissive.set(id===sel?'#0b4a8c':'#000')}})});
+ R.render(S,C);const w=cv.clientWidth,h=cv.clientHeight;
+ D.pecas.forEach(p=>{const l=$('lb'+p.id),o=G.get(p.id);if(!l)return;const v=o.g.position.clone().project(C);l.style.display=(o.g.visible&&v.z<1)?'flex':'none';l.style.left=((v.x*.5+.5)*w+(p.pos[0]<0?-70:70))+'px';l.style.top=((-v.y*.5+.5)*h+(p.pos[1]>2?-40:p.pos[1]<-2?40:0))+'px'})}
+function removido(id){if(modo!=='desmontar')return false;return D.passos.slice(0,si).some(s=>s.peca===id)}
+function choose(id,fromScene){sel=id;const i=D.passos.findIndex(s=>s.peca===id);if(i>=0)si=i;render()}
+function render(){const p=P[sel]||D.pecas[0];
+ document.querySelectorAll('.lb').forEach(l=>l.classList.toggle('on',l.id==='lb'+sel));
+ document.querySelectorAll('.pc').forEach(l=>l.classList.toggle('on',l.dataset.id===sel));
+ const n=D.passos.length,st=D.passos[si];$('sh').textContent=(modo==='desmontar'?'3. DESMONTAGEM':'3. MONTAGEM')+' · PASSO '+(si+1)+' / '+n;
+ $('steps').innerHTML=D.passos.map((s,i)=>`<div class="step ${i<si?'done':''} ${i===si?'cur':''}" data-i="${i}"><b>${i+1}</b>${s.titulo}${i<si?'<span class="ok">✔ Concluído</span>':i===si?'<span class="ok" style="color:var(--cy)">● Em andamento</span>':''}</div>`).join('');
+ document.querySelectorAll('.step').forEach(e=>e.onclick=()=>{si=+e.dataset.i;sel=D.passos[si].peca;render()});
+ $('det').innerHTML=`<div class="dets"><i style="background:radial-gradient(circle at 35% 30%,${p.cor},#06101f)"></i><div><b style="font-size:15px">${p.nome}</b><p>Código: ${falta(p.cod)?'<i style="color:var(--am)">a cadastrar · contribua</i>':esc(p.cod)}<br>Compat.: ${esc(p.compat)}<br>Material: ${esc(p.material)}<br>Torque: <b>${falta(p.torque)?'<i style="color:var(--am)">a cadastrar</i>':esc(p.torque)}</b>${p.parafusos?' · '+p.parafusos+' parafusos':''}</p></div></div><p style="margin-top:8px">${esc(p.func)}</p><div class="warn"><b>ATENÇÃO</b> · ${esc(p.aviso)}</div>`;
+ const e=D.erroCompat;$('cer').innerHTML=p.compatErro?`<p style="color:#ffb0b6;line-height:1.5">${p.compatErro}</p><div class="warn">Use o coletor do modelo 1.0 8V.</div>`:`<b>${e.titulo}</b><p style="color:var(--rd);margin:4px 0">${e.texto}</p><p style="color:var(--mu);line-height:1.6">Solução:<br>${e.solucao.map(s=>'• '+s).join('<br>')}</p>`;
+ document.querySelectorAll('.lb').forEach(l=>l.classList.toggle('out',!!P[l.id.slice(2)].compatErro));ctb();iab()}
+$('prev').onclick=()=>{if(si>0){si--;sel=D.passos[si].peca;render()}};
+$('next').onclick=()=>{if(si<D.passos.length-1){si++;sel=D.passos[si].peca;render()}else{si=D.passos.length;render()}};
+function ui(){G.forEach(o=>S.remove(o.g));G.clear();P={};si=0;expl=false;modo='desmontar';D.pecas.forEach(p=>P[p.id]=p);sel=D.passos[0].peca;
+ const v=D.veiculo;$('carinfo').innerHTML=`<b>${v.nome.replace('Volkswagen','VW')}</b><br>Motor: ${v.motor.split(' · ')[0]}<br>Potência: ${v.potencia}<br>Câmbio: ${v.cambio}`;
+ $('tit').innerHTML=`${D.titulo} <span>— VISTA ${expl?'EXPLODIDA':'MONTADA'}</span>`;$('ft').textContent='Sistema carregado · '+v.nome+' - '+v.ano;
+ $('nav').innerHTML=['Início','Manual','Ferramentas','Configurações'].map(t=>`<button>${t}</button>`).join('');
+ $('sys').innerHTML=['Motor Completo','Cabeçote','Bloco do Motor','Sistema de Admissão','Sistema de Escape','Arrefecimento','Sistema Elétrico','Transmissão','Suspensão','Freios'].map((t,i)=>`<li class="${i?'':'on'}">${t}<span>›</span></li>`).join('');
+ $('lbs').innerHTML=D.pecas.map(p=>`<div class="lb" id="lb${p.id}"><b>${p.n}</b>${p.nome}</div>`).join('');
+ D.pecas.forEach(p=>$('lb'+p.id).onclick=()=>choose(p.id));
+ $('car2').innerHTML=D.pecas.map(p=>`<div class="pc" data-id="${p.id}"><i style="background:radial-gradient(circle at 35% 30%,${p.cor},#06101f)"></i><p>${p.nome}<br><small>Cód. ${esc(p.cod)}</small></p></div>`).join('');
+ document.querySelectorAll('.pc').forEach(e=>e.onclick=()=>choose(e.dataset.id));
+ $('dica').innerHTML=`<p style="line-height:1.6">${D.dica}</p><div class="warn">${D.aviso}</div>`;
+ const tabs=[['3d','Vista 3D'],['ex','Vista Explodida'],['mont','Montar'],['desm','Desmontar']];
+ $('tabs').innerHTML=tabs.map(t=>`<button data-t="${t[0]}" class="${t[0]===vista?'on':''}">${t[1]}</button>`).join('');
+ document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{const t=b.dataset.t;if(t==='ex')expl=true;if(t==='3d')expl=false;if(t==='mont'){modo='montar';si=0}if(t==='desm'){modo='desmontar';si=0;sel=D.passos[0].peca}
+  document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));$('tit').innerHTML=`${D.titulo} <span>— VISTA ${expl?'EXPLODIDA':'MONTADA'}</span>`;render()});
+ D.pecas.forEach(p=>{const g=build(p);S.add(g);G.set(p.id,{g,k:0})});render()}
+function boot(){post('/api/mecanica/motores',SES()).then(j=>{if(!j.ok){if(/Entre/.test(j.error||''))gate();throw 1}$('veic').innerHTML=j.motores.map(m=>'<option value="'+esc(m.id)+'">'+esc(m.nome)+'</option>').join('');$('veic').onchange=()=>carregar($('veic').value);return carregar(j.motores[0].id)}).catch(e=>{if(e===1)return;const l=$('load');if(l)l.textContent='Não foi possível carregar os motores.'})}
+U?boot():gate();
+addEventListener('resize',fit);fit();cam();tick();
+</script>
+</body>
+</html>

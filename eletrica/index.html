@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ALMAFLUXO · Elétrica: Placas e Circuitos</title>
+<style>
+:root{color-scheme:dark;--bg:#050d1a;--ln:#1b4a7a;--tx:#e8f1ff;--mu:#8fa8c8;--cy:#27c8ff;--bl:#1f7bff;--gr:#2fd48a;--rd:#ff4d57;--am:#f0a830}
+*{box-sizing:border-box;margin:0}
+body{background:radial-gradient(ellipse at 50% 0,#0b2347,var(--bg) 60%);color:var(--tx);font:13px system-ui,Segoe UI,Arial;min-height:100vh}
+header{display:flex;align-items:center;gap:14px;padding:10px 16px;border-bottom:1px solid var(--ln);background:#06122399}
+.logo{width:46px;height:46px;border-radius:10px;background:linear-gradient(135deg,#1f9bff,#0a4fbf);display:grid;place-items:center;font-weight:900;font-size:20px}
+header h1{font-size:20px}header small{color:var(--cy);display:block;font-size:12px}
+main{display:grid;grid-template-columns:260px minmax(0,1fr) 360px;gap:12px;padding:12px;max-width:1700px;margin:auto}
+.box{background:linear-gradient(#0a1a33,#07142a);border:1px solid var(--ln);border-radius:10px;padding:12px;margin-bottom:12px}
+.box h2{font-size:13px;color:var(--cy);margin-bottom:10px}
+.in,select{width:100%;padding:9px;margin-bottom:8px;background:#071a33;color:var(--tx);border:1px solid var(--ln);border-radius:8px}
+.btn{background:#0a1d3a;border:1px solid var(--ln);color:var(--tx);border-radius:8px;padding:8px 10px;cursor:pointer;font-weight:600;width:100%;margin-bottom:6px}
+.btn.p{background:var(--bl)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+label{display:block;color:var(--mu);font-size:11px;margin-bottom:3px}
+#bd{width:100%;height:auto;max-height:760px;background:radial-gradient(ellipse at 50% 50%,#10305c,#061226 75%);border:1px solid var(--ln);border-radius:10px}
+.pin{cursor:pointer}.pin:hover circle{stroke:#fff;stroke-width:2}
+.al{border-left:3px solid;padding:7px 9px;border-radius:0 6px 6px 0;margin-bottom:7px;line-height:1.45;font-size:12px}
+.al.bad{border-color:var(--rd);background:#2a0d14}.al.warn{border-color:var(--am);background:#2a2210}.al.ok{border-color:var(--gr);background:#08301f}
+.al small{display:block;color:var(--mu);margin-top:2px}
+.st{display:inline-block;padding:3px 10px;border-radius:12px;font-weight:700;font-size:12px}
+.k{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.k div{background:#0a1d3a;border:1px solid var(--ln);border-radius:8px;padding:7px}.k b{display:block;font-size:15px}.k span{color:var(--mu);font-size:11px}
+.w{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #12335a;font-size:12px}
+.w button{background:none;border:0;color:var(--rd);cursor:pointer;font-size:14px}
+.leg{display:flex;gap:10px;flex-wrap:wrap;color:var(--mu);font-size:11px;margin-top:8px}.leg i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px}
+#gate{position:fixed;inset:0;z-index:50;background:#050d1af2;display:grid;place-items:center;padding:20px}#gate>div{max-width:300px;width:100%}
+.pub{border:1px solid var(--ln);border-radius:8px;padding:9px;margin-bottom:8px;background:#0a1d3a}.pub b{display:block}.pub small{color:var(--mu)}.bd{padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700}
+footer{padding:10px 16px;color:var(--mu);font-size:11px;border-top:1px solid var(--ln)}
+@media(max-width:1100px){main{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="gate" style="display:none"></div>
+<header><div class="logo">AF</div><h1>ALMAFLUXO<small>Elétrica · Placas e Circuitos · Observador</small></h1></header>
+<main>
+<section>
+  <div class="box"><h2>1. PLACA DEMO</h2><select id="sp"></select><p id="dica" style="color:var(--mu);line-height:1.5;font-size:12px"></p></div>
+  <div class="box"><h2>2. EXEMPLOS PARA TESTAR</h2>
+    <button class="btn" data-x="curto">Curto: 5V ↔ GND</button>
+    <button class="btn" data-x="g5">5V ligado em um GPIO</button>
+    <button class="btn" data-x="g3">GPIO ligado no 3V3</button>
+    <button class="btn" data-x="gg">Dois GPIO ligados</button>
+    <button class="btn" data-x="ok">Ligação segura (GND ↔ GND)</button>
+    <button class="btn" data-x="lim">Limpar fios</button></div>
+  <div class="box"><h2>FIOS</h2><div id="fios"></div></div>
+</section>
+<section>
+  <svg id="bd" viewBox="0 0 640 780"></svg>
+  <div class="leg"><span><i style="background:#ff4d57"></i>5V / VIN</span><span><i style="background:#f0a830"></i>3V3</span><span><i style="background:#7f8da3"></i>GND</span><span><i style="background:#27c8ff"></i>GPIO</span></div>
+  <p style="color:var(--mu);margin-top:8px">Clique em um pino e depois em outro para ligar um fio. Clique no mesmo pino para cancelar.</p>
+</section>
+<section>
+  <div class="box"><h2>OBSERVADOR <span id="ost" class="st"></span></h2><div id="obs"></div></div>
+  <div class="box"><h2>CARGAS NA PLACA</h2>
+    <div class="row3"><div><label>Nome</label><input class="in" id="cn" placeholder="Sensor"></div><div><label>mA</label><input class="in" id="cm" type="number" min="0" value="20"></div><div><label>Trilho</label><select id="cr"></select></div></div>
+    <button class="btn p" id="ca">Adicionar carga</button><div id="cl"></div></div>
+  <div class="box"><h2>BATERIA, CALOR E CUSTO</h2>
+    <div class="row"><div><label>Química</label><select id="bq"></select></div><div><label>Autonomia (h)</label><input class="in" id="bh" type="number" min="0.1" step="0.5" value="8"></div></div>
+    <div class="row"><div><label>Eficiência do conversor (%)</label><input class="in" id="be" type="number" min="50" max="100" value="90"></div><div><label>R$ por Wh (opcional)</label><input class="in" id="bp" type="number" min="0" step="0.1" value="0"></div></div>
+    <div class="row"><div><label>Metal de dissipação (g)</label><input class="in" id="bm" type="number" min="0" value="50"></div><div><label>Metal</label><select id="bt"><option value="aluminio">Alumínio</option><option value="cobre">Cobre</option><option value="aco">Aço</option></select></div></div>
+    <div id="bo"></div></div>
+  <div class="box"><h2>WIKI DA COMUNIDADE</h2><p id="wi" style="color:var(--mu);line-height:1.5;margin-bottom:8px"></p><div id="wk"></div>
+    <h2 style="margin-top:12px">PUBLICAR ESTE PROJETO</h2><input class="in" id="wt" maxlength="80" placeholder="Título do projeto"><input class="in" id="wd" maxlength="300" placeholder="Descrição curta"><button class="btn p" id="wp">Publicar projeto validado</button>
+    <label>Autonomia medida na prática (h, opcional — para confirmar um projeto)</label><input class="in" id="wm" type="number" min="0" step="0.5"><p id="wmsg" style="font-size:12px;margin-top:4px"></p></div>
+</section>
+</main>
+<footer>Limites, consumos e dados de bateria são valores típicos: confirme no datasheet. A estimativa de calor é o pior caso (sem troca de calor com o ambiente).</footer>
+<script>
+const WK='https://almafluxo.uk',$=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let U=null;try{U=JSON.parse(localStorage.getItem('almafluxo_usuario')||'null')}catch(e){}
+const post=(p,b)=>fetch(WK+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).then(r=>r.json());
+const SES=()=>({email:U.email,sessionToken:U.sessionToken});
+const tipo=n=>/^(5V|VIN)$/.test(n)?'p5':n==='3V3'?'p3':n==='GND'?'g':/^(EN|ID_S[DC])$/.test(n)?'x':'io';
+const COR={p5:'#ff4d57',p3:'#f0a830',g:'#7f8da3',io:'#27c8ff',x:'#556677'};
+let B=null,PL=[],wires=[],cargas=[],pend=null,last=null,tmr=null,WL=[];
+function login(e,s){return post('/proxy/central',{action:'login',email:e,senha:s}).then(d=>{const u=d.usuario||d,tk=d.token||d.sessionToken||u.sessionToken;if(!(d.ok===true||d.autenticado===true||d.status==='success')||!tk)throw new Error(d.error||d.message||'E-mail ou senha incorretos');U={nome:u.nome||'Usuário',email:e,balance:u.balance??u.saldo??0,sessionToken:tk,master:!!(u.master||u.admin)};localStorage.setItem('almafluxo_usuario',JSON.stringify(U))})}
+function gate(){const g=$('gate');g.style.display='grid';g.innerHTML='<div><h2 style="color:var(--cy);margin-bottom:6px">Entre para abrir a bancada</h2><p style="color:var(--mu);line-height:1.5;margin-bottom:10px">Ferramenta gratuita. Use a mesma conta do ALMAFLUXO.</p><input class="in" id="ge" type="email" placeholder="E-mail"><input class="in" id="gs" type="password" placeholder="Senha"><button class="btn p" id="gl">Entrar</button><button class="btn" id="gc">Criar conta no ALMAFLUXO</button><p id="gm" style="color:#ffb0b6;font-size:12px;margin-top:6px"></p></div>';
+ $('gc').onclick=()=>window.open(WK+'/','_blank');
+ $('gl').onclick=()=>login($('ge').value.trim().toLowerCase(),$('gs').value).then(boot).catch(e=>{$('gm').textContent=e.message})}
+const pos=i=>{const n=B.pinos.length,pi=B.layout==='par-impar',L=pi?i%2===0:i<Math.ceil(n/2),row=pi?Math.floor(i/2):(L?i:i-Math.ceil(n/2));return{x:L?190:450,y:50+row*(pi?34:(n>25?22:26)),L}};
+function draw(){const n=B.pinos.length,pi=B.layout==='par-impar',rows=pi?n/2:Math.ceil(n/2),h=rows*(pi?34:(n>25?22:26))+60;
+ $('bd').setAttribute('viewBox','0 0 640 '+Math.max(300,h+40));
+ let s='<rect x="170" y="20" width="300" height="'+h+'" rx="14" fill="#0b3a2e" stroke="#2fd48a" stroke-width="2"/><text x="320" y="'+(h+4)+'" fill="#8fa8c8" font-size="12" text-anchor="middle">'+esc(B.nome)+' · lógica '+esc(B.logica)+'</text>';
+ wires.forEach(([a,b],k)=>{const A=pos(a),C=pos(b),o=70+k*8,col=['#ffd24d','#4dffb8','#ff7ad9','#7aa8ff','#ffa14d'][k%5];s+='<path d="M'+A.x+' '+A.y+' C'+(A.x+(A.L?-1:1)*o)+' '+A.y+' '+(C.x+(C.L?-1:1)*o)+' '+C.y+' '+C.x+' '+C.y+'" fill="none" stroke="'+col+'" stroke-width="3" opacity=".9"/>'});
+ B.pinos.forEach((nm,i)=>{const p=pos(i),t=tipo(nm);s+='<g class="pin" data-i="'+i+'"><circle cx="'+p.x+'" cy="'+p.y+'" r="8" fill="'+COR[t]+'" stroke="'+(pend===i?'#fff':'#06101f')+'" stroke-width="'+(pend===i?3:1.5)+'"/><text x="'+(p.L?p.x+14:p.x-14)+'" y="'+(p.y+4)+'" fill="#e8f1ff" font-size="11" text-anchor="'+(p.L?'start':'end')+'">'+esc(nm)+'</text></g>'});
+ $('bd').innerHTML=s;$('bd').querySelectorAll('.pin').forEach(g=>g.onclick=()=>click(+g.dataset.i))}
+function click(i){if(pend===null)pend=i;else if(pend===i)pend=null;else{if(!wires.some(w=>(w[0]===pend&&w[1]===i)||(w[0]===i&&w[1]===pend)))wires.push([pend,i]);pend=null}run()}
+const par=()=>({q:$('bq').value,h:$('bh').value,ef:$('be').value,mm:$('bm').value,metal:$('bt').value,pr:$('bp').value});
+const al=a=>'<div class="al '+a[0]+'">'+esc(a[1])+(a[2]?'<small>'+esc(a[2])+'</small>':'')+'</div>';
+function calc(){clearTimeout(tmr);tmr=setTimeout(()=>post('/api/eletrica/calcular',{...SES(),placa:B.id,fios:wires,cargas,params:par()}).then(r=>{if(!r.ok){if(/Entre/.test(r.error||''))gate();throw r}show(r)}).catch(r=>{$('obs').innerHTML='<div class="al bad">'+esc((r&&r.error)||'Falha ao calcular')+'</div>'}),250)}
+function show(r){last=r;const A=r.alertas,bad=A.some(a=>a[0]==='bad'),o=$('ost'),b=r.bateria;
+ o.textContent=bad?'CURTO/RISCO':A.length?A.length+' alerta(s)':'OK';o.style.background=bad?'#a02834':A.length?'#7a5a10':'#1f7a50';
+ $('obs').innerHTML=A.length?A.map(al).join(''):'<div class="al ok">Nenhum problema encontrado nos fios e nas cargas atuais.</div>';
+ $('bo').innerHTML='<div class="k"><div><b>'+b.mA+' mA</b><span>consumo total a '+b.V+'V</span></div><div><b>'+b.Wn+' Wh</b><span>energia necessária</span></div><div><b>'+b.s+'S'+b.p+'P</b><span>'+esc(r.params.q)+'</span></div><div><b>'+b.Wi+' Wh</b><span>instalados · '+b.massa+' g</span></div><div><b>'+b.Ph+' W</b><span>calor nas células ('+b.C+'C)</span></div><div><b>'+b.dT+' °C/h</b><span>subida no pior caso</span></div></div>'+(b.custo?'<p style="margin-top:8px">Custo estimado das células: <b>R$ '+b.custo.toFixed(2)+'</b></p>':'')+'<div style="margin-top:8px">'+b.alertas.map(al).join('')+'</div>'}
+function run(){draw();
+ $('fios').innerHTML=wires.length?wires.map((w,k)=>'<div class="w"><span>'+esc(B.pinos[w[0]])+' ↔ '+esc(B.pinos[w[1]])+'</span><button data-k="'+k+'">✕</button></div>').join(''):'<p style="color:var(--mu)">Nenhum fio ainda.</p>';
+ $('fios').querySelectorAll('button').forEach(b=>b.onclick=()=>{wires.splice(+b.dataset.k,1);run()});
+ $('cl').innerHTML=cargas.map((c,k)=>'<div class="w"><span>'+esc(c.n)+' · '+c.mA+' mA · '+esc(c.r)+'</span><button data-k="'+k+'">✕</button></div>').join('');
+ $('cl').querySelectorAll('button').forEach(b=>b.onclick=()=>{cargas.splice(+b.dataset.k,1);run()});
+ calc()}
+const first=(t,n=0)=>B.pinos.map((x,i)=>tipo(x)===t?i:-1).filter(i=>i>=0)[n];
+const EX={curto:()=>[[first('p5'),first('g')]],g5:()=>[[first('p5'),first('io')]],g3:()=>[[first('p3'),first('io')]],gg:()=>[[first('io'),first('io',1)]],ok:()=>[[first('g'),first('g',1)]],lim:()=>[]};
+document.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>{wires=EX[b.dataset.x]().filter(w=>w[0]>=0&&w[1]>=0);pend=null;run()});
+$('ca').onclick=()=>{const m=+$('cm').value;if(!(m>=0))return;cargas.push({n:($('cn').value||'Carga').slice(0,30),mA:m,r:$('cr').value});$('cn').value='';run()};
+['bq','bh','be','bp','bm','bt'].forEach(id=>$(id).oninput=calc);
+function usar(i){B=PL[i];$('sp').value=i;wires=[];cargas=[];pend=null;$('dica').textContent=B.dica;$('cr').innerHTML=B.trilhos.map(k=>'<option>'+esc(k)+'</option>').join('');run()}
+const wmsg=(t,ok)=>{const m=$('wmsg');m.textContent=t;m.style.color=ok?'var(--gr)':'#ffb0b6'};
+$('wp').onclick=()=>{if(!last||last.alertas.some(a=>a[0]==='bad'))return wmsg('Corrija os curtos e riscos antes de publicar.',0);const t=$('wt').value.trim();if(!t)return wmsg('Dê um título ao projeto.',0);
+ post('/api/wiki/publicar',{...SES(),tipo:'eletrica',titulo:t,descricao:$('wd').value,projeto:{placa:B.id,fios:wires,cargas,params:par()}}).then(d=>{wmsg(d.ok?(d.existente?'Esse projeto já está na wiki.':'Publicado! Outros podem reproduzir e confirmar.'):d.error,d.ok);if(d.ok)loadWiki()}).catch(()=>wmsg('Falha de conexão',0))};
+async function loadWiki(){const j=await fetch(WK+'/api/wiki/lista').then(r=>r.json()).catch(()=>null);
+ if(!j||!j.ok){$('wk').innerHTML='<p style="color:var(--mu)">Wiki indisponível no momento.</p>';return}
+ WL=j.itens;const i=j.insights,fb=Object.keys(i.fatorBateria).map(q=>esc(q)+' ×'+i.fatorBateria[q].media+' (n='+i.fatorBateria[q].n+')').join(' · ');
+ $('wi').innerHTML=i.projetos+' projetos · '+i.confirmacoes+' confirmações · '+i.validados+' validados'+(fb?'<br>Autonomia real ÷ calculada: '+fb:'');
+ $('wk').innerHTML=WL.length?WL.map((p,k)=>'<div class="pub"><b>'+esc(p.titulo)+'</b><small>'+esc(p.placa)+' · '+esc(p.autor)+' · '+esc(p.resumo.celulas)+' '+esc(p.resumo.q)+' · '+p.resumo.Wn+' Wh</small><p style="margin:4px 0;color:var(--mu)">'+esc(p.descricao)+'</p><span class="bd" style="background:'+(p.status==='validado'?'#1f7a50':'#7a5a10')+'">'+esc(p.status)+' · '+p.conf+'</span><div class="row" style="margin-top:6px"><button class="btn" data-a="'+k+'">Abrir</button><button class="btn" data-c="'+k+'">Reproduzi e confirmo</button></div></div>').join(''):'<p style="color:var(--mu)">Nenhum projeto ainda. Seja o primeiro a publicar.</p>';
+ $('wk').querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const p=WL[+b.dataset.a].projeto,ix=PL.findIndex(x=>x.id===p.placa);if(ix<0)return;usar(ix);wires=p.fios;cargas=p.cargas;$('bq').value=p.params.q;$('bh').value=p.params.h;$('be').value=p.params.ef;$('bm').value=p.params.mm;$('bt').value=p.params.metal;$('bp').value=p.params.pr;run();scrollTo({top:0,behavior:'smooth'})});
+ $('wk').querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>post('/api/wiki/confirmar',{...SES(),id:WL[+b.dataset.c].id,medidoH:$('wm').value}).then(d=>{wmsg(d.ok?'Confirmação registrada. Obrigado!':d.error,d.ok);if(d.ok)loadWiki()}).catch(()=>wmsg('Falha de conexão',0)))}
+function boot(){post('/api/eletrica/placas',SES()).then(j=>{if(!j.ok){if(/Entre/.test(j.error||''))gate();return}$('gate').style.display='none';PL=j.placas;
+ $('sp').innerHTML=PL.map((p,i)=>'<option value="'+i+'">'+esc(p.nome)+'</option>').join('');$('sp').onchange=()=>usar(+$('sp').value);
+ $('bq').innerHTML=j.quimicas.map(k=>'<option>'+esc(k)+'</option>').join('');usar(0);loadWiki()}).catch(()=>{$('obs').innerHTML='<div class="al bad">Não foi possível carregar as placas do worker.<small>Confira as rotas /api/eletrica/.</small></div>'})}
+U?boot():gate();
+</script>
+</body>
+</html>
