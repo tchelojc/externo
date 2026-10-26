@@ -46,6 +46,10 @@ select{width:100%;padding:10px;background:#071a33;color:var(--tx);border:1px sol
 #load{position:absolute;inset:0;display:grid;place-items:center;z-index:5;background:#050d1a;color:var(--mu);text-align:center;padding:20px}
 input.in,select.in{width:100%;padding:9px;margin-bottom:8px;background:#071a33;color:var(--tx);border:1px solid var(--ln);border-radius:8px}
 footer{padding:10px 16px;color:var(--mu);font-size:11px;display:flex;justify-content:space-between;border-top:1px solid var(--ln);flex-wrap:wrap;gap:6px}
+.sysb .fn{color:var(--tx);line-height:1.5;margin-bottom:8px}.sysb ol{margin:0 0 8px 18px;padding:0;color:var(--mu);line-height:1.55;font-size:12px}
+.sysb .chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.sysb .chip{padding:5px 9px;border:1px solid var(--ln);border-radius:20px;background:#0a1d3a;font-size:11px;cursor:pointer}.sysb .chip.on{border-color:var(--cy);background:#0f3a73}
+.sysb .row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.sysb .row .btn{flex:1;min-width:92px;font-size:11px;padding:7px 6px}.sysb .row .btn.act{background:var(--bl)}
+.sysb .nota{margin-top:8px;border-left:3px solid var(--am);padding:7px 9px;background:#2a2210;color:#f6dca0;font-size:12px;border-radius:0 6px 6px 0}
 @media(max-width:1100px){main{grid-template-columns:1fr}.stage{height:480px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -73,6 +77,7 @@ footer{padding:10px 16px;color:var(--mu);font-size:11px;display:flex;justify-con
   </section>
   <section>
     <div class="box"><h2 id="sh"></h2><div id="steps"></div><div class="nav2"><button class="btn" id="prev">‹ Anterior</button><button class="btn" id="next" style="background:var(--bl)">Próximo ›</button></div></div>
+    <div class="box"><h2 id="sysh">LEITURA DO SISTEMA</h2><div id="sysb" class="sysb"></div></div>
     <div class="box"><h2>DETALHES DA PEÇA</h2><div id="det"></div></div>
     <div class="box"><h2>CONTRIBUIR COM DADOS</h2><div id="ctb"></div></div>
     <div class="box"><h2>ASSISTENTE IA</h2><div id="iab"></div></div>
@@ -142,6 +147,7 @@ function carregar(id){
 }
 const $=id=>document.getElementById(id);
 let D,P={},sel=null,si=0,modo='desmontar',expl=false,vista='3d';
+let sysIdx=0,sysIds=null,showHoles=true,iso=false;
 const G=new Map();
 // ── motor 3D procedural (geometria no navegador; DADOS vêm do worker) ──
 function M(c,m,r){return new THREE.MeshStandardMaterial({color:c,metalness:m,roughness:r==null?.45:r})}
@@ -239,9 +245,9 @@ cv.addEventListener('contextmenu',e=>{
   abrirMenuPeca(e.clientX,e.clientY,id);
 });
 $('zi').onclick=()=>O.d=Math.max(10,O.d-3);$('zo').onclick=()=>O.d=Math.min(45,O.d+3);
-$('rst').onclick=()=>{O.t=-.7;O.p=1.05;O.d=26;spin=true};
+$('rst').onclick=()=>{O.t=-.7;O.p=1.05;O.d=26;spin=true;O.tgt.set(0,.8,0)};
 const RC=new THREE.Raycaster();
-function pick(e){const r=cv.getBoundingClientRect();RC.setFromCamera(new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1),C);const h=RC.intersectObjects([...G.values()].map(o=>o.g).filter(g=>g.visible),true)[0];if(h)choose(h.object.userData.id,true)}
+function pick(e){const r=cv.getBoundingClientRect();RC.setFromCamera(new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1),C);const h=RC.intersectObjects([...G.entries()].filter(([id,o])=>o.g.visible&&(!sysIds||sysIds.has(id))).map(([,o])=>o.g),true)[0];if(h)choose(h.object.userData.id,true)}
 // ── estado/animação ──
 function tick(){
   requestAnimationFrame(tick);
@@ -254,15 +260,16 @@ function tick(){
     if(!(dragPeca&&dragPeca.id===id)&&!(D.adaptacoes&&D.adaptacoes[id]&&D.adaptacoes[id]._manual)){
       o.g.position.set(p.pos[0]+p.ex[0]*o.k,p.pos[1]+p.ex[1]*o.k,p.pos[2]+p.ex[2]*o.k);
     }
-    const rm=removido(id);o.g.visible=!rm;
-    o.g.traverse(m=>{if(m.isMesh){m.material.emissive=m.material.emissive||new THREE.Color();m.material.emissive.set(id===sel?'#0b4a8c':'#000')}})
+    const rm=removido(id),fora=!!(sysIds&&!sysIds.has(id));o.g.visible=!rm&&!(iso&&fora);
+    if(o.holes)o.holes.visible=showHoles&&(id===sel||(!!sysIds&&!fora));
+    o.g.traverse(m=>{if(m.isMesh){m.material.emissive=m.material.emissive||new THREE.Color();m.material.emissive.set(id===sel?'#0b4a8c':(sysIds&&!fora?'#06335f':'#000'));const mt=m.material;if(mt.transparent!==fora){mt.transparent=fora;mt.depthWrite=!fora;mt.needsUpdate=true}mt.opacity=fora?.12:1}})
   });
   R.render(S,C);
   const w=cv.clientWidth,h=cv.clientHeight;
-  D.pecas.forEach(p=>{const l=$('lb'+p.id),o=G.get(p.id);if(!l)return;const v=o.g.position.clone().project(C);l.style.display=(o.g.visible&&v.z<1)?'flex':'none';l.style.left=((v.x*.5+.5)*w+(p.pos[0]<0?-70:70))+'px';l.style.top=((-v.y*.5+.5)*h+(p.pos[1]>2?-40:p.pos[1]<-2?40:0))+'px'})
+  D.pecas.forEach(p=>{const l=$('lb'+p.id),o=G.get(p.id);if(!l)return;const v=o.g.position.clone().project(C);l.style.display=(o.g.visible&&v.z<1&&(!sysIds||sysIds.has(p.id)))?'flex':'none';l.style.left=((v.x*.5+.5)*w+(p.pos[0]<0?-70:70))+'px';l.style.top=((-v.y*.5+.5)*h+(p.pos[1]>2?-40:p.pos[1]<-2?40:0))+'px'})
 }
 function removido(id){if(modo!=='desmontar')return false;return D.passos.slice(0,si).some(s=>s.peca===id)}
-function choose(id,fromScene){sel=id;const i=D.passos.findIndex(s=>s.peca===id);if(i>=0)si=i;render()}
+function choose(id,fromScene){sel=id;const i=D.passos.findIndex(s=>s.peca===id);if(i>=0)si=i;render();if(typeof renderSys==='function'&&D)renderSys()}
 function render(){
   const p = P[sel] || D.pecas[0];
 
@@ -337,6 +344,65 @@ $('next').onclick = () => {
   else { si = D.passos.length; render(); }
 };
 
+
+// ── SISTEMAS / CONJUNTOS: destaque, furos, foco e leitura de funcionamento ──
+const SYS=[
+ {n:'Motor Completo',ids:null,func:'Visão geral: todas as peças do motor montadas. Clique num sistema ao lado para destacar só as peças dele.',
+  ler:['Admissão: o ar entra pelo coletor e chega ao cabeçote.','Compressão e combustão acontecem nos cilindros do bloco.','Escape: os gases saem pelo coletor de escape.','A correia sincroniza o comando com o virabrequim; o volante entrega o giro ao câmbio.']},
+ {n:'Cabeçote',ids:['tampa','comando','cabecote','junta'],func:'Fecha o topo dos cilindros e aloja válvulas, velas e comando. A junta veda câmara, óleo e água.',
+  ler:['O comando gira na metade da rotação do virabrequim.','Cada ressalto empurra uma válvula: abre admissão ou escape na hora certa.','A junta separa câmara de combustão, galerias de óleo e água.','Aperto dos parafusos: sequência cruzada, do centro para fora.']},
+ {n:'Bloco do Motor',ids:['bloco','carter'],func:'Estrutura do motor: abriga os cilindros e o virabrequim. O cárter fecha a parte de baixo e guarda o óleo.',
+  ler:['Os pistões sobem e descem dentro dos cilindros do bloco.','O virabrequim transforma esse movimento em giro.','O óleo cai no cárter e a bomba o leva de volta às galerias.','Meça cilindros e empeno do plano antes de remontar.']},
+ {n:'Sistema de Admissão',ids:['admissao'],func:'Leva o ar do corpo de borboleta até cada cilindro.',
+  ler:['O ar passa pelo filtro e pelo corpo de borboleta.','O coletor divide o ar entre os 4 cilindros.','O combustível é misturado (injeção) e entra com a válvula de admissão aberta.','Vazamento aqui causa marcha lenta irregular.']},
+ {n:'Sistema de Escape',ids:['escape'],func:'Recolhe os gases queimados de cada cilindro e os envia ao catalisador e ao silencioso.',
+  ler:['A válvula de escape abre e o gás sai do cilindro.','O coletor reúne os 4 canais em um só tubo.','Sensores (sonda lambda) leem o gás para corrigir a mistura.','Solte as porcas com o motor frio: elas costumam quebrar.']},
+ {n:'Arrefecimento',ids:['correia'],func:'Mantém a temperatura do motor. Neste demo só a correia dentada está modelada.',
+  ler:['A bomba d’água faz o líquido circular pelo bloco e cabeçote.','A válvula termostática abre quando o motor esquenta.','O radiador troca o calor com o ar.','No EA111 a correia dentada costuma acionar a bomba: confirme no manual.'],
+  nota:'Radiador, bomba d’água e válvula termostática ainda não foram modelados neste demo.'},
+ {n:'Sistema Elétrico',ids:['alternador','partida'],func:'Dá a partida no motor e recarrega a bateria enquanto ele funciona.',
+  ler:['Partida: a bateria alimenta o motor de partida, que gira o volante.','Com o motor ligado, o alternador gera corrente.','Essa corrente alimenta o carro e recarrega a bateria.','Luz de bateria acesa com o motor ligado indica falha de carga.']},
+ {n:'Transmissão',ids:['volante'],func:'O volante recebe o giro do virabrequim e o entrega ao câmbio pela embreagem.',
+  ler:['O volante armazena inércia e suaviza as pulsações do motor.','A embreagem prende ou solta o câmbio contra o volante.','A coroa do volante recebe o pinhão do motor de partida.','Aperto do volante: valor alto, use o torque do manual.'],
+  nota:'Câmbio e embreagem ainda não foram modelados neste demo.'},
+ {n:'Suspensão',ids:[],func:'Sistema do chassi, fora do conjunto do motor.',ler:[],nota:'Ainda não há peças de suspensão neste demo. Elas dependem de um modelo de chassi a cadastrar.'},
+ {n:'Freios',ids:[],func:'Sistema do chassi, fora do conjunto do motor.',ler:[],nota:'Ainda não há peças de freio neste demo. Elas dependem de um modelo de chassi a cadastrar.'}
+];
+function addHoles(g,p){
+  const n=+p.parafusos||0; if(!n)return null;
+  const b=new THREE.Box3().setFromObject(g),h=new THREE.Group(),w=b.max.x-b.min.x,d=b.max.z-b.min.z;
+  const ring=new THREE.MeshBasicMaterial({color:'#27c8ff'}),core=new THREE.MeshBasicMaterial({color:'#000'});
+  const add=(x,y,z,rx,rz)=>{const m=new THREE.Group();const t=new THREE.Mesh(new THREE.TorusGeometry(.17,.05,8,18),ring),c=new THREE.Mesh(new THREE.CircleGeometry(.15,18),core);m.add(t);m.add(c);m.position.set(x,y,z);if(rx)m.rotation.x=rx;if(rz)m.rotation.y=rz;h.add(m)};
+  if(p.kind==='volante'){const x=b.max.x+.03,r=1.0;for(let i=0;i<n;i++){const a=i*2*Math.PI/n;add(x,Math.sin(a)*r,Math.cos(a)*r,0,Math.PI/2)}}
+  else{const y=b.max.y+.03,rows=d<1.2?[0]:[b.min.z+.35,b.max.z-.35],per=rows.length===1?[n]:[Math.ceil(n/2),Math.floor(n/2)];
+    rows.forEach((z,ri)=>{const k=per[ri];for(let i=0;i<k;i++){const x=k===1?(b.min.x+b.max.x)/2:b.min.x+.45+(w-.9)*i/(k-1);add(x,y,z,-Math.PI/2,0)}})}
+  h.traverse(o=>{if(o.isMesh)o.userData.id=p.id});h.visible=false;g.add(h);return h;
+}
+function selSys(i){
+  sysIdx=i;const s=SYS[i];sysIds=s.ids?new Set(s.ids.filter(id=>P[id])):null;iso=false;
+  document.querySelectorAll('#sys li').forEach(li=>li.classList.toggle('on',+li.dataset.i===i));
+  if(sysIds&&sysIds.size){choose([...sysIds][0])}
+  else{if(sysIds)toast('Sem peças modeladas neste sistema (ainda).');render()}
+  renderSys();
+}
+function focar(){const o=G.get(sel);if(!o)return;const v=new THREE.Box3().setFromObject(o.g).getCenter(new THREE.Vector3());O.tgt.copy(v);O.d=12;spin=false}
+function renderSys(){
+  const s=SYS[sysIdx],b=$('sysb');if(!b)return;
+  const ids=s.ids===null?D.pecas.map(p=>p.id):s.ids.filter(id=>P[id]);
+  $('sysh').textContent='LEITURA DO SISTEMA · '+s.n.toUpperCase();
+  b.innerHTML='<div class="fn">'+esc(s.func)+'</div>'+
+    (s.ler.length?'<ol>'+s.ler.map(t=>'<li>'+esc(t)+'</li>').join('')+'</ol>':'')+
+    (ids.length?'<div class="chips">'+ids.map(id=>{const p=P[id];return '<span class="chip'+(id===sel?' on':'')+'" data-id="'+id+'">'+esc(p.nome)+(p.parafusos?' · '+p.parafusos+' furos/parafusos':'')+'</span>'}).join('')+'</div>':'')+
+    (ids.length?'<div class="row"><button class="btn" id="sfoc">◎ Ver peça</button><button class="btn'+(iso?' act':'')+'" id="siso">Isolar</button><button class="btn'+(showHoles?' act':'')+'" id="sfur">Furos</button><button class="btn" id="sall">Mostrar tudo</button></div>':'')+
+    (s.nota?'<div class="nota">'+esc(s.nota)+'</div>':'')+
+    '<div style="color:var(--mu);font-size:11px;margin-top:8px">Furos: posições aproximadas dos pontos de fixação, para orientação. Use o manual para a ordem e o torque.</div>';
+  b.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{choose(c.dataset.id)});
+  const q=id=>document.getElementById(id);
+  if(q('sfoc'))q('sfoc').onclick=focar;
+  if(q('siso'))q('siso').onclick=()=>{iso=!iso;renderSys()};
+  if(q('sfur'))q('sfur').onclick=()=>{showHoles=!showHoles;renderSys()};
+  if(q('sall'))q('sall').onclick=()=>{selSys(0);O.tgt.set(0,.8,0);O.d=26};
+}
 function ui(){
   // limpa a cena anterior
   G.forEach(o => S.remove(o.g));
@@ -360,11 +426,9 @@ function ui(){
   $('nav').innerHTML = ['Início', 'Manual', 'Ferramentas', 'Configurações']
     .map(t => '<button>' + t + '</button>').join('');
 
-  $('sys').innerHTML = [
-    'Motor Completo', 'Cabeçote', 'Bloco do Motor', 'Sistema de Admissão',
-    'Sistema de Escape', 'Arrefecimento', 'Sistema Elétrico',
-    'Transmissão', 'Suspensão', 'Freios'
-  ].map((t, i) => '<li class="' + (i ? '' : 'on') + '">' + t + '<span>›</span></li>').join('');
+  sysIdx = 0; sysIds = null; iso = false;
+  $('sys').innerHTML = SYS.map((t, i) => '<li data-i="' + i + '" class="' + (i ? '' : 'on') + '">' + t.n + '<span>›</span></li>').join('');
+  document.querySelectorAll('#sys li').forEach(li => { li.onclick = () => selSys(+li.dataset.i); });
 
   // etiquetas 3D
   $('lbs').innerHTML = D.pecas.map(p =>
@@ -407,10 +471,12 @@ function ui(){
   D.pecas.forEach(p => {
     const g = build(p);
     S.add(g);
-    G.set(p.id, { g: g, k: 0 });
+    const holes = addHoles(g, p);
+    G.set(p.id, { g: g, k: 0, holes: holes });
   });
 
   render();
+  renderSys();
 }
 function _overlay(){
   let ov=document.getElementById('ovPeca');
