@@ -90,6 +90,14 @@ const CAMPOS={cod:'Código',torque:'Torque',material:'Material',parafusos:'Nº d
 const falta=v=>!v||v==='—'||v==='a cadastrar';
 const post=(p,b)=>fetch(WK+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).then(r=>r.json());
 const say=(t,ok)=>{const m=$('cmsg');if(m){m.textContent=t;m.style.color=ok?'var(--gr)':'#ffb0b6'}};
+function toast(msg){
+  let t=document.getElementById('toastOficina');
+  if(!t){t=document.createElement('div');t.id='toastOficina';
+    t.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#08162b;border:1px solid #27c8ff;color:#e8f1ff;padding:10px 18px;border-radius:30px;font:13px system-ui;z-index:10001;box-shadow:0 8px 24px #000a';
+    document.body.appendChild(t);}
+  t.textContent=msg;t.style.display='block';
+  clearTimeout(t._t);t._t=setTimeout(()=>{t.style.display='none';},3200);
+}
 function ctb(){const b=$('ctb');if(!b||!P[sel])return;const p=P[sel];
  if(!U){b.innerHTML='<p style="color:var(--mu);line-height:1.5;margin-bottom:8px">Crie sua conta grátis para enviar dados que faltam e ajudar a plataforma a evoluir.</p><input class="in" id="ce" type="email" placeholder="E-mail"><input class="in" id="cs" type="password" placeholder="Senha"><div class="nav2"><button class="btn" id="cl" style="background:var(--bl)">Entrar</button><button class="btn" id="cc">Criar conta no ALMAFLUXO</button></div><p id="cmsg" style="margin-top:8px;font-size:12px"></p>';
   $('cl').onclick=()=>post('/proxy/central',{action:'login',email:$('ce').value.trim().toLowerCase(),senha:$('cs').value}).then(d=>{const u=d.usuario||d,tk=d.token||d.sessionToken||u.sessionToken;if(!(d.ok===true||d.autenticado===true||d.status==='success')||!tk)throw new Error(d.error||d.message||'E-mail ou senha incorretos');U={nome:u.nome||'Usuário',email:$('ce').value.trim().toLowerCase(),balance:u.balance??u.saldo??0,sessionToken:tk,master:!!(u.master||u.admin)};localStorage.setItem('almafluxo_usuario',JSON.stringify(U));ctb();iab()}).catch(e=>say(e.message));
@@ -119,7 +127,19 @@ function login(e,s){return post('/proxy/central',{action:'login',email:e,senha:s
 function gate(){let l=$('load');if(!l){l=document.createElement('div');l.id='load';$('stage').appendChild(l)}l.style.display='grid';l.innerHTML='<div style="max-width:290px;width:100%;text-align:left"><h2 style="color:var(--cy);margin-bottom:6px">Entre para abrir a oficina</h2><p style="line-height:1.5;margin-bottom:10px">Ferramenta gratuita. Use a mesma conta do ALMAFLUXO.</p><input class="in" id="ge" type="email" placeholder="E-mail"><input class="in" id="gs" type="password" placeholder="Senha"><button class="btn" id="gl" style="background:var(--bl);width:100%;margin-bottom:6px">Entrar</button><button class="btn" id="gc" style="width:100%">Criar conta no ALMAFLUXO</button><p id="gm" style="color:#ffb0b6;margin-top:8px;font-size:12px"></p></div>';
  $('gc').onclick=()=>window.open(WK+'/','_blank');
  $('gl').onclick=()=>login($('ge').value.trim().toLowerCase(),$('gs').value).then(boot).catch(e=>{$('gm').textContent=e.message})}
-function carregar(id){return post('/api/mecanica/motor',{...SES(),id}).then(j=>{if(!j.ok){if(/Entre/.test(j.error||''))gate();throw 1}D=j.motor;ui();fit();const l=$('load');if(l)l.remove()}).catch(e=>{if(e===1)return;const l=$('load');if(l)l.innerHTML='Não foi possível carregar o motor do worker.<br>Confira as rotas <b>/api/mecanica/</b>.'})}
+function carregar(id){
+  return post('/api/mecanica/motor',Object.assign({},SES(),{id})).then(function(j){
+    if(!j.ok){if(/Entre/.test(j.error||''))gate();throw 1;}
+    D=j.motor;
+    D.id=id;                       // ← ESSENCIAL
+    ui();fit();
+    const l=$('load');if(l)l.remove();
+  }).catch(function(e){
+    if(e===1)return;
+    const l=$('load');
+    if(l)l.innerHTML='Não foi possível carregar o motor do worker.<br>Confira as rotas <b>/api/mecanica/</b>.';
+  });
+}
 const $=id=>document.getElementById(id);
 let D,P={},sel=null,si=0,modo='desmontar',expl=false,vista='3d';
 const G=new Map();
@@ -152,50 +172,412 @@ const L3=new THREE.PointLight('#ff7a3a',.7,30);L3.position.set(8,-2,7);S.add(L3)
 const O={t:-.7,p:1.05,d:26,ud:0,tgt:new THREE.Vector3(0,.8,0)};
 function cam(){C.position.set(O.tgt.x+O.d*Math.sin(O.p)*Math.sin(O.t),O.tgt.y+O.d*Math.cos(O.p),O.tgt.z+O.d*Math.sin(O.p)*Math.cos(O.t));C.lookAt(O.tgt)}
 function fit(){const w=cv.clientWidth,h=cv.clientHeight;R.setPixelRatio(Math.min(devicePixelRatio,2));R.setSize(w,h,false);C.aspect=w/h;C.updateProjectionMatrix()}
-let drag=null,spin=true;
-cv.onpointerdown=e=>{drag={x:e.clientX,y:e.clientY,m:0};spin=false;cv.setPointerCapture(e.pointerId)};
-cv.onpointermove=e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.m+=Math.abs(dx)+Math.abs(dy);drag.x=e.clientX;drag.y=e.clientY;O.t-=dx*.008;O.p=Math.min(2.2,Math.max(.3,O.p-dy*.008))};
-cv.onpointerup=e=>{if(drag&&drag.m<5)pick(e);drag=null};
+let drag=null,spin=true,dragPeca=null;
+const _plano=new THREE.Plane(),_ray=new THREE.Raycaster(),_ptr=new THREE.Vector2(),_hit=new THREE.Vector3();
+
+function _ponteiro(e){const r=cv.getBoundingClientRect();_ptr.set(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1);_ray.setFromCamera(_ptr,C);return _ray;}
+
+cv.onpointerdown=e=>{
+  // Ctrl (ou Cmd no Mac) + arrastar = mover peça
+  if(e.ctrlKey||e.metaKey){
+    const ray=_ponteiro(e);
+    const hit=ray.intersectObjects([...G.values()].map(o=>o.g).filter(g=>g.visible),true)[0];
+    if(hit){
+      const id=hit.object.userData.id;
+      if(id&&G.has(id)){
+        dragPeca={id,pos0:G.get(id).g.position.clone()};
+        // plano paralelo à câmera passando pelo centro da peça
+        _plano.setFromNormalAndCoplanarPoint(C.getWorldDirection(new THREE.Vector3()).negate(),G.get(id).g.position);
+        spin=false;cv.style.cursor='grabbing';cv.setPointerCapture(e.pointerId);
+        e.preventDefault();return;
+      }
+    }
+  }
+  // comportamento normal: girar câmera
+  drag={x:e.clientX,y:e.clientY,m:0};spin=false;cv.setPointerCapture(e.pointerId);
+};
+
+cv.onpointermove=e=>{
+  if(dragPeca){
+    const ray=_ponteiro(e);
+    if(ray.ray.intersectPlane(_plano,_hit)){
+      const o=G.get(dragPeca.id);
+      if(o) o.g.position.copy(_hit);
+    }
+    return;
+  }
+  if(!drag)return;
+  const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
+  drag.m+=Math.abs(dx)+Math.abs(dy);drag.x=e.clientX;drag.y=e.clientY;
+  O.t-=dx*.008;O.p=Math.min(2.2,Math.max(.3,O.p-dy*.008));
+};
+
+cv.onpointerup=e=>{
+  if(dragPeca){
+    const id=dragPeca.id,o=G.get(id);
+    const voltou=o?o.g.position.distanceTo(dragPeca.pos0)<0.3:true;
+    cv.style.cursor='grab';
+    if(voltou&&o){o.g.position.copy(dragPeca.pos0);}
+    else{abrirPainelTroca(id);}
+    dragPeca=null;
+    return;
+  }
+  if(drag&&drag.m<5)pick(e);
+  drag=null;
+};
+
 cv.onwheel=e=>{e.preventDefault();O.d=Math.min(45,Math.max(10,O.d+e.deltaY*.02))};
+
+// Botão direito numa peça → menu
+cv.addEventListener('contextmenu',e=>{
+  e.preventDefault();
+  const ray=_ponteiro(e);
+  const hit=ray.intersectObjects([...G.values()].map(o=>o.g).filter(g=>g.visible),true)[0];
+  if(!hit)return;
+  const id=hit.object.userData.id;
+  if(!id||!G.has(id))return;
+  abrirMenuPeca(e.clientX,e.clientY,id);
+});
 $('zi').onclick=()=>O.d=Math.max(10,O.d-3);$('zo').onclick=()=>O.d=Math.min(45,O.d+3);
 $('rst').onclick=()=>{O.t=-.7;O.p=1.05;O.d=26;spin=true};
 const RC=new THREE.Raycaster();
 function pick(e){const r=cv.getBoundingClientRect();RC.setFromCamera(new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1),C);const h=RC.intersectObjects([...G.values()].map(o=>o.g).filter(g=>g.visible),true)[0];if(h)choose(h.object.userData.id,true)}
 // ── estado/animação ──
-function tick(){requestAnimationFrame(tick);if(!D)return;if(spin)O.t+=.0025;cam();
- G.forEach((o,id)=>{const p=P[id],k=expl?1:0;o.k+=(k-o.k)*.08;o.g.position.set(p.pos[0]+p.ex[0]*o.k,p.pos[1]+p.ex[1]*o.k,p.pos[2]+p.ex[2]*o.k);
-  const rm=removido(id);o.g.visible=!rm;
-  o.g.traverse(m=>{if(m.isMesh){m.material.emissive=m.material.emissive||new THREE.Color();m.material.emissive.set(id===sel?'#0b4a8c':'#000')}})});
- R.render(S,C);const w=cv.clientWidth,h=cv.clientHeight;
- D.pecas.forEach(p=>{const l=$('lb'+p.id),o=G.get(p.id);if(!l)return;const v=o.g.position.clone().project(C);l.style.display=(o.g.visible&&v.z<1)?'flex':'none';l.style.left=((v.x*.5+.5)*w+(p.pos[0]<0?-70:70))+'px';l.style.top=((-v.y*.5+.5)*h+(p.pos[1]>2?-40:p.pos[1]<-2?40:0))+'px'})}
+function tick(){
+  requestAnimationFrame(tick);
+  if(!D)return;
+  if(spin)O.t+=.0025;
+  cam();
+  G.forEach((o,id)=>{
+    const p=P[id],k=expl?1:0;o.k+=(k-o.k)*.08;
+    // se a peça foi movida com Ctrl+drag, não sobrescreve a posição
+    if(!(dragPeca&&dragPeca.id===id)&&!(D.adaptacoes&&D.adaptacoes[id]&&D.adaptacoes[id]._manual)){
+      o.g.position.set(p.pos[0]+p.ex[0]*o.k,p.pos[1]+p.ex[1]*o.k,p.pos[2]+p.ex[2]*o.k);
+    }
+    const rm=removido(id);o.g.visible=!rm;
+    o.g.traverse(m=>{if(m.isMesh){m.material.emissive=m.material.emissive||new THREE.Color();m.material.emissive.set(id===sel?'#0b4a8c':'#000')}})
+  });
+  R.render(S,C);
+  const w=cv.clientWidth,h=cv.clientHeight;
+  D.pecas.forEach(p=>{const l=$('lb'+p.id),o=G.get(p.id);if(!l)return;const v=o.g.position.clone().project(C);l.style.display=(o.g.visible&&v.z<1)?'flex':'none';l.style.left=((v.x*.5+.5)*w+(p.pos[0]<0?-70:70))+'px';l.style.top=((-v.y*.5+.5)*h+(p.pos[1]>2?-40:p.pos[1]<-2?40:0))+'px'})
+}
 function removido(id){if(modo!=='desmontar')return false;return D.passos.slice(0,si).some(s=>s.peca===id)}
 function choose(id,fromScene){sel=id;const i=D.passos.findIndex(s=>s.peca===id);if(i>=0)si=i;render()}
-function render(){const p=P[sel]||D.pecas[0];
- document.querySelectorAll('.lb').forEach(l=>l.classList.toggle('on',l.id==='lb'+sel));
- document.querySelectorAll('.pc').forEach(l=>l.classList.toggle('on',l.dataset.id===sel));
- const n=D.passos.length,st=D.passos[si];$('sh').textContent=(modo==='desmontar'?'3. DESMONTAGEM':'3. MONTAGEM')+' · PASSO '+(si+1)+' / '+n;
- $('steps').innerHTML=D.passos.map((s,i)=>`<div class="step ${i<si?'done':''} ${i===si?'cur':''}" data-i="${i}"><b>${i+1}</b>${s.titulo}${i<si?'<span class="ok">✔ Concluído</span>':i===si?'<span class="ok" style="color:var(--cy)">● Em andamento</span>':''}</div>`).join('');
- document.querySelectorAll('.step').forEach(e=>e.onclick=()=>{si=+e.dataset.i;sel=D.passos[si].peca;render()});
- $('det').innerHTML=`<div class="dets"><i style="background:radial-gradient(circle at 35% 30%,${p.cor},#06101f)"></i><div><b style="font-size:15px">${p.nome}</b><p>Código: ${falta(p.cod)?'<i style="color:var(--am)">a cadastrar · contribua</i>':esc(p.cod)}<br>Compat.: ${esc(p.compat)}<br>Material: ${esc(p.material)}<br>Torque: <b>${falta(p.torque)?'<i style="color:var(--am)">a cadastrar</i>':esc(p.torque)}</b>${p.parafusos?' · '+p.parafusos+' parafusos':''}</p></div></div><p style="margin-top:8px">${esc(p.func)}</p><div class="warn"><b>ATENÇÃO</b> · ${esc(p.aviso)}</div>`;
- const e=D.erroCompat;$('cer').innerHTML=p.compatErro?`<p style="color:#ffb0b6;line-height:1.5">${p.compatErro}</p><div class="warn">Use o coletor do modelo 1.0 8V.</div>`:`<b>${e.titulo}</b><p style="color:var(--rd);margin:4px 0">${e.texto}</p><p style="color:var(--mu);line-height:1.6">Solução:<br>${e.solucao.map(s=>'• '+s).join('<br>')}</p>`;
- document.querySelectorAll('.lb').forEach(l=>l.classList.toggle('out',!!P[l.id.slice(2)].compatErro));ctb();iab()}
-$('prev').onclick=()=>{if(si>0){si--;sel=D.passos[si].peca;render()}};
-$('next').onclick=()=>{if(si<D.passos.length-1){si++;sel=D.passos[si].peca;render()}else{si=D.passos.length;render()}};
-function ui(){G.forEach(o=>S.remove(o.g));G.clear();P={};si=0;expl=false;modo='desmontar';D.pecas.forEach(p=>P[p.id]=p);sel=D.passos[0].peca;
- const v=D.veiculo;$('carinfo').innerHTML=`<b>${v.nome.replace('Volkswagen','VW')}</b><br>Motor: ${v.motor.split(' · ')[0]}<br>Potência: ${v.potencia}<br>Câmbio: ${v.cambio}`;
- $('tit').innerHTML=`${D.titulo} <span>— VISTA ${expl?'EXPLODIDA':'MONTADA'}</span>`;$('ft').textContent='Sistema carregado · '+v.nome+' - '+v.ano;
- $('nav').innerHTML=['Início','Manual','Ferramentas','Configurações'].map(t=>`<button>${t}</button>`).join('');
- $('sys').innerHTML=['Motor Completo','Cabeçote','Bloco do Motor','Sistema de Admissão','Sistema de Escape','Arrefecimento','Sistema Elétrico','Transmissão','Suspensão','Freios'].map((t,i)=>`<li class="${i?'':'on'}">${t}<span>›</span></li>`).join('');
- $('lbs').innerHTML=D.pecas.map(p=>`<div class="lb" id="lb${p.id}"><b>${p.n}</b>${p.nome}</div>`).join('');
- D.pecas.forEach(p=>$('lb'+p.id).onclick=()=>choose(p.id));
- $('car2').innerHTML=D.pecas.map(p=>`<div class="pc" data-id="${p.id}"><i style="background:radial-gradient(circle at 35% 30%,${p.cor},#06101f)"></i><p>${p.nome}<br><small>Cód. ${esc(p.cod)}</small></p></div>`).join('');
- document.querySelectorAll('.pc').forEach(e=>e.onclick=()=>choose(e.dataset.id));
- $('dica').innerHTML=`<p style="line-height:1.6">${D.dica}</p><div class="warn">${D.aviso}</div>`;
- const tabs=[['3d','Vista 3D'],['ex','Vista Explodida'],['mont','Montar'],['desm','Desmontar']];
- $('tabs').innerHTML=tabs.map(t=>`<button data-t="${t[0]}" class="${t[0]===vista?'on':''}">${t[1]}</button>`).join('');
- document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{const t=b.dataset.t;if(t==='ex')expl=true;if(t==='3d')expl=false;if(t==='mont'){modo='montar';si=0}if(t==='desm'){modo='desmontar';si=0;sel=D.passos[0].peca}
-  document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));$('tit').innerHTML=`${D.titulo} <span>— VISTA ${expl?'EXPLODIDA':'MONTADA'}</span>`;render()});
- D.pecas.forEach(p=>{const g=build(p);S.add(g);G.set(p.id,{g,k:0})});render()}
+function render(){
+  const p = P[sel] || D.pecas[0];
+
+  // destaca a peça selecionada
+  document.querySelectorAll('.lb').forEach(l => l.classList.toggle('on', l.id === 'lb' + sel));
+  document.querySelectorAll('.pc').forEach(l => l.classList.toggle('on', l.dataset.id === sel));
+
+  // cabeçalho do passo
+  const n = D.passos.length, st = D.passos[si];
+  $('sh').textContent = (modo === 'desmontar' ? '3. DESMONTAGEM' : '3. MONTAGEM') + ' · PASSO ' + (si + 1) + ' / ' + n;
+
+  // lista de passos
+  $('steps').innerHTML = D.passos.map((s, i) =>
+    `<div class="step ${i < si ? 'done' : ''} ${i === si ? 'cur' : ''}" data-i="${i}">` +
+      `<b>${i + 1}</b>${s.titulo}` +
+      (i < si ? '<span class="ok">✔ Concluído</span>'
+             : i === si ? '<span class="ok" style="color:var(--cy)">● Em andamento</span>' : '') +
+    `</div>`
+  ).join('');
+  document.querySelectorAll('.step').forEach(e => e.onclick = () => {
+    si = +e.dataset.i;
+    sel = D.passos[si].peca;
+    render();
+  });
+
+  // detalhes da peça (uma única atribuição, sem duplicar)
+  const adTag = p._adaptada
+    ? ' <span style="color:#2fd48a;font-size:11px">· adaptada do motor ' + esc(p._adaptada) + '</span>'
+    : '';
+  $('det').innerHTML =
+    '<div class="dets">' +
+      '<i style="background:radial-gradient(circle at 35% 30%,' + p.cor + ',#06101f)"></i>' +
+      '<div>' +
+        '<b style="font-size:15px">' + p.nome + '</b>' + adTag +
+        '<p>' +
+          'Código: ' + (falta(p.cod) ? '<i style="color:var(--am)">a cadastrar · contribua</i>' : esc(p.cod)) +
+          '<br>Compat.: ' + esc(p.compat) +
+          '<br>Material: ' + esc(p.material) +
+          '<br>Torque: <b>' + (falta(p.torque) ? '<i style="color:var(--am)">a cadastrar</i>' : esc(p.torque)) + '</b>' +
+          (p.parafusos ? ' · ' + p.parafusos + ' parafusos' : '') +
+        '</p>' +
+      '</div>' +
+    '</div>' +
+    '<p style="margin-top:8px">' + esc(p.func) + '</p>' +
+    '<div class="warn"><b>ATENÇÃO</b> · ' + esc(p.aviso) + '</div>';
+
+  // erro de compatibilidade
+  const e = D.erroCompat;
+  $('cer').innerHTML = p.compatErro
+    ? '<p style="color:#ffb0b6;line-height:1.5">' + p.compatErro + '</p>' +
+      '<div class="warn">Use o coletor do modelo 1.0 8V.</div>'
+    : '<b>' + e.titulo + '</b>' +
+      '<p style="color:var(--rd);margin:4px 0">' + e.texto + '</p>' +
+      '<p style="color:var(--mu);line-height:1.6">Solução:<br>' +
+        e.solucao.map(s => '• ' + s).join('<br>') + '</p>';
+
+  // marca as etiquetas das peças incompatíveis
+  document.querySelectorAll('.lb').forEach(l => {
+    const id = l.id.slice(2);
+    l.classList.toggle('out', !!(P[id] && P[id].compatErro));
+  });
+
+  ctb();
+  iab();
+}
+
+$('prev').onclick = () => {
+  if (si > 0) { si--; sel = D.passos[si].peca; render(); }
+};
+$('next').onclick = () => {
+  if (si < D.passos.length - 1) { si++; sel = D.passos[si].peca; render(); }
+  else { si = D.passos.length; render(); }
+};
+
+function ui(){
+  // limpa a cena anterior
+  G.forEach(o => S.remove(o.g));
+  G.clear();
+  P = {};
+  si = 0;
+  expl = false;
+  modo = 'desmontar';
+  D.pecas.forEach(p => { P[p.id] = p; });
+  sel = D.passos[0].peca;
+
+  const v = D.veiculo;
+  $('carinfo').innerHTML =
+    '<b>' + v.nome.replace('Volkswagen', 'VW') + '</b><br>' +
+    'Motor: ' + v.motor.split(' · ')[0] + '<br>' +
+    'Potência: ' + v.potencia + '<br>' +
+    'Câmbio: ' + v.cambio;
+  $('tit').innerHTML = D.titulo + ' <span>— VISTA ' + (expl ? 'EXPLODIDA' : 'MONTADA') + '</span>';
+  $('ft').textContent = 'Sistema carregado · ' + v.nome + ' - ' + v.ano;
+
+  $('nav').innerHTML = ['Início', 'Manual', 'Ferramentas', 'Configurações']
+    .map(t => '<button>' + t + '</button>').join('');
+
+  $('sys').innerHTML = [
+    'Motor Completo', 'Cabeçote', 'Bloco do Motor', 'Sistema de Admissão',
+    'Sistema de Escape', 'Arrefecimento', 'Sistema Elétrico',
+    'Transmissão', 'Suspensão', 'Freios'
+  ].map((t, i) => '<li class="' + (i ? '' : 'on') + '">' + t + '<span>›</span></li>').join('');
+
+  // etiquetas 3D
+  $('lbs').innerHTML = D.pecas.map(p =>
+    '<div class="lb" id="lb' + p.id + '"><b>' + p.n + '</b>' + p.nome + '</div>'
+  ).join('');
+  D.pecas.forEach(p => { $('lb' + p.id).onclick = () => choose(p.id); });
+
+  // cards embaixo da cena
+  $('car2').innerHTML = D.pecas.map(p =>
+    '<div class="pc" data-id="' + p.id + '">' +
+      '<i style="background:radial-gradient(circle at 35% 30%,' + p.cor + ',#06101f)"></i>' +
+      '<p>' + p.nome + '<br><small>Cód. ' + esc(p.cod) + '</small></p>' +
+    '</div>'
+  ).join('');
+  document.querySelectorAll('.pc').forEach(el => {
+    el.onclick = () => choose(el.dataset.id);
+  });
+
+  $('dica').innerHTML = '<p style="line-height:1.6">' + D.dica + '</p><div class="warn">' + D.aviso + '</div>';
+
+  // abas
+  const tabs = [['3d', 'Vista 3D'], ['ex', 'Vista Explodida'], ['mont', 'Montar'], ['desm', 'Desmontar']];
+  $('tabs').innerHTML = tabs.map(t =>
+    '<button data-t="' + t[0] + '" class="' + (t[0] === vista ? 'on' : '') + '">' + t[1] + '</button>'
+  ).join('');
+  document.querySelectorAll('#tabs button').forEach(b => {
+    b.onclick = () => {
+      const t = b.dataset.t;
+      if (t === 'ex') expl = true;
+      if (t === '3d') expl = false;
+      if (t === 'mont') { modo = 'montar'; si = 0; }
+      if (t === 'desm') { modo = 'desmontar'; si = 0; sel = D.passos[0].peca; }
+      document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x === b));
+      $('tit').innerHTML = D.titulo + ' <span>— VISTA ' + (expl ? 'EXPLODIDA' : 'MONTADA') + '</span>';
+      render();
+    };
+  });
+
+  // constrói o 3D
+  D.pecas.forEach(p => {
+    const g = build(p);
+    S.add(g);
+    G.set(p.id, { g: g, k: 0 });
+  });
+
+  render();
+}
+function _overlay(){
+  let ov=document.getElementById('ovPeca');
+  if(ov)return ov;
+  ov=document.createElement('div');ov.id='ovPeca';
+  ov.style.cssText='position:fixed;inset:0;background:#000a;z-index:9998;display:none;align-items:center;justify-content:center';
+  ov.addEventListener('click',ev=>{if(ev.target===ov)fecharOverlay();});
+  document.body.appendChild(ov);
+  return ov;
+}
+function fecharOverlay(){
+  const ov=document.getElementById('ovPeca');
+  if(ov){ov.style.display='none';ov.innerHTML='';}
+}
+function _ovBox(ov){
+  let box=ov.querySelector('.ov-box');
+  if(!box){
+    box=document.createElement('div');box.className='ov-box';
+    box.style.cssText='background:#08162b;border:1px solid #1b4a7a;border-radius:12px;padding:18px;max-width:480px;width:92%;color:#e8f1ff;font:13px system-ui';
+    ov.appendChild(box);
+  }
+  return box;
+}
+
+function _menuCtx(){
+  let m=document.getElementById('menuPeca');
+  if(m)return m;
+  m=document.createElement('div');m.id='menuPeca';
+  m.style.cssText='position:fixed;z-index:10000;background:#0d1b2e;border:1px solid #1b4a7a;border-radius:8px;padding:5px;display:none;min-width:220px;box-shadow:0 10px 30px #000a;color:#e8f1ff;font:13px system-ui';
+  document.body.appendChild(m);
+  document.addEventListener('click',ev=>{if(!ev.target.closest('#menuPeca'))m.style.display='none';});
+  return m;
+}
+function abrirMenuPeca(x,y,pecaId){
+  const m=_menuCtx();m.innerHTML='';
+  const p=P[pecaId];if(!p)return;
+  const t=document.createElement('div');
+  t.style.cssText='padding:6px 10px;font-weight:700;color:#27c8ff;border-bottom:1px solid #1b4a7a;margin-bottom:4px';
+  t.textContent=p.nome;m.appendChild(t);
+  const itens=[
+    ['🔁 Implantar peça de outro motor',()=>abrirPainelTroca(pecaId)],
+    ['🤖 Pedir sugestão à IA',()=>abrirIAPeca(pecaId)]
+  ];
+  itens.forEach(function(par){
+    const b=document.createElement('button');
+    b.style.cssText='display:block;width:100%;text-align:left;background:none;border:0;color:#e8f1ff;padding:7px 10px;border-radius:6px;cursor:pointer;font:inherit';
+    b.onmouseenter=function(){b.style.background='#12325a';};
+    b.onmouseleave=function(){b.style.background='none';};
+    b.textContent=par[0];b.onclick=function(){m.style.display='none';par[1]();};
+    m.appendChild(b);
+  });
+  m.style.left=Math.min(x,innerWidth-240)+'px';
+  m.style.top=Math.min(y,innerHeight-160)+'px';
+  m.style.display='block';
+}
+
+async function abrirPainelTroca(pecaId){
+  const ov=_overlay();
+  ov.innerHTML='';ov.style.display='flex';
+  const box=_ovBox(ov);
+  box.textContent='Carregando…';
+  try{
+    const r=await post('/api/mecanica/pecasPorMotor',Object.assign({},SES(),{peca:pecaId,motorOrigem:D.id}));
+    if(!r.ok)throw new Error(r.error||'Falha ao consultar motores');
+    let html='<h3 style="margin:0 0 10px;color:#27c8ff">Trocar peça · '+esc(P[pecaId].nome)+'</h3>';
+    html+='<div style="color:#8fa8c8;margin-bottom:10px">Peça do motor atual: '+esc(D.veiculo.nome)+'</div>';
+    if(!r.motores.length){
+      html+='<div style="color:#ffb0b6">Nenhum outro motor cadastrado tem essa peça ainda.</div>';
+    }else{
+      html+='<select id="ovSel" style="width:100%;padding:9px;background:#071a33;color:#e8f1ff;border:1px solid #1b4a7a;border-radius:8px;margin-bottom:10px">';
+      r.motores.forEach(function(m){
+        const st=m.compativel?'✔ compatível':(m.motivo?'⚠ '+m.motivo:'? sem dados');
+        html+='<option value="'+esc(m.id)+'">'+esc(m.nome)+' — '+esc(st)+'</option>';
+      });
+      html+='</select>';
+      html+='<div id="ovInfo" style="margin-bottom:10px;font-size:12px;color:#8fa8c8"></div>';
+      html+='<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px">';
+      html+='<button id="ovCancel" class="btn" style="background:#0a1d3a;border:1px solid #1b4a7a">Cancelar</button>';
+      html+='<button id="ovIA" class="btn" style="background:#0a1d3a;border:1px solid #27c8ff;color:#27c8ff">Sugerir com IA</button>';
+      html+='<button id="ovOK" class="btn" style="background:#1f7bff">Aplicar</button>';
+      html+='</div>';
+    }
+    box.innerHTML=html;
+    const $s=function(id){return document.getElementById(id);};
+    if($s('ovCancel'))$s('ovCancel').onclick=fecharOverlay;
+    if($s('ovSel')){
+      const atualizarInfo=function(){
+        const id=$s('ovSel').value;
+        const m=r.motores.filter(function(x){return x.id===id;})[0];
+        const info=$s('ovInfo');
+        if(!info||!m)return;
+        if(m.compativel){
+          info.innerHTML='<span style="color:#2fd48a">✔ Compatível.</span> '+(m.nota?esc(m.nota):'');
+        }else{
+          info.innerHTML='<span style="color:#f0a830">⚠ '+esc(m.motivo||'Sem dados')+'</span>'+(m.adaptacao?'<br>Adaptação: '+esc(m.adaptacao):'');
+        }
+      };
+      $s('ovSel').onchange=atualizarInfo;
+      atualizarInfo();
+      $s('ovOK').onclick=function(){
+        const escolhido=r.motores.filter(function(x){return x.id===$s('ovSel').value;})[0];
+        aplicarTroca(pecaId,$s('ovSel').value,escolhido);
+      };
+      $s('ovIA').onclick=function(){
+        const alvo=$s('ovSel').value;
+        fecharOverlay();
+        abrirIAPeca(pecaId,alvo);
+      };
+    }
+  }catch(e){
+    box.innerHTML='<div style="color:#ffb0b6">'+esc(e.message||'Erro')+'</div>'+
+      '<div style="text-align:right;margin-top:10px"><button id="ovCancel" class="btn" style="background:#0a1d3a;border:1px solid #1b4a7a">Fechar</button></div>';
+    const c=document.getElementById('ovCancel');
+    if(c)c.onclick=fecharOverlay;
+  }
+}
+
+function aplicarTroca(pecaId,motorEscolhido,info){
+  const o=G.get(pecaId);
+  if(!o){fecharOverlay();return;}
+  const orig=P[pecaId].pos.slice();
+  if(info&&info.compativel&&Array.isArray(info.offset)&&info.offset.length===3){
+    o.g.position.set(orig[0]+info.offset[0],orig[1]+info.offset[1],orig[2]+info.offset[2]);
+    if(Array.isArray(info.rot)&&info.rot.length===3){
+      o.g.rotation.set(info.rot[0],info.rot[1],info.rot[2]);
+    }
+    D.adaptacoes=D.adaptacoes||{};
+    D.adaptacoes[pecaId]={motorOrigem:motorEscolhido,compativel:true,offset:info.offset,rot:info.rot,_manual:true};
+  }else{
+    o.g.position.set(orig[0],orig[1],orig[2]);
+    D.adaptacoes=D.adaptacoes||{};
+    D.adaptacoes[pecaId]={motorOrigem:motorEscolhido,compativel:false,motivo:(info&&info.motivo)||null,adaptacao:(info&&info.adaptacao)||null};
+  }
+  P[pecaId]._adaptada=motorEscolhido;
+  fecharOverlay();
+  render();
+  toast('Peça "'+P[pecaId].nome+'" marcada como vinda do motor '+motorEscolhido+'.');
+}
+
+async function abrirIAPeca(pecaId,motorAlvo){
+  const ov=_overlay();
+  ov.innerHTML='';ov.style.display='flex';
+  const box=_ovBox(ov);
+  box.textContent='Pensando com a IA…';
+  const alvo=motorAlvo||D.id;
+  try{
+    const r=await post('/api/mecanica/iaAdaptar',Object.assign({},SES(),{motorOrigem:D.id,motorAlvo:alvo,peca:pecaId}));
+    let html='<h3 style="margin:0 0 10px;color:#27c8ff">Sugestão da IA</h3>';
+    if(!r.ok){
+      html+='<div style="color:#ffb0b6">'+esc(r.error||'IA indisponível')+'</div>';
+    }else{
+      if(r.resposta)html+='<p style="margin:0 0 10px">'+esc(r.resposta)+'</p>';
+      if(r.adaptacao)html+='<div style="background:#0a1c2a;border-left:3px solid #27c8ff;padding:8px 10px;border-radius:5px;margin-bottom:8px"><b>Adaptação:</b> '+esc(r.adaptacao)+'</div>';
+      if(r.riscos)html+='<div style="background:#2a2210;border-left:3px solid #f0a830;padding:8px 10px;border-radius:5px;margin-bottom:8px"><b>Riscos:</b> '+esc(r.riscos)+'</div>';
+      if(r.confianca)html+='<div style="color:#8fa8c8;font-size:12px;margin-bottom:8px">Confiança: '+esc(r.confianca)+'</div>';
+    }
+    html+='<div style="text-align:right;margin-top:10px"><button id="ovCancel" class="btn" style="background:#0a1d3a;border:1px solid #1b4a7a">Fechar</button></div>';
+    box.innerHTML=html;
+    const c=document.getElementById('ovCancel');
+    if(c)c.onclick=fecharOverlay;
+  }catch(e){
+    box.innerHTML='<div style="color:#ffb0b6">'+esc(e.message||'Erro')+'</div>'+
+      '<div style="text-align:right;margin-top:10px"><button id="ovCancel" class="btn" style="background:#0a1d3a;border:1px solid #1b4a7a">Fechar</button></div>';
+    const c=document.getElementById('ovCancel');
+    if(c)c.onclick=fecharOverlay;
+  }
+}
 function boot(){post('/api/mecanica/motores',SES()).then(j=>{if(!j.ok){if(/Entre/.test(j.error||''))gate();throw 1}$('veic').innerHTML=j.motores.map(m=>'<option value="'+esc(m.id)+'">'+esc(m.nome)+'</option>').join('');$('veic').onchange=()=>carregar($('veic').value);return carregar(j.motores[0].id)}).catch(e=>{if(e===1)return;const l=$('load');if(l)l.textContent='Não foi possível carregar os motores.'})}
 U?boot():gate();
 addEventListener('resize',fit);fit();cam();tick();
