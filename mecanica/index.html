@@ -138,34 +138,35 @@ function login(e,s){return post('/proxy/central',{action:'login',email:e,senha:s
 function gate(){let l=$('load');if(!l){l=document.createElement('div');l.id='load';$('stage').appendChild(l)}l.style.display='grid';l.innerHTML='<div style="max-width:290px;width:100%;text-align:left"><h2 style="color:var(--cy);margin-bottom:6px">Entre para abrir a oficina</h2><p style="line-height:1.5;margin-bottom:10px">Ferramenta gratuita. Use a mesma conta do ALMAFLUXO.</p><input class="in" id="ge" type="email" placeholder="E-mail"><input class="in" id="gs" type="password" placeholder="Senha"><button class="btn" id="gl" style="background:var(--bl);width:100%;margin-bottom:6px">Entrar</button><button class="btn" id="gc" style="width:100%">Criar conta no ALMAFLUXO</button><p id="gm" style="color:#ffb0b6;margin-top:8px;font-size:12px"></p></div>';
  $('gc').onclick=()=>window.open(WK+'/','_blank');
  $('gl').onclick=()=>login($('ge').value.trim().toLowerCase(),$('gs').value).then(boot).catch(e=>{$('gm').textContent=e.message})}
+let _carregandoToken = 0;
 function carregar(id){
-  // limpa imediatamente para evitar tick() sobre estado antigo
+  const meuToken = ++_carregandoToken;
   const l=$('load');
   if(l){ l.style.display='grid'; l.textContent='Carregando motor…'; }
   return post('/api/mecanica/motor', Object.assign({},SES(),{id}))
     .then(function(j){
+      if(meuToken !== _carregandoToken) return;
       if(!j.ok){
         if(/Entre/.test(j.error||'')) gate();
         throw new Error(j.error||'Falha ao carregar motor');
       }
       const m = j.motor;
-      // ── VALIDAÇÃO ── o tick() depende desses campos; se faltar, não monta
       if(!m || !Array.isArray(m.pecas) || !m.pecas.length ||
          !Array.isArray(m.passos) || !m.passos.length || !m.veiculo){
         throw new Error('Motor com dados incompletos');
       }
-      m.id = id;                 // garante id mesmo se o worker omitir
+      m.id = id;
       D = m;
-      ui();                      // ui() limpa G, P, sel, si e reconstrói tudo
+      ui();
       fit();
       const l2=$('load'); if(l2) l2.remove();
       return D;
     })
     .catch(function(e){
+      if(meuToken !== _carregandoToken) return;
       if(e && /Entre/.test(e.message||'')) return;
       const l2=$('load');
       if(l2) l2.textContent='Não foi possível carregar o motor: '+(e.message||e);
-      // NÃO deixa D "meio preenchido" — zera para o tick() sair cedo
       D = null;
     });
 }
@@ -191,8 +192,45 @@ function build(p){const g=new THREE.Group(),c=M(p.cor,p.metal),dk=M('#0b0d11',.3
  case'carter':g.add(bx(6.8,1.5,3.4,c,0,0,0));g.add(bx(7.2,.2,3.8,M('#22262d',.6),0,.8,0));g.add(cy(.2,.3,M('#888',.9),'y',-2.2,-.85,0));break;
  case'admissao':g.add(bx(6.4,1.1,1.4,c,0,.7,-.9));XS.forEach(x=>{g.add(cy(.28,1.8,c,'z',x,.1,.3));g.add(bx(.7,.15,.7,c,x,0,1.1))});g.add(cy(.6,1.2,c,'z',-3.3,.7,-.9));break;
  case'escape':XS.forEach((x,i)=>{g.add(cy(.22,1.7,c,'y',x,.2,.2));const e=cy(.22,1.2,c,'z',x,-.55,1.1);g.add(e)});g.add(cy(.38,7,c,'x',0,-.55,1.8));g.add(cy(.55,1,M('#9a5226',.8),'z',-3.7,-.55,1.8));break;
+  case'tampa_ev':        // cobertura baixa de inversor
+    g.add(bx(6.4,0.5,3.4,c));
+    for(let i=0;i<6;i++){g.add(cy(.1,.15,M('#cfd8e3',.9),'y',-2.4+i*1,0.3,1.5,10))}
+    g.add(bx(.8,.2,.5,M('#2a2f3a',.5),1.5,0.25,0)); // conector de potência
+    break;
+  case'inversor_ev':     // placa de potência (PCB dourada)
+    g.add(bx(6.0,0.2,3.0,c));
+    for(let i=0;i<4;i++){g.add(bx(.5,.3,.3,M('#222',.5),-2.0+i*1.3,0.2,0.8))} // MOSFETs
+    g.add(cy(.3,.3,M('#9aa3ad',.8),'x',2.5,0.2,0,16)); // capacitor
+    break;
+  case'mcu_ev':          // placa de controle (PCB verde)
+    g.add(bx(4.0,0.15,2.2,c));
+    g.add(bx(1.0,0.2,1.0,M('#111',.4),0,0.1,0)); // chip STM32
+    g.add(bx(.3,.3,.3,M('#d3452e',.5),1.2,0.15,0.6)); // LED
+    break;
+  case'bloco_ev':        // carcaça cilíndrica do motor BLDC
+    g.add(cy(1.8,3.0,c,'x'));                      // corpo cilíndrico
+    g.add(cy(1.9,.2,M('#3a3f47',.8),'x',-1.4,0,0)); // tampa traseira
+    g.add(cy(1.9,.2,M('#3a3f47',.8),'x', 1.4,0,0)); // tampa dianteira
+    for(let i=0;i<8;i++){const a=i*Math.PI/4;g.add(bx(.4,.15,.4,M('#b0b8c8',.9),-0.6,Math.sin(a)*1.85,Math.cos(a)*1.85))} // aletas
+    break;
+  case'rotor_ev':        // rotor com ímãs (substitui volante)
+    g.add(cy(1.5,.6,c,'x'));                       // rotor
+    g.add(cy(1.55,.2,M('#4a5059',.9),'x',0.3,0,0,48)); // anel
+    for(let i=0;i<8;i++){const a=i*Math.PI/4;g.add(bx(.5,.3,.2,M('#222',.5),0,Math.sin(a)*1.55,Math.cos(a)*1.55))} // ímãs
+    g.add(cy(.4,.8,M('#2c3036',.8),'x',0,0,0));    // eixo
+    break;
+  case'admissao_ev':     // entrada de arrefecimento (mangueira)
+    g.add(cy(.4,1.5,c,'z'));
+    g.add(cy(.5,.3,M('#111',.6),'z',0,0,0.8));
+    g.add(cy(.5,.3,M('#111',.6),'z',0,0,-0.8));
+    break;
+  case'escape_ev':       // saída de arrefecimento
+    g.add(cy(.4,1.5,c,'z'));
+    g.add(cy(.55,.3,M('#9a5226',.8),'z',0,0,0.8));
+    break;
  case'generico':g.add(bx(2,1,1.4,c));g.add(cy(.18,.2,M('#d9dde3',.9),'y',-.6,.55,0,10));g.add(cy(.18,.2,M('#d9dde3',.9),'y',.6,.55,0,10));break;
- case'volante':g.add(cy(1.7,.45,c,'x'));g.add(cy(1.75,.18,M('#4a5059',.9),'x',.15,0,0,48));g.add(cy(.55,.6,M('#2c3036',.8),'x',-.1,0,0));break}
+ case'volante':g.add(cy(1.7,.45,c,'x'));g.add(cy(1.75,.18,M('#4a5059',.9),'x',.15,0,0,48));g.add(cy(.55,.6,M('#2c3036',.8),'x',-.1,0,0));break;
+ default:g.add(bx(2,1,1.4,c));g.add(cy(.18,.2,M('#d9dde3',.9),'y',-.6,.55,0,10));g.add(cy(.18,.2,M('#d9dde3',.9),'y',.6,.55,0,10));break}
  g.traverse(o=>{if(o.isMesh)o.userData.id=p.id});return g}
 // ── cena ──
 const cv=$('cv'),R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true}),S=new THREE.Scene(),C=new THREE.PerspectiveCamera(36,1,.1,100);
@@ -325,6 +363,8 @@ function removido(id){if(modo!=='desmontar')return false;return D.passos.slice(0
 function choose(id,fromScene){sel=id;const i=D.passos.findIndex(s=>s.peca===id);if(i>=0)si=i;render();if(typeof renderSys==='function'&&D)renderSys()}
 function render(){
   const p = P[sel] || D.pecas[0];
+  if (!D || !D.passos || !D.passos.length) return;   // guarda extra
+  if (si >= D.passos.length) si = D.passos.length - 1; // nunca fora do range
 
   // destaca a peça selecionada
   document.querySelectorAll('.lb').forEach(l => l.classList.toggle('on', l.id === 'lb' + sel));
@@ -457,8 +497,19 @@ function renderSys(){
   if(q('sall'))q('sall').onclick=()=>{selSys(0);O.tgt.set(0,.8,0);O.d=26};
 }
 function ui(){
-  // limpa a cena anterior
-  G.forEach(o => { if(o && o.g) S.remove(o.g); });
+  // limpeza PROFUNDA do Scene (preserva luzes e câmera)
+  for(let i = S.children.length - 1; i >= 0; i--){
+    const o = S.children[i];
+    if(o.isLight || o.isCamera) continue;
+    S.remove(o);
+    o.traverse(n => {
+      if(n.geometry) n.geometry.dispose();
+      if(n.material){
+        if(Array.isArray(n.material)) n.material.forEach(m => m.dispose());
+        else n.material.dispose();
+      }
+    });
+  }
   G.clear();
   P = {};
   sel = null;
