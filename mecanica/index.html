@@ -180,8 +180,10 @@ function M(c,m,r){return new THREE.MeshStandardMaterial({color:c,metalness:m,rou
 function bx(w,h,d,mat,x=0,y=0,z=0){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);return m}
 function cy(r,l,mat,ax,x=0,y=0,z=0,seg=28){const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,l,seg),mat);if(ax==='x')m.rotation.z=Math.PI/2;if(ax==='z')m.rotation.x=Math.PI/2;m.position.set(x,y,z);return m}
 const XS=[-2.7,-0.9,0.9,2.7];
-function build(p){const g=new THREE.Group(),c=M(p.cor,p.metal),dk=M('#0b0d11',.3,.7);
- switch(p.kind){
+function build(p){
+  const g=new THREE.Group(),c=M(p.cor,p.metal),dk=M('#0b0d11',.3,.7);
+  const { L = 8, H = 4, D = 3.6, C = 4 } = p.dim || {};
+  switch(p.kind){
  case'tampa':g.add(bx(7.6,.9,3.3,c));g.add(bx(2.2,.15,1.2,M('#2a2f3a',.4),0,.5,0));g.add(cy(.45,.1,M('#cfd8e3',.9,.2),'y',0,.55,0));XS.forEach(x=>g.add(cy(.12,.2,M('#8a929c',.9),'y',x,.5,1.3,10)));break;
  case'comando':g.add(cy(.22,7.2,c,'x'));XS.forEach(x=>{g.add(bx(.5,.7,.25,c,x-.3,0,0));g.add(bx(.5,.7,.25,c,x+.3,0,.1))});g.add(cy(.5,.4,M('#555c66',.8),'x',-3.8,0,0));break;
  case'cabecote':g.add(bx(7.8,1.5,3.6,c));XS.forEach(x=>{g.add(cy(.38,.2,dk,'y',x,.78,0));g.add(cy(.12,.4,M('#d9dde3',.9),'y',x,.9,-.7,10))});g.add(bx(7.8,.3,.3,M('#7d858f',.9),0,-.6,1.8));break;
@@ -231,10 +233,262 @@ function build(p){const g=new THREE.Group(),c=M(p.cor,p.metal),dk=M('#0b0d11',.3
     g.add(cy(.4,1.5,c,'z'));
     g.add(cy(.55,.3,M('#9a5226',.8),'z',0,0,0.8));
     break;
- case'generico':g.add(bx(2,1,1.4,c));g.add(cy(.18,.2,M('#d9dde3',.9),'y',-.6,.55,0,10));g.add(cy(.18,.2,M('#d9dde3',.9),'y',.6,.55,0,10));break;
- case'volante':g.add(cy(1.7,.45,c,'x'));g.add(cy(1.75,.18,M('#4a5059',.9),'x',.15,0,0,48));g.add(cy(.55,.6,M('#2c3036',.8),'x',-.1,0,0));break;
- default:g.add(bx(2,1,1.4,c));g.add(cy(.18,.2,M('#d9dde3',.9),'y',-.6,.55,0,10));g.add(cy(.18,.2,M('#d9dde3',.9),'y',.6,.55,0,10));break}
- g.traverse(o=>{if(o.isMesh)o.userData.id=p.id});return g}
+  // ── MULTI-CILINDRO ─────────────────────────────────────────
+  case "tampa_multi": {
+    g.add(bx(L * 0.92, .5, D * 0.85, c));                         // tampa
+    g.add(bx(L * 0.3, .15, D * 0.35, M('#2a2f3a', .4), 0, .3, 0)); // respiro
+    g.add(cy(.4, .1, M('#cfd8e3', .9, .2), 'y', 0, .35, 0));
+    for (let i = 0; i < 4; i++) g.add(cy(.1, .15, M('#8a929c', .9), 'y', -L*0.4 + i*L*0.27, .3, D*0.35, 8));
+    break;
+  }
+  case "comando_multi": {
+    g.add(cy(.2, L * 0.9, c, 'x'));                               // eixo único
+    for (let i = 0; i < C; i++) {
+      const x = -L/2 + (i+1)*L/(C+1);
+      g.add(bx(.4, .6, .2, c, x - .25, 0, 0));                    // ressalto 1
+      g.add(bx(.4, .6, .2, c, x + .25, 0, .1));                   // ressalto 2
+    }
+    break;
+  }
+  case "comando_duplo": {
+    const yOff = .35;
+    g.add(cy(.18, L * 0.9, c, 'x', 0, -yOff, 0));                 // eixo admissão
+    g.add(cy(.18, L * 0.9, c, 'x', 0,  yOff, 0));                 // eixo escape
+    for (let i = 0; i < C; i++) {
+      const x = -L/2 + (i+1)*L/(C+1);
+      g.add(bx(.35, .5, .18, c, x - .2, -yOff, 0));
+      g.add(bx(.35, .5, .18, c, x - .2,  yOff, 0));
+    }
+    break;
+  }
+  case "cabecote_multi": {
+    g.add(bx(L * 0.96, 1.3, D * 0.9, c));
+    for (let i = 0; i < C; i++) {
+      const x = -L/2 + (i+1)*L/(C+1);
+      g.add(cy(.32, .2, dk, 'y', x, .7, 0));                      // câmara
+      g.add(cy(.1, .35, M('#d9dde3', .9), 'y', x, .8, -D*0.25, 8)); // vela
+    }
+    break;
+  }
+  case "junta_multi": {
+    const shape = new THREE.Shape();
+    shape.moveTo(-L/2, -D/2); shape.lineTo(L/2, -D/2);
+    shape.lineTo(L/2, D/2);   shape.lineTo(-L/2, D/2);
+    for (let i = 0; i < C; i++) {
+      const x = -L/2 + (i+1)*L/(C+1);
+      const h = new THREE.Path(); h.absarc(x, 0, .5, 0, Math.PI * 2, true);
+      shape.holes.push(h);
+    }
+    const m = new THREE.Mesh(new THREE.ExtrudeGeometry(shape, { depth: .06, bevelEnabled: false }), M(p.cor, .3, .5));
+    m.rotation.x = -Math.PI / 2; g.add(m);
+    break;
+  }
+  case "bloco_multi": {
+    g.add(bx(L, H, D, c));
+    for (let i = 0; i < C; i++) {
+      const x = -L/2 + (i+1)*L/(C+1);
+      g.add(cy(.5, .08, dk, 'y', x, H/2 + .02, 0));              // furo do cilindro
+    }
+    g.add(bx(L * 1.02, .25, D * 1.02, M('#737b85', .9), 0, -H/2, 0));
+    break;
+  }
+  case "bloco_v": {
+    // dois bancos inclinados a ±30°
+    const bE = bx(L, H, D * 0.45, c, 0, H * 0.1, -D * 0.25);
+    bE.rotation.z = -Math.PI / 6;
+    const bD = bx(L, H, D * 0.45, c, 0, H * 0.1,  D * 0.25);
+    bD.rotation.z =  Math.PI / 6;
+    g.add(bE); g.add(bD);
+    for (let i = 0; i < C; i++) {
+      const x = -L/2 + (i+1)*L/(C+1);
+      g.add(cy(.45, .08, dk, 'y', x, H * 0.55, -D * 0.15));
+      g.add(cy(.45, .08, dk, 'y', x, H * 0.55,  D * 0.15));
+    }
+    break;
+  }
+  case "bloco_boxer": {
+    // dois bancos horizontais opostos
+    g.add(bx(L, H * 0.6, D * 0.35, c, 0, 0, -D * 0.35));
+    g.add(bx(L, H * 0.6, D * 0.35, c, 0, 0,  D * 0.35));
+    for (let i = 0; i < C; i++) {
+      const x = -L/2 + (i+1)*L/(C+1);
+      g.add(cy(.4, .08, dk, 'z', x, 0, -D * 0.25));
+      g.add(cy(.4, .08, dk, 'z', x, 0,  D * 0.25));
+    }
+    break;
+  }
+  case "correia_multi": {
+    // correia/corrente em volta do virabrequim e do comando
+    const t = new THREE.Mesh(
+      new THREE.TorusGeometry(L * 0.55, .12, 8, 32),
+      c
+    );
+    t.scale.set(1, H * 0.35, 1);
+    t.rotation.y = Math.PI / 2;
+    g.add(t);
+    g.add(cy(.5, .3, M('#3a3f47', .8), 'x', -L/2, -H * 0.3, 0));
+    g.add(cy(.5, .3, M('#3a3f47', .8), 'x', -L/2,  H * 0.5, 0));
+    break;
+  }
+  case "carter_multi": {
+    g.add(bx(L * 0.85, 1.1, D * 0.85, c));
+    g.add(bx(L * 0.9, .18, D * 0.9, M('#22262d', .6), 0, .55, 0));
+    g.add(cy(.18, .3, M('#888', .9), 'y', -L * 0.35, -.65, 0));
+    break;
+  }
+  case "admissao_multi": {
+    g.add(bx(L * 0.85, .9, D * 0.5, c, 0, .4, 0));                // plenum
+    for (let i = 0; i < C; i++) {
+      const x = -L/2 + (i+1)*L/(C+1);
+      g.add(cy(.22, D * 0.8, c, 'z', x, .1, D * 0.2));            // duto
+      g.add(bx(.55, .12, .55, c, x, 0, D * 0.55));                // flange
+    }
+    g.add(cy(.5, D * 0.8, c, 'z', -L * 0.4, .4, 0));
+    break;
+  }
+  case "escape_multi": {
+    for (let i = 0; i < C; i++) {
+      const x = -L/2 + (i+1)*L/(C+1);
+      g.add(cy(.2, 1.3, c, 'y', x, .2, .2));
+      g.add(cy(.2, .9, c, 'z', x, -.45, .9));
+    }
+    g.add(cy(.35, L * 0.85, c, 'x', 0, -.45, 1.6));               // coletor
+    g.add(cy(.5, .8, M('#9a5226', .8), 'z', -L * 0.42, -.45, 1.6));
+    break;
+  }
+  case "turbo": {
+    g.add(cy(.8, 1.2, c, 'x'));                                    // caracol
+    g.add(cy(.55, 1.0, c, 'x', 1.2, 0, 0));                        // compressor
+    g.add(cy(.4, .5, M('#222', .5), 'x', -.9, 0, 0));              // eixo
+    g.add(bx(.5, .5, .5, M('#5a6068', .7), 1.9, 0, 0));            // atuador
+    g.add(cy(.12, .4, M('#cfd8e3', .9), 'y', -.4, .7, 0, 8));      // oil feed
+    break;
+  }
+  case "intercooler": {
+    g.add(bx(L * 0.7, 1.4, .3, c));
+    for (let i = 0; i < 12; i++) g.add(bx(L * 0.7, .06, .04, M('#222', .5), 0, -.6 + i*.1, .16));
+    g.add(cy(.25, .3, M('#111', .6), 'z', -L * 0.35, 0, 0));
+    g.add(cy(.25, .3, M('#111', .6), 'z',  L * 0.35, 0, 0));
+    break;
+  }
+  case "bomba_inj": {
+    g.add(cy(.6, 1.4, c, 'y'));
+    g.add(cy(.35, .3, M('#222', .5), 'y', 0, .8, 0));
+    for (let i = 0; i < 4; i++) g.add(cy(.08, .5, M('#cfd8e3', .9), 'z', 0, .2, .4 + i*.1, 6));
+    break;
+  }
+  case "filtro": {
+    g.add(cy(.5, 1.0, c, 'y'));
+    g.add(cy(.55, .1, M('#111', .6), 'y', 0, .55, 0));
+    g.add(cy(.55, .1, M('#111', .6), 'y', 0, -.55, 0));
+    break;
+  }
+  // ── SUSPENSÃO ─────────────────────────────────────────────
+  case "mola_helicoidal": {
+    const pts = [];
+    for (let i = 0; i <= 120; i++) {
+      const a = i / 120 * Math.PI * 2 * 6;   // 6 espiras
+      pts.push(new THREE.Vector3(Math.cos(a) * .55, i / 120 * 2.0 - 1.0, Math.sin(a) * .55));
+    }
+    const curve = new THREE.CatmullRomCurve3(pts);
+    const m = new THREE.Mesh(new THREE.TubeGeometry(curve, 200, .07, 8, false), c);
+    g.add(m);
+    g.add(cy(.6, .1, M('#333', .8), 'y', 0, -1.0, 0));
+    g.add(cy(.6, .1, M('#333', .8), 'y', 0,  1.0, 0));
+    break;
+  }
+  case "amortecedor": {
+    g.add(cy(.28, 1.8, c, 'y', 0, -.3, 0));                    // corpo
+    g.add(cy(.09, 1.4, M('#cfd8e3', .9), 'y', 0, 1.1, 0, 12)); // haste
+    g.add(cy(.35, .2, M('#222', .7), 'y', 0, 1.8, 0, 12));     // topo
+    g.add(cy(.35, .2, M('#222', .7), 'y', 0, -1.25, 0, 12));   // base
+    break;
+  }
+  case "batente": {
+    g.add(cy(.45, .35, c, 'y', 0, 0, 0, 16));
+    for (let i = 0; i < 3; i++) g.add(cy(.35 - i*.06, .15, c, 'y', 0, .25 + i*.15, 0, 12));
+    break;
+  }
+  case "coxim": {
+    g.add(cy(.55, .5, c, 'y', 0, 0, 0, 20));
+    g.add(cy(.5, .12, M('#555', .7), 'y', 0, .28, 0, 20));
+    g.add(cy(.5, .12, M('#555', .7), 'y', 0, -.28, 0, 20));
+    for (let i = 0; i < 3; i++) {
+      const a = i * Math.PI * 2 / 3;
+      g.add(cy(.06, .25, M('#888', .9), 'y', Math.cos(a)*.4, .3, Math.sin(a)*.4, 6));
+    }
+    break;
+  }
+  case "rolamento": {
+    g.add(cy(.45, .25, c, 'y', 0, 0, 0, 24));
+    g.add(cy(.30, .28, M('#111', .8), 'y', 0, 0, 0, 24));
+    for (let i = 0; i < 8; i++) {
+      const a = i * Math.PI / 4;
+      g.add(cy(.06, .05, M('#cfd8e3', .9), 'y', Math.cos(a)*.37, 0, Math.sin(a)*.37, 8));
+    }
+    break;
+  }
+  case "trize": {
+    g.add(cy(.2, 1.6, c, 'x', -.5, 0, 0));                    // eixo
+    g.add(cy(.42, .5, c, 'x', .6, 0, 0));                     // junta
+    g.add(cy(.12, .35, M('#555', .7), 'x', .9, 0, 0));        // haste da coifa
+    for (let i = 0; i < 6; i++) {                              // esferas internas
+      const a = i * Math.PI / 3;
+      g.add(new THREE.Mesh(new THREE.SphereGeometry(.06, 8, 8), M('#cfd8e3', .95)),
+        cy(.06, 0, M('#cfd8e3', .95), 'y', .6, Math.sin(a)*.3, Math.cos(a)*.3, 6));
+    }
+    break;
+  }
+  case "bandeja": {
+    // braço em "L" estampado
+    g.add(bx(1.8, .18, .5, c, -.4, 0, 0));
+    g.add(bx(.5, .18, 1.0, c, .6, 0, .2));
+    g.add(cy(.12, .2, M('#111', .8), 'y', -.3, 0, 0, 10));
+    g.add(cy(.12, .2, M('#111', .8), 'y', 1.0, 0, 0, 10));
+    break;
+  }
+  case "pivo": {
+    g.add(cy(.32, .6, c, 'y', 0, 0, 0, 20));                  // corpo
+    g.add(cy(.10, .8, M('#cfd8e3', .9), 'y', 0, .5, 0, 12));  // pino
+    g.add(cy(.36, .12, M('#333', .7), 'y', 0, .25, 0, 20));   // flange
+    break;
+  }
+  case "terminal": {
+    g.add(cy(.07, 1.0, c, 'x', 0, 0, 0, 12));                 // haste
+    g.add(new THREE.Mesh(new THREE.SphereGeometry(.18, 14, 14), c)); // rótula
+    g.add(cy(.08, .3, M('#cfd8e3', .9), 'y', -.18, .15, 0, 8));
+    break;
+  }
+  case "estab": {
+    g.add(cy(.12, 3.2, c, 'x'));                              // barra
+    g.add(cy(.28, .12, M('#333', .8), 'x', -1.2, 0, 0, 16));
+    g.add(cy(.28, .12, M('#333', .8), 'x',  1.2, 0, 0, 16));
+    g.add(cy(.08, .55, M('#555', .8), 'y', -1.2, .35, 0, 10));
+    g.add(cy(.08, .55, M('#555', .8), 'y',  1.2, .35, 0, 10));
+    break;
+  }
+  case "cubo_roda": {
+    g.add(cy(.85, .35, c, 'x', 0, 0, 0, 32));                 // cubo
+    g.add(cy(.5, .45, M('#555', .7), 'x', 0, 0, 0, 20));      // rolamento
+    for (let i = 0; i < 4; i++) {                              // prisioneiros
+      const a = i * Math.PI / 2 + Math.PI / 4;
+      g.add(cy(.06, .55, M('#cfd8e3', .9), 'x', .35, Math.sin(a)*.5, Math.cos(a)*.5, 8));
+    }
+    break;
+  }
+  case "disco_freio": {
+    g.add(cy(.9, .08, c, 'x', 0, 0, 0, 48));                  // disco
+    g.add(cy(.35, .15, M('#333', .8), 'x', 0, 0, 0, 20));     // chapéu
+    for (let i = 0; i < 6; i++) {                              // furos de ventilação
+      const a = i * Math.PI / 3;
+      g.add(cy(.05, .1, M('#111', .8), 'x', 0, Math.sin(a)*.65, Math.cos(a)*.65, 8));
+    }
+    break;
+  }
+  case'generico':g.add(bx(2,1,1.4,c));g.add(cy(.18,.2,M('#d9dde3',.9),'y',-.6,.55,0,10));g.add(cy(.18,.2,M('#d9dde3',.9),'y',.6,.55,0,10));break;
+  case'volante':g.add(cy(1.7,.45,c,'x'));g.add(cy(1.75,.18,M('#4a5059',.9),'x',.15,0,0,48));g.add(cy(.55,.6,M('#2c3036',.8),'x',-.1,0,0));break;
+  default:g.add(bx(2,1,1.4,c));g.add(cy(.18,.2,M('#d9dde3',.9),'y',-.6,.55,0,10));g.add(cy(.18,.2,M('#d9dde3',.9),'y',.6,.55,0,10));break}
+  g.traverse(o=>{if(o.isMesh)o.userData.id=p.id});return g}
 // ── cena ──
 const cv=$('cv'),R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true}),S=new THREE.Scene(),C=new THREE.PerspectiveCamera(36,1,.1,100);
 S.add(new THREE.AmbientLight('#8fb2e0',.9));
@@ -461,12 +715,21 @@ const SYS=[
  {n:'Transmissão',ids:['volante'],func:'O volante recebe o giro do virabrequim e o entrega ao câmbio pela embreagem.',
   ler:['O volante armazena inércia e suaviza as pulsações do motor.','A embreagem prende ou solta o câmbio contra o volante.','A coroa do volante recebe o pinhão do motor de partida.','Aperto do volante: valor alto, use o torque do manual.'],
   nota:'Câmbio e embreagem ainda não foram modelados neste demo.'},
- {n:'Suspensão',ids:[],func:'Sistema do chassi, fora do conjunto do motor.',ler:[],nota:'Ainda não há peças de suspensão neste demo. Elas dependem de um modelo de chassi a cadastrar.'},
- {n:'Freios',ids:[],func:'Sistema do chassi, fora do conjunto do motor.',ler:[],nota:'Ainda não há peças de freio neste demo. Elas dependem de um modelo de chassi a cadastrar.'}
+ {n:'Suspensão Dianteira',ids:['mola_d','amortecedor_d','batente_d','coxim_d','rolamento_d','trize_d','bandeja_d','pivo_d','terminal_d','estab_d','cubo_d','disco_d'],
+  func:'Conjunto McPherson: mola + amortecedor integrados ao cubo, com bandeja, pivô e trizeta.',
+  ler:['A mola sustenta o peso; o amortecedor controla o retorno.','O rolamento superior permite o esterço.','A trizeta transmite torque sob ângulo.','Bandeja e pivô ligam o cubo ao chassi.']},
+ {n:'Suspensão Traseira',ids:['mola_t','amortecedor_t','batente_t','estab_t','cubo_t','disco_t'],
+  func:'Eixo semi-independente: mola + amortecedor separados do cubo.',
+  ler:['A mola sustenta a traseira.','O amortecedor pode ser coaxial ou separado.','O estabilizador reduz rolagem.','Disco traseiro é maciço.']},
+ {n:'Freios',ids:['disco_d','disco_t'],func:'Discos de freio dianteiro e traseiro. Só o disco está modelado; pinça e pastilha ainda não.',
+  ler:['O disco gira com o cubo.','A pinça aperta as pastilhas contra o disco.','Troque em pares no mesmo eixo.'],
+  nota:'Pinça, pastilha e cilindro ainda não foram modelados.'}
 ];
 function addHoles(g,p){
   const n=+p.parafusos||0; if(!n)return null;
-  const b=new THREE.Box3().setFromObject(g),h=new THREE.Group(),w=b.max.x-b.min.x,d=b.max.z-b.min.z;
+  const b=new THREE.Box3().setFromObject(g);
+  if(!isFinite(b.min.x)||!isFinite(b.max.x)||!isFinite(b.min.z)||!isFinite(b.max.z)) return null;
+  const h=new THREE.Group(),w=b.max.x-b.min.x,d=b.max.z-b.min.z;
   const ring=new THREE.MeshBasicMaterial({color:'#27c8ff'}),core=new THREE.MeshBasicMaterial({color:'#000'});
   const add=(x,y,z,rx,rz)=>{const m=new THREE.Group();const t=new THREE.Mesh(new THREE.TorusGeometry(.17,.05,8,18),ring),c=new THREE.Mesh(new THREE.CircleGeometry(.15,18),core);m.add(t);m.add(c);m.position.set(x,y,z);if(rx)m.rotation.x=rx;if(rz)m.rotation.y=rz;h.add(m)};
   if(p.kind==='volante'){const x=b.max.x+.03,r=1.0;for(let i=0;i<n;i++){const a=i*2*Math.PI/n;add(x,Math.sin(a)*r,Math.cos(a)*r,0,Math.PI/2)}}
@@ -524,6 +787,19 @@ function ui(){
 
   D.pecas.forEach(p => { P[p.id] = p; });
 
+  // Ajuste de câmera por tipo de conjunto
+  if (D.sistema === "suspensao") {
+    O.tgt.set(0, 0, 0);
+    O.d = 14;
+    O.p = 1.15;
+    spin = true;
+  } else {
+    O.tgt.set(0, .8, 0);
+    O.d = 26;
+    O.p = 1.05;
+    spin = true;
+  }
+
   const passoInicial = (D.passos && D.passos[0] && D.passos[0].peca) || D.pecas[0].id;
   sel = passoInicial;
 
@@ -540,8 +816,19 @@ function ui(){
     .map(t => '<button>' + t + '</button>').join('');
 
   sysIdx = 0; sysIds = null; iso = false;
-  $('sys').innerHTML = SYS.map((t, i) => '<li data-i="' + i + '" class="' + (i ? '' : 'on') + '">' + t.n + '<span>›</span></li>').join('');
-  document.querySelectorAll('#sys li').forEach(li => { li.onclick = () => selSys(+li.dataset.i); });
+
+  // Mostra na lista lateral só os sistemas que têm peças neste motor.
+  // Sistemas "Motor Completo" (ids:null) sempre aparecem.
+  const sysVisiveis = SYS.filter(t => t.ids === null || t.ids.some(id => P[id]));
+  // guarda o índice real (no array SYS completo) para o clique continuar funcionando
+  const sysMap = sysVisiveis.map(t => SYS.indexOf(t));
+
+  $('sys').innerHTML = sysVisiveis.map((t, i) =>
+    '<li data-si="' + sysMap[i] + '" class="' + (i ? '' : 'on') + '">' + t.n + '<span>›</span></li>'
+  ).join('');
+  document.querySelectorAll('#sys li').forEach(li => {
+    li.onclick = () => selSys(+li.dataset.si);
+  });
 
   // etiquetas 3D
   $('lbs').innerHTML = D.pecas.map(p =>
