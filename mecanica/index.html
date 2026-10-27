@@ -22,7 +22,7 @@ select{width:100%;padding:10px;background:#071a33;color:var(--tx);border:1px sol
 .car i{width:64px;height:48px;border-radius:8px;background:linear-gradient(135deg,#2b3d55,#7f93ad);flex:none}
 .sys{list-style:none;padding:0}.sys li{padding:10px;border:1px solid transparent;border-bottom-color:#12335a;cursor:pointer;display:flex;justify-content:space-between}
 .sys li.on{background:#0f3a73;border-color:var(--cy);border-radius:8px}
-.stage{position:relative;height:620px;border-radius:10px;overflow:hidden;border:1px solid var(--ln);background:radial-gradient(ellipse at 50% 55%,#12356a,#061226 70%)}
+.stage{position:relative;height:620px;border-radius:10px;overflow:hidden;border:1px solid var(--ln);background:radial-gradient(ellipse at 50% 55%,var(--stg,#12356a),#061226 70%)}
 #cv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab}
 .tit{position:absolute;left:14px;top:10px;font-weight:800;font-size:16px;z-index:2}.tit span{color:var(--mu);font-weight:500;font-size:12px}
 .lb{position:absolute;z-index:2;transform:translate(-50%,-50%);display:flex;gap:6px;align-items:center;background:#07203dcc;border:1.5px solid var(--cy);border-radius:14px;padding:3px 9px 3px 3px;font-size:11px;white-space:nowrap;cursor:pointer}
@@ -55,6 +55,7 @@ footer{padding:10px 16px;color:var(--mu);font-size:11px;display:flex;justify-con
 .pj .btn{display:block;width:100%;margin-bottom:6px;text-align:left}.pj p{color:var(--mu);font-size:11px;line-height:1.45;margin-bottom:8px}
 @media(max-width:1100px){main{grid-template-columns:1fr}.stage{height:480px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+.mn{border:1px solid var(--ln);border-radius:8px;padding:8px;margin-bottom:8px;line-height:1.5}.mn ul,.gd,.mdl ul,.mdl ol{padding-left:18px}.mt{width:100%;border-collapse:collapse}.mt td,.mt th{border:1px solid var(--ln);padding:4px 6px;text-align:left}.fg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}.fg label{display:flex;flex-direction:column;gap:3px;color:var(--mu)}.mdl{max-height:85vh;overflow:auto}
 </style>
 </head>
 <body>
@@ -192,6 +193,8 @@ function build(p){const g=new THREE.Group(),c=M(p.cor,p.metal),dk=M('#0b0d11',.3
  case'carter':g.add(bx(6.8,1.5,3.4,c,0,0,0));g.add(bx(7.2,.2,3.8,M('#22262d',.6),0,.8,0));g.add(cy(.2,.3,M('#888',.9),'y',-2.2,-.85,0));break;
  case'admissao':g.add(bx(6.4,1.1,1.4,c,0,.7,-.9));XS.forEach(x=>{g.add(cy(.28,1.8,c,'z',x,.1,.3));g.add(bx(.7,.15,.7,c,x,0,1.1))});g.add(cy(.6,1.2,c,'z',-3.3,.7,-.9));break;
  case'escape':XS.forEach((x,i)=>{g.add(cy(.22,1.7,c,'y',x,.2,.2));const e=cy(.22,1.2,c,'z',x,-.55,1.1);g.add(e)});g.add(cy(.38,7,c,'x',0,-.55,1.8));g.add(cy(.55,1,M('#9a5226',.8),'z',-3.7,-.55,1.8));break;
+  case'bateria_ev':g.add(bx(6.4,1.4,3.2,c));for(let i=0;i<8;i++)g.add(bx(.55,.12,2.9,M('#2fd48a',.3,.4),-2.8+i*.8,.76,0));g.add(cy(.18,.3,M('#ff4d57',.5),'y',-3,.9,1.3,12));g.add(cy(.18,.3,M('#222',.5),'y',3,.9,1.3,12));break;
+  case'gerador_ev':g.add(cy(1,3,c,'x'));g.add(bx(1.4,1.6,1.6,M('#3a4048',.6),2.2,0,0));g.add(cy(.3,.6,M('#cfd8e3',.9),'x',-1.8,0,0));break;
   case'tampa_ev':        // cobertura baixa de inversor
     g.add(bx(6.4,0.5,3.4,c));
     for(let i=0;i<6;i++){g.add(cy(.1,.15,M('#cfd8e3',.9),'y',-2.4+i*1,0.3,1.5,10))}
@@ -795,10 +798,10 @@ function boot(){
 }
 const MP=(()=>{
   const sem=t=>String(t==null?'':t).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
-  const KS=['tampa','comando','cabecote','junta','bloco','correia','alternador','partida','carter','admissao','escape','volante'];
-  const KR=[['junta',/junta/],['tampa',/tampa/],['comando',/comando|eixo de cames|\bcames?\b/],['correia',/correia|corrente de distrib|distribuicao/],['alternador',/alternador|dinamo/],['partida',/partida|arranque/],['carter',/carter/],['admissao',/admiss|plenum/],['escape',/escape|descarga/],['volante',/volante|flywheel/],['cabecote',/cabecote|cabeca do motor/],['bloco',/bloco|monobloco/]];
+  const KS=['tampa','comando','cabecote','junta','bloco','correia','alternador','partida','carter','admissao','escape','volante','bateria_ev','gerador_ev'];
+  const KR=[['bateria_ev',/bateria|pack/],['gerador_ev',/gerador/],['junta',/junta/],['tampa',/tampa/],['comando',/comando|eixo de cames|\bcames?\b/],['correia',/correia|corrente de distrib|distribuicao/],['alternador',/alternador|dinamo/],['partida',/partida|arranque/],['carter',/carter/],['admissao',/admiss|plenum/],['escape',/escape|descarga/],['volante',/volante|flywheel/],['cabecote',/cabecote|cabeca do motor/],['bloco',/bloco|monobloco/]];
   const kindOf=n=>{const s=sem(n);const k=KR.find(x=>x[1].test(s));return k?k[0]:'generico'};
-  const DEF={tampa:[[0,4.1,0],[0,5.2,0],'#1b1f27',.3],comando:[[0,3.5,0],[0,3.4,0],'#9aa3ad',.9],cabecote:[[0,2.9,0],[0,1.9,0],'#a9b2bc',.85],junta:[[0,2.15,0],[0,.9,0],'#e8742a',.2],bloco:[[0,0,0],[0,0,0],'#8d96a0',.85],correia:[[-4.6,1.2,0],[-3.6,1.2,0],'#15171b',.1],alternador:[[-5.2,-.3,2.4],[-3.4,-.3,2.6],'#4a4f57',.7],partida:[[4.7,-.8,-2.1],[3.6,-.9,-3.4],'#5d636b',.8],carter:[[0,-3.1,0],[0,-3.9,0],'#14181d',.6],admissao:[[0,3,-3],[0,3.2,-4.4],'#16191f',.25],escape:[[0,2.6,3],[0,1.4,4.6],'#b5622f',.8],volante:[[4.5,-.3,0],[3.4,-.3,0],'#6b727b',.9]};
+  const DEF={tampa:[[0,4.1,0],[0,5.2,0],'#1b1f27',.3],comando:[[0,3.5,0],[0,3.4,0],'#9aa3ad',.9],cabecote:[[0,2.9,0],[0,1.9,0],'#a9b2bc',.85],junta:[[0,2.15,0],[0,.9,0],'#e8742a',.2],bloco:[[0,0,0],[0,0,0],'#8d96a0',.85],correia:[[-4.6,1.2,0],[-3.6,1.2,0],'#15171b',.1],alternador:[[-5.2,-.3,2.4],[-3.4,-.3,2.6],'#4a4f57',.7],partida:[[4.7,-.8,-2.1],[3.6,-.9,-3.4],'#5d636b',.8],carter:[[0,-3.1,0],[0,-3.9,0],'#14181d',.6],admissao:[[0,3,-3],[0,3.2,-4.4],'#16191f',.25],escape:[[0,2.6,3],[0,1.4,4.6],'#b5622f',.8],bateria_ev:[[0,-5.8,0],[0,-8.2,0],'#1d6b4a',.4],gerador_ev:[[5.4,-2.2,0],[8,-2.2,0],'#4a4f57',.6],volante:[[4.5,-.3,0],[3.4,-.3,0],'#6b727b',.9]};
   const SYN={nome:/^(nome|peca|componente|item|part|descricao)$/,cod:/^(cod|codigo|part ?number|pn|ref|referencia)/,torque:/^torque/,parafusos:/parafuso|furo|fixac/,material:/^material/,func:/^(funcao|func)/,compat:/^compat/,aviso:/^(aviso|atencao|obs)/};
   const colDe=c=>{const s=sem(c);for(const k in SYN)if(SYN[k].test(s))return k;return null};
   const RT=/(\d+(?:[.,]\d+)?\s*(?:n\.?\s?m|kgf\.?m)(?:\s*\+\s*\d+\s*°)?)/i,RP=/(\d+)\s*(?:parafusos?|furos?|fixa)/i,RM=/\b(aco|aluminio|ferro|fundido|plastic|poliamida|borracha|liga|cobre|latao|inox|nylon)/;
@@ -874,7 +877,7 @@ function lib(k){return _ld[k]||(_ld[k]=new Promise((ok,no)=>{const s=document.cr
 function exportaJson(){if(!D)return;
   const o={versao:1,fonte:'ALMAFLUXO Mecânica',origem:D.local?'importado':D.id,titulo:D.titulo,veiculo:D.veiculo,
     pecas:D.pecas.map(p=>({id:p.id,n:p.n,nome:p.nome,cod:p.cod,kind:p.kind,pos:p.pos,ex:p.ex,cor:p.cor,metal:p.metal,parafusos:p.parafusos,torque:p.torque,material:p.material,func:p.func,compat:p.compat,aviso:p.aviso})),
-    passos:D.passos,erroCompat:D.erroCompat,dica:D.dica,aviso:D.aviso,adaptacoes:D.adaptacoes||{}};
+    passos:D.passos,erroCompat:D.erroCompat,dica:D.dica,aviso:D.aviso,adaptacoes:D.adaptacoes||{},bateria:D.bateria||null};
   baixa(new Blob([JSON.stringify(o,null,1)],{type:'application/json'}),'projeto-'+nomeArq()+'.json');toast('Projeto exportado (.json).')}
 // 2) imagem da vista atual (fundo escuro, pronta para PDF/PNG)
 function imagemVista(){R.render(S,C);const W=cv.width,H=cv.height,c2=document.createElement('canvas');c2.width=W;c2.height=H;const x=c2.getContext('2d'),g=x.createRadialGradient(W/2,H*.55,10,W/2,H*.55,W*.7);g.addColorStop(0,'#12356a');g.addColorStop(1,'#061226');x.fillStyle=g;x.fillRect(0,0,W,H);x.drawImage(cv,0,0);return c2}
@@ -978,6 +981,43 @@ const stg=$('stage');stg.addEventListener('dragover',e=>e.preventDefault());stg.
 
 U?boot():gate();
 addEventListener('resize',fit);fit();cam();tick();
+/* ===== ABAS: Início · Manual · Ferramentas (+Bateria) · Configurações ===== */
+const CFG_K='alma_mec_cfg',CFGD={ac:'#27c8ff',bg:'#050d1a',pn:'#08162b',st:'#12356a',fs:13};
+let CFG=Object.assign({},CFGD);try{Object.assign(CFG,JSON.parse(localStorage.getItem(CFG_K)||'{}'))}catch(e){}
+function aplicaCfg(){const r=document.documentElement.style;r.setProperty('--cy',CFG.ac);r.setProperty('--bg',CFG.bg);r.setProperty('--p',CFG.pn);r.setProperty('--stg',CFG.st);document.body.style.fontSize=CFG.fs+'px'}
+function salvaCfg(){try{localStorage.setItem(CFG_K,JSON.stringify(CFG))}catch(e){}aplicaCfg()}
+aplicaCfg();
+function painelInicio(){ovM('<h3>🔧 Guia da Oficina</h3><ol class="gd"><li><b>Escolha o veículo</b> no passo 1 (combustão ou elétrico).</li><li><b>Gire</b> o 3D arrastando, <b>zoom</b> com ＋/－ e toque numa peça para ver código, torque e furos.</li><li>Use <b>Montar / Desmontar</b> e os botões Anterior/Próximo para seguir o passo a passo.</li><li><b>Manual</b>: montagem completa com todos os componentes. <b>Ferramentas</b>: chaves de cada trecho e cálculo de <b>bateria / conversão</b>.</li><li><b>Exportar</b>: no bloco 3 use .json (projeto), PDF ou imagem; o .json guarda também a bateria calculada.</li><li><b>Novos carros</b>: importe uma lista de peças (Excel, CSV, Word, PDF, JSON) ou peça ao Assistente IA para criar o motor.</li><li><b>Baterias / off-grid</b>: em Ferramentas escolha o sentido (combustão→bateria ou bateria→combustão) e o modo off-grid ou com recarga.</li><li><b>Configurações</b>: cores e tamanho da letra.</li></ol><div class="row"><button class="btn p" id="gx">Entendi</button></div>').querySelector('#gx').onclick=fechaOvM}
+function painelManual(){if(!D)return;const pa=D.passos.slice().reverse();
+ const h=pa.map((s,i)=>{const p=P[s.peca]||{};return '<div class="mn"><b>'+(i+1)+'. Instalar '+esc(p.nome||s.peca)+'</b> <small>cód. '+esc(p.cod||'—')+'</small><br>'+(p.parafusos?p.parafusos+' parafusos · ':'')+'torque '+esc(p.torque||'—')+' · '+esc(p.material||'—')+(p.func?'<br><i>'+esc(p.func)+'</i>':'')+'<ul>'+(s.itens||[]).map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>'+(s.info?'<small>'+esc(s.info)+'</small>':'')+(p.aviso?'<div class="warn">'+esc(p.aviso)+'</div>':'')+'</div>'}).join('');
+ const t='<table class="mt"><tr><th>#</th><th>Componente</th><th>Código</th><th>Parafusos</th><th>Torque</th></tr>'+D.pecas.map(p=>'<tr><td>'+p.n+'</td><td>'+esc(p.nome)+'</td><td>'+esc(p.cod)+'</td><td>'+(p.parafusos||0)+'</td><td>'+esc(p.torque||'—')+'</td></tr>').join('')+'</table>';
+ ovM('<h3>📖 Manual · '+esc(D.titulo||'Motor')+'</h3><p style="color:var(--mu);margin-bottom:8px">Montagem na ordem inversa da desmontagem. Aperte sempre no torque indicado.</p>'+h+'<h4 style="margin:10px 0 6px">Componentes</h4><div style="overflow-x:auto">'+t+'</div><div class="row"><button class="btn" id="mx">Fechar</button></div>').querySelector('#mx').onclick=fechaOvM}
+async function painelFerr(){if(!D)return;const m=ovM('<h3>🛠 Ferramentas</h3><p>Carregando…</p>');
+ let j;try{j=await post('/api/mecanica/extras',Object.assign({},SES(),{id:D.id},D.local?{pecas:D.pecas.map(p=>({id:p.id,kind:p.kind,torque:p.torque}))}:{}))}catch(e){j={}}
+ if(!j.ok){m.innerHTML='<h3>🛠 Ferramentas</h3><p>Não foi possível carregar (projetos importados não têm ferramentas no servidor).</p><div class="row"><button class="btn" id="fx">Fechar</button></div>';m.querySelector('#fx').onclick=fechaOvM;return}
+ const L=D.passos.map(s=>{const p=P[s.peca];return p?'<div class="mn"><b>'+esc(p.nome)+'</b><ul>'+(j.ferramentas[p.id]||[]).map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div>':''}).join('');
+ const G=Object.values(j.glossario||{}).map(x=>'<li>'+esc(x)+'</li>').join('');
+ m.innerHTML='<h3>🛠 Ferramentas por trecho</h3>'+L+'<h4 style="margin:10px 0 6px">Guia de chaves</h4><ul>'+G+'</ul><h3 style="margin-top:14px">🔋 Bateria e conversão</h3><div class="fg"><label>Sentido<select id="bd"><option value="comb2ele">Combustão → bateria/motor elétrico</option><option value="ele2comb">Bateria → combustão (gerador)</option></select></label><label>Modo<select id="bm"><option value="recarga">Com recarga</option><option value="offgrid">Off-grid (solar)</option></select></label><label>Potência (cv)<input class="in" id="bc" type="number" value="72"></label><label>Autonomia (km)<input class="in" id="bk" type="number" value="100"></label><label>Tensão (V)<input class="in" id="bv" type="number" value="96"></label><label>Química<select id="bq">'+j.baterias.map(b=>'<option value="'+b.id+'">'+esc(b.nome)+'</option>').join('')+'</select></label></div><button class="btn p" id="bcalc">Calcular</button><div id="bres" style="margin-top:8px"></div><div class="row"><button class="btn" id="fx">Fechar</button></div>';
+ m.querySelector('#fx').onclick=fechaOvM;
+ m.querySelector('#bcalc').onclick=async()=>{const g=i=>m.querySelector('#'+i).value,r=await post('/api/mecanica/conversao',Object.assign({},SES(),{dir:g('bd'),modo:g('bm'),cv:g('bc'),km:g('bk'),tensao:g('bv'),quimica:g('bq')}));if(!r.ok){toast('Erro no cálculo');return}D.bateria=r;
+  m.querySelector('#bres').innerHTML='<div class="mn"><b>'+esc(r.titulo)+'</b><br>'+r.quimica+' · '+r.kwhNominal+' kWh · '+r.serie+'S · '+r.Ah+' Ah @ '+r.correntePico+' A pico · ~'+r.massaKg+' kg · '+r.ciclos+' ciclos'+(r.geradorKw?'<br>Gerador: '+r.geradorKw+' kW (~'+r.litrosPorHora+' L/h)':'')+'<br>'+esc(r.carga.obs)+(r.carga.paineisKwp?' Painéis: '+r.carga.paineisKwp+' kWp.':'')+(r.carga.horas220v?' Carga 220 V: '+r.carga.horas220v+' h.':'')+'<ol>'+r.passos.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ol>'+r.avisos.map(x=>'<div class="warn">'+esc(x)+'</div>').join('')+'<small>Salvo no projeto (vai no .json exportado).</small><div class="row"><button class="btn" id="b3d">🔋 Pôr bateria no 3D</button><button class="btn p" id="bpub">📚 Publicar no repositório</button></div></div>';m.querySelector('#b3d').onclick=()=>{addBateria(r);fechaOvM()};m.querySelector('#bpub').onclick=()=>publicaConv(r)}}
+function painelCfg(){const m=ovM('<h3>⚙ Configurações da página</h3><div class="fg"><label>Cor de destaque<input type="color" id="c1" value="'+CFG.ac+'"></label><label>Fundo da página<input type="color" id="c2" value="'+CFG.bg+'"></label><label>Painéis<input type="color" id="c3" value="'+CFG.pn+'"></label><label>Fundo do 3D<input type="color" id="c4" value="'+CFG.st+'"></label><label>Tamanho da letra: <span id="fv">'+CFG.fs+'</span>px<input type="range" id="c5" min="11" max="18" value="'+CFG.fs+'"></label></div><div class="row"><button class="btn" id="cr">Restaurar padrão</button><button class="btn p" id="cx">Fechar</button></div>'),
+ B={c1:'ac',c2:'bg',c3:'pn',c4:'st',c5:'fs'};Object.keys(B).forEach(k=>m.querySelector('#'+k).oninput=e=>{CFG[B[k]]=k==='c5'?+e.target.value:e.target.value;if(k==='c5')m.querySelector('#fv').textContent=CFG.fs;salvaCfg()});
+ m.querySelector('#cr').onclick=()=>{CFG=Object.assign({},CFGD);salvaCfg();fechaOvM()};m.querySelector('#cx').onclick=fechaOvM}
+$('nav').onclick=e=>{const b=e.target.closest('button');if(!b)return;[...$('nav').children].forEach(x=>x.classList.toggle('on',x===b));({'Início':painelInicio,'Manual':painelManual,'Ferramentas':painelFerr,'Configurações':painelCfg})[b.textContent]()};
+
+function addBateria(r){if(!D||D.pecas.some(p=>p.id==='bateria')){toast('Este projeto já tem bateria.');return}
+ D.pecas.push({id:'bateria',n:D.pecas.length+1,nome:'Bateria '+r.kwhNominal+' kWh',cod:'BAT-'+r.serie+'S',kind:'bateria_ev',pos:[0,-5.8,0],ex:[0,-8.2,0],cor:'#1d6b4a',metal:.4,parafusos:4,torque:'8 Nm',material:'Células '+r.quimica+' + BMS',func:'Armazena e devolve a energia do projeto.',compat:r.serie+'S · '+r.Ah+' Ah',aviso:'Alta tensão: abra o seccionador e confirme 0 V.',compatMap:{}});
+ D.passos.unshift({peca:'bateria',titulo:'Desconectar a bateria',itens:['Abra o seccionador.','Retire o negativo primeiro.','Meça 0 V.'],info:'Primeiro passo em qualquer desmontagem elétrica.'});ui();fit();toast('Bateria adicionada ao 3D.')}
+async function publicaConv(r){const t=prompt('Título para o repositório validado:','Conversão '+(D.titulo||''));if(!t)return;const j=await post('/api/wiki/publicar',Object.assign({},SES(),{tipo:'conversao',titulo:t,descricao:r.titulo,projeto:r.entrada}));toast(j.ok?(j.existente?'Já existia no repositório.':'Publicado no repositório validado!'):(j.error||'Não foi possível publicar'))}
+let FLX=0,FL=null;
+function fluxoLoop(t){requestAnimationFrame(fluxoLoop);if(!FLX||!D)return;const a=G.get('bateria'),b=G.get('bloco');if(!a||!b)return;const pa=a.g.getWorldPosition(new THREE.Vector3()),pb=b.g.getWorldPosition(new THREE.Vector3());
+ if(!FL||!FL.parent){FL=new THREE.Group();for(let i=0;i<14;i++)FL.add(new THREE.Mesh(new THREE.SphereGeometry(.16,8,8),new THREE.MeshBasicMaterial({color:0x27c8ff})));S.add(FL)}
+ FL.children.forEach((m,i)=>{const k=(t/1600+i/14)%1;m.position.lerpVectors(pa,pb,FLX>0?k:1-k);m.material.color.set(FLX>0?0x27c8ff:0x2fd48a)})}
+requestAnimationFrame(fluxoLoop);
+document.querySelector('.tools').insertAdjacentHTML('beforeend','<button class="btn" id="inv" title="Inverter fluxo de energia">⇄</button>');
+$('inv').onclick=()=>{if(!D||!G.get('bateria')){toast('Abra um demo elétrico ou pare a bateria no 3D (Ferramentas → Bateria).');return}
+ FLX=FLX===0?1:FLX===1?-1:0;if(!FLX&&FL){S.remove(FL);FL=null}toast(FLX>0?'Bateria → motor (tração)':FLX<0?'Motor → bateria (regeneração/gerador)':'Fluxo desligado')};
 </script>
 </body>
 </html>
