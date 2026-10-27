@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ALMAFLUXO · Editor de Vídeo</title>
+<!--
+  EDITOR DE VÍDEO ALMAFLUXO — arquivo único. Suba para a pasta CONVERSA do Drive com o nome:
+  editor_video.html   (o portal almafluxo.uk/conversa abre este arquivo em tela cheia)
+-->
+<style>
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; background:#05070c; overflow:hidden; }
+
+  /* ═══════════ EDITOR DE VÍDEO (tela cheia, celular) ═══════════ */
+  .ve{position:fixed;inset:0;z-index:300;display:flex;flex-direction:column;background:#05070c;color:#e8e6e3;
+      height:100dvh;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);
+      user-select:none;-webkit-user-select:none;touch-action:manipulation;font-family:'Roboto',sans-serif;}
+  .ve[hidden]{display:none!important;}
+  .ve button{font-family:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+  .ve-top{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid #141a2a;flex:0 0 auto;}
+  .ve-title{flex:1;font-weight:700;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ve-ib{width:44px;height:44px;border-radius:12px;border:1px solid #1d2540;background:#0c1220;font-size:1.15rem;flex:0 0 auto;}
+  .ve-ib:disabled{opacity:.35;}
+  .ve-export{height:44px;padding:0 16px;border-radius:12px;border:0;font-weight:700;background:linear-gradient(135deg,#00e5ff,#0090b8);color:#001018;}
+  .ve-stage{position:relative;flex:1 1 auto;min-height:120px;display:flex;align-items:center;justify-content:center;background:#000;overflow:hidden;}
+  .ve-stage canvas{max-width:100%;max-height:100%;background:#000;touch-action:none;}
+  .ve-banner{position:absolute;left:10px;right:10px;top:10px;padding:10px 12px;border-radius:12px;background:rgba(212,168,67,.95);color:#1a1200;font-weight:700;text-align:center;font-size:.9rem;display:none;}
+  .ve-banner.on{display:block;}
+  .ve-empty{position:absolute;inset:0;display:flex;flex-direction:column;gap:14px;align-items:center;justify-content:center;text-align:center;padding:24px;color:#8b93a7;}
+  .ve-empty b{color:#e8e6e3;}
+  .ve-transport{display:flex;align-items:center;gap:5px;padding:6px 8px;flex:0 0 auto;overflow:hidden;}
+  .ve-transport .ve-ib{width:38px;height:40px;font-size:1rem;}
+  .ve-play{width:52px!important;background:#00e5ff!important;color:#001018!important;border-color:#00e5ff!important;font-weight:700;}
+  .ve-time{flex:1;min-width:0;text-align:center;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:.74rem;color:#9fe9f7;white-space:nowrap;}
+  .ve-tl{position:relative;flex:0 0 auto;max-height:34vh;overflow-x:auto;overflow-y:auto;background:#070b14;border-top:1px solid #141a2a;border-bottom:1px solid #141a2a;touch-action:pan-y;}
+  .ve-tl-in{position:relative;min-width:100%;padding-bottom:6px;}
+  .ve-ruler{position:relative;height:20px;border-bottom:1px solid #141a2a;}
+  .ve-tick{position:absolute;top:0;height:100%;border-left:1px solid #26304d;font-size:.6rem;color:#6c7794;padding-left:3px;line-height:20px;white-space:nowrap;}
+  .ve-row{position:relative;height:34px;margin-top:4px;}
+  .ve-clip,.ve-bar{position:absolute;top:0;height:100%;border-radius:8px;overflow:hidden;display:flex;align-items:center;padding:0 6px;font-size:.7rem;white-space:nowrap;border:2px solid transparent;}
+  .ve-clip{background:linear-gradient(135deg,#1b3a52,#12283a);}
+  .ve-clip.sel,.ve-bar.sel{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.25);}
+  .ve-clip.mute::after{content:'🔇';margin-left:6px;}
+  .ve-lane{position:relative;height:24px;margin-top:3px;}
+  .ve-lane .ve-bar{font-size:.65rem;color:#000;font-weight:700;border-radius:6px;}
+  .ve-head{position:absolute;top:0;bottom:0;width:2px;background:#ff4d6d;pointer-events:none;z-index:5;}
+  .ve-head::before{content:'';position:absolute;top:0;left:-5px;width:12px;height:12px;border-radius:50%;background:#ff4d6d;}
+  .ve-ctx{flex:0 0 auto;display:flex;gap:8px;align-items:center;overflow-x:auto;padding:6px 10px;min-height:48px;background:#0a0f1c;}
+  .ve-ctx:empty{display:none;}
+  .ve-ctx button,.ve-chip{flex:0 0 auto;height:38px;padding:0 12px;border-radius:10px;border:1px solid #243052;background:#101933;font-size:.8rem;white-space:nowrap;}
+  .ve-ctx input[type=range]{width:110px;}
+  .ve-ctx .ve-lbl{font-size:.75rem;color:#9aa4bd;flex:0 0 auto;}
+  .ve-tools{flex:0 0 auto;display:flex;gap:8px;overflow-x:auto;padding:8px 10px 10px;border-top:1px solid #141a2a;background:#080c16;}
+  .ve-tool{flex:0 0 auto;min-width:68px;height:60px;border-radius:14px;border:1px solid #1d2540;background:#0d1426;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:.68rem;color:#c9d3ea;}
+  .ve-tool span{font-size:1.25rem;line-height:1;}
+  .ve-tool:active{background:#16213f;}
+  .ve-sheet{position:absolute;inset:0;z-index:20;background:rgba(0,0,0,.18);display:flex;align-items:flex-end;}
+  .ve-sheet[hidden]{display:none;}
+  .ve-sheet-box{width:100%;max-height:54vh;overflow-y:auto;background:#0e1527;border-radius:20px 20px 0 0;padding:16px 16px calc(14px + env(safe-area-inset-bottom));border-top:1px solid #243052;}
+  .ve-sheet-h{font-weight:700;font-size:1.05rem;margin-bottom:10px;}
+  .ve-f{display:block;margin:10px 0;}
+  .ve-f>span{display:block;font-size:.75rem;color:#8b93a7;margin-bottom:4px;}
+  .ve-f input[type=text],.ve-f select,.ve-f textarea{width:100%;padding:11px;border-radius:10px;border:1px solid #243052;background:#0a1020;color:#e8e6e3;font-size:1rem;}
+  .ve-f input[type=range]{width:100%;}
+  .ve-f input[type=color]{width:60px;height:38px;border:0;background:none;}
+  .ve-trow{display:flex;gap:6px;align-items:center;}
+  .ve-trow input{flex:1;min-width:0;text-align:center;font-family:'JetBrains Mono',monospace;}
+  .ve-trow button{height:42px;padding:0 10px;border-radius:10px;border:1px solid #243052;background:#101933;font-size:.8rem;white-space:nowrap;}
+  .ve-chk{display:flex;gap:10px;align-items:center;margin:10px 0;font-size:.9rem;}
+  .ve-chk input{width:22px;height:22px;}
+  .ve-sheet-f{display:flex;gap:10px;margin-top:14px;position:sticky;bottom:-14px;background:#0e1527;padding:8px 0 4px;}
+  .ve-sheet-f button{flex:1;height:48px;border-radius:12px;border:1px solid #243052;background:#101933;font-weight:700;}
+  .ve-sheet-f .ok{background:linear-gradient(135deg,#00e5ff,#0090b8);color:#001018;border:0;}
+  .ve-hint{font-size:.78rem;color:#8b93a7;line-height:1.35;margin:6px 0;}
+  .ve-busy{position:absolute;inset:0;z-index:30;background:rgba(3,5,8,.92);display:flex;flex-direction:column;gap:14px;align-items:center;justify-content:center;padding:24px;text-align:center;}
+  .ve-busy[hidden]{display:none;}
+  .ve-busy progress{width:min(320px,80vw);height:10px;}
+  .ve-res video{width:100%;max-height:48vh;border-radius:12px;background:#000;}
+  .ve-btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+  .ve-btnrow button,.ve-btnrow a{flex:1 1 140px;height:46px;border-radius:12px;border:1px solid #243052;background:#101933;font-weight:700;text-align:center;line-height:46px;color:#e8e6e3;text-decoration:none;}
+  .ve-hidden-media{position:fixed;left:-9999px;top:0;width:2px;height:2px;opacity:0;pointer-events:none;}
+  .btn-ve{background:linear-gradient(135deg,#9a5fd8,#6b3fa8);color:#fff;border:0;}
+
+</style>
+</head>
+<body>
+<!-- ═══════════ EDITOR DE VÍDEO ═══════════ -->
+<div id="ve" class="ve" hidden>
+  <div class="ve-top">
+    <button class="ve-ib" id="veClose" title="Fechar">✕</button>
+    <div class="ve-title" id="veTitle">Editor de vídeo</div>
+    <button class="ve-ib" id="veUndo" title="Desfazer" disabled>↩️</button>
+    <button class="ve-export" id="veExport">Exportar</button>
+  </div>
+
+  <div class="ve-stage" id="veStage">
+    <canvas id="veCanvas" width="640" height="360"></canvas>
+    <div class="ve-banner" id="veBanner"></div>
+    <div class="ve-empty" id="veEmpty">
+      <div style="font-size:2.6rem">🎬</div>
+      <div><b>Editor de vídeo</b><br>Abra um vídeo do celular ou do Drive para começar.</div>
+      <button class="ve-export" id="veOpenLocal">📱 Abrir vídeo do celular</button>
+    </div>
+  </div>
+
+  <div class="ve-transport">
+    <button class="ve-ib" id="veStepB" title="Quadro anterior">⏮</button>
+    <button class="ve-ib ve-play" id="vePlay" title="Reproduzir">▶</button>
+    <button class="ve-ib" id="veStepF" title="Próximo quadro">⏭</button>
+    <div class="ve-time" id="veTime">0:00.0/0:00.0</div>
+    <button class="ve-ib" id="veMuteAll" title="Som original">🔊</button>
+    <button class="ve-ib" id="veTlMinus" title="Diminuir zoom da linha do tempo">−</button>
+    <button class="ve-ib" id="veTlPlus" title="Aumentar zoom da linha do tempo">+</button>
+  </div>
+
+  <div class="ve-tl" id="veTl">
+    <div class="ve-tl-in" id="veTlIn">
+      <div class="ve-ruler" id="veRuler"></div>
+      <div class="ve-row" id="veClips"></div>
+      <div id="veLanes"></div>
+      <div id="veMusicLane"></div>
+      <div class="ve-head" id="veHead"></div>
+    </div>
+  </div>
+
+  <div class="ve-ctx" id="veCtx"></div>
+
+  <div class="ve-tools" id="veTools">
+    <button class="ve-tool" data-t="split"><span>✂️</span>Dividir</button>
+    <button class="ve-tool" data-t="add"><span>➕</span>Vídeo</button>
+    <button class="ve-tool" data-t="zoom"><span>🔍</span>Zoom</button>
+    <button class="ve-tool" data-t="face"><span>👤</span>Rosto</button>
+    <button class="ve-tool" data-t="bw"><span>⚫</span>P&amp;B</button>
+    <button class="ve-tool" data-t="skin"><span>✨</span>Pele</button>
+    <button class="ve-tool" data-t="filter"><span>🎨</span>Filtro</button>
+    <button class="ve-tool" data-t="cap"><span>💬</span>Legenda</button>
+    <button class="ve-tool" data-t="music"><span>🎵</span>Música</button>
+    <button class="ve-tool" data-t="auto"><span>🤖</span>Auto</button>
+    <button class="ve-tool" data-t="format"><span>📐</span>Formato</button>
+  </div>
+
+  <div class="ve-sheet" id="veSheet" hidden>
+    <div class="ve-sheet-box">
+      <div class="ve-sheet-h" id="veSheetH"></div>
+      <div id="veSheetB"></div>
+      <div class="ve-sheet-f">
+        <button id="veSheetCancel">Cancelar</button>
+        <button class="ok" id="veSheetOk">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="ve-busy" id="veBusy" hidden>
+    <div id="veBusyMsg" style="font-weight:700">Aguarde…</div>
+    <progress id="veBusyBar" max="100" value="0"></progress>
+    <div class="ve-hint" id="veBusySub"></div>
+    <button class="ve-chip" id="veBusyCancel">Cancelar</button>
+  </div>
+
+  <div class="ve-hidden-media" id="veHidden"></div>
+  <input type="file" id="veFileVideo" accept="video/*" multiple hidden>
+  <input type="file" id="veFileAudio" accept="audio/*" hidden>
+  <input type="file" id="veFileSrt" accept=".srt,.txt" hidden>
+</div>
+
+<script>
+
+
+/* ═══ PONTE COM O PORTAL CONVERSA ═══
+   Este arquivo roda dentro de um iframe isolado (sem acesso à sessão do usuário).
+   Todo acesso ao Drive passa pelo portal via postMessage; o portal usa a sessão dele
+   e só aceita as ações de arquivo em blocos. */
+const EMBED = window.parent !== window;
+let arquivosCache = [];
+let PASTA_CONVERSA_ID = '';
+const _pend = {}; let _pid = 0;
+function api(action, dados) {
+  if (!EMBED) return Promise.reject(new Error('Abra o editor pelo portal CONVERSA para usar o Drive.'));
+  return new Promise((res, rej) => {
+    const id = ++_pid;
+    const to = setTimeout(() => { delete _pend[id]; rej(new Error('Tempo esgotado falando com o Drive.')); }, 180000);
+    _pend[id] = r => { clearTimeout(to); res(r); };
+    window.parent.postMessage({ type: 'api', id, action, dados }, '*');
+  });
+}
+function tipoDoArquivo(nome, mime) {
+  const n = (nome || '').toLowerCase(), m = (mime || '').toLowerCase();
+  if (m.startsWith('video/') || /\.(mp4|webm|ogg|mov|avi|mkv|m4v)$/i.test(n)) return 'video';
+  if (m.startsWith('audio/') || /\.(mp3|wav|m4a|ogg|aac|flac)$/i.test(n)) return 'audio';
+  return 'outro';
+}
+function formatarTamanho(b) { return (b / 1048576).toFixed(1) + ' MB'; }
+function mostrarToast(m, err) {
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));transform:translateX(-50%);max-width:90vw;background:' + (err ? '#c94a6b' : '#00e5ff') + ';color:' + (err ? '#fff' : '#001018') + ';padding:10px 18px;border-radius:22px;font:700 .85rem Roboto,sans-serif;z-index:99999;box-shadow:0 4px 24px rgba(0,0,0,.5);text-align:center;';
+  t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 3200);
+}
+function carregarTudo() { if (EMBED) window.parent.postMessage({ type: 'saved' }, '*'); }
+window.addEventListener('message', e => {
+  if (e.source !== window.parent) return;
+  const m = e.data || {};
+  if (m.type === 'api-result' && _pend[m.id]) { const f = _pend[m.id]; delete _pend[m.id]; f(m.result); }
+  else if (m.type === 'init') {
+    arquivosCache = m.arquivos || []; PASTA_CONVERSA_ID = m.pastaId || '';
+    if (m.sessao && m.sessao.sessionToken && !SESS) { SESS = m.sessao; if (window._edGo) window._edGo(); } if (m.abrir) { if (MOTOR_OK) VE.openFromDrive(m.abrir); else window._abrir = m.abrir; }
+  }
+});
+/* ═══ LOGIN + MOTOR PROTEGIDO (carregado do worker após o login) ═══ */
+const WK = 'https://almafluxo.uk';
+let SESS = null, MOTOR_OK = false;
+try { SESS = JSON.parse(localStorage.getItem('almafluxo_usuario') || 'null'); } catch (e) {}
+function edPost(p, b) { return fetch(WK + p, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) }).then(r => r.json()); }
+function edApi(r, b) {
+  return edPost('/api/editor/' + r, Object.assign({ email: SESS && SESS.email, sessionToken: SESS && SESS.sessionToken }, b || {})).then(j => {
+    if (!j.ok && /Entre/.test(j.error || '')) { SESS = null; try { localStorage.removeItem('almafluxo_usuario'); } catch (e) {} }
+    return j;
+  });
+}
+function edGate(msg) {
+  let g = document.getElementById('edGate');
+  if (!g) { g = document.createElement('div'); g.id = 'edGate'; g.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#050d1a;color:#e8f1ff;display:grid;place-items:center;font:14px system-ui;padding:16px';
+    g.innerHTML = '<div style="max-width:300px;width:100%"><h2 style="color:#27c8ff;margin-bottom:6px">Entre para editar</h2><p style="color:#8fa8c8;margin-bottom:10px">Editor ALMAFLUXO. Use a mesma conta do ecossistema.</p><input id="edE" type="email" placeholder="E-mail" style="width:100%;padding:10px;margin-bottom:8px;border-radius:8px;border:1px solid #1b4a7a;background:#0a1d3a;color:#e8f1ff"><input id="edS" type="password" placeholder="Senha" style="width:100%;padding:10px;margin-bottom:8px;border-radius:8px;border:1px solid #1b4a7a;background:#0a1d3a;color:#e8f1ff"><button id="edL" style="width:100%;padding:10px;border-radius:8px;border:1px solid #27c8ff;background:#1f7bff;color:#fff;font-weight:700">Entrar</button><p id="edM" style="color:#ffb0b6;margin-top:8px"></p></div>';
+    document.body.appendChild(g);
+    document.getElementById('edL').onclick = async () => {
+      const m = document.getElementById('edM'); m.textContent = '';
+      try {
+        const em = document.getElementById('edE').value.trim(), d = await edPost('/proxy/central', { action: 'login', email: em, senha: document.getElementById('edS').value }), u = d.usuario || d, tk = d.token || d.sessionToken || u.sessionToken;
+        if (!(d.ok === true || d.autenticado === true || d.status === 'success') || !tk) throw new Error(d.error || d.message || 'E-mail ou senha incorretos');
+        SESS = { nome: u.nome || 'Usuário', email: em, sessionToken: tk };
+        try { localStorage.setItem('almafluxo_usuario', JSON.stringify(SESS)); } catch (e) {}
+        window._edGo && window._edGo();
+      } catch (e) { m.textContent = (e && e.message) || 'Falha ao entrar (verifique a conexão).'; }
+    };
+  }
+  g.style.display = 'grid'; if (msg) document.getElementById('edM').textContent = msg;
+}
+async function edCarregarMotor() {
+  const j = await edApi('motor'); if (!j.ok) throw new Error(j.error || 'Acesso negado');
+  VE._motor((0, eval)('(' + j.js + ')')); MOTOR_OK = true;
+}
+function edEntrar() {
+  return new Promise(res => {
+    const go = async () => {
+      if (!SESS || !SESS.sessionToken) return edGate();
+      try { await edCarregarMotor(); const g = document.getElementById('edGate'); if (g) g.remove(); window._edGo = null; res(); }
+      catch (e) { edGate(e.message); }
+    };
+    window._edGo = go; go();
+  });
+}
+window.addEventListener('load', () => { edEntrar().then(() => { VE.open(); if (EMBED) window.parent.postMessage({ type: 'ready' }, '*'); if (window._abrir) VE.openFromDrive(window._abrir); }); });
+
+
+
+</script>
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   EDITOR DE VÍDEO (celular) — roda 100% no navegador (Canvas + MediaRecorder).
+   Vídeos do Drive são baixados em blocos pelo Apps Script e o resultado volta em blocos.
+   ═══════════════════════════════════════════════════════════════════════════ */
+(function () {
+'use strict';
+
+const $ = id => document.getElementById(id);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const uid = () => Math.random().toString(36).slice(2, 9);
+const smooth = x => { x = clamp(x, 0, 1); return x * x * (3 - 2 * x); };
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const toast = (m, e) => (typeof mostrarToast === 'function' ? mostrarToast(m, e) : console.log(m));
+
+function fmtT(t) { t = Math.max(0, t || 0); const m = Math.floor(t / 60), s = t - m * 60; return m + ':' + (s < 10 ? '0' : '') + s.toFixed(1); }
+function parseT(str) {
+  str = String(str == null ? '' : str).trim().replace(',', '.');
+  if (!str) return NaN;
+  const p = str.split(':').map(Number);
+  if (p.some(isNaN)) return NaN;
+  return p.length === 1 ? p[0] : p.length === 2 ? p[0] * 60 + p[1] : p[0] * 3600 + p[1] * 60 + p[2];
+}
+
+/* ───────────────────────── ESTADO ───────────────────────── */
+const S = {
+  sources: {}, audios: {}, clips: [], fx: [], music: [],
+  t: 0, curIdx: 0, playing: false, sel: null,
+  globalMute: false, fmt: 'orig', fit: 'cover', pps: 0,
+  undo: [], dirty: false, exporting: false, stopAt: null,
+  marker: null, lastView: null, picking: null, name: 'video'
+};
+
+const FX_META = {
+  zoom:   { emoji: '🔍', color: '#00e5ff', label: 'Zoom' },
+  face:   { emoji: '👤', color: '#ffd166', label: 'Rosto' },
+  bw:     { emoji: '⚫', color: '#c9c9c9', label: 'P&B' },
+  skin:   { emoji: '✨', color: '#ff9ecb', label: 'Pele' },
+  filter: { emoji: '🎨', color: '#a8ff3e', label: 'Filtro' },
+  cap:    { emoji: '💬', color: '#ff9f1c', label: 'Legenda' }
+};
+
+const FILTER_PRESETS = {
+  'Vívido':  { saturate: 1.45, contrast: 1.1, brightness: 1.0, sepia: 0, hue: 0 },
+  'Quente':  { saturate: 1.2, contrast: 1.05, brightness: 1.03, sepia: 0.25, hue: 0 },
+  'Frio':    { saturate: 0.95, contrast: 1.05, brightness: 1.05, sepia: 0, hue: -15 },
+  'Vintage': { saturate: 0.85, contrast: 0.92, brightness: 1.05, sepia: 0.6, hue: 0 },
+  'Cinema':  { saturate: 0.85, contrast: 1.2, brightness: 0.95, sepia: 0, hue: 0 },
+  'Claro':   { saturate: 1.0, contrast: 1.05, brightness: 1.18, sepia: 0, hue: 0 },
+  'Escuro':  { saturate: 1.0, contrast: 1.1, brightness: 0.82, sepia: 0, hue: 0 },
+  'Personalizado': { saturate: 1, contrast: 1, brightness: 1, sepia: 0, hue: 0 }
+};
+
+/* ───────────────────────── LINHA DO TEMPO (funções puras) ───────────────────────── */
+function total() { return S.clips.reduce((a, c) => a + (c.out - c.in), 0); }
+function clipStartT(i) { let a = 0; for (let k = 0; k < i; k++) a += S.clips[k].out - S.clips[k].in; return a; }
+function clipAt(T) {
+  let acc = 0;
+  for (let i = 0; i < S.clips.length; i++) {
+    const c = S.clips[i], d = c.out - c.in;
+    if (T < acc + d || i === S.clips.length - 1) return { i, c, local: clamp(T - acc, 0, d), start: acc, dur: d };
+    acc += d;
+  }
+  return null;
+}
+function splitAt(T) {
+  const loc = clipAt(T);
+  if (!loc || loc.local < 0.1 || loc.dur - loc.local < 0.1) return false;
+  const c = loc.c;
+  const nc = Object.assign({}, c, { id: uid(), in: c.in + loc.local });
+  c.out = c.in + loc.local;
+  S.clips.splice(loc.i + 1, 0, nc);
+  return true;
+}
+/* remove o trecho [a,b) da linha do tempo e "fecha o buraco" nos efeitos/música */
+function rippleDelete(a, b) {
+  const d = b - a;
+  S.fx = S.fx.filter(f => {
+    if (f.end <= a) return true;
+    if (f.start >= b) { f.start -= d; f.end -= d; return true; }
+    if (f.start >= a && f.end <= b) return false;
+    if (f.start < a && f.end > b) { f.end -= d; return true; }
+    if (f.start < a) { f.end = a; return f.end - f.start > 0.05; }
+    f.start = a; f.end = f.end - d; return f.end - f.start > 0.05;
+  });
+  S.music.forEach(m => { if (m.start >= b) m.start -= d; else if (m.start > a) m.start = a; });
+}
+function deleteClip(i) {
+  const a = clipStartT(i), c = S.clips[i], b = a + (c.out - c.in);
+  S.clips.splice(i, 1);
+  rippleDelete(a, b);
+}
+
+/* ───────────────────────── EFEITOS: janela de visão (zoom/rosto) ───────────────────────── */
+function viewRect(vw, vh, W, H, fit, s, cx, cy) {
+  const ar = W / H;
+  let rw, rh, dx = 0, dy = 0, dw = W, dh = H;
+  if (fit === 'cover') { if (vw / vh > ar) { rh = vh; rw = vh * ar; } else { rw = vw; rh = vw / ar; } }
+  else {
+    rw = vw; rh = vh;
+    if (vw / vh > ar) { dw = W; dh = W * vh / vw; dy = (H - dh) / 2; } else { dh = H; dw = H * vw / vh; dx = (W - dw) / 2; }
+  }
+  s = Math.max(1, s || 1);
+  const sw = rw / s, sh = rh / s;
+  const fx = cx == null ? 0.5 : cx, fy = cy == null ? 0.5 : cy;
+  const sx = clamp(fx * vw - sw / 2, 0, Math.max(0, vw - sw));
+  const sy = clamp(fy * vh - sh / 2, 0, Math.max(0, vh - sh));
+  return { sx, sy, sw, sh, dx, dy, dw, dh, vw, vh };
+}
+/* intensidade (0..1) de um efeito no tempo T, com rampa de entrada/saída (volta ao normal no fim) */
+function fxEase(f, T) {
+  const dur = f.end - f.start;
+  if (T < f.start || T > f.end || dur <= 0) return 0;
+  const ramp = Math.min(0.4, dur / 2);
+  return smooth((T - f.start) / ramp) * smooth((f.end - T) / ramp);
+}
+function activeFx(T, type) { return S.fx.filter(f => f.type === type && T >= f.start && T <= f.end); }
+
+/* ───────────────────────── RASTREIO DE ROSTO (SAD em miniatura) ───────────────────────── */
+/* motor de rastreio, cor e pele: entregue pelo worker após o login */
+let FILTER_OK,SK,TR,colorParamsAt,extractPatch,faceCenterAt,filterCss,filterSupported,grayFrame,isSkin,pixelFilter,sadMatch,sadSearch,skinCanvases,smoothSkin,trackFace;
+function drawCaption(ctx, W, H, f, T) {
+  const fade = Math.min(1, (T - f.start) / 0.2, (f.end - T) / 0.2);
+  if (fade <= 0 || !f.text) return;
+  const size = Math.max(10, Math.round(H * (f.size || 5.5) / 100));
+  ctx.save();
+  ctx.globalAlpha = clamp(fade, 0, 1);
+  ctx.font = `700 ${size}px Roboto, Arial, sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  const maxW = W * 0.9, lines = [];
+  String(f.text).split('\n').forEach(par => {
+    let line = '';
+    par.split(' ').forEach(w => {
+      const t = line ? line + ' ' + w : w;
+      if (ctx.measureText(t).width <= maxW || !line) line = t; else { lines.push(line); line = w; }
+    });
+    lines.push(line);
+  });
+  const lh = size * 1.25, th = lines.length * lh;
+  let y0 = f.pos === 'top' ? H * 0.06 : f.pos === 'middle' ? (H - th) / 2 : H - th - H * 0.07;
+  if (f.box) {
+    const bw = Math.min(maxW + size, Math.max(...lines.map(l => ctx.measureText(l).width)) + size);
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    const bx = (W - bw) / 2, by = y0 - size * 0.3, bh = th + size * 0.4;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(bx, by, bw, bh, size * 0.3); else ctx.rect(bx, by, bw, bh);
+    ctx.fill();
+  }
+  ctx.lineJoin = 'round'; ctx.lineWidth = Math.max(2, size / 7); ctx.strokeStyle = 'rgba(0,0,0,0.9)'; ctx.fillStyle = f.color || '#ffffff';
+  lines.forEach((l, i) => { const y = y0 + i * lh; ctx.strokeText(l, W / 2, y); ctx.fillText(l, W / 2, y); });
+  ctx.restore();
+}
+function parseSRT(txt) {
+  const out = [];
+  const tm = s => { const m = /(\d+):(\d+):(\d+)[,.](\d+)/.exec(s); return m ? (+m[1]) * 3600 + (+m[2]) * 60 + (+m[3]) + (+m[4]) / 1000 : NaN; };
+  txt = String(txt).replace(/\r/g, '').trim();
+  if (/-->/.test(txt)) {
+    txt.split(/\n\s*\n/).forEach(b => {
+      const L = b.split('\n').filter(Boolean); const i = L.findIndex(l => /-->/.test(l)); if (i < 0) return;
+      const [a, c] = L[i].split('-->'); const s = tm(a), e = tm(c); const text = L.slice(i + 1).join('\n').trim();
+      if (!isNaN(s) && !isNaN(e) && text) out.push({ start: s, end: e, text });
+    });
+  } else { /* formato "[12.5] frase" (saída do Studio Pro) */
+    const rows = []; txt.split('\n').forEach(l => { const m = /^\[\s*(\d+(?:\.\d+)?)\s*\]\s*(.*)$/.exec(l.trim()); if (m && m[2]) rows.push({ start: +m[1], text: m[2] }); });
+    rows.forEach((r, i) => out.push({ start: r.start, end: i + 1 < rows.length ? rows[i + 1].start : r.start + 4, text: r.text }));
+  }
+  return out;
+}
+
+/* ───────────────────────── FORMATO / TAMANHO ───────────────────────── */
+const RATIOS = { '9:16': 9 / 16, '1:1': 1, '16:9': 16 / 9, '4:5': 4 / 5 };
+function outSize(long) {
+  const first = S.clips[0] && S.sources[S.clips[0].sid];
+  let ar = S.fmt === 'orig' ? (first && first.w ? first.w / first.h : 16 / 9) : RATIOS[S.fmt];
+  let W, H;
+  if (ar >= 1) { W = long; H = Math.round(long / ar); } else { H = long; W = Math.round(long * ar); }
+  return { W: W & ~1, H: H & ~1 };
+}
+
+/* ───────────────────────── DESENHO DE UM QUADRO ───────────────────────── */
+function drawFrame(ctx, W, H, T) {
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+  const loc = clipAt(T);
+  if (!loc) return;
+  const src = S.sources[loc.c.sid], v = src.el;
+  if (!v.videoWidth) return;
+
+  /* zoom / rosto: o último efeito ativo manda */
+  let s = 1, cx = null, cy = null;
+  const act = S.fx.filter(f => (f.type === 'zoom' || f.type === 'face') && T >= f.start && T <= f.end);
+  if (act.length) {
+    const f = act[act.length - 1], e = fxEase(f, T);
+    let fcx = f.cx, fcy = f.cy;
+    if (f.type === 'face') { const c = (S.playing || S.exporting) ? trackFace(f, v, T) : faceCenterAt(f, T); fcx = c.cx; fcy = c.cy; }
+    s = 1 + ((f.scale || 2) - 1) * e;
+    cx = 0.5 + (fcx - 0.5) * e; cy = 0.5 + (fcy - 0.5) * e;
+  }
+  const vr = viewRect(v.videoWidth, v.videoHeight, W, H, S.fit, s, cx, cy);
+  S.lastView = vr;
+
+  const cp = colorParamsAt(T), useCss = cp.any && filterSupported();
+  if (useCss) ctx.filter = filterCss(cp);
+  ctx.drawImage(v, vr.sx, vr.sy, vr.sw, vr.sh, vr.dx, vr.dy, vr.dw, vr.dh);
+  if (useCss) ctx.filter = 'none';
+  else if (cp.any) pixelFilter(ctx, W, H, cp);
+
+  S.fx.forEach(f => { if (f.type !== 'skin') return; const e = fxEase(f, T); if (e > 0) smoothSkin(ctx, W, H, (f.amount == null ? 60 : f.amount) * e); });
+  S.fx.forEach(f => { if (f.type === 'cap' && T >= f.start && T <= f.end) drawCaption(ctx, W, H, f, T); });
+}
+
+/* ───────────────────────── ÁUDIO (WebAudio) ───────────────────────── */
+let actx = null, exportDest = null;
+function ensureAudio() {
+  if (actx) return actx;
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return null;
+  try { actx = new AC(); exportDest = actx.createMediaStreamDestination(); } catch (e) { actx = null; }
+  return actx;
+}
+function connectAudio(el) {
+  if (!ensureAudio() || el._node) return;
+  try {
+    const n = actx.createMediaElementSource(el), g = actx.createGain();
+    n.connect(g); g.connect(actx.destination); g.connect(exportDest);
+    el._node = n; el._gain = g;
+  } catch (e) { /* já conectado ou não suportado: o áudio segue pelo elemento */ }
+}
+function setGain(el, v) { if (el._gain) el._gain.gain.value = v; else el.volume = clamp(v, 0, 1); }
+function setClipAudio(c) {
+  const src = S.sources[c.sid]; if (!src) return;
+  Object.values(S.sources).forEach(s => { if (s !== src) setGain(s.el, 0); });
+  setGain(src.el, (S.globalMute || c.mute) ? 0 : (c.vol == null ? 1 : c.vol));
+}
+
+/* ───────────────────────── DESFAZER ───────────────────────── */
+function strip(f) { const o = Object.assign({}, f); delete o._st; delete o.draft; delete o.path; return o; }
+function snapshotJSON() {
+  return JSON.stringify({ clips: S.clips, fx: S.fx.map(strip), music: S.music.map(m => { const o = Object.assign({}, m); delete o._on; return o; }), gm: S.globalMute, fmt: S.fmt, fit: S.fit });
+}
+function snapshot() { S.undo.push(snapshotJSON()); if (S.undo.length > 40) S.undo.shift(); S.dirty = true; $('veUndo').disabled = false; }
+function undo() {
+  const j = S.undo.pop(); if (!j) return;
+  pauseAll();
+  const o = JSON.parse(j);
+  S.clips = o.clips; S.fx = o.fx; S.music = o.music; S.globalMute = o.gm; S.fmt = o.fmt; S.fit = o.fit; S.sel = null;
+  $('veUndo').disabled = !S.undo.length;
+  fitCanvas(); seek(clamp(S.t, 0, Math.max(0, total() - 0.001))); refreshAll();
+}
+
+/* ───────────────────────── REPRODUÇÃO ───────────────────────── */
+let raf = 0;
+const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+function fitCanvas() {
+  const cv = $('veCanvas'); if (!S.clips.length) return;
+  const { W, H } = outSize(720);
+  if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+}
+function render() {
+  if (!S.clips.length) return;
+  const cv = $('veCanvas'), ctx = cv.getContext('2d');
+  drawFrame(ctx, cv.width, cv.height, S.t);
+  drawMarker(ctx, cv.width, cv.height);
+}
+function drawMarker(ctx, W, H) {
+  if (!S.marker || S.exporting || !S.lastView) return;
+  const v = S.lastView;
+  const x = v.dx + ((S.marker.cx * v.vw - v.sx) / v.sw) * v.dw, y = v.dy + ((S.marker.cy * v.vh - v.sy) / v.sh) * v.dh;
+  ctx.save(); ctx.strokeStyle = '#ffd166'; ctx.lineWidth = Math.max(2, W / 200); ctx.shadowColor = '#000'; ctx.shadowBlur = 4;
+  const r = Math.max(14, W / 24);
+  ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.moveTo(x - r * 1.6, y); ctx.lineTo(x + r * 1.6, y); ctx.moveTo(x, y - r * 1.6); ctx.lineTo(x, y + r * 1.6); ctx.stroke(); ctx.restore();
+}
+function seek(T, opts) {
+  opts = opts || {};
+  if (!S.clips.length) return;
+  const was = S.playing; if (was) pauseAll();
+  T = clamp(T, 0, Math.max(0, total() - 0.001));
+  S.t = T;
+  const loc = clipAt(T); S.curIdx = loc.i;
+  const src = S.sources[loc.c.sid];
+  Object.values(S.sources).forEach(s => { if (s !== src) s.el.pause(); });
+  setClipAudio(loc.c);
+  try { src.el.currentTime = loc.c.in + loc.local; } catch (e) {}
+  render(); uiTime(); uiHead();
+  if (was || opts.resume) play();
+}
+async function primeAll() {
+  if (!isIOS) return;
+  const els = Object.values(S.sources).map(s => s.el).concat(Object.values(S.audios).map(a => a.el));
+  for (const el of els) {
+    if (el._primed) continue; el._primed = true;
+    const t = el.currentTime; el.muted = true;
+    try { await el.play(); el.pause(); } catch (e) {}
+    el.muted = false; try { el.currentTime = t; } catch (e) {}
+  }
+}
+async function play() {
+  if (S.playing || !S.clips.length) return;
+  if (S.t >= total() - 0.05) seek(0);
+  await primeAll();
+  const ac = ensureAudio(); if (ac && ac.state === 'suspended') { try { await ac.resume(); } catch (e) {} }
+  const c = S.clips[S.curIdx], el = S.sources[c.sid].el;
+  setClipAudio(c); el.playbackRate = S.rate || 1;
+  try { await el.play(); } catch (e) { toast('Não consegui reproduzir este vídeo.', true); return; }
+  S.playing = true; musicStartAt(S.t); uiPlay(); loop();
+}
+function pauseAll() {
+  const was = S.playing; S.playing = false;
+  Object.values(S.sources).forEach(s => s.el.pause());
+  Object.values(S.audios).forEach(a => a.el.pause());
+  S.music.forEach(m => { m._on = false; });
+  cancelAnimationFrame(raf); uiPlay();
+  if (was && S._onStop) { const f = S._onStop; S._onStop = null; f(); }
+}
+function loop() { if (!S.playing) return; step(); raf = requestAnimationFrame(loop); }
+function goNext() {
+  const c = S.clips[S.curIdx], nc = S.clips[S.curIdx + 1]; S.curIdx++;
+  const same = nc.sid === c.sid, contiguous = same && Math.abs(nc.in - c.out) < 0.08;
+  setClipAudio(nc);
+  const nel = S.sources[nc.sid].el;
+  if (!same) { S.sources[c.sid].el.pause(); nel.playbackRate = S.rate || 1; try { nel.currentTime = nc.in; } catch (e) {} nel.play().catch(() => {}); }
+  else if (!contiguous) { try { nel.currentTime = nc.in; } catch (e) {} }
+}
+function step() {
+  const c = S.clips[S.curIdx]; if (!c) { pauseAll(); return; }
+  const el = S.sources[c.sid].el, d = c.out - c.in, local = el.currentTime - c.in;
+  if (local >= d - 0.03) {
+    if (S.curIdx < S.clips.length - 1) { goNext(); return; }
+    S.t = total(); finishPlayback(); return;
+  }
+  S.t = clipStartT(S.curIdx) + Math.max(0, local);
+  musicSync();
+  if (S.exporting) {
+    drawFrame(S.exCtx, S.exCanvas.width, S.exCanvas.height, S.t);
+    if ((S.exFrame = (S.exFrame || 0) + 1) % 3 === 0) { const cv = $('veCanvas'); cv.getContext('2d').drawImage(S.exCanvas, 0, 0, cv.width, cv.height); busyProgress(S.t / total() * 100, `${fmtT(S.t)} / ${fmtT(total())}`); }
+  } else render();
+  if (S.stopAt != null && S.t >= S.stopAt) { S.stopAt = null; pauseAll(); }
+  uiTime(); uiHead();
+}
+function finishPlayback() {
+  const was = S.exporting;
+  pauseAll(); S.t = total(); S.rate = 1; uiTime(); uiHead();
+  if (!was) render();
+  if (was) endExport();
+}
+function playRange(a, b, rate, done) {
+  seek(a); S.stopAt = b; S.rate = rate || 1; S._onStop = () => { S.rate = 1; if (done) done(); }; play();
+}
+function musicStartAt(T) {
+  S.music.forEach(m => {
+    const a = S.audios[m.mid]; if (!a) return;
+    const endT = m.loop ? total() : m.start + a.dur;
+    setGain(a.el, S.preTracking ? 0 : m.vol); a.el.loop = !!m.loop;
+    if (T >= m.start && T < endT) { try { a.el.currentTime = m.loop ? (T - m.start) % a.dur : T - m.start; } catch (e) {} a.el.play().catch(() => {}); m._on = true; }
+    else { a.el.pause(); m._on = false; }
+  });
+}
+function musicSync() {
+  S.music.forEach(m => {
+    const a = S.audios[m.mid]; if (!a) return;
+    const endT = m.loop ? total() : m.start + a.dur;
+    if (!m._on && S.t >= m.start && S.t < endT) { musicStartAt(S.t); }
+    else if (m._on && S.t >= endT) { a.el.pause(); m._on = false; }
+  });
+}
+
+/* ───────────────────────── FONTES DE MÍDIA ───────────────────────── */
+function mediaEl(tag, url) {
+  const el = document.createElement(tag); el.src = url; el.preload = 'auto'; el.playsInline = true; el.setAttribute('playsinline', '');
+  $('veHidden').appendChild(el); return el;
+}
+async function addSource(blob, name) {
+  const url = URL.createObjectURL(blob), el = mediaEl('video', url);
+  await new Promise((res, rej) => { el.onloadedmetadata = res; el.onerror = () => rej(new Error('Formato de vídeo não suportado neste navegador.')); });
+  let dur = el.duration;
+  if (!isFinite(dur) || dur <= 0) { await new Promise(r => { el.onseeked = r; el.currentTime = 1e7; }); dur = el.duration; el.onseeked = null; el.currentTime = 0; }
+  const sid = uid();
+  S.sources[sid] = { sid, name, url, el, dur, w: el.videoWidth, h: el.videoHeight };
+  el.addEventListener('seeked', () => { if (!S.playing && !S.exporting) render(); });
+  connectAudio(el);
+  return sid;
+}
+async function addAudioSource(blob, name) {
+  const url = URL.createObjectURL(blob), el = mediaEl('audio', url);
+  await new Promise((res, rej) => { el.onloadedmetadata = res; el.onerror = () => rej(new Error('Formato de áudio não suportado.')); });
+  const mid = uid(); S.audios[mid] = { mid, name, url, el, dur: el.duration || 1 };
+  connectAudio(el); return mid;
+}
+function addClipFromSource(sid) {
+  const s = S.sources[sid];
+  S.clips.push({ id: uid(), sid, in: 0, out: s.dur, mute: false, vol: 1 });
+}
+
+/* ───────────────────────── INTERFACE: TEMPO / TIMELINE ───────────────────────── */
+function uiPlay() { $('vePlay').textContent = S.playing ? '⏸' : '▶'; }
+function uiTime() { $('veTime').textContent = fmtT(S.t) + '/' + fmtT(total()); }
+function pxs() { if (S.pps > 0) return S.pps; return Math.max(6, ($('veTl').clientWidth - 24) / Math.max(total(), 1)); }
+function uiHead() {
+  const p = pxs(), h = $('veHead'); h.style.left = (S.t * p) + 'px';
+  if (S.playing || S.exporting) { const tl = $('veTl'), x = S.t * p; if (x > tl.scrollLeft + tl.clientWidth * 0.85 || x < tl.scrollLeft) tl.scrollLeft = Math.max(0, x - tl.clientWidth * 0.2); }
+}
+function renderTimeline() {
+  const tot = total(), p = pxs(), inner = $('veTlIn');
+  inner.style.width = Math.max($('veTl').clientWidth, tot * p + 30) + 'px';
+  /* régua */
+  const steps = [0.5, 1, 2, 5, 10, 15, 30, 60, 120, 300, 600]; let st = steps.find(s => s * p >= 46) || 600;
+  let r = ''; for (let t = 0; t <= tot + 0.01; t += st) r += `<div class="ve-tick" style="left:${t * p}px">${fmtT(t).replace(/\.0$/, '')}</div>`;
+  $('veRuler').innerHTML = r;
+  /* clipes */
+  let ch = '', acc = 0;
+  S.clips.forEach((c, i) => {
+    const d = c.out - c.in, nm = (S.sources[c.sid] || {}).name || 'clipe';
+    ch += `<div class="ve-clip${S.sel && S.sel.k === 'clip' && S.sel.id === c.id ? ' sel' : ''}${(c.mute || S.globalMute) ? ' mute' : ''}" data-k="clip" data-id="${c.id}" style="left:${acc * p}px;width:${Math.max(12, d * p - 3)}px">${i + 1}. ${esc(nm)}</div>`;
+    acc += d;
+  });
+  $('veClips').innerHTML = ch;
+  /* efeitos em faixas */
+  const lanes = []; const items = S.fx.slice().sort((a, b) => a.start - b.start);
+  items.forEach(f => { let li = lanes.findIndex(e => e <= f.start + 0.001); if (li < 0) { li = lanes.length; lanes.push(0); } lanes[li] = f.end; f._lane = li; });
+  let lh = '';
+  for (let li = 0; li < lanes.length; li++) {
+    lh += '<div class="ve-lane">' + items.filter(f => f._lane === li).map(f => {
+      const m = FX_META[f.type];
+      return `<div class="ve-bar${S.sel && S.sel.k === 'fx' && S.sel.id === f.id ? ' sel' : ''}" data-k="fx" data-id="${f.id}" style="left:${f.start * p}px;width:${Math.max(16, (f.end - f.start) * p - 2)}px;background:${m.color}">${m.emoji} ${f.type === 'cap' ? esc((f.text || '').slice(0, 24)) : m.label}</div>`;
+    }).join('') + '</div>';
+  }
+  $('veLanes').innerHTML = lh;
+  /* música */
+  const ml = []; let mh = '';
+  S.music.slice().sort((a, b) => a.start - b.start).forEach(m => {
+    const a = S.audios[m.mid]; if (!a) return;
+    const end = m.loop ? tot : m.start + a.dur; let li = ml.findIndex(e => e <= m.start + 0.001); if (li < 0) { li = ml.length; ml.push(0); } ml[li] = end; m._lane = li;
+  });
+  for (let li = 0; li < ml.length; li++) {
+    mh += '<div class="ve-lane">' + S.music.filter(m => m._lane === li && S.audios[m.mid]).map(m => {
+      const a = S.audios[m.mid], end = m.loop ? tot : Math.min(m.start + a.dur, Math.max(tot, m.start + a.dur));
+      return `<div class="ve-bar${S.sel && S.sel.k === 'music' && S.sel.id === m.id ? ' sel' : ''}" data-k="music" data-id="${m.id}" style="left:${m.start * p}px;width:${Math.max(16, (end - m.start) * p - 2)}px;background:#9a5fd8;color:#fff">🎵 ${esc(a.name)}</div>`;
+    }).join('') + '</div>';
+  }
+  $('veMusicLane').innerHTML = mh;
+  uiHead();
+}
+function selObj() {
+  if (!S.sel) return null;
+  if (S.sel.k === 'clip') return S.clips.find(c => c.id === S.sel.id);
+  if (S.sel.k === 'fx') return S.fx.find(f => f.id === S.sel.id);
+  return S.music.find(m => m.id === S.sel.id);
+}
+function renderCtx() {
+  const box = $('veCtx'), o = selObj();
+  $('veMuteAll').textContent = S.globalMute ? '🔇' : '🔊';
+  if (!o) { box.innerHTML = ''; return; }
+  if (S.sel.k === 'clip') {
+    const i = S.clips.indexOf(o);
+    box.innerHTML = `<span class="ve-lbl">Clipe ${i + 1}</span><button data-a="left">◀ Mover</button><button data-a="right">Mover ▶</button>
+      <button data-a="mute">${o.mute ? '🔊 Pôr som' : '🔇 Tirar som'}</button><span class="ve-lbl">Vol</span><input type="range" min="0" max="200" value="${Math.round((o.vol == null ? 1 : o.vol) * 100)}" data-a="vol">
+      <button data-a="del">🗑️ Excluir</button>`;
+  } else if (S.sel.k === 'fx') {
+    box.innerHTML = `<span class="ve-lbl">${FX_META[o.type].emoji} ${FX_META[o.type].label}</span><button data-a="edit">✏️ Editar</button><button data-a="start">⏱ Início aqui</button><button data-a="end">⏹ Fim aqui</button><button data-a="see">▶ Ver trecho</button><button data-a="del">🗑️ Excluir</button>`;
+  } else {
+    box.innerHTML = `<span class="ve-lbl">🎵 ${esc((S.audios[o.mid] || {}).name || '')}</span><span class="ve-lbl">Vol</span><input type="range" min="0" max="200" value="${Math.round(o.vol * 100)}" data-a="vol"><button data-a="start">⏱ Início aqui</button><button data-a="loop">${o.loop ? '🔁 Repete' : '➡️ 1 vez'}</button><button data-a="del">🗑️ Excluir</button>`;
+  }
+}
+function refreshAll() { fitCanvas(); renderTimeline(); renderCtx(); uiTime(); render(); }
+
+/* ───────────────────────── BARRA DE CONTEXTO ───────────────────────── */
+$('veCtx').addEventListener('click', e => {
+  const a = e.target.dataset && e.target.dataset.a, o = selObj(); if (!a || !o || a === 'vol') return;
+  if (a === 'del') {
+    snapshot();
+    if (S.sel.k === 'clip') { if (S.clips.length === 1) { toast('É o único clipe. Use ✕ para sair.', true); S.undo.pop(); return; } const i = S.clips.indexOf(o); deleteClip(i); }
+    else if (S.sel.k === 'fx') S.fx = S.fx.filter(f => f !== o);
+    else S.music = S.music.filter(m => m !== o);
+    S.sel = null; seek(S.t); refreshAll(); return;
+  }
+  if (S.sel.k === 'clip') {
+    const i = S.clips.indexOf(o);
+    snapshot();
+    if (a === 'left' && i > 0) { S.clips.splice(i, 1); S.clips.splice(i - 1, 0, o); toast('Os efeitos mantêm o tempo da linha do tempo.'); }
+    else if (a === 'right' && i < S.clips.length - 1) { S.clips.splice(i, 1); S.clips.splice(i + 1, 0, o); toast('Os efeitos mantêm o tempo da linha do tempo.'); }
+    else if (a === 'mute') o.mute = !o.mute;
+    seek(S.t); refreshAll();
+  } else if (S.sel.k === 'fx') {
+    if (a === 'edit') openFxSheet(o.type, o);
+    else if (a === 'start') { snapshot(); o.start = Math.min(S.t, o.end - 0.1); refreshAll(); }
+    else if (a === 'end') { snapshot(); o.end = Math.max(S.t, o.start + 0.1); refreshAll(); }
+    else if (a === 'see') playRange(Math.max(0, o.start - 0.5), o.end + 0.3, 1);
+  } else {
+    if (a === 'start') { snapshot(); o.start = S.t; refreshAll(); }
+    else if (a === 'loop') { snapshot(); o.loop = !o.loop; refreshAll(); }
+  }
+});
+$('veCtx').addEventListener('input', e => {
+  if (e.target.dataset.a !== 'vol') return; const o = selObj(); if (!o) return;
+  o.vol = (+e.target.value) / 100;
+  if (S.sel.k === 'clip') setClipAudio(S.clips[S.curIdx]); else { const a = S.audios[o.mid]; if (a) setGain(a.el, o.vol); }
+});
+
+/* arrastar na linha do tempo = navegar; toque numa barra = selecionar */
+(function () {
+  const inner = $('veTlIn'); let down = false, startX = 0, moved = false, tgt = null, pend = null;
+  const toT = ev => (ev.clientX - inner.getBoundingClientRect().left) / pxs();
+  inner.addEventListener('pointerdown', ev => {
+    if (!S.clips.length) return;
+    down = true; moved = false; startX = ev.clientX; tgt = ev.target.closest && ev.target.closest('[data-k]');
+    inner.setPointerCapture && inner.setPointerCapture(ev.pointerId);
+    seek(toT(ev));
+  });
+  inner.addEventListener('pointermove', ev => {
+    if (!down) return; if (Math.abs(ev.clientX - startX) > 6) moved = true;
+    if (moved) { pend = toT(ev); if (!pend._r) requestAnimationFrame(() => { if (pend != null) { seek(pend); pend = null; } }); }
+  });
+  const up = () => {
+    if (!down) return; down = false;
+    if (!moved && tgt) { S.sel = { k: tgt.dataset.k, id: tgt.dataset.id }; renderTimeline(); renderCtx(); }
+    else if (!moved && !tgt) { S.sel = null; renderTimeline(); renderCtx(); }
+  };
+  inner.addEventListener('pointerup', up); inner.addEventListener('pointercancel', () => { down = false; });
+})();
+
+/* ───────────────────────── SHEETS ───────────────────────── */
+function sheet(title, html, o) {
+  o = o || {};
+  $('veSheetH').textContent = title; $('veSheetB').innerHTML = html;
+  $('veSheet').hidden = false; S._sheet = o;
+  $('veSheetOk').textContent = o.ok || 'OK'; $('veSheetOk').style.display = o.noOk ? 'none' : '';
+  $('veSheetCancel').textContent = o.cancel || 'Cancelar';
+  if (o.onOpen) o.onOpen($('veSheetB'));
+}
+function closeSheet() { $('veSheet').hidden = true; }
+$('veSheetOk').onclick = () => { const h = S._sheet || {}; if (h.onOk && h.onOk() === false) return; closeSheet(); };
+$('veSheetCancel').onclick = () => { const h = S._sheet || {}; closeSheet(); if (h.onCancel) h.onCancel(); };
+
+function busy(msg, sub, onCancel) {
+  $('veBusy').hidden = false; $('veBusyMsg').textContent = msg; $('veBusySub').textContent = sub || ''; $('veBusyBar').value = 0;
+  $('veBusyCancel').style.display = onCancel ? '' : 'none'; S._busyCancel = onCancel || null;
+}
+function busyProgress(pct, sub) { $('veBusyBar').value = pct; if (sub != null) $('veBusySub').textContent = sub; }
+function busyOff() { $('veBusy').hidden = true; S._busyCancel = null; }
+$('veBusyCancel').onclick = () => { if (S._busyCancel) S._busyCancel(); };
+function banner(msg) { const b = $('veBanner'); b.textContent = msg || ''; b.classList.toggle('on', !!msg); }
+
+const tfield = (id, label, val) => `<label class="ve-f"><span>${label}</span><div class="ve-trow"><button data-ta="${id}" data-d="-1">−1s</button><input type="text" inputmode="decimal" id="${id}" value="${fmtT(val)}"><button data-ta="${id}" data-d="1">+1s</button><button data-ta="${id}" data-d="now">📍 aqui</button></div></label>`;
+function pickPoint(cb) {
+  $('veSheet').hidden = true; banner('👆 Toque no vídeo para marcar o ponto');
+  S.picking = pt => { S.picking = null; banner(''); $('veSheet').hidden = false; cb(pt); };
+}
+$('veCanvas').addEventListener('click', ev => {
+  if (!S.picking || !S.lastView) return;
+  const r = $('veCanvas').getBoundingClientRect(), v = S.lastView;
+  const px = (ev.clientX - r.left) / r.width, py = (ev.clientY - r.top) / r.height;
+  const W = $('veCanvas').width, H = $('veCanvas').height;
+  const cx = (v.sx + ((px * W - v.dx) / v.dw) * v.sw) / v.vw, cy = (v.sy + ((py * H - v.dy) / v.dh) * v.sh) / v.vh;
+  S.picking({ cx: clamp(cx, 0, 1), cy: clamp(cy, 0, 1) });
+});
+
+/* ───────────────────────── EFEITOS: formulário ───────────────────────── */
+function defaultFx(type) {
+  const T = S.t, tot = total(), f = { id: uid(), type, start: T, end: Math.min(tot, T + 5) };
+  if (f.end - f.start < 0.5) { f.start = Math.max(0, tot - 5); f.end = tot; }
+  if (type === 'zoom') Object.assign(f, { scale: 2, cx: 0.5, cy: 0.5 });
+  if (type === 'face') Object.assign(f, { scale: 1.8, cx: 0.5, cy: 0.4 });
+  if (type === 'bw') f.strength = 100;
+  if (type === 'skin') f.amount = 60;
+  if (type === 'filter') Object.assign(f, { preset: 'Vívido' }, FILTER_PRESETS['Vívido']);
+  if (type === 'cap') Object.assign(f, { text: '', size: 5.5, color: '#ffffff', box: true, pos: 'bottom' });
+  return f;
+}
+function openFxSheet(type, existing) {
+  if (!S.clips.length) { toast('Abra um vídeo primeiro.', true); return; }
+  pauseAll();
+  const isNew = !existing; let fx, backup = null;
+  snapshot();
+  if (isNew) { fx = defaultFx(type); fx.draft = true; S.fx.push(fx); } else { fx = existing; backup = JSON.stringify(fx); }
+  S.sel = { k: 'fx', id: fx.id };
+  const meta = FX_META[type], tot = total();
+  const upd = () => { renderTimeline(); renderCtx(); render(); };
+  let h = '';
+  h += `<div class="ve-chk"><input type="checkbox" id="veWhole"><label for="veWhole">Aplicar no vídeo todo</label></div>`;
+  h += tfield('veFxStart', 'Começa em (mm:ss)', fx.start) + tfield('veFxEnd', type === 'zoom' || type === 'face' ? 'Mantém até (depois volta ao normal)' : 'Termina em', fx.end);
+  if (type === 'zoom' || type === 'face') {
+    h += `<label class="ve-f"><span>Intensidade do ${type === 'zoom' ? 'zoom' : 'enquadramento'}: <b id="veScaleV">${fx.scale.toFixed(1)}×</b></span><input type="range" id="veScale" min="${type === 'zoom' ? 1.2 : 1.3}" max="4" step="0.1" value="${fx.scale}"></label>`;
+    h += `<button class="ve-chip" id="vePick" style="width:100%;height:46px">📍 ${type === 'face' ? 'Tocar no rosto' : 'Escolher o ponto do zoom'} (toque no vídeo)</button>`;
+    h += `<div class="ve-hint">${type === 'zoom' ? 'O zoom entra suavemente no início e, ao chegar no horário final, o vídeo volta ao enquadramento original.' : 'Marque o rosto no quadro atual. O app acompanha o rosto enquanto o vídeo toca/exporta. Use “Pré-rastrear” para ver o resultado já na linha do tempo. Funciona melhor com o rosto em destaque e câmera estável.'}</div>`;
+    if (type === 'face') h += `<button class="ve-chip" id="veTrack" style="width:100%;height:46px;margin-top:6px">🎯 Pré-rastrear o trecho</button>`;
+  }
+  if (type === 'bw') h += `<label class="ve-f"><span>Intensidade: <b id="veStrV">${fx.strength}%</b></span><input type="range" id="veStr" min="10" max="100" step="5" value="${fx.strength}"></label>`;
+  if (type === 'skin') h += `<label class="ve-f"><span>Suavização: <b id="veAmtV">${fx.amount}%</b></span><input type="range" id="veAmt" min="10" max="100" step="5" value="${fx.amount}"></label><div class="ve-hint">Suaviza áreas com tom de pele (rosto e mãos). Quanto maior, mais “lisa” fica a pele.</div>`;
+  if (type === 'filter') {
+    h += `<label class="ve-f"><span>Estilo</span><select id="vePreset">${Object.keys(FILTER_PRESETS).map(k => `<option${k === fx.preset ? ' selected' : ''}>${k}</option>`).join('')}</select></label>`;
+    h += `<label class="ve-f"><span>Brilho <b id="veBriV"></b></span><input type="range" id="veBri" min="0.5" max="1.5" step="0.01" value="${fx.brightness}"></label>
+          <label class="ve-f"><span>Contraste <b id="veConV"></b></span><input type="range" id="veCon" min="0.5" max="1.6" step="0.01" value="${fx.contrast}"></label>
+          <label class="ve-f"><span>Saturação <b id="veSatV"></b></span><input type="range" id="veSat" min="0" max="2" step="0.01" value="${fx.saturate}"></label>`;
+  }
+  if (type === 'cap') {
+    h += `<label class="ve-f"><span>Texto da legenda</span><textarea id="veCapTxt" rows="3" placeholder="Digite a legenda…">${esc(fx.text)}</textarea></label>
+      <label class="ve-f"><span>Tamanho: <b id="veCapSzV">${fx.size}%</b></span><input type="range" id="veCapSz" min="3" max="12" step="0.5" value="${fx.size}"></label>
+      <div class="ve-trow"><label class="ve-f" style="flex:1"><span>Cor</span><input type="color" id="veCapCol" value="${fx.color}"></label>
+      <label class="ve-f" style="flex:2"><span>Posição</span><select id="veCapPos"><option value="top">Em cima</option><option value="middle">No meio</option><option value="bottom">Embaixo</option></select></label></div>
+      <div class="ve-chk"><input type="checkbox" id="veCapBox"${fx.box ? ' checked' : ''}><label for="veCapBox">Fundo escuro atrás do texto</label></div>
+      <button class="ve-chip" id="veSrt" style="width:100%;height:44px">📥 Importar legendas (.srt ou [seg] frase)</button>`;
+  }
+  h += `<button class="ve-chip" id="veRange" style="width:100%;height:46px;margin-top:8px">▶ Ver este trecho</button>`;
+
+  sheet(`${meta.emoji} ${meta.label}`, h, {
+    ok: isNew ? 'Aplicar' : 'Salvar',
+    onOk: () => {
+      if (type === 'cap' && !fx.text.trim()) { toast('Digite o texto da legenda.', true); return false; }
+      if (fx.end - fx.start < 0.1) { toast('O fim precisa ser depois do início.', true); return false; }
+      delete fx.draft; S.dirty = true; upd(); return true;
+    },
+    onCancel: () => {
+      S.undo.pop(); $('veUndo').disabled = !S.undo.length;
+      if (isNew) S.fx = S.fx.filter(f => f !== fx); else Object.assign(fx, JSON.parse(backup));
+      S.sel = null; upd();
+    },
+    onOpen: root => {
+      const sEl = root.querySelector('#veFxStart'), eEl = root.querySelector('#veFxEnd'), whole = root.querySelector('#veWhole');
+      const sync = () => { sEl.value = fmtT(fx.start); eEl.value = fmtT(fx.end); upd(); };
+      root.querySelectorAll('[data-ta]').forEach(b => b.onclick = () => {
+        const isStart = b.dataset.ta === 'veFxStart', cur = isStart ? fx.start : fx.end, d = b.dataset.d;
+        let v = d === 'now' ? S.t : cur + (+d);
+        v = clamp(v, 0, tot);
+        if (isStart) fx.start = Math.min(v, fx.end - 0.1); else fx.end = Math.max(v, fx.start + 0.1);
+        whole.checked = false; sync();
+      });
+      [sEl, eEl].forEach(inp => inp.onchange = () => {
+        const v = parseT(inp.value); if (isNaN(v)) { sync(); return; }
+        if (inp === sEl) fx.start = clamp(Math.min(v, fx.end - 0.1), 0, tot); else fx.end = clamp(Math.max(v, fx.start + 0.1), 0, tot);
+        whole.checked = false; sync();
+      });
+      whole.onchange = () => { if (whole.checked) { fx.start = 0; fx.end = tot; } sync(); };
+      const bind = (id, vid, key, fmtv, conv) => { const el = root.querySelector('#' + id); if (!el) return; const lab = root.querySelector('#' + vid); const show = () => { if (lab) lab.textContent = fmtv(+el.value); }; show(); el.oninput = () => { fx[key] = conv ? conv(+el.value) : +el.value; show(); render(); }; };
+      bind('veScale', 'veScaleV', 'scale', v => v.toFixed(1) + '×');
+      bind('veStr', 'veStrV', 'strength', v => v + '%');
+      bind('veAmt', 'veAmtV', 'amount', v => v + '%');
+      bind('veCapSz', 'veCapSzV', 'size', v => v + '%');
+      const pk = root.querySelector('#vePick');
+      if (pk) pk.onclick = () => {
+        S.marker = { cx: fx.cx, cy: fx.cy }; render();
+        pickPoint(pt => { fx.cx = pt.cx; fx.cy = pt.cy; fx.path = []; fx._st = null; S.marker = { cx: pt.cx, cy: pt.cy }; render(); setTimeout(() => { S.marker = null; render(); }, 1800); });
+      };
+      const tr = root.querySelector('#veTrack');
+      if (tr) tr.onclick = () => preTrack(fx);
+      const rg = root.querySelector('#veRange'); rg.onclick = () => { closeSheet(); playRange(Math.max(0, fx.start - 0.5), fx.end + 0.3, 1, () => { $('veSheet').hidden = false; }); };
+      if (type === 'filter') {
+        const bri = root.querySelector('#veBri'), con = root.querySelector('#veCon'), sat = root.querySelector('#veSat'), pre = root.querySelector('#vePreset');
+        const labs = () => { root.querySelector('#veBriV').textContent = (+bri.value).toFixed(2); root.querySelector('#veConV').textContent = (+con.value).toFixed(2); root.querySelector('#veSatV').textContent = (+sat.value).toFixed(2); };
+        const setP = () => { const p = FILTER_PRESETS[pre.value]; fx.preset = pre.value; Object.assign(fx, p); bri.value = p.brightness; con.value = p.contrast; sat.value = p.saturate; labs(); render(); };
+        pre.onchange = setP;
+        [[bri, 'brightness'], [con, 'contrast'], [sat, 'saturate']].forEach(([el, k]) => el.oninput = () => { fx[k] = +el.value; fx.preset = 'Personalizado'; pre.value = 'Personalizado'; labs(); render(); });
+        labs();
+      }
+      if (type === 'cap') {
+        root.querySelector('#veCapTxt').oninput = e => { fx.text = e.target.value; upd(); };
+        root.querySelector('#veCapCol').oninput = e => { fx.color = e.target.value; render(); };
+        const pos = root.querySelector('#veCapPos'); pos.value = fx.pos; pos.onchange = () => { fx.pos = pos.value; render(); };
+        root.querySelector('#veCapBox').onchange = e => { fx.box = e.target.checked; render(); };
+        root.querySelector('#veSrt').onclick = () => $('veFileSrt').click();
+      }
+      /* mostra o efeito já na posição atual */
+      upd();
+    }
+  });
+}
+$('veFileSrt').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  const list = parseSRT(await f.text());
+  if (!list.length) { toast('Não encontrei legendas nesse arquivo.', true); return; }
+  const cur = S.fx.find(x => x.draft && x.type === 'cap') || { size: 5.5, color: '#ffffff', box: true, pos: 'bottom' };
+  const tot = total();
+  /* descarta o rascunho e cria uma legenda por trecho */
+  S.fx = S.fx.filter(x => !(x.draft && x.type === 'cap'));
+  S.undo.pop();
+  snapshot();
+  list.forEach(l => { if (l.start < tot) S.fx.push({ id: uid(), type: 'cap', start: l.start, end: Math.min(l.end, tot), text: l.text, size: cur.size, color: cur.color, box: cur.box, pos: cur.pos }); });
+  closeSheet(); S.sel = null; refreshAll(); toast(`💬 ${list.length} legenda(s) importada(s).`);
+};
+
+/* pré-rastreio: toca o trecho em 2× sem som só para o rastreador aprender o caminho do rosto */
+function preTrack(fx) {
+  closeSheet(); fx.path = []; fx._st = null; S.preTracking = true;
+  busy('Rastreando rosto…', 'Aguarde o trecho terminar', () => { pauseAll(); });
+  const done = () => { S.preTracking = false; busyOff(); S.rate = 1; seek(fx.start); $('veSheet').hidden = false; toast('🎯 Rastreio concluído.'); };
+  playRange(fx.start, fx.end, 2, done);
+}
+
+/* ───────────────────────── MÚSICA ───────────────────────── */
+function openMusicSheet() {
+  if (!S.clips.length) { toast('Abra um vídeo primeiro.', true); return; }
+  sheet('🎵 Música', `<div class="ve-btnrow"><button id="veMusLocal">📱 Do celular</button><button id="veMusDrive">☁️ Do Drive</button></div><div class="ve-hint">A música começa onde o cursor está e pode se repetir até o fim do vídeo.</div>`, {
+    noOk: true, cancel: 'Fechar',
+    onOpen: r => {
+      r.querySelector('#veMusLocal').onclick = () => $('veFileAudio').click();
+      r.querySelector('#veMusDrive').onclick = () => drivePicker('audio', async a => {
+        try { const blob = await driveDownload(a, '⬇️ Baixando música…'); busyOff(); await musicParams(await addAudioSource(blob, a.nome), a.nome); } catch (e) { busyOff(); toast('❌ ' + e.message, true); }
+      });
+    }
+  });
+}
+$('veFileAudio').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try { busy('Carregando música…'); const mid = await addAudioSource(f, f.name); busyOff(); musicParams(mid, f.name); } catch (er) { busyOff(); toast('❌ ' + er.message, true); }
+};
+function musicParams(mid, name) {
+  const a = S.audios[mid], m = { id: uid(), mid, start: S.t, vol: 0.8, loop: false };
+  sheet('🎵 ' + name, tfield('veMStart', 'Começa em', m.start) +
+    `<label class="ve-f"><span>Volume: <b id="veMVolV">80%</b></span><input type="range" id="veMVol" min="0" max="200" value="80"></label>
+     <div class="ve-chk"><input type="checkbox" id="veMLoop"><label for="veMLoop">Repetir até o fim do vídeo</label></div>
+     <div class="ve-hint">Duração da música: ${fmtT(a.dur)}</div>`, {
+    ok: 'Adicionar',
+    onOk: () => { snapshot(); S.music.push(m); S.sel = { k: 'music', id: m.id }; refreshAll(); },
+    onOpen: r => {
+      const st = r.querySelector('#veMStart');
+      r.querySelectorAll('[data-ta]').forEach(b => b.onclick = () => { const d = b.dataset.d; m.start = clamp(d === 'now' ? S.t : m.start + (+d), 0, total()); st.value = fmtT(m.start); });
+      st.onchange = () => { const v = parseT(st.value); if (!isNaN(v)) m.start = clamp(v, 0, total()); st.value = fmtT(m.start); };
+      r.querySelector('#veMVol').oninput = e => { m.vol = (+e.target.value) / 100; r.querySelector('#veMVolV').textContent = e.target.value + '%'; };
+      r.querySelector('#veMLoop').onchange = e => { m.loop = e.target.checked; };
+    }
+  });
+}
+
+/* ───────────────────────── FORMATO ───────────────────────── */
+function openFormatSheet() {
+  const opt = (v, t) => `<button class="ve-chip" data-fmt="${v}" style="${S.fmt === v ? 'border-color:#00e5ff;color:#00e5ff;' : ''}">${t}</button>`;
+  sheet('📐 Formato do vídeo', `<div class="ve-btnrow">${opt('orig', 'Original')}${opt('9:16', '9:16 Reels/Stories')}${opt('1:1', '1:1 Quadrado')}${opt('16:9', '16:9 YouTube')}${opt('4:5', '4:5 Feed')}</div>
+    <div class="ve-btnrow"><button class="ve-chip" data-fit="cover" style="${S.fit === 'cover' ? 'border-color:#00e5ff;color:#00e5ff;' : ''}">Preencher (corta bordas)</button><button class="ve-chip" data-fit="contain" style="${S.fit === 'contain' ? 'border-color:#00e5ff;color:#00e5ff;' : ''}">Encaixar (barras pretas)</button></div>`, {
+    noOk: true, cancel: 'Fechar',
+    onOpen: r => {
+      r.querySelectorAll('[data-fmt]').forEach(b => b.onclick = () => { snapshot(); S.fmt = b.dataset.fmt; fitCanvas(); render(); openFormatSheet(); });
+      r.querySelectorAll('[data-fit]').forEach(b => b.onclick = () => { snapshot(); S.fit = b.dataset.fit; render(); openFormatSheet(); });
+    }
+  });
+}
+
+/* ───────────────────────── DRIVE: baixar / enviar em blocos ───────────────────────── */
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const apiR = async (a, d) => { const r = await api(a, d); return r.result || r; };
+async function driveDownload(a, label) {
+  let off = 0, cancelled = false; const parts = [];
+  busy(label || '⬇️ Baixando do Drive…', a.nome, () => { cancelled = true; });
+  for (;;) {
+    if (cancelled) throw new Error('Cancelado.');
+    let r = null;
+    for (let t = 0; t < 3; t++) {
+      try { r = await apiR('driveLerChunk', { arquivoId: a.id, offset: off, tamanho: 5 * 1024 * 1024 }); } catch (e) { r = { sucesso: false, mensagem: e.message }; }
+      if (r.sucesso) break; await sleep(900 * (t + 1));
+    }
+    if (!r || !r.sucesso) throw new Error((r && r.mensagem) || 'Falha ao baixar do Drive.');
+    if (r.base64) parts.push(new Uint8Array(await (await fetch('data:application/octet-stream;base64,' + r.base64)).arrayBuffer()));
+    off = r.proximo; busyProgress(r.total ? off / r.total * 100 : 50, `${(off / 1048576).toFixed(1)} MB de ${((r.total || 0) / 1048576).toFixed(1)} MB`);
+    if (r.fim || off >= r.total) break;
+  }
+  return new Blob(parts, { type: a.tipo || 'video/mp4' });
+}
+const blobB64 = b => new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(String(fr.result).split(',')[1]); fr.onerror = rej; fr.readAsDataURL(b); });
+async function driveUpload(blob, name, mime) {
+  let cancelled = false;
+  busy('☁️ Salvando no Drive…', name, () => { cancelled = true; });
+  const ini = await apiR('driveUploadIniciar', { nomeArquivo: name, mimeType: mime, tamanhoTotal: blob.size, pastaId: PASTA_CONVERSA_ID });
+  if (!ini.sucesso) throw new Error(ini.mensagem || 'Não foi possível iniciar o envio.');
+  const bloco = ini.bloco || 3 * 1024 * 1024; let off = 0, last = null;
+  while (off < blob.size) {
+    if (cancelled) throw new Error('Cancelado.');
+    const end = Math.min(off + bloco, blob.size), b64 = await blobB64(blob.slice(off, end));
+    let r = null;
+    for (let t = 0; t < 3; t++) {
+      try { r = await apiR('driveUploadChunk', { sessaoUrl: ini.sessaoUrl, base64: b64, offset: off, tamanhoTotal: blob.size, mimeType: mime }); } catch (e) { r = { sucesso: false, mensagem: e.message }; }
+      if (r.sucesso) break; await sleep(1200 * (t + 1));
+    }
+    if (!r || !r.sucesso) throw new Error((r && r.mensagem) || 'Falha ao enviar.');
+    last = r; off = end; busyProgress(off / blob.size * 100, `${(off / 1048576).toFixed(1)} MB de ${(blob.size / 1048576).toFixed(1)} MB`);
+  }
+  if (!last || !last.concluido) throw new Error('O Drive não confirmou o envio.');
+  return last;
+}
+function drivePicker(kind, cb) {
+  const isAud = a => (a.tipo || '').startsWith('audio/') || /\.(mp3|wav|m4a|ogg|aac|flac)$/i.test(a.nome || '');
+  const list = (typeof arquivosCache !== 'undefined' ? arquivosCache : []).filter(a => kind === 'audio' ? isAud(a) : tipoDoArquivo(a.nome, a.tipo || '') === 'video');
+  if (!list.length) { toast(kind === 'audio' ? 'Nenhum áudio na pasta do Drive.' : 'Nenhum vídeo na pasta do Drive.', true); return; }
+  sheet(kind === 'audio' ? '☁️ Músicas no Drive' : '☁️ Vídeos no Drive',
+    list.map((a, i) => `<button class="ve-chip" data-i="${i}" style="width:100%;height:50px;margin:4px 0;text-align:left;overflow:hidden;text-overflow:ellipsis">${kind === 'audio' ? '🎵' : '🎬'} ${esc(a.nome)} <small style="color:#8b93a7">${a.tamanho ? formatarTamanho(a.tamanho) : ''}</small></button>`).join(''), {
+    noOk: true, cancel: 'Fechar',
+    onOpen: r => r.querySelectorAll('[data-i]').forEach(b => b.onclick = () => { closeSheet(); cb(list[+b.dataset.i]); })
+  });
+}
+
+/* ───────────────────────── ABRIR VÍDEOS ───────────────────────── */
+function showStage(has) { $('veEmpty').style.display = has ? 'none' : 'flex'; }
+async function ingest(blob, name) {
+  const sid = await addSource(blob, name);
+  const first = !S.clips.length;
+  if (!first) snapshot();
+  addClipFromSource(sid);
+  if (first) { S.name = name.replace(/\.[^.]+$/, ''); $('veTitle').textContent = S.name; }
+  showStage(true); fitCanvas();
+  if (first) seek(0); else seek(S.t);
+  refreshAll();
+}
+async function openLocalFiles(files) {
+  for (const f of files) {
+    try { busy('Carregando vídeo…', f.name); await ingest(f, f.name); } catch (e) { toast('❌ ' + e.message, true); }
+  }
+  busyOff();
+}
+$('veFileVideo').onchange = async e => { const fs = Array.from(e.target.files); e.target.value = ''; if (fs.length) { show(); await openLocalFiles(fs); } };
+$('veOpenLocal').onclick = () => $('veFileVideo').click();
+
+function show() { $('ve').hidden = false; document.body.style.overflow = 'hidden'; ensureAudio(); requestAnimationFrame(refreshAll); }
+function resetAll() {
+  pauseAll();
+  Object.values(S.sources).forEach(s => { try { URL.revokeObjectURL(s.url); s.el.remove(); } catch (e) {} });
+  Object.values(S.audios).forEach(a => { try { URL.revokeObjectURL(a.url); a.el.remove(); } catch (e) {} });
+  Object.assign(S, { sources: {}, audios: {}, clips: [], fx: [], music: [], t: 0, curIdx: 0, sel: null, globalMute: false, fmt: 'orig', fit: 'cover', pps: 0, undo: [], dirty: false, marker: null, picking: null });
+  $('veUndo').disabled = true; $('veTitle').textContent = 'Editor de vídeo'; showStage(false); banner('');
+  $('veClips').innerHTML = $('veLanes').innerHTML = $('veMusicLane').innerHTML = $('veCtx').innerHTML = ''; uiTime(); uiPlay();
+  const cv = $('veCanvas'); cv.width = 640; cv.height = 360; cv.getContext('2d').clearRect(0, 0, 640, 360);
+}
+function closeEditor() {
+  if (S.exporting) { cancelExport(); }
+  if (S.dirty && S.clips.length && !confirm('Fechar o editor? As alterações que não foram exportadas serão perdidas.')) return;
+  resetAll();
+  if (window.parent !== window) { window.parent.postMessage({ type: 'close' }, '*'); }
+  else { show(); }   /* aberto sozinho: volta para a tela inicial do editor */
+}
+const LIMITE_AVISO = 250 * 1048576, LIMITE_MAX = 600 * 1048576;
+function avisoVideoGrande(a) {
+  const gb = (a.tamanho / 1073741824).toFixed(2);
+  sheet('⚠️ Vídeo grande demais para o celular', `<div class="ve-hint" style="font-size:.9rem">
+    <b>${esc(a.nome)}</b> tem <b>${gb} GB</b>. O editor trabalha dentro do navegador do celular, que precisa carregar o vídeo na memória — acima de ${Math.round(LIMITE_MAX / 1048576)} MB ele trava.<br><br>
+    <b>O que fazer:</b><br>• Corte/comprima antes (ex.: no computador, ou pelo Studio Pro) e suba a versão menor;<br>• ou grave/exporte o vídeo em 720p;<br>• ou use <b>“Abrir vídeo do celular”</b> com um trecho menor.</div>`, { noOk: true, cancel: 'Entendi' });
+}
+async function openFromDrive(a) {
+  show();
+  if (a.tamanho && a.tamanho > LIMITE_MAX) { avisoVideoGrande(a); return; }
+  if (S.clips.length && !confirm('Já existe um projeto aberto. Descartar e abrir este vídeo?')) return;
+  if (S.clips.length) resetAll();
+  if (a.tamanho && a.tamanho > LIMITE_AVISO && !confirm(`Este vídeo tem ${formatarTamanho(a.tamanho)}. O download pode demorar e, em celulares com pouca memória, o editor pode travar. Continuar?`)) return;
+  try { const blob = await driveDownload(a); await ingest(blob, a.nome); } catch (e) { toast('❌ ' + e.message, true); }
+  busyOff();
+}
+
+/* ───────────────────────── EXPORTAR ───────────────────────── */
+function pickMime() {
+  /* MP4 só quando o H.264 existe de verdade (senão sairia VP9 dentro de MP4, que o iPhone não toca) */
+  const c = ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4;codecs=avc1.42E01E', 'video/mp4;codecs=avc1', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
+  return window.MediaRecorder ? c.find(m => MediaRecorder.isTypeSupported(m)) || '' : '';
+}
+function openExportSheet() {
+  if (!S.clips.length) { toast('Abra um vídeo primeiro.', true); return; }
+  pauseAll();
+  const first = S.sources[S.clips[0].sid], tot = total();
+  sheet('💾 Exportar vídeo', `
+    <label class="ve-f"><span>Qualidade</span><select id="veQ"><option value="720">HD 720p (mais rápido, arquivo menor)</option><option value="1080">Full HD 1080p</option><option value="480">480p (rascunho)</option></select></label>
+    <div class="ve-hint">⏱️ A exportação roda em tempo real: leva cerca de <b>${fmtT(tot)}</b> (a duração do vídeo). Deixe esta tela aberta e o celular desbloqueado. ${filterSupported() ? '' : 'Seu navegador não tem filtros acelerados: efeitos de cor podem pesar.'}</div>
+    <div class="ve-hint">Formato do arquivo: <b>${(pickMime().includes('mp4') ? 'MP4' : 'WebM') || '—'}</b>${pickMime() ? '' : ' — este navegador não suporta exportar.'}</div>`, {
+    ok: 'Iniciar exportação',
+    onOk: () => { const q = +$('veQ').value; setTimeout(() => startExport(q), 50); return true; }
+  });
+  $('veQ').value = (first && Math.max(first.w, first.h) >= 1900) ? '1080' : '720';
+}
+let wake = null;
+async function startExport(q) {
+  if (!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream) { toast('Este navegador não suporta exportar vídeo. Use o Chrome (Android) ou Safari 15+ (iPhone).', true); return; }
+  const { W, H } = outSize(q), ex = document.createElement('canvas'); ex.width = W; ex.height = H;
+  S.exCanvas = ex; S.exCtx = ex.getContext('2d'); S.exFrame = 0;
+  const mime = pickMime(), stream = ex.captureStream(30);
+  if (ensureAudio() && exportDest) exportDest.stream.getAudioTracks().forEach(t => stream.addTrack(t));
+  let rec;
+  try { rec = new MediaRecorder(stream, Object.assign({ videoBitsPerSecond: q >= 1080 ? 8e6 : q >= 720 ? 5e6 : 2.5e6, audioBitsPerSecond: 128000 }, mime ? { mimeType: mime } : {})); }
+  catch (e) { toast('Não foi possível iniciar o gravador: ' + e.message, true); return; }
+  const chunks = [];
+  rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+  rec.onstop = () => { if (S.cancelExport) { S.cancelExport = false; return; } onExportDone(new Blob(chunks, { type: (mime || 'video/webm').split(';')[0] })); };
+  S.rec = rec; S.cancelExport = false; S.exporting = true; S.sel = null; renderCtx();
+  try { if (navigator.wakeLock) wake = await navigator.wakeLock.request('screen'); } catch (e) {}
+  busy('🎬 Exportando…', '0:00 / ' + fmtT(total()), cancelExport);
+  seek(0); await sleep(450);
+  rec.start(500);
+  await play();
+}
+function cancelExport() {
+  if (!S.exporting) { busyOff(); return; }
+  S.cancelExport = true; S.exporting = false; pauseAll();
+  try { S.rec.stop(); } catch (e) {} releaseWake(); busyOff(); seek(0); toast('Exportação cancelada.');
+}
+function releaseWake() { try { if (wake) wake.release(); } catch (e) {} wake = null; }
+function endExport() { S.exporting = false; releaseWake(); setTimeout(() => { try { S.rec.stop(); } catch (e) {} }, 300); }
+document.addEventListener('visibilitychange', () => { if (document.hidden && S.exporting) { cancelExport(); toast('Exportação cancelada: mantenha a tela aberta durante a exportação.', true); } });
+
+function onExportDone(blob) {
+  busyOff(); seek(0);
+  const ext = blob.type.includes('mp4') ? 'mp4' : 'webm', url = URL.createObjectURL(blob);
+  const d = new Date(), pad = n => String(n).padStart(2, '0');
+  const fname = `${S.name}_editado_${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}.${ext}`;
+  S.lastExport = { blob, url, fname };
+  sheet('✅ Vídeo pronto', `<div class="ve-res"><video src="${url}" controls playsinline></video>
+    <div class="ve-hint">${fname} — ${(blob.size / 1048576).toFixed(1)} MB</div>
+    <div class="ve-btnrow"><a href="${url}" download="${esc(fname)}">💾 Baixar</a><button id="veToDrive">☁️ Salvar no Drive</button></div></div>`, {
+    noOk: true, cancel: 'Fechar',
+    onOpen: r => r.querySelector('#veToDrive').onclick = async () => {
+      try { await driveUpload(blob, fname, blob.type); busyOff(); toast('✅ Salvo no Drive!'); closeSheet(); S.dirty = false; if (typeof carregarTudo === 'function') carregarTudo(); }
+      catch (e) { busyOff(); toast('❌ ' + e.message, true); }
+    }
+  });
+}
+
+/* ───────────────────────── EVENTOS DA BARRA ───────────────────────── */
+$('veClose').onclick = closeEditor;
+$('veUndo').onclick = undo;
+$('veExport').onclick = openExportSheet;
+$('vePlay').onclick = () => { S.playing ? pauseAll() : play(); };
+$('veStepB').onclick = () => { pauseAll(); seek(S.t - 1 / 30); };
+$('veStepF').onclick = () => { pauseAll(); seek(S.t + 1 / 30); };
+$('veMuteAll').onclick = () => { snapshot(); S.globalMute = !S.globalMute; if (S.clips[S.curIdx]) setClipAudio(S.clips[S.curIdx]); refreshAll(); };
+$('veTlPlus').onclick = () => { S.pps = Math.min(400, pxs() * 1.6); renderTimeline(); };
+$('veTlMinus').onclick = () => { S.pps = Math.max(2, pxs() / 1.6); const fit = ($('veTl').clientWidth - 24) / Math.max(total(), 1); if (S.pps <= fit) S.pps = 0; renderTimeline(); };
+$('veTools').addEventListener('click', e => {
+  const b = e.target.closest('[data-t]'); if (!b) return; const t = b.dataset.t;
+  if (t === 'add') {
+    sheet('➕ Juntar vídeo', `<div class="ve-btnrow"><button id="veAddLocal">📱 Do celular</button><button id="veAddDrive">☁️ Do Drive</button></div><div class="ve-hint">O vídeo entra no final da linha do tempo.</div>`, {
+      noOk: true, cancel: 'Fechar',
+      onOpen: r => {
+        r.querySelector('#veAddLocal').onclick = () => { closeSheet(); $('veFileVideo').click(); };
+        r.querySelector('#veAddDrive').onclick = () => drivePicker('video', async a => { if (a.tamanho && a.tamanho > LIMITE_MAX) { avisoVideoGrande(a); return; } try { const blob = await driveDownload(a); await ingest(blob, a.nome); } catch (er) { toast('❌ ' + er.message, true); } busyOff(); });
+      }
+    });
+    return;
+  }
+  if (!S.clips.length) { toast('Abra um vídeo primeiro.', true); return; }
+  if (t === 'split') { snapshot(); if (splitAt(S.t)) { toast('✂️ Dividido neste ponto.'); S.sel = null; seek(S.t); refreshAll(); } else { S.undo.pop(); $('veUndo').disabled = !S.undo.length; toast('Posicione o cursor dentro de um clipe, longe das bordas.', true); } return; }
+  if (['zoom', 'face', 'bw', 'skin', 'filter', 'cap'].includes(t)) return openFxSheet(t);
+  if (t === 'music') return openMusicSheet();
+  if (t === 'format') return openFormatSheet();
+  if (t === 'auto') return openAutoSheet();
+});
+window.addEventListener('resize', () => { if (!$('ve').hidden) { renderTimeline(); } });
+document.addEventListener('keydown', e => { if ($('ve').hidden) return; if (e.code === 'Space' && !/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) { e.preventDefault(); S.playing ? pauseAll() : play(); } });
+
+/* ───────────────────────── API PÚBLICA ───────────────────────── */
+/* ═══ AUTO-EDIÇÃO (análise no worker) ═══ */
+async function edEnvelope() {
+  const AC = window.AudioContext || window.webkitAudioContext, ac = new AC(), passo = 0.1, env = [];
+  for (const c of S.clips) {
+    const s = S.sources[c.sid], buf = await ac.decodeAudioData(await (await fetch(s.url)).arrayBuffer()), d = buf.getChannelData(0), sr = buf.sampleRate, n = Math.floor((c.out - c.in) / passo);
+    for (let k = 0; k < n; k++) { const a = Math.floor((c.in + k * passo) * sr), b = Math.min(d.length, Math.floor((c.in + (k + 1) * passo) * sr)); let sum = 0; for (let i = a; i < b; i++) sum += d[i] * d[i]; env.push(b > a ? +Math.sqrt(sum / (b - a)).toFixed(4) : 0); }
+  }
+  ac.close(); return { env, passo };
+}
+async function openAutoSheet() {
+  busy('Analisando o áudio…', 'O cálculo roda no motor protegido');
+  let r, pl;
+  try { const e = await edEnvelope(); r = await edApi('autoedicao', { dur: total(), passo: e.passo, env: e.env, minSil: 0.6 }); if (r.ok) pl = await edApi('plano', { plataforma: 'reels', dur: r.duracaoFinal }); }
+  catch (err) { busyOff(); toast('Não consegui analisar o áudio: ' + err.message, true); return; }
+  busyOff(); if (!r.ok) { toast(r.error || 'Falha na análise', true); return; }
+  sheet('🤖 Auto-edição', `<p>Silêncios: <b>${r.silencios.length}</b> · economia <b>${r.economia}s</b> · final <b>${r.duracaoFinal}s</b> · fala ${Math.round(r.fala * 100)}%</p><p class="ve-hint">Picos de energia (bons pontos de zoom): ${r.picos.map(p => fmtT(p.t)).join(', ') || '—'}</p>` + (pl && pl.ok ? `<p class="ve-hint">${pl.plataforma}: ${pl.ratio}, ~${pl.estimadoMB} MB. ${pl.avisos.join(' ')}</p>` : ''),
+    { ok: 'Cortar silêncios', onOk: () => { if (!r.silencios.length) { toast('Nenhum silêncio para cortar.'); return; } snapshot(); r.silencios.slice().reverse().forEach(x => rippleDelete(x.ini, x.fim)); S.sel = null; seek(Math.min(S.t, total())); refreshAll(); toast('✂️ Silêncios removidos.'); } });
+}
+
+window.VE = {
+  open: () => { show(); }, openLocal: () => { show(); $('veFileVideo').click(); }, openFromDrive,
+  _S: S, _motor: (F) => { const E = F({$,S,clamp,fxEase}); ({FILTER_OK,SK,TR,colorParamsAt,extractPatch,faceCenterAt,filterCss,filterSupported,grayFrame,isSkin,pixelFilter,sadMatch,sadSearch,skinCanvases,smoothSkin,trackFace} = E); }
+};
+})();
+
+</script>
+</body>
+</html>
