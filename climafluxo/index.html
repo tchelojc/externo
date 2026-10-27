@@ -496,12 +496,19 @@ async function vMundo() {
     $('v').innerHTML = `<div class="box aviso ruim">${esc(e.message || 'Falha.')}</div>`;
     return;
   }
+  if (!ANALISE || ANALISE.ok !== true) {
+    $('v').innerHTML = `<div class="box aviso ruim">${esc((ANALISE && ANALISE.error) || 'Análise indisponível.')}</div>`;
+    return;
+  }
   const A = ANALISE;
-  const o = A.oni;
+  const o = A.oni || {};
   const C = A.continentes || {};
   const nomes = Object.keys(C);
   const d = C[cont] || C.GLOBAL;
   if (!d) { $('v').innerHTML = '<div class="box aviso">Continente indisponível.</div>'; return; }
+
+  // helper: garante que todo valor lido do worker é número antes do .toFixed()
+  const nN = (v, fb) => (typeof v === 'number' && isFinite(v)) ? v : (fb == null ? 0 : fb);
 
   const faseCor = o.fase === 'El Niño' ? 'var(--rd)' : o.fase === 'La Niña' ? 'var(--cy)' : 'var(--am)';
 
@@ -520,13 +527,14 @@ async function vMundo() {
       <h2>CONTINENTES <small>tendência de alta</small></h2>
       <div class="g">
         ${nomes.map(n => {
-          const x = C[n];
-          const cor = x.probAlta >= 55 ? 'var(--rd)' : x.probAlta <= 45 ? 'var(--cy)' : 'var(--am)';
+          const x = C[n] || {};
+          const probAlta = nN(x.probAlta, 50);
+          const cor = probAlta >= 55 ? 'var(--rd)' : probAlta <= 45 ? 'var(--cy)' : 'var(--am)';
           return `<div class="c${n === cont ? ' on' : ''}" data-n="${esc(n)}" role="button" tabindex="0">
             <div class="lbl">${esc(n)}</div>
-            <div class="val">${x.probAlta}%</div>
-            <div class="mu" style="font-size:11px;margin-top:2px">${x.t.toFixed(1)}°C · H ${x.entropia.toFixed(2)}</div>
-            <div class="bar"><i style="width:${x.probAlta}%;background:${cor}"></i></div>
+            <div class="val">${probAlta}%</div>
+            <div class="mu" style="font-size:11px;margin-top:2px">${nN(x.t, 20).toFixed(1)}°C · H ${nN(x.entropia, 0).toFixed(2)}</div>
+            <div class="bar"><i style="width:${probAlta}%;background:${cor}"></i></div>
           </div>`;
         }).join('')}
       </div>
@@ -535,14 +543,14 @@ async function vMundo() {
     <div class="box">
       <h2>${esc(cont)}</h2>
       <div class="linhas">
-        <div><span>Temperatura-base</span><b>${d.t.toFixed(1)} °C</b></div>
-        <div><span>Entropia</span><b>${d.entropia.toFixed(2)}</b></div>
-        <div><span>Pressão (IPC)</span><b>${d.ipc.toFixed(2)}</b></div>
-        <div><span>Fluxo</span><b>${d.fluxo.toFixed(1)}</b></div>
-        <div><span>Delta</span><b>${d.delta.toFixed(0)}</b></div>
-        <div><span>Marés</span><b>${d.mares.toFixed(2)} m (${esc(d.maresVar)})</b></div>
-        <div><span>Prob. de alta</span><b>${d.probAlta}%</b></div>
-        <div><span>Prob. de baixa</span><b>${d.probBaixa}%</b></div>
+        <div><span>Temperatura-base</span><b>${nN(d.t, 20).toFixed(1)} °C</b></div>
+        <div><span>Entropia</span><b>${nN(d.entropia, 0).toFixed(2)}</b></div>
+        <div><span>Pressão (IPC)</span><b>${nN(d.ipc, 0).toFixed(2)}</b></div>
+        <div><span>Fluxo</span><b>${nN(d.fluxo, 0).toFixed(1)}</b></div>
+        <div><span>Delta</span><b>${nN(d.delta, 0).toFixed(0)}</b></div>
+        <div><span>Marés</span><b>${nN(d.mares, 0).toFixed(2)} m (${esc(d.maresVar || '—')})</b></div>
+        <div><span>Prob. de alta</span><b>${nN(d.probAlta, 50)}%</b></div>
+        <div><span>Prob. de baixa</span><b>${nN(d.probBaixa, 50)}%</b></div>
       </div>
     </div>
 
