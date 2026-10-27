@@ -329,8 +329,9 @@ function vIndicadores() {
   };
   carregarTodosIndicadores();
   if (indDados[indAtual]) renderIndicador(indAtual);
-  else carregarIndicador(indAtual).then(() => {
-    if (aba === 'ind' && indAtual === indAtual) renderIndicador(indAtual);
+  const alvo = indAtual;
+  carregarIndicador(alvo).then(() => {
+    if (aba === 'ind' && indAtual === alvo) renderIndicador(alvo);
   });
 }
 
@@ -365,6 +366,10 @@ async function carregarIndicador(id, silencioso) {
     } finally {
       indLoading[id] = false;
       delete indPromises[id];
+      if (aba === 'ind') {
+        atualizarEstadoDaTerra();
+        renderTabelaConsolidada();
+      }
     }
   })();
   return indPromises[id];
@@ -893,12 +898,37 @@ function vProj() {
       <div class="row"><button class="p" id="cb" style="margin-top:8px">Calcular projeção</button></div>
     </div>
     <div id="pr"></div>
+
+    <div class="box">
+      <h2>🌍 COMO ESTÁ O MUNDO AGORA</h2>
+      <p class="lead">Uma leitura rápida dos 12 indicadores do planeta. Clique em <b>Analisar o mundo</b> para receber alertas simples e diretos por território.</p>
+      <div class="row">
+        <button class="p" id="mundo-btn">Analisar o mundo</button>
+      </div>
+    </div>
+    <div id="mundo-resumo" class="aviso" hidden></div>
+    <div id="mundo-alertas" hidden></div>
+    <div class="ind-tabs" id="grid-indicadores" style="margin-top:12px">
+      <div class="ind-tab" data-tipo="sismos"><span class="em">🌍</span><span class="nm">SISMOS</span><span class="vl" data-v>—</span></div>
+      <div class="ind-tab" data-tipo="tempGlobal"><span class="em">🌡️</span><span class="nm">TEMP.GLOBAL</span><span class="vl" data-v>—</span></div>
+      <div class="ind-tab" data-tipo="solar"><span class="em">☀️</span><span class="nm">SOLAR</span><span class="vl" data-v>—</span></div>
+      <div class="ind-tab" data-tipo="furacao"><span class="em">🌀</span><span class="nm">FURAÇÕES</span><span class="vl" data-v>—</span></div>
+      <div class="ind-tab" data-tipo="chuva"><span class="em">🌧️</span><span class="nm">CHUVAS</span><span class="vl" data-v>—</span></div>
+      <div class="ind-tab" data-tipo="seca"><span class="em">🏜️</span><span class="nm">SECAS</span><span class="vl" data-v>—</span></div>
+      <div class="ind-tab" data-tipo="vulcao"><span class="em">🌋</span><span class="nm">VULCÕES</span><span class="vl" data-v>—</span></div>
+      <div class="ind-tab" data-tipo="mares"><span class="em">🌊</span><span class="nm">MARÉS</span><span class="vl" data-v>—</span></div>
+      <div class="ind-tab" data-tipo="elnino"><span class="em">🌊</span><span class="nm">EL NIÑO/LA NIÑA</span><span class="vl" data-v>—</span></div>
+      <div class="ind-tab" data-tipo="geomagnetic"><span class="em">🧲</span><span class="nm">CAMPO MAGNÉTICO</span><span class="vl" data-v>—</span></div>
+      <div class="ind-tab" data-tipo="corrente"><span class="em">🌊</span><span class="nm">CORRENTES</span><span class="vl" data-v>—</span></div>
+      <div class="ind-tab" data-tipo="mundo"><span class="em">🌍</span><span class="nm">MUNDO</span><span class="vl" data-v>—</span></div>
+    </div>
   `;
-  $('pp').onclick = e => {
+  $('pp').onclick = async e => {
     const b = e.target.closest('button'); if (!b) return;
-    PER = b.dataset.p; vProj();
+    PER = b.dataset.p;
+    document.querySelectorAll('#pp button').forEach(x => x.classList.toggle('on', x === b));
     const c = ($('ci')?.value || '').trim();
-    if (c) calcProj();
+    if (c) await calcProj();
   };
   $('pm').onclick = e => {
     const b = e.target.closest('button'); if (!b) return;
@@ -907,7 +937,69 @@ function vProj() {
     if (PROJ) mostraProj();
   };
   $('cb').onclick = calcProj;
+  $('mundo-btn').onclick = analisarMundo;
   if (PROJ) mostraProj();
+}
+
+async function analisarMundo() {
+  const btn = $('mundo-btn');
+  const resumo = $('mundo-resumo');
+  const alertas = $('mundo-alertas');
+  const cidade = ($('ci')?.value || '').trim() || localStorage.getItem(LS_CIDADE) || '';
+  btn.disabled = true;
+  btn.textContent = 'Analisando…';
+  try {
+    const d = await api('alertas', { cidade, periodo: PER, oni: oniSim });
+    if (!d.ok) throw new Error(d.error || 'Falha na análise.');
+
+    // Resumo grande
+    resumo.hidden = false;
+    resumo.className = 'aviso ' + (d.resumo.startsWith('⚠️') ? 'ruim' : d.resumo.startsWith('👀') ? '' : 'ok');
+    resumo.textContent = d.resumo;
+
+    // Atualiza cards dos 12
+    if (d.status) {
+      Object.keys(d.status).forEach(tipo => {
+        const s = d.status[tipo]; if (!s) return;
+        const card = document.querySelector(`#grid-indicadores [data-tipo="${tipo}"]`);
+        if (!card) return;
+        const vl = card.querySelector('[data-v]');
+        if (s.valor != null) {
+          vl.textContent = s.valor + (s.unidade ? ' ' + s.unidade : '');
+          vl.style.color = 'var(--cy)';
+        } else {
+          vl.textContent = '—';
+          vl.style.color = 'var(--mu)';
+        }
+        card.title = s.detalhe || '';
+      });
+    }
+
+    // Lista de alertas
+    alertas.hidden = false;
+    if (!d.alertas || !d.alertas.length) {
+      alertas.innerHTML = '<div class="aviso ok">✅ Nada grave agora. O mundo está tranquilo.</div>';
+      return;
+    }
+    alertas.innerHTML = d.alertas.map(a => {
+      const cor = a.nivel === 'perigo' ? 'var(--rd)' : a.nivel === 'atencao' ? 'var(--am)' : 'var(--cy)';
+      const bg  = a.nivel === 'perigo' ? 'rgba(255,77,87,.08)' : a.nivel === 'atencao' ? 'rgba(240,168,48,.06)' : 'rgba(39,200,255,.04)';
+      return `<div class="manchete" style="border-color:${cor};background:${bg};margin-bottom:8px">
+        <small>${esc(a.territorio)}</small>
+        <div style="font-size:22px;line-height:1;margin-bottom:4px">${a.icone || '⚠️'}</div>
+        <div class="t" style="color:#fff">${esc(a.titulo)}</div>
+        <p class="lead" style="margin-top:6px">${esc(a.explicacao)}</p>
+        ${a.dados ? `<div class="mu" style="font-size:11px;margin-top:6px">${Object.entries(a.dados).map(([k,v]) => k + ': ' + v).join(' · ')}</div>` : ''}
+      </div>`;
+    }).join('');
+  } catch (e) {
+    resumo.hidden = false;
+    resumo.className = 'aviso ruim';
+    resumo.textContent = 'Erro: ' + (e.message || 'Falha.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Analisar o mundo';
+  }
 }
 
 async function calcProj() {
