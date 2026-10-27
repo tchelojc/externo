@@ -1,52 +1,1090 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ALMAFLUXO · ClimaFluxo</title>
-<style>:root{color-scheme:dark;--bg:#050d1a;--p:#0a1a33;--ln:#1b4a7a;--tx:#e8f1ff;--mu:#8fa8c8;--cy:#27c8ff;--gr:#2fd48a;--rd:#ff4d57;--am:#f0a830}*{box-sizing:border-box;margin:0}body{background:radial-gradient(ellipse at 50% 0,#0b2347,var(--bg) 60%);color:var(--tx);font:14px system-ui,Arial;min-height:100vh;padding:12px}
-h1{font-size:19px}h1 small{display:block;color:var(--cy);font-size:12px;font-weight:500}header{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}nav{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
-button,.in{background:#0a1d3a;border:1px solid var(--ln);color:var(--tx);border-radius:8px;padding:9px 12px;font:inherit}button{cursor:pointer;font-weight:600}button.on,button.p{background:#1f7bff;border-color:var(--cy)}.in{width:100%;margin-bottom:8px}
-.box{background:linear-gradient(#0a1a33,#07142a);border:1px solid var(--ln);border-radius:10px;padding:12px;margin-bottom:10px;line-height:1.5}.box h2{font-size:13px;color:var(--cy);margin-bottom:8px}
-.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}.c{border:1px solid var(--ln);border-radius:8px;padding:8px;cursor:pointer}.c.on{border-color:var(--cy);background:#0f3a73}.bar{height:8px;border-radius:4px;background:#12335a;overflow:hidden;margin-top:4px}.bar i{display:block;height:100%}
-small,.mu{color:var(--mu)}pre{white-space:pre-wrap;background:#06101f;border:1px solid var(--ln);border-radius:8px;padding:8px;font:12px/1.5 ui-monospace,monospace}.row{display:flex;gap:8px;flex-wrap:wrap}#gate{max-width:320px;margin:12vh auto}</style></head><body>
-<div id="gate" class="box"><h2>Entre no ClimaFluxo</h2><p class="mu" style="margin-bottom:8px">Ferramenta gratuita. Use a mesma conta do ALMAFLUXO.</p><input class="in" id="ge" type="email" placeholder="E-mail"><input class="in" id="gs" type="password" placeholder="Senha"><button class="p" id="gl" style="width:100%;margin-bottom:6px">Entrar</button><button id="gc" style="width:100%">Criar conta no ALMAFLUXO</button><p id="gm" style="color:#ffb0b6;margin-top:8px"></p></div>
-<div id="app" hidden><header><h1>ALMAFLUXO<small>ClimaFluxo · Análise do clima mundial</small></h1><nav id="nav"></nav></header><div id="v"></div></div>
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>ALMAFLUXO · ClimaFluxo</title>
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#050d1a; --bg2:#0b2347; --p:#0a1a33; --p2:#07142a;
+  --ln:#1b4a7a; --tx:#e8f1ff; --mu:#8fa8c8;
+  --cy:#27c8ff; --gr:#2fd48a; --rd:#ff4d57; --am:#f0a830; --vi:#aa66ff;
+  --serif:Georgia,"Times New Roman",serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{
+  background:radial-gradient(ellipse at 50% 0,var(--bg2),var(--bg) 60%) fixed;
+  color:var(--tx); font:14px/1.5 var(--sans);
+  min-height:100vh; padding:12px 12px 40px;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--cy);outline-offset:2px}
+button,.in{
+  background:#0a1d3a;border:1px solid var(--ln);color:var(--tx);
+  border-radius:8px;padding:9px 12px;
+}
+button{cursor:pointer;font-weight:600;font-family:var(--sans)}
+button:hover{border-color:var(--cy)}
+button[disabled]{opacity:.5;cursor:not-allowed}
+button.on,button.p{background:#1f7bff;border-color:var(--cy)}
+.in{width:100%;margin-bottom:8px;display:block}
+.in:focus{border-color:var(--cy)}
+
+header{
+  display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+  margin-bottom:14px;border-bottom:1px solid var(--ln);padding-bottom:10px;
+}
+h1{font-family:var(--sans);font-size:20px;line-height:1.2}
+h1 small{display:block;color:var(--cy);font-size:12px;font-weight:500;font-family:var(--sans);margin-top:2px}
+nav{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto;font-family:var(--sans)}
+nav button{padding:7px 11px;font-size:13px}
+
+#v{max-width:960px;margin:0 auto}
+.box{
+  background:linear-gradient(var(--p),var(--p2));
+  border:1px solid var(--ln);border-radius:10px;
+  padding:14px 16px;margin-bottom:12px;line-height:1.55;
+}
+.box h2{
+  font-size:12px;color:var(--cy);margin-bottom:10px;
+  letter-spacing:.8px;text-transform:uppercase;font-family:var(--sans);
+}
+.box h2 small{color:var(--mu);text-transform:none;letter-spacing:0;font-weight:400;margin-left:6px}
+
+/* ── Manchetes ── */
+.manchete{
+  border-left:4px solid var(--cy);
+  padding:10px 14px;margin:10px 0;border-radius:0 8px 8px 0;
+  background:rgba(39,200,255,.04);
+}
+.manchete.p10{border-color:var(--rd);background:rgba(255,77,87,.06)}
+.manchete.p9,.manchete.p8{border-color:var(--am);background:rgba(240,168,48,.05)}
+.manchete small{
+  display:block;color:var(--mu);font-family:var(--sans);font-size:11px;
+  text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;
+}
+.manchete .t{font:700 16px/1.35 var(--serif);color:var(--tx)}
+h3.principal{font:700 24px/1.25 var(--serif);margin:6px 0 10px;color:#fff}
+p.lead{color:#c5d8ee;font:15px/1.65 var(--serif);margin-bottom:8px}
+p.lead b{color:var(--am)}
+
+/* ── Cards / grade ── */
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin-top:6px}
+.c{
+  border:1px solid var(--ln);border-radius:8px;padding:10px;
+  cursor:pointer;font-family:var(--sans);background:rgba(0,0,0,.15);
+  transition:border-color .15s;
+}
+.c:hover{border-color:#2a6aa0}
+.c.on{border-color:var(--cy);background:#0f3a73}
+.c .lbl{font-size:11px;color:var(--mu);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.c .val{font-size:16px;font-weight:700;margin-top:2px;color:var(--tx)}
+.bar{height:8px;border-radius:4px;background:#12335a;overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;transition:width .3s}
+
+/* ── Gráficos ── */
+svg.graf{display:block;width:100%;height:auto;margin-top:6px}
+.legenda{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--mu);font-family:var(--sans);margin-top:8px}
+.legenda b{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:middle}
+
+/* ── Tabela de linhas ── */
+.linhas{border-top:1px solid var(--ln)}
+.linhas > div{
+  display:flex;justify-content:space-between;gap:10px;
+  padding:6px 0;border-bottom:1px solid #0e2b4d;
+}
+.linhas span{color:var(--mu)}
+.linhas b{color:var(--cy);font-variant-numeric:tabular-nums}
+
+pre{
+  white-space:pre-wrap;word-break:break-word;
+  background:#06101f;border:1px solid var(--ln);border-radius:8px;
+  padding:10px;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;
+  max-height:420px;overflow:auto;
+}
+.mu{color:var(--mu)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px}
+.row.between{justify-content:space-between}
+
+/* ── Login ── */
+#gate{max-width:360px;margin:10vh auto}
+#gate h2{font-size:16px;color:#fff;text-transform:none;letter-spacing:0;margin-bottom:6px}
+#gm{color:#ffb0b6;margin-top:8px;min-height:1.2em}
+
+/* ── Avisos ── */
+.aviso{
+  background:rgba(240,168,48,.08);border:1px solid rgba(240,168,48,.35);
+  color:#ffd9a0;border-radius:8px;padding:8px 12px;margin-bottom:10px;
+  font-size:13px;
+}
+.aviso.ruim{border-color:rgba(255,77,87,.4);background:rgba(255,77,87,.08);color:#ffb0b6}
+
+/* ── Responsivo ── */
+@media(max-width:600px){
+  body{padding:10px 10px 30px}
+  h3.principal{font-size:20px}
+  header{gap:8px}
+  nav{width:100%;margin-left:0}
+  nav button{flex:1}
+  .box table{font-size:11px}
+  .box table th,.box table td{padding:4px !important}
+}
+@media(prefers-reduced-motion:reduce){
+  *{transition:none !important;animation:none !important}
+}
+</style>
+</head>
+<body>
+
+<!-- ── Login ── -->
+<div id="gate" class="box" role="form" aria-labelledby="gtit">
+  <h2 id="gtit">Entre no ClimaFluxo</h2>
+  <p class="mu" style="margin-bottom:8px">Ferramenta gratuita. Use a mesma conta do ALMAFLUXO.</p>
+  <input class="in" id="ge" type="email" placeholder="E-mail" autocomplete="email">
+  <input class="in" id="gs" type="password" placeholder="Senha" autocomplete="current-password">
+  <button class="p" id="gl" style="width:100%;margin-bottom:6px">Entrar</button>
+  <button id="gc" style="width:100%">Criar conta no ALMAFLUXO</button>
+  <p id="gm" role="status" aria-live="polite"></p>
+</div>
+
+<!-- ── App ── -->
+<div id="app" hidden>
+  <header>
+    <h1>ALMAFLUXO<small>ClimaFluxo · Jornal climático e análise do mundo</small></h1>
+    <nav id="nav" role="tablist" aria-label="Seções"></nav>
+  </header>
+  <div id="v" role="region" aria-live="polite"></div>
+</div>
+
 <script>
-const WK='https://almafluxo.uk',$=i=>document.getElementById(i),esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let U=null;try{U=JSON.parse(localStorage.getItem('almafluxo_usuario')||'null')}catch(e){}
-const post=(p,b)=>fetch(WK+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).then(r=>r.json());
-const api=(r,b)=>post('/api/clima/'+r,Object.assign({email:U.email,sessionToken:U.sessionToken},b||{})).then(j=>{if(!j.ok&&/Entre/.test(j.error||'')){sair();throw new Error(j.error)}return j});
-function sair(){U=null;localStorage.removeItem('almafluxo_usuario');$('app').hidden=true;$('gate').hidden=false}
-$('gl').onclick=async()=>{$('gm').textContent='';try{const d=await post('/proxy/central',{action:'login',email:$('ge').value.trim(),senha:$('gs').value}),u=d.usuario||d,tk=d.token||d.sessionToken||u.sessionToken;if(!(d.ok===true||d.autenticado===true||d.status==='success')||!tk)throw new Error(d.error||d.message||'E-mail ou senha incorretos');U={nome:u.nome||'Usuário',email:$('ge').value.trim(),sessionToken:tk};localStorage.setItem('almafluxo_usuario',JSON.stringify(U));iniciar()}catch(e){$('gm').textContent=e.message}};
-$('gc').onclick=()=>location.href='__CONTA__';
-let A=null,cont='GLOBAL',aba='guia',oniSim=null,PV=null;
-const ABAS=[['guia','📘 Guia'],['mundo','🌍 Mundo'],['proj','📈 Projeção'],['atend','💬 Atendimento']];
-function iniciar(){if(!U||!U.sessionToken)return;$('gate').hidden=true;$('app').hidden=false;$('nav').innerHTML=ABAS.map(a=>'<button data-a="'+a[0]+'">'+a[1]+'</button>').join('')+'<button id="sx">Sair</button>';$('nav').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.id==='sx')return sair();aba=b.dataset.a;mostra()};$('v').innerHTML='';mostra()}
-async function mostra(){document.querySelectorAll('#nav button[data-a]').forEach(b=>b.classList.toggle('on',b.dataset.a===aba));({guia:vGuia,mundo:vMundo,proj:vProj,atend:vAtend})[aba]()}
-function vGuia(){$('v').innerHTML='<div class="box"><h2>COMO USAR</h2><ol style="padding-left:18px"><li><b>Mundo</b>: veja a fase do El Niño/La Niña (índice ONI da NOAA) e toque num continente para ler a tendência, entropia e pressão.</li><li>Use o <b>controle de simulação do ONI</b> para ver como o mundo muda num El Niño ou La Niña mais forte.</li><li><b>Projeção</b>: escolha cidade e período (24 h a 14 dias). O gráfico mostra a faixa de temperatura e a probabilidade de chuva, vento, calor ou frio por janela, com marcas nos momentos de risco; toque numa janela para os detalhes.</li><li><b>Atendimento</b>: gera o prompt da análise + previsão local, que você copia ou envia ao atendimento com IA.</li></ol><p class="mu" style="margin-top:8px">Análise didática: probabilidades e entropia são do motor ALMAFLUXO, não previsão oficial. Para decisões importantes consulte a defesa civil e o serviço meteorológico.</p></div>'}
-async function vMundo(){$('v').innerHTML='<div class="box">Carregando análise…</div>';try{A=await api('analise',{oni:oniSim,periodo:PER})}catch(e){$('v').innerHTML='<div class="box">'+esc(e.message)+'</div>';return}
- const o=A.oni,C=A.continentes,nomes=Object.keys(C),d=C[cont]||C.GLOBAL;
- $('v').innerHTML='<div class="box"><h2>ENSO · ONI '+o.valor+' ('+esc(o.fase)+')</h2><small>Período '+esc(o.periodo)+' · '+esc(o.fonte)+(o.simulado?' · <b style="color:var(--am)">simulado</b>':'')+'</small><div class="row" style="margin-top:8px;align-items:center"><input id="os" type="range" min="-3" max="3" step="0.1" value="'+o.valor+'" style="flex:1"><button id="or">Real</button></div></div><div class="box"><h2>CONTINENTES (tendência de alta)</h2><div class="g">'+nomes.map(n=>'<div class="c'+(n===cont?' on':'')+'" data-n="'+esc(n)+'"><b>'+esc(n)+'</b><br><small>'+C[n].probAlta+'% alta · '+C[n].t.toFixed(1)+'°C</small><div class="bar"><i style="width:'+C[n].probAlta+'%;background:'+(C[n].probAlta>=55?'var(--rd)':C[n].probAlta<=45?'var(--cy)':'var(--am)')+'"></i></div></div>').join('')+'</div></div><div class="box"><h2>'+esc(cont)+'</h2>Temperatura-base '+d.t.toFixed(1)+'°C · entropia '+d.entropia.toFixed(2)+' · pressão (IPC) '+d.ipc.toFixed(2)+' · fluxo '+d.fluxo.toFixed(1)+' · delta '+d.delta.toFixed(0)+' · marés '+d.mares.toFixed(2)+' m ('+esc(d.maresVar)+')</div><div class="box"><h2>DADOS REAIS</h2>'+(A.sismos?'Sismos ≥4,5 na semana: <b>'+A.sismos.total+'</b> (maior M'+A.sismos.maxMag+')<br><small>'+A.sismos.top.map(s=>'M'+s.mag+' '+esc(s.local)).join(' · ')+'</small>':'<small>Sismos indisponíveis agora.</small>')+'<br>'+(A.kp?'Índice Kp (geomagnético): <b>'+A.kp.kp+'</b>':'<small>Kp indisponível.</small>')+'</div>';
- document.querySelectorAll('.c').forEach(c=>c.onclick=()=>{cont=c.dataset.n;vMundo()});$('os').onchange=e=>{oniSim=e.target.value;vMundo()};$('or').onclick=()=>{oniSim=null;vMundo()}}
-function cartao(p){return '<div class="box"><h2>'+esc(p.local)+' · '+esc(p.continente)+'</h2>Agora <b>'+p.atual.temp+'°C</b>, umidade '+p.atual.umidade+'%, vento '+p.atual.ventoKmh+' km/h<div class="g" style="margin-top:8px">'+p.dias.map(d=>'<div class="c"><b>'+esc(d.data.slice(5))+'</b><br>'+d.min+'–'+d.max+'°C<br><small>chuva '+d.chuvaProb+'% · '+d.chuvaMm+' mm</small></div>').join('')+'</div></div>'}
-let PER='7d',MET='chuva',PJ=null,SELJ=0;
-const METS={chuva:['🌧 Chuva','#27c8ff'],forte:['⛈ Forte','#aa66ff'],vento:['💨 Vento ≥40','#f0a830'],calor:['🔥 ≥35°','#ff4d57'],frio:['❄ ≤5°','#4488ff']};
-function vProj(){$('v').innerHTML='<div class="box"><h2>PROJEÇÃO POR PERÍODO</h2><input class="in" id="ci" placeholder="Cidade (ex.: Rio de Janeiro)" value="'+esc(localStorage.getItem('clima_cidade')||'')+'"><div class="row" id="pp">'+[['24h','24 horas'],['3d','3 dias'],['7d','7 dias'],['14d','14 dias']].map(p=>'<button data-p="'+p[0]+'" class="'+(p[0]===PER?'on':'')+'">'+p[1]+'</button>').join('')+'</div><div class="row" id="pm" style="margin-top:6px">'+Object.keys(METS).map(k=>'<button data-m="'+k+'" class="'+(k===MET?'on':'')+'">'+METS[k][0]+'</button>').join('')+'</div><button class="p" id="cb" style="margin-top:8px">Calcular projeção</button></div><div id="pr"></div>';
- $('pp').onclick=e=>{const b=e.target.closest('button');if(!b)return;PER=b.dataset.p;vProj();if($('ci').value.trim())calcProj()};
- $('pm').onclick=e=>{const b=e.target.closest('button');if(!b)return;MET=b.dataset.m;document.querySelectorAll('#pm button').forEach(x=>x.classList.toggle('on',x===b));if(PJ)mostraProj()};
- $('cb').onclick=calcProj;if(PJ)mostraProj()}
-async function calcProj(){const c=$('ci').value.trim();if(!c)return;localStorage.setItem('clima_cidade',c);$('pr').innerHTML='<div class="box">Calculando com os modelos de conjunto…</div>';
- try{const [pv,pj]=await Promise.all([api('previsao',{cidade:c}),api('projecao',{cidade:c,periodo:PER})]);if(!pj.ok)throw new Error(pj.error||'Projeção indisponível');PV=pv;PJ=pj;SELJ=0;mostraProj()}catch(e){$('pr').innerHTML='<div class="box">'+esc(e.message)+'</div>'}}
-function mostraProj(){const J=PJ.janelas,n=J.length,W=700,L=34,sp=(W-L-8)/n,x=i=>L+sp*(i+.5),ts=J.flatMap(w=>[w.t.p10,w.t.p90]),lo=Math.floor(Math.min(...ts)-1),hi=Math.ceil(Math.max(...ts)+1),y=t=>26+(hi-t)/(hi-lo||1)*140,c=METS[MET][1],dd=PER==='14d'||PER==='7d';
- const band=J.map((w,i)=>x(i)+','+y(w.t.p90)).join(' ')+' '+J.map((w,i)=>x(n-1-i)+','+y(J[n-1-i].t.p10)).join(' ');
- let s='<svg id="sv" viewBox="0 0 700 300" style="width:100%"><polygon points="'+band+'" fill="#27c8ff33"/><polyline points="'+J.map((w,i)=>x(i)+','+y(w.t.p50)).join(' ')+'" fill="none" stroke="#27c8ff" stroke-width="2"/>'
- +J.map((w,i)=>{const h=w.prob[MET]*70;return '<rect data-i="'+i+'" x="'+(x(i)-sp*.4)+'" y="'+(262-h)+'" width="'+sp*.8+'" height="'+h+'" fill="'+c+'" opacity="'+(i===SELJ?1:.55)+'"/>'+(n<=14?'<text x="'+x(i)+'" y="'+(258-h)+'" fill="#e8f1ff" font-size="9" text-anchor="middle">'+Math.round(w.prob[MET]*100)+'</text>':'')}).join('')
- +PJ.marcas.map(m=>'<text data-i="'+m.i+'" x="'+(x(m.i)+(m.tipo==='forte'||m.tipo==='vento'?8:-4))+'" y="'+(y(J[m.i].t.p90)-6)+'" font-size="12" text-anchor="middle">'+m.icone+'</text>').join('')
- +J.map((w,i)=>i%Math.ceil(n/8)===0?'<text x="'+x(i)+'" y="290" fill="#8fa8c8" font-size="9" text-anchor="middle">'+esc((dd?w.ini.slice(5,10):w.ini.slice(8,13)).replace('T',' '))+'</text>':'').join('')
- +'<text x="2" y="'+(y(hi)+8)+'" fill="#8fa8c8" font-size="9">'+hi+'°</text><text x="2" y="'+y(lo)+'" fill="#8fa8c8" font-size="9">'+lo+'°</text></svg>';
- const w=J[SELJ],P=w.prob,pc=k=>Math.round(P[k]*100)+'%';
- $('pr').innerHTML=(PV?cartao(PV):'')+'<div class="box"><h2>'+esc(PJ.local)+' · '+esc(PJ.continente)+' · '+PER+'</h2>'+s+'<small>Faixa = 10%–90% dos modelos · linha = mediana · barras = '+METS[MET][0]+'</small></div><div class="box"><h2>JANELA '+esc(w.ini.replace('T',' '))+' · confiança '+w.conf+'</h2>Temp. '+w.t.p10+' / <b>'+w.t.p50+'</b> / '+w.t.p90+'°C'+(w.tmin!=null?' (mín. '+w.tmin+'°C)':'')+' · chuva '+w.chuvaMm.p50+'–'+w.chuvaMm.p90+' mm · vento até '+w.ventoMax.p50+'–'+w.ventoMax.p90+' km/h<br>Chuva '+pc('chuva')+' · forte '+pc('forte')+' · vento≥40 '+pc('vento')+' · calor≥35° '+pc('calor')+' · frio≤5° '+pc('frio')+' <small>('+w.n+' membros)</small></div><div class="box"><h2>RESUMO</h2>'+esc(PJ.resumo)+(PJ.contexto?'<br><small>ENSO: '+esc(PJ.contexto.fase)+' (ONI '+PJ.contexto.oni+'), tendência sazonal de alta '+PJ.contexto.tendenciaAlta+'%. '+esc(PJ.contexto.nota)+'</small>':'')+'<br><small>'+esc(PJ.aviso)+'</small></div>';
- $('sv').onclick=e=>{const t=e.target.closest('[data-i]');if(t){SELJ=+t.dataset.i;mostraProj()}}}
-function vAtend(){$('v').innerHTML='<div class="box"><h2>PROMPT PARA O ATENDIMENTO</h2><input class="in" id="ac" placeholder="Cidade do cliente" value="'+esc(localStorage.getItem('clima_cidade')||'')+'"><input class="in" id="ap" placeholder="Pergunta do cliente (opcional)"><div class="row"><button id="ag">Gerar prompt</button><button class="p" id="ae">Enviar ao atendimento</button><button id="acp">Copiar</button></div></div><div class="box"><h2>RESULTADO</h2><pre id="ar">—</pre></div>';
- const corpo=()=>({cidade:$('ac').value.trim(),pergunta:$('ap').value.trim(),oni:oniSim});
- $('ag').onclick=async()=>{$('ar').textContent='Gerando…';try{const j=await api('prompt',corpo());$('ar').textContent=j.prompt}catch(e){$('ar').textContent=e.message}};
- $('ae').onclick=async()=>{$('ar').textContent='Enviando ao atendimento…';try{const j=await api('atendimento',corpo());$('ar').textContent='PROMPT:\n'+j.prompt+'\n\nRESPOSTA:\n'+j.resposta}catch(e){$('ar').textContent=e.message}};
- $('acp').onclick=()=>{navigator.clipboard.writeText($('ar').textContent).then(()=>{$('acp').textContent='Copiado ✓'})}}
-iniciar();
-</script></body></html>
+(function(){
+'use strict';
+
+/* ── Constantes ── */
+const WK = 'https://almafluxo.uk';
+const LS_USER = 'almafluxo_usuario';
+const LS_CIDADE = 'clima_cidade';
+const LS_ONI = 'clima_oni';
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => (
+  {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]
+));
+
+/* ── Estado ── */
+let U = null;
+let aba = 'jornal';
+let oniSim = null;         // número ou null (usa real)
+let cont = 'GLOBAL';
+let PER = '7d';
+let MET = 'chuva';
+let JORNAL = null;         // último payload do /jornal
+let ANALISE = null;        // último payload do /analise
+let MAPA = null;           // último payload do /mapa (dominó)
+let PROJ = null;           // último payload do /projecao
+let PV = null;             // última previsão local
+let SELJ = 0;              // janela selecionada no gráfico
+const LS_USER_FALLBACK = JSON.parse(localStorage.getItem(LS_USER) || 'null');
+
+const ABAS = [
+  ['jornal', '📰 Jornal'],
+  ['mundo',  '🌍 Mundo'],
+  ['mapa',   '🗺️ Mapa'],
+  ['proj',   '📈 Projeção'],
+  ['tend',   '📊 Tendência'],
+  ['atend',  '💬 Atendimento'],
+];
+
+/* ── API ── */
+const post = (p, b) => fetch(WK + p, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(b || {}),
+}).then(r => r.json());
+
+async function api(rota, corpo) {
+  if (!U || !U.sessionToken) { sair(); throw new Error('Entre na sua conta.'); }
+  const j = await post('/api/clima/' + rota, Object.assign({
+    email: U.email, sessionToken: U.sessionToken,
+  }, corpo || {}));
+  if (!j || typeof j !== 'object') throw new Error('Resposta inválida.');
+  if (!j.ok && /entre|sess(ã|a)o|expir/i.test(j.error || '')) {
+    sair(); throw new Error(j.error);
+  }
+  return j;
+}
+
+/* ── Sessão ── */
+function carregarSessao() {
+  try {
+    const s = JSON.parse(localStorage.getItem(LS_USER) || 'null');
+    if (s && s.email && s.sessionToken) { U = s; return true; }
+  } catch (e) {}
+  U = null;
+  return false;
+}
+function sair() {
+  U = null;
+  try { localStorage.removeItem(LS_USER); } catch (e) {}
+  $('app').hidden = true;
+  $('gate').hidden = false;
+}
+async function login(email, senha) {
+  $('gm').textContent = '';
+  email = String(email || '').trim().toLowerCase();
+  if (!/^\S+@\S+\.\S+$/.test(email)) { $('gm').textContent = 'Digite um e-mail válido.'; return; }
+  if (!senha) { $('gm').textContent = 'Digite a senha.'; return; }
+  $('gl').disabled = true;
+  $('gl').textContent = 'Entrando…';
+  try {
+    const d = await post('/proxy/central', { action: 'login', email, senha });
+    const u = d.usuario || d;
+    const tk = d.token || d.sessionToken || u.sessionToken;
+    const ok = d && (d.ok === true || d.autenticado === true || d.status === 'success');
+    if (!ok || !tk) throw new Error(d.error || d.message || 'E-mail ou senha incorretos.');
+    U = {
+      nome: u.nome || email.split('@')[0],
+      email,
+      sessionToken: tk,
+      master: !!(d.master || u.master),
+    };
+    try { localStorage.setItem(LS_USER, JSON.stringify(U)); } catch (e) {}
+    iniciar();
+  } catch (e) {
+    $('gm').textContent = e.message || 'Não foi possível entrar.';
+  } finally {
+    $('gl').disabled = false;
+    $('gl').textContent = 'Entrar';
+  }
+}
+
+/* ── Navegação ── */
+function iniciar() {
+  if (!U || !U.sessionToken) { $('gate').hidden = false; $('app').hidden = true; return; }
+  $('gate').hidden = true;
+  $('app').hidden = false;
+  $('nav').innerHTML = ABAS.map(([k, l]) =>
+    `<button role="tab" data-a="${k}" aria-selected="false">${l}</button>`
+  ).join('') + '<button id="sx" title="Sair">Sair</button>';
+  $('nav').onclick = e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.id === 'sx') { if (confirm('Sair do ClimaFluxo?')) sair(); return; }
+    aba = b.dataset.a;
+    // limpa estado que dependia da tela anterior
+    if (aba === 'jornal') JORNAL = null;
+    if (aba === 'mundo') ANALISE = null;
+    if (aba === 'proj') { PROJ = null; PV = null; SELJ = 0; }
+    render();
+  };
+  // restaura oni salvo
+  const savedOni = parseFloat(localStorage.getItem(LS_ONI));
+  if (isFinite(savedOni)) oniSim = savedOni;
+  render();
+}
+
+function render() {
+  document.querySelectorAll('#nav button[data-a]').forEach(b => {
+    const on = b.dataset.a === aba;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+  if (aba === 'mapa') MAPA = null;
+  const fn = {
+    jornal: vJornal,
+    mundo:  vMundo,
+    mapa:   vMapa,
+    proj:   vProj,
+    tend:   vTend,
+    atend:  vAtend,
+  }[aba];
+  if (fn) fn();
+}
+
+/* ══════════════════════════════════════════════════════
+   SEÇÃO · JORNAL
+   ══════════════════════════════════════════════════════ */
+function vJornal() {
+  const cidade = localStorage.getItem(LS_CIDADE) || '';
+  $('v').innerHTML = `
+    <div class="box">
+      <h2>EDIÇÃO DO DIA</h2>
+      <p class="lead" style="margin-bottom:10px">
+        Manchetes geradas a partir do índice ONI real (NOAA), ensemble ICON/GFS/ECMWF,
+        indicadores humanos por país e tendência histórica 1970→hoje.
+      </p>
+      <input class="in" id="jc" placeholder="Cidade para destaque local (ex.: Rio de Janeiro)" value="${esc(cidade)}">
+      <div class="row">
+        <button class="p" id="jg">Atualizar jornal</button>
+        <button id="jt">Ver tendência histórica</button>
+        <button id="jm">Ver mundo</button>
+        <button id="jmp">Ver mapa do dominó</button>
+      </div>
+      <p class="mu" style="margin-top:8px;font-size:12px">
+        Se o worker ainda não tiver as rotas <code>/jornal</code>, <code>/tendencia</code> ou <code>/local</code>,
+        o jornal degrada para o modo clássico (análise + previsão + projeção) sem quebrar.
+      </p>
+    </div>
+    <div id="jr"><div class="box"><span class="mu">Carregando…</span></div></div>
+  `;
+  $('jg').onclick = gerarJornal;
+  $('jt').onclick = () => { aba = 'tend'; render(); };
+  $('jm').onclick = () => { aba = 'mundo'; render(); };
+  if (cidade) gerarJornal();
+}
+
+async function gerarJornal() {
+  const cidade = ($('jc').value || '').trim();
+  if (!cidade) { $('jr').innerHTML = '<div class="box aviso">Informe uma cidade para gerar a edição do dia.</div>'; return; }
+  localStorage.setItem(LS_CIDADE, cidade);
+  $('jr').innerHTML = '<div class="box"><span class="mu">Consultando fontes…</span></div>';
+
+  // 1) tenta a rota nova /jornal
+  try {
+    const j = await api('jornal', { cidade, oni: oniSim, periodo: PER });
+    if (j.ok) { JORNAL = j; renderJornal(j); return; }
+  } catch (e) {
+    // rota pode não existir → cai no plano B
+  }
+
+  // 2) plano B: combina /analise + /previsao + /projecao
+  try {
+    const [an, pv, pj] = await Promise.all([
+      api('analise', { oni: oniSim }).catch(() => null),
+      api('previsao', { cidade }).catch(() => null),
+      api('projecao', { cidade, periodo: PER }).catch(() => null),
+    ]);
+    if (!an && !pv) throw new Error('Não foi possível consultar as fontes.');
+    JORNAL = montarJornalFallback(an, pv, pj);
+    renderJornal(JORNAL);
+  } catch (e) {
+    $('jr').innerHTML = `<div class="box aviso ruim">${esc(e.message || 'Falha ao gerar o jornal.')}</div>`;
+  }
+}
+
+function montarJornalFallback(an, pv, pj) {
+  const fase = an ? an.oni.fase : 'Indisponível';
+  const oni = an ? an.oni.valor : 0;
+  const manchetes = [];
+  if (an) {
+    if (fase === 'El Niño') manchetes.push({ titulo: `El Niño (ONI ${oni}) intensifica calor e chuva irregular`, prioridade: 9 });
+    else if (fase === 'La Niña') manchetes.push({ titulo: `La Niña (ONI ${oni}) esfria o Pacífico e muda o regime de chuvas`, prioridade: 9 });
+    else manchetes.push({ titulo: `Fase neutra (ONI ${oni}): padrão climático sem forçante dominante`, prioridade: 6 });
+  }
+  if (pv) manchetes.push({ titulo: `${pv.local}: agora ${pv.atual.temp}°C, vento ${pv.atual.ventoKmh} km/h, umidade ${pv.atual.umidade}%`, prioridade: 7 });
+  if (pj && pj.ok) {
+    const m = (pj.marcas || [])[0];
+    if (m) manchetes.push({ titulo: `${m.icone} ${m.rot} em ${m.ini.replace('T', ' ')} (${Math.round(m.p * 100)}% dos modelos)`, prioridade: m.p >= 0.6 ? 9 : 7 });
+  }
+  manchetes.sort((a, b) => b.prioridade - a.prioridade);
+  const corpo = [];
+  if (an) corpo.push(`A fase ${fase} (ONI ${oni}) organiza o padrão global de chuvas e temperatura.`);
+  if (pv) corpo.push(`Em ${pv.local}, os próximos dias trazem ${pv.dias.map(d => `${d.min}–${d.max}°C com ${d.chuvaProb}% de chuva`).slice(0, 3).join('; ')}.`);
+  if (pj && pj.ok) corpo.push(`Resumo da projeção ${pj.periodo}: ${pj.resumo}`);
+  corpo.push('Aviso: probabilidades são guia, não garantia. Consulte o serviço meteorológico local para decisões críticas.');
+  return {
+    jornal: { manchetes, corpo, fase, oni, entropia: an ? an.continentes.GLOBAL.entropia : null, ipc: an ? an.continentes.GLOBAL.ipc : null },
+    local: pv ? pv.local : null,
+    continente: pv ? pv.continente : null,
+    indicadores: null,
+    tendencia: null,
+    projecao: pj && pj.ok ? { resumo: pj.resumo, marcas: pj.marcas, janelas: pj.janelas } : null,
+    fallback: true,
+  };
+}
+
+function renderJornal(j) {
+  const J = j.jornal || {};
+  const ind = j.indicadores;
+  const ten = j.tendencia;
+  const pj = j.projecao;
+  const fase = J.fase || '—';
+  const faseCor = fase === 'El Niño' ? 'var(--rd)' : fase === 'La Niña' ? 'var(--cy)' : 'var(--am)';
+
+  let html = '';
+
+  if (j.fallback) {
+    html += `<div class="aviso">Modo clássico: o worker ainda não tem a rota <code>/jornal</code>. Atualize o worker para liberar manchetes, indicadores humanos e tendência histórica.</div>`;
+  }
+
+  // Manchete principal
+  html += `<div class="box">
+    <h2>MANCHETE PRINCIPAL <small>${esc(j.local || 'Global')}</small></h2>
+    <p class="lead">
+      <b style="color:${faseCor}">${esc(fase)}</b>
+      · ONI ${J.oni != null ? J.oni : '—'}
+      ${J.entropia != null ? `· entropia ${Number(J.entropia).toFixed(2)}` : ''}
+      ${J.ipc != null ? `· IPC ${Number(J.ipc).toFixed(2)}` : ''}
+    </p>
+    ${J.manchetes && J.manchetes[0] ? `<h3 class="principal">${esc(J.manchetes[0].titulo)}</h3>` : ''}
+    ${Array.isArray(J.corpo) ? `<p class="lead">${J.corpo.map(p => esc(p)).join(' ')}</p>` : ''}
+  </div>`;
+
+  // Outras manchetes
+  if (J.manchetes && J.manchetes.length > 1) {
+    html += `<div class="box"><h2>OUTRAS MANCHETES</h2>`;
+    J.manchetes.slice(1, 8).forEach(m => {
+      const cls = 'manchete' + (m.prioridade >= 10 ? ' p10' : m.prioridade >= 8 ? ' p9' : '');
+      html += `<div class="${cls}">
+        <small>prioridade ${m.prioridade}</small>
+        <div class="t">${esc(m.titulo)}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // Indicadores humanos
+  if (ind) {
+    html += `<div class="box"><h2>INDICADORES HUMANOS <small>${esc(ind.pais)}</small></h2><div class="g">`
+      + cartaoInd('População estimada', fmtNum(ind.populacao_estimada) + ' hab')
+      + cartaoInd('Energia por pessoa', fmtNum(ind.energia_kwh_pessoa) + ' kWh/ano')
+      + cartaoInd('Consumo local', ind.consumo_local_TWh + ' TWh/ano')
+      + cartaoInd('Construção', ind.construcao_pct + '% da área')
+      + cartaoInd('Fertilidade do solo', ind.fertilidade_indice + '/100')
+      + cartaoInd('CO₂', Number(ind.co2_ton_pessoa).toFixed(1) + ' t/pessoa/ano')
+      + cartaoInd('Área agrícola', ind.area_agricola_Mha + ' Mha')
+      + `</div></div>`;
+  }
+
+  // Tendência
+  if (ten) {
+    html += `<div class="box"><h2>TENDÊNCIA HISTÓRICA <small>${esc(ten.periodo || '')}</small></h2>
+      <div class="legenda">
+        <span><b style="background:var(--cy)"></b>Temperatura (°C)</span>
+        <span><b style="background:var(--am)"></b>CO₂ (ppm)</span>
+        <span><b style="background:var(--rd)"></b>Fertilidade (índice)</span>
+      </div>
+      ${graficoTendencia(j.historico || (ten && ten.historico) || null)}
+    </div>`;
+  }
+
+  // Projeção resumida
+  if (pj && pj.janelas) {
+    html += `<div class="box"><h2>PROJEÇÃO · ${esc(PER)} <small>${esc(j.local || '')}</small></h2>
+      <p class="lead">${esc(pj.resumo || '')}</p>
+      <div class="legenda">`;
+    (pj.marcas || []).slice(0, 6).forEach(m => {
+      html += `<span>${m.icone} ${esc(m.rot)} (${Math.round(m.p * 100)}%)</span>`;
+    });
+    html += `</div></div>`;
+  }
+
+  $('jr').innerHTML = html;
+}
+
+function cartaoInd(rot, val) {
+  return `<div class="c"><div class="lbl">${esc(rot)}</div><div class="val">${esc(val)}</div></div>`;
+}
+
+function fmtNum(v) {
+  const n = Number(v);
+  if (!isFinite(n)) return '—';
+  return n.toLocaleString('pt-BR');
+}
+
+/* ══════════════════════════════════════════════════════
+   SEÇÃO · MUNDO
+   ══════════════════════════════════════════════════════ */
+async function vMundo() {
+  $('v').innerHTML = '<div class="box"><span class="mu">Carregando análise…</span></div>';
+  try {
+    ANALISE = await api('analise', { oni: oniSim });
+  } catch (e) {
+    $('v').innerHTML = `<div class="box aviso ruim">${esc(e.message || 'Falha.')}</div>`;
+    return;
+  }
+  const A = ANALISE;
+  const o = A.oni;
+  const C = A.continentes || {};
+  const nomes = Object.keys(C);
+  const d = C[cont] || C.GLOBAL;
+  if (!d) { $('v').innerHTML = '<div class="box aviso">Continente indisponível.</div>'; return; }
+
+  const faseCor = o.fase === 'El Niño' ? 'var(--rd)' : o.fase === 'La Niña' ? 'var(--cy)' : 'var(--am)';
+
+  $('v').innerHTML = `
+    <div class="box">
+      <h2>ENSO · ONI <span style="color:${faseCor}">${o.valor}</span> (${esc(o.fase)})</h2>
+      <small>${esc(o.periodo)} · ${esc(o.fonte)}${o.simulado ? ' · <b style="color:var(--am)">simulado</b>' : ''}</small>
+      <div class="row" style="margin-top:10px">
+        <input id="os" type="range" min="-3" max="3" step="0.1" value="${o.valor}" style="flex:1;min-width:200px;background:transparent;border:none" aria-label="Simular ONI">
+        <button id="or">Restaurar real</button>
+      </div>
+      <small class="mu">ONI simulado altera o padrão global para você comparar cenários. Restaurar real volta ao valor da NOAA.</small>
+    </div>
+
+    <div class="box">
+      <h2>CONTINENTES <small>tendência de alta</small></h2>
+      <div class="g">
+        ${nomes.map(n => {
+          const x = C[n];
+          const cor = x.probAlta >= 55 ? 'var(--rd)' : x.probAlta <= 45 ? 'var(--cy)' : 'var(--am)';
+          return `<div class="c${n === cont ? ' on' : ''}" data-n="${esc(n)}" role="button" tabindex="0">
+            <div class="lbl">${esc(n)}</div>
+            <div class="val">${x.probAlta}%</div>
+            <div class="mu" style="font-size:11px;margin-top:2px">${x.t.toFixed(1)}°C · H ${x.entropia.toFixed(2)}</div>
+            <div class="bar"><i style="width:${x.probAlta}%;background:${cor}"></i></div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <div class="box">
+      <h2>${esc(cont)}</h2>
+      <div class="linhas">
+        <div><span>Temperatura-base</span><b>${d.t.toFixed(1)} °C</b></div>
+        <div><span>Entropia</span><b>${d.entropia.toFixed(2)}</b></div>
+        <div><span>Pressão (IPC)</span><b>${d.ipc.toFixed(2)}</b></div>
+        <div><span>Fluxo</span><b>${d.fluxo.toFixed(1)}</b></div>
+        <div><span>Delta</span><b>${d.delta.toFixed(0)}</b></div>
+        <div><span>Marés</span><b>${d.mares.toFixed(2)} m (${esc(d.maresVar)})</b></div>
+        <div><span>Prob. de alta</span><b>${d.probAlta}%</b></div>
+        <div><span>Prob. de baixa</span><b>${d.probBaixa}%</b></div>
+      </div>
+    </div>
+
+    <div class="box">
+      <h2>DADOS REAIS</h2>
+      ${A.sismos
+        ? `<b>Sismos ≥4,5 na semana:</b> ${A.sismos.total} (maior M${A.sismos.maxMag})
+           <div class="mu" style="font-size:12px;margin-top:4px">${A.sismos.top.map(s => 'M' + s.mag + ' ' + esc(s.local)).join(' · ')}</div>`
+        : '<span class="mu">Sismos indisponíveis agora.</span>'}
+      <br>
+      ${A.kp ? `<b>Índice Kp (geomagnético):</b> ${A.kp.kp}` : '<span class="mu">Kp indisponível.</span>'}
+    </div>
+  `;
+
+  document.querySelectorAll('.c[data-n]').forEach(c => {
+    c.onclick = () => { cont = c.dataset.n; vMundo(); };
+    c.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cont = c.dataset.n; vMundo(); } };
+  });
+  $('os').oninput = e => {
+    const v = parseFloat(e.target.value);
+    if (isFinite(v)) oniSim = Math.round(v * 10) / 10;
+  };
+  $('os').onchange = () => {
+    if (oniSim != null) localStorage.setItem(LS_ONI, String(oniSim));
+    MAPA = null;
+    vMundo();
+  };
+  $('or').onclick = () => {
+    oniSim = null;
+    localStorage.removeItem(LS_ONI);
+    MAPA = null;
+    vMundo();
+  };
+}
+
+/* ══════════════════════════════════════════════════════
+   SEÇÃO · PROJEÇÃO
+   ══════════════════════════════════════════════════════ */
+const METS = {
+  chuva:  { label: '🌧 Chuva',         cor: '#27c8ff' },
+  forte:  { label: '⛈ Forte',          cor: '#aa66ff' },
+  vento:  { label: '💨 Vento ≥40 km/h', cor: '#f0a830' },
+  calor:  { label: '🔥 ≥35 °C',         cor: '#ff4d57' },
+  frio:   { label: '❄ ≤5 °C',           cor: '#4488ff' },
+};
+
+function vProj() {
+  const cidade = localStorage.getItem(LS_CIDADE) || '';
+  $('v').innerHTML = `
+    <div class="box">
+      <h2>PROJEÇÃO POR PERÍODO</h2>
+      <input class="in" id="ci" placeholder="Cidade (ex.: Rio de Janeiro)" value="${esc(cidade)}" autocomplete="off">
+      <div class="row" id="pp">
+        ${[['24h','24 horas'],['3d','3 dias'],['7d','7 dias'],['14d','14 dias']].map(([k, l]) =>
+          `<button data-p="${k}" class="${k === PER ? 'on' : ''}">${l}</button>`
+        ).join('')}
+      </div>
+      <div class="row" id="pm" style="margin-top:6px">
+        ${Object.keys(METS).map(k =>
+          `<button data-m="${k}" class="${k === MET ? 'on' : ''}">${METS[k].label}</button>`
+        ).join('')}
+      </div>
+      <div class="row">
+        <button class="p" id="cb" style="margin-top:8px">Calcular projeção</button>
+      </div>
+    </div>
+    <div id="pr"></div>
+  `;
+  $('pp').onclick = e => {
+    const b = e.target.closest('button'); if (!b) return;
+    PER = b.dataset.p; vProj();
+    const c = ($('ci').value || '').trim();
+    if (c) calcProj();
+  };
+  $('pm').onclick = e => {
+    const b = e.target.closest('button'); if (!b) return;
+    MET = b.dataset.m;
+    document.querySelectorAll('#pm button').forEach(x => x.classList.toggle('on', x === b));
+    if (PROJ) mostraProj();
+  };
+  $('cb').onclick = calcProj;
+  if (PROJ) mostraProj();
+}
+
+async function calcProj() {
+  const cidade = ($('ci').value || '').trim();
+  if (!cidade) { $('pr').innerHTML = '<div class="box aviso">Informe a cidade.</div>'; return; }
+  localStorage.setItem(LS_CIDADE, cidade);
+  $('pr').innerHTML = '<div class="box"><span class="mu">Calculando com os modelos de conjunto…</span></div>';
+  try {
+    const [pv, pj] = await Promise.all([
+      api('previsao', { cidade }),
+      api('projecao', { cidade, periodo: PER }),
+    ]);
+    if (!pj.ok) throw new Error(pj.error || 'Projeção indisponível.');
+    PV = pv; PROJ = pj; SELJ = 0;
+    mostraProj();
+  } catch (e) {
+    $('pr').innerHTML = `<div class="box aviso ruim">${esc(e.message || 'Falha.')}</div>`;
+  }
+}
+
+function cartaoPrevisao(p) {
+  if (!p) return '';
+  return `<div class="box">
+    <h2>${esc(p.local)} <small>${esc(p.continente)}</small></h2>
+    Agora <b>${p.atual.temp}°C</b>, umidade ${p.atual.umidade}%, vento ${p.atual.ventoKmh} km/h
+    <div class="g" style="margin-top:8px">
+      ${p.dias.map(d => `<div class="c" style="cursor:default">
+        <div class="lbl">${esc(String(d.data).slice(5))}</div>
+        <div class="val" style="font-size:14px">${d.min}–${d.max}°C</div>
+        <div class="mu" style="font-size:11px">chuva ${d.chuvaProb}% · ${d.chuvaMm} mm</div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function mostraProj() {
+  if (!PROJ || !PROJ.janelas || !PROJ.janelas.length) {
+    $('pr').innerHTML = '<div class="box aviso">Sem dados de projeção.</div>';
+    return;
+  }
+  const J = PROJ.janelas;
+  const n = J.length;
+  if (SELJ < 0 || SELJ >= n) SELJ = 0;
+
+  const W = 700, L = 34, R = 12, sp = (W - L - R) / n;
+  const x = i => L + sp * (i + 0.5);
+  const todos = J.flatMap(w => [w.t.p10, w.t.p90]);
+  const lo = Math.floor(Math.min(...todos) - 1);
+  const hi = Math.ceil(Math.max(...todos) + 1);
+  const y = t => 26 + (hi - t) / (hi - lo || 1) * 140;
+  const cor = METS[MET].cor;
+  const dd = PER === '14d' || PER === '7d';
+
+  const band = J.map((w, i) => x(i) + ',' + y(w.t.p90)).join(' ')
+             + ' ' + J.slice().reverse().map((w, i) => x(n - 1 - i) + ',' + y(w.t.p10)).join(' ');
+
+  let svg = `<svg viewBox="0 0 700 300" class="graf" role="img" aria-label="Projeção de temperatura e ${METS[MET].label}">`;
+  svg += `<polygon points="${band}" fill="#27c8ff33"/>`;
+  svg += `<polyline points="${J.map((w, i) => x(i) + ',' + y(w.t.p50)).join(' ')}" fill="none" stroke="#27c8ff" stroke-width="2"/>`;
+  svg += J.map((w, i) => {
+    const h = w.prob[MET] * 70;
+    return `<rect data-i="${i}" x="${x(i) - sp * 0.4}" y="${262 - h}" width="${sp * 0.8}" height="${h}"
+      fill="${cor}" opacity="${i === SELJ ? 1 : 0.55}" style="cursor:pointer"/>`
+      + (n <= 14 ? `<text x="${x(i)}" y="${258 - h}" fill="#e8f1ff" font-size="9" text-anchor="middle">${Math.round(w.prob[MET] * 100)}</text>` : '');
+  }).join('');
+  svg += (PROJ.marcas || []).map(m =>
+    `<text data-i="${m.i}" x="${x(m.i) + (m.tipo === 'forte' || m.tipo === 'vento' ? 8 : -4)}"
+       y="${y(J[m.i].t.p90) - 6}" font-size="12" text-anchor="middle" style="cursor:pointer">${m.icone}</text>`
+  ).join('');
+  svg += J.map((w, i) => i % Math.ceil(n / 8) === 0
+    ? `<text x="${x(i)}" y="290" fill="#8fa8c8" font-size="9" text-anchor="middle">${esc((dd ? w.ini.slice(5, 10) : w.ini.slice(8, 13)).replace('T', ' '))}</text>`
+    : ''
+  ).join('');
+  svg += `<text x="2" y="${y(hi) + 8}" fill="#8fa8c8" font-size="9">${hi}°</text>`;
+  svg += `<text x="2" y="${y(lo)}" fill="#8fa8c8" font-size="9">${lo}°</text>`;
+  svg += `</svg>`;
+
+  const w = J[SELJ];
+  const P = w.prob;
+  const pc = k => Math.round(P[k] * 100) + '%';
+
+  $('pr').innerHTML = cartaoPrevisao(PV) + `
+    <div class="box">
+      <h2>${esc(PROJ.local)} <small>${esc(PROJ.continente)} · ${PER}</small></h2>
+      ${svg}
+      <div class="legenda">
+        <span>Faixa = 10%–90% dos modelos</span>
+        <span>Linha = mediana</span>
+        <span><b style="background:${cor}"></b>Barras = ${METS[MET].label}</span>
+      </div>
+      <small class="mu">Toque numa barra ou ícone para ver os detalhes daquela janela.</small>
+    </div>
+
+    <div class="box">
+      <h2>JANELA ${esc(w.ini.replace('T', ' '))} <small>confiança ${w.conf}</small></h2>
+      <div class="linhas">
+        <div><span>Temperatura (p10 / p50 / p90)</span><b>${w.t.p10} / ${w.t.p50} / ${w.t.p90} °C</b></div>
+        ${w.tmin != null ? `<div><span>Mínima</span><b>${w.tmin} °C</b></div>` : ''}
+        <div><span>Chuva (p50 / p90)</span><b>${w.chuvaMm.p50}–${w.chuvaMm.p90} mm</b></div>
+        <div><span>Vento (p50 / p90)</span><b>${w.ventoMax.p50}–${w.ventoMax.p90} km/h</b></div>
+        <div><span>Chuva</span><b>${pc('chuva')}</b></div>
+        <div><span>Chuva forte</span><b>${pc('forte')}</b></div>
+        <div><span>Vento ≥40</span><b>${pc('vento')}</b></div>
+        <div><span>Calor ≥35°</span><b>${pc('calor')}</b></div>
+        <div><span>Frio ≤5°</span><b>${pc('frio')}</b></div>
+        <div><span>Membros</span><b>${w.n}</b></div>
+      </div>
+    </div>
+
+    <div class="box">
+      <h2>RESUMO</h2>
+      <p class="lead">${esc(PROJ.resumo || '')}</p>
+      ${PROJ.contexto ? `<small class="mu">ENSO: ${esc(PROJ.contexto.fase)} (ONI ${PROJ.contexto.oni}), tendência sazonal de alta ${PROJ.contexto.tendenciaAlta}%. ${esc(PROJ.contexto.nota || '')}</small>` : ''}
+      <br><small class="mu">${esc(PROJ.aviso || '')}</small>
+    </div>
+  `;
+
+  document.querySelectorAll('#pr svg [data-i]').forEach(el => {
+    el.onclick = () => {
+      const i = parseInt(el.dataset.i, 10);
+      if (isFinite(i)) { SELJ = i; mostraProj(); }
+    };
+  });
+}
+
+/* ══════════════════════════════════════════════════════
+   SEÇÃO · TENDÊNCIA
+   ══════════════════════════════════════════════════════ */
+async function vMapa() {
+  if (MAPA) { renderMapa(MAPA); return; }
+  $('v').innerHTML = '<div class="box"><span class="mu">Carregando mapa-múndi e efeito dominó…</span></div>';
+  try {
+    MAPA = await api('mapa', { oni: oniSim });
+    if (!MAPA.ok) throw new Error(MAPA.error || 'Falha');
+    renderMapa(MAPA);
+  } catch (e) {
+    $('v').innerHTML = `<div class="box aviso ruim">${esc(e.message || 'Falha.')}</div>`;
+  }
+}
+
+function renderMapa(m) {
+  const rk = m.ranking || [];
+  if (!rk.length) {
+    $('v').innerHTML = '<div class="box aviso">Sem países no ranking. O worker pode ter devolvido vazio — tente novamente.</div>';
+    return;
+  }
+  const ep = rk.find(r => r.cod === m.epicentro) || rk[0] || {};
+  const oniFase = m.oni.fase;
+  const oniCor = oniFase === 'El Niño' ? 'var(--rd)' : oniFase === 'La Niña' ? 'var(--cy)' : 'var(--am)';
+
+  // ── Cabeçalho ──
+  let html = `<div class="box">
+    <h2>ENSO · ${esc(oniFase)} <small>ONI ${m.oni.valor} · ${esc(m.oni.periodo)}</small></h2>
+    <p class="lead">
+      <b style="color:${oniCor}">Epicentro do dominó:</b> ${esc(ep.nome || '—')}
+      · <b>desvio ${ep.desvio > 0 ? '+' : ''}${ep.desvio}°C</b>
+      · ${m.totalPaises} países no grafo
+    </p>
+    <p class="mu" style="font-size:12px">${esc(m.aviso)}</p>
+  </div>`;
+
+  // ── Ranking (top 15 afetados) ──
+  html += `<div class="box"><h2>PAÍSES MAIS AFETADOS <small>desvio vs base</small></h2>
+    <div class="g">`;
+  rk.slice(0, 15).forEach(r => {
+    const cor = r.desvio >= 0 ? 'var(--rd)' : 'var(--cy)';
+    html += `<div class="c" style="cursor:default">
+      <div class="lbl">${esc(r.nome)}</div>
+      <div class="val" style="color:${cor}">${r.desvio > 0 ? '+' : ''}${r.desvio}°C</div>
+      <div class="mu" style="font-size:11px;margin-top:2px">base ${r.tBase}°C → ${r.tFinal}°C · ${r.vizinhos} viz.</div>
+    </div>`;
+  });
+  html += `</div></div>`;
+
+  // ── Ondas do dominó (série temporal por país) ──
+  const series = m.series || {};
+  const iteracoes = m.iteracoes || [];
+  if (iteracoes.length > 1) {
+    const W = 700, H = 260, L = 36, R = 12, T = 18, B = 26;
+    const x = i => L + (W - L - R) * i / (iteracoes.length - 1);
+    let yMin = 0, yMax = 0;
+    Object.values(series).forEach(arr => arr.forEach(v => { if (v < yMin) yMin = v; if (v > yMax) yMax = v; }));
+    yMin = Math.min(yMin, -0.5) - 0.2;
+    yMax = Math.max(yMax, 0.5) + 0.2;
+    const y = v => T + (H - T - B) * (1 - (v - yMin) / (yMax - yMin));
+
+    const CORES = ['#27c8ff','#ff4d57','#2fd48a','#f0a830','#aa66ff','#00e5ff','#ffd700','#ff8060','#88cc44','#ff66ff'];
+    const amostra = Object.keys(series).slice(0, 8);
+
+    let svg = `<svg viewBox="0 0 ${W} ${H}" class="graf" role="img" aria-label="Efeito dominó entre vizinhos">`;
+    for (let k = 0; k <= 4; k++) {
+      const yy = T + (H - T - B) * k / 4;
+      const val = (yMax - (yMax - yMin) * k / 4).toFixed(1);
+      svg += `<line x1="${L}" x2="${W - R}" y1="${yy}" y2="${yy}" stroke="#12335a"/>`;
+      svg += `<text x="2" y="${yy + 4}" fill="#8fa8c8" font-size="9">${val}°</text>`;
+    }
+    iteracoes.forEach((it, i) => {
+      if (i % Math.ceil(iteracoes.length / 8) === 0) {
+        svg += `<text x="${x(i)}" y="${H - 8}" fill="#8fa8c8" font-size="9" text-anchor="middle">${it}</text>`;
+      }
+    });
+    svg += `<text x="${L}" y="12" fill="#8fa8c8" font-size="9">saltos →</text>`;
+    amostra.forEach((cod, idx) => {
+      const arr = series[cod] || [];
+      if (arr.length < 2) return;
+      const pts = arr.map((v, i) => `${x(i)},${y(v)}`).join(' ');
+      svg += `<polyline points="${pts}" fill="none" stroke="${CORES[idx % CORES.length]}" stroke-width="2"/>`;
+    });
+    svg += `</svg>`;
+
+    html += `<div class="box">
+      <h2>ONDA DO DOMINÓ <small>desvio propagado por vizinhança (${iteracoes.length - 1} saltos)</small></h2>
+      ${svg}
+      <div class="legenda">`;
+    amostra.forEach((cod, idx) => {
+      const r = rk.find(x => x.cod === cod);
+      if (!r) return;
+      html += `<span><b style="background:${CORES[idx % CORES.length]}"></b>${esc(r.nome)}</span>`;
+    });
+    html += `</div>
+      <p class="mu" style="font-size:12px;margin-top:8px">
+        Cada salto propaga a média dos vizinhos com decaimento. Países que compartilham fronteira
+        herdam parte do desvio do vizinho, criando a onda de calor/frio contínua no mapa.
+      </p>
+    </div>`;
+  }
+
+  // ── Onda senoidal por país (fase do dominó) ──
+  const onda = m.onda || {};
+  const amostraOnda = rk.slice(0, 6).map(r => r.cod).filter(c => onda[c]);
+  if (amostraOnda.length) {
+    const W = 700, H = 200, L = 30, R = 12, T = 16, B = 22;
+    const N = (onda[amostraOnda[0]] || {}).serie ? onda[amostraOnda[0]].serie.length - 1 : 60;
+    const x = i => L + (W - L - R) * i / N;
+    let yMax = 0.5;
+    amostraOnda.forEach(c => (onda[c].serie || []).forEach(v => { if (Math.abs(v) > yMax) yMax = Math.abs(v); }));
+    yMax = yMax * 1.1;
+    const y = v => T + (H - T - B) * (1 - (v + yMax) / (2 * yMax));
+    let svg = `<svg viewBox="0 0 ${W} ${H}" class="graf" role="img" aria-label="Onda de propagação por país">`;
+    svg += `<line x1="${L}" x2="${W - R}" y1="${y(0)}" y2="${y(0)}" stroke="#1b4a7a"/>`;
+    const CORES = ['#27c8ff','#ff4d57','#2fd48a','#f0a830','#aa66ff','#ffd700'];
+    amostraOnda.forEach((cod, idx) => {
+      const arr = onda[cod].serie || [];
+      const pts = arr.map((v, i) => `${x(i)},${y(v)}`).join(' ');
+      svg += `<polyline points="${pts}" fill="none" stroke="${CORES[idx % CORES.length]}" stroke-width="1.6"/>`;
+    });
+    svg += `</svg>`;
+    html += `<div class="box">
+      <h2>FASE DA ONDA <small>amplitude × seno × decaimento</small></h2>
+      ${svg}
+      <div class="legenda">`;
+    amostraOnda.forEach((cod, idx) => {
+      const r = rk.find(x => x.cod === cod);
+      const fase = (onda[cod].fase / Math.PI).toFixed(2);
+      html += `<span><b style="background:${CORES[idx % CORES.length]}"></b>${esc(r ? r.nome : cod)} · fase ${fase}π</span>`;
+    });
+    html += `</div></div>`;
+  }
+
+  // ── Tabela completa ──
+  html += `<div class="box"><h2>TODOS OS PAÍSES <small>${m.totalPaises} no grafo</small></h2>
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead><tr>
+        <th style="text-align:left;padding:6px;border-bottom:1px solid var(--ln)">País</th>
+        <th style="text-align:right;padding:6px;border-bottom:1px solid var(--ln)">Base</th>
+        <th style="text-align:right;padding:6px;border-bottom:1px solid var(--ln)">Alvo</th>
+        <th style="text-align:right;padding:6px;border-bottom:1px solid var(--ln)">Final</th>
+        <th style="text-align:right;padding:6px;border-bottom:1px solid var(--ln)">Δ</th>
+      </tr></thead><tbody>`;
+  rk.forEach(r => {
+    const cor = r.desvio >= 0 ? 'var(--rd)' : 'var(--cy)';
+    html += `<tr>
+      <td style="padding:5px 6px;border-bottom:1px solid #0e2b4d">${esc(r.nome)}</td>
+      <td style="text-align:right;padding:5px 6px;border-bottom:1px solid #0e2b4d">${r.tBase}</td>
+      <td style="text-align:right;padding:5px 6px;border-bottom:1px solid #0e2b4d">${r.tAlvo}</td>
+      <td style="text-align:right;padding:5px 6px;border-bottom:1px solid #0e2b4d"><b>${r.tFinal}</b></td>
+      <td style="text-align:right;padding:5px 6px;border-bottom:1px solid #0e2b4d;color:${cor}">
+        ${r.desvio > 0 ? '+' : ''}${r.desvio}
+      </td>
+    </tr>`;
+  });
+  html += `</tbody></table></div>`;
+
+  $('v').innerHTML = html;
+}
+
+async function vTend() {
+  $('v').innerHTML = '<div class="box"><span class="mu">Carregando tendência…</span></div>';
+  try {
+    const t = await api('tendencia');
+    if (!t.ok) throw new Error(t.error || 'Tendência indisponível.');
+    const T = t.tendencia || {};
+    $('v').innerHTML = `
+      <div class="box">
+        <h2>TENDÊNCIA HISTÓRICA <small>${esc(T.periodo || '')}</small></h2>
+        <div class="legenda">
+          <span><b style="background:var(--cy)"></b>Temperatura (°C)</span>
+          <span><b style="background:var(--am)"></b>CO₂ (ppm)</span>
+          <span><b style="background:var(--rd)"></b>Fertilidade (índice)</span>
+        </div>
+        ${graficoTendencia(t.historico || null)}
+      </div>
+
+      <div class="box">
+        <h2>TAXAS POR ANO</h2>
+        <div class="linhas">
+          ${linhaT('População', '+' + num(T.populacao_bilhoes_por_ano, 3) + ' bi/ano')}
+          ${linhaT('Energia/pessoa', '+' + num(T.energia_kwh_pessoa_por_ano, 0) + ' kWh/ano')}
+          ${linhaT('CO₂', '+' + num(T.co2_ppm_por_ano, 3) + ' ppm/ano')}
+          ${linhaT('Temperatura', '+' + num(T.temperatura_C_por_ano, 4) + ' °C/ano')}
+          ${linhaT('Área agrícola', '+' + num(T.area_agricola_Mha_por_ano, 2) + ' Mha/ano')}
+          ${linhaT('Fertilidade', num(T.fertilidade_indice_por_ano, 3) + ' pts/ano')}
+          ${linhaT('Construção', '+' + num(T.construcao_pct_por_ano, 2) + ' %/ano')}
+          ${linhaT('Consumo total', '+' + num(T.consumo_TWh_por_ano, 0) + ' TWh/ano')}
+        </div>
+      </div>
+
+      <div class="box">
+        <h2>CORRELAÇÕES (Pearson)</h2>
+        <div class="linhas">
+          ${Object.entries(T.correlacoes || {}).map(([k, v]) => {
+            const [a, b] = k.split('_x_');
+            const cor = Math.abs(v) > 0.7 ? 'var(--rd)' : 'var(--am)';
+            return `<div><span>${esc(a)} × ${esc(b)}</span><b style="color:${cor}">${Number(v).toFixed(2)}</b></div>`;
+          }).join('')}
+        </div>
+      </div>
+
+      <div class="box"><small class="mu">${esc(t.fonte || '')}</small></div>
+    `;
+  } catch (e) {
+    $('v').innerHTML = `<div class="box aviso ruim">${esc(e.message || 'Falha.')}</div>`;
+  }
+}
+
+function linhaT(rot, val) {
+  return `<div><span>${esc(rot)}</span><b>${esc(val)}</b></div>`;
+}
+function num(v, d) {
+  const n = Number(v);
+  return isFinite(n) ? n.toFixed(d) : '—';
+}
+
+/* Gráfico SVG de tendência histórica: 3 séries normalizadas */
+/* Gráfico SVG de tendência histórica: 3 séries normalizadas */
+/* Aceita `historico` (do /tendencia) no formato { "1970": {co2, temp, fert}, ... }  */
+/* Se não vier, usa os dados hardcoded (compatibilidade). */
+function graficoTendencia(historico) {
+  let D;
+  if (historico && typeof historico === 'object' && Object.keys(historico).length) {
+    D = {};
+    Object.keys(historico).forEach(ano => {
+      const h = historico[ano];
+      D[ano] = [Number(h.co2) || 0, Number(h.temp) || 0, Number(h.fert) || 100];
+    });
+  } else {
+    D = {
+      '1970': [325.7, 0.03, 100],
+      '1980': [338.7, 0.27, 95],
+      '1990': [354.4, 0.45, 90],
+      '2000': [369.5, 0.61, 84],
+      '2010': [389.9, 0.82, 78],
+      '2020': [414.2, 1.08, 72],
+      '2023': [421.1, 1.31, 69],
+    };
+  }
+  const anos = Object.keys(D);
+  const W = 700, H = 260, L = 40, R = 12, T = 20, B = 30;
+  const x = i => L + (W - L - R) * i / (anos.length - 1);
+  const yc = v => T + (H - T - B) * (1 - v / 450);
+  const yt = v => T + (H - T - B) * (1 - (v + 0.2) / 1.8);
+  const yf = v => T + (H - T - B) * (1 - v / 110);
+  const serie = (idx, yfn) => anos.map((yr, i) => x(i) + ',' + yfn(D[yr][idx])).join(' ');
+
+  let s = `<svg viewBox="0 0 700 260" class="graf" role="img" aria-label="Tendência histórica 1970 a 2023">`;
+  for (let i = 0; i <= 4; i++) {
+    const yy = T + (H - T - B) * i / 4;
+    s += `<line x1="${L}" x2="${W - R}" y1="${yy}" y2="${yy}" stroke="#12335a"/>`;
+  }
+  anos.forEach((yr, i) => {
+    s += `<text x="${x(i)}" y="${H - 10}" fill="#8fa8c8" font-size="10" text-anchor="middle">${yr}</text>`;
+  });
+  s += `<polyline points="${serie(0, yc)}" fill="none" stroke="#f0a830" stroke-width="2.2"/>`;
+  s += `<polyline points="${serie(1, yt)}" fill="none" stroke="#27c8ff" stroke-width="2.2"/>`;
+  s += `<polyline points="${serie(2, yf)}" fill="none" stroke="#ff4d57" stroke-width="2.2"/>`;
+  anos.forEach((yr, i) => {
+    s += `<circle cx="${x(i)}" cy="${yc(D[yr][0])}" r="2.5" fill="#f0a830"/>`;
+    s += `<circle cx="${x(i)}" cy="${yt(D[yr][1])}" r="2.5" fill="#27c8ff"/>`;
+    s += `<circle cx="${x(i)}" cy="${yf(D[yr][2])}" r="2.5" fill="#ff4d57"/>`;
+  });
+  s += `</svg>`;
+  return s;
+}
+
+/* ══════════════════════════════════════════════════════
+   SEÇÃO · ATENDIMENTO
+   ══════════════════════════════════════════════════════ */
+function vAtend() {
+  const cidade = localStorage.getItem(LS_CIDADE) || '';
+  $('v').innerHTML = `
+    <div class="box">
+      <h2>PROMPT PARA O ATENDIMENTO</h2>
+      <input class="in" id="ac" placeholder="Cidade do cliente" value="${esc(cidade)}">
+      <input class="in" id="ap" placeholder="Pergunta do cliente (opcional)">
+      <div class="row">
+        <button id="ag">Gerar prompt</button>
+        <button class="p" id="ae">Enviar ao atendimento</button>
+        <button id="acp">Copiar</button>
+      </div>
+    </div>
+    <div class="box">
+      <h2>RESULTADO</h2>
+      <pre id="ar">—</pre>
+    </div>
+  `;
+  const corpo = () => ({
+    cidade: ($('ac').value || '').trim(),
+    pergunta: ($('ap').value || '').trim(),
+    oni: oniSim,
+  });
+  $('ag').onclick = async () => {
+    $('ar').textContent = 'Gerando…';
+    try {
+      const j = await api('prompt', corpo());
+      $('ar').textContent = j.ok ? j.prompt : (j.error || 'Falha.');
+    } catch (e) { $('ar').textContent = e.message; }
+  };
+  $('ae').onclick = async () => {
+    $('ar').textContent = 'Enviando ao atendimento…';
+    try {
+      const j = await api('atendimento', corpo());
+      $('ar').textContent = j.ok
+        ? 'PROMPT:\n' + j.prompt + '\n\nRESPOSTA:\n' + j.resposta
+        : (j.error || 'Falha.');
+    } catch (e) { $('ar').textContent = e.message; }
+  };
+  $('acp').onclick = () => {
+    navigator.clipboard.writeText($('ar').textContent).then(() => {
+      $('acp').textContent = 'Copiado ✓';
+      setTimeout(() => { $('acp').textContent = 'Copiar'; }, 1500);
+    });
+  };
+}
+
+/* ══════════════════════════════════════════════════════
+   BOOT
+   ══════════════════════════════════════════════════════ */
+$('gl').onclick = () => login($('ge').value, $('gs').value);
+$('gs').onkeydown = e => { if (e.key === 'Enter') $('gl').click(); };
+$('ge').onkeydown = e => { if (e.key === 'Enter') $('gs').focus(); };
+$('gc').onclick = () => { location.href = WK + '/chat/'; };
+
+if (carregarSessao()) {
+  iniciar();
+} else {
+  $('app').hidden = true;
+  $('gate').hidden = false;
+}
+
+})();
+</script>
+</body>
+</html>
