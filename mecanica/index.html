@@ -96,8 +96,14 @@ footer{padding:10px 16px;color:var(--mu);font-size:11px;display:flex;justify-con
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const WK='https://almafluxo.uk',API=WK+'/api/mecanica/';
-let U=null;try{U=JSON.parse(localStorage.getItem('almafluxo_usuario')||'null')}catch(e){}
+let U=null;
+try{
+  const _s=JSON.parse(localStorage.getItem('almafluxo_usuario')||'null');
+  if(_s && _s.email && _s.sessionToken){ U=_s; }
+  else if(_s){ localStorage.removeItem('almafluxo_usuario'); }  // limpa objeto inválido
+}catch(e){ U=null; }
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $=id=>document.getElementById(id);
 const CAMPOS={cod:'Código',torque:'Torque',material:'Material',parafusos:'Nº de parafusos',aviso:'Aviso',compat:'Compatibilidade',func:'Função'};
 const falta=v=>!v||v==='—'||v==='a cadastrar';
 const post=(p,b)=>fetch(WK+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).then(r=>r.json());
@@ -129,7 +135,14 @@ function toast(msg){
 }
 function ctb(){const b=$('ctb');if(!b||!P[sel])return;const p=P[sel];
  if(!U){b.innerHTML='<p style="color:var(--mu);line-height:1.5;margin-bottom:8px">Crie sua conta grátis para enviar dados que faltam e ajudar a plataforma a evoluir.</p><input class="in" id="ce" type="email" placeholder="E-mail"><input class="in" id="cs" type="password" placeholder="Senha"><div class="nav2"><button class="btn" id="cl" style="background:var(--bl)">Entrar</button><button class="btn" id="cc">Criar conta no ALMAFLUXO</button></div><p id="cmsg" style="margin-top:8px;font-size:12px"></p>';
-  $('cl').onclick=()=>post('/proxy/central',{action:'login',email:$('ce').value.trim().toLowerCase(),senha:$('cs').value}).then(d=>{const u=d.usuario||d,tk=d.token||d.sessionToken||u.sessionToken;if(!(d.ok===true||d.autenticado===true||d.status==='success')||!tk)throw new Error(d.error||d.message||'E-mail ou senha incorretos');U={nome:u.nome||'Usuário',email:$('ce').value.trim().toLowerCase(),balance:u.balance??u.saldo??0,sessionToken:tk,master:!!(u.master||u.admin)};localStorage.setItem('almafluxo_usuario',JSON.stringify(U));ctb();iab()}).catch(e=>say(e.message));
+  $('cl').onclick=()=>post('/proxy/central',{action:'login',email:$('ce').value.trim().toLowerCase(),senha:$('cs').value}).then(d=>{
+    const u=d.usuario||d,tk=d.token||d.sessionToken||u.sessionToken;
+    if(!(d.ok===true||d.autenticado===true||d.status==='success')||!tk)throw new Error(d.error||d.message||'E-mail ou senha incorretos');
+    U={nome:u.nome||'Usuário',email:$('ce').value.trim().toLowerCase(),balance:u.balance??u.saldo??0,sessionToken:tk,master:!!(u.master||u.admin)};
+    localStorage.setItem('almafluxo_usuario',JSON.stringify(U));
+    ctb();iab();
+    boot();                       // ← ADICIONAR ESTA LINHA
+  }).catch(e=>say(e.message));
   $('cc').onclick=()=>window.open(WK+'/','_blank');return}
  const f0=Object.keys(CAMPOS).find(k=>falta(p[k]))||'torque';
  b.innerHTML='<p style="color:var(--mu);margin-bottom:8px">Peça: <b style="color:var(--tx)">'+esc(p.nome)+'</b></p><select id="cf" class="in">'+Object.keys(CAMPOS).map(k=>'<option value="'+k+'"'+(k===f0?' selected':'')+'>'+CAMPOS[k]+(falta(p[k])?' · falta':'')+'</option>').join('')+'</select><input class="in" id="cv2" maxlength="200" placeholder="Valor (ex.: 25 Nm)"><input class="in" id="cfo" maxlength="200" placeholder="Fonte (manual, catálogo, medição própria)"><div class="nav2"><button class="btn" id="cenv" style="background:var(--bl)">Enviar para revisão</button><button class="btn" id="cx">Sair</button></div><p id="cmsg" style="margin-top:8px;font-size:12px"></p><p style="color:var(--mu);font-size:11px;margin-top:6px">Todo dado passa por revisão antes de aparecer para os outros usuários.</p>';
@@ -165,7 +178,9 @@ function carregar(id){
     .then(function(j){
       if(meuToken !== _carregandoToken) return;
       if(!j.ok){
-        if(/Entre/.test(j.error||'')) gate();
+        // Só lança — o .catch() abaixo decide se é sessão (gate) ou erro comum.
+        // Chamar gate() aqui + de novo no .catch() reescrevia o #load
+        // e apagava o que o usuário estava digitando.
         throw new Error(j.error||'Falha ao carregar motor');
       }
       const m = j.motor;
@@ -182,13 +197,28 @@ function carregar(id){
     })
     .catch(function(e){
       if(meuToken !== _carregandoToken) return;
-      if(e && /Entre/.test(e.message||'')) return;
+      // Sessão expirou durante o uso → limpa e volta pro login
+      if(e && /entre|sess(ã|a)o|expir/i.test(e.message||'')){
+        try{ localStorage.removeItem('almafluxo_usuario'); }catch(_){}
+        U=null;
+        gate();
+        return;
+      }
       const l2=$('load');
-      if(l2) l2.textContent='Não foi possível carregar o motor: '+(e.message||e);
-      D = null;
+      if(l2){
+        l2.style.display='grid';
+        l2.innerHTML='<div style="max-width:320px;text-align:center">'+
+          '<p style="color:#ffb0b6;margin-bottom:10px">'+esc(e.message||'Falha ao carregar o motor.')+'</p>'+
+          '<button class="btn" id="brl2" style="background:var(--bl);width:100%;margin-bottom:6px">Tentar de novo</button>'+
+          '<button class="btn" id="bgl2" style="width:100%">Entrar com outra conta</button>'+
+          '</div>';
+        const rl=$('brl2'); if(rl) rl.onclick=()=>{ const l3=$('load'); if(l3)l3.remove(); if($('veic').value)carregar($('veic').value); };
+        const gl=$('bgl2'); if(gl) gl.onclick=()=>{ sairSessao(); };
+      }
+      // Mantém o motor anterior visível se já havia um carregado.
+      if(!D) D = null;
     });
 }
-const $=id=>document.getElementById(id);
 let D,P={},sel=null,si=0,modo='desmontar',expl=false,vista='3d';
 let sysIdx=0,sysIds=null,showHoles=true,iso=false;
 const G=new Map();
@@ -1081,11 +1111,41 @@ async function abrirIAPeca(pecaId,motorAlvo){
   }
 }
 function boot(){
+  // Sem sessão válida → login direto, sem tentar falar com o worker
+  if(!U || !U.email || !U.sessionToken){
+    gate();
+    return;
+  }
+  const l=$('load');
+  if(l){ l.style.display='grid'; l.textContent='Carregando motores…'; }
+
   post('/api/mecanica/motores', SES()).then(j=>{
-    if(!j.ok){ if(/Entre/.test(j.error||'')) gate(); throw 1; }
+    if(!j.ok){
+      const msg = j.error || '';
+      // Sessão inválida/expirada → limpa e volta pro login
+      if(/entre|sess(ã|a)o|expir/i.test(msg)){
+        try{ localStorage.removeItem('almafluxo_usuario'); }catch(e){}
+        U=null;
+        gate();
+        return;
+      }
+      // Outro erro → mostra com botão "Tentar de novo"
+      const l2=$('load');
+      if(l2){
+        l2.style.display='grid';
+        l2.innerHTML='<div style="max-width:320px;text-align:center">'+
+          '<p style="color:#ffb0b6;margin-bottom:10px">'+esc(msg||'Não foi possível carregar os motores.')+'</p>'+
+          '<button class="btn" id="brl" style="background:var(--bl);width:100%;margin-bottom:6px">Tentar de novo</button>'+
+          '<button class="btn" id="bgl" style="width:100%">Entrar com outra conta</button>'+
+          '</div>';
+        const rl=$('brl'); if(rl) rl.onclick=()=>{ const l3=$('load'); if(l3)l3.remove(); boot(); };
+        const gl=$('bgl'); if(gl) gl.onclick=()=>{ sairSessao(); };
+      }
+      return;
+    }
     if(!j.motores || !j.motores.length){
-      const l=$('load'); if(l) l.textContent='Nenhum motor disponível no servidor.';
-      throw 1;
+      const l2=$('load'); if(l2) l2.textContent='Nenhum motor disponível no servidor.';
+      return;
     }
     $('veic').innerHTML = j.motores.map(m=>
       '<option value="'+esc(m.id)+'">'+esc(m.nome)+'</option>'
@@ -1099,13 +1159,26 @@ function boot(){
       const v=$('veic').value;
       v.indexOf('imp_')===0 ? abrirLocal(v) : carregar(v);
     };
-    // Carrega o primeiro motor REAL da lista (não assume ea111_10)
     return carregar(j.motores[0].id);
   }).catch(e=>{
-    if(e===1) return;
-    const l=$('load');
-    if(l) l.textContent='Não foi possível carregar os motores.';
+    const l2=$('load');
+    if(l2){
+      l2.style.display='grid';
+      l2.innerHTML='<div style="max-width:320px;text-align:center">'+
+        '<p style="color:#ffb0b6;margin-bottom:10px">Falha de conexão com o servidor.</p>'+
+        '<button class="btn" id="brl" style="background:var(--bl);width:100%">Tentar de novo</button>'+
+        '</div>';
+      const rl=$('brl'); if(rl) rl.onclick=()=>{ const l3=$('load'); if(l3)l3.remove(); boot(); };
+    }
   });
+}
+
+// Logout explícito: apaga a sessão e volta pro login
+function sairSessao(){
+  try{ localStorage.removeItem('almafluxo_usuario'); }catch(e){}
+  U=null;
+  const l=$('load'); if(l) l.remove();
+  gate();
 }
 const MP=(()=>{
   const sem=t=>String(t==null?'':t).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
