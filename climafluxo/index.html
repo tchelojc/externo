@@ -955,6 +955,7 @@ function vProj() {
     </div>
     <div id="mundo-resumo" class="aviso" hidden></div>
     <div id="mundo-alertas" hidden></div>
+    <div id="mundo-propagacoes" hidden></div>   <!-- ← ADICIONAR ESTA LINHA -->
     <div class="ind-tabs" id="grid-indicadores" style="margin-top:12px">
       ${INDICADORES.map(i => `<div class="ind-tab" data-tipo="${i.id}"><span class="em">${i.emoji}</span><span class="nm">${i.nome}</span><span class="vl" data-v>—</span></div>`).join('')}
     </div>
@@ -1057,51 +1058,175 @@ async function analisarMundo() {
   const btn = $('mundo-btn');
   const resumo = $('mundo-resumo');
   const alertas = $('mundo-alertas');
+  const propBox = document.getElementById('mundo-propagacoes');
   const cidade = ($('ci')?.value || '').trim() || localStorage.getItem(LS_CIDADE) || '';
+
   btn.disabled = true;
   btn.textContent = 'Analisando…';
+  resumo.hidden = true;
+  alertas.hidden = true;
+  if (propBox) propBox.hidden = true;
+
   try {
     const d = await api('alertas', { cidade, periodo: PER, oni: oniSim });
     if (!d.ok) throw new Error(d.error || 'Falha na análise.');
+
+    // ── Resumo global ──
     resumo.hidden = false;
-    resumo.className = 'aviso ' + (d.resumo.startsWith('⚠️') ? 'ruim' : d.resumo.startsWith('👀') ? '' : 'ok');
+    resumo.className = 'aviso ' + (
+      d.resumo.startsWith('⚠️') ? 'ruim'
+      : d.resumo.startsWith('👀') ? ''
+      : 'ok'
+    );
     resumo.textContent = d.resumo;
+
+    // ── 12 indicadores (agora com variação + fonte + confiança) ──
     if (d.status) {
       Object.keys(d.status).forEach(tipo => {
-        const s = d.status[tipo]; if (!s) return;
+        const s = d.status[tipo];
         const card = document.querySelector(`#grid-indicadores [data-tipo="${tipo}"]`);
         if (!card) return;
         const vl = card.querySelector('[data-v]');
-        if (s.valor != null) {
-          vl.textContent = s.valor + (s.unidade ? ' ' + s.unidade : '');
-          vl.style.color = 'var(--cy)';
+        if (!vl) return;
+
+        if (s && s.valor != null && isFinite(s.valor)) {
+          const varTxt = s.variacao != null && isFinite(s.variacao)
+            ? ` (${s.variacao >= 0 ? '+' : ''}${s.variacao.toFixed(1)}%)`
+            : '';
+          vl.textContent = `${s.valor}${s.unidade ? ' ' + s.unidade : ''}${varTxt}`;
+          const corVar = (v) => v == null ? 'var(--cy)'
+                              : v > 10 ? 'var(--rd)'
+                              : v < -10 ? 'var(--gr)'
+                              : 'var(--cy)';
+          vl.style.color = corVar(s.variacao);
+
+          const confIcon = s.confianca === 'alta'
+            ? '🟢'
+            : s.confianca === 'media'
+              ? '🟡'
+              : '🔴';
+          card.title = `${confIcon} ${s.fonte || 'modelo'}${s.detalhe ? ' · ' + s.detalhe : ''}`;
+        } else if (s && s.valor == null) {
+          vl.textContent = '—';
+          vl.style.color = 'var(--mu)';
+          card.title = s.detalhe || 'sem fonte disponível agora';
         } else {
           vl.textContent = '—';
           vl.style.color = 'var(--mu)';
+          card.title = 'indisponível';
         }
-        card.title = s.detalhe || '';
       });
     }
+
+    // ── Alertas territoriais ──
     alertas.hidden = false;
     if (!d.alertas || !d.alertas.length) {
       alertas.innerHTML = '<div class="aviso ok">✅ Nada grave agora. O mundo está tranquilo.</div>';
-      return;
+    } else {
+      alertas.innerHTML = d.alertas.map(a => {
+        const cor = a.nivel === 'perigo' ? 'var(--rd)'
+                  : a.nivel === 'atencao' ? 'var(--am)'
+                  : 'var(--cy)';
+        const bg = a.nivel === 'perigo' ? 'rgba(255,77,87,.08)'
+                 : a.nivel === 'atencao' ? 'rgba(240,168,48,.06)'
+                 : 'rgba(39,200,255,.04)';
+        const dadosTxt = a.dados
+          ? Object.entries(a.dados)
+              .map(([k, v]) => `${esc(k)}: ${esc(String(v))}`)
+              .join(' · ')
+          : '';
+        return `<div class="manchete" style="border-color:${cor};background:${bg};margin-bottom:8px">
+          <small>${esc(a.territorio)}</small>
+          <div style="font-size:22px;line-height:1;margin-bottom:4px">${a.icone || '⚠️'}</div>
+          <div class="t" style="color:#fff">${esc(a.titulo)}</div>
+          <p class="lead" style="margin-top:6px">${esc(a.explicacao)}</p>
+          ${dadosTxt ? `<div class="mu" style="font-size:11px;margin-top:6px">${dadosTxt}</div>` : ''}
+        </div>`;
+      }).join('');
     }
-    alertas.innerHTML = d.alertas.map(a => {
-      const cor = a.nivel === 'perigo' ? 'var(--rd)' : a.nivel === 'atencao' ? 'var(--am)' : 'var(--cy)';
-      const bg  = a.nivel === 'perigo' ? 'rgba(255,77,87,.08)' : a.nivel === 'atencao' ? 'rgba(240,168,48,.06)' : 'rgba(39,200,255,.04)';
-      return `<div class="manchete" style="border-color:${cor};background:${bg};margin-bottom:8px">
-        <small>${esc(a.territorio)}</small>
-        <div style="font-size:22px;line-height:1;margin-bottom:4px">${a.icone || '⚠️'}</div>
-        <div class="t" style="color:#fff">${esc(a.titulo)}</div>
-        <p class="lead" style="margin-top:6px">${esc(a.explicacao)}</p>
-        ${a.dados ? `<div class="mu" style="font-size:11px;margin-top:6px">${Object.entries(a.dados).map(([k,v]) => k + ': ' + v).join(' · ')}</div>` : ''}
-      </div>`;
-    }).join('');
+
+    // ── Para onde estão indo os efeitos (propagações) ──
+    if (propBox) {
+      const props = Array.isArray(d.propagacoes) ? d.propagacoes : [];
+
+      if (!props.length) {
+        propBox.hidden = true;
+        propBox.innerHTML = '';
+      } else {
+        propBox.hidden = false;
+        propBox.innerHTML = `
+          <div class="box">
+            <h2>📡 PARA ONDE ESTÃO INDO OS EFEITOS
+              <small>${props.length} ${props.length === 1 ? 'fenômeno em propagação' : 'fenômenos em propagação'}</small>
+            </h2>
+            ${props.map(p => {
+              const corPorTipo = {
+                sismo:   'var(--rd)',
+                solar:   '#ffd700',
+                chuva:   '#27c8ff',
+                enso:    '#f0a830',
+                tsunami: '#00e5ff',
+                vulcao:  '#ff7a1a',
+                vento:   '#f0a830'
+              };
+              const iconPorTipo = {
+                sismo:   '🌍',
+                solar:   '☀️',
+                chuva:   '🌧',
+                enso:    '🌊',
+                tsunami: '🌊',
+                vulcao:  '🌋',
+                vento:   '💨'
+              };
+              const cor = corPorTipo[p.tipo] || 'var(--cy)';
+              const icon = iconPorTipo[p.tipo] || '📡';
+
+              const etaTxt = p.eta_h != null && isFinite(p.eta_h)
+                ? `<p class="mu" style="margin-top:6px">⏱ ETA: <b style="color:${cor}">${p.eta_h} h</b></p>`
+                : '';
+
+              const areasTxt = p.areas_atingidas && p.areas_atingidas.length
+                ? `<div class="guia" style="margin-top:8px"><b>Áreas atingidas:</b> ${
+                    p.areas_atingidas
+                      .map(a => esc(String(a && a.descricao || '')))
+                      .filter(Boolean)
+                      .join(' · ')
+                  }</div>`
+                : '';
+
+              const trajTxt = p.trajetoria && p.trajetoria.length > 1
+                ? `<div class="mu" style="font-size:11px;margin-top:6px">
+                    ${p.trajetoria.length} pontos de trajetória ·
+                    do ponto 0 ao ${p.trajetoria.length - 1}: ${
+                      p.trajetoria[0].lat != null && p.trajetoria[0].lon != null
+                        ? `${p.trajetoria[0].lat.toFixed(2)},${p.trajetoria[0].lon.toFixed(2)} → ${
+                            p.trajetoria[p.trajetoria.length - 1].lat.toFixed(2)
+                          },${p.trajetoria[p.trajetoria.length - 1].lon.toFixed(2)}`
+                        : 'sem coordenadas'
+                    }
+                  </div>`
+                : '';
+
+              return `<div class="manchete" style="border-color:${cor};background:rgba(39,200,255,.03);margin-bottom:10px">
+                <small>${esc((p.tipo || '').toUpperCase())} · ${esc(p.origem || 'origem')}</small>
+                <div style="font-size:22px;line-height:1;margin-bottom:4px">${icon}</div>
+                <div class="t" style="color:#fff">${esc(p.resumo || '')}</div>
+                ${etaTxt}
+                ${areasTxt}
+                ${trajTxt}
+              </div>`;
+            }).join('')}
+          </div>
+        `;
+      }
+    }
+
   } catch (e) {
     resumo.hidden = false;
     resumo.className = 'aviso ruim';
     resumo.textContent = 'Erro: ' + (e.message || 'Falha.');
+    if (propBox) propBox.hidden = true;
+    alertas.hidden = true;
   } finally {
     btn.disabled = false;
     btn.textContent = 'Analisar o mundo';
