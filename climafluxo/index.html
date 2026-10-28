@@ -57,7 +57,6 @@ pre{white-space:pre-wrap;word-break:break-word;background:#06101f;border:1px sol
 .aviso.ruim{border-color:rgba(255,77,87,.4);background:rgba(255,77,87,.08);color:#ffb0b6}
 .aviso.ok{border-color:rgba(47,212,138,.4);background:rgba(47,212,138,.08);color:#b6ffd9}
 
-/* ─── Abas dos 12 indicadores ─── */
 .ind-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
 .ind-tab{border:1px solid var(--ln);border-radius:8px;padding:7px 10px;background:#0a1d3a;color:var(--tx);cursor:pointer;font-size:12px;font-family:var(--sans);font-weight:600;display:flex;flex-direction:column;align-items:center;min-width:86px;position:relative;overflow:hidden}
 .ind-tab:hover{border-color:var(--cy)}
@@ -70,12 +69,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:#06101f;border:1px sol
 .ind-tab .bar-mini{position:absolute;bottom:0;left:0;right:0;height:2px;background:transparent}
 .ind-tab .bar-mini i{display:block;height:100%;transition:width .3s}
 
-/* ─── Cartão "Estado da Terra" ─── */
-.terra-card{
-  background:linear-gradient(135deg,#041428,#0a2242,#041428);
-  border:2px solid var(--cy);border-radius:12px;padding:14px 16px;margin-bottom:12px;
-  box-shadow:0 0 20px rgba(39,200,255,.15);
-}
+.terra-card{background:linear-gradient(135deg,#041428,#0a2242,#041428);border:2px solid var(--cy);border-radius:12px;padding:14px 16px;margin-bottom:12px;box-shadow:0 0 20px rgba(39,200,255,.15)}
 .terra-card h2{font-size:13px;color:var(--cy);letter-spacing:1.5px;margin-bottom:8px;font-family:var(--sans);text-transform:uppercase}
 .terra-card .terra-fase{font-size:20px;font-weight:900;font-family:var(--sans);margin:4px 0}
 .terra-card .terra-resumo{color:#c5d8ee;font-size:13px;line-height:1.6;margin-top:6px}
@@ -84,7 +78,6 @@ pre{white-space:pre-wrap;word-break:break-word;background:#06101f;border:1px sol
 .terra-card .terra-grid .lbl{font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:.5px}
 .terra-card .terra-grid .val{font-size:14px;font-weight:700;margin-top:2px;color:var(--tx)}
 
-/* ─── Tabela consolidada ─── */
 .tab-cons{width:100%;border-collapse:collapse;font-size:12px}
 .tab-cons th{text-align:left;padding:6px;border-bottom:1px solid var(--ln);color:var(--mu);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
 .tab-cons td{padding:6px;border-bottom:1px solid #0e2b4d;vertical-align:middle}
@@ -96,7 +89,6 @@ pre{white-space:pre-wrap;word-break:break-word;background:#06101f;border:1px sol
 .tab-cons .tag-real{background:rgba(47,212,138,.2);color:var(--gr);border:1px solid rgba(47,212,138,.4)}
 .tab-cons .tag-sim{background:rgba(143,168,200,.2);color:var(--mu);border:1px solid rgba(143,168,200,.4)}
 
-/* ─── Guia ─── */
 .guia{background:rgba(170,102,255,.06);border-left:3px solid var(--vi);border-radius:0 6px 6px 0;padding:8px 12px;margin-top:8px;font-size:12px;color:#d8ccff;line-height:1.5}
 .guia b{color:var(--vi)}
 
@@ -140,7 +132,7 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => (
 ));
 
 /* ═══════════════════════════════════════════════════════════════
-   12 INDICADORES — com direção, guia e unidade
+   12 INDICADORES
    ═══════════════════════════════════════════════════════════════ */
 const INDICADORES = [
   { id:'sismos',      emoji:'🌍', nome:'SISMOS',           unid:'Mag',    dec:1, dir:'subir',  guia:'Cada ponto é um terremoto ≥4,5 da USGS (últimos 7 dias). Aumento = atividade sísmica subindo.' },
@@ -165,10 +157,9 @@ let PER = '7d';
 let MET = 'chuva';
 let JORNAL = null, ANALISE = null, MAPA = null, PROJ = null, PV = null, SELJ = 0;
 let indAtual = 'sismos';
-let indDados = {};        // cache: id -> payload
-let indLoading = {};      // id -> booleano
-let indPromises = {};     // id -> promise em andamento (evita race)
-const LS_USER_FALLBACK = JSON.parse(localStorage.getItem(LS_USER) || 'null');
+let indDados = {};
+let indLoading = {};
+let indPromises = {};
 
 const ABAS = [
   ['jornal', '📰 Jornal'],
@@ -180,7 +171,7 @@ const ABAS = [
   ['atend',  '💬 Atendimento'],
 ];
 
-/* ── API ── */
+/* ── API (síncrona) ── */
 const post = (p, b) => fetch(WK + p, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
@@ -197,6 +188,34 @@ async function api(rota, corpo) {
     sair(); throw new Error(j.error);
   }
   return j;
+}
+
+/* ── API assíncrona (polling até resposta final) ──
+   Usada por /atendimento: o worker ENFILEIRA e devolve
+   { ok:true, pendente:true, request_id, prompt }.
+   Consultamos a mesma rota com request_id até chegar a
+   resposta final (ou timeout de 4 min). */
+async function apiAsync(rota, corpo, st) {
+  const j = await api(rota, corpo);
+  if (!j.ok || !j.pendente) return j;
+  const rid = j.request_id, prompt = j.prompt, t0 = Date.now();
+  let esp = 2500, falhas = 0;
+  while (Date.now() - t0 < 240000) {
+    if (st) st(Math.round((Date.now() - t0) / 1000));
+    await new Promise(r => setTimeout(r, esp));
+    esp = Math.min(4000, esp + 250);
+    let r;
+    try {
+      r = await api(rota, Object.assign({}, corpo, { request_id: rid }));
+      falhas = 0;
+    } catch (e) {
+      if (++falhas >= 6) return { ok: false, error: 'Sem conexão com o servidor. Tente de novo.' };
+      continue;
+    }
+    if (!r.ok) return r;
+    if (!r.pendente) { if (prompt && !r.prompt) r.prompt = prompt; return r; }
+  }
+  return { ok: false, error: 'A IA está ocupada (fila). Tente de novo em alguns minutos.' };
 }
 
 /* ── Sessão ── */
@@ -271,19 +290,14 @@ function render() {
   });
   if (aba === 'mapa') MAPA = null;
   const fn = {
-    jornal: vJornal,
-    mundo:  vMundo,
-    ind:    vIndicadores,
-    mapa:   vMapa,
-    proj:   vProj,
-    tend:   vTend,
-    atend:  vAtend,
+    jornal: vJornal, mundo: vMundo, ind: vIndicadores,
+    mapa: vMapa, proj: vProj, tend: vTend, atend: vAtend,
   }[aba];
   if (fn) fn();
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SEÇÃO · INDICADORES — 12 indicadores + Estado da Terra
+   SEÇÃO · INDICADORES
    ═══════════════════════════════════════════════════════════════ */
 function vIndicadores() {
   $('v').innerHTML = `
@@ -392,15 +406,12 @@ function atualizarCardIndicador(id, j) {
     }
   }
   if (elB) {
-    // barra mini proporcional à magnitude normalizada
-    const v = j.serie && j.serie.length ? Number(j.serie[j.serie.length - 1].c) : 0;
     const alt = j.analise && j.analise.probSubida != null ? j.analise.probSubida : 0.5;
     elB.style.width = Math.round(alt * 100) + '%';
     elB.style.background = alt > 0.6 ? 'var(--gr)' : alt < 0.4 ? 'var(--rd)' : 'var(--am)';
   }
 }
 
-/* ─── Estado da Terra (agregado dos 12) ─── */
 function atualizarEstadoDaTerra() {
   const box = $('terraBox');
   if (!box) return;
@@ -409,7 +420,6 @@ function atualizarEstadoDaTerra() {
     box.innerHTML = `<div class="terra-card"><h2>🌍 ESTADO DA TERRA</h2><p class="mu">Aguardando dados dos indicadores…</p></div>`;
     return;
   }
-  // Média das probSubida dos indicadores "subir"
   let somaProb = 0, nProb = 0, nAlerta = 0, nOk = 0;
   let entropiaMedia = 0, nEntropia = 0, ipcMedio = 0, nIpc = 0;
   const alertas = [];
@@ -458,7 +468,6 @@ function atualizarEstadoDaTerra() {
   `;
 }
 
-/* ─── Tabela consolidada ─── */
 function renderTabelaConsolidada() {
   const box = $('indTabela');
   if (!box) return;
@@ -468,14 +477,8 @@ function renderTabelaConsolidada() {
     <h2>TABELA CONSOLIDADA <small>12 indicadores · leitura completa</small></h2>
     <table class="tab-cons">
       <thead><tr>
-        <th>Indicador</th>
-        <th>Último</th>
-        <th>Var %</th>
-        <th>Entropia</th>
-        <th>Prob. subida</th>
-        <th>Projeção dia</th>
-        <th>Projeção semana</th>
-        <th>Fonte</th>
+        <th>Indicador</th><th>Último</th><th>Var %</th><th>Entropia</th>
+        <th>Prob. subida</th><th>Projeção dia</th><th>Projeção semana</th><th>Fonte</th>
       </tr></thead><tbody>`;
   carregados.forEach(({ ind, j }) => {
     const serie = j.serie || [];
@@ -485,7 +488,6 @@ function renderTabelaConsolidada() {
     const dia = p.dia || {};
     const semana = p.semana || {};
     const varTxt = j.variacao != null ? ((j.variacao >= 0 ? '+' : '') + j.variacao.toFixed(2) + '%') : '—';
-    const varCls = j.variacao > 0 ? 'up' : j.variacao < 0 ? 'dn' : '';
     const entropia = a.entropia != null ? Number(a.entropia).toFixed(2) : '—';
     const prob = a.probSubida != null ? Math.round(a.probSubida * 100) + '%' : '—';
     const tagReal = j.confianca === 'alta' ? 'tag-real' : j.confianca === 'baixa' ? 'tag-sim' : '';
@@ -495,21 +497,17 @@ function renderTabelaConsolidada() {
     html += `<tr>
       <td>${ind.emoji} <b>${esc(ind.nome)}</b></td>
       <td>${last != null ? Number(last).toFixed(ind.dec) + ' ' + ind.unid : '—'}</td>
-      <td class="${varCls}" style="color:${j.variacao>=0?'var(--gr)':'var(--rd)'};font-variant-numeric:tabular-nums">${varTxt}</td>
-      <td>${entropia}</td>
-      <td>${prob}</td>
-      <td>${diaTxt}</td>
-      <td>${semTxt}</td>
+      <td style="color:${j.variacao>=0?'var(--gr)':'var(--rd)'};font-variant-numeric:tabular-nums">${varTxt}</td>
+      <td>${entropia}</td><td>${prob}</td><td>${diaTxt}</td><td>${semTxt}</td>
       <td><span class="tag ${tagReal}">${tagRealTxt}</span></td>
     </tr>`;
   });
   html += `</tbody></table>
-    <div class="guia"><b>Como ler esta tabela:</b> "Real" = dado de sensor/API pública. "SIM" = modelo interno. As colunas de projeção mostram <b>alta / baixa</b> com base nos modelos.</div>
+    <div class="guia"><b>Como ler esta tabela:</b> "Real" = dado de sensor/API pública. "SIM" = modelo interno.</div>
     </div>`;
   box.innerHTML = html;
 }
 
-/* ─── Detalhe individual ─── */
 function renderIndicador(id) {
   const ind = INDICADORES.find(i => i.id === id);
   if (!ind) return;
@@ -539,9 +537,7 @@ function renderIndicador(id) {
       ${varPct ? `· variação ${varPct >= 0 ? '+' : ''}${varPct.toFixed(2)}%` : ''}
     </p>
     ${j.nota ? `<p class="mu" style="font-size:12px;margin-top:4px">${esc(j.nota)}</p>` : ''}
-    <div class="guia">
-      <b>📖 Como ler:</b> ${esc(ind.guia)}
-    </div>
+    <div class="guia"><b>📖 Como ler:</b> ${esc(ind.guia)}</div>
     <div class="linhas" style="margin-top:10px">
       <div><span>Série</span><b>${serie.length} pontos</b></div>
       <div><span>Fase</span><b>${esc(analise.fase || '—')}</b></div>
@@ -571,7 +567,6 @@ function renderIndicador(id) {
           </div>`;
         }).join('')}
       </div>
-      <div class="guia"><b>Como ler:</b> Cada card mostra o intervalo de confiança (alta / baixa) e a probabilidade calibrada de a série subir. Use como guia, não garantia.</div>
     </div>`;
   }
 
@@ -580,8 +575,8 @@ function renderIndicador(id) {
       <h2>CORRELAÇÕES (Pearson) <small>com outros indicadores</small></h2>
       <div class="linhas">
         ${Object.entries(corr).map(([k, v]) => {
-          const [a, b] = k.split('_x_');
           const cor = Math.abs(v) > 0.7 ? 'var(--rd)' : Math.abs(v) > 0.4 ? 'var(--am)' : 'var(--mu)';
+          const [a, b] = k.split('_x_');
           return `<div><span>${esc(a)} × ${esc(b)}</span><b style="color:${cor}">${Number(v).toFixed(3)}</b></div>`;
         }).join('')}
       </div>
@@ -624,7 +619,6 @@ function graficoSérie(serie, ind) {
   const x = i => L + (W - L - R) * i / (serie.length - 1);
   const y = v => T + (H - T - B) * (1 - (v - minV) / range);
   const pts = serie.map((p, i) => `${x(i)},${y(Number(p.c))}`).join(' ');
-  const cor = '#27c8ff';
   let s = `<svg viewBox="0 0 ${W} ${H}" class="graf" role="img" aria-label="Série ${ind.nome}">`;
   for (let k = 0; k <= 4; k++) {
     const yy = T + (H - T - B) * k / 4;
@@ -638,16 +632,16 @@ function graficoSérie(serie, ind) {
       s += `<text x="${x(i)}" y="${H - 8}" fill="#8fa8c8" font-size="9" text-anchor="middle">${esc(String(p.data || '').slice(-5))}</text>`;
     }
   });
-  s += `<polyline points="${pts}" fill="none" stroke="${cor}" stroke-width="2"/>`;
+  s += `<polyline points="${pts}" fill="none" stroke="#27c8ff" stroke-width="2"/>`;
   serie.forEach((p, i) => {
-    s += `<circle cx="${x(i)}" cy="${y(Number(p.c))}" r="2" fill="${cor}"/>`;
+    s += `<circle cx="${x(i)}" cy="${y(Number(p.c))}" r="2" fill="#27c8ff"/>`;
   });
   s += `</svg>`;
   return s;
 }
 
 /* ══════════════════════════════════════════════════════
-   SEÇÃO · JORNAL (preservada)
+   SEÇÃO · JORNAL
    ══════════════════════════════════════════════════════ */
 function vJornal() {
   const cidade = localStorage.getItem(LS_CIDADE) || '';
@@ -677,13 +671,24 @@ function vJornal() {
 
 async function gerarJornal() {
   const cidade = ($('jc').value || '').trim();
-  if (!cidade) { $('jr').innerHTML = '<div class="box aviso">Informe uma cidade para gerar a edição do dia.</div>'; return; }
+  if (!cidade) {
+    $('jr').innerHTML = '<div class="box aviso">Informe uma cidade para gerar a edição do dia.</div>';
+    return;
+  }
   localStorage.setItem(LS_CIDADE, cidade);
   $('jr').innerHTML = '<div class="box"><span class="mu">Consultando fontes…</span></div>';
+
+  // 1) tenta a rota nova /jornal; guarda o motivo real da falha
+  let motivoFallback = null;
   try {
     const j = await api('jornal', { cidade, oni: oniSim, periodo: PER });
     if (j.ok) { JORNAL = j; renderJornal(j); return; }
-  } catch (e) {}
+    motivoFallback = j.error || j.codigo || 'rota /jornal indisponível';
+  } catch (e) {
+    motivoFallback = e.message || 'falha de rede ao consultar /jornal';
+  }
+
+  // 2) plano B: combina /analise + /previsao + /projecao
   try {
     const [an, pv, pj] = await Promise.all([
       api('analise', { oni: oniSim }).catch(() => null),
@@ -692,6 +697,7 @@ async function gerarJornal() {
     ]);
     if (!an && !pv) throw new Error('Não foi possível consultar as fontes.');
     JORNAL = montarJornalFallback(an, pv, pj);
+    JORNAL.motivoFallback = motivoFallback;
     renderJornal(JORNAL);
   } catch (e) {
     $('jr').innerHTML = `<div class="box aviso ruim">${esc(e.message || 'Falha ao gerar o jornal.')}</div>`;
@@ -720,8 +726,7 @@ function montarJornalFallback(an, pv, pj) {
   corpo.push('Aviso: probabilidades são guia, não garantia. Consulte o serviço meteorológico local para decisões críticas.');
   return {
     jornal: { manchetes, corpo, fase, oni, entropia: an ? an.continentes.GLOBAL.entropia : null, ipc: an ? an.continentes.GLOBAL.ipc : null },
-    local: pv ? pv.local : null,
-    continente: pv ? pv.continente : null,
+    local: pv ? pv.local : null, continente: pv ? pv.continente : null,
     indicadores: null, tendencia: null,
     projecao: pj && pj.ok ? { resumo: pj.resumo, marcas: pj.marcas, janelas: pj.janelas } : null,
     fallback: true,
@@ -730,13 +735,14 @@ function montarJornalFallback(an, pv, pj) {
 
 function renderJornal(j) {
   const J = j.jornal || {};
-  const ind = j.indicadores;
-  const ten = j.tendencia;
-  const pj = j.projecao;
+  const ind = j.indicadores, ten = j.tendencia, pj = j.projecao;
   const fase = J.fase || '—';
   const faseCor = fase === 'El Niño' ? 'var(--rd)' : fase === 'La Niña' ? 'var(--cy)' : 'var(--am)';
   let html = '';
-  if (j.fallback) html += `<div class="aviso">Modo clássico: o worker ainda não tem a rota <code>/jornal</code>.</div>`;
+  if (j.fallback) {
+    const motivo = j.motivoFallback || 'rota /jornal indisponível';
+    html += `<div class="aviso">Modo clássico (${esc(motivo)}). Usando análise + previsão + projeção.</div>`;
+  }
   html += `<div class="box">
     <h2>MANCHETE PRINCIPAL <small>${esc(j.local || 'Global')}</small></h2>
     <p class="lead"><b style="color:${faseCor}">${esc(fase)}</b> · ONI ${J.oni != null ? J.oni : '—'}
@@ -796,7 +802,7 @@ function fmtNum(v) {
 }
 
 /* ══════════════════════════════════════════════════════
-   SEÇÃO · MUNDO (preservada)
+   SEÇÃO · MUNDO
    ══════════════════════════════════════════════════════ */
 async function vMundo() {
   $('v').innerHTML = '<div class="box"><span class="mu">Carregando análise…</span></div>';
@@ -864,12 +870,20 @@ async function vMundo() {
     c.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cont = c.dataset.n; vMundo(); } };
   });
   $('os').oninput = e => { const v = parseFloat(e.target.value); if (isFinite(v)) oniSim = Math.round(v * 10) / 10; };
-  $('os').onchange = () => { if (oniSim != null) localStorage.setItem(LS_ONI, String(oniSim)); MAPA = null; indDados = {}; indPromises = {}; vMundo(); };
-  $('or').onclick = () => { oniSim = null; localStorage.removeItem(LS_ONI); MAPA = null; indDados = {}; indPromises = {}; vMundo(); };
+  $('os').onchange = () => {
+    if (oniSim != null) localStorage.setItem(LS_ONI, String(oniSim));
+    MAPA = null; indDados = {}; indPromises = {};
+    vMundo();
+  };
+  $('or').onclick = () => {
+    oniSim = null; localStorage.removeItem(LS_ONI);
+    MAPA = null; indDados = {}; indPromises = {};
+    vMundo();
+  };
 }
 
 /* ══════════════════════════════════════════════════════
-   SEÇÃO · PROJEÇÃO (preservada)
+   SEÇÃO · PROJEÇÃO
    ══════════════════════════════════════════════════════ */
 const METS = {
   chuva:  { label: '🌧 Chuva',          cor: '#27c8ff' },
@@ -902,25 +916,12 @@ function vProj() {
     <div class="box">
       <h2>🌍 COMO ESTÁ O MUNDO AGORA</h2>
       <p class="lead">Uma leitura rápida dos 12 indicadores do planeta. Clique em <b>Analisar o mundo</b> para receber alertas simples e diretos por território.</p>
-      <div class="row">
-        <button class="p" id="mundo-btn">Analisar o mundo</button>
-      </div>
+      <div class="row"><button class="p" id="mundo-btn">Analisar o mundo</button></div>
     </div>
     <div id="mundo-resumo" class="aviso" hidden></div>
     <div id="mundo-alertas" hidden></div>
     <div class="ind-tabs" id="grid-indicadores" style="margin-top:12px">
-      <div class="ind-tab" data-tipo="sismos"><span class="em">🌍</span><span class="nm">SISMOS</span><span class="vl" data-v>—</span></div>
-      <div class="ind-tab" data-tipo="tempGlobal"><span class="em">🌡️</span><span class="nm">TEMP.GLOBAL</span><span class="vl" data-v>—</span></div>
-      <div class="ind-tab" data-tipo="solar"><span class="em">☀️</span><span class="nm">SOLAR</span><span class="vl" data-v>—</span></div>
-      <div class="ind-tab" data-tipo="furacao"><span class="em">🌀</span><span class="nm">FURAÇÕES</span><span class="vl" data-v>—</span></div>
-      <div class="ind-tab" data-tipo="chuva"><span class="em">🌧️</span><span class="nm">CHUVAS</span><span class="vl" data-v>—</span></div>
-      <div class="ind-tab" data-tipo="seca"><span class="em">🏜️</span><span class="nm">SECAS</span><span class="vl" data-v>—</span></div>
-      <div class="ind-tab" data-tipo="vulcao"><span class="em">🌋</span><span class="nm">VULCÕES</span><span class="vl" data-v>—</span></div>
-      <div class="ind-tab" data-tipo="mares"><span class="em">🌊</span><span class="nm">MARÉS</span><span class="vl" data-v>—</span></div>
-      <div class="ind-tab" data-tipo="elnino"><span class="em">🌊</span><span class="nm">EL NIÑO/LA NIÑA</span><span class="vl" data-v>—</span></div>
-      <div class="ind-tab" data-tipo="geomagnetic"><span class="em">🧲</span><span class="nm">CAMPO MAGNÉTICO</span><span class="vl" data-v>—</span></div>
-      <div class="ind-tab" data-tipo="corrente"><span class="em">🌊</span><span class="nm">CORRENTES</span><span class="vl" data-v>—</span></div>
-      <div class="ind-tab" data-tipo="mundo"><span class="em">🌍</span><span class="nm">MUNDO</span><span class="vl" data-v>—</span></div>
+      ${INDICADORES.map(i => `<div class="ind-tab" data-tipo="${i.id}"><span class="em">${i.emoji}</span><span class="nm">${i.nome}</span><span class="vl" data-v>—</span></div>`).join('')}
     </div>
   `;
   $('pp').onclick = async e => {
@@ -951,13 +952,9 @@ async function analisarMundo() {
   try {
     const d = await api('alertas', { cidade, periodo: PER, oni: oniSim });
     if (!d.ok) throw new Error(d.error || 'Falha na análise.');
-
-    // Resumo grande
     resumo.hidden = false;
     resumo.className = 'aviso ' + (d.resumo.startsWith('⚠️') ? 'ruim' : d.resumo.startsWith('👀') ? '' : 'ok');
     resumo.textContent = d.resumo;
-
-    // Atualiza cards dos 12
     if (d.status) {
       Object.keys(d.status).forEach(tipo => {
         const s = d.status[tipo]; if (!s) return;
@@ -974,8 +971,6 @@ async function analisarMundo() {
         card.title = s.detalhe || '';
       });
     }
-
-    // Lista de alertas
     alertas.hidden = false;
     if (!d.alertas || !d.alertas.length) {
       alertas.innerHTML = '<div class="aviso ok">✅ Nada grave agora. O mundo está tranquilo.</div>';
@@ -1114,7 +1109,7 @@ function mostraProj() {
 }
 
 /* ══════════════════════════════════════════════════════
-   SEÇÃO · MAPA (preservada)
+   SEÇÃO · MAPA
    ══════════════════════════════════════════════════════ */
 async function vMapa() {
   if (MAPA) { renderMapa(MAPA); return; }
@@ -1209,7 +1204,7 @@ function renderMapa(m) {
 }
 
 /* ══════════════════════════════════════════════════════
-   SEÇÃO · TENDÊNCIA (preservada)
+   SEÇÃO · TENDÊNCIA
    ══════════════════════════════════════════════════════ */
 async function vTend() {
   $('v').innerHTML = '<div class="box"><span class="mu">Carregando tendência…</span></div>';
@@ -1244,8 +1239,8 @@ async function vTend() {
         <h2>CORRELAÇÕES (Pearson)</h2>
         <div class="linhas">
           ${Object.entries(T.correlacoes || {}).map(([k, v]) => {
-            const [a, b] = k.split('_x_');
             const cor = Math.abs(v) > 0.7 ? 'var(--rd)' : 'var(--am)';
+            const [a, b] = k.split('_x_');
             return `<div><span>${esc(a)} × ${esc(b)}</span><b style="color:${cor}">${Number(v).toFixed(2)}</b></div>`;
           }).join('')}
         </div>
@@ -1309,7 +1304,7 @@ function graficoTendencia(historico) {
 }
 
 /* ══════════════════════════════════════════════════════
-   SEÇÃO · ATENDIMENTO (preservada)
+   SEÇÃO · ATENDIMENTO  ← AGORA COM apiAsync (polling)
    ══════════════════════════════════════════════════════ */
 function vAtend() {
   const cidade = localStorage.getItem(LS_CIDADE) || '';
@@ -1337,8 +1332,12 @@ function vAtend() {
   $('ae').onclick = async () => {
     $('ar').textContent = 'Enviando ao atendimento…';
     try {
-      const j = await api('atendimento', corpo());
-      $('ar').textContent = j.ok ? 'PROMPT:\n' + j.prompt + '\n\nRESPOSTA:\n' + j.resposta : (j.error || 'Falha.');
+      const j = await apiAsync('atendimento', corpo(), s => {
+        $('ar').textContent = 'Enviando ao atendimento… ' + s + 's';
+      });
+      $('ar').textContent = j.ok
+        ? 'PROMPT:\n' + j.prompt + '\n\nRESPOSTA:\n' + j.resposta
+        : (j.error || 'Falha.');
     } catch (e) { $('ar').textContent = e.message; }
   };
   $('acp').onclick = () => {
