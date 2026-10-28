@@ -101,6 +101,23 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const CAMPOS={cod:'Código',torque:'Torque',material:'Material',parafusos:'Nº de parafusos',aviso:'Aviso',compat:'Compatibilidade',func:'Função'};
 const falta=v=>!v||v==='—'||v==='a cadastrar';
 const post=(p,b)=>fetch(WK+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).then(r=>r.json());
+/* IA assíncrona: o worker ENFILEIRA (devolve request_id + pendente:true); aqui
+   consultamos a mesma rota até chegar a resposta. Idêntico ao index.html. */
+async function iaAsync(rota,corpo,st){
+  const t0=Date.now(),LIM=240000;
+  const d=await post(rota,corpo);
+  if(!d.ok||!d.pendente)return d;
+  const rid=d.request_id;let esp=2500,falhas=0;
+  while(Date.now()-t0<LIM){
+    if(st)st(Math.round((Date.now()-t0)/1000));
+    await new Promise(r=>setTimeout(r,esp));esp=Math.min(4000,esp+250);
+    let r;
+    try{r=await post(rota,Object.assign({},corpo,{request_id:rid}));falhas=0}
+    catch(e){if(++falhas>=6)return{ok:false,error:'Sem conexão com o servidor. Tente de novo.'};continue}
+    if(!r.ok||!r.pendente)return r;
+  }
+  return{ok:false,error:'A IA está ocupada (fila). Tente de novo em alguns minutos.'};
+}
 const say=(t,ok)=>{const m=$('cmsg');if(m){m.textContent=t;m.style.color=ok?'var(--gr)':'#ffb0b6'}};
 function toast(msg){
   let t=document.getElementById('toastOficina');
@@ -125,7 +142,7 @@ function iab(){const b=$('iab');if(!b)return;const k=U?U.email:'';if(b.dataset.u
  b.innerHTML='<select id="im" class="in"><option value="duvida">Tirar dúvida</option><option value="corrigir">Corrigir dado da peça</option><option value="criar">Propor motor novo</option></select><textarea id="ip" class="in" rows="3" maxlength="600" placeholder="'+IAPH.duvida+'"></textarea><button class="btn" id="ig" style="background:var(--bl);width:100%">Perguntar à IA</button><div id="ires" style="margin-top:10px;line-height:1.55"></div><p style="color:var(--mu);font-size:11px;margin-top:6px">A IA pode errar. Nada vira dado oficial sem sua confirmação e a revisão do ALMAFLUXO.</p>';
  $('im').onchange=()=>$('ip').placeholder=IAPH[$('im').value];
  $('ig').onclick=()=>{const r=$('ires');if(!$('ip').value.trim())return;r.textContent='Pensando…';$('ig').disabled=true;
-  post('/api/mecanica/ia',{email:U.email,sessionToken:U.sessionToken,motor:D.id,peca:sel,modo:$('im').value,pergunta:$('ip').value}).then(d=>{
+  iaAsync('/api/mecanica/ia',{email:U.email,sessionToken:U.sessionToken,motor:D.id,peca:sel,modo:$('im').value,pergunta:$('ip').value},s=>{r.textContent='Pensando… '+s+'s'}).then(d=>{
    if(!d.ok){r.innerHTML='<span style="color:#ffb0b6">'+esc(d.error||'Erro')+'</span>';return}
    let x='<div class="note" style="border-left:3px solid var(--cy);padding:8px 10px;background:#0a1c2a;border-radius:5px">'+esc(d.resposta)+'</div>';
    (d.propostas||[]).forEach((p,i)=>{x+='<div class="warn" style="border-color:var(--cy);background:#0a1c2a;color:var(--tx)"><b>'+esc(P[p.peca]?P[p.peca].nome:p.peca)+'</b> · '+esc(CAMPOS[p.campo])+': <b>'+esc(p.valor)+'</b><br><button class="btn" data-i="'+i+'" style="margin-top:6px">Confirmar e enviar para revisão</button></div>'});
@@ -133,7 +150,7 @@ function iab(){const b=$('iab');if(!b)return;const k=U?U.email:'';if(b.dataset.u
    r.innerHTML=x;
    r.querySelectorAll('button[data-i]').forEach(bt=>bt.onclick=()=>{const p=d.propostas[+bt.dataset.i];bt.disabled=true;post('/api/mecanica/contribuir',{email:U.email,sessionToken:U.sessionToken,motor:D.id,peca:p.peca,campo:p.campo,valor:p.valor,fonte:'IA + confirmação do usuário'}).then(o=>bt.textContent=o.ok?'Enviado para revisão ✔':(o.error||'Erro'))});
    if($('inm'))$('inm').onclick=()=>{$('inm').disabled=true;post('/api/mecanica/contribuir',{email:U.email,sessionToken:U.sessionToken,motor:'novo',peca:'novo',campo:'novo_motor',valor:JSON.stringify(d.novoMotor),fonte:'IA + confirmação do usuário'}).then(o=>$('inm').textContent=o.ok?'Proposta enviada ✔':(o.error||'Erro'))};
-  }).catch(()=>{r.textContent='Falha de conexão'}).finally(()=>{$('ig').disabled=false})}}
+  }).catch(()=>{r.textContent='Falha de conexão'}).finally(()=>{$('ig').disabled=false})}
 const SES=()=>({email:U.email,sessionToken:U.sessionToken});
 function login(e,s){return post('/proxy/central',{action:'login',email:e,senha:s}).then(d=>{const u=d.usuario||d,tk=d.token||d.sessionToken||u.sessionToken;if(!(d.ok===true||d.autenticado===true||d.status==='success')||!tk)throw new Error(d.error||d.message||'E-mail ou senha incorretos');U={nome:u.nome||'Usuário',email:e,balance:u.balance??u.saldo??0,sessionToken:tk,master:!!(u.master||u.admin)};localStorage.setItem('almafluxo_usuario',JSON.stringify(U))})}
 function gate(){let l=$('load');if(!l){l=document.createElement('div');l.id='load';$('stage').appendChild(l)}l.style.display='grid';l.innerHTML='<div style="max-width:290px;width:100%;text-align:left"><h2 style="color:var(--cy);margin-bottom:6px">Entre para abrir a oficina</h2><p style="line-height:1.5;margin-bottom:10px">Ferramenta gratuita. Use a mesma conta do ALMAFLUXO.</p><input class="in" id="ge" type="email" placeholder="E-mail"><input class="in" id="gs" type="password" placeholder="Senha"><button class="btn" id="gl" style="background:var(--bl);width:100%;margin-bottom:6px">Entrar</button><button class="btn" id="gc" style="width:100%">Criar conta no ALMAFLUXO</button><p id="gm" style="color:#ffb0b6;margin-top:8px;font-size:12px"></p></div>';
@@ -434,8 +451,9 @@ function build(p){
     g.add(cy(.12, .35, M('#555', .7), 'x', .9, 0, 0));        // haste da coifa
     for (let i = 0; i < 6; i++) {                              // esferas internas
       const a = i * Math.PI / 3;
-      g.add(new THREE.Mesh(new THREE.SphereGeometry(.06, 8, 8), M('#cfd8e3', .95)),
-        cy(.06, 0, M('#cfd8e3', .95), 'y', .6, Math.sin(a)*.3, Math.cos(a)*.3, 6));
+      const s = new THREE.Mesh(new THREE.SphereGeometry(.06, 8, 8), M('#cfd8e3', .95));
+      s.position.set(.6, Math.sin(a) * .3, Math.cos(a) * .3);
+      g.add(s);
     }
     break;
   }
@@ -729,7 +747,9 @@ function addHoles(g,p){
   const n=+p.parafusos||0; if(!n)return null;
   const b=new THREE.Box3().setFromObject(g);
   if(!isFinite(b.min.x)||!isFinite(b.max.x)||!isFinite(b.min.z)||!isFinite(b.max.z)) return null;
-  const h=new THREE.Group(),w=b.max.x-b.min.x,d=b.max.z-b.min.z;
+  const h=new THREE.Group(),
+        w=Math.max(b.max.x-b.min.x,.5),
+        d=Math.max(b.max.z-b.min.z,.5);
   const ring=new THREE.MeshBasicMaterial({color:'#27c8ff'}),core=new THREE.MeshBasicMaterial({color:'#000'});
   const add=(x,y,z,rx,rz)=>{const m=new THREE.Group();const t=new THREE.Mesh(new THREE.TorusGeometry(.17,.05,8,18),ring),c=new THREE.Mesh(new THREE.CircleGeometry(.15,18),core);m.add(t);m.add(c);m.position.set(x,y,z);if(rx)m.rotation.x=rx;if(rz)m.rotation.y=rz;h.add(m)};
   if(p.kind==='volante'){const x=b.max.x+.03,r=1.0;for(let i=0;i<n;i++){const a=i*2*Math.PI/n;add(x,Math.sin(a)*r,Math.cos(a)*r,0,Math.PI/2)}}
@@ -739,7 +759,7 @@ function addHoles(g,p){
 }
 function selSys(i){
   sysIdx=i;const s=SYS[i];sysIds=s.ids?new Set(s.ids.filter(id=>P[id])):null;iso=false;
-  document.querySelectorAll('#sys li').forEach(li=>li.classList.toggle('on',+li.dataset.i===i));
+  document.querySelectorAll('#sys li').forEach(li=>li.classList.toggle('on',+li.dataset.si===i));
   if(sysIds&&sysIds.size){choose([...sysIds][0])}
   else{if(sysIds)toast('Sem peças modeladas neste sistema (ainda).');render()}
   renderSys();
@@ -817,6 +837,10 @@ function ui(){
 
   sysIdx = 0; sysIds = null; iso = false;
 
+  // Se o conjunto é suspensão, começa destacando a suspensão dianteira
+  if (D.sistema === 'suspensao' && P['mola_d']) sysIdx = SYS.findIndex(s => s.n === 'Suspensão Dianteira');
+  if (sysIdx < 0) sysIdx = 0;
+
   // Mostra na lista lateral só os sistemas que têm peças neste motor.
   // Sistemas "Motor Completo" (ids:null) sempre aparecem.
   const sysVisiveis = SYS.filter(t => t.ids === null || t.ids.some(id => P[id]));
@@ -824,7 +848,7 @@ function ui(){
   const sysMap = sysVisiveis.map(t => SYS.indexOf(t));
 
   $('sys').innerHTML = sysVisiveis.map((t, i) =>
-    '<li data-si="' + sysMap[i] + '" class="' + (i ? '' : 'on') + '">' + t.n + '<span>›</span></li>'
+    '<li data-si="' + sysMap[i] + '" class="' + (sysMap[i] === sysIdx ? 'on' : '') + '">' + t.n + '<span>›</span></li>'
   ).join('');
   document.querySelectorAll('#sys li').forEach(li => {
     li.onclick = () => selSys(+li.dataset.si);
@@ -1035,7 +1059,7 @@ async function abrirIAPeca(pecaId,motorAlvo){
   box.textContent='Pensando com a IA…';
   const alvo=motorAlvo||D.id;
   try{
-    const r=await post('/api/mecanica/iaAdaptar',Object.assign({},SES(),{motorOrigem:D.id,motorAlvo:alvo,peca:pecaId}));
+    const r=await iaAsync('/api/mecanica/iaAdaptar',Object.assign({},SES(),{motorOrigem:D.id,motorAlvo:alvo,peca:pecaId}),s=>{box.textContent='Pensando com a IA… '+s+'s'});
     let html='<h3 style="margin:0 0 10px;color:#27c8ff">Sugestão da IA</h3>';
     if(!r.ok){
       html+='<div style="color:#ffb0b6">'+esc(r.error||'IA indisponível')+'</div>';
