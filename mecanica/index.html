@@ -146,7 +146,10 @@ function ctb(){const b=$('ctb');if(!b||!P[sel])return;const p=P[sel];
   $('cc').onclick=()=>window.open(WK+'/','_blank');return}
  const f0=Object.keys(CAMPOS).find(k=>falta(p[k]))||'torque';
  b.innerHTML='<p style="color:var(--mu);margin-bottom:8px">Peça: <b style="color:var(--tx)">'+esc(p.nome)+'</b></p><select id="cf" class="in">'+Object.keys(CAMPOS).map(k=>'<option value="'+k+'"'+(k===f0?' selected':'')+'>'+CAMPOS[k]+(falta(p[k])?' · falta':'')+'</option>').join('')+'</select><input class="in" id="cv2" maxlength="200" placeholder="Valor (ex.: 25 Nm)"><input class="in" id="cfo" maxlength="200" placeholder="Fonte (manual, catálogo, medição própria)"><div class="nav2"><button class="btn" id="cenv" style="background:var(--bl)">Enviar para revisão</button><button class="btn" id="cx">Sair</button></div><p id="cmsg" style="margin-top:8px;font-size:12px"></p><p style="color:var(--mu);font-size:11px;margin-top:6px">Todo dado passa por revisão antes de aparecer para os outros usuários.</p>';
- $('cenv').onclick=()=>post('/api/mecanica/contribuir',{email:U.email,sessionToken:U.sessionToken,motor:D.id,peca:sel,campo:$('cf').value,valor:$('cv2').value,fonte:$('cfo').value}).then(d=>{say(d.ok?'Enviado! Entra na plataforma após revisão.':(d.error||'Erro'),d.ok);if(d.ok)$('cv2').value=''}).catch(()=>say('Falha de conexão'));
+ $('cenv').onclick=()=>{
+   if(!D){say('Carregue um motor primeiro.',false);return}
+   post('/api/mecanica/contribuir',{email:U.email,sessionToken:U.sessionToken,motor:D.id,peca:sel,campo:$('cf').value,valor:$('cv2').value,fonte:$('cfo').value}).then(d=>{say(d.ok?'Enviado! Entra na plataforma após revisão.':(d.error||'Erro'),d.ok);if(d.ok)$('cv2').value=''}).catch(()=>say('Falha de conexão'));
+ };
  $('cx').onclick=()=>{U=null;localStorage.removeItem('almafluxo_usuario');location.reload()}}
 
 const IAPH={duvida:'Ex.: Qual a ordem de aperto do cabeçote?',corrigir:'Ex.: O torque do coletor de escape é 25 Nm segundo o manual',criar:'Ex.: Motor Fiat Fire 1.0 8V, 4 cilindros, 5 marchas'};
@@ -154,16 +157,32 @@ function iab(){const b=$('iab');if(!b)return;const k=U?U.email:'';if(b.dataset.u
  if(!U){b.innerHTML='<p style="color:var(--mu);line-height:1.5">Entre na sua conta (caixa acima) para tirar dúvidas, corrigir dados ou propor um motor novo com ajuda da IA.</p>';return}
  b.innerHTML='<select id="im" class="in"><option value="duvida">Tirar dúvida</option><option value="corrigir">Corrigir dado da peça</option><option value="criar">Propor motor novo</option></select><textarea id="ip" class="in" rows="3" maxlength="600" placeholder="'+IAPH.duvida+'"></textarea><button class="btn" id="ig" style="background:var(--bl);width:100%">Perguntar à IA</button><div id="ires" style="margin-top:10px;line-height:1.55"></div><p style="color:var(--mu);font-size:11px;margin-top:6px">A IA pode errar. Nada vira dado oficial sem sua confirmação e a revisão do ALMAFLUXO.</p>';
  $('im').onchange=()=>$('ip').placeholder=IAPH[$('im').value];
- $('ig').onclick=()=>{const r=$('ires');if(!$('ip').value.trim())return;r.textContent='Pensando…';$('ig').disabled=true;
-  iaAsync('/api/mecanica/ia',{email:U.email,sessionToken:U.sessionToken,motor:D.id,peca:sel,modo:$('im').value,pergunta:$('ip').value},s=>{r.textContent='Pensando… '+s+'s'}).then(d=>{
-   if(!d.ok){r.innerHTML='<span style="color:#ffb0b6">'+esc(d.error||'Erro')+'</span>';return}
-   let x='<div class="note" style="border-left:3px solid var(--cy);padding:8px 10px;background:#0a1c2a;border-radius:5px">'+esc(d.resposta)+'</div>';
-   (d.propostas||[]).forEach((p,i)=>{x+='<div class="warn" style="border-color:var(--cy);background:#0a1c2a;color:var(--tx)"><b>'+esc(P[p.peca]?P[p.peca].nome:p.peca)+'</b> · '+esc(CAMPOS[p.campo])+': <b>'+esc(p.valor)+'</b><br><button class="btn" data-i="'+i+'" style="margin-top:6px">Confirmar e enviar para revisão</button></div>'});
-   if(d.novoMotor)x+='<pre style="white-space:pre-wrap;font-size:11px;background:#06101f;padding:8px;border-radius:6px;margin-top:8px;max-height:200px;overflow:auto">'+esc(JSON.stringify(d.novoMotor,null,1))+'</pre><button class="btn" id="inm" style="margin-top:6px">Confirmar e enviar proposta de motor</button>';
-   r.innerHTML=x;
-   r.querySelectorAll('button[data-i]').forEach(bt=>bt.onclick=()=>{const p=d.propostas[+bt.dataset.i];bt.disabled=true;post('/api/mecanica/contribuir',{email:U.email,sessionToken:U.sessionToken,motor:D.id,peca:p.peca,campo:p.campo,valor:p.valor,fonte:'IA + confirmação do usuário'}).then(o=>bt.textContent=o.ok?'Enviado para revisão ✔':(o.error||'Erro'))});
-   if($('inm'))$('inm').onclick=()=>{$('inm').disabled=true;post('/api/mecanica/contribuir',{email:U.email,sessionToken:U.sessionToken,motor:'novo',peca:'novo',campo:'novo_motor',valor:JSON.stringify(d.novoMotor),fonte:'IA + confirmação do usuário'}).then(o=>$('inm').textContent=o.ok?'Proposta enviada ✔':(o.error||'Erro'))};
-  }).catch(()=>{r.textContent='Falha de conexão'}).finally(()=>{$('ig').disabled=false})}}
+  $('ig').onclick=()=>{
+    const r=$('ires');if(!$('ip').value.trim())return;
+    r.textContent='Pensando…';$('ig').disabled=true;
+    if(!D){r.textContent='Carregue um motor primeiro.';$('ig').disabled=false;return}
+    if(D.local){
+      r.innerHTML='<span style="color:#f0a830">Este motor foi importado e não existe no servidor. A IA precisa do cadastro do motor para responder com contexto. Use um motor do catálogo.</span>';
+      $('ig').disabled=false;return;
+    }
+    iaAsync('/api/mecanica/ia',{email:U.email,sessionToken:U.sessionToken,motor:D.id,peca:sel,modo:$('im').value,pergunta:$('ip').value},s=>{r.textContent='Pensando… '+s+'s'}).then(d=>{
+      if(!d.ok){r.innerHTML='<span style="color:#ffb0b6">'+esc(d.error||'Erro')+'</span>';return}
+      let x='<div class="note" style="border-left:3px solid var(--cy);padding:8px 10px;background:#0a1c2a;border-radius:5px">'+esc(d.resposta)+'</div>';
+      (d.propostas||[]).forEach((p,i)=>{x+='<div class="warn" style="border-color:var(--cy);background:#0a1c2a;color:var(--tx)"><b>'+esc(P[p.peca]?P[p.peca].nome:p.peca)+'</b> · '+esc(CAMPOS[p.campo])+': <b>'+esc(p.valor)+'</b><br><button class="btn" data-i="'+i+'" style="margin-top:6px">Confirmar e enviar para revisão</button></div>'});
+      if(d.novoMotor)x+='<pre style="white-space:pre-wrap;font-size:11px;background:#06101f;padding:8px;border-radius:6px;margin-top:8px;max-height:200px;overflow:auto">'+esc(JSON.stringify(d.novoMotor,null,1))+'</pre><button class="btn" id="inm" style="margin-top:6px">Confirmar e enviar proposta de motor</button>';
+      r.innerHTML=x;
+      r.querySelectorAll('button[data-i]').forEach(bt=>bt.onclick=()=>{
+        const p=d.propostas[+bt.dataset.i];bt.disabled=true;
+        post('/api/mecanica/contribuir',{email:U.email,sessionToken:U.sessionToken,motor:D.id,peca:p.peca,campo:p.campo,valor:p.valor,fonte:'IA + confirmação do usuário'})
+          .then(o=>bt.textContent=o.ok?'Enviado para revisão ✔':(o.error||'Erro'));
+      });
+      if($('inm'))$('inm').onclick=()=>{
+        $('inm').disabled=true;
+        post('/api/mecanica/contribuir',{email:U.email,sessionToken:U.sessionToken,motor:'novo',peca:'novo',campo:'novo_motor',valor:JSON.stringify(d.novoMotor),fonte:'IA + confirmação do usuário'})
+          .then(o=>$('inm').textContent=o.ok?'Proposta enviada ✔':(o.error||'Erro'));
+      };
+    }).catch(()=>{r.textContent='Falha de conexão'}).finally(()=>{$('ig').disabled=false});
+  };
 const SES=()=>({email:U.email,sessionToken:U.sessionToken});
 function login(e,s){return post('/proxy/central',{action:'login',email:e,senha:s}).then(d=>{const u=d.usuario||d,tk=d.token||d.sessionToken||u.sessionToken;if(!(d.ok===true||d.autenticado===true||d.status==='success')||!tk)throw new Error(d.error||d.message||'E-mail ou senha incorretos');U={nome:u.nome||'Usuário',email:e,balance:u.balance??u.saldo??0,sessionToken:tk,master:!!(u.master||u.admin)};localStorage.setItem('almafluxo_usuario',JSON.stringify(U))})}
 function gate(){let l=$('load');if(!l){l=document.createElement('div');l.id='load';$('stage').appendChild(l)}l.style.display='grid';l.innerHTML='<div style="max-width:290px;width:100%;text-align:left"><h2 style="color:var(--cy);margin-bottom:6px">Entre para abrir a oficina</h2><p style="line-height:1.5;margin-bottom:10px">Ferramenta gratuita. Use a mesma conta do ALMAFLUXO.</p><input class="in" id="ge" type="email" placeholder="E-mail"><input class="in" id="gs" type="password" placeholder="Senha"><button class="btn" id="gl" style="background:var(--bl);width:100%;margin-bottom:6px">Entrar</button><button class="btn" id="gc" style="width:100%">Criar conta no ALMAFLUXO</button><p id="gm" style="color:#ffb0b6;margin-top:8px;font-size:12px"></p></div>';
@@ -222,6 +241,7 @@ function carregar(id){
 let D,P={},sel=null,si=0,modo='desmontar',expl=false,vista='3d';
 let sysIdx=0,sysIds=null,showHoles=true,iso=false;
 const G=new Map();
+let FLX=0,FL=null;
 // ── motor 3D procedural (geometria no navegador; DADOS vêm do worker) ──
 function M(c,m,r){return new THREE.MeshStandardMaterial({color:c,metalness:m,roughness:r==null?.45:r})}
 function bx(w,h,d,mat,x=0,y=0,z=0){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);return m}
@@ -596,6 +616,240 @@ function build(p){
     g.add(bx(.15, .15, .15, M('#8a929c', .9), -.15, -.6, 0));
     break;
   }
+  // ═════════════════════════════════════════════════════════════════
+  // MOTOS
+  // ═════════════════════════════════════════════════════════════════
+  case 'cilindro_inclinado': {
+    // cilindro único levemente inclinado (motores de moto)
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 2.2, 20), c);
+    m.rotation.z = Math.PI / 6;
+    m.position.set(0, 1.0, 0);
+    g.add(m);
+    g.add(bx(1.2, 0.8, 1.2, c, 0, 0, 0)); // base
+    break;
+  }
+  case 'bloco_moto': {
+    g.add(bx(L * 0.8, H * 0.6, D * 0.8, c));                    // bloco principal
+    for (let i = 0; i < C; i++) {                                // cilindros
+      const x = -L * 0.3 + (i + 0.5) * (L * 0.6 / C);
+      g.add(cy(.35, .06, dk, 'y', x, H * 0.3 + .02, 0));
+    }
+    g.add(bx(L * 0.9, .25, D * 0.9, M('#737b85', .9), 0, -H * 0.3, 0)); // base
+    // câmbio integrado (motos)
+    g.add(bx(L * 0.35, H * 0.3, D * 0.5, M('#4a5059', .8), L * 0.45, -H * 0.1, 0));
+    break;
+  }
+  case 'tampa_moto': {
+    g.add(bx(L * 0.7, .35, D * 0.6, c));
+    g.add(bx(L * 0.2, .08, D * 0.25, M('#2a2f3a', .4), 0, .2, 0)); // respiro
+    g.add(cy(.2, .06, M('#cfd8e3', .9), 'y', 0, .2, 0));
+    break;
+  }
+  case 'comando_moto': {
+    g.add(cy(.18, L * 0.75, c, 'x'));
+    for (let i = 0; i < C; i++) {
+      const x = -L * 0.3 + (i + 0.5) * (L * 0.6 / C);
+      g.add(bx(.35, .5, .18, c, x - .2, 0, 0));
+      g.add(bx(.35, .5, .18, c, x + .2, 0, .1));
+    }
+    break;
+  }
+  case 'cabecote_moto': {
+    g.add(bx(L * 0.75, .9, D * 0.75, c));
+    for (let i = 0; i < C; i++) {
+      const x = -L * 0.3 + (i + 0.5) * (L * 0.6 / C);
+      g.add(cy(.28, .16, dk, 'y', x, .5, 0));                     // câmara
+      g.add(cy(.08, .3, M('#d9dde3', .9), 'y', x, .6, -D * 0.2, 8)); // vela
+    }
+    break;
+  }
+  case 'junta_moto': {
+    const s = new THREE.Shape();
+    s.moveTo(-L * 0.38, -D * 0.38); s.lineTo(L * 0.38, -D * 0.38);
+    s.lineTo(L * 0.38, D * 0.38);  s.lineTo(-L * 0.38, D * 0.38);
+    for (let i = 0; i < C; i++) {
+      const x = -L * 0.3 + (i + 0.5) * (L * 0.6 / C);
+      const h = new THREE.Path(); h.absarc(x, 0, .38, 0, Math.PI * 2, true);
+      s.holes.push(h);
+    }
+    const m = new THREE.Mesh(new THREE.ExtrudeGeometry(s, { depth: .05, bevelEnabled: false }), M(p.cor, .3, .5));
+    m.rotation.x = -Math.PI / 2; g.add(m);
+    break;
+  }
+  case 'carter_seco': {
+    // reservatório de óleo separado (moto esportiva/off-road)
+    g.add(bx(1.2, 1.6, 1.2, c, 0, 0, 0));
+    g.add(cy(.3, .5, M('#222', .6), 'y', 0, .9, 0, 12));           // bocal
+    g.add(cy(.18, .4, M('#8a929c', .9), 'z', .6, .3, .4, 8));      // mangueira
+    break;
+  }
+  case 'embreagem_seca': {
+    g.add(cy(.9, .25, c, 'x'));                                    // capa
+    g.add(cy(.8, .1, M('#555', .6), 'x', .15, 0, 0, 24));          // disco externo
+    g.add(cy(.5, .15, M('#8a6f2a', .8), 'x', .15, 0, 0, 24));      // disco interno
+    for (let i = 0; i < 6; i++) {
+      const a = i * Math.PI / 3;
+      g.add(cy(.06, .35, M('#cfd8e3', .9), 'y', Math.cos(a) * .75, .15, Math.sin(a) * .75, 6)); // parafusos
+    }
+    break;
+  }
+  case 'embreagem_umida': {
+    g.add(cy(.85, .3, c, 'x'));
+    g.add(cy(.7, .15, M('#3a6b8a', .6), 'x', .2, 0, 0, 24));       // óleo
+    for (let i = 0; i < 3; i++) g.add(cy(.7, .04, M('#a8a8a8', .5), 'x', .1 + i * .06, 0, 0, 24));
+    break;
+  }
+  case 'escapamento_moto': {
+    // tubo curvo + silencioso
+    g.add(cy(.18, 1.5, c, 'x', -1.2, 0, 0));
+    g.add(cy(.28, 1.4, c, 'x', .6, .2, 0));
+    g.add(cy(.32, .5, M('#555', .7), 'x', 1.4, .2, 0, 16));        // ponteira
+    g.add(cy(.3, .3, M('#111', .5), 'x', 1.65, .2, 0, 16));        // saída
+    break;
+  }
+  case 'tanque_moto': {
+    g.add(bx(2.4, 1.0, 1.4, c));                                   // corpo
+    g.add(cy(.4, .8, M('#333', .6), 'y', -.9, -.3, .5, 16));       // bocal
+    g.add(bx(1.6, .3, 1.4, M('#333', .5), .2, -.55, 0));           // base
+    break;
+  }
+  case 'banco_moto': {
+    g.add(bx(2.6, .28, 1.0, c));                                   // almofada
+    g.add(bx(2.8, .08, 1.1, M('#333', .7), 0, -.18, 0));           // base
+    break;
+  }
+  case 'guidon': {
+    g.add(cy(.07, 2.4, c, 'z'));                                   // guidão
+    g.add(cy(.06, 1.2, c, 'y', 0, .6, 0));                         // pescoço
+    g.add(bx(.4, .4, .15, M('#8a929c', .9), 0, 1.1, 0));           // mesa
+    break;
+  }
+  case 'garfo': {
+    g.add(cy(.08, 2.2, c, 'y', -.7, 0, 0));                        // tubo esquerdo
+    g.add(cy(.08, 2.2, c, 'y',  .7, 0, 0));                        // tubo direito
+    g.add(cy(.12, .4, M('#555', .8), 'y', -.7, .8, 0, 12));        // mesa sup
+    g.add(cy(.12, .4, M('#555', .8), 'y',  .7, .8, 0, 12));
+    break;
+  }
+  case 'balanca_moto': {
+    // triângulo traseiro + amortecedor
+    g.add(bx(1.8, .15, .15, c, -1, 0, 0));                         // braço
+    g.add(bx(.15, 1.0, .15, c, -.2, .5, 0));                       // montante
+    g.add(cy(.15, 1.4, M('#8a929c', .85), 'y', -.5, .5, 0, 12));   // amortecedor
+    g.add(cy(.08, .8, M('#555', .8), 'y', -.5, 1.1, 0, 10));       // mola
+    break;
+  }
+  case 'roda_moto': {
+    // roda com pneu alto (toroidal)
+    const t = new THREE.Mesh(new THREE.TorusGeometry(1.0, .35, 12, 32), M('#1a1a1a', .2, .7));
+    t.rotation.y = Math.PI / 2;
+    g.add(t);
+    g.add(cy(.55, .18, M('#a8b0ba', .9), 'x', 0, 0, 0, 24));       // aro
+    g.add(cy(.15, .2, M('#555', .8), 'x', 0, 0, 0, 16));           // cubo
+    for (let i = 0; i < 6; i++) {
+      const a = i * Math.PI / 3;
+      g.add(cy(.04, 1.0, M('#a8b0ba', .9), 'x', 0, Math.sin(a) * .5, Math.cos(a) * .5, 6)); // raios
+    }
+    g.add(cy(.7, .05, M('#555', .8), 'x', .15, 0, 0, 32));         // disco freio
+    break;
+  }
+  case 'carburador': {
+    g.add(bx(1.2, .8, .8, c));                                     // corpo
+    g.add(cy(.3, .4, M('#111', .5), 'x', .8, 0, 0, 16));           // borboleta
+    g.add(cy(.25, .5, M('#555', .6), 'y', 0, .8, 0, 12));          // cuba
+    g.add(cy(.05, .3, M('#cfd8e3', .9), 'z', 0, -.6, 0, 6));       // agulha
+    break;
+  }
+  case 'injecao_moto': {
+    g.add(bx(1.0, .6, .6, c));
+    g.add(cy(.15, .5, M('#8a929c', .9), 'z', 0, .2, .3, 12));      // injetor
+    g.add(cy(.08, .3, M('#cfd8e3', .9), 'x', .3, 0, 0, 6));        // conector
+    break;
+  }
+
+  // ═════════════════════════════════════════════════════════════════
+  // BARCOS
+  // ═════════════════════════════════════════════════════════════════
+  case 'bloco_popa': {
+    // bloco compacto com rabeta acoplada
+    g.add(bx(L * 0.7, H * 0.5, D * 0.7, c));
+    g.add(bx(L * 0.3, H * 0.4, D * 0.3, M('#3a4550', .8), 0, -H * 0.5, 0)); // rabeta
+    g.add(cy(.3, .5, M('#3a4550', .8), 'y', 0, -H * 0.9, 0, 16));           // eixo
+    for (let i = 0; i < C; i++) {
+      const x = -L * 0.25 + (i + 0.5) * (L * 0.5 / C);
+      g.add(cy(.3, .06, dk, 'y', x, H * 0.25 + .02, 0));                    // cilindro
+    }
+    break;
+  }
+  case 'bloco_inboard': {
+    g.add(bx(L * 0.85, H * 0.7, D * 0.85, c));
+    for (let i = 0; i < C; i++) {
+      const x = -L * 0.35 + (i + 0.5) * (L * 0.7 / C);
+      g.add(cy(.4, .06, dk, 'y', x, H * 0.35 + .02, 0));
+    }
+    // base do motor (berço)
+    g.add(bx(L * 0.95, .2, D * 0.95, M('#5a6068', .8), 0, -H * 0.35, 0));
+    break;
+  }
+  case 'carenagem_popa': {
+    // carenagem estanque em forma de "capuz"
+    g.add(bx(L * 0.9, H * 0.6, D * 0.85, c));
+    g.add(cy(.5, .15, M('#111', .6), 'z', 0, H * 0.2, D * 0.4, 16));          // entrada de ar
+    g.add(bx(L * 0.5, .15, D * 0.3, M('#0a0a0a', .4), 0, H * 0.35, 0));       // aleta
+    break;
+  }
+  case 'rabeta': {
+    // rabeta com eixo vertical, caixa de engrenagens e eixo horizontal
+    g.add(cy(.35, 1.8, c, 'y'));                                              // coluna
+    g.add(bx(1.0, .6, .8, M('#3a4550', .85), 0, -.9, 0));                     // caixa cônica
+    g.add(cy(.3, .8, c, 'z', 0, -.9, .4));                                    // eixo horizontal
+    g.add(cy(.15, .3, M('#8a929c', .9), 'y', 0, .9, 0, 12));                  // topo
+    break;
+  }
+  case 'helice': {
+    // hélice de 3 pás + cubo
+    g.add(cy(.35, .3, M('#a8b0ba', .85), 'z'));                               // cubo
+    for (let i = 0; i < 3; i++) {
+      const a = i * Math.PI * 2 / 3;
+      const pas = new THREE.Mesh(new THREE.BoxGeometry(.15, 1.3, .5), c);
+      pas.position.set(Math.sin(a) * .8, Math.cos(a) * .8, 0);
+      pas.rotation.z = a;
+      g.add(pas);
+    }
+    break;
+  }
+  case 'pe_de_galinha': {
+    // articulação entre rabeta e casco
+    g.add(bx(1.0, .5, 1.2, c));
+    g.add(cy(.4, .6, M('#555', .8), 'x', 0, -.5, 0, 16));                     // eixo de esterço
+    g.add(cy(.3, .5, M('#555', .8), 'z', 0, -.8, 0, 12));
+    break;
+  }
+  case 'eixo_helice': {
+    // eixo longo até a hélice
+    g.add(cy(.15, L * 0.7, c, 'x'));
+    g.add(cy(.25, .3, M('#555', .7), 'x', L * 0.4, 0, 0, 16));                // flange
+    g.add(cy(.3, .2, M('#8a929c', .9), 'z', 0, 0, 0, 12));                    // engrenagem cônica
+    break;
+  }
+  case 'tanque_barco': {
+    // tanque retangular com bocal e suspiro
+    g.add(bx(1.6, 1.0, 1.2, c));
+    g.add(cy(.12, .3, M('#555', .7), 'y', .6, .55, 0, 12));                   // bocal
+    g.add(cy(.06, .3, M('#555', .7), 'y', -.6, .55, 0, 8));                   // suspiro
+    break;
+  }
+  case 'casco': {
+    // casco simplificado em V (perfil para baixo)
+    const s = new THREE.Shape();
+    s.moveTo(-1.5, 1.0); s.lineTo(1.5, 1.0); s.lineTo(1.0, -1.0); s.lineTo(-1.0, -1.0);
+    s.lineTo(-1.5, 1.0);
+    const m = new THREE.Mesh(new THREE.ExtrudeGeometry(s, { depth: 3.5, bevelEnabled: false }), M(p.cor, .3, .8));
+    m.position.set(0, 0, -1.75);
+    g.add(m);
+    g.add(bx(2.5, .15, 3.6, M('#5a6068', .7), 0, -1.05, 0));                  // fundo
+    break;
+  }
   case'generico':g.add(bx(2,1,1.4,c));g.add(cy(.18,.2,M('#d9dde3',.9),'y',-.6,.55,0,10));g.add(cy(.18,.2,M('#d9dde3',.9),'y',.6,.55,0,10));break;
   case'volante':g.add(cy(1.7,.45,c,'x'));g.add(cy(1.75,.18,M('#4a5059',.9),'x',.15,0,0,48));g.add(cy(.55,.6,M('#2c3036',.8),'x',-.1,0,0));break;
   default:g.add(bx(2,1,1.4,c));g.add(cy(.18,.2,M('#d9dde3',.9),'y',-.6,.55,0,10));g.add(cy(.18,.2,M('#d9dde3',.9),'y',.6,.55,0,10));break}
@@ -730,8 +984,9 @@ function tick(){
 function removido(id){if(modo!=='desmontar')return false;return D.passos.slice(0,si).some(s=>s.peca===id)}
 function choose(id,fromScene){sel=id;const i=D.passos.findIndex(s=>s.peca===id);if(i>=0)si=i;render();if(typeof renderSys==='function'&&D)renderSys()}
 function render(){
+  if (!D || !D.pecas || !D.pecas.length || !D.passos || !D.passos.length) return;
   const p = P[sel] || D.pecas[0];
-  if (!D || !D.passos || !D.passos.length) return;   // guarda extra
+  if (!p) return;
   if (si >= D.passos.length) si = D.passos.length - 1; // nunca fora do range
 
   // destaca a peça selecionada
@@ -778,7 +1033,7 @@ function render(){
     '<div class="warn"><b>ATENÇÃO</b> · ' + esc(p.aviso) + '</div>';
 
   // erro de compatibilidade
-  const e = D.erroCompat;
+  const e = D.erroCompat || {titulo:'Sem dados',texto:'Este motor não tem regra de compatibilidade cadastrada.',solucao:[]};
   $('cer').innerHTML = p.compatErro
     ? '<p style="color:#ffb0b6;line-height:1.5">' + p.compatErro + '</p>' +
       '<div class="warn">Use o coletor do modelo 1.0 8V.</div>'
@@ -808,8 +1063,15 @@ $('next').onclick = () => {
 
 // ── SISTEMAS / CONJUNTOS: destaque, furos, foco e leitura de funcionamento ──
 const SYS=[
- {n:'Motor Completo',ids:null,func:'Visão geral: todas as peças do motor montadas. Clique num sistema ao lado para destacar só as peças dele.',
-  ler:['Admissão: o ar entra pelo coletor e chega ao cabeçote.','Compressão e combustão acontecem nos cilindros do bloco.','Escape: os gases saem pelo coletor de escape.','A correia sincroniza o comando com o virabrequim; o volante entrega o giro ao câmbio.']},
+ {n:'Motor Completo',ids:null,func:'Visão geral: todas as peças do conjunto montadas. Clique num sistema ao lado para destacar só as peças dele.',
+  ler:['O conjunto mostra todas as peças na posição de montagem.','Use as abas Vista Explodida / Montar / Desmontar para explorar.','Clique numa peça para ver código, torque, furos e material.','Cada sistema ao lado tem a sua própria leitura de funcionamento.']},
+ {n:'Motor Completo (moto)',ids:['bloco_moto','tampa_moto','comando_moto','cabecote_moto','junta_moto','carter_seco','embreagem_seca','embreagem_umida','escapamento_moto','carburador','injecao_moto'],
+  func:'Visão do motor de moto: cilindro inclinado, câmbio integrado ao cárter e embreagem seca ou úmida.',
+  ler:['O cilindro fica inclinado para frente no quadro.','O câmbio divide o óleo do motor na maioria das motos.','A embreagem a seco (esportivas) ou úmida (street) transmite o giro.','O escapamento sobe atrás do motor.']},
+ {n:'Bateria / Elétrico',ids:['bateria','bloco_ev','rotor_ev','tampa_ev','inversor_ev','mcu_ev','gerador_ev','admissao_ev','escape_ev'],
+  func:'Conjunto elétrico: pack de bateria, motor BLDC, inversor, controlador e arrefecimento.',
+  ler:['A bateria armazena a energia que move o motor.','O inversor converte DC da bateria em AC trifásico para o motor.','O controlador (MCU) comanda a comutação dos MOSFETs.','Na regeneração, o motor devolve energia à bateria.'],
+  nota:'Componentes de alta tensão exigem luvas classe 0 e seccionador.'},
  {n:'Cabeçote',ids:['tampa','comando','cabecote','junta'],func:'Fecha o topo dos cilindros e aloja válvulas, velas e comando. A junta veda câmara, óleo e água.',
   ler:['O comando gira na metade da rotação do virabrequim.','Cada ressalto empurra uma válvula: abre admissão ou escape na hora certa.','A junta separa câmara de combustão, galerias de óleo e água.','Aperto dos parafusos: sequência cruzada, do centro para fora.']},
  {n:'Bloco do Motor',ids:['bloco','carter'],func:'Estrutura do motor: abriga os cilindros e o virabrequim. O cárter fecha a parte de baixo e guarda o óleo.',
@@ -836,22 +1098,79 @@ const SYS=[
   ler:['O disco gira com o cubo.','A pinça aperta as pastilhas contra o disco.','Troque em pares no mesmo eixo.'],
   nota:'Pinça, pastilha e cilindro ainda não foram modelados.'}
 ];
-function addHoles(g,p){
-  const n=+p.parafusos||0; if(!n)return null;
-  const b=new THREE.Box3().setFromObject(g);
-  if(!isFinite(b.min.x)||!isFinite(b.max.x)||!isFinite(b.min.z)||!isFinite(b.max.z)) return null;
-  const h=new THREE.Group(),
-        w=Math.max(b.max.x-b.min.x,.5),
-        d=Math.max(b.max.z-b.min.z,.5);
-  const ring=new THREE.MeshBasicMaterial({color:'#27c8ff'}),core=new THREE.MeshBasicMaterial({color:'#000'});
-  const add=(x,y,z,rx,rz)=>{const m=new THREE.Group();const t=new THREE.Mesh(new THREE.TorusGeometry(.17,.05,8,18),ring),c=new THREE.Mesh(new THREE.CircleGeometry(.15,18),core);m.add(t);m.add(c);m.position.set(x,y,z);if(rx)m.rotation.x=rx;if(rz)m.rotation.y=rz;h.add(m)};
-  if(p.kind==='volante'){const x=b.max.x+.03,r=1.0;for(let i=0;i<n;i++){const a=i*2*Math.PI/n;add(x,Math.sin(a)*r,Math.cos(a)*r,0,Math.PI/2)}}
-  else{const y=b.max.y+.03,rows=d<1.2?[0]:[b.min.z+.35,b.max.z-.35],per=rows.length===1?[n]:[Math.ceil(n/2),Math.floor(n/2)];
-    rows.forEach((z,ri)=>{const k=per[ri];for(let i=0;i<k;i++){const x=k===1?(b.min.x+b.max.x)/2:b.min.x+.45+(w-.9)*i/(k-1);add(x,y,z,-Math.PI/2,0)}})}
-  h.traverse(o=>{if(o.isMesh)o.userData.id=p.id});h.visible=false;g.add(h);return h;
+function addHoles(g, p) {
+  const n = +p.parafusos || 0; if (!n) return null;
+  const b = new THREE.Box3().setFromObject(g);
+  if (!isFinite(b.min.x) || !isFinite(b.max.x) || !isFinite(b.min.z) || !isFinite(b.max.z)) return null;
+  const h = new THREE.Group(),
+    w = Math.max(b.max.x - b.min.x, .5),
+    d = Math.max(b.max.z - b.min.z, .5);
+  const ring = new THREE.MeshBasicMaterial({ color: '#27c8ff' }),
+    core = new THREE.MeshBasicMaterial({ color: '#000' });
+  const add = (x, y, z, rx, rz) => {
+    const m = new THREE.Group();
+    const t = new THREE.Mesh(new THREE.TorusGeometry(.17, .05, 8, 18), ring),
+      c = new THREE.Mesh(new THREE.CircleGeometry(.15, 18), core);
+    m.add(t); m.add(c);
+    m.position.set(x, y, z);
+    if (rx) m.rotation.x = rx;
+    if (rz) m.rotation.y = rz;
+    h.add(m);
+  };
+  // Volante: furos na face externa (rotacional)
+  if (p.kind === 'volante' || p.kind === 'roda_moto') {
+    const x = b.max.x + .03, r = p.kind === 'roda_moto' ? 1.0 : 1.0;
+    for (let i = 0; i < n; i++) {
+      const a = i * 2 * Math.PI / n;
+      add(x, Math.sin(a) * r, Math.cos(a) * r, 0, Math.PI / 2);
+    }
+  }
+  // Embreagem seca/úmida: furos radiais
+  else if (p.kind === 'embreagem_seca' || p.kind === 'embreagem_umida') {
+    const r = .75;
+    for (let i = 0; i < n; i++) {
+      const a = i * 2 * Math.PI / n;
+      add(0, Math.sin(a) * r, Math.cos(a) * r, 0, 0);
+    }
+  }
+  // Helice: furos no cubo (radial)
+  else if (p.kind === 'helice') {
+    add(0, 0, .2, -Math.PI / 2, 0);
+  }
+  // Cabeçote / bloco: fileiras no topo
+  else if (['cabecote', 'cabecote_moto', 'cabecote_multi', 'bloco_moto', 'bloco_popa', 'bloco_inboard'].includes(p.kind)) {
+    const y = b.max.y + .03;
+    const rows = d < 1.2 ? [0] : [b.min.z + .35, b.max.z - .35];
+    const per = rows.length === 1 ? [n] : [Math.ceil(n / 2), Math.floor(n / 2)];
+    rows.forEach((z, ri) => {
+      const k = per[ri];
+      for (let i = 0; i < k; i++) {
+        const x = k === 1 ? (b.min.x + b.max.x) / 2 : b.min.x + .45 + (w - .9) * i / (k - 1);
+        add(x, y, z, -Math.PI / 2, 0);
+      }
+    });
+  }
+  // Tampa / cárter / carenagem: grade uniforme
+  else {
+    const y = b.max.y + .03;
+    const rows = d < 1.2 ? [0] : [b.min.z + .35, b.max.z - .35];
+    const per = rows.length === 1 ? [n] : [Math.ceil(n / 2), Math.floor(n / 2)];
+    rows.forEach((z, ri) => {
+      const k = per[ri];
+      for (let i = 0; i < k; i++) {
+        const x = k === 1 ? (b.min.x + b.max.x) / 2 : b.min.x + .45 + (w - .9) * i / (k - 1);
+        add(x, y, z, -Math.PI / 2, 0);
+      }
+    });
+  }
+  h.traverse(o => { if (o.isMesh) o.userData.id = p.id; });
+  h.visible = false;
+  g.add(h);
+  return h;
 }
 function selSys(i){
-  sysIdx=i;const s=SYS[i];sysIds=s.ids?new Set(s.ids.filter(id=>P[id])):null;iso=false;
+  const s = SYS[i]; if (!s) return;
+  sysIdx=i; sysIds=s.ids?new Set(s.ids.filter(id=>P[id])):null; iso=false;
   document.querySelectorAll('#sys li').forEach(li=>li.classList.toggle('on',+li.dataset.si===i));
   if(sysIds&&sysIds.size){choose([...sysIds][0])}
   else{if(sysIds)toast('Sem peças modeladas neste sistema (ainda).');render()}
@@ -860,6 +1179,8 @@ function selSys(i){
 function focar(){const o=G.get(sel);if(!o)return;const v=new THREE.Box3().setFromObject(o.g).getCenter(new THREE.Vector3());O.tgt.copy(v);O.d=12;spin=false}
 function renderSys(){
   const s=SYS[sysIdx],b=$('sysb');if(!b)return;
+  if(!D || !D.pecas || !D.pecas.length){ b.innerHTML=''; return; }
+  if(!s) return;
   const ids=s.ids===null?D.pecas.map(p=>p.id):s.ids.filter(id=>P[id]);
   $('sysh').textContent='LEITURA DO SISTEMA · '+s.n.toUpperCase();
   b.innerHTML='<div class="fn">'+esc(s.func)+'</div>'+
@@ -895,24 +1216,33 @@ function ui(){
   si = 0;
   expl = false;
   modo = 'desmontar';
+  // zera fluxo de energia ao trocar de motor
+  FLX = 0;
+  if(FL){ S.remove(FL); FL=null; }
 
   if(!D || !D.pecas || !D.pecas.length) return;
 
   D.pecas.forEach(p => { P[p.id] = p; });
 
-  // Ajuste de câmera por tipo de conjunto
+  // Ajuste de câmera por tipo de conjunto (um único bloco, sem duplicar)
+  spin = true;
   if (D.sistema === "suspensao") {
     O.tgt.set(0, 0, 0);
     O.d = 14;
     O.p = 1.15;
-    spin = true;
+  } else if (D.sistema === "moto") {
+    O.tgt.set(0, 0.5, 0);
+    O.d = 18;
+    O.p = 1.1;
+  } else if (D.sistema === "barco") {
+    O.tgt.set(0, -0.5, 0);
+    O.d = 28;
+    O.p = 1.15;
   } else {
     O.tgt.set(0, .8, 0);
     O.d = 26;
     O.p = 1.05;
-    spin = true;
   }
-
   const passoInicial = (D.passos && D.passos[0] && D.passos[0].peca) || D.pecas[0].id;
   sel = passoInicial;
 
@@ -1130,18 +1460,28 @@ function aplicarTroca(pecaId,motorEscolhido,info){
     o.g.position.set(orig[0]+info.offset[0],orig[1]+info.offset[1],orig[2]+info.offset[2]);
     if(Array.isArray(info.rot)&&info.rot.length===3){
       o.g.rotation.set(info.rot[0],info.rot[1],info.rot[2]);
+    }else{
+      o.g.rotation.set(0,0,0);
     }
     D.adaptacoes=D.adaptacoes||{};
-    D.adaptacoes[pecaId]={motorOrigem:motorEscolhido,compativel:true,offset:info.offset,rot:info.rot,_manual:true};
+    D.adaptacoes[pecaId]={motorOrigem:motorEscolhido,compativel:true,offset:info.offset,rot:info.rot||[0,0,0],_manual:true};
+    P[pecaId]._adaptada=motorEscolhido;
   }else{
     o.g.position.set(orig[0],orig[1],orig[2]);
+    o.g.rotation.set(0,0,0);
     D.adaptacoes=D.adaptacoes||{};
     D.adaptacoes[pecaId]={motorOrigem:motorEscolhido,compativel:false,motivo:(info&&info.motivo)||null,adaptacao:(info&&info.adaptacao)||null};
+    // não é mais "adaptada": posição original
+    delete P[pecaId]._adaptada;
   }
-  P[pecaId]._adaptada=motorEscolhido;
-  fecharOverlay();
+  fecharOverlay(); // nome interno do fecharOverlay, mantido por compatibilidade
   render();
-  toast('Peça "'+P[pecaId].nome+'" marcada como vinda do motor '+motorEscolhido+'.');
+  const p=P[pecaId];
+  if(info&&info.compativel){
+    toast('Peça "'+p.nome+'" posicionada a partir do motor '+motorEscolhido+'.');
+  }else{
+    toast('Peça "'+p.nome+'": motor '+motorEscolhido+' NÃO compatível — posição original mantida. Motivo: '+(info&&info.motivo||'sem dados')+'.');
+  }
 }
 
 async function abrirIAPeca(pecaId,motorAlvo){
@@ -1245,10 +1585,94 @@ function sairSessao(){
 }
 const MP=(()=>{
   const sem=t=>String(t==null?'':t).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
-  const KS=['tampa','comando','cabecote','junta','bloco','correia','alternador','partida','carter','admissao','escape','volante','bateria_ev','gerador_ev'];
-  const KR=[['bateria_ev',/bateria|pack/],['gerador_ev',/gerador/],['junta',/junta/],['tampa',/tampa/],['comando',/comando|eixo de cames|\bcames?\b/],['correia',/correia|corrente de distrib|distribuicao/],['alternador',/alternador|dinamo/],['partida',/partida|arranque/],['carter',/carter/],['admissao',/admiss|plenum/],['escape',/escape|descarga/],['volante',/volante|flywheel/],['cabecote',/cabecote|cabeca do motor/],['bloco',/bloco|monobloco/]];
+  // kinds válidos no build() do HTML (carro + moto + barco)
+  const KS=[
+    // carro
+    'tampa','comando','cabecote','junta','bloco','correia','alternador','partida','carter','admissao','escape','volante',
+    'bateria_ev','gerador_ev',
+    // moto
+    'bloco_moto','tampa_moto','comando_moto','cabecote_moto','junta_moto','carter_seco',
+    'embreagem_seca','embreagem_umida','escapamento_moto','tanque_moto','banco_moto',
+    'guidon','garfo','balanca_moto','roda_moto','carburador','injecao_moto',
+    // barco
+    'bloco_popa','bloco_inboard','carenagem_popa','rabeta','helice','pe_de_galinha',
+    'eixo_helice','tanque_barco','casco'
+  ];
+  // regex por nome; primeira que casar define o kind
+  const KR=[
+    // barco primeiro (mais específico)
+    ['carenagem_popa',/carenagem|capuz|cowling/],
+    ['rabeta',/rabeta|lower unit|caixa de engrenag/],
+    ['helice',/helice|propeller|propulsor/],
+    ['pe_de_galinha',/pe.?de.?galinha|swivel bracket|suporte de popa/],
+    ['eixo_helice',/eixo.*helice|propeller shaft|eixo de popa/],
+    ['tanque_barco',/tanque.*(barco|marit)/],
+    ['casco',/casco|hull/],
+    ['bloco_popa',/bloco.*popa|outboard.*block/],
+    ['bloco_inboard',/bloco.*inboard|inboard.*block/],
+    // moto
+    ['tanque_moto',/tanque.*(moto|combust)/],
+    ['banco_moto',/banco|selim|seat/],
+    ['guidon',/guidao|handlebar/],
+    ['garfo',/garfo|forquilha|fork/],
+    ['balanca_moto',/balanca|swingarm/],
+    ['roda_moto',/roda.*moto|wheel.*moto/],
+    ['carburador',/carburador|carburetor/],
+    ['injecao_moto',/corpo de injecao|efi|throttle body/],
+    ['embreagem_seca',/embreagem.*seco|dry clutch/],
+    ['embreagem_umida',/embreagem.*(umid|oleo)|wet clutch/],
+    ['escapamento_moto',/escapamento|exhaust.*moto|muffler/],
+    ['carter_seco',/carter.*seco|dry sump/],
+    ['bloco_moto',/bloco.*moto|motor.*moto|cilindro.*moto/],
+    ['tampa_moto',/tampa.*(valv|moto)/],
+    ['comando_moto',/comando.*moto|cames.*moto/],
+    ['cabecote_moto',/cabecote.*moto|head.*moto/],
+    ['junta_moto',/junta.*moto/],
+    // carro
+    ['junta',/junta/],
+    ['tampa',/tampa/],
+    ['comando',/comando|eixo de cames|\bcames?\b/],
+    ['correia',/correia|corrente de distrib|distribuicao/],
+    ['alternador',/alternador|dinamo/],
+    ['partida',/partida|arranque/],
+    ['carter',/carter/],
+    ['admissao',/admiss|plenum/],
+    ['escape',/escape|descarga/],
+    ['volante',/volante|flywheel/],
+    ['cabecote',/cabecote|cabeca do motor/],
+    ['bloco',/bloco|monobloco/],
+    ['bateria_ev',/bateria|pack/],
+    ['gerador_ev',/gerador/]
+  ];
   const kindOf=n=>{const s=sem(n);const k=KR.find(x=>x[1].test(s));return k?k[0]:'generico'};
-  const DEF={tampa:[[0,4.1,0],[0,5.2,0],'#1b1f27',.3],comando:[[0,3.5,0],[0,3.4,0],'#9aa3ad',.9],cabecote:[[0,2.9,0],[0,1.9,0],'#a9b2bc',.85],junta:[[0,2.15,0],[0,.9,0],'#e8742a',.2],bloco:[[0,0,0],[0,0,0],'#8d96a0',.85],correia:[[-4.6,1.2,0],[-3.6,1.2,0],'#15171b',.1],alternador:[[-5.2,-.3,2.4],[-3.4,-.3,2.6],'#4a4f57',.7],partida:[[4.7,-.8,-2.1],[3.6,-.9,-3.4],'#5d636b',.8],carter:[[0,-3.1,0],[0,-3.9,0],'#14181d',.6],admissao:[[0,3,-3],[0,3.2,-4.4],'#16191f',.25],escape:[[0,2.6,3],[0,1.4,4.6],'#b5622f',.8],bateria_ev:[[0,-5.8,0],[0,-8.2,0],'#1d6b4a',.4],gerador_ev:[[5.4,-2.2,0],[8,-2.2,0],'#4a4f57',.6],volante:[[4.5,-.3,0],[3.4,-.3,0],'#6b727b',.9]};
+  // posições default por kind (carro + moto + barco)
+  const DEF={
+    // carro
+    tampa:[[0,4.1,0],[0,5.2,0],'#1b1f27',.3], comando:[[0,3.5,0],[0,3.4,0],'#9aa3ad',.9],
+    cabecote:[[0,2.9,0],[0,1.9,0],'#a9b2bc',.85], junta:[[0,2.15,0],[0,.9,0],'#e8742a',.2],
+    bloco:[[0,0,0],[0,0,0],'#8d96a0',.85], correia:[[-4.6,1.2,0],[-3.6,1.2,0],'#15171b',.1],
+    alternador:[[-5.2,-.3,2.4],[-3.4,-.3,2.6],'#4a4f57',.7], partida:[[4.7,-.8,-2.1],[3.6,-.9,-3.4],'#5d636b',.8],
+    carter:[[0,-3.1,0],[0,-3.9,0],'#14181d',.6], admissao:[[0,3,-3],[0,3.2,-4.4],'#16191f',.25],
+    escape:[[0,2.6,3],[0,1.4,4.6],'#b5622f',.8], volante:[[4.5,-.3,0],[3.4,-.3,0],'#6b727b',.9],
+    bateria_ev:[[0,-5.8,0],[0,-8.2,0],'#1d6b4a',.4], gerador_ev:[[5.4,-2.2,0],[8,-2.2,0],'#4a4f57',.6],
+    // moto
+    bloco_moto:[[0,0,0],[0,0,0],'#8d96a0',.85], tampa_moto:[[0,2.6,0],[0,3.4,0],'#1b1f27',.3],
+    comando_moto:[[0,1.8,0],[0,2.4,0],'#9aa3ad',.9], cabecote_moto:[[0,1.2,0],[0,1.8,0],'#a9b2bc',.85],
+    junta_moto:[[0,.6,0],[0,.9,0],'#e8742a',.2], carter_seco:[[1.2,-.8,0],[1.2,-1.6,0],'#14181d',.6],
+    embreagem_seca:[[2.0,-.5,0],[2.8,-.5,0],'#7a6a3a',.7], embreagem_umida:[[2.0,-.5,0],[2.8,-.5,0],'#3a6b8a',.6],
+    escapamento_moto:[[2.0,-.2,1.2],[3.2,-.2,1.8],'#b5622f',.85],
+    tanque_moto:[[0,2.8,0],[0,3.6,0],'#c0392b',.3], banco_moto:[[-.8,2.9,0],[-1.6,3.4,0],'#1a1a1a',.1],
+    guidon:[[2.2,2.4,0],[2.2,3.0,0],'#2c2c2c',.8], garfo:[[2.4,0,1.2],[3.0,0,1.8],'#3a4550',.85],
+    balanca_moto:[[-2.0,-.6,1.2],[-2.8,-.8,1.8],'#3a4550',.85],
+    roda_moto:[[2.8,-1.4,1.2],[3.4,-1.6,1.8],'#1a1a1a',.4],
+    carburador:[[0,1.6,-1.2],[0,2.2,-1.8],'#8a6f2a',.8], injecao_moto:[[0,1.6,-1.2],[0,2.2,-1.8],'#2c3e50',.7],
+    // barco
+    bloco_popa:[[0,0,0],[0,0,0],'#8d96a0',.85], bloco_inboard:[[0,0,0],[0,0,0],'#8d96a0',.85],
+    carenagem_popa:[[0,1.6,0],[0,1.6,2.4],'#1a2530',.35], rabeta:[[0,-1.6,0],[0,-2.6,0],'#3a4550',.8],
+    helice:[[0,-2.6,0],[0,-3.6,0],'#c8a44a',.9], pe_de_galinha:[[0,-1.1,0],[0,-1.6,0],'#3a4550',.8],
+    eixo_helice:[[-3.5,-1.0,0],[-5.5,-1.0,0],'#3a4550',.85], tanque_barco:[[0,2.2,0],[0,3.2,0],'#c0392b',.3],
+    casco:[[-4,0,0],[-4,0,0],'#e8eef6',.3]
+  };
   const SYN={nome:/^(nome|peca|componente|item|part|descricao)$/,cod:/^(cod|codigo|part ?number|pn|ref|referencia)/,torque:/^torque/,parafusos:/parafuso|furo|fixac/,material:/^material/,func:/^(funcao|func)/,compat:/^compat/,aviso:/^(aviso|atencao|obs)/};
   const colDe=c=>{const s=sem(c);for(const k in SYN)if(SYN[k].test(s))return k;return null};
   const RT=/(\d+(?:[.,]\d+)?\s*(?:n\.?\s?m|kgf\.?m)(?:\s*\+\s*\d+\s*°)?)/i,RP=/(\d+)\s*(?:parafusos?|furos?|fixa)/i,RM=/\b(aco|aluminio|ferro|fundido|plastic|poliamida|borracha|liga|cobre|latao|inox|nylon)/;
@@ -1272,7 +1696,9 @@ const MP=(()=>{
       out.push({nome:q.nome,kind:kindOf(q.nome),cod:q.cod||'',torque:q.torque||'',parafusos:num(q.parafusos),material:q.material||'',func:q.func||'',compat:q.compat||'',aviso:q.aviso||''})});
     return out}
   const linhasParaRows=txt=>String(txt||'').split(/\r?\n/).map(l=>l.split(/\s*[|;\t]\s*|\s+[-–—:]\s+|\s{3,}/).map(s=>s.trim()).filter(Boolean));
-  const ORDEM=['tampa','admissao','escape','correia','comando','cabecote','junta','bloco','alternador','partida','carter','volante'];
+  const ORDEM=['tampa','admissao','escape','correia','comando','cabecote','junta','bloco','alternador','partida','carter','volante',
+    'tampa_moto','carburador','injecao_moto','escapamento_moto','comando_moto','cabecote_moto','junta_moto','bloco_moto','carter_seco','embreagem_seca','embreagem_umida','tanque_moto','banco_moto','guidon','garfo','balanca_moto','roda_moto',
+    'carenagem_popa','tanque_barco','eixo_helice','rabeta','helice','pe_de_galinha','bloco_popa','bloco_inboard','casco'];
   function montar(titulo,parts,opt){opt=opt||{};
     const usados={};let gi=0;
     const pecas=parts.map((q,i)=>{let kind=KS.includes(q.kind)?q.kind:'generico',id,pos,ex,cor,metal;
@@ -1283,10 +1709,23 @@ const MP=(()=>{
     const ord=p=>{const i=ORDEM.indexOf(p.kind);return i<0?99:i};
     const passos=[...pecas].sort((a,b)=>ord(a)-ord(b)).map(p=>({peca:p.id,titulo:(p.kind==='generico'?'Retirar ':'Remover ')+p.nome.toLowerCase(),itens:[p.parafusos?'Remova os '+p.parafusos+' parafusos de fixação'+(p.torque!=='a cadastrar'?' (torque '+p.torque+' na montagem).':'.'):'Retire a peça com cuidado.','Guarde parafusos e vedações na ordem original.'],info:p.aviso}));
     const slug=sem(titulo).replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'').slice(0,24)||'motor';
-    return{id:opt.id||'imp_'+slug+'_'+Date.now().toString(36).slice(-4),local:true,veiculo:{nome:String(titulo).slice(0,60),ano:'—',motor:'Importado',potencia:'—',cambio:'—'},titulo:String(titulo).slice(0,60),pecas,passos,
-      erroCompat:{titulo:'Peça importada',texto:'Sem regra de compatibilidade cadastrada para este motor.',solucao:['Confirmar a peça no manual do fabricante','Conferir furação e medidas antes de trocar']},
-      dica:'Motor criado a partir de uma lista de peças. Complete códigos e torques conforme o manual.',aviso:'Motor importado: os valores não foram conferidos. Confirme no manual do fabricante.'}}
-  // JSON exportado pelo próprio sistema -> motor local (valida tudo)
+    // Detecta sistema pelo kind predominante (moto / barco / carro)
+    const KINDS_MOTO=['bloco_moto','tampa_moto','comando_moto','cabecote_moto','junta_moto','carter_seco','embreagem_seca','embreagem_umida','escapamento_moto','tanque_moto','banco_moto','guidon','garfo','balanca_moto','roda_moto','carburador','injecao_moto'];
+    const KINDS_BARCO=['bloco_popa','bloco_inboard','carenagem_popa','rabeta','helice','pe_de_galinha','eixo_helice','tanque_barco','casco'];
+    const nMoto=pecas.filter(p=>KINDS_MOTO.includes(p.kind)).length;
+    const nBarco=pecas.filter(p=>KINDS_BARCO.includes(p.kind)).length;
+    const sistema=nBarco>0&&nBarco>=nMoto?'barco':nMoto>0?'moto':undefined;
+    return {
+      id: opt.id || ('imp_' + slug + '_' + Date.now().toString(36).slice(-4)),
+      local: true,
+      veiculo: { nome:String(titulo).slice(0,60), ano:'—', motor:'Importado', potencia:'—', cambio:'—' },
+      titulo: String(titulo).slice(0,60),
+      pecas, passos, sistema,
+      erroCompat:{ titulo:'Peça importada', texto:'Sem regra de compatibilidade cadastrada para este motor.', solucao:['Confirmar a peça no manual do fabricante','Conferir furação e medidas antes de trocar'] },
+      dica:'Motor criado a partir de uma lista de peças. Complete códigos e torques conforme o manual.',
+      aviso:'Motor importado: os valores não foram conferidos. Confirme no manual do fabricante.'
+    };
+  }
   function deJson(o){
     if(!o||!Array.isArray(o.pecas)||!o.pecas.length)return null;
     const v3=(a,d)=>Array.isArray(a)&&a.length===3&&a.every(Number.isFinite)?a.map(x=>Math.max(-30,Math.min(30,x))):d;
@@ -1301,7 +1740,13 @@ const MP=(()=>{
     if(!passos.length)passos=[{peca:pecas[0].id,titulo:'Inspecionar '+pecas[0].nome,itens:['Inspecione a peça.'],info:''}];
     const vv=o.veiculo||{};
     const ad={};if(o.adaptacoes&&typeof o.adaptacoes==='object')Object.keys(o.adaptacoes).forEach(k=>{if(!ids.has(k))return;const a=o.adaptacoes[k];if(!a||typeof a!=='object')return;ad[k]={motorOrigem:String(a.motorOrigem||'').slice(0,40),compativel:!!a.compativel,offset:v3(a.offset,null),rot:v3(a.rot,null),motivo:a.motivo?String(a.motivo).slice(0,200):null,adaptacao:a.adaptacao?String(a.adaptacao).slice(0,200):null,_manual:!!a._manual&&!!v3(a.offset,null)}});
-    return{id:'imp_'+(sem(o.titulo||'projeto').replace(/[^a-z0-9]+/g,'_').slice(0,20)||'projeto')+'_'+Date.now().toString(36).slice(-4),local:true,veiculo:{nome:String(vv.nome||o.titulo||'Projeto').slice(0,60),ano:String(vv.ano||'—').slice(0,10),motor:String(vv.motor||'Importado').slice(0,60),potencia:String(vv.potencia||'—').slice(0,20),cambio:String(vv.cambio||'—').slice(0,40)},titulo:String(o.titulo||'Projeto').slice(0,60),pecas,passos,
+    // Detecta sistema pelo kind predominante (moto / barco / carro)
+    const KINDS_MOTO=['bloco_moto','tampa_moto','comando_moto','cabecote_moto','junta_moto','carter_seco','embreagem_seca','embreagem_umida','escapamento_moto','tanque_moto','banco_moto','guidon','garfo','balanca_moto','roda_moto','carburador','injecao_moto'];
+    const KINDS_BARCO=['bloco_popa','bloco_inboard','carenagem_popa','rabeta','helice','pe_de_galinha','eixo_helice','tanque_barco','casco'];
+    const nMoto=pecas.filter(p=>KINDS_MOTO.includes(p.kind)).length;
+    const nBarco=pecas.filter(p=>KINDS_BARCO.includes(p.kind)).length;
+    const sistema=nBarco>0&&nBarco>=nMoto?'barco':nMoto>0?'moto':undefined;
+    return{id:'imp_'+(sem(o.titulo||'projeto').replace(/[^a-z0-9]+/g,'_').slice(0,20)||'projeto')+'_'+Date.now().toString(36).slice(-4),local:true,veiculo:{nome:String(vv.nome||o.titulo||'Projeto').slice(0,60),ano:String(vv.ano||'—').slice(0,10),motor:String(vv.motor||'Importado').slice(0,60),potencia:String(vv.potencia||'—').slice(0,20),cambio:String(vv.cambio||'—').slice(0,40)},titulo:String(o.titulo||'Projeto').slice(0,60),pecas,passos,sistema,
       erroCompat:o.erroCompat&&o.erroCompat.titulo?{titulo:String(o.erroCompat.titulo).slice(0,80),texto:String(o.erroCompat.texto||'').slice(0,200),solucao:(Array.isArray(o.erroCompat.solucao)?o.erroCompat.solucao:[]).slice(0,6).map(x=>String(x).slice(0,120))}:base.erroCompat,dica:String(o.dica||base.dica).slice(0,300),aviso:String(o.aviso||base.aviso).slice(0,300),adaptacoes:ad}}
   return{kindOf,parseRows,linhasParaRows,montar,deJson,KS}
 })();
@@ -1406,7 +1851,19 @@ async function leLinhas(f){
     if(rows.flat().join('').length<20)throw new Error('Este PDF não tem texto (parece escaneado ou só desenho). Ainda não leio desenhos.');return{rows}}
   return{rows:MP.linhasParaRows(await f.text())}}
 function registra(d){IMP[d.id]=d;salvaIMP();let o=[...$('veic').options].find(x=>x.value===d.id);if(!o){o=document.createElement('option');o.value=d.id;o.textContent='📥 '+d.titulo+' (importado)';$('veic').appendChild(o)}$('veic').value=d.id;abrirLocal(d.id)}
-function restauraAdapt(){const ad=D.adaptacoes||{};Object.keys(ad).forEach(k=>{const a=ad[k],o=G.get(k),p=P[k];if(!o||!p)return;if(a.motorOrigem)p._adaptada=a.motorOrigem;if(a._manual&&Array.isArray(a.offset)){o.g.position.set(p.pos[0]+a.offset[0],p.pos[1]+a.offset[1],p.pos[2]+a.offset[2]);if(Array.isArray(a.rot))o.g.rotation.set(a.rot[0],a.rot[1],a.rot[2])}});render()}
+function restauraAdapt(){
+  const ad=D.adaptacoes||{};
+  Object.keys(ad).forEach(k=>{
+    const a=ad[k],o=G.get(k),p=P[k];
+    if(!o||!p)return;
+    if(a.motorOrigem)p._adaptada=a.motorOrigem;
+    if(a._manual&&Array.isArray(a.offset)){
+      o.g.position.set(p.pos[0]+a.offset[0],p.pos[1]+a.offset[1],p.pos[2]+a.offset[2]);
+      if(Array.isArray(a.rot))o.g.rotation.set(a.rot[0],a.rot[1],a.rot[2]);
+    }
+  });
+  render();
+}
 function abrirLocal(id){const s=IMP[id];if(!s)return;D=JSON.parse(JSON.stringify(s));D.id=id;D.local=true;ui();fit();const l=$('load');if(l)l.remove();restauraAdapt();renderSys()}
 async function importa(f){
   if(!U){toast('Entre na sua conta primeiro.');return}
@@ -1453,14 +1910,69 @@ function painelCfg(){const m=ovM('<h3>⚙ Configurações da página</h3><div cl
  m.querySelector('#cr').onclick=()=>{CFG=Object.assign({},CFGD);salvaCfg();fechaOvM()};m.querySelector('#cx').onclick=fechaOvM}
 $('nav').onclick=e=>{const b=e.target.closest('button');if(!b)return;[...$('nav').children].forEach(x=>x.classList.toggle('on',x===b));({'Início':painelInicio,'Manual':painelManual,'Ferramentas':painelFerr,'Configurações':painelCfg})[b.textContent]()};
 
-function addBateria(r){if(!D||D.pecas.some(p=>p.id==='bateria')){toast('Este projeto já tem bateria.');return}
- D.pecas.push({id:'bateria',n:D.pecas.length+1,nome:'Bateria '+r.kwhNominal+' kWh',cod:'BAT-'+r.serie+'S',kind:'bateria_ev',pos:[0,-5.8,0],ex:[0,-8.2,0],cor:'#1d6b4a',metal:.4,parafusos:4,torque:'8 Nm',material:'Células '+r.quimica+' + BMS',func:'Armazena e devolve a energia do projeto.',compat:r.serie+'S · '+r.Ah+' Ah',aviso:'Alta tensão: abra o seccionador e confirme 0 V.',compatMap:{}});
- D.passos.unshift({peca:'bateria',titulo:'Desconectar a bateria',itens:['Abra o seccionador.','Retire o negativo primeiro.','Meça 0 V.'],info:'Primeiro passo em qualquer desmontagem elétrica.'});ui();fit();toast('Bateria adicionada ao 3D.')}
+function addBateria(r){
+  if(!D||D.pecas.some(p=>p.id==='bateria')){toast('Este projeto já tem bateria.');return}
+
+  D.pecas.push({
+    id:'bateria',
+    n:D.pecas.length+1,
+    nome:'Bateria '+r.kwhNominal+' kWh',
+    cod:'BAT-'+r.serie+'S',
+    kind:'bateria_ev',
+    pos:[0,-5.8,0],
+    ex:[0,-8.2,0],
+    cor:'#1d6b4a',
+    metal:.4,
+    parafusos:4,
+    torque:'8 Nm',
+    material:'Células '+r.quimica+' + BMS',
+    func:'Armazena e devolve a energia do projeto.',
+    compat:r.serie+'S · '+r.Ah+' Ah',
+    aviso:'Alta tensão: abra o seccionador e confirme 0 V.',
+    compatMap:{}
+  });
+
+  D.passos.unshift({
+    peca:'bateria',
+    titulo:'Desconectar a bateria',
+    itens:['Abra o seccionador.','Retire o negativo primeiro.','Meça 0 V.'],
+    info:'Primeiro passo em qualquer desmontagem elétrica.'
+  });
+
+  // zera o fluxo animado antes de reconstruir o grafo:
+  // o novo G pode não ter 'bloco'/'bloco_ev', e o fluxoLoop
+  // desenharia esferas no lugar errado (ex.: bloco de combustão).
+  FLX=0;
+  if(FL){S.remove(FL);FL=null}
+
+  ui();
+  fit();
+  renderSys();
+  toast('Bateria adicionada ao 3D.');
+}
 async function publicaConv(r){const t=prompt('Título para o repositório validado:','Conversão '+(D.titulo||''));if(!t)return;const j=await post('/api/wiki/publicar',Object.assign({},SES(),{tipo:'conversao',titulo:t,descricao:r.titulo,projeto:r.entrada}));toast(j.ok?(j.existente?'Já existia no repositório.':'Publicado no repositório validado!'):(j.error||'Não foi possível publicar'))}
-let FLX=0,FL=null;
-function fluxoLoop(t){requestAnimationFrame(fluxoLoop);if(!FLX||!D)return;const a=G.get('bateria'),b=G.get('bloco');if(!a||!b)return;const pa=a.g.getWorldPosition(new THREE.Vector3()),pb=b.g.getWorldPosition(new THREE.Vector3());
- if(!FL||!FL.parent){FL=new THREE.Group();for(let i=0;i<14;i++)FL.add(new THREE.Mesh(new THREE.SphereGeometry(.16,8,8),new THREE.MeshBasicMaterial({color:0x27c8ff})));S.add(FL)}
- FL.children.forEach((m,i)=>{const k=(t/1600+i/14)%1;m.position.lerpVectors(pa,pb,FLX>0?k:1-k);m.material.color.set(FLX>0?0x27c8ff:0x2fd48a)})}
+function fluxoLoop(t){
+  requestAnimationFrame(fluxoLoop);
+  if(!FLX||!D) return;
+  const a=G.get('bateria');
+  // prioriza o bloco elétrico; cai no de combustão só se for conversão
+  const b=G.get('bloco_ev')||G.get('bloco');
+  if(!a||!b) return;
+  const pa=a.g.getWorldPosition(new THREE.Vector3()),
+        pb=b.g.getWorldPosition(new THREE.Vector3());
+  if(!FL||!FL.parent){
+    FL=new THREE.Group();
+    for(let i=0;i<14;i++)
+      FL.add(new THREE.Mesh(new THREE.SphereGeometry(.16,8,8),
+        new THREE.MeshBasicMaterial({color:0x27c8ff})));
+    S.add(FL);
+  }
+  FL.children.forEach((m,i)=>{
+    const k=(t/1600+i/14)%1;
+    m.position.lerpVectors(pa,pb,FLX>0?k:1-k);
+    m.material.color.set(FLX>0?0x27c8ff:0x2fd48a);
+  });
+}
 requestAnimationFrame(fluxoLoop);
 document.querySelector('.tools').insertAdjacentHTML('beforeend','<button class="btn" id="inv" title="Inverter fluxo de energia">⇄</button>');
 $('inv').onclick=()=>{if(!D||!G.get('bateria')){toast('Abra um demo elétrico ou pare a bateria no 3D (Ferramentas → Bateria).');return}
