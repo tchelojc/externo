@@ -1622,17 +1622,19 @@ function cExtrairArray(obj, nomes){
   return [];
 }
 function cNormEvento(e, origem){
-  const rawYear=e.year ?? e.ano ?? e.start_year ?? e.startYear ?? e.inicio ?? e.date ?? e.data ?? null;
-  let ano=null;
-  if(typeof rawYear==='number') ano=rawYear;
-  else if(typeof rawYear==='string'){ const m=rawYear.match(/-?\d{1,4}/); if(m) ano=Number(m[0]); }
+  const rawYear=e.year ?? e.ano ?? e.start_year ?? e.startYear ?? e.start ?? e.inicio ?? e.date ?? e.data ?? null;
+  const rawEnd=e.end_year ?? e.endYear ?? e.end ?? e.fim ?? null;
+  const parseYear=v=>{if(typeof v==='number'&&Number.isFinite(v))return v;if(typeof v==='string'){const m=v.match(/-?\d{1,4}/);if(m)return Number(m[0]);}return null;};
+  const ano=parseYear(rawYear), anoFim=parseYear(rawEnd);
   const freqs=e.frequencies && typeof e.frequencies==='object'?e.frequencies:{};
-  const rawFreq=e.frequencia_hz ?? e.frequency_hz ?? e.frequencia ?? e.frequency ?? freqs.base ?? freqs.value ?? null;
-  const freq=rawFreq===null || rawFreq==='' ? NaN : Number(rawFreq);
-  return {ano, titulo:String(e.title ?? e.titulo ?? e.name ?? e.nome ?? e.event ?? 'Evento sem título'), origem,
+  const freqObj=e.frequencia && typeof e.frequencia==='object'?e.frequencia:{};
+  const rawFreq=e.frequencia_hz_bruta ?? e.frequencia_hz ?? e.frequency_hz ?? e.frequencia ?? e.frequency ?? freqs.base ?? freqs.value ?? freqObj.hz ?? freqObj.base ?? null;
+  const freq=rawFreq===null || rawFreq==='' || typeof rawFreq==='object' ? NaN : Number(rawFreq);
+  const unit=e.frequencia_unidade ?? e.frequency_unit ?? e.unidade_frequencia ?? ((e.frequencia_hz!==undefined || e.frequency_hz!==undefined || e.frequencia_hz_bruta!==undefined)?'Hz (campo declarado)':rawFreq!==null?'unidade não informada':'');
+  return {ano, anoFim, titulo:String(e.title ?? e.titulo ?? e.name ?? e.nome ?? e.event ?? e.id ?? 'Evento sem título'), origem,
     tipo:String(e.type ?? e.tipo ?? e.category ?? e.categoria ?? origem), frequencia:Number.isFinite(freq)?freq:null,
-    frequenciaCampo: rawFreq===null?'':String(rawFreq), frequenciaUnidade:String(e.frequencia_unidade ?? e.frequency_unit ?? ((e.frequencia_hz!==undefined || e.frequency_hz!==undefined)?'Hz (nome do campo)':rawFreq!==null?'unidade não informada':'')),
-    fonte:String(e.source ?? e.fonte ?? e.sources ?? ''), confianca:String(e.confidence ?? e.confianca ?? e.status ?? 'não informada'), bruto:e};
+    frequenciaCampo: rawFreq===null || typeof rawFreq==='object'?'':String(rawFreq), frequenciaUnidade:String(unit),
+    fonte:String(e.source ?? e.fonte ?? e.sources ?? e.origem ?? ''), confianca:String(e.confidence ?? e.confianca ?? e.status ?? e.status_dado ?? 'não informada'), bruto:e};
 }
 function cLerArquivo(file, tipo){
   return new Promise((resolve,reject)=>{ const r=new FileReader(); r.onload=()=>{try{
@@ -1653,7 +1655,7 @@ function cCicloLongo(ano, eventos){
   const dentro=dist!==null && dist<=30;
   const perto=dist!==null && dist>30 && dist<=200;
   const status=dist===null?'Sem eventos datados':dentro?'Dentro da janela de ±30 anos do marco calculado':perto?'A até 200 anos do marco calculado, fora da janela de ±30 anos':'Não é marco de reset: fora da janela de ±30 anos do marco '+cNum(proximo,0);
-  const porFonte=CICLOS.arquivos.map(f=>{const ys=f.regs.filter(e=>e.ano!==null).map(e=>e.ano);return {nome:f.nome||f.tipo||'fonte sem nome',ultimo:ys.length?Math.max(...ys):null};});
+  const porFonte=CICLOS.arquivos.map(f=>{const ys=f.regs.flatMap(e=>[e.ano,e.anoFim]).filter(y=>y!==null&&Number.isFinite(y));return {nome:f.nome||f.tipo||'fonte sem nome',ultimo:ys.length?Math.max(...ys):null};});
   return {ultimo,proximo,dist,status,porFonte};
 }
 function cFase(dias, periodo){ return ((dias%periodo)+periodo)%periodo/periodo; }
@@ -1703,7 +1705,7 @@ async function vCiclos(){
     if(!CICLOS.workerCarregado){
       const r=await api('ciclos/lista',{});
       if(r && r.ok && Array.isArray(r.eventos)){
-        const regs=r.eventos.map(e=>{const rawFreq=e.frequencia_hz??e.frequency_hz??e.frequencia??(e.frequencies&&e.frequencies.base)??null;const freq=rawFreq===null||rawFreq===''?NaN:Number(rawFreq);return {ano:Number.isFinite(Number(e.ano))?Number(e.ano):null,titulo:String(e.titulo||e.title||'Evento sem título'),origem:String(e.origem||'Worker'),tipo:String(e.tipo||'não classificado'),frequencia:Number.isFinite(freq)?freq:null,frequenciaCampo:rawFreq===null?'':String(rawFreq),frequenciaUnidade:String(e.frequencia_unidade||e.frequency_unit||((e.frequencia_hz!==undefined||e.frequency_hz!==undefined)?'Hz (nome do campo)':rawFreq!==null?'unidade não informada':'')),fonte:String(e.status_dado||e.origemDados||''),confianca:String(e.status_dado||'exemplo incorporado'),bruto:e};});
+        const regs=r.eventos.map(e=>{const fo=e.frequencies&&typeof e.frequencies==='object'?e.frequencies:{};const rawFreq=e.frequencia_hz_bruta??e.frequencia_hz??e.frequency_hz??e.frequencia??e.frequency??fo.base??fo.value??null;const freq=rawFreq===null||rawFreq===''||typeof rawFreq==='object'?NaN:Number(rawFreq);return {ano:Number.isFinite(Number(e.ano??e.year))?Number(e.ano??e.year):null,anoFim:Number.isFinite(Number(e.anoFim??e.end_year??e.end))?Number(e.anoFim??e.end_year??e.end):null,titulo:String(e.titulo||e.title||e.id||'Evento sem título'),origem:String(e.origem||'Worker'),tipo:String(e.tipo||e.type||'não classificado'),frequencia:Number.isFinite(freq)?freq:null,frequenciaCampo:rawFreq===null||typeof rawFreq==='object'?'':String(rawFreq),frequenciaUnidade:String(e.frequencia_unidade||e.frequency_unit||e.unidade_frequencia||((e.frequencia_hz_bruta!==undefined||e.frequencia_hz!==undefined||e.frequency_hz!==undefined)?'Hz (campo declarado)':rawFreq!==null?'unidade não informada':'')),fonte:String(e.fonte||e.source||e.status_dado||e.origemDados||''),confianca:String(e.confianca||e.confidence||e.status_dado||'exemplo incorporado'),bruto:e};});
         CICLOS.arquivos=[{tipo:'dados incorporados no Worker',nome:'worker:ciclos/lista',regs,raw:r}];
         CICLOS.workerAviso=r.aviso||''; CICLOS.workerCarregado=true;
       }
