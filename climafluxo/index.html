@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="dark">
-<title>ALMAFLUXO · ClimaFluxo v16 — Navegação Integrada</title>
+<title>ALMAFLUXO · ClimaFluxo v17 — Observador</title>
 <style>
 :root{color-scheme:dark;--bg:#050d1a;--bg2:#0b2347;--p:#0a1a33;--p2:#07142a;--ln:#1b4a7a;--tx:#e8f1ff;--mu:#8fa8c8;--cy:#27c8ff;--gr:#2fd48a;--rd:#ff4d57;--am:#f0a830;--vi:#aa66ff;--serif:Georgia,"Times New Roman",serif;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
 *{box-sizing:border-box;margin:0}html,body{height:100%}
@@ -121,6 +121,41 @@ nav{gap:7px}nav button{border-radius:999px;transition:background .18s,border-col
 .ciclos-file{border:1px dashed var(--ln);padding:10px;border-radius:8px;margin:6px 0}
 .ciclos-file input{margin-top:5px}.ciclos-small{font-size:12px;color:var(--mu)}
 
+/* v17 · Observador — camada aditiva (não remove nada das versões anteriores) */
+:root{--vi2:#c9a6ff}
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(60vmax 40vmax at 15% -10%,rgba(39,200,255,.10),transparent 60%),radial-gradient(50vmax 40vmax at 100% 10%,rgba(170,102,255,.09),transparent 60%);animation:aur 18s ease-in-out infinite alternate}
+@keyframes aur{to{transform:translate3d(0,2%,0) scale(1.06);opacity:.8}}
+#campo{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.55}
+#app,#gate{position:relative;z-index:1}
+h1{background:linear-gradient(90deg,#fff,var(--cy) 60%,var(--vi2));-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:.5px}
+#v>.box,#v>.terra-card,#v>.manchete{animation:subir .45s cubic-bezier(.2,.7,.2,1) both}
+#v>*:nth-child(2){animation-delay:.05s}#v>*:nth-child(3){animation-delay:.1s}#v>*:nth-child(4){animation-delay:.15s}#v>*:nth-child(n+5){animation-delay:.2s}
+@keyframes subir{from{opacity:0;transform:translateY(10px)}}
+.terra-card{animation:resp 5s ease-in-out infinite}
+@keyframes resp{50%{box-shadow:0 0 34px rgba(39,200,255,.28)}}
+.c,.ciclos-kpi,.ind-tab{transition:transform .18s,border-color .18s,box-shadow .18s}
+.c:hover,.ind-tab:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.28)}
+::view-transition-old(root){animation:.18s ease both vt-out}::view-transition-new(root){animation:.28s ease both vt-in}
+@keyframes vt-out{to{opacity:0}}@keyframes vt-in{from{opacity:0}}
+body.modo-perigo::after{content:"";position:fixed;left:0;right:0;top:0;height:3px;z-index:60;background:linear-gradient(90deg,transparent,var(--rd),transparent);animation:pg 1.4s ease-in-out infinite}
+@keyframes pg{50%{opacity:.25}}
+.obs-strip{border:1px solid rgba(170,102,255,.35);background:linear-gradient(90deg,rgba(170,102,255,.10),rgba(39,200,255,.04));border-radius:12px;padding:9px 12px;margin-bottom:12px;font-family:var(--sans);font-size:12.5px;color:#d8ccff}
+.obs-top{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.obs-txt{flex:1;min-width:220px;line-height:1.45}
+.obs-tag{font-size:10px;font-weight:800;letter-spacing:1px;padding:3px 9px;border-radius:999px;border:1px solid;white-space:nowrap}
+.t-medido{color:var(--gr);border-color:rgba(47,212,138,.5);background:rgba(47,212,138,.12)}
+.t-modelo{color:var(--cy);border-color:rgba(39,200,255,.5);background:rgba(39,200,255,.12)}
+.t-hipotese{color:var(--am);border-color:rgba(240,168,48,.55);background:rgba(240,168,48,.12);animation:pm 2.4s infinite}
+.t-ia{color:var(--vi2);border-color:rgba(170,102,255,.5);background:rgba(170,102,255,.12)}
+@keyframes pm{50%{opacity:.6}}
+.obs-btn{font-size:12px;padding:5px 11px;border-radius:999px}
+.obs-pan{margin-top:9px;display:grid;gap:7px}.obs-pan textarea{width:100%;min-height:70px;background:#06101f;border:1px solid var(--ln);border-radius:8px;padding:8px;color:var(--tx)}
+.obs-pan[hidden]{display:none}
+.lab-k{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:10px 0}
+.lab-k div{border:1px solid var(--ln);border-radius:8px;padding:8px 10px;background:rgba(0,0,0,.2)}.lab-k small{display:block;color:var(--mu);font-size:10px;text-transform:uppercase;letter-spacing:.5px}.lab-k b{font-size:17px;color:var(--cy);font-variant-numeric:tabular-nums}
+.lab-in{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}.lab-in label{font-size:11px;color:var(--mu);display:grid;gap:3px}.lab-in input,.lab-in select{width:110px;margin:0}
+.lab-ok{color:var(--gr)}.lab-no{color:var(--rd)}
+.badge-real{animation:pm 2s infinite}.sweep{pointer-events:none}
+@media(prefers-reduced-motion:reduce){#campo{display:none}body::before,body::after,.terra-card,.t-hipotese,.badge-real{animation:none!important}}
 </style>
 </head>
 <body>
@@ -137,7 +172,7 @@ nav{gap:7px}nav button{border-radius:999px;transition:background .18s,border-col
 
 <div id="app" hidden>
   <header>
-    <h1>ALMAFLUXO<small>ClimaFluxo · 12 indicadores climáticos</small></h1>
+    <h1>ALMAFLUXO<small>ClimaFluxo · 12 indicadores · o observador interpreta</small></h1>
     <nav id="nav" role="tablist" aria-label="Seções"></nav>
   </header>
   <div id="v" role="region" aria-live="polite"></div>
@@ -2026,6 +2061,209 @@ async function vCiclos(){
     CICLOS.workerErro=e.message||'Não foi possível carregar dados do Worker';
   }
   cRender();
+}
+
+/* ═══ v17 · OBSERVADOR — camada aditiva ═══ */
+const RM = matchMedia('(prefers-reduced-motion:reduce)').matches;
+const LSO = k => 'clima_obs_' + k;
+const OBS_ABA = {
+  jornal:['modelo','Texto montado a partir de dados medidos + modelos internos. A manchete resume; o sentido é seu.'],
+  mundo:['modelo','Efeito ENSO por região usa coeficientes heurísticos, ainda não calibrados com reanálise. Leia como cenário, não como medição.'],
+  ind:['medido','Cada cartão mostra REAL ou SIMULADO. Só o que está marcado REAL vem de fonte medida.'],
+  mapa:['modelo','Onda do dominó é uma ilustração matemática (difusão entre vizinhos + senoide). Não é propagação física medida.'],
+  ciclos:['hipotese','Ciclos, fases e analogias são hipóteses/teorias. Nada aqui prevê eventos. O observador interpreta e valida.'],
+  proj:['modelo','Projeção por ensemble: mostra faixas e probabilidades, não certezas. Incerteza cresce com o horizonte.'],
+  tend:['medido','Séries históricas observadas. Correlação não prova causa — a leitura causal é do observador.'],
+  atend:['ia','Resposta gerada por IA a partir dos dados da plataforma. Confira antes de agir.'],
+};
+const ROT = {medido:'MEDIDO',modelo:'MODELO',hipotese:'HIPÓTESE',ia:'IA'};
+const ST = ['Ainda não interpretei','Aceito como dado','Aceito como modelo','Trato como hipótese','Descarto'];
+function obsGet(k){ try{return JSON.parse(localStorage.getItem(LSO(k))||'{}');}catch(e){return{};} }
+function obsSet(k,v){ try{localStorage.setItem(LSO(k),JSON.stringify(v));}catch(e){} }
+function obsStrip(){
+  const v=$('v'); if(!v||v.querySelector('.obs-strip')||!OBS_ABA[aba]) return;
+  const [t,tx]=OBS_ABA[aba], s=obsGet(aba), d=document.createElement('div');
+  d.className='obs-strip';
+  d.innerHTML=`<div class="obs-top"><span class="obs-tag t-${t}">${ROT[t]}</span><span class="obs-txt">${esc(tx)} <b>Quem interpreta e valida é o observador.</b></span><button class="obs-btn" type="button">✍️ Minha leitura${s.st?' · '+esc(ST[s.st]):''}</button></div><div class="obs-pan" hidden><label class="mu" style="font-size:11px">Como eu trato esta seção
+<select class="in" style="margin:4px 0 0">${ST.map((x,i)=>`<option value="${i}"${s.st==i?' selected':''}>${x}</option>`).join('')}</select></label><textarea placeholder="Minha análise, dúvidas, o que validei por conta própria…">${esc(s.nota||'')}</textarea><span class="mu" style="font-size:11px">Salvo só neste aparelho. A plataforma entrega números e limites; a conclusão é sua.</span></div>`;
+  v.prepend(d);
+  const pan=d.querySelector('.obs-pan'), sel=pan.querySelector('select'), ta=pan.querySelector('textarea'), bt=d.querySelector('.obs-btn');
+  bt.onclick=()=>{pan.hidden=!pan.hidden;};
+  const sv=()=>{obsSet(aba,{st:+sel.value,nota:ta.value});bt.textContent='✍️ Minha leitura'+(+sel.value?' · '+ST[+sel.value]:'');};
+  sel.onchange=sv; ta.oninput=sv;
+}
+function pos(){
+  const v=$('v'); if(!v) return;
+  obsStrip();
+  document.body.classList.toggle('modo-perigo',!!v.querySelector('.manchete.p10,.aviso.ruim'));
+  v.querySelectorAll('.box > h2').forEach(h=>{
+    if(h.dataset.v17) return;
+    if(/ONDA DO DOMIN/i.test(h.textContent)){
+      h.dataset.v17=1; h.insertAdjacentHTML('beforeend',' <span class="obs-tag t-modelo">ILUSTRAÇÃO MATEMÁTICA</span>');
+      const sv=h.parentElement.querySelector('svg.graf');
+      if(sv&&!RM){const vb=(sv.getAttribute('viewBox')||'0 0 600 240').split(/\s+/).map(Number),W=vb[2],H=vb[3];
+        sv.insertAdjacentHTML('beforeend',`<defs><linearGradient id="swg"><stop offset="0" stop-color="#27c8ff" stop-opacity="0"/><stop offset="1" stop-color="#27c8ff" stop-opacity=".35"/></linearGradient></defs><rect class="sweep" y="0" width="${W*.08}" height="${H}" fill="url(#swg)"><animate attributeName="x" from="0" to="${W}" dur="6s" repeatCount="indefinite"/></rect>`);}
+    }
+  });
+  extras();
+  v.querySelectorAll('.tab-cons .tag-real,.tag-real').forEach(t=>t.classList.add('badge-real'));
+}
+let _raf=0; new MutationObserver(()=>{cancelAnimationFrame(_raf);_raf=requestAnimationFrame(pos);}).observe($('v'),{childList:true,subtree:true});
+const _render=render;
+render=function(){ if(document.startViewTransition&&!RM) document.startViewTransition(()=>_render()); else _render(); };
+
+/* ── campo de partículas (leve, pausa quando a aba some) ── */
+(function(){ if(RM) return;
+  const c=document.createElement('canvas'); c.id='campo'; document.body.prepend(c);
+  const g=c.getContext('2d'); let W,H,P=[];
+  const rs=()=>{W=c.width=innerWidth;H=c.height=innerHeight;P=Array.from({length:Math.min(70,Math.round(W*H/22000))},()=>({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.4+.3,vx:(Math.random()-.5)*.12,vy:(Math.random()-.5)*.12}));};
+  rs(); addEventListener('resize',rs);
+  (function f(){ if(!document.hidden){ g.clearRect(0,0,W,H);
+    P.forEach(p=>{p.x=(p.x+p.vx+W)%W;p.y=(p.y+p.vy+H)%H;g.fillStyle='rgba(143,200,255,.55)';g.beginPath();g.arc(p.x,p.y,p.r,0,6.283);g.fill();});}
+    requestAnimationFrame(f);})();
+})();
+
+/* ═══ TESTE DE ALINHAMENTO (hipótese testável) ═══
+   Estatística: distância normalizada ao marco mais próximo, d∈[0,1] (0 = em cima do marco, 1 = meio do ciclo).
+   Nulo por ROTAÇÃO: mantém os eventos exatamente onde estão (inclusive o agrupamento em séculos recentes)
+   e desliza a âncora por S fases igualmente espaçadas do ciclo. Pergunta: esta âncora é especial entre todas as fases? */
+function rng(seed){ return function(){ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return((t^t>>>14)>>>0)/4294967296; }; }
+function distNorm(ano,anc,cic){ const f=((((ano-anc)%cic)+cic)%cic)/cic; return Math.min(f,1-f)*2; }
+function testeAlinh(anos,anc,cic,S){
+  const n=anos.length; if(n<5||!(cic>0)) return {ok:false,motivo:'Precisa de ≥5 eventos com ano e ciclo > 0.'};
+  const mn=Math.min(...anos), mx=Math.max(...anos), med=x=>x.reduce((s,a)=>s+distNorm(a,anc,cic),0)/n;
+  const obs=med(anos); let lo=0,hi=0,soma=0,q=0; const v=new Float64Array(S);
+  for(let k=0;k<S;k++){ const off=(k+.5)/S*cic; let s=0; for(let j=0;j<n;j++) s+=distNorm(anos[j],anc+off,cic); s/=n; v[k]=s; soma+=s; if(s<=obs) lo++; if(s>=obs) hi++; }
+  const m=soma/S, sd=Math.sqrt(v.reduce((a,b)=>a+(b-m)*(b-m),0)/S)||1e-9;
+  return {ok:true,n,obs,nulo:m,z:(obs-m)/sd,p:Math.min(1,2*Math.min((lo+1)/(S+1),(hi+1)/(S+1))),voltas:(mx-mn)/cic,span:[mn,mx]};
+}
+const CAND=[432,648,1000,1080,1200,1296,1500,2160];
+function rodaFase(anos,anc,cic){
+  const R=70,cx=90,cy=90; let s=`<svg viewBox="0 0 180 180" class="graf" style="max-width:240px" role="img" aria-label="Roda de fase dos eventos"><circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#1b4a7a"/><line x1="${cx}" y1="${cy-R-8}" x2="${cx}" y2="${cy-R+8}" stroke="#f0a830" stroke-width="2"/><text x="${cx}" y="10" fill="#f0a830" font-size="8" text-anchor="middle">marco (fase 0)</text><line x1="${cx}" y1="${cy-R}" x2="${cx}" y2="${cy+R}" stroke="#12335a" stroke-dasharray="2 3"/>`;
+  anos.forEach(a=>{const f=((((a-anc)%cic)+cic)%cic)/cic,t=f*6.2832-1.5708,d=distNorm(a,anc,cic);
+    s+=`<circle cx="${(cx+R*Math.cos(t)).toFixed(1)}" cy="${(cy+R*Math.sin(t)).toFixed(1)}" r="2.6" fill="${d<.25?'#2fd48a':d<.6?'#27c8ff':'#8fa8c8'}" fill-opacity=".8"/>`;});
+  return s+'</svg>';
+}
+function labAlinh(){
+  const ev=cDadosAgregados().filter(e=>Number.isFinite(e.ano)), fonte=ev.length>=5?'dados carregados':'linha histórica (C_HISTORICO)';
+  const anos=(ev.length>=5?ev:C_HISTORICO).map(e=>e.ano);
+  return `<div class="box" id="labAl"><h2>TESTE DE ALINHAMENTO <span class="obs-tag t-hipotese">HIPÓTESE TESTÁVEL</span></h2>
+  <p class="lead">Pergunta: os eventos caem mais perto dos marcos do ciclo do que cairiam por acaso? Fonte: <b>${fonte}</b> (${anos.length} eventos com ano).</p>
+  <div class="lab-in"><label>Ciclo (anos)<input class="in" id="lC" type="number" value="${CICLO_LONGO}"></label><label>Âncora (ano)<input class="in" id="lA" type="number" value="${CICLO_LONGO_ANO_REFERENCIA}"></label><label>Fases testadas<select class="in" id="lS"><option>2000</option><option selected>5000</option><option>20000</option></select></label><button class="p" id="lGo" type="button">Rodar teste</button><button id="lAud" type="button">Auditar cálculos</button></div>
+  <div id="lOut" class="mu" style="margin-top:10px">Defina os parâmetros e rode. O teste é determinístico: mesmos dados → mesmo resultado.</div></div>`;
+}
+function labRodar(){
+  const ev=cDadosAgregados().filter(e=>Number.isFinite(e.ano)), anos=(ev.length>=5?ev:C_HISTORICO).map(e=>e.ano);
+  const cic=+$('lC').value, anc=+$('lA').value, S=+$('lS').value;
+  const t0=performance.now(), r=testeAlinh(anos,anc,cic,S);
+  if(!r.ok){ $('lOut').innerHTML=`<div class="aviso ruim">${esc(r.motivo)}</div>`; return; }
+  conferirWorker(anos.slice(0,1000),anc,cic,S,r);
+  const fam=CAND.includes(cic)?CAND:CAND.concat(cic).sort((a,b)=>a-b);
+  const tab=fam.map(c=>{const x=testeAlinh(anos,anc,c,Math.min(S,5000));return {c,p:x.p,z:x.z,v:x.voltas};});
+  const k=tab.length, aj=Math.min(1,r.p*k), pouco=r.voltas<2;
+  const veredito=r.p<.05&&aj<.05?'Diferença numérica forte mesmo após corrigir pelos ciclos testados.':r.p<.05?'Diferença numérica que NÃO sobrevive à correção por múltiplos ciclos.':'Sem diferença numérica do acaso neste teste.';
+  $('lOut').innerHTML=`<div class="lab-k"><div><small>Eventos</small><b>${r.n}</b></div><div><small>Distância média</small><b>${(r.obs*100).toFixed(1)}%</b></div><div><small>Esperado ao acaso</small><b>${(r.nulo*100).toFixed(1)}%</b></div><div><small>z</small><b>${r.z.toFixed(2)}</b></div><div><small>p (bicaudal)</small><b>${r.p.toFixed(4)}</b></div><div><small>p corrigido (${k} ciclos)</small><b>${aj.toFixed(4)}</b></div></div>
+  <div class="row" style="align-items:flex-start;gap:16px">${rodaFase(anos,anc,cic)}<div style="flex:1;min-width:220px"><p class="lead"><b>${veredito}</b></p>
+  ${pouco?`<div class="aviso">Os dados cobrem só ${r.voltas.toFixed(2)} volta(s) do ciclo (${r.span[0]} → ${r.span[1]}). Com menos de 2 voltas o teste tem pouquíssimo poder.</div>`:''}
+  <table class="tab-cons"><tr><th>Ciclo</th><th>p</th><th>z</th></tr>${tab.map(x=>`<tr${x.c===cic?' style="color:var(--cy)"':''}><td>${x.c}</td><td>${x.p.toFixed(4)}</td><td>${x.z.toFixed(2)}</td></tr>`).join('')}</table></div></div>
+  <div class="guia"><b>Leitura do observador.</b> Este número só diz se esta âncora ajusta os eventos melhor que as demais fases do mesmo ciclo (o agrupamento dos eventos em séculos recentes é preservado). Ele <b>não</b> prova causa, <b>não</b> prevê eventos e depende de como a lista foi escolhida (viés de seleção) e da datação de cada evento. Testar vários ciclos e olhar só o melhor infla falsos positivos — por isso o p corrigido. Aceitar, descartar ou investigar é decisão sua. <span class="mu">(${S} fases · ${(performance.now()-t0).toFixed(0)} ms)</span></div>`;
+}
+/* ═══ BASELINE das analogias ═══ */
+function simData(ano,mes,dia,fut,angF){
+  const f=cFasesNaData(ano,mes,dia), a=cAnguloSolCG(ano,mes,dia).graus;
+  const d=cDistFaseCircular(fut.terra,f.terra)/.5*.15+cDistFaseCircular(fut.mercurio,f.mercurio)/.5*.25+cDistFaseCircular(fut.solar,f.solar)/.5*.35+Math.abs(angF-a)/180*.25;
+  return Math.max(0,Math.min(100,(1-d)*100));
+}
+const _bl={};
+function baseline(ano){
+  if(_bl[ano]) return _bl[ano];
+  const R=rng(ano*7+13), fut=cFasesNaData(ano,11,21), angF=cAnguloSolCG(ano,11,21).graus;
+  const ys=C_HISTORICO.map(e=>e.ano), mn=Math.min(...ys), mx=Math.max(...ys), N=C_HISTORICO.length;
+  const rnd=()=>simData(mn+Math.floor(R()*(mx-mn+1)),Math.floor(R()*12),1+Math.floor(R()*28),fut,angF);
+  const amostra=Array.from({length:1500},rnd), maxN=Array.from({length:400},()=>Math.max(...Array.from({length:N},rnd)));
+  const top=cAnalogiaHistorica(ano).map(m=>m.similaridade), sem=C_HISTORICO.filter(e=>(e.mes??0)===0&&(e.dia??1)===1).length;
+  return _bl[ano]={amostra,top,N,sem,pct:top.map(t=>amostra.filter(x=>x<t).length/amostra.length*100),pMax:maxN.filter(m=>m>=top[0]).length/maxN.length};
+}
+function baselineBox(ano){
+  const b=baseline(ano), bins=20, h=Array(bins).fill(0); b.amostra.forEach(x=>h[Math.min(bins-1,Math.floor(x/100*bins))]++);
+  const mxh=Math.max(...h), W=400, H=110;
+  let s=`<svg viewBox="0 0 ${W} ${H+18}" class="graf" role="img" aria-label="Distribuição da similaridade de datas aleatórias">`;
+  h.forEach((v,i)=>{const bh=v/mxh*H;s+=`<rect x="${i*W/bins+1}" y="${H-bh}" width="${W/bins-2}" height="${bh}" fill="#1f7bff" fill-opacity=".55"/>`;});
+  b.top.forEach((t,i)=>{const x=t/100*W;s+=`<line x1="${x}" x2="${x}" y1="0" y2="${H}" stroke="${i?'#f0a830':'#2fd48a'}" stroke-width="2"/><text x="${x}" y="${H+12}" fill="${i?'#f0a830':'#2fd48a'}" font-size="9" text-anchor="middle">eco ${i+1}: ${t.toFixed(0)}</text>`;});
+  return `<div class="box"><h2>BASELINE DAS ANALOGIAS <span class="obs-tag t-hipotese">HIPÓTESE</span></h2><p class="lead">Barras azuis: similaridade de 1.500 datas sorteadas contra ${ano}-12-21. Linhas: os ecos encontrados.</p>${s}</svg>
+  <div class="lab-k"><div><small>Percentil eco 1</small><b>${b.pct[0].toFixed(0)}</b></div><div><small>Percentil eco 2</small><b>${(b.pct[1]??0).toFixed(0)}</b></div><div><small>P(máx. de ${b.N} sorteios ≥ eco 1)</small><b>${(b.pMax*100).toFixed(0)}%</b></div></div>
+  <div class="guia"><b>Leitura do observador.</b> Escolher o melhor de ${b.N} registros sempre produz um número alto — por isso compare com o “melhor de ${b.N} sorteios”, não com 0–100. Além disso, Terra e ângulo Sol–Centro Galáctico (40% do peso) variam sobretudo com a época do ano, e ${b.sem} de ${b.N} registros usam 1º/jan como data-padrão. O índice é uma analogia de fases, não uma correlação com acontecimentos.</div></div>`;
+}
+/* ═══ AUDITORIA de cálculos (casos com resposta conhecida) ═══ */
+function auditar(){
+  const T=[], ok=(n,c,d)=>T.push([n,!!c,d]);
+  ok('Baktun 13 após 21/12/2012',cBaktun(2013).numero===13&&cBaktun(2012).numero===12,`2012→${cBaktun(2012).numero}, 2013→${cBaktun(2013).numero}`);
+  ok('Fase = 0 no período exato',cFase(365.2422,365.2422)===0&&Math.abs(cFase(182.6211,365.2422)-.5)<1e-9,'');
+  const a=cAnguloSolCG(2024,11,21).graus,b=cAnguloSolCG(2024,5,21).graus;
+  ok('Sol–Centro Galáctico: ~6° em 21/dez, >150° em 21/jun',a<10&&b>150,`${a.toFixed(1)}° / ${b.toFixed(1)}°`);
+  ok('Precessão ≈ 1° a cada 72 anos',Math.abs(cPrecessaoLinear(2072).graus-1)<1e-9,'');
+  const ex=testeAlinh(Array.from({length:40},(_,i)=>2012-1296*(i%4)+(i%5)),2012,1296,3000);
+  ok('Teste detecta eventos postos de propósito nos marcos',ex.ok&&ex.p<.01,`p=${ex.p?.toFixed(4)}`);
+  const R=rng(5),un=Array.from({length:60},()=>-3000+Math.floor(R()*5000)),nu=testeAlinh(un,2012,1296,3000);
+  ok('Anos sorteados ao acaso não disparam o teste',nu.ok&&nu.p>.01,`p=${nu.p?.toFixed(3)}`);
+  ok('Resultado determinístico (reprodutível)',testeAlinh(un,2012,1296,1000).p===testeAlinh(un,2012,1296,1000).p,'');
+  const mj=C_HISTORICO.filter(e=>(e.mes??0)===0&&(e.dia??1)===1).length;
+  T.push(['Datas-padrão (1º/jan) em C_HISTORICO',mj<C_HISTORICO.length/4,`${mj} de ${C_HISTORICO.length} — enfraquece componentes sazonais`]);
+  T.push(['Calendário','info','Datas anteriores a 1582 usam calendário gregoriano proléptico (JS Date). Diferença vs. juliano: dias a semanas.']);
+  return `<div class="guia"><b>Auditoria</b><table class="tab-cons">${T.map(([n,c,d])=>`<tr><td>${c==='info'?'ℹ️':c?'<span class="lab-ok">✔</span>':'<span class="lab-no">✘</span>'} ${esc(n)}</td><td class="mu">${esc(d)}</td></tr>`).join('')}</table></div>`;
+}
+const _cRender=cRender;
+cRender=function(){
+  _cRender();
+  const v=$('v'); if(!v) return;
+  if(CICLOS.vista==='validacao'){ v.insertAdjacentHTML('beforeend',labAlinh()); $('lGo').onclick=labRodar; $('lAud').onclick=()=>{$('lOut').innerHTML=auditar();}; }
+  else if(CICLOS.vista==='projecoes'){ const y=cGetYear(); setTimeout(()=>{ if(CICLOS.vista==='projecoes'&&!document.getElementById('blBox')){const w=document.createElement('div');w.id='blBox';w.innerHTML=baselineBox(y);v.appendChild(w);} },30); }
+  pos();
+};
+
+/* ═══ api: erro com referência (traceId) + checagem leve de contrato ═══ */
+const CONTRATOS={previsao:['atual'],projecao:['janelas'],mapa:['ok'],analise:['continentes'],tendencia:['ok']};
+const _api=api;
+api=async function(rota,corpo){
+  const j=await _api(rota,corpo);
+  if(j&&j.ok===false&&j.traceId) j.error=(j.error||'Falha')+' (ref. '+j.traceId+')';
+  const req=CONTRATOS[rota]; if(j&&j.ok&&req){const f=req.filter(k=>j[k]==null); if(f.length){console.warn('[contrato]',rota,'sem',f.join(','));j._avisos=f;}}
+  return j;
+};
+/* ═══ blocos extras por aba (carregam uma vez; falha silenciosa) ═══ */
+const _ex={};
+function extras(){
+  const v=$('v'); if(!v) return;
+  if(aba==='mundo'&&!v.querySelector('#sensBox')) sensib(v);
+  if(aba==='tend'&&!v.querySelector('#sspBox')) ssp(v);
+}
+function lugar(v,id,html){ if(v.querySelector('#'+id)) return; const d=document.createElement('div'); d.id=id; d.innerHTML=html; const s=v.querySelector('.obs-strip'); (s&&s.nextSibling)?v.insertBefore(d,s.nextSibling):v.appendChild(d); }
+async function sensib(v){
+  try{ if(!_ex.sens) _ex.sens=await api('sensibilidade',{}); const r=_ex.sens; if(!r||!r.ok||aba!=='mundo') return;
+    const ks=Object.keys(r.cenarios[0]).filter(k=>k!=='oni'&&k!=='Antártida'), cor=['#27c8ff','#2fd48a','#f0a830','#ff4d57','#aa66ff','#8fa8c8'], W=420,H=150,L=28;
+    const X=o=>L+(o+2)/4*(W-L-8), Y=p=>H-p/100*(H-12);
+    let s=`<svg viewBox="0 0 ${W} ${H+18}" class="graf" role="img" aria-label="Probabilidade de alta por ONI">`;
+    [0,50,100].forEach(p=>{s+=`<line x1="${L}" x2="${W-8}" y1="${Y(p)}" y2="${Y(p)}" stroke="#12335a"/><text x="2" y="${Y(p)+3}" fill="#8fa8c8" font-size="9">${p}%</text>`;});
+    r.cenarios.forEach(c=>{s+=`<text x="${X(c.oni)}" y="${H+12}" fill="#8fa8c8" font-size="9" text-anchor="middle">ONI ${c.oni}</text>`;});
+    ks.forEach((k,i)=>{s+=`<polyline fill="none" stroke="${cor[i%6]}" stroke-width="2" points="${r.cenarios.map(c=>X(c.oni)+','+Y(c[k].probAlta)).join(' ')}"/>`;});
+    s+='</svg>';
+    lugar(v,'sensBox',`<div class="box" id="sensBox"><h2>SENSIBILIDADE AO ONI <span class="obs-tag t-modelo">MODELO HEURÍSTICO</span></h2>${s}<div class="legenda">${ks.map((k,i)=>`<span><b style="background:${cor[i%6]}"></b>${esc(k)}</span>`).join('')}</div><div class="guia"><b>Leitura do observador.</b> ${esc(r.nota)} A curva mostra <i>como o modelo reage</i> ao ONI — não que o clima real reaja assim.</div></div>`);
+  }catch(e){}
+}
+async function ssp(v){
+  try{ if(!_ex.ssp) _ex.ssp=await api('cenarios-ssp',{ano:2100}); const r=_ex.ssp; if(!r||!r.ok||aba!=='tend') return;
+    const mx=6, W=420, rows=r.cenarios.map((c,i)=>{const y=8+i*26,x=t=>40+t/mx*(W-60);return `<text x="2" y="${y+11}" fill="#c5d8ee" font-size="10">${c.ssp.replace('SSP','')}</text><rect x="40" y="${y}" width="${x(c.temp2100)-40}" height="14" fill="#1f7bff" fill-opacity=".6" rx="3"/><line x1="${x(c.faixa_2081_2100[0])}" x2="${x(c.faixa_2081_2100[1])}" y1="${y+7}" y2="${y+7}" stroke="#f0a830" stroke-width="2"/><text x="${x(c.faixa_2081_2100[1])+4}" y="${y+11}" fill="#8fa8c8" font-size="9">${c.temp2100}°C (${c.faixa_2081_2100[0]}–${c.faixa_2081_2100[1]})</text>`;}).join('');
+    lugar(v,'sspBox',`<div class="box" id="sspBox"><h2>CENÁRIOS IPCC AR6 · 2081–2100 <span class="obs-tag t-modelo">CENÁRIO, NÃO PREVISÃO</span></h2><svg viewBox="0 0 ${W} ${r.cenarios.length*26+10}" class="graf" role="img" aria-label="Aquecimento por cenário SSP">${rows}</svg><div class="guia"><b>Leitura do observador.</b> ${esc(r.nota)}</div></div>`);
+  }catch(e){}
+}
+/* conferência cruzada: o worker recalcula o teste de alinhamento */
+async function conferirWorker(anos,anc,cic,S,local){
+  const o=$('lOut'); if(!o) return;
+  try{ const r=await api('ciclos/teste-alinhamento',{anos,ancora:anc,ciclo:cic,fases:S}); if(!r||!r.ok) return;
+    const igual=Math.abs(r.principal.p-local.p)<=Math.max(.01,local.p*.5), el=document.createElement('div');
+    el.className='aviso '+(igual?'ok':''); el.textContent=`Conferência no worker: p=${r.principal.p} (local ${local.p.toFixed(4)}) · p corrigido ${r.p_corrigido} para ${r.ciclos_testados} ciclos · ${igual?'resultados coincidem':'resultados divergem — investigue'}.`;
+    o.appendChild(el);
+  }catch(e){}
 }
 
 /* ══════════════════════════════════════════════════════
