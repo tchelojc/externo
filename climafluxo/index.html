@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="dark">
-<title>ALMAFLUXO · ClimaFluxo v17 — Observador</title>
+<title>ALMAFLUXO · ClimaFluxo v18 — Observatório × Laboratório</title>
 <style>
 :root{color-scheme:dark;--bg:#050d1a;--bg2:#0b2347;--p:#0a1a33;--p2:#07142a;--ln:#1b4a7a;--tx:#e8f1ff;--mu:#8fa8c8;--cy:#27c8ff;--gr:#2fd48a;--rd:#ff4d57;--am:#f0a830;--vi:#aa66ff;--serif:Georgia,"Times New Roman",serif;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
 *{box-sizing:border-box;margin:0}html,body{height:100%}
@@ -156,6 +156,30 @@ body.modo-perigo::after{content:"";position:fixed;left:0;right:0;top:0;height:3p
 .lab-ok{color:var(--gr)}.lab-no{color:var(--rd)}
 .badge-real{animation:pm 2s infinite}.sweep{pointer-events:none}
 @media(prefers-reduced-motion:reduce){#campo{display:none}body::before,body::after,.terra-card,.t-hipotese,.badge-real{animation:none!important}}
+/* v18 · Observatório × Laboratório + validação + simulação 3D */
+#modos{display:flex;gap:6px;padding:4px;border-radius:999px;background:rgba(6,16,31,.7);border:1px solid var(--ln);width:max-content;max-width:100%;margin:8px 0 6px}
+#modos button{border-radius:999px;padding:6px 14px;border:1px solid transparent;background:transparent;color:var(--mu);font-weight:700;font-size:12.5px}
+#modos button.on[data-modo=obs]{background:rgba(39,200,255,.16);border-color:rgba(39,200,255,.55);color:var(--cy)}
+#modos button.on[data-modo=lab]{background:rgba(170,102,255,.18);border-color:rgba(170,102,255,.6);color:var(--vi2)}
+body.modo-lab header{border-bottom:1px solid rgba(170,102,255,.45);box-shadow:0 8px 30px -18px rgba(170,102,255,.7)}
+body.modo-lab .obs-strip{border-color:rgba(170,102,255,.6)}
+.t-validacao{color:var(--gr);border-color:rgba(47,212,138,.55);background:rgba(47,212,138,.1)}
+.split2{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:12px}
+.split2>div{border:1px solid var(--ln);border-radius:10px;padding:10px;background:rgba(0,0,0,.2)}
+.split2 .m{border-color:rgba(47,212,138,.45)}.split2 .s{border-color:rgba(39,200,255,.4)}
+.split2 h3{font-size:11px;letter-spacing:1px;margin:0 0 6px;color:var(--mu)}
+.tb{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.tb th,.tb td{padding:5px 6px;border-bottom:1px solid #12335a;text-align:left}.tb th{color:var(--mu);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px}
+.pos{color:var(--gr)}.neg{color:var(--rd)}
+.bar-q{position:relative;height:14px;border-radius:7px;background:linear-gradient(90deg,#12335a 25%,#17406f 25% 50%,#1b4a7a 50% 75%,#22609a 75%);margin:8px 0 18px}
+.bar-q i{position:absolute;top:-4px;width:3px;height:22px;background:var(--am);border-radius:2px;box-shadow:0 0 8px var(--am)}
+.rel{border:1px solid var(--ln);border-radius:10px;padding:8px 10px;margin:6px 0;background:rgba(0,0,0,.18)}.rel b{color:var(--cy)}.rel textarea{width:100%;min-height:48px;margin-top:6px;background:#06101f;border:1px solid var(--ln);border-radius:8px;color:var(--tx);padding:6px}
+#s3wrap{position:relative;border:1px solid rgba(170,102,255,.45);border-radius:14px;overflow:hidden;background:#02040b;height:min(64vh,560px);min-height:340px;touch-action:none;box-shadow:0 0 60px -20px rgba(120,80,255,.6) inset}
+#s3wrap canvas{display:block;width:100%;height:100%}
+.lbl3d{position:absolute;left:0;top:0;transform:translate(-50%,-130%);font-size:10.5px;padding:2px 7px;border-radius:999px;background:rgba(2,8,20,.62);border:1px solid rgba(143,200,255,.35);color:#cfe6ff;white-space:nowrap;cursor:pointer;backdrop-filter:blur(3px)}
+.lbl3d.sel{border-color:var(--am);color:#fff}
+.s3bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}.s3bar input[type=range]{flex:1;min-width:180px}.s3bar select,.s3bar input[type=date]{width:auto;margin:0}
+.s3hud{position:absolute;left:10px;top:8px;font-size:11px;color:#9fc7ff;pointer-events:none;text-shadow:0 0 6px #000;line-height:1.5}
+.evbtn{font-size:11px;padding:4px 9px;border-radius:999px}
 </style>
 </head>
 <body>
@@ -172,7 +196,7 @@ body.modo-perigo::after{content:"";position:fixed;left:0;right:0;top:0;height:3p
 
 <div id="app" hidden>
   <header>
-    <h1>ALMAFLUXO<small>ClimaFluxo · 12 indicadores · o observador interpreta</small></h1>
+    <h1>ALMAFLUXO<small>ClimaFluxo · observatório e laboratório · o observador interpreta</small></h1>
     <nav id="nav" role="tablist" aria-label="Seções"></nav>
   </header>
   <div id="v" role="region" aria-live="polite"></div>
@@ -517,7 +541,7 @@ function atualizarEstadoDaTerra() {
       <div class="terra-grid">
         <div><div class="lbl">Entropia média</div><div class="val" style="color:${cor}">${entropia.toFixed(3)}</div></div>
         <div><div class="lbl">IPC médio</div><div class="val" style="color:var(--cy)">${ipc.toFixed(3)}</div></div>
-        <div><div class="lbl">Prob. subida</div><div class="val" style="color:${probMedia>0.6?'var(--gr)':probMedia<0.4?'var(--rd)':'var(--am)'}">${Math.round(probMedia*100)}%</div></div>
+        <div><div class="lbl">Prob. subida</div><div class="val" style="color:${probMedia>0.6?'var(--gr)':probMedia<0.4?'var(--rd)':'var(--am)'}">${pAprox(probMedia*100)}</div></div>
         <div><div class="lbl">Alertas</div><div class="val" style="color:${nAlerta>0?'var(--rd)':'var(--gr)'}">${nAlerta}</div></div>
         <div><div class="lbl">Em equilíbrio</div><div class="val" style="color:var(--gr)">${nOk}</div></div>
         <div><div class="lbl">Total</div><div class="val">${carregados.length}</div></div>
@@ -552,7 +576,7 @@ function renderTabelaConsolidada() {
     const semana = p.semana || {};
     const varTxt = j.variacao != null ? ((j.variacao >= 0 ? '+' : '') + j.variacao.toFixed(2) + '%') : '—';
     const entropia = a.entropia != null ? Number(a.entropia).toFixed(2) : '—';
-    const prob = a.probSubida != null ? Math.round(a.probSubida * 100) + '%' : '—';
+    const prob = a.probSubida != null ? pAprox(a.probSubida * 100) : '—';
     const tagReal = j.confianca === 'alta' ? 'tag-real' : j.confianca === 'baixa' ? 'tag-sim' : '';
     const tagRealTxt = j.confianca === 'alta' ? 'REAL' : j.confianca === 'baixa' ? 'SIM' : '—';
     const diaTxt = dia.alta != null ? `${Number(dia.alta).toFixed(ind.dec)} / ${Number(dia.baixa).toFixed(ind.dec)}` : '—';
@@ -626,7 +650,7 @@ function renderIndicador(id) {
             <div class="lbl">${p}</div>
             <div class="val" style="color:var(--gr)">▲ ${Number(d.alta).toFixed(ind.dec)}</div>
             <div class="val" style="color:var(--rd);font-size:13px">▼ ${Number(d.baixa).toFixed(ind.dec)}</div>
-            <div class="mu" style="font-size:11px;margin-top:2px">prob. alta ${Math.round((d.probAlta||0)*100)}%</div>
+            <div class="mu" style="font-size:11px;margin-top:2px">prob. alta ${pAprox((d.probAlta||0)*100)}</div>
           </div>`;
         }).join('')}
       </div>
@@ -905,7 +929,7 @@ async function vMundo() {
           const cor = probAlta >= 55 ? 'var(--rd)' : probAlta <= 45 ? 'var(--cy)' : 'var(--am)';
           return `<div class="c${n === cont ? ' on' : ''}" data-n="${esc(n)}" role="button" tabindex="0">
             <div class="lbl">${esc(n)}</div>
-            <div class="val">${probAlta}%</div>
+            <div class="val">${pAprox(probAlta)}</div>
             <div class="mu" style="font-size:11px;margin-top:2px">${nN(x.t, 20).toFixed(1)}°C · H ${nN(x.entropia, 0).toFixed(2)}</div>
             <div class="bar"><i style="width:${probAlta}%;background:${cor}"></i></div>
           </div>`;
@@ -921,7 +945,7 @@ async function vMundo() {
         <div><span>Fluxo</span><b>${nN(d.fluxo, 0).toFixed(1)}</b></div>
         <div><span>Delta</span><b>${nN(d.delta, 0).toFixed(0)}</b></div>
         <div><span>Marés</span><b>${nN(d.mares, 0).toFixed(2)} m (${esc(d.maresVar || '—')})</b></div>
-        <div><span>Prob. de alta</span><b>${nN(d.probAlta, 50)}%</b></div>
+        <div><span>Prob. de alta</span><b>${pAprox(nN(d.probAlta, 50))}</b></div>
         <div><span>Prob. de baixa</span><b>${nN(d.probBaixa, 50)}%</b></div>
       </div>
     </div>
@@ -2145,15 +2169,14 @@ function rodaFase(anos,anc,cic){
   return s+'</svg>';
 }
 function labAlinh(){
-  const ev=cDadosAgregados().filter(e=>Number.isFinite(e.ano)), fonte=ev.length>=5?'dados carregados':'linha histórica (C_HISTORICO)';
-  const anos=(ev.length>=5?ev:C_HISTORICO).map(e=>e.ano);
+  const {anos,fonte}=anosLab();
   return `<div class="box" id="labAl"><h2>TESTE DE ALINHAMENTO <span class="obs-tag t-hipotese">HIPÓTESE TESTÁVEL</span></h2>
   <p class="lead">Pergunta: os eventos caem mais perto dos marcos do ciclo do que cairiam por acaso? Fonte: <b>${fonte}</b> (${anos.length} eventos com ano).</p>
-  <div class="lab-in"><label>Ciclo (anos)<input class="in" id="lC" type="number" value="${CICLO_LONGO}"></label><label>Âncora (ano)<input class="in" id="lA" type="number" value="${CICLO_LONGO_ANO_REFERENCIA}"></label><label>Fases testadas<select class="in" id="lS"><option>2000</option><option selected>5000</option><option>20000</option></select></label><button class="p" id="lGo" type="button">Rodar teste</button><button id="lAud" type="button">Auditar cálculos</button></div>
+  <div class="lab-in"><label>Fonte<select class="in" id="lF" style="width:190px"><option value="auto">Eventos da plataforma</option><option value="nat">Catástrofes naturais catalogadas</option></select></label><label>Ciclo (anos)<input class="in" id="lC" type="number" value="${CICLO_LONGO}"></label><label>Âncora (ano)<input class="in" id="lA" type="number" value="${CICLO_LONGO_ANO_REFERENCIA}"></label><label>Fases testadas<select class="in" id="lS"><option>2000</option><option selected>5000</option><option>20000</option></select></label><button class="p" id="lGo" type="button">Rodar teste</button><button id="lAud" type="button">Auditar cálculos</button></div>
   <div id="lOut" class="mu" style="margin-top:10px">Defina os parâmetros e rode. O teste é determinístico: mesmos dados → mesmo resultado.</div></div>`;
 }
 function labRodar(){
-  const ev=cDadosAgregados().filter(e=>Number.isFinite(e.ano)), anos=(ev.length>=5?ev:C_HISTORICO).map(e=>e.ano);
+  const {anos,fonte:fonteLab}=anosLab();
   const cic=+$('lC').value, anc=+$('lA').value, S=+$('lS').value;
   const t0=performance.now(), r=testeAlinh(anos,anc,cic,S);
   if(!r.ok){ $('lOut').innerHTML=`<div class="aviso ruim">${esc(r.motivo)}</div>`; return; }
@@ -2166,7 +2189,7 @@ function labRodar(){
   <div class="row" style="align-items:flex-start;gap:16px">${rodaFase(anos,anc,cic)}<div style="flex:1;min-width:220px"><p class="lead"><b>${veredito}</b></p>
   ${pouco?`<div class="aviso">Os dados cobrem só ${r.voltas.toFixed(2)} volta(s) do ciclo (${r.span[0]} → ${r.span[1]}). Com menos de 2 voltas o teste tem pouquíssimo poder.</div>`:''}
   <table class="tab-cons"><tr><th>Ciclo</th><th>p</th><th>z</th></tr>${tab.map(x=>`<tr${x.c===cic?' style="color:var(--cy)"':''}><td>${x.c}</td><td>${x.p.toFixed(4)}</td><td>${x.z.toFixed(2)}</td></tr>`).join('')}</table></div></div>
-  <div class="guia"><b>Leitura do observador.</b> Este número só diz se esta âncora ajusta os eventos melhor que as demais fases do mesmo ciclo (o agrupamento dos eventos em séculos recentes é preservado). Ele <b>não</b> prova causa, <b>não</b> prevê eventos e depende de como a lista foi escolhida (viés de seleção) e da datação de cada evento. Testar vários ciclos e olhar só o melhor infla falsos positivos — por isso o p corrigido. Aceitar, descartar ou investigar é decisão sua. <span class="mu">(${S} fases · ${(performance.now()-t0).toFixed(0)} ms)</span></div>`;
+  <div class="guia"><b>Leitura do observador.</b> Fonte: ${esc(fonteLab)} (${anos.length} eventos). Este número só diz se esta âncora ajusta os eventos melhor que as demais fases do mesmo ciclo (o agrupamento dos eventos em séculos recentes é preservado). Ele <b>não</b> prova causa, <b>não</b> prevê eventos e depende de como a lista foi escolhida (viés de seleção) e da datação de cada evento. Testar vários ciclos e olhar só o melhor infla falsos positivos — por isso o p corrigido. Aceitar, descartar ou investigar é decisão sua. <span class="mu">(${S} fases · ${(performance.now()-t0).toFixed(0)} ms)</span></div>`;
 }
 /* ═══ BASELINE das analogias ═══ */
 function simData(ano,mes,dia,fut,angF){
@@ -2264,6 +2287,465 @@ async function conferirWorker(anos,anc,cic,S,local){
     el.className='aviso '+(igual?'ok':''); el.textContent=`Conferência no worker: p=${r.principal.p} (local ${local.p.toFixed(4)}) · p corrigido ${r.p_corrigido} para ${r.ciclos_testados} ciclos · ${igual?'resultados coincidem':'resultados divergem — investigue'}.`;
     o.appendChild(el);
   }catch(e){}
+}
+
+/* ═══ v18 · OBSERVATÓRIO × LABORATÓRIO · VALIDAÇÃO · JANELAS ═══ */
+const MODOS={obs:{nome:'🔭 Observatório',abas:['jornal','ind','proj','tend','atend']},lab:{nome:'🧪 Laboratório',abas:['mundo','terra','mapa','ciclos','janelas','valida','sim3d']}};
+ABAS.push(['terra','🌍 Terra'],['janelas','⏳ Janelas'],['valida','✅ Validação'],['sim3d','🌌 Simulação 3D']);
+OBS_ABA.mundo=['modelo','LABORATÓRIO · Efeito ENSO por região com coeficientes heurísticos. Os percentuais são aproximados (de 10 em 10) porque o modelo não é calibrado — veja a aba Validação.'];
+OBS_ABA.mapa[1]='LABORATÓRIO · '+OBS_ABA.mapa[1]; OBS_ABA.ciclos[1]='LABORATÓRIO · '+OBS_ABA.ciclos[1];
+OBS_ABA.janelas=['hipotese','LABORATÓRIO · A “janela” só vale se o backtest sobre sismos reais mostrar que a entropia separa o que antecede eventos grandes do acaso. O teste está nesta tela, com o resultado que ele der.'];
+OBS_ABA.terra=['modelo','LABORATÓRIO · Indicador descritivo de pressão humana, captação ilustrativa e janela de reconhecimento. A correlação com catástrofes NÃO está demonstrada — o teste de controle está nesta tela. Quem interpreta e valida é o observador.'];
+OBS_ABA.valida=['validacao','LABORATÓRIO · Os modelos do painel são postos à prova contra dados reais. Resultado ruim também é resultado; quem interpreta é o observador.'];
+OBS_ABA.sim3d=['modelo','LABORATÓRIO · Geometria calculada com elementos keplerianos do JPL (1800–2050). A geometria é fato calculado; o significado atribuído a ela é hipótese, e quem interpreta é o observador.'];
+ROT.validacao='VALIDAÇÃO';
+const modoDe=a=>MODOS.lab.abas.includes(a)?'lab':'obs';
+function aplicaModo(){
+  const m=modoDe(aba); document.body.classList.toggle('modo-lab',m==='lab');
+  document.querySelectorAll('#nav button[data-a]').forEach(b=>{b.style.display=MODOS[m].abas.includes(b.dataset.a)?'':'none';});
+  document.querySelectorAll('#modos button').forEach(b=>b.classList.toggle('on',b.dataset.modo===m));
+}
+function montaModos(){
+  const nav=$('nav'); if(!nav||$('modos')) return;
+  const d=document.createElement('div'); d.id='modos'; d.setAttribute('role','group'); d.setAttribute('aria-label','Modo');
+  d.innerHTML=Object.entries(MODOS).map(([k,m])=>`<button type="button" data-modo="${k}">${m.nome}</button>`).join('');
+  nav.parentNode.insertBefore(d,nav);
+  d.onclick=e=>{const k=e.target.dataset&&e.target.dataset.modo; if(!k||modoDe(aba)===k) return; aba=MODOS[k].abas[0]; if(aba==='mundo') ANALISE=null; render();};
+  aplicaModo();
+}
+const _ini=iniciar; iniciar=function(){ _ini(); montaModos(); aplicaModo(); };
+const _r17=render;
+render=function(){
+  simStop(); aplicaModo();
+  if(aba==='janelas'||aba==='valida'||aba==='sim3d'||aba==='terra'){
+    document.querySelectorAll('#nav button[data-a]').forEach(b=>{const on=b.dataset.a===aba;b.classList.toggle('on',on);b.setAttribute('aria-selected',on?'true':'false');});
+    ({janelas:vJanelas,valida:vValida,sim3d:vSim3D,terra:vTerra})[aba]();
+  } else _r17();
+};
+/* probabilidades sem falsa precisão */
+function pAprox(p){ return '~'+(Math.round(p/10)*10)+'%'; }
+/* ── Estado da Terra: medido × modelo separados ── */
+const _aet=atualizarEstadoDaTerra;
+atualizarEstadoDaTerra=function(){
+  _aet(); const card=document.querySelector('#terraBox .terra-card'); if(!card) return;
+  const car=INDICADORES.filter(i=>i.id!=='mundo'&&indDados[i.id]), med=car.filter(i=>indDados[i.id].confianca==='alta'), mod=car.filter(i=>indDados[i.id].confianca!=='alta');
+  const ag=l=>{const m=k=>{const v=l.map(i=>(indDados[i.id].analise||{})[k]).filter(x=>x!=null);return v.length?v.reduce((a,b)=>a+b,0)/v.length:null;};return {e:m('entropia'),p:m('probSubida')};};
+  const bloco=(cls,tit,l,desc)=>{const a=ag(l);return `<div class="${cls}"><h3>${tit} · ${l.length}</h3><div class="lab-k" style="grid-template-columns:1fr 1fr;margin:4px 0"><div><small>Entropia média</small><b>${a.e==null?'—':a.e.toFixed(2)}</b></div><div><small>Tendência de subida</small><b>${a.p==null?'—':pAprox(a.p*100)}</b></div></div><div class="mu" style="font-size:11px">${l.length?l.map(i=>i.emoji+' '+esc(i.nome)).join(' · '):'nenhum carregado ainda'}</div><div class="mu" style="font-size:11px;margin-top:4px">${desc}</div></div>`;};
+  const h=card.querySelector('h2'); if(h&&!h.dataset.v18){h.dataset.v18=1;h.insertAdjacentHTML('beforeend',' <span class="obs-tag t-hipotese">MISTURA MEDIDO + MODELO</span>');}
+  card.querySelector('.split2')?.remove();
+  card.insertAdjacentHTML('beforeend',`<div class="split2">${bloco('m','🟢 SÓ MEDIDOS',med,'Sensores/APIs públicas (confiança alta).')}${bloco('s','🔵 SÓ MODELOS',mod,'Modelo interno ou fonte indisponível. Não é medição.')}</div><div class="guia"><b>Leitura do observador.</b> O resumo acima mistura os dois grupos e por isso é difícil de interpretar. Os blocos separados mostram cada um por si; o índice “Mundo” (série 1970–2023 escalada pela entropia do ENSO) é um modelo e fica fora das duas contas.</div>`);
+};
+/* ═══ CATÁLOGO DE MOMENTOS NATURAIS (relatos documentados; o observador decide o peso de cada um) ═══ */
+const CAT_NAT=[
+ {id:'536',ano:536,nome:'Véu de poeira de 536 (provável erupção)',tipo:'vulcão',ind:'vulcao',conf:'estimado'},
+ {id:'1257',ano:1257,nome:'Erupção do Samalas (Lombok)',tipo:'vulcão',ind:'vulcao',conf:'documentado'},
+ {id:'1315',ano:1315,nome:'Grande Fome europeia (chuvas 1315–1317)',tipo:'clima',ind:null,conf:'documentado'},
+ {id:'1347',ano:1347,nome:'Peste Negra chega à Europa',tipo:'pandemia',ind:null,conf:'documentado'},
+ {id:'1600',ano:1600,mes:1,dia:19,nome:'Erupção do Huaynaputina (Peru)',tipo:'vulcão',ind:'vulcao',conf:'documentado'},
+ {id:'1755',ano:1755,mes:10,dia:1,nome:'Terremoto e tsunami de Lisboa',tipo:'sismo',ind:'sismos',conf:'documentado'},
+ {id:'1815',ano:1815,mes:3,dia:10,nome:'Erupção do Tambora (“ano sem verão”, 1816)',tipo:'vulcão',ind:'vulcao',conf:'documentado'},
+ {id:'1883',ano:1883,mes:7,dia:27,nome:'Erupção do Krakatoa',tipo:'vulcão',ind:'vulcao',conf:'documentado'},
+ {id:'1900',ano:1900,mes:8,dia:8,nome:'Furacão de Galveston',tipo:'furacão',ind:'furacao',conf:'documentado'},
+ {id:'1960',ano:1960,mes:4,dia:22,nome:'Terremoto de Valdivia (M9,5)',tipo:'sismo',ind:'sismos',conf:'documentado'},
+ {id:'1970',ano:1970,mes:10,dia:12,nome:'Ciclone de Bhola',tipo:'furacão',ind:'furacao',conf:'documentado'},
+ {id:'1991',ano:1991,mes:5,dia:15,nome:'Erupção do Pinatubo',tipo:'vulcão',ind:'vulcao',conf:'documentado'},
+ {id:'2004',ano:2004,mes:11,dia:26,nome:'Terremoto e tsunami de Sumatra–Andaman (M9,1)',tipo:'sismo',ind:'sismos',conf:'documentado'},
+ {id:'2011',ano:2011,mes:2,dia:11,nome:'Terremoto e tsunami de Tōhoku (M9,1)',tipo:'sismo',ind:'sismos',conf:'documentado'}];
+function anosLab(){
+  const f=$('lF')?$('lF').value:'auto';
+  if(f==='nat') return {anos:CAT_NAT.map(e=>e.ano),fonte:'catástrofes naturais catalogadas ('+CAT_NAT.length+')'};
+  const ev=cDadosAgregados().filter(e=>Number.isFinite(e.ano)), ok=ev.length>=5;
+  return {anos:(ok?ev:C_HISTORICO).map(e=>e.ano),fonte:ok?'dados carregados':'linha histórica (C_HISTORICO)'};
+}
+/* ═══ VALIDAÇÃO ═══ */
+const sk=v=>`<span class="${v>0.005?'pos':'neg'}">${(v*100).toFixed(1)}%</span>`;
+function vValida(){
+  $('v').innerHTML=`<div class="box"><h2>1 · ENSO: coeficiente heurístico × calibrado</h2><p class="lead">Efeito do ONI na temperatura mensal de 8 cidades (ERA5 via Open-Meteo, 1991→hoje), calibrado em 1991–2009 e testado em 2010→hoje.</p><button class="p" id="bcE" type="button">Rodar calibração</button><div id="oE" class="mu" style="margin-top:10px"></div></div>
+  <div class="box"><h2>2 · Backtest das projeções do painel</h2><p class="lead">Em cada ponto da série, a projeção usa só o passado e é comparada com o que aconteceu. Referência: repetir o último valor.</p><div class="lab-in"><label>Indicador<select class="in" id="bI"><option value="elnino">El Niño (ONI mensal)</option><option value="sismos">Sismos (contagem diária USGS)</option><option value="solar">Fluxo solar (30 dias)</option><option value="tempGlobal">Temp. global (anual)</option></select></label><button class="p" id="bcB" type="button">Rodar backtest</button></div><div id="oB" class="mu" style="margin-top:10px"></div></div>
+  <div class="box"><h2>3 · Padrões repetidos na série <span class="obs-tag t-hipotese">HIPÓTESE</span></h2><p class="lead">Janelas que se repetem na série, contra séries sintéticas com a mesma memória (AR1). Séries suaves repetem “por construção”; o que conta é o excesso sobre o surrogate.</p><div class="lab-in"><label>Série<select class="in" id="pF"><option value="oni">ONI (NOAA, desde 1950)</option><option value="sismos">Sismos/dia (USGS, 1500 dias)</option></select></label><label>Janela<input class="in" id="pW" type="number" value="8" min="4" max="32"></label><button class="p" id="bcP" type="button">Detectar</button></div><div id="oP" class="mu" style="margin-top:10px"></div></div>`;
+  const rodar=async(btn,out,rota,corpo,fmt)=>{btn.disabled=true;out.textContent='Calculando…';try{const j=await api(rota,corpo);out.innerHTML=j&&j.ok?fmt(j):`<div class="aviso ruim">${esc((j&&j.error)||'Falha')}</div>`;}catch(e){out.innerHTML='<div class="aviso ruim">Falha de rede</div>';}btn.disabled=false;pos();};
+  $('bcE').onclick=()=>rodar($('bcE'),$('oE'),'calibracao-enso',{},j=>`<table class="tb"><tr><th>Cidade</th><th>Heurístico °C/ONI</th><th>Calibrado (IC95)</th><th>Lag</th><th>R² parc.</th><th>Skill heur.</th><th>Skill calib.</th></tr>${j.cidades.map(c=>c.erro?`<tr><td>${esc(c.cidade)}</td><td colspan="6" class="mu">${esc(c.erro)}</td></tr>`:`<tr><td>${esc(c.cidade)}</td><td>${c.efeito_heuristico_C_por_ONI}</td><td>${c.efeito_calibrado_C_por_ONI} [${c.ic95[0]}; ${c.ic95[1]}]</td><td>${c.lag_meses} m</td><td>${(c.r2_parcial*100).toFixed(0)}%</td><td>${sk(c.holdout.skill_heuristico)}</td><td>${sk(c.holdout.skill_calibrado)}</td></tr>`).join('')}</table><div class="guia"><b>Leitura do observador.</b> O calibrado superou o heurístico em ${j.calibrado_melhor_em} de ${j.n_ok} cidades. Skill positivo = melhora sobre ignorar o ENSO; negativo = piora. ${esc(j.nota)}</div>`);
+  $('bcB').onclick=()=>rodar($('bcB'),$('oB'),'backtest',{tipo:$('bI').value},j=>{const l=(p,t)=>!p.ok?`<tr><td>${t}</td><td colspan="5" class="mu">${esc(p.error)}</td></tr>`:`<tr><td>${t}</td><td>${p.n}</td><td>${p.mae_modelo}</td><td>${p.mae_ingenuo}</td><td>${sk(p.skill_mae)}</td><td>${(p.cobertura_faixa*100).toFixed(0)}%</td></tr>`;return `<p class="mu" style="font-size:12px">Fonte: ${esc(j.fonte)} · passo real: ${esc(j.passo_real)} · janela móvel: ${j.janela_usada||'expansiva'}</p><table class="tb"><tr><th>Horizonte</th><th>Origens</th><th>Erro modelo</th><th>Erro “repetir último”</th><th>Skill</th><th>Dentro da faixa</th></tr>${l(j.passo1,'1 passo')}${l(j.passo7,'7 passos')}</table><div class="guia"><b>Leitura do observador.</b> Skill positivo = a projeção do painel erra menos que simplesmente repetir o último valor. ${esc(j.nota)}</div>`;});
+  $('bcP').onclick=()=>rodar($('bcP'),$('oP'),'padroes/detectar',{fonte:$('pF').value,janela:+$('pW').value},j=>`<div class="lab-k"><div><small>Pontos</small><b>${j.n}</b></div><div><small>Repetições</small><b>${j.repeticoes}</b></div><div><small>Esperado (AR1)</small><b>${j.esperado_surrogate}</b></div><div><small>z</small><b>${j.z}</b></div><div><small>p</small><b>${j.p}</b></div><div><small>Autocorr. lag 1</small><b>${j.autocorr_lag1}</b></div></div><div class="guia"><b>Leitura do observador.</b> ${esc(j.nota)} Fonte: ${esc(j.fonte)}.</div>`);
+  pos();
+}
+/* ═══ JANELAS ═══ */
+let _jan=null;
+async function vJanelas(){
+  $('v').innerHTML='<div class="box"><h2>⏳ JANELAS DE ATENÇÃO</h2><p class="mu">Calculando sobre o catálogo sísmico USGS (2000→hoje)…</p></div>';
+  let j=_jan; if(!j){try{j=await api('janelas',{});}catch(e){j={ok:false,error:'Falha de rede'};} if(j&&j.ok)_jan=j;}
+  if(aba!=='janelas') return;
+  if(!j||!j.ok){ $('v').innerHTML=`<div class="box"><h2>⏳ JANELAS DE ATENÇÃO</h2><div class="aviso ruim">${esc((j&&j.error)||'Falha')}</div></div>`; pos(); return; }
+  const a=j.agora, pc=x=>(x*100).toFixed(1)+'%', q=j.limites_quartil, base=j.taxa_base, bi=j.taxa_base_ic95;
+  const alvo=j.evidencia?{t:a.taxa_quartil,ic:a.ic95,rot:'taxa histórica no quartil de entropia atual'}:{t:base,ic:bi,rot:'taxa-base (a entropia não acrescentou informação)'};
+  const mx=Math.max(...j.serie.map(s=>s.e),.01),W=420,H=100,N=j.serie.length;
+  const linha=j.serie.slice().reverse().map((s,i)=>`${(i/(N-1)*W).toFixed(1)},${(H-s.e/mx*(H-8)).toFixed(1)}`).join(' ');
+  const pos0=Math.max(0,Math.min(100,a.percentil));
+  $('v').innerHTML=`<div class="box"><h2>⏳ JANELAS DE ATENÇÃO <span class="obs-tag t-hipotese">HIPÓTESE TESTADA</span></h2>
+  <p class="lead">Pergunta: a entropia (cálculo já existente no painel) da contagem diária de sismos M≥5,5 nos últimos ${j.W} dias antecede um sismo M≥7,0 nos próximos ${j.H} dias melhor que o acaso? Catálogo: ${j.eventos_catalogo} eventos · ${j.n_origens} origens avaliáveis.</p>
+  <div class="lab-k"><div><small>Entropia agora</small><b>${a.entropia.toFixed(3)}</b></div><div><small>Percentil histórico</small><b>${a.percentil}</b></div><div><small>Taxa-base (${j.H} d)</small><b>${pc(base)}</b></div><div><small>AUC entropia</small><b>${j.auc_entropia}</b></div><div><small>AUC só contagem</small><b>${j.auc_contagem}</b></div><div><small>p (permutação)</small><b>${j.p_permutacao}</b></div></div>
+  <div class="bar-q" title="quartis históricos de entropia"><i style="left:calc(${pos0}% - 1px)"></i></div><div class="mu" style="font-size:11px;margin-top:-12px">quartis de entropia: ${q.join(' · ')} — marcador = agora</div>
+  <div class="guia" style="border-color:${j.evidencia?'var(--am)':'var(--ln)'}"><b>${j.evidencia?'O teste encontrou associação histórica.':'O teste NÃO encontrou respaldo para uma janela baseada em entropia.'}</b> AUC=0,5 é o acaso; aqui ${j.auc_entropia}, com p=${j.p_permutacao} (deslocamentos circulares, que preservam a autocorrelação). ${j.auc_contagem>=j.auc_entropia?'A simples contagem de sismos separa tanto quanto a entropia ou mais.':''} ${a.elegivel?'':'<b>Atenção:</b> houve sismo M≥7 nos últimos '+j.W+' dias — fase de réplicas, fora do domínio do teste.'}</div>
+  <div class="lab-k"><div style="grid-column:span 2"><small>Janela: próximos ${j.H} dias · P(≥1 sismo M≥7)</small><b>${pc(alvo.t)} <span style="font-size:11px;color:var(--mu)">[${pc(alvo.ic[0])}; ${pc(alvo.ic[1])}]</span></b><small style="text-transform:none">${alvo.rot}</small></div></div>
+  <table class="tb"><tr><th>Quartil de entropia</th><th>Origens</th><th>Com sismo ≥7</th><th>Taxa [IC95]</th></tr>${j.quartis.map(x=>`<tr${x.quartil===a.quartil?' style="color:var(--cy)"':''}><td>Q${x.quartil}${x.quartil===a.quartil?' ← agora':''}</td><td>${x.n}</td><td>${x.eventos}</td><td>${pc(x.taxa)} [${pc(x.ic95[0])}; ${pc(x.ic95[1])}]</td></tr>`).join('')}</table>
+  <svg viewBox="0 0 ${W} ${H+16}" class="graf" role="img" aria-label="Entropia nos últimos 3 anos"><polyline fill="none" stroke="#aa66ff" stroke-width="1.6" points="${linha}"/><text x="2" y="${H+12}" fill="#8fa8c8" font-size="9">≈ 3 anos atrás</text><text x="${W-4}" y="${H+12}" fill="#8fa8c8" font-size="9" text-anchor="end">hoje</text></svg>
+  <div class="guia"><b>Leitura do observador.</b> ${esc(j.nota)} Mesmo quando há associação, ela descreve o passado e não é previsão: um sismo M≥7 ocorre em média a cada ~3 semanas no mundo, e o painel não localiza nem data nenhum evento.</div></div>
+  ${motorBox(j.motor)}
+  <div class="box"><h2>RELATOS × MOMENTO ATUAL <span class="obs-tag t-hipotese">LEITURA DO OBSERVADOR</span></h2><p class="lead">Momentos naturais documentados na história. Para cada um, o painel mostra o indicador correspondente hoje — comparar é decisão sua; o painel não afirma que o presente “se parece” com o passado.</p>${linhaRelatos()}<div id="relLista">${CAT_NAT.map(relCard).join('')}</div></div>`;
+  document.querySelectorAll('#relLista .rel').forEach(el=>{
+    const id=el.dataset.id,ta=el.querySelector('textarea');ta.value=(obsGet('rel_'+id).nota)||'';ta.oninput=()=>obsSet('rel_'+id,{nota:ta.value});
+    const bt=el.querySelector('button[data-ind]'); if(bt) bt.onclick=async()=>{bt.disabled=true;const r=await carregarIndicador(bt.dataset.ind,true).catch(()=>null);const z=el.querySelector('.estado');const a=r&&r.analise;z.innerHTML=a?`Hoje (${esc(r.fonte||'')}): entropia <b>${a.entropia}</b> · tendência ${pAprox((a.probSubida||.5)*100)} · confiança <b>${esc(r.confianca||'—')}</b>`:'indicador indisponível';bt.disabled=false;};
+  });
+  pos();
+}
+function linhaRelatos(){
+  const a0=500,a1=2030,W=420,H=54,X=y=>8+(y-a0)/(a1-a0)*(W-16), hoje=new Date().getUTCFullYear();
+  return `<svg viewBox="0 0 ${W} ${H}" class="graf" role="img" aria-label="Linha do tempo dos relatos"><line x1="8" x2="${W-8}" y1="30" y2="30" stroke="#1b4a7a"/>${CAT_NAT.map((e,i)=>`<circle cx="${X(e.ano)}" cy="30" r="4" fill="${e.conf==='documentado'?'#27c8ff':'#f0a830'}"/><text x="${X(e.ano)}" y="${i%2?46:18}" fill="#8fa8c8" font-size="8" text-anchor="middle">${e.ano}</text>`).join('')}<line x1="${X(hoje)}" x2="${X(hoje)}" y1="20" y2="40" stroke="#ff4d57" stroke-width="2"/><text x="${X(hoje)-2}" y="12" fill="#ff4d57" font-size="8" text-anchor="end">agora</text></svg>`;
+}
+function relCard(e){ const ind=e.ind?INDICADORES.find(i=>i.id===e.ind):null;
+  return `<div class="rel" data-id="${e.id}"><b>${e.ano}</b> · ${esc(e.nome)} <span class="obs-tag ${e.conf==='documentado'?'t-medido':'t-hipotese'}">${e.conf.toUpperCase()}</span> <span class="mu" style="font-size:11px">${esc(e.tipo)}</span>${ind?` <button class="evbtn" data-ind="${ind.id}" type="button">${ind.emoji} ver ${esc(ind.nome)} hoje</button><div class="estado mu" style="font-size:12px;margin-top:4px"></div>`:'<div class="mu" style="font-size:11px">Sem indicador correspondente no painel.</div>'}<textarea placeholder="Minha leitura deste relato…"></textarea></div>`; }
+
+function motorBox(mo){
+  if(!mo) return '';
+  const s=mo.pct_status;
+  return `<div class="box"><h2>👁️ OLHO DE DEUS SOBRE SISMOS REAIS <span class="obs-tag t-validacao">TESTE DO MOTOR</span></h2>
+  <p class="lead">Apliquei o motor do Olho de Deus (IPC, margem, dSdt e janela, com as fórmulas do worker e a autoescala do modo gráfico) à mesma contagem diária de sismos, em ${mo.n_origens} origens, e perguntei se ele separa o que antecede um sismo M≥7 do acaso.</p>
+  <div class="lab-k"><div><small>“CATÁSTROFE φ”</small><b>${s.catastrofe}%</b></div><div><small>“TENSÃO φ”</small><b>${s.tensao}%</b></div><div><small>“COMPRESSÃO”</small><b>${s.compressao}%</b></div><div><small>“EQUILÍBRIO”</small><b>${s.equilibrio}%</b></div><div><small>Janela = 1 período</small><b>${mo.pct_janela_igual_1}%</b></div><div><small>AUC do IPC (p)</small><b>${mo.auc_ipc} (${mo.p_ipc})</b></div><div><small>AUC da janela (p)</small><b>${mo.auc_janela} (${mo.p_janela})</b></div></div>
+  <div class="guia"><b>Leitura do observador.</b> O motor foi desenhado para linhas traçadas e gráficos de preço. O IPC é a variação da linha relativa à altura do quadro, dividida por um fator que depende do número de pontos; o “status” muda com o formato e o comprimento da janela, não com uma pressão medida. Em séries sintéticas sem estrutura (30 pontos), “CATÁSTROFE φ” aparece em ~29% dos ruídos brancos, ~69% dos passeios aleatórios e ~99% das tendências com ruído. A margem do motor nunca é negativa (vai de 0 a 0,628), então “margem negativa = extinção” não existe no cálculo. E a janela fica no mínimo (1 período) na grande maioria dos casos, por usar a curvatura em pixels. Aqui, com sismos reais, o resultado acima é o que o motor entrega; AUC próximo de 0,5 com p alto significa que ele não separa do acaso.</div></div>`;
+}
+
+/* ═══ v19 · SIMULAÇÃO 3D · EFEMÉRIDES EXATAS · CORREÇÕES ═══ */
+/* ═══ EFEMÉRIDES (JPL · Keplerian elements for approximate positions, 1800–2050 AD) ═══
+   Solução exata da equação de Kepler (Newton) — sem tabelas de seno aproximadas.
+   Precisão típica: poucos minutos de arco para 1800–2050. Fora dessa faixa o erro cresce. */
+const D2R=Math.PI/180;
+const EPH_EL={
+ 'Mercúrio':[0.38709927,0.00000037,0.20563593,0.00001906,7.00497902,-0.00594749,252.25032350,149472.67411175,77.45779628,0.16047689,48.33076593,-0.12534081],
+ 'Vênus':[0.72333566,0.00000390,0.00677672,-0.00004107,3.39467605,-0.00078890,181.97909950,58517.81538729,131.60246718,0.00268329,76.67984255,-0.27769418],
+ 'Terra':[1.00000261,0.00000562,0.01671123,-0.00004392,-0.00001531,-0.01294668,100.46457166,35999.37244981,102.93768193,0.32327364,0,0],
+ 'Marte':[1.52371034,0.00001847,0.09339410,0.00007882,1.84969142,-0.00813131,-4.55343205,19140.30268499,-23.94362959,0.44441088,49.55953891,-0.29257343],
+ 'Júpiter':[5.20288700,-0.00011607,0.04838624,-0.00013253,1.30439695,-0.00183714,34.39644051,3034.74612775,14.72847983,0.21252668,100.47390909,0.20469106],
+ 'Saturno':[9.53667594,-0.00125060,0.05386179,-0.00050991,2.48599187,0.00193609,49.95424423,1222.49362201,92.59887831,-0.41897216,113.66242448,-0.28867794],
+ 'Urano':[19.18916464,-0.00196176,0.04725744,-0.00004397,0.77263783,-0.00242939,313.23810451,428.48202785,170.95427630,0.40805281,74.01692503,0.04240589],
+ 'Netuno':[30.06992276,0.00026291,0.00859048,0.00005105,1.77004347,0.00035372,-55.12002969,218.45945325,44.96476227,-0.32241464,131.78422574,-0.00508664]};
+const EPH_EXTRA={}; // termos b,c,s,f pertencem à Tabela 2 (3000 a.C.–3000 d.C.); a Tabela 1 (1800–2050) não os usa
+const EPH_NOMES=Object.keys(EPH_EL);
+function ephJD(ms){return ms/864e5+2440587.5;}
+function ephT(jd){return (jd-2451545)/36525;}
+function ephHelio(nome,T){
+  const e=EPH_EL[nome],a=e[0]+e[1]*T,ec=e[2]+e[3]*T,I=(e[4]+e[5]*T)*D2R,L=e[6]+e[7]*T,w=e[8]+e[9]*T,O=(e[10]+e[11]*T)*D2R;
+  let M=L-w; const x=EPH_EXTRA[nome]; if(x) M+=x[0]*T*T+x[1]*Math.cos(x[3]*T*D2R)+x[2]*Math.sin(x[3]*T*D2R);
+  M=((M+180)%360+360)%360-180; const Mr=M*D2R; let E=Mr+ec*Math.sin(Mr);
+  for(let i=0;i<12;i++){const d=(E-ec*Math.sin(E)-Mr)/(1-ec*Math.cos(E));E-=d;if(Math.abs(d)<1e-12)break;}
+  const xp=a*(Math.cos(E)-ec),yp=a*Math.sqrt(1-ec*ec)*Math.sin(E),om=(w-(e[10]+e[11]*T))*D2R,co=Math.cos(om),so=Math.sin(om),cO=Math.cos(O),sO=Math.sin(O),cI=Math.cos(I),sI=Math.sin(I);
+  return [(co*cO-so*sO*cI)*xp+(-so*cO-co*sO*cI)*yp,(co*sO+so*cO*cI)*xp+(-so*sO+co*cO*cI)*yp,(so*sI)*xp+(co*sI)*yp];
+}
+const PRECESSAO=T=>(1.396971+0.0003086*T)*T;   // graus: eclíptica J2000 → data
+const norm360=x=>((x%360)+360)%360;
+function ephGeo(nome,T,earth){ // longitude/latitude geocêntricas (J2000) e distância
+  const p=nome==='Sol'?[0,0,0]:ephHelio(nome,T),r=[p[0]-earth[0],p[1]-earth[1],p[2]-earth[2]],d=Math.hypot(r[0],r[1],r[2]);
+  return {lon:norm360(Math.atan2(r[1],r[0])/D2R),lat:Math.asin(r[2]/d)/D2R,dist:d};
+}
+function ephEstado(ms){
+  const T=ephT(ephJD(ms)),terra=ephHelio('Terra',T),P=PRECESSAO(T),corpos={};
+  ['Sol'].concat(EPH_NOMES.filter(n=>n!=='Terra')).forEach(n=>{const g=ephGeo(n,T,terra),h=n==='Sol'?[0,0,0]:ephHelio(n,T);corpos[n]={helio:h,lonJ2000:g.lon,lonData:norm360(g.lon+P),lat:g.lat,dist:g.dist,r:Math.hypot(h[0],h[1],h[2])};});
+  corpos['Terra']={helio:terra,r:Math.hypot(terra[0],terra[1],terra[2])};
+  return {T,ms,corpos,precessao:P};
+}
+// Centro Galáctico (Sgr A*) em coordenadas eclípticas J2000
+const GC_LON=266.8405,GC_LAT=-5.6077;
+function gcVetor(){const l=GC_LON*D2R,b=GC_LAT*D2R;return [Math.cos(b)*Math.cos(l),Math.cos(b)*Math.sin(l),Math.sin(b)];}
+function anguloSolGC(est){const s=est.corpos['Sol'],g=ephGeo('Sol',est.T,est.corpos['Terra'].helio),l=g.lon*D2R,b=g.lat*D2R,u=[Math.cos(b)*Math.cos(l),Math.cos(b)*Math.sin(l),Math.sin(b)],c=gcVetor();return Math.acos(Math.max(-1,Math.min(1,u[0]*c[0]+u[1]*c[1]+u[2]*c[2])))/D2R;}
+// Aspectos (longitude eclíptica; precessão se cancela nas diferenças)
+const ASP=[{n:'conjunção',a:0,o:8,c:'#ffd27a'},{n:'sextil',a:60,o:5,c:'#27c8ff'},{n:'quadratura',a:90,o:7,c:'#f0a830'},{n:'trígono',a:120,o:7,c:'#2fd48a'},{n:'oposição',a:180,o:8,c:'#ff4d57'}];
+const CORPOS_ASP=['Sol','Mercúrio','Vênus','Marte','Júpiter','Saturno','Urano','Netuno'];
+function aspectosDe(est){
+  const out=[];
+  for(let i=0;i<CORPOS_ASP.length;i++)for(let j=i+1;j<CORPOS_ASP.length;j++){
+    let d=Math.abs(est.corpos[CORPOS_ASP[i]].lonJ2000-est.corpos[CORPOS_ASP[j]].lonJ2000);if(d>180)d=360-d;
+    for(const a of ASP){const dv=Math.abs(d-a.a);if(dv<=a.o)out.push({p1:CORPOS_ASP[i],p2:CORPOS_ASP[j],asp:a,orb:dv,forca:1-dv/a.o});}
+  }
+  return out;
+}
+// Linha de base: quantos aspectos (e que força total) aparecem em datas sorteadas 1800–2050? (determinístico)
+let _baseAsp=null;
+function baselineAspectos(){
+  if(_baseAsp)return _baseAsp; let s=2024;const R=()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};
+  const a=Date.UTC(1800,0,1),b=Date.UTC(2050,0,1),n=[],f=[];
+  for(let i=0;i<1500;i++){const ms=a+R()*(b-a),A=aspectosDe(ephEstado(ms));n.push(A.length);f.push(A.reduce((x,y)=>x+y.forca,0));}
+  const st=v=>{const m=v.reduce((x,y)=>x+y,0)/v.length,sd=Math.sqrt(v.reduce((x,y)=>x+(y-m)**2,0)/v.length),o=v.slice().sort((x,y)=>x-y);return {m,sd,o};};
+  return _baseAsp={n:st(n),f:st(f)};
+}
+function percentilDe(o,v){let k=0;while(k<o.length&&o[k]<=v)k++;return k/o.length*100;}
+
+/* ── correção: ângulo Sol–CG com precessão tratada ──
+   O original compara o Sol (equatorial DA DATA) com o CG (J2000): o erro cresce ~1,4° por século
+   (≈9° em 1347, dezenas de graus na antiguidade). Aqui a longitude do Sol é levada para J2000 antes da comparação. */
+const _cAnguloSolCG_v16=cAnguloSolCG;
+function anguloSolCGJ2000(ano,mes,dia){
+  const jd=cUtcMillis(ano,mes,dia,0,0,0)/86400000+2440587.5,n=jd-2451545.0,T=n/36525;
+  const L=((280.460+0.9856474*n)%360+360)%360,g=((357.528+0.9856003*n)%360+360)%360*D2R;
+  const lamData=L+1.915*Math.sin(g)+0.020*Math.sin(2*g),lam=(lamData-PRECESSAO(T))*D2R,c=gcVetor();
+  return Math.acos(Math.max(-1,Math.min(1,Math.cos(lam)*c[0]+Math.sin(lam)*c[1])))/D2R;
+}
+cAnguloSolCG=function(ano,mes,dia){ const o=_cAnguloSolCG_v16(ano,mes,dia); o.grausV16=o.graus; o.graus=anguloSolCGJ2000(ano,mes??0,dia??1); return o; };
+/* ── auditoria estendida ── */
+const _aud=auditar;
+auditar=function(){
+  const R=[], ok=(n,c,d)=>R.push([n,c,d]), U=(y,m,d,h,mi)=>Date.UTC(y,m-1,d,h||0,mi||0), er=(l,a)=>((l-a+540)%360)-180;
+  [[2024,3,20,3,6,0],[2024,6,20,20,51,90],[2024,9,22,12,44,180],[2024,12,21,9,21,270],[2025,3,20,9,1,0],[2025,12,21,15,3,270]].forEach(([y,m,d,h,mi,al])=>{const l=ephEstado(U(y,m,d,h,mi)).corpos['Sol'].lonData;ok(`Efeméride: λ☉ no equinócio/solstício ${d}/${m}/${y}`,Math.abs(er(l,al))<0.05,`erro ${er(l,al).toFixed(3)}°`);});
+  ok('Periélio 2024-01-03: distância Terra–Sol',Math.abs(ephEstado(U(2024,1,3,12)).corpos['Terra'].r-0.9833)<0.0005,ephEstado(U(2024,1,3,12)).corpos['Terra'].r.toFixed(5)+' UA');
+  [['Júpiter',2023,11,3],['Saturno',2024,9,8],['Marte',2025,1,16],['Netuno',2024,9,21]].forEach(([p,y,m,d])=>{const s=ephEstado(U(y,m,d,12)),dl=er(s.corpos[p].lonData,s.corpos['Sol'].lonData+180);ok(`Oposição de ${p} em ${d}/${m}/${y}`,Math.abs(dl)<0.7,`Δ ${dl.toFixed(2)}° (precisão dos elementos JPL para planetas externos)`);});
+  [[2024,5,21],[2024,11,21],[1900,5,15],[1815,3,10]].forEach(([y,m,d])=>{const e=anguloSolGC(ephEstado(U(y,m+1,d,0))),n=anguloSolCGJ2000(y,m,d),v=_cAnguloSolCG_v16(y,m,d).graus;ok(`Ângulo Sol–CG em ${d}/${m+1}/${y}: efeméride × fórmula corrigida`,Math.abs(e-n)<2.5,`${e.toFixed(2)}° × ${n.toFixed(2)}° (fórmula antiga: ${v.toFixed(2)}°)`);});
+  const f1347=anguloSolCGJ2000(1347,0,1),v1347=_cAnguloSolCG_v16(1347,0,1).graus;ok('Correção de precessão (1347): antiga × corrigida',true,`${v1347.toFixed(1)}° → ${f1347.toFixed(1)}° (diferença ${Math.abs(v1347-f1347).toFixed(1)}°)`);
+  const b=baselineAspectos();ok('Linha de base de aspectos (1.500 datas, 1800–2050)',true,`${b.n.m.toFixed(1)} ± ${b.n.sd.toFixed(1)} aspectos por data (acaso geométrico)`);
+  return _aud().replace('</table></div>',R.map(([n,c,d])=>`<tr><td>${c?'<span class="lab-ok">✔</span>':'<span class="lab-no">✘</span>'} ${esc(n)}</td><td class="mu">${esc(d)}</td></tr>`).join('')+'</table></div>');
+};
+/* ── baseline sem componentes sazonais (extensão do v17) ── */
+const _bbx=baselineBox;
+baselineBox=function(ano){
+  const html=_bbx(ano); try{
+    const fut=cFasesNaData(ano,11,21),R=rng(ano*11+5),sem=(a,m,d)=>{const f=cFasesNaData(a,m,d);return (1-(cDistFaseCircular(fut.mercurio,f.mercurio)/.5*.25+cDistFaseCircular(fut.solar,f.solar)/.5*.35)/.6)*100;};
+    const sc=C_HISTORICO.map(e=>({e,s:sem(e.ano,e.mes??0,e.dia??1)})).sort((a,b)=>b.s-a.s).slice(0,2),ys=C_HISTORICO.map(e=>e.ano),mn=Math.min(...ys),mx=Math.max(...ys),N=C_HISTORICO.length;
+    let ge=0;for(let t=0;t<300;t++){let m=0;for(let i=0;i<N;i++)m=Math.max(m,sem(mn+Math.floor(R()*(mx-mn+1)),Math.floor(R()*12),1+Math.floor(R()*28)));if(m>=sc[0].s)ge++;}
+    const x=`<div class="guia"><b>Sem a influência da época do ano</b> (só Mercúrio e ciclo solar, pesos renormalizados): eco 1 = ${sc[0].e.ano} (${sc[0].s.toFixed(0)}), eco 2 = ${sc[1].e.ano} (${sc[1].s.toFixed(0)}). Chance de o melhor de ${N} datas sorteadas fazer ao menos isso: <b>${(ge/3).toFixed(0)}%</b>. Quanto mais alto, menos especial é o eco.</div>`;
+    return html.replace(/<\/div>\s*$/,x+'</div>');
+  }catch(e){return html;}
+};
+/* ═══ SIMULAÇÃO 3D ═══ */
+let SIM3D=null;
+const SIM_MIN=Date.UTC(1800,0,1),SIM_MAX=Date.UTC(2050,11,31);
+const VISUAL={'Sol':{r:1.15,cor:'#ffd27a'},'Mercúrio':{r:.16,cor:'#b9b3a8'},'Vênus':{r:.26,cor:'#e8cda2'},'Terra':{r:.29,cor:'#3b8bff'},'Marte':{r:.21,cor:'#d1583b'},'Júpiter':{r:.78,cor:'#d9b38c'},'Saturno':{r:.66,cor:'#e3d3a1'},'Urano':{r:.42,cor:'#8fe3e8'},'Netuno':{r:.4,cor:'#4a6bff'}};
+const escalaR=r=>3*Math.sqrt(r);                       // escala radial comprimida (ângulos reais)
+function posVis(h){const r=Math.hypot(h[0],h[1],h[2])||1e-9,k=escalaR(r)/r;return [h[0]*k,h[2]*k,-h[1]*k];}   // eclíptica → Y para cima
+function simStop(){ if(!SIM3D) return; SIM3D.parar=true; cancelAnimationFrame(SIM3D.raf); SIM3D.ac.abort(); try{SIM3D.ro&&SIM3D.ro.disconnect();SIM3D.renderer&&SIM3D.renderer.dispose();}catch(e){} SIM3D=null; }
+function carregaThree(){ return window.THREE?Promise.resolve(true):new Promise(res=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';s.onload=()=>res(!!window.THREE);s.onerror=()=>res(false);document.head.appendChild(s);setTimeout(()=>res(!!window.THREE),9000);}); }
+const fmtData=ms=>new Date(ms).toISOString().slice(0,16).replace('T',' ')+' UTC';
+const NOMES_ASP=CORPOS_ASP;
+function vSim3D(){
+  const evs=CAT_NAT.filter(e=>e.mes!=null&&Date.UTC(e.ano,e.mes,e.dia)>=SIM_MIN&&Date.UTC(e.ano,e.mes,e.dia)<=SIM_MAX);
+  $('v').innerHTML=`<div class="box"><h2>🌌 SIMULAÇÃO 3D DO SISTEMA SOLAR <span class="obs-tag t-modelo">GEOMETRIA CALCULADA</span></h2>
+  <div id="s3wrap"><div class="s3hud" id="s3hud"></div></div>
+  <div class="s3bar"><button class="p" id="s3play" type="button">▶ Tocar</button><select class="in" id="s3vel" aria-label="Velocidade"><option value="1">1 dia/s</option><option value="10" selected>10 dias/s</option><option value="30">30 dias/s</option><option value="120">120 dias/s</option><option value="365">1 ano/s</option></select><input type="date" class="in" id="s3data" min="1800-01-01" max="2050-12-31"><button id="s3hoje" type="button">Hoje</button><button id="s3cam" type="button">Câmera ⟲</button></div>
+  <input type="range" id="s3sl" min="0" max="${Math.round((SIM_MAX-SIM_MIN)/864e5)}" step="1" style="width:100%" aria-label="Data">
+  <div class="s3bar">${evs.map(e=>`<button class="evbtn" data-ev="${e.id}" type="button">${e.ano} · ${esc(e.nome.split('(')[0].trim())}</button>`).join('')}</div>
+  <div class="guia"><b>Como ler.</b> Posições heliocêntricas reais (elementos keplerianos do JPL, 1800–2050; Sol ±0,01°, planetas externos ≤0,6° nos testes). A distância ao Sol usa escala √r para caber na tela — os <b>ângulos são reais</b>. Arraste para girar, role/pince para zoom, toque num nome para focar. As linhas coloridas são aspectos (diferença de longitude eclíptica dentro do orbe). Eventos anteriores a 1800 ficam fora da faixa de precisão e não têm botão.</div></div>
+  <div class="box"><h2>ALINHAMENTOS NESTA DATA <span class="obs-tag t-hipotese">HIPÓTESE</span></h2><div id="s3asp"></div></div>
+  <div class="box"><h2>±1 ANO DE ALINHAMENTOS × ACASO</h2><div id="s3str"></div></div>
+  <div class="box"><h2>ALINHAMENTOS NOS DIAS DE CATÁSTROFE (1800–2050)</h2><div id="s3ev"></div></div>`;
+  const ac=new AbortController(); SIM3D={ac,ms:Date.now(),vel:RM?0:10,tocando:!RM,theta:-1.15,phi:1.12,dist:34,alvo:[0,0,0],alvoNovo:null,foco:null,ultimoHud:0,ultimoStr:0,ultimaStrMs:null,ocioso:0,parar:false};
+  $('s3vel').onchange=e=>{SIM3D.vel=+e.target.value;};
+  const play=$('s3play'),setPlay=v=>{SIM3D.tocando=v;play.textContent=v?'⏸ Pausar':'▶ Tocar';};setPlay(SIM3D.tocando);
+  play.onclick=()=>setPlay(!SIM3D.tocando);
+  const setMs=ms=>{SIM3D.ms=Math.max(SIM_MIN,Math.min(SIM_MAX,ms));SIM3D.sync=true;};
+  $('s3hoje').onclick=()=>setMs(Date.now());
+  $('s3cam').onclick=()=>{SIM3D.theta=-1.15;SIM3D.phi=1.12;SIM3D.dist=34;SIM3D.alvoNovo=[0,0,0];SIM3D.foco=null;};
+  $('s3data').onchange=e=>{const t=Date.parse(e.target.value+'T12:00:00Z');if(isFinite(t))setMs(t);};
+  let rafSl=0;$('s3sl').oninput=e=>{cancelAnimationFrame(rafSl);const v=+e.target.value;rafSl=requestAnimationFrame(()=>setMs(SIM_MIN+v*864e5));};
+  document.querySelectorAll('[data-ev]').forEach(b=>b.onclick=()=>{const e=CAT_NAT.find(x=>x.id===b.dataset.ev);setPlay(false);setMs(Date.UTC(e.ano,e.mes,e.dia,12));});
+  evTeste(evs);
+  carregaThree().then(ok=>{ if(!SIM3D||SIM3D.ac!==ac) return; ok?iniciar3D():iniciar2D(); });
+  document.addEventListener('visibilitychange',()=>{if(SIM3D)SIM3D.oculto=document.hidden;},{signal:ac.signal});
+  pos();
+}
+function evTeste(evs){
+  const b=baselineAspectos(),el=$('s3ev'); if(!el||!evs.length) return;
+  const f=evs.map(e=>{const A=aspectosDe(ephEstado(Date.UTC(e.ano,e.mes,e.dia,12)));return {e,n:A.length,f:A.reduce((s,a)=>s+a.forca,0)};});
+  const mn=f.reduce((s,x)=>s+x.f,0)/f.length,mp=f.reduce((s,x)=>s+x.n,0)/f.length,z=(mn-b.f.m)/(b.f.sd/Math.sqrt(f.length));
+  el.innerHTML=`<table class="tb"><tr><th>Evento</th><th>Aspectos no dia</th><th>Força total</th><th>Percentil (acaso)</th></tr>${f.map(x=>`<tr><td>${x.e.ano} · ${esc(x.e.nome.split('(')[0].trim())}</td><td>${x.n}</td><td>${x.f.toFixed(2)}</td><td>${percentilDe(b.f.o,x.f).toFixed(0)}</td></tr>`).join('')}</table>
+  <div class="lab-k"><div><small>Média nos ${f.length} eventos</small><b>${mp.toFixed(1)} · ${mn.toFixed(2)}</b></div><div><small>Média em datas aleatórias</small><b>${b.n.m.toFixed(1)} · ${b.f.m.toFixed(2)}</b></div><div><small>z (força)</small><b>${z.toFixed(2)}</b></div></div>
+  <div class="guia"><b>Leitura do observador.</b> Com ${f.length} eventos e ${b.f.o.length} datas de referência, ${Math.abs(z)<2?'a força média dos alinhamentos nos dias de catástrofe é indistinguível de uma data qualquer':'há diferença numérica, mas com amostra tão pequena e escolha manual dos eventos ela não sustenta conclusão'}. Aspectos entre 8 planetas são comuns: em qualquer dia aparecem ~${b.n.m.toFixed(0)}.</div>`;
+}
+function hudTexto(est){
+  const A=aspectosDe(est),b=baselineAspectos(),f=A.reduce((s,a)=>s+a.forca,0),sg=anguloSolGC(est);
+  const el=$('s3asp'); if(el) el.innerHTML=`<div class="lab-k"><div><small>Aspectos agora</small><b>${A.length}</b></div><div><small>Em data aleatória</small><b>${b.n.m.toFixed(1)} ± ${b.n.sd.toFixed(1)}</b></div><div><small>Percentil (força)</small><b>${percentilDe(b.f.o,f).toFixed(0)}</b></div><div><small>Sol–Centro Galáctico</small><b>${sg.toFixed(1)}°</b></div></div>
+  <table class="tb"><tr><th>Corpo</th><th>λ (tropical)</th><th>Dist. Terra</th><th>Dist. Sol</th></tr>${CORPOS_ASP.map(n=>{const c=est.corpos[n];return `<tr><td>${n}</td><td>${c.lonData.toFixed(2)}°</td><td>${c.dist.toFixed(3)} UA</td><td>${c.r.toFixed(3)} UA</td></tr>`;}).join('')}</table>
+  ${A.length?`<table class="tb" style="margin-top:8px"><tr><th>Par</th><th>Aspecto</th><th>Orbe</th></tr>${A.sort((x,y)=>y.forca-x.forca).slice(0,10).map(a=>`<tr><td>${a.p1} – ${a.p2}</td><td style="color:${a.asp.c}">${a.asp.n}</td><td>${a.orb.toFixed(1)}°</td></tr>`).join('')}</table>`:'<p class="mu">Nenhum aspecto dentro do orbe.</p>'}
+  <div class="guia"><b>Leitura do observador.</b> Aspectos entre 8 corpos aparecem o tempo todo; quantos há agora, comparado ao acaso geométrico, é o dado. O que isso significa é interpretação sua.</div>`;
+}
+function stripAnual(ms){
+  const el=$('s3str'); if(!el) return; const b=baselineAspectos(),N=73,pts=[];
+  for(let i=0;i<N;i++){const t=ms+(i-36)*10*864e5;if(t<SIM_MIN||t>SIM_MAX){pts.push(null);continue;}pts.push(aspectosDe(ephEstado(t)).reduce((s,a)=>s+a.forca,0));}
+  const W=420,H=90,mx=Math.max(b.f.m+3*b.f.sd,...pts.filter(x=>x!=null)),Y=v=>H-v/mx*(H-6),X=i=>i/(N-1)*W;
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H+14}" class="graf" role="img" aria-label="Força de alinhamento ±1 ano"><rect x="0" y="${Y(b.f.m+b.f.sd)}" width="${W}" height="${Y(b.f.m-b.f.sd)-Y(b.f.m+b.f.sd)}" fill="#1f7bff" fill-opacity=".18"/><line x1="0" x2="${W}" y1="${Y(b.f.m)}" y2="${Y(b.f.m)}" stroke="#27c8ff" stroke-dasharray="3 3"/><polyline fill="none" stroke="#aa66ff" stroke-width="1.8" points="${pts.map((v,i)=>v==null?'':X(i).toFixed(1)+','+Y(v).toFixed(1)).filter(Boolean).join(' ')}"/><line x1="${X(36)}" x2="${X(36)}" y1="0" y2="${H}" stroke="#f0a830" stroke-width="2"/><text x="2" y="${H+11}" fill="#8fa8c8" font-size="9">−1 ano</text><text x="${W-2}" y="${H+11}" fill="#8fa8c8" font-size="9" text-anchor="end">+1 ano</text></svg>
+  <div class="mu" style="font-size:11px">Faixa azul = média ± 1 desvio de uma data qualquer (1.500 datas, 1800–2050). Linha roxa = força total dos aspectos. Os picos passam da faixa regularmente — é a geometria normal do sistema solar.</div>`;
+}
+function iniciar3D(){
+  const S=SIM3D,wrap=$('s3wrap'); if(!wrap||!S) return;
+  const T3=window.THREE,sig={signal:S.ac.signal};
+  let renderer; try{renderer=new T3.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});}catch(e){return iniciar2D();}
+  S.renderer=renderer; renderer.setPixelRatio(Math.min(devicePixelRatio||1,2)); renderer.setClearColor(0x02040b,1); wrap.prepend(renderer.domElement);
+  const scene=new T3.Scene(),cam=new T3.PerspectiveCamera(48,1,.1,900);
+  const tex=(w,h,fn)=>{const c=document.createElement('canvas');c.width=w;c.height=h;fn(c.getContext('2d'),w,h);return new T3.CanvasTexture(c);};
+  const glow=cor=>tex(128,128,(g,w,h)=>{const r=g.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);r.addColorStop(0,cor+'ff');r.addColorStop(.22,cor+'99');r.addColorStop(1,cor+'00');g.fillStyle=r;g.fillRect(0,0,w,h);});
+  let sd=7;const rnd=()=>{sd=(sd*16807)%2147483647;return sd/2147483647;};
+  const bandas=(base,cores)=>tex(256,128,(g,w,h)=>{g.fillStyle=base;g.fillRect(0,0,w,h);for(let y=0;y<h;y+=3){g.fillStyle=cores[Math.floor(rnd()*cores.length)];g.globalAlpha=.35;g.fillRect(0,y,w,2+rnd()*4);}g.globalAlpha=1;});
+  const terraTex=tex(256,128,(g,w,h)=>{g.fillStyle='#1d5fd1';g.fillRect(0,0,w,h);for(let i=0;i<46;i++){g.fillStyle=rnd()<.7?'#3c8f4e':'#a98a5a';g.globalAlpha=.85;g.beginPath();g.ellipse(rnd()*w,h*.15+rnd()*h*.7,6+rnd()*20,4+rnd()*10,rnd()*3,0,6.28);g.fill();}g.globalAlpha=.55;g.fillStyle='#fff';for(let i=0;i<30;i++)g.fillRect(rnd()*w,rnd()*h,10+rnd()*30,2);g.globalAlpha=1;});
+  const texs={'Terra':terraTex,'Júpiter':bandas('#caa27a',['#8c5b3a','#e8d3b0','#b57b50']),'Saturno':bandas('#dccb96',['#b59b66','#efe2b8']),'Marte':bandas('#c0502f',['#8a3a22','#d98a62']),'Vênus':bandas('#e3c79a',['#cfa66e','#f1dfbd']),'Urano':bandas('#86dbe0',['#6fc4cb','#a8eef2']),'Netuno':bandas('#3f62e6',['#2c47b8','#6d8bff'])};
+  scene.add(new T3.AmbientLight(0x30384f,1.1)); const luz=new T3.PointLight(0xfff0d0,2.4,0,1.6);scene.add(luz);
+  // estrelas
+  {const n=2400,p=new Float32Array(n*3),c=new Float32Array(n*3);for(let i=0;i<n;i++){const u=rnd()*2-1,t=rnd()*6.283,r=Math.sqrt(1-u*u),R=320+rnd()*60;p[i*3]=R*r*Math.cos(t);p[i*3+1]=R*u;p[i*3+2]=R*r*Math.sin(t);const b=.35+rnd()*.65,tc=rnd();c[i*3]=b*(.8+.2*tc);c[i*3+1]=b*.9;c[i*3+2]=b*(1-.2*tc);}const g=new T3.BufferGeometry();g.setAttribute('position',new T3.BufferAttribute(p,3));g.setAttribute('color',new T3.BufferAttribute(c,3));scene.add(new T3.Points(g,new T3.PointsMaterial({size:1.5,sizeAttenuation:false,vertexColors:true,transparent:true,opacity:.9,depthWrite:false})));}
+  // Sol
+  const sol=new T3.Mesh(new T3.SphereGeometry(VISUAL['Sol'].r,48,32),new T3.MeshBasicMaterial({color:0xffd27a}));scene.add(sol);
+  const g1=new T3.Sprite(new T3.SpriteMaterial({map:glow('#ffb347'),blending:T3.AdditiveBlending,depthWrite:false,transparent:true}));g1.scale.set(7,7,1);scene.add(g1);
+  const g2=new T3.Sprite(new T3.SpriteMaterial({map:glow('#ff8a3d'),blending:T3.AdditiveBlending,depthWrite:false,transparent:true,opacity:.5}));g2.scale.set(16,16,1);scene.add(g2);
+  // planetas, órbitas, rastros
+  const corpos={},T0=ephT(ephJD(S.ms));
+  EPH_NOMES.forEach(n=>{
+    const v=VISUAL[n],mat=new T3.MeshStandardMaterial({map:texs[n]||null,color:texs[n]?0xffffff:new T3.Color(v.cor),roughness:.85,metalness:0,emissive:new T3.Color(v.cor),emissiveIntensity:.06});
+    const m=new T3.Mesh(new T3.SphereGeometry(v.r,32,20),mat);scene.add(m);
+    if(n==='Terra'){const h=new T3.Sprite(new T3.SpriteMaterial({map:glow('#4fb3ff'),blending:T3.AdditiveBlending,depthWrite:false,transparent:true}));h.scale.set(1.5,1.5,1);m.add(h);}
+    if(n==='Saturno'){const an=new T3.Mesh(new T3.RingGeometry(v.r*1.35,v.r*2.2,64),new T3.MeshBasicMaterial({color:0xcdbb8a,side:T3.DoubleSide,transparent:true,opacity:.75}));an.rotation.x=Math.PI/2-.45;m.add(an);}
+    const P=365.25*Math.pow(EPH_EL[n][0],1.5),orb=[];for(let i=0;i<=200;i++){const h=ephHelio(n,T0+i/200*P/36525),q=posVis(h);orb.push(new T3.Vector3(q[0],q[1],q[2]));}
+    const lo=new T3.Line(new T3.BufferGeometry().setFromPoints(orb),new T3.LineBasicMaterial({color:new T3.Color(v.cor),transparent:true,opacity:.22}));scene.add(lo);
+    const NT=56,tp=new Float32Array(NT*3),tc=new Float32Array(NT*3),cc=new T3.Color(v.cor);for(let i=0;i<NT;i++){const f=1-i/(NT-1);tc[i*3]=cc.r*f;tc[i*3+1]=cc.g*f;tc[i*3+2]=cc.b*f;}
+    const tg=new T3.BufferGeometry();tg.setAttribute('position',new T3.BufferAttribute(tp,3));tg.setAttribute('color',new T3.BufferAttribute(tc,3));const tl=new T3.Line(tg,new T3.LineBasicMaterial({vertexColors:true,transparent:true,opacity:.95,blending:T3.AdditiveBlending,depthWrite:false}));tl.frustumCulled=false;scene.add(tl);
+    corpos[n]={m,tl,tp,NT,P};
+  });
+  // aspectos
+  const MAXA=60,ap=new Float32Array(MAXA*6),ac2=new Float32Array(MAXA*6),ag=new T3.BufferGeometry();ag.setAttribute('position',new T3.BufferAttribute(ap,3));ag.setAttribute('color',new T3.BufferAttribute(ac2,3));ag.setDrawRange(0,0);
+  const al=new T3.LineSegments(ag,new T3.LineBasicMaterial({vertexColors:true,transparent:true,opacity:.9,blending:T3.AdditiveBlending,depthWrite:false}));al.frustumCulled=false;scene.add(al);
+  // Centro Galáctico
+  const gv=gcVetor(),gp=[gv[0],gv[2],-gv[1]],gl=new T3.Line(new T3.BufferGeometry().setFromPoints([new T3.Vector3(0,0,0),new T3.Vector3(gp[0]*60,gp[1]*60,gp[2]*60)]),new T3.LineBasicMaterial({color:0xaa66ff,transparent:true,opacity:.55}));scene.add(gl);
+  const gs=new T3.Sprite(new T3.SpriteMaterial({map:glow('#aa66ff'),blending:T3.AdditiveBlending,depthWrite:false,transparent:true}));gs.scale.set(5,5,1);gs.position.set(gp[0]*60,gp[1]*60,gp[2]*60);scene.add(gs);
+  // rótulos
+  const rot={};['Sol'].concat(EPH_NOMES).forEach(n=>{const b=document.createElement('button');b.type='button';b.className='lbl3d';b.textContent=n;b.onclick=()=>{S.foco=n;S.alvoNovo=n==='Sol'?[0,0,0]:null;S.dist=n==='Sol'?30:Math.max(5,VISUAL[n].r*9);rot[n]&&rot.sel&&0;};wrap.appendChild(b);rot[n]=b;});
+  const bg=document.createElement('button');bg.type='button';bg.className='lbl3d';bg.textContent='Centro Galáctico';wrap.appendChild(bg);rot['CG']=bg;
+  function resize(){const w=wrap.clientWidth,h=wrap.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();}
+  resize();S.ro=new ResizeObserver(resize);S.ro.observe(wrap);
+  // controles (arrastar, roda, pinça)
+  const ptr=new Map();let pd=0;const el=renderer.domElement;
+  el.addEventListener('pointerdown',e=>{el.setPointerCapture(e.pointerId);ptr.set(e.pointerId,[e.clientX,e.clientY]);S.ocioso=0;pd=0;},sig);
+  el.addEventListener('pointermove',e=>{if(!ptr.has(e.pointerId))return;const p=ptr.get(e.pointerId);S.ocioso=0;
+    if(ptr.size===1){S.theta-=(e.clientX-p[0])*.006;S.phi=Math.max(.12,Math.min(Math.PI-.12,S.phi-(e.clientY-p[1])*.006));}
+    else if(ptr.size===2){const o=[...ptr.entries()].find(([k])=>k!==e.pointerId)[1],d0=Math.hypot(p[0]-o[0],p[1]-o[1]),d1=Math.hypot(e.clientX-o[0],e.clientY-o[1]);if(d0>0)S.dist=Math.max(3,Math.min(160,S.dist*d0/d1));}
+    ptr.set(e.pointerId,[e.clientX,e.clientY]);},sig);
+  const up=e=>{ptr.delete(e.pointerId);};el.addEventListener('pointerup',up,sig);el.addEventListener('pointercancel',up,sig);
+  el.addEventListener('wheel',e=>{e.preventDefault();S.dist=Math.max(3,Math.min(160,S.dist*Math.exp(e.deltaY*.0012)));S.ocioso=0;},{passive:false,signal:S.ac.signal});
+  const v3=new T3.Vector3();
+  function rotulos(est){
+    const w=wrap.clientWidth,h=wrap.clientHeight,pr=(vec,btn)=>{v3.copy(vec).project(cam);const vis=v3.z<1&&v3.z>-1;btn.style.display=vis?'':'none';if(vis)btn.style.transform=`translate(${(v3.x*.5+.5)*w}px,${(-v3.y*.5+.5)*h}px) translate(-50%,-130%)`;btn.style.left='0';btn.style.top='0';btn.classList.toggle('sel',S.foco===btn.textContent);};
+    pr(sol.position,rot['Sol']);EPH_NOMES.forEach(n=>pr(corpos[n].m.position,rot[n]));pr(gs.position,bg);
+  }
+  let ult=performance.now(),acc=0;
+  function quadro(agora){
+    if(S.parar) return; S.raf=requestAnimationFrame(quadro);
+    if(S.oculto||!wrap.isConnected) return;
+    const dt=Math.min(.1,(agora-ult)/1000);ult=agora;acc+=dt;
+    if(S.tocando&&S.vel>0){S.ms+=S.vel*864e5*dt;if(S.ms>=SIM_MAX){S.ms=SIM_MAX;}if(S.ms<=SIM_MIN)S.ms=SIM_MIN;S.sync=true;}
+    S.ocioso+=dt;if(S.ocioso>5&&!ptr.size)S.theta+=.035*dt;
+    const est=ephEstado(S.ms),Tn=est.T;
+    EPH_NOMES.forEach(n=>{const c=corpos[n],q=posVis(est.corpos[n].helio);c.m.position.set(q[0],q[1],q[2]);c.m.rotation.y+=dt*.6;
+      for(let i=0;i<c.NT;i++){const h=ephHelio(n,Tn-(i/(c.NT-1))*(c.P*.2)/36525),r=posVis(h);c.tp[i*3]=r[0];c.tp[i*3+1]=r[1];c.tp[i*3+2]=r[2];}
+      c.tl.geometry.attributes.position.needsUpdate=true;});
+    // aspectos
+    const A=aspectosDe(est);let k=0;for(const a of A){if(k>=MAXA)break;const p1=est.corpos[a.p1].helio,p2=est.corpos[a.p2].helio,q1=a.p1==='Sol'?[0,0,0]:posVis(p1),q2=a.p2==='Sol'?[0,0,0]:posVis(p2),col=new T3.Color(a.asp.c),f=.35+.65*a.forca;
+      ap.set([q1[0],q1[1],q1[2],q2[0],q2[1],q2[2]],k*6);ac2.set([col.r*f,col.g*f,col.b*f,col.r*f,col.g*f,col.b*f],k*6);k++;}
+    ag.setDrawRange(0,k*2);ag.attributes.position.needsUpdate=true;ag.attributes.color.needsUpdate=true;
+    // câmera
+    if(S.foco&&S.foco!=='Sol'&&corpos[S.foco]){const p=corpos[S.foco].m.position;S.alvo[0]+=(p.x-S.alvo[0])*Math.min(1,dt*6);S.alvo[1]+=(p.y-S.alvo[1])*Math.min(1,dt*6);S.alvo[2]+=(p.z-S.alvo[2])*Math.min(1,dt*6);}
+    else if(S.alvoNovo){for(let i=0;i<3;i++)S.alvo[i]+=(S.alvoNovo[i]-S.alvo[i])*Math.min(1,dt*6);}
+    const sp=Math.sin(S.phi);cam.position.set(S.alvo[0]+S.dist*sp*Math.cos(S.theta),S.alvo[1]+S.dist*Math.cos(S.phi),S.alvo[2]+S.dist*sp*Math.sin(S.theta));cam.lookAt(S.alvo[0],S.alvo[1],S.alvo[2]);
+    const pulso=1+.03*Math.sin(agora*.002);g1.scale.set(7*pulso,7*pulso,1);
+    renderer.render(scene,cam);rotulos(est);
+    if(acc>.1){acc=0;const h=$('s3hud');if(h)h.innerHTML=`${fmtData(S.ms)}<br>JD ${ephJD(S.ms).toFixed(2)} · T ${Tn.toFixed(4)} séc.`;
+      if(S.sync){S.sync=false;S.mudou=true;const d=$('s3data');if(d&&document.activeElement!==d)d.value=new Date(S.ms).toISOString().slice(0,10);const sl=$('s3sl');if(sl)sl.value=Math.round((S.ms-SIM_MIN)/864e5);}
+      if(S.mudou&&agora-S.ultimoHud>(S.tocando&&S.vel>0?500:120)){S.ultimoHud=agora;S.mudou=false;hudTexto(est);if(S.ultimaStrMs==null||Math.abs(S.ms-S.ultimaStrMs)>25*864e5){S.ultimaStrMs=S.ms;stripAnual(S.ms);}}}
+  }
+  S.sync=true;S.ultimoHud=-1e9;S.raf=requestAnimationFrame(quadro);
+}
+function iniciar2D(){
+  const S=SIM3D,wrap=$('s3wrap'); if(!wrap||!S) return;
+  const c=document.createElement('canvas');wrap.prepend(c);const g=c.getContext('2d');
+  const fit=()=>{c.width=wrap.clientWidth*(devicePixelRatio||1);c.height=wrap.clientHeight*(devicePixelRatio||1);};fit();S.ro=new ResizeObserver(fit);S.ro.observe(wrap);
+  let ult=performance.now(),acc=0;
+  (function q(agora){ if(S.parar)return; S.raf=requestAnimationFrame(q); if(S.oculto)return; const dt=Math.min(.1,(agora-ult)/1000);ult=agora;acc+=dt;
+    if(S.tocando&&S.vel>0){S.ms=Math.min(SIM_MAX,Math.max(SIM_MIN,S.ms+S.vel*864e5*dt));S.sync=true;}
+    const est=ephEstado(S.ms),W=c.width,H=c.height,sc=Math.min(W,H)/2/18;g.fillStyle='#02040b';g.fillRect(0,0,W,H);g.save();g.translate(W/2,H/2);
+    g.fillStyle='#ffd27a';g.beginPath();g.arc(0,0,8,0,6.283);g.fill();
+    EPH_NOMES.forEach(n=>{const q=posVis(est.corpos[n].helio),r=Math.hypot(q[0],q[2]);g.strokeStyle='rgba(143,200,255,.18)';g.beginPath();g.arc(0,0,r*sc,0,6.283);g.stroke();g.fillStyle=VISUAL[n].cor;g.beginPath();g.arc(q[0]*sc,q[2]*sc,3+VISUAL[n].r*3,0,6.283);g.fill();g.fillStyle='#cfe6ff';g.font=(11*(devicePixelRatio||1))+'px sans-serif';g.fillText(n,q[0]*sc+6,q[2]*sc-6);});
+    g.restore();
+    if(acc>.1){acc=0;const h=$('s3hud');if(h)h.innerHTML=`${fmtData(S.ms)}<br>modo 2D (Three.js indisponível)`;if(S.sync){S.sync=false;S.mudou=true;const d=$('s3data');if(d)d.value=new Date(S.ms).toISOString().slice(0,10);const sl=$('s3sl');if(sl)sl.value=Math.round((S.ms-SIM_MIN)/864e5);}if(S.mudou&&agora-S.ultimoHud>(S.tocando&&S.vel>0?500:120)){S.ultimoHud=agora;S.mudou=false;hudTexto(est);stripAnual(S.ms);}}
+  })(performance.now());
+  S.sync=true;S.ultimoHud=-1e9;
+}
+
+/* ═══ v20 · TERRA (corpo, captação, jubileu) + HIPÓTESES SIMBÓLICAS REPRODUZÍVEIS ═══ */
+const f1=(x,d)=>x==null?'—':Number(x).toLocaleString('pt-BR',{maximumFractionDigits:d==null?2:d});
+async function vTerra(){
+  $('v').innerHTML='<div class="box"><h2>🌍 TERRA</h2><p class="mu">Consultando…</p></div>';
+  const ano=Math.min(new Date().getFullYear(),2023);
+  let ct,te,cap,jub; try{[ct,te,cap,jub]=await Promise.all([api('corpo-terra/indice',{ano}),api('corpo-terra/teste',{}),api('captacao/raio',{ano:new Date().getFullYear(),sensibilidade:3}),api('jubileu/janela',{tipo:'secular'})]);}catch(e){ct={ok:false,error:'Falha de rede'};}
+  if(aba!=='terra') return;
+  if(!ct||!ct.ok){ $('v').innerHTML=`<div class="box"><h2>🌍 TERRA</h2><div class="aviso ruim">${esc((ct&&ct.error)||'Falha')}</div></div>`; pos(); return; }
+  const c=ct.componentes;
+  const bloco1=`<div class="box"><h2>🌍 CORPO TERRA <span class="obs-tag t-modelo">DESCRITIVO</span></h2>
+  <p class="lead">Razão entre pressão humana e capacidade do solo, relativa a 1970 = 1,0 (série de ${ano}).</p>
+  <div class="lab-k"><div><small>Índice ${ct.ano}</small><b>${f1(ct.indice)}×</b></div><div><small>População</small><b>${f1(c.populacao)}×</b></div><div><small>Consumo de energia</small><b>${f1(c.consumo)}×</b></div><div><small>Fertilidade</small><b>${f1(c.fertilidade)}×</b></div><div><small>Área agrícola</small><b>${f1(c.area_agricola)}×</b></div></div>
+  <div class="mu" style="font-size:12px">${esc(ct.formula)}</div>
+  <div class="guia"><b>Status:</b> ${esc(ct.status_epistemologico)} ${esc(ct.nota)}</div></div>`;
+  const bloco2=te&&te.ok?`<div class="box"><h2>ESSE ÍNDICE “CORRELACIONA” COM CATÁSTROFES? <span class="obs-tag t-validacao">TESTE DE CONTROLE</span></h2>
+  <p class="lead">Afirmou-se correlação de 0,85–0,92. Antes de aceitar, comparo com séries que NÃO podem ter relação causal e com séries aleatórias que apenas crescem.</p>
+  <table class="tb"><tr><th>Série (1970–2023, ${te.n_decadas} pontos)</th><th>r com o índice</th><th>IC95</th><th>p (placebo)</th></tr>${te.decadas.map(d=>`<tr><td>${esc(d.serie)}</td><td>${d.r}</td><td>[${d.ic95[0]}; ${d.ic95[1]}]</td><td>${d.p_placebo}</td></tr>`).join('')}</table>
+  <div class="lab-k"><div><small>|r| mediano de séries aleatórias que crescem</small><b>${te.placebo.mediana_abs_r}</b></div><div><small>|r| no percentil 95</small><b>${te.placebo.p95_abs_r}</b></div></div>
+  <table class="tb"><tr><th>Controle negativo (2000–2023, sismos não dependem de população)</th><th>r (níveis)</th><th>r (variações anuais)</th></tr>${te.controle_negativo.map(d=>`<tr><td>${esc(d.serie)}</td><td>${d.r_niveis} [${d.ic95_niveis[0]}; ${d.ic95_niveis[1]}]</td><td>${d.r_diferencas} [${d.ic95_diferencas[0]}; ${d.ic95_diferencas[1]}]</td></tr>`).join('')}</table>
+  <div class="guia"><b>Leitura do observador.</b> ${esc(te.leitura)}</div></div>`:'';
+  const bloco3=cap&&cap.ok?`<div class="box"><h2>🌀 CAPTAÇÃO DE SENTIMENTO <span class="obs-tag t-hipotese">ILUSTRATIVO</span></h2>
+  <div class="lab-in"><label>Ano<input class="in" id="cpA" type="number" value="${cap.ano}"></label><label>Sensibilidade σ<select class="in" id="cpS">${[1,2,3,5].map(s=>`<option${s===3?' selected':''}>${s}</option>`).join('')}</select></label><button class="p" id="cpGo" type="button">Calcular</button></div>
+  <div id="cpOut">${capHtml(cap)}</div></div>`:'';
+  const bloco4=jub&&jub.ok?`<div class="box"><h2>📿 JANELA DE RECONHECIMENTO <span class="obs-tag t-hipotese">ILUSTRATIVO</span></h2>
+  <div class="lab-k"><div><small>Média (${esc(jub.tipo)})</small><b>${jub.media_anos} anos</b></div><div><small>Faixa</small><b>${jub.faixa_anos[0]}–${jub.faixa_anos[1]}</b></div><div><small>Jubileu bíblico</small><b>${jub.jubileu_biblico} anos</b></div></div>
+  <div class="guia"><b>Identidade aritmética.</b> ${esc(jub.identidade_aritmetica)}<br><b>Status:</b> ${esc(jub.status_epistemologico)}</div></div>`:'';
+  $('v').innerHTML=bloco1+bloco2+bloco3+bloco4+terraExtras()+`<div class="box"><h2>SOBRE</h2><div class="guia">O ClimaFluxo mostra o que mede, o que modela e o que apenas explora. Os módulos desta aba são descritivos ou ilustrativos; nenhum prevê eventos. Os testes que falham ficam à vista de propósito. A decisão é do observador.</div></div>`;
+  bindTeses();
+  const go=$('cpGo'); if(go) go.onclick=async()=>{go.disabled=true;const r=await api('captacao/raio',{ano:+$('cpA').value,sensibilidade:+$('cpS').value}).catch(()=>null);$('cpOut').innerHTML=r&&r.ok?capHtml(r):`<div class="aviso ruim">${esc((r&&r.error)||'Falha')}</div>`;go.disabled=false;};
+  pos();
+}
+function capHtml(r){ return `<div class="lab-k"><div><small>Era</small><b>${esc(r.era)}</b></div><div><small>Raio base</small><b>${f1(r.raio_base_km,0)} km</b></div><div><small>Raio efetivo (σ=${r.sensibilidade})</small><b>${f1(r.raio_efetivo_km,0)} km</b></div><div><small>Pessoas no raio</small><b>${f1(r.populacao_no_raio_efetivo,0)}${r.saturado?' <span style="font-size:10px;color:var(--am)">(= mundo)</span>':''}</b></div><div><small>Limiar</small><b>${r.limiar_pct}%</b></div><div><small>Pessoas necessárias</small><b>${f1(r.pessoas_necessarias,0)}</b></div></div><div class="mu" style="font-size:12px">${esc(r.derivacao)}</div><div class="guia"><b>Leitura do observador.</b> ${esc(r.interpretacao)}. ${esc(r.status_epistemologico)}</div>`; }
+/* ── hipóteses simbólicas: testes reproduzíveis sobre os dados da própria plataforma ── */
+function rayleigh(fs){const n=fs.length;let C=0,S=0;fs.forEach(f=>{C+=Math.cos(2*Math.PI*f);S+=Math.sin(2*Math.PI*f);});const R2=C*C+S*S;return {n,R:Math.sqrt(R2)/n,p:Math.min(1,Math.exp(Math.sqrt(1+4*n+4*(n*n-R2))-(1+2*n)))};}
+function binom2(k,n,p0){const pm=i=>{let l=0;for(let j=1;j<=i;j++)l+=Math.log((n-i+j)/j);return Math.exp(l+i*Math.log(p0)+(n-i)*Math.log(1-p0));},pk=pm(k);let s=0;for(let i=0;i<=n;i++){const q=pm(i);if(q<=pk*(1+1e-9))s+=q;}return Math.min(1,s);}
+function testesSimbolicos(fonte){
+  const base=fonte==='nat'?CAT_NAT:C_HISTORICO, todos=base.filter(e=>Number.isFinite(e.ano)), fixa=e=>e.mes!=null&&!(fonte!=='nat'&&e.mes===0&&e.dia===1)&&e.dia!=null;
+  const datados=todos.filter(fixa), T=[];
+  const ph=k=>datados.map(e=>cFasesNaData(e.ano,e.mes,e.dia)[k]);
+  [['Mercúrio (fase sinódica)','mercurio'],['Terra (época do ano)','terra'],['Ciclo solar (11 anos)','solar']].forEach(([nome,k])=>{if(datados.length>=5){const r=rayleigh(ph(k));T.push({nome,n:r.n,est:'R̄ = '+r.R.toFixed(3),p:r.p});}else T.push({nome,n:datados.length,est:'—',p:null});});
+  const dr=todos.map(e=>Math.abs(e.ano)).filter(y=>y>0).map(y=>1+((y-1)%9)),k9=dr.filter(x=>x===9).length;
+  T.push({nome:'Raiz digital do ano = 9 (esperado 1/9)',n:dr.length,est:k9+' de '+dr.length,p:dr.length?binom2(k9,dr.length,1/9):null});
+  const al=testeAlinh(todos.map(e=>e.ano),CICLO_LONGO_ANO_REFERENCIA,CICLO_LONGO,5000);
+  T.push({nome:`Alinhamento ao ciclo de ${CICLO_LONGO} anos`,n:todos.length,est:al.ok?'z = '+al.z.toFixed(2):'—',p:al.ok?al.p:null});
+  const k=T.filter(t=>t.p!=null).length;
+  return {T,k,n:todos.length,nDat:datados.length};
+}
+const _vV=vValida;
+vValida=function(){
+  _vV(); const v=$('v'); if(!v) return;
+  v.insertAdjacentHTML('beforeend',`<div class="box"><h2>4 · Hipóteses simbólicas: testes reproduzíveis <span class="obs-tag t-hipotese">HIPÓTESE</span></h2><p class="lead">Cada hipótese é testada agora, com os dados da plataforma, e não com números copiados de outra conversa.</p><div class="lab-in"><label>Eventos<select class="in" id="hsF"><option value="hist">Linha histórica (C_HISTORICO)</option><option value="nat">Catástrofes naturais catalogadas</option></select></label><button class="p" id="hsGo" type="button">Rodar testes</button></div><div id="hsOut" class="mu" style="margin-top:10px"></div></div>`);
+  $('hsGo').onclick=()=>{const r=testesSimbolicos($('hsF').value),a=0.05/Math.max(1,r.k);
+    $('hsOut').innerHTML=`<table class="tb"><tr><th>Hipótese</th><th>n</th><th>Estatística</th><th>p</th><th>p×${r.k} (Bonferroni)</th></tr>${r.T.map(t=>`<tr><td>${esc(t.nome)}</td><td>${t.n}</td><td>${esc(t.est)}</td><td>${t.p==null?'—':t.p.toFixed(3)}</td><td class="${t.p!=null&&t.p<a?'pos':''}">${t.p==null?'dados insuficientes':Math.min(1,t.p*r.k).toFixed(3)}</td></tr>`).join('')}</table><div class="guia"><b>Leitura do observador.</b> ${r.k} testes aplicados a ${r.n} eventos (${r.nDat} com data completa para as fases). Com vários testes, algum p baixo aparece por acaso — por isso a coluna corrigida. Eventos com data-padrão (1º/jan) são excluídos dos testes de fase. Os eventos foram escolhidos por pessoas, o que pode introduzir viés; resultado que passa só prova associação nesta lista, e o que não passa não refuta uso simbólico. Quem interpreta e valida é o observador.</div>`;};
+};
+
+/* ── Teses do observador, limites planetários (com fonte) e sinais de desaceleração crítica ── */
+const TESES=[
+ {id:'t1',t:'Apocalipse é renascimento; o que separa renascimento de extinção é a margem (para onde renascer).',medir:'Não existe métrica de “para onde renascer”. O que se mede, com fonte, é a pressão sobre limites do planeta (abaixo).',nao:'O motor do Olho de Deus não calcula extinção: a margem dele vai de 0 a 0,628 e nunca é negativa.'},
+ {id:'t2',t:'Extinção é a do padrão que organiza a consciência coletiva, não a dos corpos.',medir:'Seria preciso definir “padrão de consciência coletiva” com proxies (ex.: diversidade de fontes de informação, confiança institucional) e acompanhá-los no tempo.',nao:'Hoje a plataforma não mede isso; qualquer número seria inventado.'},
+ {id:'t3',t:'A consciência humana está no limiar de aprender pelo desequilíbrio; depois vem a inversão.',medir:'Há um análogo científico testável: sinais de desaceleração crítica (autocorrelação e variância crescentes) em séries de sistemas reais. Teste abaixo, no ENSO.',nao:'Aplicar isso à “consciência humana” exigiria uma série que a represente; ela não existe aqui.'},
+ {id:'t4',t:'Gênio e louco diferem em saber controlar a histeria (perder a consciência diante da informação).',medir:'É uma definição do observador, útil para pensar; não é testável com os dados da plataforma.',nao:'A estimativa de “10 a 100 gênios não identificados para cada identificado” não tem base medida.'}];
+const LIMITES=[['Mudança climática','ultrapassado'],['Integridade da biosfera (genética e funcional)','ultrapassado'],['Mudança no uso do solo','ultrapassado'],['Água doce (azul e verde)','ultrapassado'],['Fluxos biogeoquímicos (N e P)','ultrapassado'],['Novas entidades (químicos, plásticos)','ultrapassado'],['Acidificação dos oceanos','próximo do limite'],['Aerossóis na atmosfera','regional'],['Ozônio estratosférico','dentro do limite']];
+function terraExtras(){
+  return `<div class="box"><h2>TESES DO OBSERVADOR <span class="obs-tag t-hipotese">TESE · NÃO TESTADA</span></h2><p class="lead">Ideias suas, guardadas como teses. Para cada uma: o que dá para medir e o que não dá.</p>${TESES.map(x=>`<div class="rel" data-tese="${x.id}"><b>${esc(x.t)}</b><div class="mu" style="font-size:12px;margin-top:4px"><b>Mensurável:</b> ${esc(x.medir)}<br><b>Não sustentado:</b> ${esc(x.nao)}</div><textarea placeholder="Minha análise e validação…"></textarea></div>`).join('')}</div>
+  <div class="box"><h2>LIMITES PLANETÁRIOS · “MARGEM” COM FONTE <span class="obs-tag t-medido">LITERATURA</span></h2><p class="lead">Em vez de uma margem inventada, o que a ciência publica: 9 limites do sistema Terra e a situação de cada um (Richardson et al., 2023, <i>Science Advances</i>).</p><table class="tb"><tr><th>Limite</th><th>Situação</th></tr>${LIMITES.map(l=>`<tr><td>${esc(l[0])}</td><td class="${l[1]==='ultrapassado'?'neg':l[1]==='dentro do limite'?'pos':''}">${esc(l[1])}</td></tr>`).join('')}</table><div class="guia"><b>Leitura do observador.</b> Seis dos nove limites aparecem como ultrapassados nessa avaliação; isso descreve risco para a estabilidade do sistema Terra, não uma extinção prevista. Valores de 2023, conferir na fonte para atualizações. Para espécies, a avaliação do IPBES (2019) estimou cerca de 1 milhão ameaçadas.</div></div>
+  <div class="box"><h2>SINAIS DE DESACELERAÇÃO CRÍTICA <span class="obs-tag t-validacao">TESTE</span></h2><p class="lead">Teste do “limiar do aprendizado” no que é medível: a autocorrelação e a variância do ENSO (ONI mensal desde 1950) estão subindo, como se esperaria perto de uma transição?</p><button class="p" id="bcAl" type="button">Rodar teste</button><div id="oAl" class="mu" style="margin-top:10px"></div></div>`;
+}
+function bindTeses(){
+  document.querySelectorAll('[data-tese]').forEach(el=>{const ta=el.querySelector('textarea'),k='tese_'+el.dataset.tese;ta.value=(obsGet(k).nota)||'';ta.oninput=()=>obsSet(k,{nota:ta.value});});
+  const b=$('bcAl'); if(!b) return;
+  b.onclick=async()=>{b.disabled=true;$('oAl').textContent='Calculando…';let r;try{r=await api('alerta-precoce',{});}catch(e){r=null;}
+    if(!r||!r.ok){$('oAl').innerHTML=`<div class="aviso ruim">${esc((r&&r.error)||'Falha')}</div>`;b.disabled=false;return;}
+    const W=420,H=90,S=r.serie,mxA=Math.max(...S.map(s=>s.ac)),mnA=Math.min(...S.map(s=>s.ac)),mxV=Math.max(...S.map(s=>s.va)),mnV=Math.min(...S.map(s=>s.va)),X=i=>i/(S.length-1)*W,YA=v=>H-(v-mnA)/((mxA-mnA)||1)*(H-8),YV=v=>H-(v-mnV)/((mxV-mnV)||1)*(H-8);
+    $('oAl').innerHTML=`<div class="lab-k"><div><small>τ autocorrelação</small><b>${r.tau_autocorr}</b></div><div><small>p (surrogates AR1)</small><b>${r.p_autocorr}</b></div><div><small>τ variância</small><b>${r.tau_variancia}</b></div><div><small>p</small><b>${r.p_variancia}</b></div></div>
+    <svg viewBox="0 0 ${W} ${H+14}" class="graf" role="img" aria-label="Autocorrelação e variância móveis"><polyline fill="none" stroke="#27c8ff" stroke-width="1.8" points="${S.map((s,i)=>X(i).toFixed(1)+','+YA(s.ac).toFixed(1)).join(' ')}"/><polyline fill="none" stroke="#aa66ff" stroke-width="1.8" points="${S.map((s,i)=>X(i).toFixed(1)+','+YV(s.va).toFixed(1)).join(' ')}"/><text x="2" y="${H+11}" fill="#27c8ff" font-size="9">autocorrelação lag-1 (ciano)</text><text x="${W-2}" y="${H+11}" fill="#aa66ff" font-size="9" text-anchor="end">variância (roxo) · janelas de 10 anos</text></svg>
+    <div class="guia"><b>Leitura do observador.</b> ${esc(r.nota)} Fonte: ${esc(r.fonte)}.</div>`;b.disabled=false;};
 }
 
 /* ══════════════════════════════════════════════════════
