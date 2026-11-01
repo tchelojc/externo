@@ -468,28 +468,141 @@
   .ve-frame-wrap.on{display:block;}
   .ve-frame-wrap iframe{width:100%; height:100%; border:0; display:block; background:#05070c;}
   .btn-ve{background:linear-gradient(135deg,#9a5fd8,#6b3fa8); color:#fff; border:0;}
+/* ═══════ TOTEM + PAINEL (camada nova sobre o Index 9) ═══════ */
+html,body{background:#000}
+#stage{position:fixed;inset:0;z-index:1;background:#000;overflow:hidden;cursor:none;user-select:none}
+#stage.mostra-cursor{cursor:default}
+.pl-root{position:relative;overflow:hidden;background:#000;--u:10px}
+.pl-inner{position:absolute;left:50%;top:50%;transform-origin:center center;overflow:hidden}
+.pl-bloq{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;background:#05070d;color:#8b93a7;font-family:'Orbitron',sans-serif;letter-spacing:.08em;padding:6%;font-size:calc(var(--u)*2.2);z-index:5}
+.pl-bloq.on{display:flex}
+.reg{position:absolute;padding:var(--gap,3px);box-sizing:border-box}
+.regc{position:relative;width:100%;height:100%;overflow:hidden;background:#05070d;border-radius:var(--raio,0);isolation:isolate}
+.sl{position:absolute;inset:0;overflow:hidden;--tr:800ms}
+.sl img,.sl video{width:100%;height:100%;display:block}
+.sl iframe{width:100%;height:100%;border:0;background:#fff}
+.sl.kb img{animation:kenb 14s ease-in-out infinite alternate}
+@keyframes kenb{from{transform:scale(1) translate(0,0)}to{transform:scale(1.12) translate(-2%,-1.5%)}}
+.s-relogio{display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#0b1830,#03050a);color:#e8f6ff;font-family:'Orbitron',sans-serif}
+.s-relogio .rl-h{font-size:calc(var(--u)*11);font-weight:700;letter-spacing:.06em;text-shadow:0 0 calc(var(--u)*2) rgba(0,229,255,.5)}
+.s-relogio .rl-d{font-size:calc(var(--u)*2.6);color:#00e5ff;letter-spacing:.2em;text-transform:uppercase;margin-top:calc(var(--u)*1)}
+.s-clima{display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(160deg,#07203b,#02070f);color:#eaf6ff;font-family:'Roboto',sans-serif;padding:3%;text-align:center}
+.s-clima .cl-cid{font-size:calc(var(--u)*2.6);letter-spacing:.2em;color:#00e5ff;text-transform:uppercase}
+.s-clima .cl-ic{font-size:calc(var(--u)*11);line-height:1.1}
+.s-clima .cl-t{font-size:calc(var(--u)*10);font-weight:300}
+.s-clima .cl-d{font-size:calc(var(--u)*2.6);color:#9fc7ff}
+.s-clima .cl-p{display:flex;gap:calc(var(--u)*3);margin-top:calc(var(--u)*2);font-size:calc(var(--u)*2.1);color:#cfe6ff}
+.s-clima .cl-p div{background:rgba(255,255,255,.06);padding:calc(var(--u)*1) calc(var(--u)*1.6);border-radius:calc(var(--u)*1)}
+.s-texto{display:flex;align-items:center;justify-content:center;text-align:center;padding:5%;font-family:'Roboto',sans-serif;font-weight:700;overflow:hidden}
+.s-texto .mq{white-space:nowrap;display:inline-block;animation:mq 16s linear infinite}
+@keyframes mq{from{transform:translateX(100vw)}to{transform:translateX(-100%)}}
+.s-texto .pu{animation:pul 2.4s ease-in-out infinite}
+@keyframes pul{50%{transform:scale(1.06);opacity:.8}}
+.s-carregando{display:flex;align-items:center;justify-content:center;background:#05070d;color:#3b4660;font-size:calc(var(--u)*2)}
+/* transições (biblioteca) */
+.in-fade{animation:aF var(--tr) both}.out-fade{animation:aF var(--tr) reverse both}
+.in-slide-esq{animation:aSE var(--tr) cubic-bezier(.2,.7,.2,1) both}.out-slide-esq{animation:aSE var(--tr) cubic-bezier(.2,.7,.2,1) reverse both}
+.in-slide-dir{animation:aSD var(--tr) cubic-bezier(.2,.7,.2,1) both}.out-slide-dir{animation:aSD var(--tr) cubic-bezier(.2,.7,.2,1) reverse both}
+.in-slide-cima{animation:aSC var(--tr) cubic-bezier(.2,.7,.2,1) both}.out-slide-cima{animation:aSC var(--tr) cubic-bezier(.2,.7,.2,1) reverse both}
+.in-slide-baixo{animation:aSB var(--tr) cubic-bezier(.2,.7,.2,1) both}.out-slide-baixo{animation:aSB var(--tr) cubic-bezier(.2,.7,.2,1) reverse both}
+.in-zoom{animation:aZ var(--tr) ease both}.out-zoom{animation:aZ var(--tr) ease reverse both}
+.in-zoom-out{animation:aZO var(--tr) ease both}.out-zoom-out{animation:aZO var(--tr) ease reverse both}
+.in-flip{animation:aFl var(--tr) ease both;backface-visibility:hidden}.out-flip{animation:aFl var(--tr) ease reverse both;backface-visibility:hidden}
+.in-blur{animation:aBl var(--tr) ease both}.out-blur{animation:aBl var(--tr) ease reverse both}
+.in-cortina{animation:aCo var(--tr) ease-in-out both}.out-cortina{animation:aF var(--tr) reverse both}
+@keyframes aF{from{opacity:0}to{opacity:1}}
+@keyframes aSE{from{transform:translateX(-100%)}to{transform:none}}
+@keyframes aSD{from{transform:translateX(100%)}to{transform:none}}
+@keyframes aSC{from{transform:translateY(-100%)}to{transform:none}}
+@keyframes aSB{from{transform:translateY(100%)}to{transform:none}}
+@keyframes aZ{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+@keyframes aZO{from{transform:scale(1.4);opacity:0}to{transform:none;opacity:1}}
+@keyframes aFl{from{transform:perspective(900px) rotateY(90deg);opacity:0}to{transform:perspective(900px) rotateY(0);opacity:1}}
+@keyframes aBl{from{filter:blur(24px);opacity:0}to{filter:none;opacity:1}}
+@keyframes aCo{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+.pl-ponto{position:absolute;right:6px;bottom:6px;width:8px;height:8px;border-radius:50%;background:#2ecc71;opacity:.35;z-index:9;pointer-events:none}
+.pl-ponto.ruim{background:#e74c3c;opacity:.7}
+/* login/unlock */
+#telaLogin{display:none;z-index:200}
+#telaLogin.on{display:flex}
+.lg-tabs{display:flex;gap:6px;margin:0 0 16px;background:rgba(0,0,0,.35);padding:4px;border-radius:12px}
+.lg-tabs button{flex:1;border:0;background:transparent;color:var(--texto2);padding:9px 6px;border-radius:9px;cursor:pointer;font-size:.8rem;font-weight:700}
+.lg-tabs button.on{background:rgba(0,229,255,.16);color:var(--ciano)}
+.lg-x{position:absolute;right:12px;top:10px;background:none;border:0;color:var(--texto2);font-size:1.2rem;cursor:pointer}
+.lg-rem{display:flex;gap:8px;align-items:flex-start;text-align:left;font-size:.72rem;color:var(--texto2);margin:0 0 12px}
+/* painel como camada */
+#app.ativo{display:block;position:fixed;inset:0;z-index:100;overflow:auto;background:radial-gradient(ellipse at top,rgba(0,229,255,.06),transparent 60%),var(--bg)}
+.btn-volta{background:rgba(0,229,255,.12);border:1px solid rgba(0,229,255,.4);color:var(--ciano);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:.8rem;margin-right:8px}
+.tot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.tot-card{background:var(--panel);border:1px solid var(--borda);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.tot-card.aqui{border-color:var(--ciano);box-shadow:0 0 18px rgba(0,229,255,.15)}
+.tot-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.tot-nome{font-weight:700;font-size:.95rem}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#555;margin-right:6px}
+.dot.online{background:#2ecc71;box-shadow:0 0 8px #2ecc71}.dot.offline{background:#e74c3c}.dot.bloq{background:#d4a843}
+.tot-meta{font-size:.76rem;color:var(--texto2);line-height:1.6}
+.tot-now{font-size:.74rem;color:#9fc7ff;background:rgba(0,229,255,.06);border-radius:8px;padding:6px 8px}
+.tot-acoes{display:flex;gap:6px;flex-wrap:wrap}
+.tot-acoes .btn{padding:6px 10px;font-size:.74rem}
+.cfg-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.cfg-tabs button{background:var(--panel2);border:1px solid var(--borda);color:var(--texto2);padding:7px 12px;border-radius:9px;cursor:pointer;font-size:.78rem}
+.cfg-tabs button.on{border-color:var(--ciano);color:var(--ciano)}
+.fm{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:10px}
+.fm label{display:flex;flex-direction:column;gap:4px;font-size:.72rem;color:var(--texto2)}
+.fm input,.fm select,.fm textarea{background:#0a1220;border:1px solid #1d2a44;border-radius:8px;color:var(--texto);padding:8px;font-size:.82rem;font-family:inherit}
+.fm input[type=checkbox]{width:18px;height:18px;align-self:flex-start}
+.hintx{font-size:.72rem;color:var(--texto2);line-height:1.5;background:rgba(255,255,255,.03);border-radius:8px;padding:8px 10px;margin:6px 0}
+.sch{position:relative;width:100%;max-width:420px;aspect-ratio:16/9;background:#02050a;border:1px solid #1d2a44;border-radius:8px;overflow:hidden;margin:8px 0}
+.sch.ret{aspect-ratio:9/16;max-width:220px}
+.sch div{position:absolute;border:1px dashed #00e5ff;background:rgba(0,229,255,.07);display:flex;align-items:center;justify-content:center;font-size:.75rem;color:#00e5ff;cursor:pointer;box-sizing:border-box}
+.sch div.sel{background:rgba(212,168,67,.25);border-color:#d4a843;color:#d4a843}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.chips button{border:1px solid var(--borda);background:var(--panel2);color:var(--texto2);border-radius:999px;padding:5px 12px;cursor:pointer;font-size:.76rem}
+.chips button.on{border-color:var(--dourado);color:var(--dourado)}
+.it{border:1px solid var(--borda);border-radius:10px;padding:8px 10px;margin:6px 0;background:var(--panel2)}
+.it-h{display:flex;gap:8px;align-items:center;font-size:.8rem}
+.it-h .nome{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.it-h button{background:none;border:1px solid var(--borda);color:var(--texto2);border-radius:6px;cursor:pointer;padding:3px 8px}
+.it-b{margin-top:8px}
+.espelho{position:relative;width:100%;max-width:880px;aspect-ratio:16/9;background:#000;border:1px solid #1d2a44;border-radius:8px;overflow:hidden;margin:0 auto}
+.espelho.ret{aspect-ratio:9/16;max-width:360px}
+.esp-r{position:absolute;box-sizing:border-box;padding:2px}
+.esp-c{width:100%;height:100%;background:#0a0e17;border:1px solid #1a1a2e;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.72rem;color:#00e5ff;text-align:center;gap:4px;padding:4px}
+.esp-c img{max-width:100%;max-height:75%;object-fit:contain}
+.prev-wrap{width:100%;max-width:880px;aspect-ratio:16/9;margin:0 auto;border:1px solid #1d2a44;border-radius:8px;overflow:hidden}
+.prev-wrap.ret{aspect-ratio:9/16;max-width:360px}
+.banner-bind{background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.4);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:.8rem;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.banner-bind select{background:#0a1220;color:var(--texto);border:1px solid #1d2a44;border-radius:8px;padding:6px}
+#menuLocal .modal-box,#cfgModal .modal-box{max-width:760px}
+#cfgModal .modal-body{display:block}
+.modal{z-index:150}
+#prevModal,#espModal{z-index:170}
 </style>
 </head>
 <body>
 
-<!-- ══════════════ TELA DE LOGIN ══════════════ -->
+<!-- ══════════════ TOTEM: palco (sempre visível, sem endereço, sem interface) ══════════════ -->
+<div id="stage"></div>
+
+<!-- ══════════════ ACESSO TÉCNICO (abre com Ctrl + 10 cliques) ══════════════ -->
 <div id="telaLogin">
-  <div class="login-box">
+  <div class="login-box" style="position:relative">
+    <button class="lg-x" onclick="fecharDesbloqueio()" aria-label="Fechar">✕</button>
     <div class="login-orb">🌀</div>
-    <h1>CONVERSA</h1>
-    <div class="sub">ALMAFLUXO · Acesso Restrito</div>
-
-    <input type="email" id="loginEmail" class="login-input" placeholder="seu@email.com" autocomplete="email">
-    <input type="password" id="loginSenha" class="login-input" placeholder="Senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')fazerLogin()">
-
-    <button class="login-btn" id="btnLogin" onclick="fazerLogin()">🔓 Entrar</button>
-
-    <div class="login-msg" id="loginMsg"></div>
-
-    <div class="login-foot">
-      Rota: <strong>almafluxo.uk/conversa</strong><br>
-      Pasta CONVERSA · Drive
+    <h1>ACESSO TÉCNICO</h1>
+    <div class="sub">ALMAFLUXO · Totem</div>
+    <div class="lg-tabs"><button data-m="totem" onclick="trocarModoLogin('totem')">Senha do totem</button><button data-m="admin" onclick="trocarModoLogin('admin')">Administrador</button></div>
+    <div id="lgTotem">
+      <input type="password" id="loginSenhaTotem" class="login-input" placeholder="Senha de liberação do totem" autocomplete="off" onkeydown="if(event.key==='Enter')entrarComSenhaTotem()">
+      <button class="login-btn" onclick="entrarComSenhaTotem()">🔓 Liberar menu do totem</button>
     </div>
+    <div id="lgAdmin">
+      <input type="email" id="loginEmail" class="login-input" placeholder="seu@email.com" autocomplete="email">
+      <input type="password" id="loginSenha" class="login-input" placeholder="Senha da conta" autocomplete="current-password" onkeydown="if(event.key==='Enter')fazerLogin()">
+      <label class="lg-rem"><input type="checkbox" id="lgLembrar"> <span>Manter este aparelho conectado (guarda e-mail e senha neste navegador para reconectar sozinho). Use uma conta dedicada ao totem.</span></label>
+      <button class="login-btn" id="btnLogin" onclick="fazerLogin()">🔓 Entrar</button>
+    </div>
+    <div class="login-msg" id="loginMsg"></div>
   </div>
 </div>
 
@@ -503,12 +616,13 @@
     </div>
     <div class="topbar-user">
       <span class="nome-user">👤 <strong id="nomeUsuario">—</strong></span>
-      <button class="btn-sair" onclick="fazerLogout()">Sair</button>
+      <button class="btn-volta" onclick="voltarAoTotem()">↩ Voltar ao totem</button><button class="btn-sair" onclick="fazerLogout()">Sair da conta</button>
     </div>
   </div>
 
   <div class="tabs">
     <button class="tab ativa" data-painel="painel-conversa">📁 Conversa <span class="badge" id="badge-conversa">0</span></button>
+    <button class="tab" data-painel="painel-totens" id="tabTotens">📺 Totens</button>
     <button class="tab" data-painel="painel-fotos">🖼️ Fotos <span class="badge" id="badge-fotos">0</span></button>
     <button class="tab" data-painel="painel-videos">🎬 Vídeos <span class="badge" id="badge-videos">0</span></button>
     <button class="tab" data-painel="painel-htmls">🌐 HTMLs <span class="badge" id="badge-htmls">0</span></button>
@@ -591,6 +705,16 @@
     </div>
 
     <!-- PAINEL UPLOAD -->
+    <div class="painel" id="painel-totens">
+      <div class="area-titulo" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
+        <button class="btn btn-primario" onclick="abrirConfigTotem(null)">➕ Novo totem</button>
+        <button class="btn" onclick="atualizarStatus()">🔄 Atualizar status</button>
+        <button class="btn" id="btnAlertas" onclick="alternarAlertas()">🔕 Alertas: desligados</button>
+        <button class="btn btn-ve" onclick="abrirEditorDrive()">🎬 Editor de vídeo</button>
+      </div>
+      <div id="totens-banner"></div>
+      <div id="totens-lista"><div class="vazio">Abra a aba para carregar.</div></div>
+    </div>
     <div class="painel" id="painel-upload">
       <div class="acoes-topo">
         <h2>Upload
@@ -644,6 +768,13 @@
 </div>
 
 <!-- ══════════════ TOAST ══════════════ -->
+<div class="modal" id="menuLocal"><div class="modal-box"><div class="modal-header"><div class="modal-titulo">🔧 Menu técnico do totem</div><button class="modal-close" onclick="fecharMenuLocal()">✕</button></div><div class="modal-body" id="menuLocalBody"></div>
+  <div class="modal-footer"><button class="btn btn-primario" onclick="aplicarAjusteLocal()">Aplicar ajuste</button><button class="btn" onclick="limparAjusteLocal()">Remover ajuste</button><button class="btn" onclick="telaCheia()">⛶ Tela cheia</button><button class="btn" onclick="recarregarTotem()">🔄 Recarregar</button><button class="btn" onclick="fecharMenuLocal();abrirDesbloqueio();trocarModoLogin('admin')">🔐 Painel completo</button></div></div></div>
+<div class="modal" id="cfgModal"><div class="modal-box"><div class="modal-header"><div class="modal-titulo" id="cfgTitulo">Totem</div><button class="modal-close" onclick="fecharModal2('cfgModal')">✕</button></div><div class="modal-body" id="cfgBody"></div>
+  <div class="modal-footer"><button class="btn" id="cfgExcluir" onclick="excluirTotem(PAN.cfg.t.id)">🗑️ Excluir</button><button class="btn" onclick="fecharModal2('cfgModal')">Cancelar</button><button class="btn btn-primario" onclick="salvarCfgTotem()">💾 Salvar no Drive</button></div></div></div>
+<div class="modal" id="espModal"><div class="modal-box" style="max-width:940px"><div class="modal-header"><div class="modal-titulo" id="espTitulo">Tela</div><button class="modal-close" onclick="fecharModal2('espModal')">✕</button></div><div class="modal-body" id="espBody"></div></div></div>
+<div class="modal" id="prevModal"><div class="modal-box" style="max-width:940px"><div class="modal-header"><div class="modal-titulo">▶ Pré-visualização</div><button class="modal-close" onclick="fecharModal2('prevModal')">✕</button></div><div class="modal-body"><div id="prevBox" class="prev-wrap"></div></div></div></div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -725,12 +856,8 @@ async function fazerLogin() {
       };
       salvarSessao();
       mostrarMsgLogin('success', '✅ Login autorizado! Abrindo portal...');
-      setTimeout(() => {
-        document.getElementById('telaLogin').style.display = 'none';
-        document.getElementById('app').classList.add('ativo');
-        document.getElementById('nomeUsuario').textContent = sessao.nome;
-        carregarTudo();
-      }, 700);
+      if (document.getElementById('lgLembrar') && document.getElementById('lgLembrar').checked) lsSet(LSK.cred, { e: email, p: btoa(senha) });
+      setTimeout(() => { abrirPainel(); iniciarTotem(); }, 500);
     } else {
       mostrarMsgLogin('error', '❌ ' + (r.mensagem || 'Credenciais inválidas.'));
     }
@@ -749,12 +876,10 @@ function mostrarMsgLogin(tipo, texto) {
 }
 
 async function fazerLogout() {
-  if (sessao && sessao.token) {
-    try { await api('logout', { token_usuario: sessao.token }); } catch(e){}
-  }
-  sessao = null;
-  limparSessao();
-  location.reload();
+  if (TID && !confirm('Sair da conta? Este totem deixa de sincronizar com o Drive (continua exibindo o último conteúdo salvo) até um novo login técnico.')) return;
+  if (sessao && sessao.token) { try { await api('logout', { token_usuario: sessao.token }); } catch(e){} }
+  sessao = null; limparSessao(); lsDel(LSK.cred); clearInterval(SYNC.tCfg); clearInterval(SYNC.tHb);
+  document.getElementById('app').classList.remove('ativo'); document.body.style.overflow = '';
 }
 
 /* ═══════════ CARREGAR ARQUIVOS ═══════════ */
@@ -1353,16 +1478,7 @@ document.getElementById('modal').addEventListener('click', e => {
 });
 
 /* ═══════════ INICIALIZAÇÃO ═══════════ */
-(function init() {
-  const s = carregarSessaoSalva();
-  if (s) {
-    sessao = s;
-    document.getElementById('telaLogin').style.display = 'none';
-    document.getElementById('app').classList.add('ativo');
-    document.getElementById('nomeUsuario').textContent = sessao.nome || sessao.email;
-    carregarTudo();
-  }
-})();
+/* init substituído pelo bootTotem() no fim do script */
 
 /* ═══════════ EDITOR DE VÍDEO — vive dentro do Drive (editor_video.html) ═══════════
    O portal lê o arquivo da pasta CONVERSA e o abre em tela cheia num iframe ISOLADO
@@ -1437,6 +1553,513 @@ window.addEventListener('message', async (ev) => {
     carregarTudo();
   }
 });
+/* ══════════════════════════════════════════════════════════════
+   TOTEM · NÚCLEO (constantes, utilitários, Drive, hash)
+   ══════════════════════════════════════════════════════════════ */
+const TOTENS_FILE = 'totens_config.json';
+const LSK = {id:'almafluxo_totem_id', cfg:'almafluxo_totem_cfg', aj:'almafluxo_totem_ajuste', cred:'almafluxo_totem_cred', cmd:'almafluxo_totem_cmd', fid:'almafluxo_totem_fid', hbid:'almafluxo_totem_hbid'};
+const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+const lsDel = k => { try { localStorage.removeItem(k); } catch (e) {} };
+const $id = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clone = o => JSON.parse(JSON.stringify(o));
+const setPath = (o, p, v) => { const a = p.split('.'); let c = o; for (let i = 0; i < a.length - 1; i++) { if (c[a[i]] == null || typeof c[a[i]] !== 'object') c[a[i]] = {}; c = c[a[i]]; } c[a[a.length - 1]] = v; };
+const getPath = (o, p) => p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);
+const urlOk = u => /^https?:\/\//i.test(String(u || '').trim());
+
+/* SHA-256 em JS puro (não depende de contexto seguro) — senhas do totem ficam só como hash no Drive */
+const SHA_K = [], SHA_H = [];
+(function () { let n = 2, c = 0; while (c < 64) { let p = true; for (let d = 2; d * d <= n; d++) if (n % d === 0) { p = false; break; } if (p) { SHA_K.push(Math.floor((Math.cbrt(n) % 1) * 4294967296)); if (c < 8) SHA_H.push(Math.floor((Math.sqrt(n) % 1) * 4294967296)); c++; } n++; } })();
+function sha256(txt) {
+  const b = new TextEncoder().encode(txt), l = b.length, n = ((l + 9 + 63) >> 6) << 6, m = new Uint8Array(n); m.set(b); m[l] = 0x80;
+  const dv = new DataView(m.buffer); dv.setUint32(n - 4, (l * 8) >>> 0); dv.setUint32(n - 8, Math.floor(l * 8 / 4294967296));
+  let h = SHA_H.slice(); const w = new Uint32Array(64), R = (x, s) => (x >>> s) | (x << (32 - s));
+  for (let o = 0; o < n; o += 64) {
+    for (let i = 0; i < 16; i++) w[i] = dv.getUint32(o + i * 4);
+    for (let i = 16; i < 64; i++) { const s0 = R(w[i - 15], 7) ^ R(w[i - 15], 18) ^ (w[i - 15] >>> 3), s1 = R(w[i - 2], 17) ^ R(w[i - 2], 19) ^ (w[i - 2] >>> 10); w[i] = (w[i - 16] + s0 + w[i - 7] + s1) >>> 0; }
+    let [a, b2, c, d, e, f, g, hh] = h;
+    for (let i = 0; i < 64; i++) { const S1 = R(e, 6) ^ R(e, 11) ^ R(e, 25), ch = (e & f) ^ (~e & g), t1 = (hh + S1 + ch + SHA_K[i] + w[i]) >>> 0, S0 = R(a, 2) ^ R(a, 13) ^ R(a, 22), mj = (a & b2) ^ (a & c) ^ (b2 & c), t2 = (S0 + mj) >>> 0; hh = g; g = f; f = e; e = (d + t1) >>> 0; d = c; c = b2; b2 = a; a = (t1 + t2) >>> 0; }
+    h = [(h[0] + a) >>> 0, (h[1] + b2) >>> 0, (h[2] + c) >>> 0, (h[3] + d) >>> 0, (h[4] + e) >>> 0, (h[5] + f) >>> 0, (h[6] + g) >>> 0, (h[7] + hh) >>> 0];
+  }
+  return h.map(x => x.toString(16).padStart(8, '0')).join('');
+}
+const novoSal = () => Array.from({length: 8}, () => Math.floor(Math.random() * 256).toString(16).padStart(2, '0')).join('');
+const hashSenha = (senha, sal) => sha256(sal + ':' + senha);
+
+/* Drive via Worker (mesma API do Index 9) — devolve sempre o objeto "result" */
+function pareceFalhaAuth(r) { const m = String((r && (r.mensagem || r.erro)) || '').toLowerCase(); return !!r && r.sucesso === false && /(sess|token|autentic|login|expir|autoriz)/.test(m); }
+async function apiR(action, dados) {
+  let resp = await api(action, dados || {}); let r = resp.result || resp;
+  if (pareceFalhaAuth(r) && await reloginSilencioso()) { resp = await api(action, dados || {}); r = resp.result || resp; }
+  if (pareceFalhaAuth(r)) SYNC.sessaoOk = false; else if (r && r.sucesso) SYNC.sessaoOk = true;
+  return r;
+}
+async function reloginSilencioso() {
+  const c = lsGet(LSK.cred, null); if (!c || !c.e || !c.p) return false;
+  try {
+    const resp = await api('login', {email: c.e, senha: atob(c.p)}); const r = resp.result || resp;
+    if (r.autenticado === true && r.token) { sessao = {email: c.e, token: r.token, nome: (r.usuario && r.usuario.nome) || c.e.split('@')[0], admin: (r.usuario && r.usuario.admin) === true}; salvarSessao(); return true; }
+  } catch (e) {}
+  return false;
+}
+async function listarPasta() { const r = await apiR('listarPastaPorId', {pastaId: PASTA_CONVERSA_ID}); if (r.sucesso && Array.isArray(r.projetos)) arquivosCache = r.projetos; return arquivosCache; }
+async function lerTexto(id) { const r = await apiR('obterProjetoPorId', {arquivoId: id}); return r.sucesso && r.conteudo != null ? r.conteudo : null; }
+async function gravarJson(nome, obj, idKey) {
+  const conteudo = JSON.stringify(obj, null, 1); let id = idKey ? lsGet(idKey, null) : null;
+  if (!id) { const f = (arquivosCache || []).find(a => a.nome === nome); id = f && f.id; }
+  const editar = async i => { const r = await apiR('editarProjetoPorId', {arquivoId: i, novoConteudo: conteudo}); return r.sucesso === true; };
+  if (id && await editar(id)) { if (idKey) lsSet(idKey, id); return id; }
+  await listarPasta(); const f = arquivosCache.find(a => a.nome === nome);
+  if (f && await editar(f.id)) { if (idKey) lsSet(idKey, f.id); return f.id; }
+  const b64 = btoa(unescape(encodeURIComponent(conteudo)));
+  const up = await apiR('uploadArquivo', {nomeArquivo: nome, base64: b64, mimeType: 'application/json', pastaId: PASTA_CONVERSA_ID});
+  if (!up.sucesso) throw new Error(up.mensagem || 'Não consegui gravar ' + nome);
+  await listarPasta(); const g = arquivosCache.find(a => a.nome === nome); id = g && g.id; if (idKey && id) lsSet(idKey, id); return id;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   LAYOUTS (regiões em % da tela), TRANSIÇÕES e TIPOS DE CONTEÚDO
+   ══════════════════════════════════════════════════════════════ */
+const MODELOS = {
+  'full': {nome: 'Tela única', r: [[0,0,100,100]]},
+  '2-v': {nome: '2 lados (lado a lado)', r: [[0,0,50,100],[50,0,50,100]]},
+  '2-h': {nome: '2 empilhados', r: [[0,0,100,50],[0,50,100,50]]},
+  '3-esq': {nome: '1 grande + 2', r: [[0,0,66,100],[66,0,34,50],[66,50,34,50]]},
+  '3-topo': {nome: 'Topo + 2 embaixo', r: [[0,0,100,60],[0,60,50,40],[50,60,50,40]]},
+  '4': {nome: 'Grade 2×2', r: [[0,0,50,50],[50,0,50,50],[0,50,50,50],[50,50,50,50]]},
+  '6': {nome: 'Grade 3×2', r: [[0,0,33.34,50],[33.34,0,33.33,50],[66.67,0,33.33,50],[0,50,33.34,50],[33.34,50,33.33,50],[66.67,50,33.33,50]]},
+  '6p': {nome: 'Grade 2×3 (retrato)', r: [[0,0,50,33.34],[50,0,50,33.34],[0,33.34,50,33.33],[50,33.34,50,33.33],[0,66.67,50,33.33],[50,66.67,50,33.33]]},
+  'barra': {nome: 'Principal + barra inferior', r: [[0,0,100,86],[0,86,100,14]]},
+  'custom': {nome: 'Personalizado', r: null}
+};
+const PAR_RETRATO = {'full':'full','2-v':'2-h','2-h':'2-h','3-esq':'3-topo','3-topo':'3-topo','4':'4','6':'6p','6p':'6p','barra':'barra'};
+const TRANSICOES = {'fade':'Fade','slide-esq':'Deslizar da esquerda','slide-dir':'Deslizar da direita','slide-cima':'Deslizar de cima','slide-baixo':'Deslizar de baixo','zoom':'Zoom in','zoom-out':'Zoom out','flip':'Virar','blur':'Desfoque','cortina':'Cortina','nenhuma':'Sem animação'};
+const TIPOS = {imagem:'🖼️ Imagem', video:'🎬 Vídeo', youtube:'▶️ YouTube', site:'🌐 Site', 'html-drive':'🧩 HTML do Drive (motores)', relogio:'🕐 Relógio', clima:'⛅ Clima', texto:'📝 Texto'};
+function modeloDe(t, orient) {
+  const L = (t && t.layout) || {modelo: 'full'};
+  if (orient === 'retrato') { if (t.layoutRetrato && t.layoutRetrato.modelo) return t.layoutRetrato; const m = PAR_RETRATO[L.modelo]; if (m && L.modelo !== 'custom') return Object.assign({}, L, {modelo: m}); }
+  return L;
+}
+function retangulos(L) {
+  if (L.modelo === 'custom' && Array.isArray(L.regioes) && L.regioes.length) return L.regioes.map((r, i) => ({id: r.id || ('r' + (i + 1)), x: +r.x, y: +r.y, w: +r.w, h: +r.h}));
+  const M = MODELOS[L.modelo] || MODELOS.full; return M.r.map((r, i) => ({id: 'r' + (i + 1), x: r[0], y: r[1], w: r[2], h: r[3]}));
+}
+function totemPadrao(id) {
+  return {id, nome: '', local: '', status: 'liberado', msgBloqueio: 'Totem temporariamente indisponível.', rev: 1,
+    tela: {orientacao: 'auto', rotacao: 0, polegadas: 0, resW: 0, resH: 0, ajuste: 'auto', escala: 1, margem: 0, fundo: '#000000'},
+    layout: {modelo: '2-v', regioes: null, gap: 6, raio: 10}, layoutRetrato: null,
+    paineis: {r1: {itens: [{tipo: 'relogio', duracaoS: 10}], transicao: {tipo: 'fade', ms: 900}, aleatorio: false}, r2: {itens: [{tipo: 'clima', cidade: 'São Paulo', lat: -23.55, lon: -46.63, duracaoS: 10}], transicao: {tipo: 'fade', ms: 900}, aleatorio: false}},
+    heartbeatS: 60, configS: 30, mostrarPonto: false, criadoEm: new Date().toISOString()};
+}
+const WMO = {0:['☀️','Céu limpo'],1:['🌤️','Predomínio de sol'],2:['⛅','Parcialmente nublado'],3:['☁️','Nublado'],45:['🌫️','Neblina'],48:['🌫️','Neblina'],51:['🌦️','Garoa'],53:['🌦️','Garoa'],55:['🌦️','Garoa'],61:['🌧️','Chuva fraca'],63:['🌧️','Chuva'],65:['🌧️','Chuva forte'],71:['🌨️','Neve'],80:['🌦️','Pancadas'],81:['🌧️','Pancadas'],82:['⛈️','Pancadas fortes'],95:['⛈️','Tempestade'],96:['⛈️','Tempestade'],99:['⛈️','Tempestade']};
+const CLIMA_CACHE = {}, HTML_CACHE = {};
+async function climaDados(lat, lon) {
+  const k = lat + ',' + lon, c = CLIMA_CACHE[k]; if (c && Date.now() - c.t < 15 * 60000) return c.d;
+  const r = await fetch('https://api.open-meteo.com/v1/forecast?latitude=' + encodeURIComponent(lat) + '&longitude=' + encodeURIComponent(lon) + '&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=2');
+  if (!r.ok) throw new Error('clima ' + r.status); const d = await r.json(); CLIMA_CACHE[k] = {t: Date.now(), d}; return d;
+}
+function ytId(s) { s = String(s || '').trim(); const m = s.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([\w-]{11})/); return m ? m[1] : (/^[\w-]{11}$/.test(s) ? s : null); }
+const imgUrl = i => i.driveId ? 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(i.driveId) + '&sz=w1920' : (urlOk(i.url) ? i.url : '');
+const vidUrl = i => i.driveId ? 'https://drive.google.com/uc?export=download&id=' + encodeURIComponent(i.driveId) : (urlOk(i.url) ? i.url : '');
+const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+
+/* Cria um slide (item de conteúdo). Devolve {el, destroy, fimEvento} ou null */
+function criarSlide(P, item) {
+  const s = el('div', 'sl'); const S = {el: s, destroy() {}, fimEvento: false, aoFim: null};
+  const t = item.tipo;
+  if (t === 'imagem') {
+    const u = imgUrl(item); if (!u) return null; const im = new Image(); im.alt = ''; im.style.objectFit = item.fit || 'cover'; im.style.objectPosition = item.position || 'center';
+    let tent = 0; im.onerror = () => { if (item.driveId && tent++ === 0) im.src = 'https://lh3.googleusercontent.com/d/' + encodeURIComponent(item.driveId) + '=w1920'; else s.innerHTML = '<div class="s-carregando" style="position:absolute;inset:0">imagem indisponível</div>'; };
+    im.src = u; s.appendChild(im); if (item.kenburns) s.classList.add('kb');
+  } else if (t === 'video') {
+    const u = vidUrl(item); if (!u) return null; const v = document.createElement('video'); v.muted = item.mudo !== false || P.preview; v.autoplay = true; v.playsInline = true; v.preload = 'auto'; v.style.objectFit = item.fit || 'cover';
+    v.loop = !!item.loop; v.src = u; S.fimEvento = true; v.addEventListener('ended', () => { if (S.aoFim) S.aoFim(); }); v.addEventListener('error', () => { if (S.aoFim) setTimeout(S.aoFim, 1500); });
+    s.appendChild(v); const pl = v.play(); if (pl && pl.catch) pl.catch(() => {}); S.destroy = () => { try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {} };
+  } else if (t === 'youtube') {
+    const id = ytId(item.url || item.id); if (!id) return null; const f = document.createElement('iframe');
+    f.allow = 'autoplay; encrypted-media; picture-in-picture'; f.src = 'https://www.youtube.com/embed/' + id + '?autoplay=1&mute=' + (item.mudo === false ? 0 : 1) + '&controls=0&loop=1&playlist=' + id + '&modestbranding=1&rel=0&playsinline=1'; s.appendChild(f);
+  } else if (t === 'site') {
+    if (!urlOk(item.url)) return null; const f = document.createElement('iframe'); f.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups'); f.src = item.url; s.appendChild(f);
+  } else if (t === 'html-drive') {
+    if (!item.driveId) return null; const f = document.createElement('iframe'); f.setAttribute('sandbox', 'allow-scripts allow-forms allow-modals'); s.appendChild(f); s.classList.add('s-carregando');
+    (async () => { try { let c = HTML_CACHE[item.driveId]; if (!c) { c = await lerTexto(item.driveId); if (c != null) HTML_CACHE[item.driveId] = c; } if (c != null && f.isConnected !== false) { f.srcdoc = c; s.classList.remove('s-carregando'); } else s.innerHTML = '<div class="s-carregando" style="position:absolute;inset:0">HTML indisponível</div>'; } catch (e) { s.innerHTML = '<div class="s-carregando" style="position:absolute;inset:0">HTML indisponível</div>'; } })();
+  } else if (t === 'relogio') {
+    s.className += ' s-relogio'; s.style.background = item.fundo || ''; if (item.cor) s.style.color = item.cor; const h = el('div', 'rl-h'), d = el('div', 'rl-d'); s.append(h, d);
+    const tick = () => { const n = new Date(); let o1 = {hour: '2-digit', minute: '2-digit'}, o2 = {weekday: 'long', day: '2-digit', month: 'long'}; if (item.fuso) { o1.timeZone = o2.timeZone = item.fuso; }
+      try { h.textContent = n.toLocaleTimeString('pt-BR', o1); d.textContent = item.soHora ? '' : n.toLocaleDateString('pt-BR', o2); } catch (e) { h.textContent = n.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'}); d.textContent = ''; } };
+    tick(); const iv = setInterval(tick, 1000); S.destroy = () => clearInterval(iv);
+  } else if (t === 'clima') {
+    s.className += ' s-clima'; s.innerHTML = '<div class="cl-cid"></div><div class="cl-ic">…</div><div class="cl-t"></div><div class="cl-d"></div><div class="cl-p"></div>';
+    const lat = +item.lat, lon = +item.lon; if (!isFinite(lat) || !isFinite(lon)) { s.querySelector('.cl-d').textContent = 'Defina a cidade'; return S; }
+    s.querySelector('.cl-cid').textContent = item.cidade || '';
+    const atual = async () => { try { const d = await climaDados(lat, lon), c = d.current, w = WMO[c.weather_code] || ['🌡️', '—'];
+      s.querySelector('.cl-ic').textContent = w[0]; s.querySelector('.cl-t').textContent = Math.round(c.temperature_2m) + '°'; s.querySelector('.cl-d').textContent = w[1];
+      s.querySelector('.cl-p').innerHTML = '<div>💧 ' + c.relative_humidity_2m + '%</div><div>💨 ' + Math.round(c.wind_speed_10m) + ' km/h</div><div>↑ ' + Math.round(d.daily.temperature_2m_max[0]) + '° ↓ ' + Math.round(d.daily.temperature_2m_min[0]) + '°</div>'; } catch (e) { s.querySelector('.cl-d').textContent = 'clima indisponível'; } };
+    atual(); const iv = setInterval(atual, 15 * 60000); S.destroy = () => clearInterval(iv);
+  } else if (t === 'texto') {
+    s.className += ' s-texto'; s.style.background = item.fundo || '#0b1830'; s.style.color = item.cor || '#ffffff'; const d = el('div', item.anim === 'marquee' ? 'mq' : (item.anim === 'pulso' ? 'pu' : ''));
+    d.style.fontSize = 'calc(var(--u)*' + (+item.tamanho || 6) + ')'; d.textContent = item.texto || ''; s.appendChild(d);
+  } else return null;
+  return S;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MOTOR DO PLAYER (usado na tela do totem E nas pré-visualizações)
+   ══════════════════════════════════════════════════════════════ */
+function criarPlayer(root, opts) {
+  opts = opts || {};
+  const P = {root, t: null, preview: !!opts.preview, orient: 'paisagem', rot: 0, agora: {}, regs: {}};
+  root.classList.add('pl-root'); root.innerHTML = '<div class="pl-inner"></div><div class="pl-bloq"></div>';
+  const inner = root.querySelector('.pl-inner'), bloq = root.querySelector('.pl-bloq');
+  P.parar = function () { Object.values(P.regs).forEach(r => r.parar()); P.regs = {}; P.agora = {}; inner.innerHTML = ''; };
+  P.aplicar = function (t, aj) {
+    P.parar(); P.t = t; if (!t) return;
+    if (t.status === 'bloqueado' && !P.preview) { bloq.textContent = t.msgBloqueio || 'Totem temporariamente indisponível.'; bloq.classList.add('on'); return; }
+    bloq.classList.remove('on');
+    const tela = Object.assign({}, t.tela || {}, aj || {}), W = root.clientWidth || window.innerWidth, H = root.clientHeight || window.innerHeight;
+    let rot = +tela.rotacao || 0; const vOrient = W >= H ? 'paisagem' : 'retrato';
+    if (!rot && (tela.orientacao === 'paisagem' || tela.orientacao === 'retrato') && tela.orientacao !== vOrient) rot = 90;
+    const sw = rot % 180 ? H : W, sh = rot % 180 ? W : H, orient = sw >= sh ? 'paisagem' : 'retrato'; P.orient = orient; P.rot = rot;
+    const manual = tela.ajuste === 'manual', margem = Math.max(0, Math.min(15, +tela.margem || 0)), esc0 = manual ? Math.max(.3, Math.min(2, +tela.escala || 1)) : 1;
+    const pol = +tela.polegadas || 0, texto = pol ? Math.max(.8, Math.min(2, pol / 32)) : 1;
+    inner.style.width = sw + 'px'; inner.style.height = sh + 'px'; inner.style.background = tela.fundo || '#000';
+    inner.style.transform = 'translate(-50%,-50%) rotate(' + rot + 'deg) scale(' + ((1 - 2 * margem / 100) * esc0) + ')';
+    root.style.setProperty('--u', (Math.min(sw, sh) / 100 * texto) + 'px');
+    const L = modeloDe(t, orient); inner.style.setProperty('--gap', ((+L.gap >= 0 ? +L.gap : 6) / 2) + 'px'); inner.style.setProperty('--raio', (+L.raio >= 0 ? +L.raio : 0) + 'px');
+    retangulos(L).forEach(r => {
+      const e = el('div', 'reg'); e.style.cssText = 'left:' + r.x + '%;top:' + r.y + '%;width:' + r.w + '%;height:' + r.h + '%'; const c = el('div', 'regc'); e.appendChild(c); inner.appendChild(e);
+      P.regs[r.id] = iniciarRegiao(P, c, r.id, (t.paineis || {})[r.id]);
+    });
+  };
+  window.addEventListener('resize', P._rs = () => { if (P.t && !P._rt) P._rt = setTimeout(() => { P._rt = null; if (P.t) P.aplicar(P.t, P.aj); }, 350); });
+  const aplicarOrig = P.aplicar; P.aplicar = function (t, aj) { P.aj = aj; return aplicarOrig(t, aj); };
+  P.destruir = function () { window.removeEventListener('resize', P._rs); P.parar(); root.innerHTML = ''; };
+  return P;
+}
+function iniciarRegiao(P, box, id, cont) {
+  const R = {idx: -1, atual: null, timer: null, morto: false}; cont = cont || {};
+  let itens = (cont.itens || []).filter(i => i && i.ativo !== false); if (!itens.length) itens = [{tipo: 'relogio', duracaoS: 3600}];
+  const tr = Object.assign({tipo: 'fade', ms: 800}, cont.transicao || {}); const ms = Math.max(0, Math.min(3000, +tr.ms || 0));
+  R.parar = function () { R.morto = true; clearTimeout(R.timer); if (R.atual) R.atual.destroy(); box.innerHTML = ''; };
+  R.proximo = function () {
+    if (R.morto) return; clearTimeout(R.timer);
+    let ni; if (cont.aleatorio && itens.length > 1) { do { ni = Math.floor(Math.random() * itens.length); } while (ni === R.idx); } else ni = (R.idx + 1) % itens.length;
+    const item = itens[ni], s = criarSlide(P, item); R.idx = ni; if (!s) { R.timer = setTimeout(R.proximo, 1500); return; }
+    const velho = R.atual; R.atual = s; s.el.style.setProperty('--tr', ms + 'ms'); const anim = tr.tipo && tr.tipo !== 'nenhuma' && ms > 0 && velho;
+    if (anim) s.el.classList.add('in-' + tr.tipo);
+    box.appendChild(s.el);
+    if (velho) { if (anim) { velho.el.style.setProperty('--tr', ms + 'ms'); velho.el.classList.add('out-' + tr.tipo); velho.el.style.zIndex = 0; s.el.style.zIndex = 1; } setTimeout(() => { velho.destroy(); if (velho.el.parentNode) velho.el.parentNode.removeChild(velho.el); }, anim ? ms + 60 : 0); }
+    P.agora[id] = {idx: ni, total: itens.length, tipo: item.tipo, nome: item.nome || item.cidade || item.texto || item.url || item.driveId || item.tipo, driveId: item.driveId || null, desde: Date.now()};
+    const dur = item.duracaoS === 0 && s.fimEvento ? 0 : Math.max(2, +item.duracaoS || 10);
+    if (itens.length === 1) { if (item.tipo === 'video') { const v = s.el.querySelector('video'); if (v) v.loop = true; } return; }
+    if (dur > 0) R.timer = setTimeout(R.proximo, dur * 1000); else s.aoFim = () => R.proximo();
+  };
+  R.proximo(); return R;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TOTEM · SINCRONIZAÇÃO (config do Drive + sinal de vida) E DESBLOQUEIO
+   ══════════════════════════════════════════════════════════════ */
+let MAIN = null, TID = null;
+const SYNC = {fid: null, ultimo: '', erros: 0, sessaoOk: true, estado: 'iniciando', tCfg: null, tHb: null, ultHb: 0};
+
+function relogioStandby() {
+  const st = $id('stage'); if (!st) return;
+  if (!MAIN) MAIN = criarPlayer(st);
+  MAIN.aplicar({id: '-', status: 'liberado', tela: {}, layout: {modelo: 'full', gap: 0, raio: 0}, paineis: {r1: {itens: [{tipo: 'relogio', duracaoS: 3600, soHora: false}]}}});
+}
+function mostrarPonto(on) { let p = $id('plPonto'); if (!on) { if (p) p.remove(); return; } if (!p) { p = el('div', 'pl-ponto'); p.id = 'plPonto'; $id('stage').appendChild(p); } p.className = 'pl-ponto' + (SYNC.sessaoOk && SYNC.erros < 3 ? '' : ' ruim'); }
+async function syncConfig() {
+  if (!sessao || !TID) return;
+  try {
+    let fid = SYNC.fid || lsGet(LSK.fid, null);
+    if (!fid) { await listarPasta(); const f = arquivosCache.find(a => a.nome === TOTENS_FILE); fid = f && f.id; }
+    if (!fid) { SYNC.estado = 'sem-config'; return; }
+    const txt = await lerTexto(fid);
+    if (txt == null) { SYNC.fid = null; lsDel(LSK.fid); throw new Error('leitura'); }
+    SYNC.fid = fid; lsSet(LSK.fid, fid); const dados = JSON.parse(txt), t = (dados.totens || []).find(x => x.id === TID);
+    if (!t) { SYNC.estado = 'totem-inexistente'; return; }
+    SYNC.erros = 0; SYNC.estado = 'ok'; const js = JSON.stringify(t);
+    if (js !== SYNC.ultimo) { SYNC.ultimo = js; lsSet(LSK.cfg, t); if (MAIN) MAIN.aplicar(t, lsGet(LSK.aj, null)); mostrarPonto(!!t.mostrarPonto); reagendar(t); }
+    await executarComando(t);
+  } catch (e) { SYNC.erros++; SYNC.estado = 'erro'; }
+  mostrarPonto(!!(MAIN && MAIN.t && MAIN.t.mostrarPonto));
+}
+async function enviarHeartbeat() {
+  if (!sessao || !TID) return;
+  const t = MAIN && MAIN.t;
+  const hb = {id: TID, timestamp: new Date().toISOString(), versao: 2, estado: SYNC.estado, sessaoOk: SYNC.sessaoOk, status: t && t.status, rev: t && t.rev,
+    tela: {w: window.innerWidth, h: window.innerHeight, dpr: window.devicePixelRatio || 1, orientacao: MAIN ? MAIN.orient : '', rotacao: MAIN ? MAIN.rot : 0},
+    agora: MAIN ? MAIN.agora : {}, erros: SYNC.erros, ua: (navigator.userAgent || '').slice(0, 110)};
+  try { await gravarJson('totem_' + TID + '_heartbeat.json', hb, LSK.hbid); SYNC.ultHb = Date.now(); } catch (e) { SYNC.erros++; }
+}
+async function executarComando(t) {
+  const c = t.comando; if (!c || !c.id || lsGet(LSK.cmd, null) === c.id) return; lsSet(LSK.cmd, c.id);
+  if (c.tipo === 'ping') enviarHeartbeat();
+  else if (c.tipo === 'reload' || c.tipo === 'limpar-cache') { if (c.tipo === 'limpar-cache') { Object.keys(HTML_CACHE).forEach(k => delete HTML_CACHE[k]); } setTimeout(() => { try { location.reload(); } catch (e) {} }, 800); }
+}
+function reagendar(t) {
+  clearInterval(SYNC.tCfg); clearInterval(SYNC.tHb);
+  SYNC.tCfg = setInterval(syncConfig, Math.max(15, +t.configS || 30) * 1000); SYNC.tHb = setInterval(enviarHeartbeat, Math.max(20, +t.heartbeatS || 60) * 1000);
+}
+async function iniciarTotem() {
+  TID = new URLSearchParams(location.search).get('t') || lsGet(LSK.id, null); if (TID) TID = String(TID).replace(/[^\w-]/g, '');
+  const cache = lsGet(LSK.cfg, null); const st = $id('stage');
+  if (!MAIN) MAIN = criarPlayer(st);
+  if (TID && cache && cache.id === TID) { MAIN.aplicar(cache, lsGet(LSK.aj, null)); mostrarPonto(!!cache.mostrarPonto); reagendar(cache); } else relogioStandby();
+  if (!sessao || !TID) return;
+  reagendar(cache || {}); await syncConfig(); enviarHeartbeat();
+}
+
+/* ── Desbloqueio escondido: Ctrl pressionado + 10 cliques com o botão esquerdo (velocidade livre; passar de 10 também vale) ── */
+let _cliques = 0, _toques = 0, _ultToque = 0;
+function gestoAtivo() { return !$id('telaLogin').classList.contains('on') && !$id('app').classList.contains('ativo') && !$id('menuLocal').classList.contains('ativo'); }
+document.addEventListener('mousedown', e => {
+  if (!gestoAtivo()) return; if (e.button !== 0 || !e.ctrlKey) { _cliques = 0; return; }
+  _cliques++; if (_cliques >= 10) { _cliques = 0; abrirDesbloqueio(); }
+}, true);
+document.addEventListener('keyup', e => { if (e.key === 'Control') _cliques = 0; });
+window.addEventListener('blur', () => { _cliques = 0; });
+document.addEventListener('contextmenu', e => { if (gestoAtivo()) e.preventDefault(); });
+/* alternativa para telas de toque (sem teclado): 10 toques no canto superior esquerdo */
+document.addEventListener('pointerdown', e => {
+  if (e.pointerType === 'mouse' || !gestoAtivo()) return; const agora = Date.now();
+  if (e.clientX > 96 || e.clientY > 96) { _toques = 0; return; } if (agora - _ultToque > 45000) _toques = 0; _ultToque = agora; _toques++; if (_toques >= 10) { _toques = 0; abrirDesbloqueio(); }
+}, true);
+let _modoLogin = 'totem';
+function abrirDesbloqueio() {
+  const c = lsGet(LSK.cfg, null), temSenha = !!(c && c.senhaHash && c.id === TID); _modoLogin = temSenha ? 'totem' : 'admin'; desenharLogin();
+  $id('telaLogin').classList.add('on'); mostrarMsgLogin('', ''); setTimeout(() => { const f = _modoLogin === 'totem' ? $id('loginSenhaTotem') : $id('loginEmail'); if (f) f.focus(); }, 60);
+}
+function fecharDesbloqueio() { $id('telaLogin').classList.remove('on'); $id('loginSenha').value = ''; $id('loginSenhaTotem').value = ''; }
+function desenharLogin() {
+  document.querySelectorAll('.lg-tabs button').forEach(b => b.classList.toggle('on', b.dataset.m === _modoLogin));
+  $id('lgTotem').style.display = _modoLogin === 'totem' ? 'block' : 'none'; $id('lgAdmin').style.display = _modoLogin === 'admin' ? 'block' : 'none';
+}
+function trocarModoLogin(m) { _modoLogin = m; desenharLogin(); mostrarMsgLogin('', ''); }
+async function entrarComSenhaTotem() {
+  const c = lsGet(LSK.cfg, null), s = $id('loginSenhaTotem').value;
+  if (!c || !c.senhaHash || !c.salt) { mostrarMsgLogin('error', '⚠️ Este aparelho ainda não tem senha de totem. Use o acesso de administrador.'); return; }
+  if (hashSenha(s, c.salt) === c.senhaHash) { fecharDesbloqueio(); abrirMenuLocal(); } else mostrarMsgLogin('error', '❌ Senha incorreta.');
+}
+function abrirPainel() {
+  fecharDesbloqueio(); $id('app').classList.add('ativo'); $id('nomeUsuario').textContent = (sessao && (sessao.nome || sessao.email)) || '—'; document.body.style.overflow = 'hidden';
+  carregarTudo().then(() => carregarTotens());
+}
+function voltarAoTotem() { $id('app').classList.remove('ativo'); document.body.style.overflow = ''; clearInterval(PAN.auto); PAN.auto = null; if (sessao && TID) { iniciarTotem(); } }
+/* menu local do totem (liberado pela senha do totem) */
+function abrirMenuLocal() {
+  const t = MAIN && MAIN.t, aj = Object.assign({rotacao: 0, escala: 1, margem: 0, orientacao: 'auto'}, lsGet(LSK.aj, {}));
+  $id('menuLocalBody').innerHTML = `<div class="hintx">Totem <b>${esc((t && t.nome) || TID || 'não vinculado')}</b> · ID <b>${esc(TID || '—')}</b> · config rev <b>${esc(t && t.rev || '—')}</b><br>Último sinal enviado: <b>${SYNC.ultHb ? new Date(SYNC.ultHb).toLocaleTimeString('pt-BR') : '—'}</b> · estado: <b>${esc(SYNC.estado)}</b> · sessão: <b>${SYNC.sessaoOk ? 'ok' : 'expirada'}</b></div>
+  <div class="fm"><label>Rotação do conteúdo (neste aparelho)<select id="mlRot">${[0,90,180,270].map(g => `<option value="${g}"${+aj.rotacao === g ? ' selected' : ''}>${g}°</option>`).join('')}</select></label>
+  <label>Escala (zoom)<input type="number" id="mlEsc" min="0.5" max="1.5" step="0.01" value="${aj.escala}"></label>
+  <label>Margem de segurança (%)<input type="number" id="mlMar" min="0" max="15" step="0.5" value="${aj.margem}"></label></div>
+  <div class="hintx">Estes ajustes valem só neste aparelho (ex.: TV girada ou com bordas cortadas). Layout, conteúdo e senha são definidos no painel.</div>`;
+  $id('menuLocal').classList.add('ativo');
+}
+function aplicarAjusteLocal() { const aj = {rotacao: +$id('mlRot').value, escala: +$id('mlEsc').value || 1, margem: +$id('mlMar').value || 0, ajuste: 'manual'}; lsSet(LSK.aj, aj); if (MAIN && MAIN.t) MAIN.aplicar(MAIN.t, aj); mostrarToast('✅ Ajuste aplicado.'); }
+function limparAjusteLocal() { lsDel(LSK.aj); if (MAIN && MAIN.t) MAIN.aplicar(MAIN.t, null); fecharMenuLocal(); mostrarToast('Ajuste local removido.'); }
+function fecharMenuLocal() { $id('menuLocal').classList.remove('ativo'); }
+function telaCheia() { const e = document.documentElement; try { (e.requestFullscreen || e.webkitRequestFullscreen).call(e); } catch (er) {} }
+function recarregarTotem() { try { location.reload(); } catch (e) {} }
+
+/* ══════════════════════════════════════════════════════════════
+   PAINEL · TOTENS (lista, status, alertas, comandos, espelho, configuração)
+   ══════════════════════════════════════════════════════════════ */
+const PAN = {dados: {versao: 2, rev: 0, totens: []}, hb: {}, auto: null, alertas: lsGet('almafluxo_alertas', false), ultEstado: {}, cfg: null, fid: null};
+const hbNome = id => 'totem_' + id + '_heartbeat.json';
+function estadoDe(t, hb) {
+  if (t.status === 'bloqueado') return {k: 'bloq', txt: 'Bloqueado'};
+  if (!hb || !hb.timestamp) return {k: 'offline', txt: 'Sem sinal'};
+  const seg = (Date.now() - new Date(hb.timestamp).getTime()) / 1000, lim = Math.max(90, (+t.heartbeatS || 60) * 2.5);
+  return seg <= lim ? {k: 'online', txt: 'Online', seg} : {k: 'offline', txt: 'Offline', seg};
+}
+const haQuanto = s => s == null ? '—' : s < 90 ? Math.round(s) + ' s' : s < 5400 ? Math.round(s / 60) + ' min' : s < 172800 ? Math.round(s / 3600) + ' h' : Math.round(s / 86400) + ' dias';
+async function carregarTotens(silencioso) {
+  const lista = $id('totens-lista'); if (!silencioso && lista) lista.innerHTML = '<div class="vazio">Lendo configuração…</div>';
+  try {
+    await listarPasta(); const f = arquivosCache.find(a => a.nome === TOTENS_FILE); PAN.fid = f ? f.id : null;
+    if (f) { const txt = await lerTexto(f.id); if (txt) { const d = JSON.parse(txt); PAN.dados = Object.assign({versao: 2, rev: 0, totens: []}, d); } }
+    let migrou = false; PAN.dados.totens.forEach(t => { if (t.senha && !t.senhaHash) { t.salt = novoSal(); t.senhaHash = hashSenha(String(t.senha), t.salt); delete t.senha; migrou = true; } });
+    if (migrou) mostrarToast('Senhas antigas (texto puro) convertidas para hash. Salve para gravar.');
+    await lerHeartbeats(); renderTotens();
+    if (!PAN.auto) PAN.auto = setInterval(() => { if ($id('app').classList.contains('ativo') && $id('painel-totens').classList.contains('ativo')) atualizarStatus(true); }, 60000);
+  } catch (e) { if (lista) lista.innerHTML = '<div class="vazio">Erro: ' + esc(e.message) + '</div>'; }
+}
+async function lerHeartbeats() {
+  PAN.hb = {}; await Promise.all(PAN.dados.totens.map(async t => { const f = arquivosCache.find(a => a.nome === hbNome(t.id)); if (!f) return; try { const x = await lerTexto(f.id); if (x) PAN.hb[t.id] = JSON.parse(x); } catch (e) {} }));
+  verificarAlertas();
+}
+async function atualizarStatus(silencioso) { try { await listarPasta(); await lerHeartbeats(); renderTotens(); if (!silencioso) mostrarToast('Status atualizado.'); } catch (e) { if (!silencioso) mostrarToast('Erro: ' + e.message, true); } }
+function verificarAlertas() {
+  PAN.dados.totens.forEach(t => { const k = estadoDe(t, PAN.hb[t.id]).k, antes = PAN.ultEstado[t.id]; PAN.ultEstado[t.id] = k;
+    if (PAN.alertas && antes === 'online' && k === 'offline') { mostrarToast('🚨 Totem "' + (t.nome || t.id) + '" ficou OFFLINE', true); try { if (window.Notification && Notification.permission === 'granted') new Notification('Totem offline', {body: t.nome || t.id}); } catch (e) {} bip(); } });
+}
+function bip() { try { const a = new (window.AudioContext || window.webkitAudioContext)(), o = a.createOscillator(), g = a.createGain(); o.connect(g); g.connect(a.destination); o.frequency.value = 660; g.gain.value = .08; o.start(); setTimeout(() => { o.stop(); a.close(); }, 450); } catch (e) {} }
+function alternarAlertas() { PAN.alertas = !PAN.alertas; lsSet('almafluxo_alertas', PAN.alertas); if (PAN.alertas && window.Notification && Notification.permission === 'default') Notification.requestPermission(); renderTotens(); mostrarToast(PAN.alertas ? '🔔 Alertas de queda ativados' : '🔕 Alertas desativados'); }
+function resumoAgora(hb) { if (!hb || !hb.agora) return ''; return Object.entries(hb.agora).map(([r, a]) => (TIPOS[a.tipo] || a.tipo).split(' ')[0] + ' ' + esc(String(a.nome).slice(0, 28)) + (a.total > 1 ? ' (' + (a.idx + 1) + '/' + a.total + ')' : '')).join(' · '); }
+function renderTotens() {
+  const lista = $id('totens-lista'); if (!lista) return; const aqui = TID;
+  const ban = $id('totens-banner'); ban.innerHTML = aqui ? `<div class="banner-bind">📌 Este aparelho está vinculado ao totem <b>${esc(aqui)}</b>. <button class="btn" onclick="desvincular()">Desvincular</button></div>` : (PAN.dados.totens.length ? `<div class="banner-bind">📌 Este aparelho não está vinculado a nenhum totem. Vincular a: <select id="bindSel">${PAN.dados.totens.map(t => `<option value="${esc(t.id)}">${esc(t.nome || t.id)}</option>`).join('')}</select> <button class="btn btn-primario" onclick="vincular($id('bindSel').value)">Vincular</button></div>` : '');
+  $id('btnAlertas').textContent = PAN.alertas ? '🔔 Alertas: ligados' : '🔕 Alertas: desligados';
+  if (!PAN.dados.totens.length) { lista.innerHTML = '<div class="vazio">Nenhum totem cadastrado. Clique em “➕ Novo totem”.</div>'; return; }
+  lista.className = 'tot-grid';
+  lista.innerHTML = PAN.dados.totens.map(t => { const hb = PAN.hb[t.id], e = estadoDe(t, hb), tela = hb && hb.tela, L = modeloDe(t, tela ? tela.orientacao : 'paisagem');
+    return `<div class="tot-card${aqui === t.id ? ' aqui' : ''}"><div class="tot-head"><div class="tot-nome"><span class="dot ${e.k}"></span>${esc(t.nome || t.id)}</div><span class="obs">${e.txt}</span></div>
+    <div class="tot-meta">${esc(t.local || 'sem local')} · ID <b>${esc(t.id)}</b><br>Layout: ${esc((MODELOS[t.layout.modelo] || {}).nome || t.layout.modelo)} · ${t.tela.polegadas ? t.tela.polegadas + '″ · ' : ''}${esc(t.tela.orientacao)}${t.tela.rotacao ? ' · ' + t.tela.rotacao + '°' : ''}<br>Último sinal: ${hb ? 'há ' + haQuanto(e.seg) : '—'}${tela ? ' · ' + tela.w + '×' + tela.h : ''}${hb && hb.sessaoOk === false ? ' · <b style="color:#e74c3c">sessão expirada</b>' : ''}</div>
+    ${hb && hb.agora && Object.keys(hb.agora).length ? `<div class="tot-now">▶ ${resumoAgora(hb)}</div>` : ''}
+    <div class="tot-acoes"><button class="btn btn-primario" onclick="verTela('${esc(t.id)}')">👁️ Ver tela</button><button class="btn" onclick="abrirConfigTotem('${esc(t.id)}')">⚙️ Configurar</button><button class="btn" onclick="editarNoEditor('${esc(t.id)}')">🎬 Editor</button>
+    <button class="btn" onclick="comandoTotem('${esc(t.id)}','ping')">📡 Pedir sinal</button><button class="btn" onclick="comandoTotem('${esc(t.id)}','reload')">🔄 Recarregar</button><button class="btn" onclick="alternarBloqueio('${esc(t.id)}')">${t.status === 'bloqueado' ? '🔓 Liberar' : '🔒 Bloquear'}</button>${aqui === t.id ? '' : `<button class="btn" onclick="vincular('${esc(t.id)}')">📌 Vincular aqui</button>`}</div></div>`; }).join('');
+}
+function vincular(id) { if (!id) return; lsSet(LSK.id, id); TID = id; lsDel(LSK.cfg); lsDel(LSK.hbid); SYNC.ultimo = ''; mostrarToast('📌 Aparelho vinculado a ' + id); renderTotens(); }
+function desvincular() { lsDel(LSK.id); lsDel(LSK.cfg); TID = null; SYNC.ultimo = ''; clearInterval(SYNC.tCfg); clearInterval(SYNC.tHb); if (MAIN) relogioStandby(); renderTotens(); }
+async function salvarTotens(msg) {
+  try {
+    if (PAN.fid) { const x = await lerTexto(PAN.fid); if (x) { const rem = JSON.parse(x); if ((rem.rev || 0) > (PAN.dados.rev || 0)) { mostrarToast('⚠️ A configuração foi alterada em outra sessão. Recarreguei; refaça a edição.', true); await carregarTotens(); return false; } } }
+    PAN.dados.rev = (PAN.dados.rev || 0) + 1; PAN.dados.atualizadoEm = new Date().toISOString(); PAN.dados.versao = 2;
+    await gravarJson(TOTENS_FILE, PAN.dados, null); await listarPasta(); const f = arquivosCache.find(a => a.nome === TOTENS_FILE); PAN.fid = f ? f.id : PAN.fid;
+    mostrarToast(msg || '✅ Configuração salva no Drive'); return true;
+  } catch (e) { mostrarToast('Erro ao salvar: ' + e.message, true); return false; }
+}
+async function comandoTotem(id, tipo) { const t = PAN.dados.totens.find(x => x.id === id); if (!t) return; t.comando = {id: 'c' + Date.now().toString(36), tipo, em: new Date().toISOString()}; t.rev = (t.rev || 0) + 1; if (await salvarTotens('📡 Comando enviado (o totem executa em até ' + (t.configS || 30) + ' s)')) { if (tipo === 'ping') setTimeout(() => atualizarStatus(true), (t.configS || 30) * 1000 + 6000); } }
+async function alternarBloqueio(id) { const t = PAN.dados.totens.find(x => x.id === id); if (!t) return; if (t.status !== 'bloqueado' && !confirm('Bloquear "' + (t.nome || id) + '"? A tela passa a mostrar a mensagem de bloqueio.')) return; t.status = t.status === 'bloqueado' ? 'liberado' : 'bloqueado'; t.rev = (t.rev || 0) + 1; if (await salvarTotens(t.status === 'bloqueado' ? '🔒 Totem bloqueado' : '🔓 Totem liberado')) renderTotens(); }
+async function excluirTotem(id) { if (!confirm('Excluir o totem "' + id + '" da configuração? (o arquivo de sinal permanece no Drive)')) return; PAN.dados.totens = PAN.dados.totens.filter(t => t.id !== id); if (await salvarTotens('Totem removido')) { fecharModal2('cfgModal'); renderTotens(); } }
+function editarNoEditor(id) { const t = PAN.dados.totens.find(x => x.id === id); let alvo = null; if (t) { for (const p of Object.values(t.paineis || {})) { const it = (p.itens || []).find(i => i.driveId && (i.tipo === 'video' || i.tipo === 'imagem')); if (it) { const a = arquivosCache.find(x => x.id === it.driveId); if (a) { alvo = a; break; } } } } abrirEditorDrive(alvo); }
+function fecharModal2(id) { $id(id).classList.remove('ativo'); if (id === 'prevModal' && PAN.prev) { PAN.prev.destruir(); PAN.prev = null; } }
+
+/* ── Ver tela: espelho do que o totem está exibindo agora ── */
+async function verTela(id) {
+  const t = PAN.dados.totens.find(x => x.id === id); if (!t) return; PAN.espId = id; $id('espModal').classList.add('ativo'); $id('espBody').innerHTML = '<div class="vazio">Lendo sinal…</div>';
+  await listarPasta(); await lerHeartbeats(); desenharEspelho();
+}
+function desenharEspelho() {
+  const t = PAN.dados.totens.find(x => x.id === PAN.espId); if (!t) return; const hb = PAN.hb[t.id], e = estadoDe(t, hb), orient = (hb && hb.tela && hb.tela.orientacao) || 'paisagem', L = modeloDe(t, orient);
+  const cel = r => { const a = hb && hb.agora && hb.agora[r.id]; let conteudo = '<span style="color:#555">sem dados</span>'; if (a) { const ic = (TIPOS[a.tipo] || a.tipo).split(' ')[0]; const img = a.driveId && (a.tipo === 'imagem') ? `<img src="https://drive.google.com/thumbnail?id=${encodeURIComponent(a.driveId)}&sz=w400" alt="">` : `<div style="font-size:1.6rem">${ic}</div>`; conteudo = `${img}<div>${esc(String(a.nome).slice(0, 40))}</div><div style="color:#8b93a7">${a.total > 1 ? 'item ' + (a.idx + 1) + '/' + a.total + ' · ' : ''}há ${haQuanto((Date.now() - a.desde) / 1000)}</div>`; } return `<div class="esp-r" style="left:${r.x}%;top:${r.y}%;width:${r.w}%;height:${r.h}%"><div class="esp-c">${conteudo}</div></div>`; };
+  $id('espTitulo').textContent = '👁️ ' + (t.nome || t.id);
+  $id('espBody').innerHTML = `<div class="espelho${orient === 'retrato' ? ' ret' : ''}">${retangulos(L).map(cel).join('')}</div>
+  <div class="hintx" style="margin-top:10px"><span class="dot ${e.k}"></span><b>${e.txt}</b>${hb ? ' · sinal há ' + haQuanto(e.seg) + ' · tela ' + hb.tela.w + '×' + hb.tela.h + ' (' + hb.tela.orientacao + ')' : ''}<br>O espelho mostra <b>o que cada região está exibindo</b> no último sinal enviado (não é captura de pixels). Use “Reproduzir” para ver a programação rodando como no totem.</div>
+  <div class="tot-acoes" style="margin-top:8px"><button class="btn" onclick="comandoTotem('${esc(t.id)}','ping').then(()=>{})">📡 Pedir sinal agora</button><button class="btn" onclick="atualizarEspelho()">🔄 Reler sinal</button><button class="btn btn-primario" onclick="reproduzirTotem('${esc(t.id)}')">▶ Reproduzir como no totem</button><button class="btn" onclick="editarNoEditor('${esc(t.id)}')">🎬 Editar no editor</button><button class="btn" onclick="fecharModal2('espModal');abrirConfigTotem('${esc(t.id)}')">⚙️ Configurar</button></div>`;
+}
+async function atualizarEspelho() { await listarPasta(); await lerHeartbeats(); desenharEspelho(); }
+function reproduzirTotem(id, objeto) {
+  const t = objeto || PAN.dados.totens.find(x => x.id === id); if (!t) return; const orient = ((+t.tela.rotacao || 0) % 180 ? (t.tela.resW >= t.tela.resH ? 'retrato' : 'paisagem') : (t.tela.resH > t.tela.resW ? 'retrato' : 'paisagem')); const ret = (t.tela.orientacao === 'retrato') || orient === 'retrato';
+  $id('prevBox').className = 'prev-wrap' + (ret ? ' ret' : ''); $id('prevModal').classList.add('ativo'); if (PAN.prev) PAN.prev.destruir();
+  const c = clone(t); c.status = 'liberado'; c.tela = Object.assign({}, c.tela, {rotacao: 0, orientacao: 'auto'}); PAN.prev = criarPlayer($id('prevBox'), {preview: true}); setTimeout(() => PAN.prev.aplicar(c, null), 50);
+}
+
+/* ── Configuração completa do totem ── */
+function abrirConfigTotem(id) {
+  const novo = !id; const t = novo ? totemPadrao('totem' + (PAN.dados.totens.length + 1)) : clone(PAN.dados.totens.find(x => x.id === id)); if (!t) return;
+  PAN.cfg = {t, novo, aba: 'id', reg: 'r1', retrato: false, item: -1, senhaNova: ''}; $id('cfgModal').classList.add('ativo'); desenharCfg();
+}
+const ABAS_CFG = [['id', '🪪 Identificação'], ['tela', '🖥️ Tela'], ['layout', '🧩 Layout'], ['conteudo', '🎞️ Conteúdo'], ['avancado', '🛠️ Avançado']];
+function desenharCfg() {
+  const C = PAN.cfg; if (!C) return; $id('cfgTitulo').textContent = C.novo ? '➕ Novo totem' : '⚙️ ' + (C.t.nome || C.t.id);
+  const tabs = `<div class="cfg-tabs">${ABAS_CFG.map(a => `<button class="${C.aba === a[0] ? 'on' : ''}" onclick="PAN.cfg.aba='${a[0]}';desenharCfg()">${a[1]}</button>`).join('')}</div>`;
+  $id('cfgBody').innerHTML = tabs + ({id: cfgId, tela: cfgTela, layout: cfgLayout, conteudo: cfgConteudo, avancado: cfgAvancado}[C.aba])(C.t);
+  $id('cfgExcluir').style.display = C.novo ? 'none' : '';
+}
+const fld = (rot, k, v, tipo, extra) => `<label>${rot}<input data-k="${k}" type="${tipo || 'text'}" value="${esc(v)}" ${extra || ''}></label>`;
+const sel = (rot, k, v, ops, redraw) => `<label>${rot}<select data-k="${k}"${redraw ? ' data-redraw="1"' : ''}>${ops.map(o => `<option value="${esc(o[0])}"${String(v) === String(o[0]) ? ' selected' : ''}>${esc(o[1])}</option>`).join('')}</select></label>`;
+const chk = (rot, k, v) => `<label>${rot}<input data-k="${k}" type="checkbox" ${v ? 'checked' : ''}></label>`;
+function cfgId(t) {
+  const C = PAN.cfg; return `<div class="fm">${fld('Nome do totem', 'nome', t.nome)}${fld('Local / observação', 'local', t.local)}${C.novo ? fld('ID (letras, números, - _)', 'id', t.id) : `<label>ID<input value="${esc(t.id)}" disabled></label>`}
+  ${sel('Status', 'status', t.status, [['liberado', '🔓 Liberado'], ['bloqueado', '🔒 Bloqueado']])}${fld('Mensagem quando bloqueado', 'msgBloqueio', t.msgBloqueio)}</div>
+  <div class="fm"><label>${t.senhaHash ? 'Nova senha de liberação (vazio = manter a atual)' : 'Senha de liberação do totem'}<input id="cfgSenha" type="text" autocomplete="off" placeholder="mínimo 4 caracteres" value="${esc(C.senhaNova)}"></label></div>
+  <div class="hintx">A senha libera o <b>menu técnico do totem</b> (ajustes locais) depois do gesto <b>Ctrl + 10 cliques</b>. Ela fica no Drive apenas como <b>hash SHA-256 com sal</b>; ao trocar aqui, o totem passa a usar a nova em até ${t.configS || 30} s. O acesso completo ao painel exige e-mail e senha da conta.</div>`;
+}
+function cfgTela(t) {
+  const T = t.tela, ppi = T.polegadas && T.resW && T.resH ? Math.round(Math.hypot(T.resW, T.resH) / T.polegadas) : null, hb = PAN.hb[t.id];
+  return `<div class="fm">${sel('Orientação', 'tela.orientacao', T.orientacao, [['auto', 'Automática (segue a tela)'], ['paisagem', 'Horizontal'], ['retrato', 'Vertical']])}${sel('Rotação do conteúdo', 'tela.rotacao', T.rotacao, [[0, '0°'], [90, '90° (monitor deitado → em pé)'], [180, '180°'], [270, '270°']])}
+  ${fld('Tamanho (polegadas)', 'tela.polegadas', T.polegadas, 'number', 'min="0" max="120" step="0.1"')}${fld('Resolução largura (px)', 'tela.resW', T.resW, 'number', 'min="0"')}${fld('Resolução altura (px)', 'tela.resH', T.resH, 'number', 'min="0"')}
+  ${sel('Ajuste', 'tela.ajuste', T.ajuste, [['auto', 'Automático'], ['manual', 'Manual (escala e margem)']], true)}
+  ${T.ajuste === 'manual' ? fld('Escala (0.3–2)', 'tela.escala', T.escala, 'number', 'min="0.3" max="2" step="0.01"') + fld('Margem de segurança (%)', 'tela.margem', T.margem, 'number', 'min="0" max="15" step="0.5"') : ''}
+  <label>Cor de fundo<input data-k="tela.fundo" type="color" value="${esc(T.fundo || '#000000')}"></label></div>
+  <div class="hintx">${ppi ? `Densidade calculada: <b>${ppi} ppi</b>. ` : ''}No modo automático, as regiões são sempre em <b>% da tela</b> (se adaptam a qualquer resolução) e os textos escalam pelo menor lado; com polegadas informadas, o texto é ajustado em relação a um monitor de 32″ (limite 0,8×–2×). Em <b>retrato</b>, o layout é convertido automaticamente (ex.: “2 lados” vira “2 empilhados”) ou você pode definir um layout próprio na aba Layout.${hb && hb.tela ? `<br>Último sinal: <b>${hb.tela.w}×${hb.tela.h}</b> (${hb.tela.orientacao}${hb.tela.rotacao ? ', rotação ' + hb.tela.rotacao + '°' : ''}).` : ''}</div>`;
+}
+function layoutAtual(t, retrato) { return retrato ? (t.layoutRetrato || null) : t.layout; }
+function cfgLayout(t) {
+  const C = PAN.cfg, L = C.retrato ? (t.layoutRetrato || {modelo: PAR_RETRATO[t.layout.modelo] || 'full', gap: t.layout.gap, raio: t.layout.raio}) : t.layout, base = C.retrato ? 'layoutRetrato' : 'layout';
+  if (L.modelo === 'custom') garantirCustom(L);
+  const rects = retangulos(L), ops = Object.entries(MODELOS).filter(([k]) => C.retrato || k !== '6p' || true).map(([k, v]) => [k, v.nome]);
+  return `<div class="chips"><button class="${C.retrato ? '' : 'on'}" onclick="PAN.cfg.retrato=false;desenharCfg()">Paisagem (horizontal)</button><button class="${C.retrato ? 'on' : ''}" onclick="PAN.cfg.retrato=true;desenharCfg()">Retrato (vertical)</button></div>
+  ${C.retrato ? `<div class="hintx">${t.layoutRetrato ? 'Layout de retrato <b>personalizado</b>. <button class="btn" onclick="PAN.cfg.t.layoutRetrato=null;desenharCfg()">Voltar ao automático</button>' : 'Em retrato o painel usa a conversão automática do layout horizontal. Escolha um modelo abaixo para personalizar.'}</div>` : ''}
+  <div class="fm">${sel('Modelo', base + '.modelo', L.modelo, ops, true)}${fld('Espaço entre regiões (px)', base + '.gap', L.gap == null ? 6 : L.gap, 'number', 'min="0" max="60"')}${fld('Cantos arredondados (px)', base + '.raio', L.raio == null ? 10 : L.raio, 'number', 'min="0" max="60"')}</div>
+  <div class="sch${C.retrato ? ' ret' : ''}">${rects.map(r => `<div class="${C.reg === r.id ? 'sel' : ''}" style="left:${r.x}%;top:${r.y}%;width:${r.w}%;height:${r.h}%" onclick="PAN.cfg.reg='${r.id}';PAN.cfg.aba='conteudo';PAN.cfg.item=-1;desenharCfg()">${r.id}</div>`).join('')}</div>
+  <div class="hintx">Clique numa região para editar o conteúdo dela.</div>
+  ${L.modelo === 'custom' ? `<div class="hintx"><b>Personalizado:</b> posição e tamanho em % da tela.</div>${(L.regioes || retangulos({modelo: '2-v'})).map((r, i) => `<div class="fm" style="grid-template-columns:repeat(5,1fr)"><label>${esc(r.id || 'r' + (i + 1))} · x<input data-k="${base}.regioes.${i}.x" type="number" value="${r.x}" min="0" max="100" step="0.5"></label><label>y<input data-k="${base}.regioes.${i}.y" type="number" value="${r.y}" min="0" max="100" step="0.5"></label><label>largura<input data-k="${base}.regioes.${i}.w" type="number" value="${r.w}" min="2" max="100" step="0.5"></label><label>altura<input data-k="${base}.regioes.${i}.h" type="number" value="${r.h}" min="2" max="100" step="0.5"></label><label>&nbsp;<button class="btn" onclick="rmRegiao(${i})">🗑️</button></label></div>`).join('')}<button class="btn" onclick="addRegiao()">➕ Região</button>` : ''}`;
+}
+function garantirCustom(L) { if (!Array.isArray(L.regioes) || !L.regioes.length) L.regioes = retangulos({modelo: L.modelo === 'custom' ? '2-v' : L.modelo}).map(r => Object.assign({}, r)); return L.regioes; }
+function addRegiao() { const C = PAN.cfg, L = C.retrato ? (C.t.layoutRetrato = C.t.layoutRetrato || {modelo: 'custom', gap: 6, raio: 10}) : C.t.layout, R = garantirCustom(L); if (R.length >= 8) return mostrarToast('Máximo de 8 regiões', true); R.push({id: 'r' + (R.length + 1), x: 10, y: 10, w: 40, h: 40}); desenharCfg(); }
+function rmRegiao(i) { const C = PAN.cfg, L = C.retrato ? C.t.layoutRetrato : C.t.layout, R = garantirCustom(L); if (R.length <= 1) return; R.splice(i, 1); R.forEach((r, j) => r.id = 'r' + (j + 1)); desenharCfg(); }
+function regioesIds(t, retrato) { const L = retrato ? modeloDe(t, 'retrato') : t.layout; return retangulos(L).map(r => r.id); }
+function cfgConteudo(t) {
+  const C = PAN.cfg, ids = regioesIds(t, C.retrato); if (!ids.includes(C.reg)) C.reg = ids[0]; t.paineis = t.paineis || {}; const p = t.paineis[C.reg] = t.paineis[C.reg] || {itens: [], transicao: {tipo: 'fade', ms: 800}, aleatorio: false}; p.itens = p.itens || []; p.transicao = p.transicao || {tipo: 'fade', ms: 800};
+  return `<div class="chips">${ids.map(i => `<button class="${i === C.reg ? 'on' : ''}" onclick="PAN.cfg.reg='${i}';PAN.cfg.item=-1;desenharCfg()">${i}${(t.paineis[i] && t.paineis[i].itens && t.paineis[i].itens.length) ? ' · ' + t.paineis[i].itens.length : ''}</button>`).join('')}<button onclick="PAN.cfg.aba='layout';desenharCfg()">🧩 ver layout</button></div>
+  <div class="fm">${sel('Transição entre itens', 'paineis.' + C.reg + '.transicao.tipo', p.transicao.tipo, Object.entries(TRANSICOES))}${fld('Duração da transição (ms)', 'paineis.' + C.reg + '.transicao.ms', p.transicao.ms, 'number', 'min="0" max="3000" step="100"')}${chk('Ordem aleatória', 'paineis.' + C.reg + '.aleatorio', p.aleatorio)}</div>
+  ${p.itens.map((it, i) => itemHtml(it, i, p, C)).join('') || '<div class="hintx">Nenhum item nesta região: o totem mostra um relógio.</div>'}
+  <div class="fm"><label>➕ Adicionar item<select id="addTipo">${Object.entries(TIPOS).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select></label><label>&nbsp;<button class="btn btn-primario" onclick="addItem()">Adicionar</button></label><label>&nbsp;<button class="btn" onclick="reproduzirTotem(null,PAN.cfg.t)">▶ Pré-visualizar totem</button></label></div>`;
+}
+function addItem() { const C = PAN.cfg, tipo = $id('addTipo').value, p = C.t.paineis[C.reg], base = {tipo, duracaoS: tipo === 'video' ? 0 : 10}; if (tipo === 'clima') Object.assign(base, {cidade: 'São Paulo', lat: -23.55, lon: -46.63}); if (tipo === 'texto') Object.assign(base, {texto: 'Seu texto aqui', tamanho: 6, cor: '#ffffff', fundo: '#0b1830'}); p.itens.push(base); C.item = p.itens.length - 1; desenharCfg(); }
+function moverItem(i, d) { const p = PAN.cfg.t.paineis[PAN.cfg.reg], j = i + d; if (j < 0 || j >= p.itens.length) return; [p.itens[i], p.itens[j]] = [p.itens[j], p.itens[i]]; PAN.cfg.item = j; desenharCfg(); }
+function remItem(i) { const p = PAN.cfg.t.paineis[PAN.cfg.reg]; p.itens.splice(i, 1); PAN.cfg.item = -1; desenharCfg(); }
+function arqOps(tipo, atual) { const lista = (arquivosCache || []).filter(a => tipoDoArquivo(a.nome, a.mimeType) === tipo); const mot = tipo === 'html' ? lista.filter(a => /almaditor|olho|clima|editor/i.test(a.nome)) : []; const resto = lista.filter(a => !mot.includes(a));
+  const op = a => `<option value="${esc(a.id)}"${a.id === atual ? ' selected' : ''}>${esc(a.nome)}</option>`; return `<option value="">— escolher do Drive —</option>${mot.length ? `<optgroup label="Motores ALMAFLUXO">${mot.map(op).join('')}</optgroup>` : ''}<optgroup label="Arquivos">${resto.map(op).join('')}</optgroup>`; }
+function itemHtml(it, i, p, C) {
+  const k = 'paineis.' + C.reg + '.itens.' + i + '.', aberto = C.item === i, ic = (TIPOS[it.tipo] || it.tipo);
+  const nomeArq = it.driveId ? ((arquivosCache.find(a => a.id === it.driveId) || {}).nome || it.driveId) : (it.url || it.texto || it.cidade || '');
+  let corpo = '';
+  if (aberto) {
+    const drv = (tipo) => `<label>Arquivo do Drive<select data-k="${k}driveId" data-redraw="1">${arqOps(tipo, it.driveId)}</select></label>${fld('…ou URL direta (https)', k + 'url', it.url || '')}`;
+    corpo = `<div class="fm">${fld('Rótulo (opcional)', k + 'nome', it.nome || '')}${fld('Duração (s) · 0 = até o vídeo terminar', k + 'duracaoS', it.duracaoS == null ? 10 : it.duracaoS, 'number', 'min="0" max="3600"')}${chk('Ativo', k + 'ativo', it.ativo !== false)}</div>`;
+    if (it.tipo === 'imagem') corpo += `<div class="fm">${drv('foto')}${sel('Ajuste', k + 'fit', it.fit || 'cover', [['cover', 'Preencher (corta)'], ['contain', 'Conter (sem corte)'], ['fill', 'Esticar']])}${sel('Posição', k + 'position', it.position || 'center', [['center', 'Centro'], ['top', 'Topo'], ['bottom', 'Base'], ['left', 'Esquerda'], ['right', 'Direita']])}${chk('Movimento suave (Ken Burns)', k + 'kenburns', it.kenburns)}</div>`;
+    else if (it.tipo === 'video') corpo += `<div class="fm">${drv('video')}${sel('Ajuste', k + 'fit', it.fit || 'cover', [['cover', 'Preencher'], ['contain', 'Conter']])}${chk('Com som (exige interação no navegador)', k + 'mudoOff', it.mudo === false)}</div><button class="btn" onclick="editarItemNoEditor(${i})">🎬 Abrir no editor de vídeo</button>`;
+    else if (it.tipo === 'youtube') corpo += `<div class="fm">${fld('Link ou ID do YouTube', k + 'url', it.url || '')}</div>`;
+    else if (it.tipo === 'site') corpo += `<div class="fm">${fld('Endereço (https)', k + 'url', it.url || '')}</div><div class="hintx">Alguns sites bloqueiam exibição em quadro (X-Frame-Options); nesses casos, use um HTML do Drive.</div>`;
+    else if (it.tipo === 'html-drive') corpo += `<div class="fm"><label>HTML do Drive<select data-k="${k}driveId" data-redraw="1">${arqOps('html', it.driveId)}</select></label></div><div class="hintx">Roda em quadro isolado (sem acesso ao painel). É a forma de exibir os <b>motores</b> (Almaditor, Olho de Deus, ClimaFluxo e outros HTMLs seus) dentro de uma região.</div>`;
+    else if (it.tipo === 'relogio') corpo += `<div class="fm">${fld('Fuso (ex.: America/Sao_Paulo)', k + 'fuso', it.fuso || '')}${chk('Só a hora', k + 'soHora', it.soHora)}<label>Cor<input data-k="${k}cor" type="color" value="${esc(it.cor || '#e8f6ff')}"></label></div>`;
+    else if (it.tipo === 'clima') corpo += `<div class="fm">${fld('Cidade', k + 'cidade', it.cidade || '')}${fld('Latitude', k + 'lat', it.lat, 'number', 'step="0.0001"')}${fld('Longitude', k + 'lon', it.lon, 'number', 'step="0.0001"')}<label>&nbsp;<button class="btn" onclick="buscarCidade(${i})">🔎 Achar coordenadas pela cidade</button></label></div><div class="hintx">Dados do Open-Meteo (a mesma fonte do ClimaFluxo), atualizados a cada 15 min.</div>`;
+    else if (it.tipo === 'texto') corpo += `<div class="fm"><label style="grid-column:1/-1">Texto<textarea data-k="${k}texto" rows="3">${esc(it.texto || '')}</textarea></label>${fld('Tamanho (1–15)', k + 'tamanho', it.tamanho || 6, 'number', 'min="1" max="15" step="0.5"')}<label>Cor do texto<input data-k="${k}cor" type="color" value="${esc(it.cor || '#ffffff')}"></label><label>Fundo<input data-k="${k}fundo" type="color" value="${esc(it.fundo || '#0b1830')}"></label>${sel('Animação', k + 'anim', it.anim || '', [['', 'Nenhuma'], ['marquee', 'Letreiro'], ['pulso', 'Pulsar']])}</div>`;
+  }
+  return `<div class="it"><div class="it-h"><span>${ic}</span><span class="nome">${esc(it.nome || nomeArq || '(sem fonte)')}</span><span class="obs">${it.duracaoS === 0 ? 'até terminar' : (it.duracaoS == null ? 10 : it.duracaoS) + ' s'}</span><button onclick="moverItem(${i},-1)">▲</button><button onclick="moverItem(${i},1)">▼</button><button onclick="PAN.cfg.item=${aberto ? -1 : i};desenharCfg()">${aberto ? 'fechar' : 'editar'}</button><button onclick="remItem(${i})">🗑️</button></div>${aberto ? '<div class="it-b">' + corpo + '</div>' : ''}</div>`;
+}
+async function buscarCidade(i) { const C = PAN.cfg, it = C.t.paineis[C.reg].itens[i]; try { const r = await fetch('https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(it.cidade || '') + '&count=1&language=pt'); const d = await r.json(); if (d.results && d.results[0]) { it.lat = d.results[0].latitude; it.lon = d.results[0].longitude; it.cidade = d.results[0].name; desenharCfg(); mostrarToast('📍 ' + it.cidade); } else mostrarToast('Cidade não encontrada', true); } catch (e) { mostrarToast('Erro na busca', true); } }
+function editarItemNoEditor(i) { const C = PAN.cfg, it = C.t.paineis[C.reg].itens[i], a = it.driveId && arquivosCache.find(x => x.id === it.driveId); if (!a) return mostrarToast('Escolha um vídeo do Drive primeiro', true); abrirEditorDrive(a); }
+function cfgAvancado(t) {
+  return `<div class="fm">${fld('Sinal de vida a cada (s) · mín. 20', 'heartbeatS', t.heartbeatS || 60, 'number', 'min="20" max="900"')}${fld('Ler configuração a cada (s) · mín. 15', 'configS', t.configS || 30, 'number', 'min="15" max="900"')}${chk('Mostrar ponto de status no canto (técnico)', 'mostrarPonto', t.mostrarPonto)}</div>
+  <div class="hintx">Cada sinal de vida e cada leitura de configuração é uma chamada ao Apps Script. Valores menores dão alerta mais rápido, mas gastam mais da cota diária. Para dezenas de totens, use 60–120 s.<br>O arquivo de sinal (<b>totem_ID_heartbeat.json</b>) tem formato aberto: um servidor local (Python, etc.) pode gravar o mesmo arquivo como vigia, caso o navegador do totem trave.</div>`;
+}
+/* entrada de campos (delegação) */
+document.addEventListener('input', onCfgInput); document.addEventListener('change', onCfgInput);
+function onCfgInput(e) {
+  const C = PAN.cfg, n = e.target; if (!C || !n || !n.closest || !n.closest('#cfgBody')) return;
+  if (n.id === 'cfgSenha') { C.senhaNova = n.value; return; } const k = n.dataset && n.dataset.k; if (!k) return;
+  let v = n.type === 'checkbox' ? n.checked : n.type === 'number' ? (n.value === '' ? '' : +n.value) : n.value;
+  if (k.endsWith('.mudoOff')) { setPath(C.t, k.replace('mudoOff', 'mudo'), !v); }
+  else if (k.endsWith('.ativo')) setPath(C.t, k, v);
+  else if (k === 'layoutRetrato.modelo') { C.t.layoutRetrato = Object.assign({gap: C.t.layout.gap, raio: C.t.layout.raio}, C.t.layoutRetrato || {}, {modelo: v}); }
+  else { if (k.startsWith('layoutRetrato.') && !C.t.layoutRetrato) C.t.layoutRetrato = {modelo: PAR_RETRATO[C.t.layout.modelo] || 'full', gap: C.t.layout.gap, raio: C.t.layout.raio}; setPath(C.t, k, v); }
+  if (k === 'layout.modelo' || k === 'layoutRetrato.modelo') { const L = k === 'layout.modelo' ? C.t.layout : C.t.layoutRetrato; if (v === 'custom') garantirCustom(L); }
+  if (n.dataset.redraw && e.type === 'change') desenharCfg();
+}
+async function salvarCfgTotem() {
+  const C = PAN.cfg; if (!C) return; const t = C.t; t.id = String(t.id || '').replace(/[^\w-]/g, ''); if (!t.nome) return mostrarToast('Dê um nome ao totem', true); if (!t.id) return mostrarToast('Informe o ID', true);
+  if (C.novo && PAN.dados.totens.some(x => x.id === t.id)) return mostrarToast('Já existe um totem com esse ID', true);
+  if (C.senhaNova) { if (C.senhaNova.length < 4) return mostrarToast('Senha: mínimo 4 caracteres', true); t.salt = novoSal(); t.senhaHash = hashSenha(C.senhaNova, t.salt); delete t.senha; }
+  else if (C.novo && !t.senhaHash) return mostrarToast('Defina a senha de liberação do totem', true);
+  t.heartbeatS = Math.max(20, +t.heartbeatS || 60); t.configS = Math.max(15, +t.configS || 30); t.rev = (t.rev || 0) + 1; t.atualizadoEm = new Date().toISOString(); delete t.comando;
+  const i = PAN.dados.totens.findIndex(x => x.id === t.id); const antes = clone(PAN.dados.totens); if (i >= 0) PAN.dados.totens[i] = t; else PAN.dados.totens.push(t);
+  if (await salvarTotens()) { fecharModal2('cfgModal'); PAN.cfg = null; renderTotens(); } else PAN.dados.totens = antes;
+}
+
+/* ══════════ BOOT: o totem sobe sozinho; nada de interface visível ══════════ */
+(function bootTotem() {
+  const s = carregarSessaoSalva(); if (s) sessao = s;
+  document.title = 'ALMAFLUXO';
+  iniciarTotem();
+  document.getElementById('tabTotens').addEventListener('click', () => carregarTotens());
+})();
 </script>
 </body>
 </html>
