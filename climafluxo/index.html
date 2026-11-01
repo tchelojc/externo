@@ -180,6 +180,9 @@ body.modo-lab .obs-strip{border-color:rgba(170,102,255,.6)}
 .s3bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}.s3bar input[type=range]{flex:1;min-width:180px}.s3bar select,.s3bar input[type=date]{width:auto;margin:0}
 .s3hud{position:absolute;left:10px;top:8px;font-size:11px;color:#9fc7ff;pointer-events:none;text-shadow:0 0 6px #000;line-height:1.5}
 .evbtn{font-size:11px;padding:4px 9px;border-radius:999px}
+.s3tick{position:absolute;top:2px;width:3px;height:14px;border-radius:2px;pointer-events:none;box-shadow:0 0 6px currentColor}
+.s3rot{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);max-width:90%;padding:6px 14px;border-radius:999px;border:1px solid var(--am);background:rgba(2,8,20,.78);color:#fff;font-size:13px;font-weight:700;text-align:center;pointer-events:none;backdrop-filter:blur(4px)}
+.s3rot:empty{display:none}
 </style>
 </head>
 <body>
@@ -2290,12 +2293,13 @@ async function conferirWorker(anos,anc,cic,S,local){
 }
 
 /* ═══ v18 · OBSERVATÓRIO × LABORATÓRIO · VALIDAÇÃO · JANELAS ═══ */
-const MODOS={obs:{nome:'🔭 Observatório',abas:['jornal','ind','proj','tend','atend']},lab:{nome:'🧪 Laboratório',abas:['mundo','terra','mapa','ciclos','janelas','valida','sim3d']}};
-ABAS.push(['terra','🌍 Terra'],['janelas','⏳ Janelas'],['valida','✅ Validação'],['sim3d','🌌 Simulação 3D']);
+const MODOS={obs:{nome:'🔭 Observatório',abas:['jornal','ind','proj','tend','atend']},lab:{nome:'🧪 Laboratório',abas:['mundo','terra','genios','mapa','ciclos','janelas','valida','sim3d']}};
+ABAS.push(['terra','🌍 Terra'],['genios','🧬 Gênios → Caos'],['janelas','⏳ Janelas'],['valida','✅ Validação'],['sim3d','🌌 Simulação 3D']);
 OBS_ABA.mundo=['modelo','LABORATÓRIO · Efeito ENSO por região com coeficientes heurísticos. Os percentuais são aproximados (de 10 em 10) porque o modelo não é calibrado — veja a aba Validação.'];
 OBS_ABA.mapa[1]='LABORATÓRIO · '+OBS_ABA.mapa[1]; OBS_ABA.ciclos[1]='LABORATÓRIO · '+OBS_ABA.ciclos[1];
 OBS_ABA.janelas=['hipotese','LABORATÓRIO · A “janela” só vale se o backtest sobre sismos reais mostrar que a entropia separa o que antecede eventos grandes do acaso. O teste está nesta tela, com o resultado que ele der.'];
 OBS_ABA.terra=['modelo','LABORATÓRIO · Indicador descritivo de pressão humana, captação ilustrativa e janela de reconhecimento. A correlação com catástrofes NÃO está demonstrada — o teste de controle está nesta tela. Quem interpreta e valida é o observador.'];
+OBS_ABA.genios=['hipotese','LABORATÓRIO · Casos históricos escolhidos por terem uma história marcante: serve para explorar e levantar hipóteses, não para provar. A escolha dos casos e dos marcos é sua e fica explícita. Quem interpreta e valida é o observador.'];
 OBS_ABA.valida=['validacao','LABORATÓRIO · Os modelos do painel são postos à prova contra dados reais. Resultado ruim também é resultado; quem interpreta é o observador.'];
 OBS_ABA.sim3d=['modelo','LABORATÓRIO · Geometria calculada com elementos keplerianos do JPL (1800–2050). A geometria é fato calculado; o significado atribuído a ela é hipótese, e quem interpreta é o observador.'];
 ROT.validacao='VALIDAÇÃO';
@@ -2317,9 +2321,9 @@ const _ini=iniciar; iniciar=function(){ _ini(); montaModos(); aplicaModo(); };
 const _r17=render;
 render=function(){
   simStop(); aplicaModo();
-  if(aba==='janelas'||aba==='valida'||aba==='sim3d'||aba==='terra'){
+  if(aba==='janelas'||aba==='valida'||aba==='sim3d'||aba==='terra'||aba==='genios'){
     document.querySelectorAll('#nav button[data-a]').forEach(b=>{const on=b.dataset.a===aba;b.classList.toggle('on',on);b.setAttribute('aria-selected',on?'true':'false');});
-    ({janelas:vJanelas,valida:vValida,sim3d:vSim3D,terra:vTerra})[aba]();
+    ({janelas:vJanelas,valida:vValida,sim3d:vSim3D,terra:vTerra,genios:vGenios})[aba]();
   } else _r17();
 };
 /* probabilidades sem falsa precisão */
@@ -2513,7 +2517,7 @@ baselineBox=function(ano){
   }catch(e){return html;}
 };
 /* ═══ SIMULAÇÃO 3D ═══ */
-let SIM3D=null;
+let SIM3D=null,SIM3D_PEDIDO=null;
 const SIM_MIN=Date.UTC(1800,0,1),SIM_MAX=Date.UTC(2050,11,31);
 const VISUAL={'Sol':{r:1.15,cor:'#ffd27a'},'Mercúrio':{r:.16,cor:'#b9b3a8'},'Vênus':{r:.26,cor:'#e8cda2'},'Terra':{r:.29,cor:'#3b8bff'},'Marte':{r:.21,cor:'#d1583b'},'Júpiter':{r:.78,cor:'#d9b38c'},'Saturno':{r:.66,cor:'#e3d3a1'},'Urano':{r:.42,cor:'#8fe3e8'},'Netuno':{r:.4,cor:'#4a6bff'}};
 const escalaR=r=>3*Math.sqrt(r);                       // escala radial comprimida (ângulos reais)
@@ -2525,11 +2529,13 @@ const NOMES_ASP=CORPOS_ASP;
 function vSim3D(){
   const evs=CAT_NAT.filter(e=>e.mes!=null&&Date.UTC(e.ano,e.mes,e.dia)>=SIM_MIN&&Date.UTC(e.ano,e.mes,e.dia)<=SIM_MAX);
   $('v').innerHTML=`<div class="box"><h2>🌌 SIMULAÇÃO 3D DO SISTEMA SOLAR <span class="obs-tag t-modelo">GEOMETRIA CALCULADA</span></h2>
-  <div id="s3wrap"><div class="s3hud" id="s3hud"></div></div>
+  <div id="s3wrap"><div class="s3hud" id="s3hud"></div><div id="s3rot" class="s3rot"></div></div>
   <div class="s3bar"><button class="p" id="s3play" type="button">▶ Tocar</button><select class="in" id="s3vel" aria-label="Velocidade"><option value="1">1 dia/s</option><option value="10" selected>10 dias/s</option><option value="30">30 dias/s</option><option value="120">120 dias/s</option><option value="365">1 ano/s</option></select><input type="date" class="in" id="s3data" min="1800-01-01" max="2050-12-31"><button id="s3hoje" type="button">Hoje</button><button id="s3cam" type="button">Câmera ⟲</button></div>
-  <input type="range" id="s3sl" min="0" max="${Math.round((SIM_MAX-SIM_MIN)/864e5)}" step="1" style="width:100%" aria-label="Data">
-  <div class="s3bar">${evs.map(e=>`<button class="evbtn" data-ev="${e.id}" type="button">${e.ano} · ${esc(e.nome.split('(')[0].trim())}</button>`).join('')}</div>
+  <div style="position:relative"><input type="range" id="s3sl" min="0" max="${Math.round((SIM_MAX-SIM_MIN)/864e5)}" step="1" style="width:100%" aria-label="Data"></div>
+  <div class="s3bar">${evs.map(e=>`<button class="evbtn" data-ev="${e.id}" type="button">${e.ano} · ${esc(e.nome.split('(')[0].trim())}</button>`).join('')}${geniosTodos().filter(g=>{const t=DTMS(g.nasc[0],g.nasc[1],g.nasc[2]);return t>=SIM_MIN&&t<=SIM_MAX;}).map(g=>`<button class="evbtn" data-nasc="${g.id}" type="button">🎂 ${g.nasc[0]} · ${esc(g.nome.split(' ').slice(-1)[0])}</button>`).join('')}${geniosTodos().filter(g=>marcosDeGenio(g).length>=2).map(g=>`<button class="evbtn" data-traj="${g.id}" type="button">▶ ${esc(g.nome.split(' ').slice(-1)[0])}: nascimento → caos</button>`).join('')}</div>
   <div class="guia"><b>Como ler.</b> Posições heliocêntricas reais (elementos keplerianos do JPL, 1800–2050; Sol ±0,01°, planetas externos ≤0,6° nos testes). A distância ao Sol usa escala √r para caber na tela — os <b>ângulos são reais</b>. Arraste para girar, role/pince para zoom, toque num nome para focar. As linhas coloridas são aspectos (diferença de longitude eclíptica dentro do orbe). Eventos anteriores a 1800 ficam fora da faixa de precisão e não têm botão.</div></div>
+  <div class="box"><h2>TRAJETÓRIA E PARALELOS <span class="obs-tag t-hipotese">HIPÓTESE</span></h2><div id="s3tr"><p class="mu">Escolha um gênio (▶) ou uma catástrofe acima: o painel mostra o céu de cada marco, o que mudou entre eles e deixa reproduzir o caminho no 3D.</p></div></div>
+  <div class="box"><h2>EPISÓDIO: DO NASCIMENTO À CONSEQUÊNCIA <span class="obs-tag t-hipotese">HIPÓTESE</span></h2><p class="lead">Escolha um gênio ou uma catástrofe. A simulação percorre os marcos da história e mostra o céu em cada um, com o alinhamento ao longo do tempo e a comparação com o acaso.</p><div id="s3ep"></div><div id="s3epBox" hidden><div id="s3epT"></div><h2 style="margin-top:12px;font-size:12px">ALINHAMENTO AO LONGO DO EPISÓDIO</h2><div id="s3epS"></div><div id="s3epP"></div></div></div>
   <div class="box"><h2>ALINHAMENTOS NESTA DATA <span class="obs-tag t-hipotese">HIPÓTESE</span></h2><div id="s3asp"></div></div>
   <div class="box"><h2>±1 ANO DE ALINHAMENTOS × ACASO</h2><div id="s3str"></div></div>
   <div class="box"><h2>ALINHAMENTOS NOS DIAS DE CATÁSTROFE (1800–2050)</h2><div id="s3ev"></div></div>`;
@@ -2537,12 +2543,17 @@ function vSim3D(){
   $('s3vel').onchange=e=>{SIM3D.vel=+e.target.value;};
   const play=$('s3play'),setPlay=v=>{SIM3D.tocando=v;play.textContent=v?'⏸ Pausar':'▶ Tocar';};setPlay(SIM3D.tocando);
   play.onclick=()=>setPlay(!SIM3D.tocando);
-  const setMs=ms=>{SIM3D.ms=Math.max(SIM_MIN,Math.min(SIM_MAX,ms));SIM3D.sync=true;};
+  const setMs=ms=>{SIM3D.ms=Math.max(SIM_MIN,Math.min(SIM_MAX,ms));SIM3D.sync=true;const d=$('s3data');if(d)d.value=new Date(SIM3D.ms).toISOString().slice(0,10);const sl=$('s3sl');if(sl)sl.value=Math.round((SIM3D.ms-SIM_MIN)/864e5);};
+  SIM3D.setMs=setMs;SIM3D.setPlay=setPlay;
   $('s3hoje').onclick=()=>setMs(Date.now());
   $('s3cam').onclick=()=>{SIM3D.theta=-1.15;SIM3D.phi=1.12;SIM3D.dist=34;SIM3D.alvoNovo=[0,0,0];SIM3D.foco=null;};
   $('s3data').onchange=e=>{const t=Date.parse(e.target.value+'T12:00:00Z');if(isFinite(t))setMs(t);};
   let rafSl=0;$('s3sl').oninput=e=>{cancelAnimationFrame(rafSl);const v=+e.target.value;rafSl=requestAnimationFrame(()=>setMs(SIM_MIN+v*864e5));};
-  document.querySelectorAll('[data-ev]').forEach(b=>b.onclick=()=>{const e=CAT_NAT.find(x=>x.id===b.dataset.ev);setPlay(false);setMs(Date.UTC(e.ano,e.mes,e.dia,12));});
+  document.querySelectorAll('[data-nasc]').forEach(b=>b.onclick=()=>{const g=geniosTodos().find(x=>x.id===b.dataset.nasc);abrirMarcos([{ms:DTMS(g.nasc[0],g.nasc[1],g.nasc[2]),label:'🎂 Nascimento de '+g.nome,tipo:'nasc'}]);});
+  document.querySelectorAll('[data-ev]').forEach(b=>b.onclick=()=>{const e=CAT_NAT.find(x=>x.id===b.dataset.ev);abrirMarcos([{ms:Date.UTC(e.ano,e.mes,e.dia,12),label:'💥 '+e.nome,tipo:'cat'}]);});
+  document.querySelectorAll('[data-traj]').forEach(b=>b.onclick=()=>{const g=geniosTodos().find(x=>x.id===b.dataset.traj);abrirMarcos(marcosDeGenio(g));});
+  if(SIM3D_PEDIDO){const p=SIM3D_PEDIDO;SIM3D_PEDIDO=null;if(typeof p==='number'){setPlay(false);setMs(p);}else abrirMarcos(p.marcos);}
+  epiniciar();
   evTeste(evs);
   carregaThree().then(ok=>{ if(!SIM3D||SIM3D.ac!==ac) return; ok?iniciar3D():iniciar2D(); });
   document.addEventListener('visibilitychange',()=>{if(SIM3D)SIM3D.oculto=document.hidden;},{signal:ac.signal});
@@ -2631,8 +2642,8 @@ function iniciar3D(){
   function quadro(agora){
     if(S.parar) return; S.raf=requestAnimationFrame(quadro);
     if(S.oculto||!wrap.isConnected) return;
-    const dt=Math.min(.1,(agora-ult)/1000);ult=agora;acc+=dt;
-    if(S.tocando&&S.vel>0){S.ms+=S.vel*864e5*dt;if(S.ms>=SIM_MAX){S.ms=SIM_MAX;}if(S.ms<=SIM_MIN)S.ms=SIM_MIN;S.sync=true;}
+    const dt=Math.min(.1,(agora-ult)/1000);ult=agora;acc+=dt;trajTick(S,dt);
+    epAvanca(dt);if(S.tocando&&S.vel>0){S.ms+=S.vel*864e5*dt;if(S.ms>=SIM_MAX){S.ms=SIM_MAX;}if(S.ms<=SIM_MIN)S.ms=SIM_MIN;S.sync=true;}
     S.ocioso+=dt;if(S.ocioso>5&&!ptr.size)S.theta+=.035*dt;
     const est=ephEstado(S.ms),Tn=est.T;
     EPH_NOMES.forEach(n=>{const c=corpos[n],q=posVis(est.corpos[n].helio);c.m.position.set(q[0],q[1],q[2]);c.m.rotation.y+=dt*.6;
@@ -2648,9 +2659,9 @@ function iniciar3D(){
     const sp=Math.sin(S.phi);cam.position.set(S.alvo[0]+S.dist*sp*Math.cos(S.theta),S.alvo[1]+S.dist*Math.cos(S.phi),S.alvo[2]+S.dist*sp*Math.sin(S.theta));cam.lookAt(S.alvo[0],S.alvo[1],S.alvo[2]);
     const pulso=1+.03*Math.sin(agora*.002);g1.scale.set(7*pulso,7*pulso,1);
     renderer.render(scene,cam);rotulos(est);
-    if(acc>.1){acc=0;const h=$('s3hud');if(h)h.innerHTML=`${fmtData(S.ms)}<br>JD ${ephJD(S.ms).toFixed(2)} · T ${Tn.toFixed(4)} séc.`;
+    if(acc>.1){acc=0;const h=$('s3hud');if(h)h.innerHTML=`${fmtData(S.ms)}${epHud()}<br>JD ${ephJD(S.ms).toFixed(2)} · T ${Tn.toFixed(4)} séc.${S.legenda?'<br><b style="color:#ffd27a">'+esc(S.legenda)+'</b>':''}`;
       if(S.sync){S.sync=false;S.mudou=true;const d=$('s3data');if(d&&document.activeElement!==d)d.value=new Date(S.ms).toISOString().slice(0,10);const sl=$('s3sl');if(sl)sl.value=Math.round((S.ms-SIM_MIN)/864e5);}
-      if(S.mudou&&agora-S.ultimoHud>(S.tocando&&S.vel>0?500:120)){S.ultimoHud=agora;S.mudou=false;hudTexto(est);if(S.ultimaStrMs==null||Math.abs(S.ms-S.ultimaStrMs)>25*864e5){S.ultimaStrMs=S.ms;stripAnual(S.ms);}}}
+      if(S.ep)epCursor();if(S.mudou&&agora-S.ultimoHud>(S.tocando&&S.vel>0?500:120)){S.ultimoHud=agora;S.mudou=false;hudTexto(est);if(!S.ep&&(S.ultimaStrMs==null||Math.abs(S.ms-S.ultimaStrMs)>25*864e5)){S.ultimaStrMs=S.ms;stripAnual(S.ms);}}}
   }
   S.sync=true;S.ultimoHud=-1e9;S.raf=requestAnimationFrame(quadro);
 }
@@ -2659,15 +2670,46 @@ function iniciar2D(){
   const c=document.createElement('canvas');wrap.prepend(c);const g=c.getContext('2d');
   const fit=()=>{c.width=wrap.clientWidth*(devicePixelRatio||1);c.height=wrap.clientHeight*(devicePixelRatio||1);};fit();S.ro=new ResizeObserver(fit);S.ro.observe(wrap);
   let ult=performance.now(),acc=0;
-  (function q(agora){ if(S.parar)return; S.raf=requestAnimationFrame(q); if(S.oculto)return; const dt=Math.min(.1,(agora-ult)/1000);ult=agora;acc+=dt;
-    if(S.tocando&&S.vel>0){S.ms=Math.min(SIM_MAX,Math.max(SIM_MIN,S.ms+S.vel*864e5*dt));S.sync=true;}
+  (function q(agora){ if(S.parar)return; S.raf=requestAnimationFrame(q); if(S.oculto)return; const dt=Math.min(.1,(agora-ult)/1000);ult=agora;acc+=dt;trajTick(S,dt);
+    epAvanca(dt);if(S.tocando&&S.vel>0){S.ms=Math.min(SIM_MAX,Math.max(SIM_MIN,S.ms+S.vel*864e5*dt));S.sync=true;}
     const est=ephEstado(S.ms),W=c.width,H=c.height,sc=Math.min(W,H)/2/18;g.fillStyle='#02040b';g.fillRect(0,0,W,H);g.save();g.translate(W/2,H/2);
     g.fillStyle='#ffd27a';g.beginPath();g.arc(0,0,8,0,6.283);g.fill();
     EPH_NOMES.forEach(n=>{const q=posVis(est.corpos[n].helio),r=Math.hypot(q[0],q[2]);g.strokeStyle='rgba(143,200,255,.18)';g.beginPath();g.arc(0,0,r*sc,0,6.283);g.stroke();g.fillStyle=VISUAL[n].cor;g.beginPath();g.arc(q[0]*sc,q[2]*sc,3+VISUAL[n].r*3,0,6.283);g.fill();g.fillStyle='#cfe6ff';g.font=(11*(devicePixelRatio||1))+'px sans-serif';g.fillText(n,q[0]*sc+6,q[2]*sc-6);});
     g.restore();
-    if(acc>.1){acc=0;const h=$('s3hud');if(h)h.innerHTML=`${fmtData(S.ms)}<br>modo 2D (Three.js indisponível)`;if(S.sync){S.sync=false;S.mudou=true;const d=$('s3data');if(d)d.value=new Date(S.ms).toISOString().slice(0,10);const sl=$('s3sl');if(sl)sl.value=Math.round((S.ms-SIM_MIN)/864e5);}if(S.mudou&&agora-S.ultimoHud>(S.tocando&&S.vel>0?500:120)){S.ultimoHud=agora;S.mudou=false;hudTexto(est);stripAnual(S.ms);}}
+    if(acc>.1){acc=0;const h=$('s3hud');if(h)h.innerHTML=`${fmtData(S.ms)}${epHud()}<br>modo 2D (Three.js indisponível)${S.legenda?'<br><b style="color:#ffd27a">'+esc(S.legenda)+'</b>':''}`;if(S.sync){S.sync=false;S.mudou=true;const d=$('s3data');if(d)d.value=new Date(S.ms).toISOString().slice(0,10);const sl=$('s3sl');if(sl)sl.value=Math.round((S.ms-SIM_MIN)/864e5);}if(S.mudou&&agora-S.ultimoHud>(S.tocando&&S.vel>0?500:120)){S.ultimoHud=agora;S.mudou=false;hudTexto(est);stripAnual(S.ms);}}
   })(performance.now());
   S.sync=true;S.ultimoHud=-1e9;
+}
+/* ═══ TRAJETÓRIA: nascimento → criação → elos → consequência, com o céu de cada marco ═══ */
+function marcosDeGenio(g){
+  const M=[{ms:DTMS(g.nasc[0],g.nasc[1],g.nasc[2]),label:'🎂 Nascimento',tipo:'nasc'},{ms:DTMS(g.criacao.ano,g.criacao.mes??0,g.criacao.dia??1),label:'💡 Criação',tipo:'criacao'}];
+  (g.cadeia||[]).forEach(c=>M.push({ms:DTMS(c.ano,c.mes??0,c.dia??1),label:'🔗 '+c.txt.split('(')[0].trim(),tipo:'elo'}));
+  M.push({ms:DTMS(g.consequencia.ano,g.consequencia.mes??0,g.consequencia.dia??1),label:'💥 '+g.consequencia.txt.split(/[;(]/)[0].trim(),tipo:'consequencia'});
+  return M.filter(m=>m.ms>=SIM_MIN&&m.ms<=SIM_MAX).sort((a,b)=>a.ms-b.ms);
+}
+const PER_ANOS=n=>360/(EPH_EL[n][7]/100);   // período sideral médio em anos (taxa de L por século)
+function abrirMarcos(m){
+  const S=SIM3D,el=$('s3tr'); if(!S||!el) return;
+  S.marcos=m; S.traj=null; S.legenda=m[0].label; S.setPlay(false); S.setMs(m[0].ms);
+  const est=m.map(x=>ephEstado(x.ms)),b=baselineAspectos(),dif=(a,c)=>((c-a+540)%360)-180,corpos=['Mercúrio','Vênus','Marte','Júpiter','Saturno','Urano','Netuno'];
+  const linhas=m.map((x,i)=>{const A=aspectosDe(est[i]),f=A.reduce((s,a)=>s+a.forca,0),top=A.sort((p,q)=>q.forca-p.forca).slice(0,2).map(a=>`${a.p1}–${a.p2} ${a.asp.n}`).join('; ');
+    return `<tr data-k="${i}" style="cursor:pointer"><td>${esc(x.label)}</td><td>${new Date(x.ms).toISOString().slice(0,10)}</td><td>${A.length}</td><td>${percentilDe(b.f.o,f).toFixed(0)}</td><td>${anguloSolGC(est[i]).toFixed(1)}°</td><td class="mu" style="font-size:11px">${esc(top||'—')}</td></tr>`;}).join('');
+  let par='';
+  if(m.length>=2){const a=est[0],z=est[est.length-1],anos=(m[m.length-1].ms-m[0].ms)/(365.25*864e5);
+    par=`<table class="tb" style="margin-top:8px"><tr><th>Corpo</th><th>λ no 1º marco</th><th>λ no último</th><th>Δλ</th><th>Voltas completas no intervalo</th></tr>${corpos.map(n=>`<tr><td>${n}</td><td>${a.corpos[n].lonData.toFixed(1)}°</td><td>${z.corpos[n].lonData.toFixed(1)}°</td><td>${dif(a.corpos[n].lonData,z.corpos[n].lonData).toFixed(1)}°</td><td>${(anos/PER_ANOS(n)).toFixed(2)}</td></tr>`).join('')}</table><div class="mu" style="font-size:11px">Intervalo: ${anos.toFixed(1)} anos. “Voltas” = intervalo ÷ período orbital médio; é aritmética de calendário, não efeito.</div>`;}
+  el.innerHTML=`<table class="tb"><tr><th>Marco</th><th>Data</th><th>Aspectos</th><th>Percentil</th><th>Sol–CG</th><th>Mais fortes</th></tr>${linhas}</table>${par}
+  <div class="lab-in" style="margin-top:8px">${m.length>=2?'<button class="p" id="s3trplay" type="button">▶ Reproduzir trajetória</button><button id="s3trstop" type="button">⏹ Parar</button>':''}<span class="mu" style="font-size:12px">Toque numa linha para ir ao marco.</span></div>
+  <div class="guia"><b>Leitura do observador.</b> Em qualquer data há ~${b.n.m.toFixed(0)} aspectos entre 8 corpos; “percentil” compara a força total do marco com 1.500 datas sorteadas. O paralelo entre o movimento dos astros e a trajetória do gênio é descritivo: o painel mostra o que o céu fazia, e não que o céu causou a criação ou a consequência. Onde esses marcos se parecem ou não, quem lê e valida é você.</div>`;
+  el.querySelectorAll('tr[data-k]').forEach(tr=>tr.onclick=()=>{const k=+tr.dataset.k;S.traj=null;S.setMs(m[k].ms);S.legenda=m[k].label;});
+  const pb=$('s3trplay'); if(pb){pb.onclick=()=>{S.setPlay(false);S.setMs(m[0].ms);S.traj={m,i:0,fase:'hold',t:0,hold:3.2,dur:5.5};S.legenda=m[0].label;};$('s3trstop').onclick=()=>{S.traj=null;};}
+}
+function trajTick(S,dt){
+  const T=S.traj; if(!T) return; T.t+=dt;
+  if(T.fase==='hold'){ if(T.t<T.hold) return; const b=T.m[T.i+1]; if(!b){S.traj=null;return;} T.fase='move';T.t=0;S.legenda='→ '+b.label;return; }
+  const a=T.m[T.i],b=T.m[T.i+1]; if(!b){S.traj=null;return;}
+  const f=Math.min(1,T.t/T.dur),e=f<.5?2*f*f:1-Math.pow(-2*f+2,2)/2; S.ms=a.ms+(b.ms-a.ms)*e; S.sync=true;
+  const d=$('s3data');if(d&&document.activeElement!==d)d.value=new Date(S.ms).toISOString().slice(0,10);
+  if(f>=1){T.i++;T.fase='hold';T.t=0;S.legenda=T.m[T.i].label;}
 }
 
 /* ═══ v20 · TERRA (corpo, captação, jubileu) + HIPÓTESES SIMBÓLICAS REPRODUZÍVEIS ═══ */
@@ -2747,6 +2789,216 @@ function bindTeses(){
     <svg viewBox="0 0 ${W} ${H+14}" class="graf" role="img" aria-label="Autocorrelação e variância móveis"><polyline fill="none" stroke="#27c8ff" stroke-width="1.8" points="${S.map((s,i)=>X(i).toFixed(1)+','+YA(s.ac).toFixed(1)).join(' ')}"/><polyline fill="none" stroke="#aa66ff" stroke-width="1.8" points="${S.map((s,i)=>X(i).toFixed(1)+','+YV(s.va).toFixed(1)).join(' ')}"/><text x="2" y="${H+11}" fill="#27c8ff" font-size="9">autocorrelação lag-1 (ciano)</text><text x="${W-2}" y="${H+11}" fill="#aa66ff" font-size="9" text-anchor="end">variância (roxo) · janelas de 10 anos</text></svg>
     <div class="guia"><b>Leitura do observador.</b> ${esc(r.nota)} Fonte: ${esc(r.fonte)}.</div>`;b.disabled=false;};
 }
+
+/* ═══ v21 · GÊNIOS → CAOS: tempo entre nascimento, criação e consequência ═══ */
+const GENIOS=[
+ {id:'einstein',precursores:[{ano:1865,txt:'Maxwell: teoria eletromagnética da luz'},{ano:1887,txt:'Experimento de Michelson–Morley (sem “éter”)'},{ano:1900,txt:'Planck: quantização da energia'},{ano:1904,txt:'Lorentz e Poincaré: transformações e princípio da relatividade'}],nome:'Albert Einstein',nasc:[1879,2,14],morte:[1955,3,18],wiki:'Albert_Einstein',
+  criacao:{ano:1905,mes:8,dia:27,txt:'E = mc² (artigo “A inércia de um corpo depende de seu conteúdo de energia?”, recebido em setembro de 1905)'},
+  reconhecimento:{ano:1921,txt:'Prêmio Nobel de Física (pelo efeito fotoelétrico)'},
+  cadeia:[{ano:1938,mes:11,dia:1,txt:'Fissão nuclear descoberta (Hahn e Strassmann; publicada em 1939)',elo:'necessário'},{ano:1939,mes:7,dia:2,txt:'Carta Einstein–Szilárd a Roosevelt',elo:'parcial'},{ano:1942,mes:7,dia:1,txt:'Projeto Manhattan estruturado',elo:'parcial'}],
+  consequencia:{ano:1945,mes:7,dia:6,txt:'Bomba atômica em Hiroshima (6/8) e Nagasaki (9/8)',tipo:'guerra'},destrutivo:true,
+  nota:'E=mc² explica a energia liberada, mas não bastava para a bomba: foi preciso descobrir a fissão (1938) e construir o projeto. Einstein não participou do Projeto Manhattan.'},
+ {id:'santosdumont',precursores:[{ano:1884,txt:'Motores a combustão de Daimler e Benz'},{ano:1896,txt:'Voos de planadores de Lilienthal'},{ano:1901,txt:'Dirigíveis do próprio Santos-Dumont (Prêmio Deutsch)'},{ano:1903,txt:'Voos dos irmãos Wright (pouco divulgados na Europa)'}],nome:'Alberto Santos-Dumont',nasc:[1873,6,20],morte:[1932,6,23],wiki:'Alberto_Santos-Dumont',
+  criacao:{ano:1906,mes:9,dia:23,txt:'14-bis: primeiro voo público de avião com meios próprios (Paris, 23/10/1906)'},
+  reconhecimento:{ano:1906,txt:'Reconhecimento imediato (Aeroclube da França / FAI)'},
+  cadeia:[{ano:1908,mes:8,dia:1,txt:'Irmãos Wright demonstram voos públicos na França',elo:'contextual'}],
+  consequencia:{ano:1911,mes:10,dia:1,txt:'Primeiro bombardeio aéreo (guerra ítalo-turca, 1/11/1911); depois, a aviação na Primeira Guerra (1914)',tipo:'guerra'},destrutivo:true,
+  nota:'Biógrafos registram seu abalo com o uso bélico da aviação, inclusive na Revolução Constitucionalista de 1932, ano em que morreu (23/7/1932). As circunstâncias e motivações são tratadas por biógrafos e não cabem em um número.'},
+ {id:'haber',precursores:[{ano:1898,txt:'Crookes alerta para a escassez de nitrogênio para a agricultura'},{ano:1901,txt:'Le Chatelier estuda o equilíbrio da amônia'},{ano:1905,txt:'Haber publica a termodinâmica das reações gasosas'},{ano:1907,txt:'Nernst mede o equilíbrio da amônia'}],nome:'Fritz Haber',nasc:[1868,11,9],morte:[1934,0,29],wiki:'Fritz_Haber',
+  criacao:{ano:1909,mes:6,dia:1,txt:'Síntese da amônia em laboratório (julho de 1909); processo Haber–Bosch industrial em 1913'},
+  reconhecimento:{ano:1918,txt:'Prêmio Nobel de Química (concedido em 1919, referente a 1918)'},
+  cadeia:[{ano:1913,mes:8,dia:9,txt:'Fábrica de Oppau (BASF) inicia a produção em escala',elo:'necessário'}],
+  consequencia:{ano:1915,mes:3,dia:22,txt:'Primeiro grande ataque com cloro, em Ypres (22/4/1915), sob direção de Haber',tipo:'guerra'},destrutivo:true,
+  nota:'O mesmo processo que sustenta a produção de fertilizantes hoje alimenta bilhões de pessoas; a mesma química foi usada em armas.'},
+ {id:'marx',precursores:[{ano:1789,txt:'Revolução Francesa'},{ano:1817,txt:'Ricardo: Princípios de Economia Política'},{ano:1820,txt:'Hegel: Princípios da Filosofia do Direito'},{ano:1845,txt:'Engels: A Situação da Classe Trabalhadora na Inglaterra'}],nome:'Karl Marx',nasc:[1818,4,5],morte:[1883,2,14],wiki:'Karl_Marx',
+  criacao:{ano:1848,mes:1,dia:21,txt:'Manifesto Comunista (fevereiro de 1848)'},
+  reconhecimento:{ano:1867,txt:'O Capital, vol. 1 (circulação restrita em vida)'},
+  cadeia:[{ano:1871,mes:2,dia:18,txt:'Comuna de Paris',elo:'contextual'}],
+  consequencia:{ano:1917,mes:10,dia:7,txt:'Revolução Russa (7/11/1917, calendário gregoriano)',tipo:'revolta'},destrutivo:false,
+  nota:'Elo causal entre o texto e a revolução é debatido por historiadores; é “influência intelectual”, não causa direta.'},
+ {id:'gutenberg',precursores:[{ano:1276,txt:'Primeiros moinhos de papel na Europa (Fabriano)'},{ano:1377,txt:'Jikji: livro impresso com tipos móveis de metal na Coreia'},{ano:1430,txt:'Ofício de ourives: punções e fundição de metal'}],nome:'Johannes Gutenberg',nasc:[1400,0,1],morte:[1468,1,3],wiki:'Johannes_Gutenberg',conf:'estimado',
+  criacao:{ano:1450,mes:0,dia:1,txt:'Prensa de tipos móveis (c. 1440–1450; Bíblia c. 1455)'},
+  reconhecimento:{ano:1455,txt:'Bíblia impressa, c. 1455 (reconhecimento financeiro em vida foi limitado)'},
+  cadeia:[{ano:1500,mes:0,dia:1,txt:'Mais de 1.000 oficinas de impressão na Europa (estimativa)',elo:'contextual'}],
+  consequencia:{ano:1517,mes:9,dia:31,txt:'Reforma: as 95 teses de Lutero circulam impressas (1517); Guerra dos Camponeses em 1524–25',tipo:'revolta'},destrutivo:false,
+  nota:'Datas aproximadas (nascimento entre 1393 e 1406). A imprensa amplificou a Reforma; atribuir a Reforma à prensa é simplificação.'}];
+const GENIOS_LS='clima_genios_user';
+function geniosUser(){try{return JSON.parse(localStorage.getItem(GENIOS_LS)||'[]');}catch(e){return[];}}
+function geniosTodos(){return GENIOS.concat(geniosUser());}
+function salvaUser(l){try{localStorage.setItem(GENIOS_LS,JSON.stringify(l));}catch(e){}}
+const DTMS=(a,m,d)=>Date.UTC(a,m,d,12);
+const anosEntre=(a,b)=>b-a;
+function lagsDe(g){const n=g.nasc[0],c=g.criacao.ano,q=g.consequencia.ano;return {idade:c-n,lag:q-c,nascConseq:q-n,reconhec:g.reconhecimento?g.reconhecimento.ano-c:null,vida:g.morte?g.morte[0]-n:null};}
+/* estatística: Spearman com permutação, e o que n permite enxergar */
+function ranksF(a){const idx=a.map((v,i)=>[v,i]).sort((x,y)=>x[0]-y[0]),r=Array(a.length);let i=0;while(i<idx.length){let j=i;while(j+1<idx.length&&idx[j+1][0]===idx[i][0])j++;const m=(i+j)/2+1;for(let k=i;k<=j;k++)r[idx[k][1]]=m;i=j+1;}return r;}
+function pear(x,y){const n=x.length,mx=x.reduce((a,b)=>a+b,0)/n,my=y.reduce((a,b)=>a+b,0)/n;let sxy=0,sxx=0,syy=0;for(let i=0;i<n;i++){sxy+=(x[i]-mx)*(y[i]-my);sxx+=(x[i]-mx)**2;syy+=(y[i]-my)**2;}return sxx&&syy?sxy/Math.sqrt(sxx*syy):0;}
+function spearPerm(x,y){
+  const n=x.length,rx=ranksF(x),ry=ranksF(y),obs=pear(rx,ry);let ge=0,tot=0;
+  if(n<=8){const a=ry.slice(),c=Array(n).fill(0);const f=()=>{tot++;if(Math.abs(pear(rx,a))>=Math.abs(obs)-1e-9)ge++;};f();let i=0;while(i<n){if(c[i]<i){const k=i%2?c[i]:0,t=a[k];a[k]=a[i];a[i]=t;f();c[i]++;i=0;}else{c[i]=0;i++;}}}
+  else{const R=rng(21);tot=5000;for(let s=0;s<tot;s++){const a=ry.slice();for(let i=n-1;i>0;i--){const j=Math.floor(R()*(i+1));[a[i],a[j]]=[a[j],a[i]];}if(Math.abs(pear(rx,a))>=Math.abs(obs)-1e-9)ge++;}}
+  return {rho:obs,p:ge/tot,n};
+}
+const rMin=n=>n>3?Math.tanh(2.8016/Math.sqrt(n-3)):1;
+const nPara=r=>Math.ceil((2.8016/Math.atanh(r))**2+3);
+/* ── tela ── */
+let _gSel='einstein';
+function vGenios(){
+  const L=geniosTodos(),g=L.find(x=>x.id===_gSel)||L[0];
+  $('v').innerHTML=`<div class="box"><h2>🧬 GÊNIOS → CAOS <span class="obs-tag t-hipotese">HIPÓTESE · NARRATIVA</span></h2>
+  <p class="lead">Quanto tempo passa entre o nascimento de quem criou, a criação e o uso dela em guerra, revolta ou catástrofe? A <b>“síndrome de Santos-Dumont”</b> é um conceito seu: quando a própria criação vira causa da histeria. Aqui ela é um marcador (criação com uso destrutivo documentado), não um diagnóstico.</p>
+  <div class="lab-in"><label>Selecionar<select class="in" id="gSel" style="width:230px">${L.map(x=>`<option value="${x.id}"${x.id===g.id?' selected':''}>${esc(x.nome)}</option>`).join('')}</select></label></div>
+  <div id="gDet">${detGenio(g)}</div></div>
+  <div class="box"><h2>PADRÃO ENTRE OS CASOS</h2>${padraoGenios(L)}</div>
+  <div class="box"><h2>INVENÇÕES SIMULTÂNEAS <span class="obs-tag t-medido">HISTÓRIA DOCUMENTADA</span></h2><p class="lead">Se a genialidade é ler a realidade com as informações que existem no tempo da pessoa, descobertas deveriam aparecer várias vezes, em lugares diferentes, quando a informação amadurece. É o que a história da ciência registra (Merton chamou de “múltiplos”).</p><table class="tb"><tr><th>Descoberta</th><th>Quem e quando</th><th>Intervalo</th></tr>${MULTIPLOS.map(m=>`<tr><td>${esc(m[0])}</td><td>${esc(m[1])}</td><td>${esc(m[2])}</td></tr>`).join('')}</table><div class="guia"><b>Leitura do observador.</b> Pessoas diferentes, em países diferentes, chegaram à mesma ideia sob o mesmo céu. O que muda entre elas é a informação disponível. Isso favorece a sua tese (o tempo e o contexto de informação tornam a captação possível) e mostra uma limitação do alinhamento astronômico: o céu é o mesmo para quem descobre ao mesmo tempo, então por si só não distingue quem descobre. Não prova que o céu não influencia; só que, sozinho, ele não explica.</div></div>
+  <div class="box"><h2>ADICIONAR CASOS <span class="obs-tag t-hipotese">SEUS DADOS</span></h2><p class="lead">Quanto mais casos, mais o teste enxerga. Uma linha por caso: <code>nome;AAAA-MM-DD;ano da criação;ano da consequência;descrição;destrutivo(0/1)</code></p>
+  <textarea id="gCsv" style="width:100%;min-height:80px;background:#06101f;border:1px solid var(--ln);border-radius:8px;color:var(--tx);padding:8px" placeholder="Alfred Nobel;1833-10-21;1867;1870;dinamite usada em guerra;1"></textarea>
+  <div class="lab-in" style="margin-top:8px"><button class="p" id="gAdd" type="button">Adicionar</button><button id="gExp" type="button">Exportar meus casos</button><button id="gClr" type="button">Limpar meus casos</button><span id="gMsg" class="mu"></span></div></div>
+  <div class="box"><h2>ATENÇÃO PÚBLICA HOJE <span class="obs-tag t-validacao">PROXY MEDIDO</span></h2><p class="lead">“Quanto as pessoas se importam” só pode ser medido por proxies. Um deles: visualizações mensais do artigo de cada figura na Wikipédia.</p><button class="p" id="gAt" type="button">Medir atenção</button><div id="gAtO" class="mu" style="margin-top:10px"></div>${difusaoTabela()}</div>`;
+  $('gSel').onchange=e=>{_gSel=e.target.value;vGenios();};
+  bindGenio(g);
+  $('gAdd').onclick=()=>{const linhas=$('gCsv').value.split('\n').map(s=>s.trim()).filter(Boolean),add=[];let erro=0;
+    linhas.forEach(l=>{const p=l.split(';').map(s=>s.trim());const dt=(p[1]||'').match(/^(-?\d{1,4})-(\d{2})-(\d{2})$/),c=+p[2],q=+p[3];
+      if(p.length<5||!dt||!isFinite(c)||!isFinite(q)||q<c){erro++;return;}
+      add.push({id:'u'+Date.now().toString(36)+add.length,nome:p[0],nasc:[+dt[1],+dt[2]-1,+dt[3]],morte:null,criacao:{ano:c,mes:0,dia:1,txt:'criação (ano informado)'},cadeia:[],consequencia:{ano:q,mes:0,dia:1,txt:p[4],tipo:'consequência'},destrutivo:p[5]==='1',nota:'Caso adicionado por você; fonte e datas são de sua responsabilidade.',usuario:true});});
+    if(add.length){salvaUser(geniosUser().concat(add));$('gMsg').textContent=add.length+' caso(s) adicionado(s).';setTimeout(vGenios,400);}else $('gMsg').textContent=erro?'Linhas inválidas (confira o formato; consequência não pode ser anterior à criação).':'Nada para adicionar.';};
+  $('gExp').onclick=()=>{$('gCsv').value=geniosUser().map(g=>[g.nome,g.nasc[0]+'-'+String(g.nasc[1]+1).padStart(2,'0')+'-'+String(g.nasc[2]).padStart(2,'0'),g.criacao.ano,g.consequencia.ano,g.consequencia.txt,g.destrutivo?1:0].join(';')).join('\n');};
+  $('gClr').onclick=()=>{if(confirm('Apagar todos os casos adicionados por você?')){salvaUser([]);vGenios();}};
+  $('gAt').onclick=async()=>{const b=$('gAt');b.disabled=true;$('gAtO').textContent='Consultando…';let r;try{r=await api('atencao/wikipedia',{artigos:geniosTodos().filter(x=>x.wiki).slice(0,8).map(x=>({lang:'en',titulo:x.wiki})),meses:12});}catch(e){r=null;}
+    if(!r||!r.ok){$('gAtO').innerHTML=`<div class="aviso ruim">${esc((r&&r.error)||'Falha')}</div>`;b.disabled=false;return;}
+    $('gAtO').innerHTML=`<table class="tb"><tr><th>Artigo (en)</th><th>Média mensal</th><th>Pico ÷ mediana</th><th>Entropia temporal</th></tr>${r.itens.map(i=>i.erro?`<tr><td>${esc(i.titulo)}</td><td colspan="3" class="mu">${esc(i.erro)}</td></tr>`:`<tr><td>${esc(i.titulo)}</td><td>${i.media_mensal.toLocaleString('pt-BR')}</td><td>${i.pico_sobre_mediana}</td><td>${i.entropia_temporal}</td></tr>`).join('')}</table><div class="guia"><b>Leitura do observador.</b> ${esc(r.nota)} Entropia temporal 1 = atenção constante ao longo dos meses; valores baixos = atenção em picos (notícias, efemérides). Isto mede atenção, não compreensão.</div>`;b.disabled=false;};
+  pos();
+}
+function detGenio(g){
+  const l=lagsDe(g),nm=DTMS(g.nasc[0],g.nasc[1],g.nasc[2]),dentro=nm>=SIM_MIN&&nm<=SIM_MAX,ev=[{a:g.nasc[0],t:'nascimento',c:'#8fa8c8'},{a:g.criacao.ano,t:'criação',c:'#27c8ff'}];
+  if(g.reconhecimento)ev.push({a:g.reconhecimento.ano,t:'reconhec.',c:'#2fd48a'});(g.cadeia||[]).forEach(c=>ev.push({a:c.ano,t:'elo',c:'#f0a830'}));ev.push({a:g.consequencia.ano,t:g.consequencia.tipo||'consequência',c:'#ff4d57'});if(g.morte)ev.push({a:g.morte[0],t:'morte',c:'#8fa8c8'});
+  const mn=Math.min(...ev.map(e=>e.a)),mx=Math.max(...ev.map(e=>e.a)),W=440,X=a=>14+(a-mn)/((mx-mn)||1)*(W-28);
+  const svg=`<svg viewBox="0 0 ${W} 74" class="graf" role="img" aria-label="Linha do tempo"><line x1="14" x2="${W-14}" y1="34" y2="34" stroke="#1b4a7a"/>${ev.map((e,i)=>`<circle cx="${X(e.a)}" cy="34" r="4.5" fill="${e.c}"/><text x="${X(e.a)}" y="${i%2?58:20}" fill="${e.c}" font-size="8.5" text-anchor="middle">${e.t}</text><text x="${X(e.a)}" y="${i%2?68:12}" fill="#8fa8c8" font-size="8" text-anchor="middle">${e.a}</text>`).join('')}</svg>`;
+  let birth='';if(dentro){const est=ephEstado(nm),A=aspectosDe(est),b=baselineAspectos(),f=A.reduce((s,a)=>s+a.forca,0);birth=`<div class="lab-k"><div><small>Aspectos no nascimento</small><b>${A.length}</b></div><div><small>Em data aleatória</small><b>${b.n.m.toFixed(1)} ± ${b.n.sd.toFixed(1)}</b></div><div><small>Percentil (força)</small><b>${percentilDe(b.f.o,f).toFixed(0)}</b></div><div><small>Sol–Centro Galáctico</small><b>${anguloSolGC(est).toFixed(1)}°</b></div></div><button class="evbtn" id="g3d" type="button">🌌 ver o céu do nascimento no 3D</button>`;}
+  else birth='<div class="mu" style="font-size:12px">Nascimento fora da faixa de precisão das efemérides (1800–2050): sem alinhamento calculado.</div>';
+  return `${svg}<div class="lab-k"><div><small>Idade na criação</small><b>${l.idade} anos</b></div><div><small>Criação → consequência</small><b>${l.lag} anos</b></div><div><small>Nascimento → consequência</small><b>${l.nascConseq} anos</b></div>${l.reconhec!=null?`<div><small>Criação → reconhecimento</small><b>${l.reconhec} anos</b></div>`:''}${g.destrutivo?'<div><small>Marcador</small><b style="font-size:12px;color:var(--rd)">uso destrutivo</b></div>':''}</div>
+  <table class="tb"><tr><th>Quando</th><th>O quê</th></tr><tr><td>${g.nasc[0]}</td><td>Nascimento de ${esc(g.nome)}${g.conf?' (aprox.)':''}</td></tr><tr><td>${g.criacao.ano}</td><td>${esc(g.criacao.txt)}</td></tr>${(g.cadeia||[]).map(c=>`<tr><td>${c.ano}</td><td>${esc(c.txt)} <span class="obs-tag ${c.elo==='necessário'?'t-modelo':'t-hipotese'}">${esc(c.elo)}</span></td></tr>`).join('')}<tr><td>${g.consequencia.ano}</td><td>${esc(g.consequencia.txt)}</td></tr></table>
+  <h2 style="margin-top:12px;font-size:12px">O QUE O SEU TEMPO JÁ SABIA</h2>${precursoresHtml(g)}
+  <h2 style="margin-top:12px;font-size:12px">CÉU NO NASCIMENTO</h2>${birth}${marcosDeGenio(g).length>=2?'<button class="evbtn" id="gTraj" type="button" style="margin-left:6px">▶ trajetória completa no 3D</button>':''}
+  ${(CONTEXTO[g.id]||[]).length?`<div class="guia"><b>O que já existia</b> quando isso aconteceu:<ul style="margin:6px 0 0 16px">${CONTEXTO[g.id].map(c=>`<li>${esc(c)}</li>`).join('')}</ul></div>`:''}
+  <div class="guia"><b>Leitura do observador.</b> ${esc(g.nota)} Os intervalos dependem de onde se põe o fim da cadeia; “elo necessário” indica etapa sem a qual a consequência não ocorreria, “parcial/contextual” indica influência.</div>
+  <textarea data-gnota="${g.id}" placeholder="Minha análise sobre este caso…" style="width:100%;min-height:54px;background:#06101f;border:1px solid var(--ln);border-radius:8px;color:var(--tx);padding:8px;margin-top:6px"></textarea>`;
+}
+function bindGenio(g){const ta=document.querySelector('[data-gnota]');if(ta){const k='gen_'+g.id;ta.value=(obsGet(k).nota)||'';ta.oninput=()=>obsSet(k,{nota:ta.value});}
+  const bt=$('gTraj');if(bt)bt.onclick=()=>{SIM3D_PEDIDO={marcos:marcosDeGenio(g)};aba='sim3d';render();};
+  const b=$('g3d');if(b)b.onclick=()=>{SIM3D_PEDIDO=DTMS(g.nasc[0],g.nasc[1],g.nasc[2]);aba='sim3d';render();};}
+function padraoGenios(L){
+  const D=L.map(g=>({g,l:lagsDe(g)})),dest=D.filter(x=>x.g.destrutivo),lag=D.map(x=>x.l.lag),ano=D.map(x=>x.g.criacao.ano),n=D.length;
+  const sp=n>=4?spearPerm(ano,lag):null,med=a=>{const s=a.slice().sort((x,y)=>x-y);return s[Math.floor((s.length-1)/2)];};
+  const W=420,H=110,mxL=Math.max(...lag,1),mnA=Math.min(...ano),mxA=Math.max(...ano),X=a=>26+(a-mnA)/((mxA-mnA)||1)*(W-44),Y=l=>H-6-l/mxL*(H-18);
+  const dots=D.map(x=>`<circle cx="${X(x.g.criacao.ano)}" cy="${Y(x.l.lag)}" r="5" fill="${x.g.destrutivo?'#ff4d57':'#27c8ff'}" fill-opacity=".85"/><text x="${X(x.g.criacao.ano)}" y="${Y(x.l.lag)-8}" fill="#cfe6ff" font-size="8" text-anchor="middle">${esc(x.g.nome.split(' ').slice(-1)[0])}</text>`).join('');
+  return `<table class="tb"><tr><th>Caso</th><th>Idade na criação</th><th>Criação → consequência</th><th>Nasc. → consequência</th><th>Uso destrutivo</th></tr>${D.map(x=>`<tr><td>${esc(x.g.nome)}</td><td>${x.l.idade}</td><td>${x.l.lag}</td><td>${x.l.nascConseq}</td><td>${x.g.destrutivo?'sim':'não'}</td></tr>`).join('')}</table>
+  <div class="lab-k"><div><small>Casos (n)</small><b>${n}</b></div><div><small>Idade mediana na criação</small><b>${med(D.map(x=>x.l.idade))}</b></div><div><small>Lag mediano criação→consequência</small><b>${med(lag)}</b></div><div><small>Com uso destrutivo</small><b>${dest.length} de ${n}</b></div>${sp?`<div><small>ρ de Spearman (ano × lag)</small><b>${sp.rho.toFixed(2)}</b></div><div><small>p (permutação)</small><b>${sp.p.toFixed(3)}</b></div>`:''}<div><small>Menor |r| detectável (80% de poder)</small><b>${rMin(n).toFixed(2)}</b></div></div>
+  <svg viewBox="0 0 ${W} ${H+14}" class="graf" role="img" aria-label="Ano da criação × lag"><line x1="22" x2="${W-8}" y1="${H-6}" y2="${H-6}" stroke="#1b4a7a"/>${dots}<text x="22" y="${H+10}" fill="#8fa8c8" font-size="9">${mnA}</text><text x="${W-8}" y="${H+10}" fill="#8fa8c8" font-size="9" text-anchor="end">${mxA} (ano da criação)</text><text x="2" y="10" fill="#8fa8c8" font-size="9">lag (anos)</text></svg>
+  ${marcosAgregados(L)}
+  <div class="guia"><b>Leitura do observador.</b> Pergunta embutida: criações mais recentes chegam mais rápido ao uso destrutivo? ${sp?`Com ${n} casos, ρ=${sp.rho.toFixed(2)} e p=${sp.p.toFixed(2)}: ${sp.p<.05?'há tendência numérica, mas':'não há como afirmar nada, e'} o teste só enxergaria correlações com |r| ≥ ${rMin(n).toFixed(2)}. Para detectar r=0,5 com 80% de poder seriam necessários ~${nPara(.5)} casos; para r=0,7, ~${nPara(.7)}.`:'Menos de 4 casos: sem teste.'} Cuidados: os casos foram escolhidos por terem história marcante (viés de narrativa), o fim da cadeia é uma escolha, e criações <i>sem</i> consequência destrutiva quase nunca entram na lista. Para testar de verdade, é preciso incluir também criações inofensivas e lançá-las com o mesmo critério. Adicione casos abaixo.</div>`;
+}
+function difusaoTabela(){
+  return `<table class="tb" style="margin-top:12px"><tr><th>Tecnologia</th><th>Tempo até ~50 milhões de usuários (ordem de grandeza)</th></tr><tr><td>Rádio</td><td>~38 anos</td></tr><tr><td>Televisão</td><td>~13 anos</td></tr><tr><td>Internet</td><td>~4 anos</td></tr><tr><td>ChatGPT</td><td>~2 meses (100 milhões, estimativa de mercado)</td></tr></table><div class="mu" style="font-size:11px;margin-top:4px">Números amplamente citados em relatórios de mercado; são aproximações, confira nas fontes. Mostram que o tempo de <i>alcance</i> caiu muito; não mostram que o tempo de <i>compreensão</i> caiu junto.</div>`;
+}
+
+function precursoresHtml(g){
+  const P=(g.precursores||[]).slice().sort((a,b)=>a.ano-b.ano);
+  if(!P.length) return '<div class="mu" style="font-size:12px">Sem precursores registrados para este caso (você pode editar os dados no código ou adicionar o caso com mais detalhes).</div>';
+  const mat=g.criacao.ano-Math.max(...P.map(p=>p.ano));
+  return `<table class="tb"><tr><th>Ano</th><th>Informação disponível</th><th>Antes da criação</th></tr>${P.map(p=>`<tr><td>${p.ano}</td><td>${esc(p.txt)}</td><td>${g.criacao.ano-p.ano} anos</td></tr>`).join('')}</table>
+  <div class="lab-k"><div><small>Último precursor → criação</small><b>${mat} anos</b></div><div><small>Precursores listados</small><b>${P.length}</b></div></div>
+  <div class="guia"><b>Leitura do observador.</b> A criação aparece depois que as peças já existem. Estudos de descobertas simultâneas (Merton, 1961) apontam que muitas ideias surgem em paralelo quando o conhecimento necessário amadurece; o diferencial de quem cria é reunir e enxergar o que está disponível. Esta lista é um recorte meu, não completa, e a “maturação” depende de quais precursores você conta.</div>`;
+}
+
+function marcosAgregados(L){
+  const M=[];L.forEach(g=>marcosDeGenio(g).forEach(m=>M.push(m)));
+  if(M.length<3) return '';
+  const b=baselineAspectos(),F=M.map(m=>aspectosDe(ephEstado(m.ms)).reduce((s,a)=>s+a.forca,0)),mn=F.reduce((a,c)=>a+c,0)/F.length,z=(mn-b.f.m)/(b.f.sd/Math.sqrt(F.length)),p=2*(1-Math.min(0.99999,0.5*(1+erfF(Math.abs(z)/Math.SQRT2))));
+  return `<div class="lab-k"><div><small>Marcos com céu calculado</small><b>${M.length}</b></div><div><small>Força média dos alinhamentos</small><b>${mn.toFixed(2)}</b></div><div><small>Em datas aleatórias</small><b>${b.f.m.toFixed(2)}</b></div><div><small>z · p aproximado</small><b>${z.toFixed(2)} · ${p.toFixed(2)}</b></div></div><div class="mu" style="font-size:12px">Marcos = nascimentos, criações, elos e consequências entre 1800 e 2050, comparados com 1.500 datas sorteadas.</div>`;
+}
+function erfF(x){const t=1/(1+0.3275911*x),y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x);return y;}
+
+/* ═══ v22 · EPISÓDIOS no 3D: do nascimento do gênio à consequência, com o céu ao longo do caminho ═══ */
+const MULTIPLOS=[
+ ['Cálculo infinitesimal','Newton (manuscritos 1665–66) · Leibniz (1675; publicou em 1684)','~9–10 anos'],
+ ['Seleção natural','Darwin · Wallace (apresentados juntos à Linnean Society, 1/7/1858)','0'],
+ ['Telefone','Bell · Gray (pedidos de patente no mesmo dia, 14/2/1876)','0 dias'],
+ ['Oxigênio','Scheele (c. 1771–72) · Priestley (1774)','~2–3 anos'],
+ ['Avião','Irmãos Wright (1903, voos pouco públicos) · Santos-Dumont (1906, voo público); a prioridade é disputada','~3 anos'],
+ ['Relatividade restrita','Lorentz e Poincaré (1904–05, formulações parciais) · Einstein (1905)','~0–1 ano']];
+const CONTEXTO={
+ einstein:['Eletromagnetismo de Maxwell (1860s) e o experimento de Michelson–Morley (1887)','Transformações de Lorentz (1904) e a relação massa–energia para radiação em Poincaré (1900) e Hasenöhrl (1904)','Quantização de Planck (1900)'],
+ santosdumont:['Motores a combustão leves (Daimler, Benz, anos 1880–90) e o voo de planadores de Lilienthal (1891–96)','Experiência do próprio Santos-Dumont com dirigíveis (1898–1901, Prêmio Deutsch)','Concorrência: irmãos Wright (1903) e Voisin na França'],
+ haber:['Princípio de Le Chatelier (1884) e a termodinâmica química de Nernst','Alerta de Crookes (1898) sobre a escassez de nitrato para alimentar a população','Escala industrial por Carl Bosch e catalisadores de Mittasch (1909–13)'],
+ marx:['Filosofia de Hegel, economia política clássica (Smith, Ricardo) e socialistas franceses','Condições da Revolução Industrial na Inglaterra e na Alemanha dos anos 1840','Onda de revoltas de 1848 na Europa'],
+ gutenberg:['Tipos móveis já usados na China (Bi Sheng, c. 1040) e na Coreia (Jikji, 1377)','Prensas de rosca (vinho, papel), metalurgia de ligas e tintas a óleo','Demanda crescente por livros (universidades, burguesia urbana)']};
+const NAT_EP=[['n1815','1815 · Tambora',DTMS(1815,3,10)],['n1883','1883 · Krakatoa',DTMS(1883,7,27)],['n1900','1900 · Furacão de Galveston',DTMS(1900,8,8)],['n1960','1960 · Terremoto de Valdivia',DTMS(1960,4,22)],['n1970','1970 · Ciclone de Bhola',DTMS(1970,10,12)],['n1991','1991 · Pinatubo',DTMS(1991,5,15)],['n2004','2004 · Sumatra–Andaman',DTMS(2004,11,26)],['n2011','2011 · Tōhoku',DTMS(2011,2,11)]];
+const dentroF=ms=>ms>=SIM_MIN&&ms<=SIM_MAX;
+function episodioDe(id){
+  if(id[0]==='n'&&id.length>1&&NAT_EP.some(e=>e[0]===id)){const e=NAT_EP.find(x=>x[0]===id);return {id,nome:e[1],tipo:'natural',marcos:[{ms:e[2]-5*365.25*864e5,rot:'5 anos antes',cor:'#8fa8c8'},{ms:e[2],rot:e[1],cor:'#ff4d57'}].filter(m=>dentroF(m.ms)),contexto:[],ini:e[2]-5*365.25*864e5,fim:e[2]+365.25*864e5};}
+  const g=geniosTodos().find(x=>x.id===id); if(!g) return null;
+  const mk=(a,m,d,rot,cor)=>({ms:DTMS(a,m??0,d??1),rot,cor,ano:a}),M=[mk(g.nasc[0],g.nasc[1],g.nasc[2],'Nascimento','#8fa8c8'),mk(g.criacao.ano,g.criacao.mes,g.criacao.dia,'Criação','#27c8ff')];
+  (g.cadeia||[]).forEach(c=>M.push(mk(c.ano,c.mes,c.dia,'Elo: '+c.txt.split('(')[0].trim(),'#f0a830')));
+  M.push(mk(g.consequencia.ano,g.consequencia.mes,g.consequencia.dia,'Consequência','#ff4d57'));
+  const marcos=M.filter(m=>dentroF(m.ms)).sort((a,b)=>a.ms-b.ms); if(marcos.length<2) return null;
+  const ult=marcos[marcos.length-1].ms; return {id,nome:g.nome,tipo:'genio',g,marcos,contexto:CONTEXTO[g.id]||[],ini:marcos[0].ms,fim:Math.min(SIM_MAX,Math.max(ult,g.morte?DTMS(g.morte[0],g.morte[1],g.morte[2]):ult)),nasc:g.nasc[0]};
+}
+function epHud(){const E=SIM3D&&SIM3D.ep;return E&&E.nasc?`<br>${Math.floor((SIM3D.ms-DTMS(E.g.nasc[0],E.g.nasc[1],E.g.nasc[2]))/(365.25*864e5))} anos desde o nascimento`:'';}
+function setAspKeys(ms){return new Set(aspectosDe(ephEstado(ms)).map(a=>a.p1+'|'+a.p2+'|'+a.asp.n));}
+function jacc(a,b){let i=0;a.forEach(x=>{if(b.has(x))i++;});const u=a.size+b.size-i;return u?i/u:0;}
+function baseJacc(gapMs,N){const R=rng(Math.round(gapMs/864e5)+7),lim=SIM_MAX-SIM_MIN-gapMs,v=[];if(lim<=0)return v;for(let k=0;k<N;k++){const t=SIM_MIN+R()*lim;v.push(jacc(setAspKeys(t),setAspKeys(t+gapMs)));}return v.sort((x,y)=>x-y);}
+function percJ(base,x){if(!base.length)return .5;let lo=0,eq=0;base.forEach(b=>{if(b<x-1e-12)lo++;else if(Math.abs(b-x)<=1e-12)eq++;});return (lo+eq/2)/base.length;}
+/* ── UI do episódio (chamado por vSim3D) ── */
+function epiniciar(){
+  const box=$('s3ep'); if(!box) return;
+  const gs=geniosTodos(),opts=`<option value="">— nenhum —</option><optgroup label="Gênios → Caos">${gs.map(g=>`<option value="${g.id}"${episodioDe(g.id)?'':' disabled'}>${esc(g.nome)}${episodioDe(g.id)?'':' (fora de 1800–2050)'}</option>`).join('')}</optgroup><optgroup label="Catástrofes naturais">${NAT_EP.map(e=>`<option value="${e[0]}">${esc(e[1])}</option>`).join('')}</optgroup>`;
+  box.innerHTML=`<div class="lab-in"><label>Episódio<select class="in" id="epSel" style="width:260px">${opts}</select></label><button class="p" id="epPlay" type="button" disabled>▶ Reproduzir trajetória</button></div><div id="epMarcos" class="s3bar"></div><div id="epCtx"></div>`;
+  $('epSel').onchange=e=>epEscolhe(e.target.value);
+  $('epPlay').onclick=()=>{const E=SIM3D&&SIM3D.ep;if(!E)return;if(E.tocando){E.tocando=false;}else{if(E.idx>=E.marcos.length-1||E.fase==null){E.idx=0;SIM3D.ms=E.marcos[0].ms;SIM3D.sync=true;}E.fase='pausa';E.t=1.6;E.tocando=true;SIM3D.tocando=false;}epBotao();};
+}
+function epBotao(){const b=$('epPlay'),E=SIM3D&&SIM3D.ep;if(b)b.textContent=E&&E.tocando?'⏸ Pausar trajetória':'▶ Reproduzir trajetória';}
+function epEscolhe(id){
+  const S=SIM3D; if(!S) return; S.ep=null; ['epMarcos','epCtx','s3epT','s3epS','s3epP'].forEach(k=>{const e=$(k);if(e)e.innerHTML='';}); document.querySelectorAll('.s3tick').forEach(e=>e.remove()); const rl=$('s3rot');if(rl)rl.textContent='';
+  if(!id){const b=$('epPlay');if(b)b.disabled=true;$('s3epBox').hidden=true;return;}
+  const E=episodioDe(id); if(!E){return;} E.idx=0;E.fase=null;E.tocando=false;S.ep=E;S.tocando=false;
+  const sl=$('s3sl'),pl=$('s3play');if(pl)pl.textContent='▶ Tocar';$('epPlay').disabled=false;$('s3epBox').hidden=false;
+  S.ms=E.marcos[0].ms;S.sync=true;const d=$('s3data');if(d)d.value=new Date(S.ms).toISOString().slice(0,10);if(sl){sl.value=Math.round((S.ms-SIM_MIN)/864e5);E.marcos.forEach(m=>{const t=document.createElement('i');t.className='s3tick';t.style.left=((m.ms-SIM_MIN)/(SIM_MAX-SIM_MIN)*100)+'%';t.style.background=m.cor;sl.parentNode.appendChild(t);});}
+  $('epMarcos').innerHTML=E.marcos.map((m,i)=>`<button class="evbtn" data-mi="${i}" type="button" style="border-color:${m.cor}">${new Date(m.ms).getUTCFullYear()} · ${esc(m.rot.length>34?m.rot.slice(0,33)+'…':m.rot)}</button>`).join('');
+  $('epMarcos').querySelectorAll('[data-mi]').forEach(b=>b.onclick=()=>{E.tocando=false;epBotao();const m=E.marcos[+b.dataset.mi];S.ms=m.ms;S.sync=true;E.idx=+b.dataset.mi;epRotulo(E.idx);});
+  if(E.contexto.length)$('epCtx').innerHTML=`<div class="guia"><b>O que já existia quando isso aconteceu</b> (sua tese: o tempo e as informações disponíveis tornam a captação possível):<ul style="margin:6px 0 0 16px">${E.contexto.map(c=>`<li>${esc(c)}</li>`).join('')}</ul></div>`;
+  epTabela(E);epCurva(E);setTimeout(()=>epParalelos(E),30);epBotao();
+}
+function epRotulo(i){const E=SIM3D&&SIM3D.ep,r=$('s3rot');if(!E||!r)return;const m=E.marcos[i];r.textContent=new Date(m.ms).getUTCFullYear()+' · '+m.rot;r.style.borderColor=m.cor;}
+function epAvanca(dt){
+  const E=SIM3D&&SIM3D.ep; if(!E||!E.tocando) return; const m=E.marcos;
+  if(E.fase==='pausa'){E.t+=dt;if(E.t>=2.4){if(E.idx>=m.length-1){E.tocando=false;epBotao();return;}E.idx++;E.fase='mov';E.t=0;E.de=SIM3D.ms;E.para=m[E.idx].ms;E.dur=Math.max(3,Math.min(9,Math.log10(Math.abs(E.para-E.de)/864e5+10)*3));const r=$('s3rot');if(r)r.textContent='';}}
+  else{E.t+=dt;const u=Math.min(1,E.t/E.dur),e=u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2;SIM3D.ms=E.de+(E.para-E.de)*e;SIM3D.sync=true;if(u>=1){E.fase='pausa';E.t=0;epRotulo(E.idx);}}
+  if(E.fase==='pausa'&&E.t===1.6)epRotulo(E.idx);
+}
+function epTabela(E){
+  const b=baselineAspectos();
+  $('s3epT').innerHTML=`<table class="tb"><tr><th>Marco</th><th>Aspectos</th><th>Percentil</th><th>Sol–CG</th><th>Júpiter–Saturno</th><th>Mais fortes</th></tr>${E.marcos.map(m=>{const est=ephEstado(m.ms),A=aspectosDe(est).sort((x,y)=>y.forca-x.forca),f=A.reduce((s,a)=>s+a.forca,0);let js=Math.abs(est.corpos['Júpiter'].lonData-est.corpos['Saturno'].lonData);if(js>180)js=360-js;
+    return `<tr><td style="color:${m.cor}">${new Date(m.ms).getUTCFullYear()} · ${esc(m.rot.length>30?m.rot.slice(0,29)+'…':m.rot)}</td><td>${A.length}</td><td>${percentilDe(b.f.o,f).toFixed(0)}</td><td>${anguloSolGC(est).toFixed(1)}°</td><td>${js.toFixed(0)}°</td><td class="mu">${A.slice(0,2).map(a=>a.p1.slice(0,3)+'–'+a.p2.slice(0,3)+' '+a.asp.n).join('; ')||'—'}</td></tr>`;}).join('')}</table>`;
+}
+function epCurva(E){
+  const b=baselineAspectos(),t0=Math.max(SIM_MIN,E.ini-365.25*864e5),t1=Math.min(SIM_MAX,E.fim+365.25*864e5),N=Math.min(520,Math.max(60,Math.round((t1-t0)/(30*864e5)))),pts=[];
+  for(let i=0;i<N;i++){const t=t0+(t1-t0)*i/(N-1);pts.push(aspectosDe(ephEstado(t)).reduce((s,a)=>s+a.forca,0));}
+  const W=440,H=110,mx=Math.max(b.f.m+3*b.f.sd,...pts),Y=v=>H-v/mx*(H-6),X=t=>(t-t0)/(t1-t0)*W;E.curva={t0,t1,W};
+  $('s3epS').innerHTML=`<svg viewBox="0 0 ${W} ${H+16}" class="graf" role="img" aria-label="Alinhamento ao longo do episódio"><rect x="0" y="${Y(b.f.m+b.f.sd)}" width="${W}" height="${Y(b.f.m-b.f.sd)-Y(b.f.m+b.f.sd)}" fill="#1f7bff" fill-opacity=".18"/><line x1="0" x2="${W}" y1="${Y(b.f.m)}" y2="${Y(b.f.m)}" stroke="#27c8ff" stroke-dasharray="3 3"/><polyline fill="none" stroke="#aa66ff" stroke-width="1.7" points="${pts.map((v,i)=>(i/(N-1)*W).toFixed(1)+','+Y(v).toFixed(1)).join(' ')}"/>${E.marcos.map(m=>`<line x1="${X(m.ms)}" x2="${X(m.ms)}" y1="0" y2="${H}" stroke="${m.cor}" stroke-width="1.6"/><text x="${X(m.ms)}" y="${H+11}" fill="${m.cor}" font-size="8.5" text-anchor="middle">${new Date(m.ms).getUTCFullYear()}</text>`).join('')}<line id="epCur" x1="0" x2="0" y1="0" y2="${H}" stroke="#f0a830" stroke-width="2"/></svg><div class="mu" style="font-size:11px">Roxo = força total dos aspectos mês a mês; faixa azul = média ± 1 desvio de uma data qualquer. A linha laranja acompanha a data da simulação.</div>`;
+}
+function epCursor(){const E=SIM3D&&SIM3D.ep,c=$('epCur');if(!E||!c||!E.curva)return;const x=Math.max(0,Math.min(E.curva.W,(SIM3D.ms-E.curva.t0)/(E.curva.t1-E.curva.t0)*E.curva.W));c.setAttribute('x1',x);c.setAttribute('x2',x);}
+function epParalelos(E){
+  const out=$('s3epP');if(!out||SIM3D.ep!==E)return;if(E.marcos.length<2){out.innerHTML='';return;}
+  const sets=E.marcos.map(m=>setAspKeys(m.ms)),L=[];
+  for(let i=0;i<E.marcos.length;i++)for(let j=i+1;j<E.marcos.length;j++){const J=jacc(sets[i],sets[j]),gap=E.marcos[j].ms-E.marcos[i].ms,base=baseJacc(gap,400),p=percJ(base,J),comuns=[...sets[i]].filter(x=>sets[j].has(x));L.push({a:E.marcos[i],b:E.marcos[j],J,p,comuns,gap});}
+  out.innerHTML=`<h2 style="margin-top:12px;font-size:12px">PARALELOS ENTRE OS MARCOS <span class="obs-tag t-hipotese">HIPÓTESE</span></h2><table class="tb"><tr><th>Par de marcos</th><th>Intervalo</th><th>Aspectos em comum</th><th>Semelhança</th><th>Percentil vs. acaso*</th></tr>${L.map(x=>`<tr><td>${new Date(x.a.ms).getUTCFullYear()} × ${new Date(x.b.ms).getUTCFullYear()}</td><td>${(x.gap/(365.25*864e5)).toFixed(1)} a</td><td class="mu">${x.comuns.length?x.comuns.slice(0,3).map(c=>c.split('|').map((s,i)=>i<2?s.slice(0,3):s).join(' ')).join('; '):'nenhum'}</td><td>${x.J.toFixed(2)}</td><td>${(x.p*100).toFixed(0)}</td></tr>`).join('')}</table><div class="mu" style="font-size:11px">*Comparado com 400 pares de datas com o MESMO intervalo e início aleatório entre 1800 e 2050. Isso é necessário porque datas próximas compartilham aspectos de planetas lentos por construção. 50 = igual ao acaso.</div><div class="guia"><b>Leitura do observador.</b> A semelhança entre o céu de dois marcos só tem algum significado se ficar bem acima do que se espera para o mesmo intervalo. Com poucos marcos por episódio, quase sempre fica perto de 50. Para testar de verdade, use o botão abaixo, que junta todos os casos.</div><div class="lab-in" style="margin-top:8px"><button class="p" id="epAgg" type="button">Juntar todos os casos (1800–2050)</button></div><div id="epAggO" class="mu" style="margin-top:8px"></div>`;
+  $('epAgg').onclick=()=>{const b=$('epAgg');b.disabled=true;$('epAggO').textContent='Calculando…';setTimeout(()=>{const todos=geniosTodos().map(g=>episodioDe(g.id)).filter(Boolean),T={},P=[];
+    todos.forEach(e=>{const ms=e.marcos,s=ms.map(m=>setAspKeys(m.ms)),nasc=ms[0],cr=ms.find(m=>m.rot==='Criação'),co=ms[ms.length-1];const par=(a,bm,nome)=>{if(!a||!bm||a===bm||a.ms>=bm.ms)return;const J=jacc(setAspKeys(a.ms),setAspKeys(bm.ms)),p=percJ(baseJacc(bm.ms-a.ms,300),J);(T[nome]=T[nome]||[]).push(p);P.push(p);};par(nasc,cr,'Nascimento × criação');par(cr,co,'Criação × consequência');par(nasc,co,'Nascimento × consequência');});
+    const stat=a=>{const n=a.length,m=a.reduce((x,y)=>x+y,0)/n,z=(m-.5)/Math.sqrt(1/(12*n)),p=2*(1-0.5*(1+erfAprox(Math.abs(z)/Math.SQRT2)));return {n,m,z,p};};
+    const linhas=Object.entries(T).map(([k,a])=>{const s=stat(a);return `<tr><td>${k}</td><td>${s.n}</td><td>${(s.m*100).toFixed(0)}</td><td>${s.z.toFixed(2)}</td><td>${s.p.toFixed(2)}</td><td>${Math.min(1,s.p*3).toFixed(2)}</td></tr>`;}).join(''),g=P.length?stat(P):null;
+    $('epAggO').innerHTML=`<table class="tb"><tr><th>Tipo de par</th><th>n</th><th>Percentil médio</th><th>z</th><th>p</th><th>p corrigido (×3)</th></tr>${linhas}${g?`<tr><td><b>Todos</b></td><td>${g.n}</td><td>${(g.m*100).toFixed(0)}</td><td>${g.z.toFixed(2)}</td><td>${g.p.toFixed(2)}</td><td>—</td></tr>`:''}</table><div class="guia"><b>Leitura do observador.</b> Sob o acaso, o percentil médio é 50. Aqui há ${P.length} pares de ${todos.length} casos. São 3 tipos de par testados, então um p isolado abaixo de 0,05 em uma das linhas é esperado por acaso com frequência; a coluna corrigida e a linha “Todos” são as que contam. Com tão poucos pares, só diferenças enormes apareceriam, e os casos foram escolhidos por você e por mim por terem boa história. Adicione mais casos na aba Gênios → Caos (inclusive de criações inofensivas) para o teste ganhar poder.</div>`;b.disabled=false;},30);};
+}
+function erfAprox(x){const t=1/(1+0.3275911*x),y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x);return y;}
 
 /* ══════════════════════════════════════════════════════
    BOOT
