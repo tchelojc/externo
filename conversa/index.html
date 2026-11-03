@@ -2396,31 +2396,108 @@ const TX_PATH_ID = (() => { const m = location.pathname.match(/\/(?:conversa\/)?
 (function txPwa() {
   if (TX_PATH_ID) { const l = document.createElement('link'); l.rel = 'manifest'; l.href = '/conversa/manifest.webmanifest?id=' + encodeURIComponent(TX_PATH_ID); document.head.appendChild(l); }
   if ('serviceWorker' in navigator && location.protocol === 'https:' && /^\/conversa(\/|$)/.test(location.pathname)) navigator.serviceWorker.register('/conversa/sw.js', {scope: '/conversa/'}).catch(() => {});
-  let bip = null, wl = null;
+
+  let bip = null, wl = null, saidaAutorizada = false;
   const modoApp = () => matchMedia('(display-mode: fullscreen)').matches || matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
-  const emTela = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+  const emTela  = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+
   const wake = async () => { try { if ('wakeLock' in navigator && !wl) { wl = await navigator.wakeLock.request('screen'); wl.addEventListener('release', () => { wl = null; }); } } catch (e) {} };
   document.addEventListener('visibilitychange', () => { if (!document.hidden) wake(); }); wake();
+
   if (!TX_PATH_ID) return;
-  /* recarrega a cada 6 h (limpa memória de animações longas), exceto com o painel aberto */
+
+  // recarrega a cada 6 h (limpa memória de animações longas), exceto com o painel aberto
   setInterval(() => { if (!$id('app').classList.contains('ativo') && !$id('menuLocal').classList.contains('ativo') && !$id('telaLogin').classList.contains('on')) location.reload(); }, 6 * 3600 * 1000);
+
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); bip = e; });
   window.addEventListener('appinstalled', () => esconder());
-  let box = null, ativado = false;
-  const esconder = () => { if (box) { box.remove(); box = null; } };
-  async function ativar() {
-    if (ativado) return; ativado = true;
-    try { const el = document.documentElement; (el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen || (() => {})).call(el); } catch (e) {}
-    try { if (bip) { bip.prompt(); await bip.userChoice; bip = null; } } catch (e) {}
-    wake(); esconder(); document.removeEventListener('keydown', porTecla, true); document.removeEventListener('pointerdown', ativar, true);
+
+  async function entrarTelaCheia() {
+    if (emTela() || modoApp()) return;
+    try {
+      const el = document.documentElement;
+      const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+      if (fn) await fn.call(el);
+    } catch (e) {}
   }
-  const porTecla = e => { if (e.key === 'Enter' || e.key === ' ' || e.keyCode === 13 || e.keyCode === 29443) ativar(); };
+
+  // 1) QUALQUER clique na tela entra em fullscreen
+  document.addEventListener('pointerdown', (ev) => {
+    // não intercepta cliques no painel/menu/login
+    if ($id('app').classList.contains('ativo')) return;
+    if ($id('menuLocal').classList.contains('ativo')) return;
+    if ($id('telaLogin').classList.contains('on')) return;
+    if (saidaAutorizada) return;
+    entrarTelaCheia();
+  }, true);
+
+  // 2) SAÍDA: ESC + 5 cliques do botão esquerdo em até 2 s
+  let escArmado = false, escTs = 0, cliquesSaida = 0, cliquesTs = 0;
+
+  document.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Escape' || ev.key === 'Esc') {
+      escArmado = true; escTs = Date.now(); cliquesSaida = 0;
+      // impede o menu local fechar por ESC durante o gesto
+      if ($id('menuLocal').classList.contains('ativo')) return;
+      ev.stopPropagation();
+    }
+  }, true);
+
+  document.addEventListener('mousedown', (ev) => {
+    if (ev.button !== 0) return;
+    if (!escArmado) return;
+    if (Date.now() - escTs > 2000) { escArmado = false; cliquesSaida = 0; return; }
+    const agora = Date.now();
+    if (agora - cliquesTs > 1500) cliquesSaida = 0;
+    cliquesTs = agora;
+    cliquesSaida++;
+    if (cliquesSaida >= 5) {
+      // gesto completo: autoriza saída e sai
+      escArmado = false; cliquesSaida = 0; saidaAutorizada = true;
+      sairTelaCheia();
+      // re-arma após 1.5 s (novo clique volta a entrar)
+      setTimeout(() => { saidaAutorizada = false; }, 1500);
+    }
+  }, true);
+
+  async function sairTelaCheia() {
+    try {
+      if (document.exitFullscreen) await document.exitFullscreen();
+      else if (document.webkitExitFullscreen) await document.webkitExitFullscreen();
+      else if (document.msExitFullscreen) await document.msExitFullscreen();
+    } catch (e) {}
+  }
+
+  // 3) BUG do navegador: ESC sai do fullscreen sozinho. Se NÃO foi gesto autorizado, reentra.
+  function onFullscreenChange() {
+    const dentro = emTela();
+    if (!dentro) {
+      if (!saidaAutorizada) {
+        // reentra imediatamente (o próprio usuário apertou ESC; o navegador só sai uma vez)
+        setTimeout(() => { if (!saidaAutorizada && !emTela()) entrarTelaCheia(); }, 60);
+      }
+    } else {
+      esconder();
+    }
+  }
+  document.addEventListener('fullscreenchange', onFullscreenChange);
+  document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+  document.addEventListener('MSFullscreenChange', onFullscreenChange);
+
+  // 4) banner inicial (some no primeiro clique; o clique já entra em fullscreen)
+  let box = null;
+  const esconder = () => { if (box) { box.remove(); box = null; } };
+
   if (modoApp() || emTela()) return;
-  box = el('div', 'tx-inst', '<div><b>📺 Tela cheia e instalação</b><br>Pressione <b>OK / Enter</b> no controle (ou clique) para entrar em tela cheia' + '<br><small>Se o navegador oferecer, aceite instalar o totem como aplicativo.</small></div><button>Ativar</button>');
-  box.querySelector('button').addEventListener('click', e => { e.stopPropagation(); ativar(); });
+  box = el('div', 'tx-inst',
+    '<div><b>📺 Tela cheia</b><br>Clique em qualquer lugar para entrar em tela cheia.' +
+    '<br><small>Para sair: pressione <b>ESC</b> e clique <b>5×</b> com o botão esquerdo (em até 2 s).</small></div>' +
+    '<button>Entrar</button>');
+  box.querySelector('button').addEventListener('click', (e) => { e.stopPropagation(); entrarTelaCheia(); });
   document.body.appendChild(box);
-  document.addEventListener('keydown', porTecla, true); document.addEventListener('pointerdown', ativar, true);
-  setTimeout(esconder, 25000);   /* some sozinho; o próximo clique/OK ainda entra em tela cheia */
+  // o banner some no primeiro clique (o clique já entra em fullscreen pelo listener global)
+  document.addEventListener('pointerdown', () => esconder(), { once: true, capture: true });
+  setTimeout(esconder, 25000);
 })();
 
 /* ══════════ BOOT: o totem sobe sozinho; nada de interface visível ══════════ */
