@@ -4,12 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#000000">
-<meta name="mobile-web-app-capable" content="yes">
+<!-- Manifest: preenchido por JS com o ID do totem (não fixar ?id= aqui) -->
+<link rel="manifest" id="manifestLink" href="/conversa/manifest.webmanifest">
+<!-- iOS: tela cheia em modo app -->
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-<title>ALMAFLUXO · Totem</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ALMAFLUXO">
+<!-- Ícone para o manifest (pode usar um SVG inline) -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%23030508'/%3E%3Ccircle cx='256' cy='256' r='180' fill='%2300e5ff'/%3E%3C/svg%3E">
 <style>
   *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
   :root{
@@ -1881,12 +1883,29 @@ function reagendar(t) {
   SYNC.tCfg = setInterval(syncConfig, Math.max(15, +t.configS || 30) * 1000); SYNC.tHb = setInterval(enviarHeartbeat, Math.max(20, +t.heartbeatS || 60) * 1000);
 }
 async function iniciarTotem() {
-  TID = new URLSearchParams(location.search).get('t') || TX_PATH_ID || lsGet(LSK.id, null); if (TID && (TX_PATH_ID || new URLSearchParams(location.search).get('t'))) lsSet(LSK.id, String(TID).replace(/[^\w-]/g, '')); if (TID) TID = String(TID).replace(/[^\w-]/g, '');
+  // Prioridade: URL (path ou ?t=) > localStorage > null
+  let id = TX_PATH_ID;
+  if (!id) id = new URLSearchParams(location.search).get('t');
+  if (!id) id = lsGet(LSK.id, null);
+  TID = id ? String(id).replace(/[^\w-]/g, '') : null;
+  if (TID) lsSet(LSK.id, TID);
+
   const cache = lsGet(LSK.cfg, null); const st = $id('stage');
   if (!MAIN) MAIN = criarPlayer(st);
-  if (TID && cache && cache.id === TID) { MAIN.aplicar(cache, lsGet(LSK.aj, null)); mostrarPonto(!!cache.mostrarPonto); reagendar(cache); } else relogioStandby();
+
+  // Se o cache é do totem certo, usa; senão, standby (e syncConfig busca do Drive)
+  if (TID && cache && cache.id === TID) {
+    MAIN.aplicar(cache, lsGet(LSK.aj, null));
+    mostrarPonto(!!cache.mostrarPonto);
+    reagendar(cache);
+  } else {
+    relogioStandby();
+  }
+
   if (!sessao || !TID) return;
-  reagendar(cache || {}); await syncConfig(); enviarHeartbeat();
+  reagendar(cache || {});
+  await syncConfig();
+  enviarHeartbeat();
 }
 
 /* ── Desbloqueio escondido: Ctrl pressionado + 10 cliques com o botão esquerdo (velocidade livre; passar de 10 também vale) ── */
@@ -2389,74 +2408,110 @@ const TX_PADRAO = () => ({id: '-', status: 'liberado', tela: {}, layout: {modelo
   {tipo: 'jornal', duracaoS: 24, cidade: 'São Paulo'}, {tipo: 'climagrafico', duracaoS: 16, cidade: 'Rio de Janeiro', lat: -22.9068, lon: -43.1729}, {tipo: 'relogio', duracaoS: 8}
 ], transicao: {tipo: 'fade', ms: 900}, aleatorio: false}}});
 
-/* ══════ ENDEREÇO → TOTEM, INSTALAÇÃO E TELA CHEIA ══════
-   /conversa/totem1 (ou ?t=totem1) escolhe o totem. A TV precisa de 1 clique/OK para tela cheia
-   (regra dos navegadores); instalado como app, abre em tela cheia sozinho. */
-const TX_PATH_ID = (() => { const m = location.pathname.match(/\/(?:conversa\/)?(totem[\w-]*)\/?$/i); return m ? m[1].toLowerCase() : null; })();
-(function txPwa() {
-  if (TX_PATH_ID) { const l = document.createElement('link'); l.rel = 'manifest'; l.href = '/conversa/manifest.webmanifest?id=' + encodeURIComponent(TX_PATH_ID); document.head.appendChild(l); }
-  if ('serviceWorker' in navigator && location.protocol === 'https:' && /^\/conversa(\/|$)/.test(location.pathname)) navigator.serviceWorker.register('/conversa/sw.js', {scope: '/conversa/'}).catch(() => {});
+/* ══════ IDENTIFICA O TOTEM PELA URL ══════
+   Formatos aceitos:
+     /conversa/totem1      → "totem1"
+     /conversa/totem7      → "totem7"
+     /conversa/totem-emp   → "totem-emp"
+     /conversa/?t=totem7   → "totem7"
+     /qualquer?t=totem7    → "totem7"
+     /conversa             → "totem1" (fallback, ou localStorage)
+   Se não achar nada, retorna null. O boot trata null como "standby". */
+const TX_PATH_ID = (() => {
+  // 1) caminho /conversa/<id>  (id obrigatoriamente começa com "totem")
+  const m = location.pathname.match(/\/(?:conversa\/)(totem[\w-]*)\/?$/i);
+  if (m) return m[1].toLowerCase();
 
-  let bip = null, wl = null, saidaAutorizada = false;
+  // 2) /conversa/  ou  /conversa  → usa ?t=  ou localStorage ou "totem1"
+  if (/^\/conversa\/?$/i.test(location.pathname)) {
+    const q = new URLSearchParams(location.search).get('t');
+    if (q) return String(q).replace(/[^\w-]/g, '');
+    const ls = (() => { try { return JSON.parse(localStorage.getItem('almafluxo_totem_id') || 'null'); } catch(e){ return null; } })();
+    return ls || 'totem1';
+  }
+
+  // 3) qualquer outra URL com ?t= (Drive aberto direto, por exemplo)
+  const q = new URLSearchParams(location.search).get('t');
+  if (q) return String(q).replace(/[^\w-]/g, '');
+
+  return null;
+})();
+/* ══════ TELA CHEIA (funciona em qualquer URL: /conversa, /conversa/totem1, Drive direto) ══════ */
+(function txPwa() {
+  // manifest dinâmico só quando temos ID do totem
+  if (TX_PATH_ID) {
+    const l = document.createElement('link'); l.rel = 'manifest';
+    l.href = '/conversa/manifest.webmanifest?id=' + encodeURIComponent(TX_PATH_ID);
+    document.head.appendChild(l);
+  }
+  // SW sempre (mas só em https e se o sw.js existir no escopo)
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    const swPath = (location.pathname.startsWith('/conversa')) ? '/conversa/sw.js' : '/sw.js';
+    navigator.serviceWorker.register(swPath, { scope: '/' }).catch(() => {});
+  }
+
+  let bip = null, wl = null, saidaAutorizada = false, jaEntrou = false;
   const modoApp = () => matchMedia('(display-mode: fullscreen)').matches || matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
   const emTela  = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
 
   const wake = async () => { try { if ('wakeLock' in navigator && !wl) { wl = await navigator.wakeLock.request('screen'); wl.addEventListener('release', () => { wl = null; }); } } catch (e) {} };
   document.addEventListener('visibilitychange', () => { if (!document.hidden) wake(); }); wake();
 
-  if (!TX_PATH_ID) return;
-
-  // recarrega a cada 6 h (limpa memória de animações longas), exceto com o painel aberto
-  setInterval(() => { if (!$id('app').classList.contains('ativo') && !$id('menuLocal').classList.contains('ativo') && !$id('telaLogin').classList.contains('on')) location.reload(); }, 6 * 3600 * 1000);
+  // recarrega a cada 6 h, exceto com painel/menu/login abertos
+  setInterval(() => {
+    if (!$id('app')?.classList.contains('ativo') && !$id('menuLocal')?.classList.contains('ativo') && !$id('telaLogin')?.classList.contains('on')) location.reload();
+  }, 6 * 3600 * 1000);
 
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); bip = e; });
   window.addEventListener('appinstalled', () => esconder());
 
   async function entrarTelaCheia() {
-    if (emTela() || modoApp()) return;
+    if (emTela() || modoApp()) return true;
     try {
       const el = document.documentElement;
       const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
-      if (fn) await fn.call(el);
-    } catch (e) {}
+      if (!fn) return false;
+      await fn.call(el);
+      return true;
+    } catch (e) {
+      console.warn('fullscreen falhou:', e && e.message);
+      return false;
+    }
   }
 
-  // 1) QUALQUER clique na tela entra em fullscreen
-  document.addEventListener('pointerdown', (ev) => {
-    // não intercepta cliques no painel/menu/login
-    if ($id('app').classList.contains('ativo')) return;
-    if ($id('menuLocal').classList.contains('ativo')) return;
-    if ($id('telaLogin').classList.contains('on')) return;
+  // ── 1) ENTRAR: primeiro clique em qualquer lugar ──
+  // Usa "click" (não "pointerdown") porque é o evento que o Chrome aceita como
+  // gesto de usuário para requestFullscreen sem ambiguidade.
+  document.addEventListener('click', async (ev) => {
+    if ($id('app')?.classList.contains('ativo')) return;
+    if ($id('menuLocal')?.classList.contains('ativo')) return;
+    if ($id('telaLogin')?.classList.contains('on')) return;
     if (saidaAutorizada) return;
-    entrarTelaCheia();
+    if (emTela() || modoApp()) { jaEntrou = true; return; }
+    const ok = await entrarTelaCheia();
+    if (ok) { jaEntrou = true; esconder(); }
   }, true);
 
-  // 2) SAÍDA: ESC + 5 cliques do botão esquerdo em até 2 s
+  // ── 2) SAIR: ESC + 5 cliques do botão esquerdo em até 2 s ──
   let escArmado = false, escTs = 0, cliquesSaida = 0, cliquesTs = 0;
-
   document.addEventListener('keydown', (ev) => {
     if (ev.key === 'Escape' || ev.key === 'Esc') {
       escArmado = true; escTs = Date.now(); cliquesSaida = 0;
-      // impede o menu local fechar por ESC durante o gesto
-      if ($id('menuLocal').classList.contains('ativo')) return;
+      if ($id('menuLocal')?.classList.contains('ativo')) return;
       ev.stopPropagation();
     }
   }, true);
 
   document.addEventListener('mousedown', (ev) => {
-    if (ev.button !== 0) return;
-    if (!escArmado) return;
+    if (ev.button !== 0 || !escArmado) return;
     if (Date.now() - escTs > 2000) { escArmado = false; cliquesSaida = 0; return; }
     const agora = Date.now();
     if (agora - cliquesTs > 1500) cliquesSaida = 0;
-    cliquesTs = agora;
-    cliquesSaida++;
+    cliquesTs = agora; cliquesSaida++;
     if (cliquesSaida >= 5) {
-      // gesto completo: autoriza saída e sai
       escArmado = false; cliquesSaida = 0; saidaAutorizada = true;
       sairTelaCheia();
-      // re-arma após 1.5 s (novo clique volta a entrar)
-      setTimeout(() => { saidaAutorizada = false; }, 1500);
+      setTimeout(() => { saidaAutorizada = false; jaEntrou = false; }, 1500);
     }
   }, true);
 
@@ -2468,35 +2523,31 @@ const TX_PATH_ID = (() => { const m = location.pathname.match(/\/(?:conversa\/)?
     } catch (e) {}
   }
 
-  // 3) BUG do navegador: ESC sai do fullscreen sozinho. Se NÃO foi gesto autorizado, reentra.
+  // ── 3) Se o navegador sair do fullscreen sozinho (ESC), reentra em 60 ms ──
   function onFullscreenChange() {
-    const dentro = emTela();
-    if (!dentro) {
+    if (!emTela()) {
       if (!saidaAutorizada) {
-        // reentra imediatamente (o próprio usuário apertou ESC; o navegador só sai uma vez)
         setTimeout(() => { if (!saidaAutorizada && !emTela()) entrarTelaCheia(); }, 60);
       }
     } else {
-      esconder();
+      jaEntrou = true; esconder();
     }
   }
   document.addEventListener('fullscreenchange', onFullscreenChange);
   document.addEventListener('webkitfullscreenchange', onFullscreenChange);
   document.addEventListener('MSFullscreenChange', onFullscreenChange);
 
-  // 4) banner inicial (some no primeiro clique; o clique já entra em fullscreen)
+  // ── 4) Banner inicial (some no primeiro clique; o clique já entra em fullscreen) ──
   let box = null;
   const esconder = () => { if (box) { box.remove(); box = null; } };
 
-  if (modoApp() || emTela()) return;
   box = el('div', 'tx-inst',
     '<div><b>📺 Tela cheia</b><br>Clique em qualquer lugar para entrar em tela cheia.' +
     '<br><small>Para sair: pressione <b>ESC</b> e clique <b>5×</b> com o botão esquerdo (em até 2 s).</small></div>' +
     '<button>Entrar</button>');
   box.querySelector('button').addEventListener('click', (e) => { e.stopPropagation(); entrarTelaCheia(); });
   document.body.appendChild(box);
-  // o banner some no primeiro clique (o clique já entra em fullscreen pelo listener global)
-  document.addEventListener('pointerdown', () => esconder(), { once: true, capture: true });
+  document.addEventListener('click', esconder, { once: true, capture: true });
   setTimeout(esconder, 25000);
 })();
 
