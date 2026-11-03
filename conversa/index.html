@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#000000">
 <!-- Manifest: preenchido por JS com o ID do totem (não fixar ?id= aqui) -->
-<link rel="manifest" id="manifestLink" href="/conversa/manifest.webmanifest">
+<link rel="manifest" id="manifestLink">
 <!-- iOS: tela cheia em modo app -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -2448,15 +2448,19 @@ const TX_PATH_ID = (() => {
     if (manifest) manifest.href = '/conversa/manifest.webmanifest?id=' + encodeURIComponent(TX_PATH_ID);
   }
 
-  // O escopo precisa estar dentro do caminho permitido pelo próprio SW.
-  // /conversa/sw.js controla /conversa/; páginas fora desse caminho usam /sw.js.
+  // Service Worker registration with explicit scope and error handling.
+  // The worker must serve the SW file at the path it's registered from.
   if ('serviceWorker' in navigator && location.protocol === 'https:') {
-    const dentroConversa = /^\/conversa(?:\/|$)/i.test(location.pathname);
-    const swPath = dentroConversa ? '/conversa/sw.js' : '/sw.js';
-    const swScope = dentroConversa ? '/conversa/' : '/';
-    navigator.serviceWorker.register(swPath, { scope: swScope }).catch(err => {
-      console.warn('Service Worker não registrado:', err && err.message ? err.message : err);
-    });
+    const swPath = '/conversa/sw.js';
+    const swScope = '/conversa/';
+    
+    navigator.serviceWorker.register(swPath, { scope: swScope })
+      .then(registration => {
+        console.log('Service Worker registered successfully for scope:', registration.scope);
+      })
+      .catch(err => {
+        console.error('Service Worker registration failed:', err);
+      });
   }
 
   let bip = null, wl = null, saidaAutorizada = false, jaEntrou = false;
@@ -2494,30 +2498,42 @@ const TX_PATH_ID = (() => {
 
   // ── 1) ENTRAR: primeiro clique em qualquer lugar ──
   document.addEventListener('click', (ev) => {
+    // Ignore if the panel, local menu, or login screen is open
     if ($id('app')?.classList.contains('ativo')) return;
     if ($id('menuLocal')?.classList.contains('ativo')) return;
     if ($id('telaLogin')?.classList.contains('on')) return;
     if (saidaAutorizada) return;
-    if (emTela() || modoApp()) { jaEntrou = true; return; }
+    
+    // If already in fullscreen or app mode, do nothing
+    if (emTela() || modoApp()) {
+      jaEntrou = true;
+      esconder(); // Hide the banner if it's still visible
+      return;
+    }
 
-    // A chamada requestFullscreen DEVE ser síncrona dentro do gesto do usuário.
-    // Não use 'await' aqui.
+    // The requestFullscreen call MUST be synchronous within the user gesture.
     const el = document.documentElement;
     const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
 
-    if (fn) {
-      // Não usar await antes da chamada: o navegador exige o gesto do usuário.
-      try {
-        const retorno = fn.call(el);
-        Promise.resolve(retorno).then(() => {
-          jaEntrou = true;
-          esconder();
-        }).catch((e) => {
-          console.warn('fullscreen falhou:', e && e.message ? e.message : e);
-        });
-      } catch (e) {
-        console.warn('fullscreen falhou:', e && e.message ? e.message : e);
-      }
+    if (!fn) {
+      console.warn('Fullscreen API not supported by this browser.');
+      return;
+    }
+
+    // Call the function synchronously. The promise is handled afterwards.
+    try {
+      const result = fn.call(el);
+      // Now handle the promise. The .then/.catch are just to know if it worked.
+      Promise.resolve(result).then(() => {
+        jaEntrou = true;
+        esconder(); // Hide banner on success
+      }).catch((err) => {
+        // This catch is for promise rejections (e.g., permissions, user denies, etc.)
+        console.warn('Fullscreen request rejected:', err && err.message ? err.message : err);
+      });
+    } catch (syncErr) {
+      // This catches synchronous errors (e.g., API call itself throws)
+      console.warn('Fullscreen API call threw an error:', syncErr && syncErr.message ? syncErr.message : syncErr);
     }
   }, true);
 
@@ -2575,9 +2591,13 @@ const TX_PATH_ID = (() => {
     '<br><small>Para sair: pressione <b>ESC</b> e clique <b>5×</b> com o botão esquerdo (em até 2 s).</small></div>' +
     '<button>Entrar</button>');
   // No banner de instrução
+  // No banner de instrução
   box.querySelector('button').addEventListener('click', (e) => {
-    e.stopPropagation();
-    entrarTelaCheia().catch(err => console.warn("Failed to enter fullscreen from button:", err));
+    e.stopPropagation(); // Prevent the document click handler from firing
+    // Call the fullscreen function directly and handle the promise.
+    entrarTelaCheia().catch(err => {
+      console.warn("Failed to enter fullscreen from button:", err && err.message ? err.message : err);
+    });
   });
   document.body.appendChild(box);
   document.addEventListener('click', esconder, { once: true, capture: true });
