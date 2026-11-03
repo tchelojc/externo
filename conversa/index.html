@@ -2422,11 +2422,11 @@ const TX_PADRAO = () => ({id: '-', status: 'liberado', tela: {}, layout: {modelo
      /conversa             → "totem1" (fallback, ou localStorage)
    Se não achar nada, retorna null. O boot trata null como "standby". */
 const TX_PATH_ID = (() => {
-  // 1) caminho /conversa/<id>  (id obrigatoriamente começa com "totem")
+  // /conversa/totem1 → "totem1"
   const m = location.pathname.match(/\/(?:conversa\/)(totem[\w-]*)\/?$/i);
   if (m) return m[1].toLowerCase();
 
-  // 2) /conversa/  ou  /conversa  → usa ?t=  ou localStorage ou "totem1"
+  // /conversa/ ou /conversa → "totem1" (fallback)
   if (/^\/conversa\/?$/i.test(location.pathname)) {
     const q = new URLSearchParams(location.search).get('t');
     if (q) return String(q).replace(/[^\w-]/g, '');
