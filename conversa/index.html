@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#000000">
-<!-- Manifest: preenchido por JS com o ID do totem (não fixar ?id= aqui) -->
-<link rel="manifest" id="manifestLink">
+<!-- Manifest: aponta para a rota servida pelo Worker (fallback totem1) -->
+<link rel="manifest" id="manifestLink" href="/manifest.webmanifest?id=totem1">
 <!-- iOS: tela cheia em modo app -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ALMAFLUXO">
-<!-- Ícone para o manifest (pode usar um SVG inline) -->
+<!-- Ícone para o manifest (SVG inline, sem arquivo externo) -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%23030508'/%3E%3Ccircle cx='256' cy='256' r='180' fill='%2300e5ff'/%3E%3C/svg%3E">
 <style>
   *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
@@ -2445,7 +2445,7 @@ const TX_PATH_ID = (() => {
   // Atualiza o manifest já declarado no <head>; evita manifest duplicado.
   if (TX_PATH_ID) {
     const manifest = document.getElementById('manifestLink') || document.querySelector('link[rel="manifest"]');
-    if (manifest) manifest.href = '/conversa/manifest.webmanifest?id=' + encodeURIComponent(TX_PATH_ID);
+    if (manifest) manifest.href = '/manifest.webmanifest?id=' + encodeURIComponent(TX_PATH_ID);
   }
 
   // Service Worker registration with explicit scope and error handling.
