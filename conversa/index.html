@@ -2078,7 +2078,7 @@ function layoutAtual(t, retrato) { return retrato ? (t.layoutRetrato || null) : 
 function cfgLayout(t) {
   const C = PAN.cfg, L = C.retrato ? (t.layoutRetrato || {modelo: PAR_RETRATO[t.layout.modelo] || 'full', gap: t.layout.gap, raio: t.layout.raio}) : t.layout, base = C.retrato ? 'layoutRetrato' : 'layout';
   if (L.modelo === 'custom') garantirCustom(L);
-  const rects = retangulos(L), ops = Object.entries(MODELOS).filter(([k]) => C.retrato || k !== '6p' || true).map(([k, v]) => [k, v.nome]);
+  const rects = retangulos(L), ops = Object.entries(MODELOS).map(([k, v]) => [k, v.nome]);
   return `<div class="chips"><button class="${C.retrato ? '' : 'on'}" onclick="PAN.cfg.retrato=false;desenharCfg()">Paisagem (horizontal)</button><button class="${C.retrato ? 'on' : ''}" onclick="PAN.cfg.retrato=true;desenharCfg()">Retrato (vertical)</button></div>
   ${C.retrato ? `<div class="hintx">${t.layoutRetrato ? 'Layout de retrato <b>personalizado</b>. <button class="btn" onclick="PAN.cfg.t.layoutRetrato=null;desenharCfg()">Voltar ao automático</button>' : 'Em retrato o painel usa a conversão automática do layout horizontal. Escolha um modelo abaixo para personalizar.'}</div>` : ''}
   <div class="fm">${sel('Modelo', base + '.modelo', L.modelo, ops, true)}${fld('Espaço entre regiões (px)', base + '.gap', L.gap == null ? 6 : L.gap, 'number', 'min="0" max="60"')}${fld('Cantos arredondados (px)', base + '.raio', L.raio == null ? 10 : L.raio, 'number', 'min="0" max="60"')}</div>
@@ -2100,7 +2100,11 @@ function cfgConteudo(t) {
 function addItem() { const C = PAN.cfg, tipo = $id('addTipo').value, p = C.t.paineis[C.reg], base = {tipo, duracaoS: tipo === 'video' ? 0 : (TX[tipo] ? 15 : 10)}; if (TX[tipo] && TX[tipo].def) Object.assign(base, clone(TX[tipo].def)); if (tipo === 'clima') Object.assign(base, {cidade: 'São Paulo', lat: -23.55, lon: -46.63}); if (tipo === 'texto') Object.assign(base, {texto: 'Seu texto aqui', tamanho: 6, cor: '#ffffff', fundo: '#0b1830'}); p.itens.push(base); C.item = p.itens.length - 1; desenharCfg(); }
 function moverItem(i, d) { const p = PAN.cfg.t.paineis[PAN.cfg.reg], j = i + d; if (j < 0 || j >= p.itens.length) return; [p.itens[i], p.itens[j]] = [p.itens[j], p.itens[i]]; PAN.cfg.item = j; desenharCfg(); }
 function remItem(i) { const p = PAN.cfg.t.paineis[PAN.cfg.reg]; p.itens.splice(i, 1); PAN.cfg.item = -1; desenharCfg(); }
-function arqOps(tipo, atual) { const lista = (arquivosCache || []).filter(a => tipoDoArquivo(a.nome, a.mimeType) === tipo); const mot = tipo === 'html' ? lista.filter(a => /almaditor|olho|clima|editor/i.test(a.nome)) : []; const resto = lista.filter(a => !mot.includes(a));
+function arqOps(tipo, atual) {
+  // A API pode devolver o MIME em tipo, mimeType ou mime_type, conforme a origem.
+  const lista = (arquivosCache || []).filter(a => tipoDoArquivo(a.nome || a.name, a.tipo || a.mimeType || a.mime_type) === tipo);
+  const mot = tipo === 'html' ? lista.filter(a => /almaditor|olho|clima|editor/i.test(a.nome || a.name || '')) : [];
+  const resto = lista.filter(a => !mot.includes(a));
   const op = a => `<option value="${esc(a.id)}"${a.id === atual ? ' selected' : ''}>${esc(a.nome)}</option>`; return `<option value="">— escolher do Drive —</option>${mot.length ? `<optgroup label="Motores ALMAFLUXO">${mot.map(op).join('')}</optgroup>` : ''}<optgroup label="Arquivos">${resto.map(op).join('')}</optgroup>`; }
 function itemHtml(it, i, p, C) {
   const k = 'paineis.' + C.reg + '.itens.' + i + '.', aberto = C.item === i, ic = (TIPOS[it.tipo] || it.tipo);
@@ -2438,16 +2442,21 @@ const TX_PATH_ID = (() => {
 })();
 /* ══════ TELA CHEIA (funciona em qualquer URL: /conversa, /conversa/totem1, Drive direto) ══════ */
 (function txPwa() {
-  // manifest dinâmico só quando temos ID do totem
+  // Atualiza o manifest já declarado no <head>; evita manifest duplicado.
   if (TX_PATH_ID) {
-    const l = document.createElement('link'); l.rel = 'manifest';
-    l.href = '/conversa/manifest.webmanifest?id=' + encodeURIComponent(TX_PATH_ID);
-    document.head.appendChild(l);
+    const manifest = document.getElementById('manifestLink') || document.querySelector('link[rel="manifest"]');
+    if (manifest) manifest.href = '/conversa/manifest.webmanifest?id=' + encodeURIComponent(TX_PATH_ID);
   }
-  // SW sempre (mas só em https e se o sw.js existir no escopo)
+
+  // O escopo precisa estar dentro do caminho permitido pelo próprio SW.
+  // /conversa/sw.js controla /conversa/; páginas fora desse caminho usam /sw.js.
   if ('serviceWorker' in navigator && location.protocol === 'https:') {
-    const swPath = (location.pathname.startsWith('/conversa')) ? '/conversa/sw.js' : '/sw.js';
-    navigator.serviceWorker.register(swPath, { scope: '/' }).catch(() => {});
+    const dentroConversa = /^\/conversa(?:\/|$)/i.test(location.pathname);
+    const swPath = dentroConversa ? '/conversa/sw.js' : '/sw.js';
+    const swScope = dentroConversa ? '/conversa/' : '/';
+    navigator.serviceWorker.register(swPath, { scope: swScope }).catch(err => {
+      console.warn('Service Worker não registrado:', err && err.message ? err.message : err);
+    });
   }
 
   let bip = null, wl = null, saidaAutorizada = false, jaEntrou = false;
@@ -2465,31 +2474,51 @@ const TX_PATH_ID = (() => {
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); bip = e; });
   window.addEventListener('appinstalled', () => esconder());
 
-  async function entrarTelaCheia() {
-    if (emTela() || modoApp()) return true;
+  // A função original pode ser simplificada ou removida, mas se a
+  // usarmos em outro lugar (como no botão do banner), deve ser síncrona.
+  function entrarTelaCheia() {
+    if (emTela() || modoApp()) return Promise.resolve(true);
     try {
-      const el = document.documentElement;
-      const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
-      if (!fn) return false;
-      await fn.call(el);
-      return true;
+      const alvo = document.documentElement;
+      const fn = alvo.requestFullscreen || alvo.webkitRequestFullscreen || alvo.msRequestFullscreen;
+      if (!fn) return Promise.reject(new Error('Fullscreen API não suportada neste navegador'));
+      // Algumas implementações antigas (webkit/ms) retornam undefined, não Promise.
+      // A chamada continua síncrona para preservar a autorização do gesto do usuário.
+      const retorno = fn.call(alvo);
+      return Promise.resolve(retorno).then(() => true);
     } catch (e) {
       console.warn('fullscreen falhou:', e && e.message);
-      return false;
+      return Promise.reject(e);
     }
   }
 
   // ── 1) ENTRAR: primeiro clique em qualquer lugar ──
-  // Usa "click" (não "pointerdown") porque é o evento que o Chrome aceita como
-  // gesto de usuário para requestFullscreen sem ambiguidade.
-  document.addEventListener('click', async (ev) => {
+  document.addEventListener('click', (ev) => {
     if ($id('app')?.classList.contains('ativo')) return;
     if ($id('menuLocal')?.classList.contains('ativo')) return;
     if ($id('telaLogin')?.classList.contains('on')) return;
     if (saidaAutorizada) return;
     if (emTela() || modoApp()) { jaEntrou = true; return; }
-    const ok = await entrarTelaCheia();
-    if (ok) { jaEntrou = true; esconder(); }
+
+    // A chamada requestFullscreen DEVE ser síncrona dentro do gesto do usuário.
+    // Não use 'await' aqui.
+    const el = document.documentElement;
+    const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+
+    if (fn) {
+      // Não usar await antes da chamada: o navegador exige o gesto do usuário.
+      try {
+        const retorno = fn.call(el);
+        Promise.resolve(retorno).then(() => {
+          jaEntrou = true;
+          esconder();
+        }).catch((e) => {
+          console.warn('fullscreen falhou:', e && e.message ? e.message : e);
+        });
+      } catch (e) {
+        console.warn('fullscreen falhou:', e && e.message ? e.message : e);
+      }
+    }
   }, true);
 
   // ── 2) SAIR: ESC + 5 cliques do botão esquerdo em até 2 s ──
@@ -2545,7 +2574,11 @@ const TX_PATH_ID = (() => {
     '<div><b>📺 Tela cheia</b><br>Clique em qualquer lugar para entrar em tela cheia.' +
     '<br><small>Para sair: pressione <b>ESC</b> e clique <b>5×</b> com o botão esquerdo (em até 2 s).</small></div>' +
     '<button>Entrar</button>');
-  box.querySelector('button').addEventListener('click', (e) => { e.stopPropagation(); entrarTelaCheia(); });
+  // No banner de instrução
+  box.querySelector('button').addEventListener('click', (e) => {
+    e.stopPropagation();
+    entrarTelaCheia().catch(err => console.warn("Failed to enter fullscreen from button:", err));
+  });
   document.body.appendChild(box);
   document.addEventListener('click', esconder, { once: true, capture: true });
   setTimeout(esconder, 25000);
