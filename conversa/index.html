@@ -531,16 +531,36 @@ html,body{background:#000}
 .tx-n{border-left:calc(var(--u)*.5) solid #00e5ff;padding:calc(var(--u)*.6) calc(var(--u)*1.6);background:linear-gradient(90deg,rgba(0,229,255,.09),transparent);opacity:0;animation:txin .7s ease forwards}
 @keyframes txin{from{opacity:0;transform:translateX(calc(var(--u)*-3))}to{opacity:1;transform:none}}
 .tx-nt{display:block;font-size:calc(var(--u)*3);line-height:1.22;font-weight:500}.tx-nf{display:block;font-size:calc(var(--u)*1.7);color:#7fa6c9;margin-top:calc(var(--u)*.4)}
-/* jornal */
-.jn{position:absolute;inset:0;padding:3% 4%;display:flex;flex-direction:column;background:#0c0e13;color:#ece6d6;font-family:Georgia,'Times New Roman',serif}
-.jn-m{font-family:'Orbitron',Georgia,serif;font-size:calc(var(--u)*5.2);text-align:center;letter-spacing:.14em;color:#d4a843;border-bottom:calc(var(--u)*.3) double #d4a843;padding-bottom:calc(var(--u)*.8)}
-.jn-s{text-align:center;font-size:calc(var(--u)*1.7);color:#9aa3b5;margin:calc(var(--u)*.8) 0 calc(var(--u)*1.6);font-family:'Roboto',sans-serif;text-transform:capitalize}
-.jn-g{flex:1;min-height:0;display:grid;grid-template-columns:1.5fr 1fr;gap:calc(var(--u)*3)}
-.jn-h{font-size:calc(var(--u)*5.2);line-height:1.12;font-weight:700;align-self:center}.jn-in{animation:jnin 1s ease}
+/* jornal — mesmo padrão visual de .tx (radial escuro + Roboto + paleta do totem) */
+.jn{position:absolute;inset:0;padding:3% 4%;display:flex;flex-direction:column;
+    background:radial-gradient(ellipse at 30% 15%,#0b1a33,#02040a 70%);color:#eaf6ff;
+    font-family:'Roboto',sans-serif}
+.jn-m{font-family:'Orbitron',sans-serif;font-size:calc(var(--u)*3.2);text-align:center;
+      letter-spacing:.14em;color:#00e5ff;border-bottom:calc(var(--u)*.3) solid rgba(0,229,255,.5);
+      padding-bottom:calc(var(--u)*.8);text-shadow:0 0 calc(var(--u)*1.2) rgba(0,229,255,.55)}
+.jn-s{text-align:center;font-size:calc(var(--u)*1.7);color:#9aa3b5;
+      margin:calc(var(--u)*.8) 0 calc(var(--u)*1.4);font-family:'Roboto',sans-serif;
+      text-transform:capitalize}
+.jn-g{flex:1;min-height:0;display:grid;grid-template-columns:1.5fr 1fr;gap:calc(var(--u)*2.4)}
+.jn-h{font-family:'Orbitron',sans-serif;font-size:calc(var(--u)*3.4);line-height:1.18;
+      font-weight:700;align-self:center;color:#ffd24a;text-shadow:0 0 calc(var(--u)*1) rgba(255,210,74,.35)}
+.jn-in{animation:jnin 1s ease}
 @keyframes jnin{from{opacity:0;transform:translateY(calc(var(--u)*1.5))}to{opacity:1;transform:none}}
-.jn-l{border-left:1px solid #2a2f3a;padding-left:calc(var(--u)*2.2);display:flex;flex-direction:column;justify-content:space-evenly;font-size:calc(var(--u)*2);line-height:1.25;color:#cfc8b6}
-.jn-l div{border-bottom:1px solid #1d212b;padding-bottom:calc(var(--u)*.7)}
-.jn-c{margin-top:calc(var(--u)*1.2);border-top:1px solid #2a2f3a;padding-top:calc(var(--u)*1.2);font-size:calc(var(--u)*2.1);line-height:1.4;color:#b9b3a3;min-height:18%}
+.jn-l{border-left:1px solid rgba(0,229,255,.25);padding-left:calc(var(--u)*2);
+      display:flex;flex-direction:column;justify-content:space-evenly;
+      font-size:calc(var(--u)*1.9);line-height:1.25;color:#cfe6ff}
+.jn-l div{border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:calc(var(--u)*.7)}
+.jn-c{margin-top:calc(var(--u)*1.2);border-top:1px solid rgba(0,229,255,.25);
+      padding-top:calc(var(--u)*1);font-size:calc(var(--u)*2);line-height:1.4;color:#cfe6ff;min-height:18%}
+
+/* ── retrato: empilha as colunas para a manchete não vazar ── */
+.pl-root[data-orient="retrato"] .jn-g,
+.regc:has(> .jn) .jn-g { grid-template-columns:1fr; }
+@media (max-aspect-ratio: 1/1) {
+  .jn-g{grid-template-columns:1fr;gap:calc(var(--u)*1.6)}
+  .jn-l{border-left:0;border-top:1px solid rgba(0,229,255,.25);padding-left:0;padding-top:calc(var(--u)*1)}
+  .jn-h{font-size:calc(var(--u)*2.6)}
+}
 /* gráfico de clima */
 .cg{position:absolute;left:3%;right:3%;top:11%;bottom:8%;z-index:2;display:grid;grid-template-columns:30% 1fr;gap:3%}
 .cg-a{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}.cg-c{font-size:calc(var(--u)*2.6);letter-spacing:.18em;color:#00e5ff;text-transform:uppercase}
