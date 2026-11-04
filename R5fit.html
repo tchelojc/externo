@@ -918,6 +918,21 @@
     // Adicione no topo do script, junto com as outras variáveis:
     let respostasExibidas = new Set();
     let jornadaIniciada = false;
+    // 🔥 GUARDA OS IDs DE MENSAGENS JÁ EXIBIDAS (por id, não por texto)
+    let idsExibidos = new Set();
+    try {
+        const salvos = JSON.parse(localStorage.getItem('r5fit_ids_exibidos') || '[]');
+        idsExibidos = new Set(salvos);
+    } catch (e) { idsExibidos = new Set(); }
+
+    function jaExibidaPorId(msg) {
+        if (!msg || !msg.id) return true;
+        if (idsExibidos.has(msg.id)) return true;
+        idsExibidos.add(msg.id);
+        const arr = Array.from(idsExibidos).slice(-500);
+        localStorage.setItem('r5fit_ids_exibidos', JSON.stringify(arr));
+        return false;
+    }
 
     function abrirModalLogin() {
         document.getElementById('loginModalOverlay').classList.add('active');
@@ -1777,7 +1792,7 @@
                 // 🔥 Filtra apenas mensagens dos ÚLTIMOS 30 minutos
                 const agora = Date.now();
                 const TRINTA_MINUTOS = 30 * 60 * 1000;
-                
+
                 const mensagensRecentes = mensagens.filter(msg => {
                     if (!msg.timestamp) return true;
                     const msgTime = new Date(msg.timestamp).getTime();
@@ -1791,7 +1806,7 @@
 
                 for (const msg of mensagensRecentes) {
                     const chave = `${msg.de}-${(msg.texto || '').substring(0, 100)}`;
-                    
+
                     if (exibidasNoHistorico.has(chave)) continue;
                     exibidasNoHistorico.add(chave);
 
@@ -1799,23 +1814,38 @@
                         addMessage('user', msg.texto);
                     } else {
                         const textoLimpo = limparRespostaIA(msg.texto);
-                        if (textoLimpo) {
-                            if (msg.respondido_por_ia) {
-                                addMessage('ai', textoLimpo);
-                            } else {
-                                addMessage('atendente-msg', textoLimpo);
-                            }
-                            
-                            const chaveResposta = textoLimpo
-                                .replace(/[^\w\sáéíóúãõç]/g, ' ')
-                                .replace(/\s+/g, ' ')
-                                .trim()
-                                .substring(0, 200);
-                            respostasExibidas.add(chaveResposta);
+                        if (!textoLimpo) continue;
+
+                        // 🔥 Só renderiza se ainda não estiver no Set (evita duplicar no polling)
+                        // Mas SEMPRE renderiza no reload, por isso o jaExibidaPorId retorna
+                        // true para msgs antigas — precisamos de uma variável separada.
+                        const jaEstava = idsExibidos.has(msg.id);
+
+                        // Renderiza sempre (o histórico precisa aparecer)
+                        if (msg.respondido_por_ia) {
+                            addMessage('ai', textoLimpo);
+                        } else {
+                            addMessage('atendente-msg', textoLimpo);
                         }
+
+                        // Marca como exibido pro polling não duplicar
+                        if (!jaEstava && msg.id) {
+                            idsExibidos.add(msg.id);
+                            const arr = Array.from(idsExibidos).slice(-500);
+                            localStorage.setItem('r5fit_ids_exibidos', JSON.stringify(arr));
+                        }
+
+                        const chaveResposta = textoLimpo
+                            .replace(/[^\w\sáéíóúãõç]/g, ' ')
+                            .replace(/\s+/g, ' ')
+                            .trim()
+                            .substring(0, 200);
+                        respostasExibidas.add(chaveResposta);
                     }
                 }
-                
+                // ↑ FECHA o for corretamente
+
+                // 🔥 Só atualiza o timestamp DEPOIS do loop (fora do for)
                 if (mensagensRecentes.length > 0) {
                     const ultima = mensagensRecentes[mensagensRecentes.length - 1];
                     lastResponseTimestamp = new Date(ultima.timestamp || Date.now()).getTime();
@@ -2252,15 +2282,15 @@
         if (pollEmExecucao) return;
         if (!document.getElementById('chatOverlay').classList.contains('active')) return;
         if (isProcessing) return;
-        
+
         pollEmExecucao = true;
-        
+
         try {
-            const isLocalhost = window.location.hostname === 'localhost' || 
+            const isLocalhost = window.location.hostname === 'localhost' ||
                             window.location.hostname === '127.0.0.1';
-            
+
             let data;
-            
+
             if (isLocalhost) {
                 // 🔥 NO COMPUTADOR: usa servidor local (mais rápido)
                 try {
@@ -2275,15 +2305,23 @@
                 data = await callAPI('getChatAtendente', { leadId: sessionId }, 'GET');
             }
 
-            // 🔥 PROCESSAMENTO UNIFICADO
+            // 🔥 NOVO: respeita atendimento encerrado (limite de mensagens, inatividade
+            // ou encerrado pelo atendente) — o servidorR5.py já devolve esses campos.
+            if (data.atendimento_status === 'encerrado' && !atendimentoEncerrado) {
+                mostrarAtendimentoEncerrado(motivoEncerramento(data.atendimento_encerrado_por));
+            }
+
+            // ─────────────────────────────────────────────────────────────
+            // BLOCO 1: fila rápida local (servidorR5.py /api/chat-atendente/respostas)
+            // usa "resp" — está no for (const resp of ...)
+            // ─────────────────────────────────────────────────────────────
             if (data.respostas && data.respostas.length > 0) {
-                // Respostas pendentes (fila rápida)
                 for (const resp of data.respostas) {
-                    const textoLimpo = resp.respondido_por_ia 
-                        ? limparRespostaIA(resp.texto) 
+                    const textoLimpo = resp.respondido_por_ia
+                        ? limparRespostaIA(resp.texto)
                         : (resp.texto || '').trim();
-                    
-                    if (textoLimpo && !respostaJaExibida(textoLimpo)) {
+
+                    if (textoLimpo && !jaExibidaPorId(resp)) {
                         if (resp.respondido_por_ia) {
                             addMessage('ai', textoLimpo + botoesResposta());
                         } else {
@@ -2292,18 +2330,22 @@
                         tocarSomNotificacao();
                     }
                 }
-            } else if (data.conversas && data.conversas[sessionId]) {
-                // Conversa completa (do Drive)
+            }
+            // ─────────────────────────────────────────────────────────────
+            // BLOCO 2: conversa completa do Drive (getChatAtendente via proxy)
+            // usa "msg" — está no for (const msg of mensagens)
+            // ─────────────────────────────────────────────────────────────
+            else if (data.conversas && data.conversas[sessionId]) {
                 const mensagens = data.conversas[sessionId].mensagens || [];
-                
+
                 for (const msg of mensagens) {
                     if (msg.de === 'lead') continue;
-                    
-                    const textoLimpo = msg.respondido_por_ia 
-                        ? limparRespostaIA(msg.texto) 
+
+                    const textoLimpo = msg.respondido_por_ia
+                        ? limparRespostaIA(msg.texto)
                         : (msg.texto || '').trim();
-                    
-                    if (textoLimpo && !respostaJaExibida(textoLimpo)) {
+
+                    if (textoLimpo && !jaExibidaPorId(msg)) {
                         if (msg.respondido_por_ia) {
                             addMessage('ai', textoLimpo + botoesResposta());
                         } else {
@@ -2372,40 +2414,24 @@
         document.getElementById('chatSendBtn').disabled = true;
         showTyping();
 
-        console.log('🤖 Enviando mensagem para IA...');
-
         try {
-            // 🔥 CORREÇÃO: tira uma "foto" da conversa ANTES de enviar, pra só
-            // aceitar como resposta desta mensagem algo genuinamente NOVO.
-            // Sem isso, o loop de espera aceitava QUALQUER mensagem antiga da
-            // IA que já existisse na conversa (de uma pergunta anterior) como
-            // se fosse a resposta de AGORA - isso destravava isProcessing e o
-            // botão de enviar muito antes da resposta real chegar, e é essa a
-            // causa de "o botão acendeu antes de chegar a mensagem".
-            const chaveMsg = (m) => `${m.timestamp || ''}|${(m.texto || '').substring(0, 80)}`;
-            let chavesAntes = new Set();
+            // 🔥 FOTO DA CONVERSA: coleta os IDs JÁ EXISTENTES antes de enviar
+            // Comparação por ID (estável), não por timestamp (que pode variar
+            // por timezone entre navegador e Apps Script).
+            let idsAntes = new Set();
             try {
                 const dadosAntes = await callAPI('getChatAtendente', { leadId: sessionId }, 'GET');
                 const mensagensAntes = dadosAntes?.conversas?.[sessionId]?.mensagens || [];
-                chavesAntes = new Set(mensagensAntes.map(chaveMsg));
+                idsAntes = new Set(mensagensAntes.map(m => m.id));
             } catch (e) {
-                console.log('⚠️ Não foi possível capturar o estado anterior da conversa:', e.message);
+                console.log('⚠️ Não foi possível capturar estado anterior:', e.message);
             }
 
-            // 🔥 GERA UUID ÚNICO PARA A MENSAGEM
             const messageId = 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            
-            // 🔥 VERIFICA SE A MENSAGEM JÁ FOI ENVIADA (evita duplicação)
-            const enviadas = JSON.parse(localStorage.getItem('r5fit_msg_enviadas') || '[]');
-            if (enviadas.includes(messageId)) {
-                console.log('⚠️ Mensagem duplicada detectada, ignorando...');
-                return;
-            }
 
-            // 1. Salva no Drive com ID único
             const saveResult = await callAPI('saveChatAtendente', {
                 leadId: sessionId,
-                messageId: messageId,  // 🔥 ID ÚNICO
+                messageId: messageId,
                 nomeLead: usuarioLogado?.nome || 'Visitante',
                 de: 'lead',
                 texto: mensagem || (arquivo ? `📎 ${arquivo.nome}` : ''),
@@ -2416,14 +2442,8 @@
 
             console.log('📥 Resultado do save:', saveResult);
 
-            // Guarda localmente para evitar reenvio
-            enviadas.push(messageId);
-            localStorage.setItem('r5fit_msg_enviadas', JSON.stringify(enviadas));
-
-            // 2. Aciona processamento (apenas no computador)
-            const isLocalhost = window.location.hostname === 'localhost' || 
-                            window.location.hostname === '127.0.0.1';
-            
+            // Aciona processamento local (só no desktop)
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
             if (isLocalhost) {
                 try {
                     await fetch('http://localhost:8080/api/processar-pendentes', {
@@ -2436,29 +2456,27 @@
                 }
             }
 
-            // 3. Aguarda resposta com intervalos maiores
+            // 🔥 ESPERA: 40 tentativas × 3s = 120s (antes era 24×5s)
+            // O polling de 3s já faz o trabalho — aqui só aguardamos curto pra
+            // dar feedback visual de "digitando".
             let resposta = null;
             let tentativas = 0;
-            const MAX_TENTATIVAS = 24; // 24 × 5s = 120s máximo
+            const MAX_TENTATIVAS = 40;
 
             while (!resposta && tentativas < MAX_TENTATIVAS) {
                 tentativas++;
-                await new Promise(r => setTimeout(r, 5000)); // 5 segundos
-                
-                // Verifica se a conversa tem mensagem nova
-                const data = await callAPI('getChatAtendente', { 
-                    leadId: sessionId 
-                }, 'GET');
-                
+                await new Promise(r => setTimeout(r, 3000));
+
+                const data = await callAPI('getChatAtendente', { leadId: sessionId }, 'GET');
+
                 if (data.conversas && data.conversas[sessionId]) {
                     const mensagens = data.conversas[sessionId].mensagens || [];
                     console.log(`📊 [Tentativa ${tentativas}/${MAX_TENTATIVAS}] Mensagens: ${mensagens.length}`);
-                    
-                    // Procura resposta da IA que seja genuinamente NOVA (ausente na foto de antes)
+
                     for (let i = mensagens.length - 1; i >= 0; i--) {
                         const msg = mensagens[i];
-
-                        if (msg.de !== 'lead' && msg.respondido_por_ia && !chavesAntes.has(chaveMsg(msg))) {
+                        // 🔥 COMPARAÇÃO POR ID: estável
+                        if (msg.de !== 'lead' && msg.respondido_por_ia && !idsAntes.has(msg.id)) {
                             resposta = msg;
                             break;
                         }
@@ -2470,10 +2488,11 @@
 
             if (resposta && resposta.texto) {
                 const textoLimpo = limparRespostaIA(resposta.texto);
-                if (textoLimpo && !respostaJaExibida(textoLimpo)) {
+                if (textoLimpo && !jaExibidaPorId(resposta)) {
                     addMessage('ai', textoLimpo + botoesResposta());
                 }
             } else {
+                // Fallback honesto
                 addMessage('ai', gerarRespostaLocal() + botoesResposta());
             }
         } catch (e) {
