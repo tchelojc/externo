@@ -1665,26 +1665,25 @@
             fecharChat();
             // Aguarda o fechamento
             setTimeout(() => {
-                iniciarJornadaInterna(query, anexo);
+                iniciarJornadaInterna(query, anexo, input); // Passa 'input' adiante
             }, 300);
             return;
         }
         
-        iniciarJornadaInterna(query, anexo);
+        iniciarJornadaInterna(query, anexo, input); // Passa 'input' adiante
     }
 
-    function iniciarJornadaInterna(query, anexo) {
-        // Gera NOVO sessionId para não carregar conversas antigas
+    // ✅ FUNÇÃO ADICIONADA E CORRIGIDA
+    function iniciarJornadaInterna(query, anexo, input) {
+        // GERA NOVO sessionId para não carregar conversas antigas
         sessionId = "user_" + Date.now();
         localStorage.setItem('infocell_session_id', sessionId);
-        leadCriado = false;
+        leadCriado = false; // Permite criar novo lead
         
         // Limpa rastreamento
         respostasExibidas.clear();
         mensagensServidorExibidas.clear();
         mensagensProcessadas.clear();
-        isProcessing = false;
-        aguardandoRespostaIA = false;
         
         jornadaIniciada = true;
         
@@ -1707,7 +1706,11 @@
         }
 
         setTimeout(() => enviarParaIA(query, anexo), 500);
-        input.value = '';
+
+        // ✅ CORREÇÃO: Usa a variável 'input' que agora foi passada como parâmetro
+        if (input) {
+            input.value = '';
+        }
     }
 
     function onHomeArquivoSelecionado(event) {
