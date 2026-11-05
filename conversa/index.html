@@ -482,6 +482,15 @@ html,body{background:#000}
 .reg{position:absolute;padding:var(--gap,3px);box-sizing:border-box}
 .regc{position:relative;width:100%;height:100%;overflow:hidden;background:#05070d;border-radius:var(--raio,0);isolation:isolate}
 .sl{position:absolute;inset:0;overflow:hidden;--tr:800ms}
+
+/* PUBLICIDADE PADRÃO ALMAFLUXO: presente em cada tela e em cada card */
+.tx-pub{position:absolute;left:0;right:0;bottom:0;z-index:9999;min-height:clamp(24px,3.8vh,54px);display:flex;align-items:center;justify-content:center;gap:.65em;padding:.35em 1em;background:linear-gradient(90deg,rgba(2,10,24,.96),rgba(0,67,91,.96),rgba(2,10,24,.96));border-top:1px solid rgba(0,229,255,.72);color:#eafaff;text-decoration:none;font-family:Roboto,Arial,sans-serif;font-size:clamp(9px,1.25vmin,18px);line-height:1.15;text-align:center;box-shadow:0 -3px 18px rgba(0,0,0,.24);box-sizing:border-box;overflow:hidden}
+.tx-pub strong{color:#00e5ff;letter-spacing:.06em;font-weight:900}
+.tx-pub em{font-style:normal;color:#fff;opacity:.9}
+.tx-pub b{color:#ffe082;white-space:nowrap}
+.tx-pub:hover,.tx-pub:focus-visible{filter:brightness(1.25);outline:2px solid #00e5ff;outline-offset:-2px}
+.cards-runtime .tx-pub{font-size:clamp(7px,1.0vmin,12px);min-height:clamp(19px,2.6vh,34px);gap:.35em;padding:.2em .35em;flex-wrap:wrap}
+.cards-runtime .tx-pub em{display:none}
 .sl img,.sl video{width:100%;height:100%;display:block}
 .sl iframe{width:100%;height:100%;border:0;background:#fff}
 .sl.kb img{animation:kenb 14s ease-in-out infinite alternate}
@@ -505,7 +514,7 @@ html,body{background:#000}
 .tx{background:radial-gradient(ellipse at 30% 15%,#0b1a33,#02040a 70%);color:#eaf6ff;font-family:'Roboto',sans-serif}
 .tx-cv{position:absolute;inset:0;width:100%;height:100%;display:block}
 .tx-t{position:absolute;left:3%;top:3%;z-index:2;font-family:'Orbitron',sans-serif;font-size:calc(var(--u)*2.3);letter-spacing:.16em;color:#00e5ff;text-shadow:0 0 calc(var(--u)*1.2) rgba(0,229,255,.55)}
-.tx-av{position:absolute;left:3%;right:3%;bottom:2%;z-index:2;font-size:calc(var(--u)*1.35);color:#7f93ad;text-align:center;line-height:1.35}
+.tx-av{position:absolute;left:3%;right:3%;bottom:calc(clamp(24px,3.8vh,54px) + 1%);z-index:2;font-size:calc(var(--u)*1.35);color:#7f93ad;text-align:center;line-height:1.35}
 .tx-erro{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;color:#7f93ad;font-size:calc(var(--u)*2.4);padding:6%;z-index:3}
 .tx-data{position:absolute;right:3%;top:3.4%;z-index:2;font-family:'Orbitron',sans-serif;font-size:calc(var(--u)*2);color:#ffc94d}
 .tx-lista{position:absolute;right:2.5%;top:12%;bottom:9%;width:31%;z-index:2;display:flex;flex-direction:column;gap:calc(var(--u)*.9);overflow:hidden}
@@ -532,15 +541,30 @@ html,body{background:#000}
 @keyframes txin{from{opacity:0;transform:translateX(calc(var(--u)*-3))}to{opacity:1;transform:none}}
 .tx-nt{display:block;font-size:calc(var(--u)*3);line-height:1.22;font-weight:500}.tx-nf{display:block;font-size:calc(var(--u)*1.7);color:#7fa6c9;margin-top:calc(var(--u)*.4)}
 /* jornal */
-.jn{position:absolute;inset:0;padding:3% 4%;display:flex;flex-direction:column;background:#0c0e13;color:#ece6d6;font-family:Georgia,'Times New Roman',serif}
-.jn-m{font-family:'Orbitron',Georgia,serif;font-size:calc(var(--u)*5.2);text-align:center;letter-spacing:.14em;color:#d4a843;border-bottom:calc(var(--u)*.3) double #d4a843;padding-bottom:calc(var(--u)*.8)}
-.jn-s{text-align:center;font-size:calc(var(--u)*1.7);color:#9aa3b5;margin:calc(var(--u)*.8) 0 calc(var(--u)*1.6);font-family:'Roboto',sans-serif;text-transform:capitalize}
-.jn-g{flex:1;min-height:0;display:grid;grid-template-columns:1.5fr 1fr;gap:calc(var(--u)*3)}
-.jn-h{font-size:calc(var(--u)*5.2);line-height:1.12;font-weight:700;align-self:center}.jn-in{animation:jnin 1s ease}
-@keyframes jnin{from{opacity:0;transform:translateY(calc(var(--u)*1.5))}to{opacity:1;transform:none}}
-.jn-l{border-left:1px solid #2a2f3a;padding-left:calc(var(--u)*2.2);display:flex;flex-direction:column;justify-content:space-evenly;font-size:calc(var(--u)*2);line-height:1.25;color:#cfc8b6}
-.jn-l div{border-bottom:1px solid #1d212b;padding-bottom:calc(var(--u)*.7)}
-.jn-c{margin-top:calc(var(--u)*1.2);border-top:1px solid #2a2f3a;padding-top:calc(var(--u)*1.2);font-size:calc(var(--u)*2.1);line-height:1.4;color:#b9b3a3;min-height:18%}
+/* CLIMAFLUXO · arte editorial atmosférica (São Paulo + ENSO) */
+.jn{position:absolute;inset:0;padding:3.2% 4%;display:grid;grid-template-rows:auto 1fr auto;gap:2.2%;overflow:hidden;color:#eff8ff;font-family:'Roboto',sans-serif;background:radial-gradient(ellipse at 12% 10%,#164b70 0%,transparent 42%),radial-gradient(ellipse at 85% 85%,#493b77 0%,transparent 38%),linear-gradient(135deg,#06111f 0%,#0a1e34 48%,#11162d 100%)}
+.jn:before{content:'';position:absolute;inset:0;pointer-events:none;opacity:.23;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:4.2vmin 4.2vmin;mask-image:linear-gradient(90deg,#000,transparent 85%)}
+.jn-head{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:2%;border-bottom:1px solid #9bdcff35;padding-bottom:1.2%}
+.jn-m{font-family:'Orbitron',sans-serif;font-size:calc(var(--u)*3.1);font-weight:800;letter-spacing:.12em;color:#eaf8ff;text-shadow:0 0 1.5vmin #43cfff55}
+.jn-s{font-size:calc(var(--u)*1.45);color:#a9c9e4;text-align:right;text-transform:capitalize}
+.jn-g{position:relative;z-index:1;min-height:0;display:grid;grid-template-columns:1.05fr 1fr;gap:2.5%}
+.jn-weather{position:relative;overflow:hidden;border:1px solid #9bdcff45;border-radius:2vmin;padding:4%;background:linear-gradient(145deg,#ffffff18,#ffffff06);box-shadow:0 1.5vmin 4vmin #0005;display:flex;flex-direction:column;justify-content:space-between}
+.jn-weather:after{content:'☁';position:absolute;right:2%;top:-16%;font-size:calc(var(--u)*23);color:#b8e8ff12;pointer-events:none}
+.jn-city{font-size:calc(var(--u)*2.1);letter-spacing:.12em;text-transform:uppercase;color:#aeeaff;font-weight:700}
+.jn-temp-row{display:flex;align-items:center;gap:4%;min-height:0}
+.jn-icon{font-size:calc(var(--u)*10);line-height:1;filter:drop-shadow(0 0 1.5vmin #8ddfff55)}
+.jn-temp{font-size:calc(var(--u)*10);font-weight:300;letter-spacing:-.06em;line-height:1;color:#fff}
+.jn-desc{font-size:calc(var(--u)*1.8);color:#c7e4f8}
+.jn-stats{display:flex;gap:2%;flex-wrap:wrap}.jn-stat{padding:1.3% 2.2%;border-radius:1vmin;background:#07192b99;border:1px solid #9bdcff25;font-size:calc(var(--u)*1.5);color:#d9efff}
+.jn-enso{display:flex;align-items:center;justify-content:space-between;gap:3%;padding:2.2% 3%;border-radius:1.2vmin;background:linear-gradient(100deg,#123e5d,#24345d);border:1px solid #8ddfff55}
+.jn-enso b{font-size:calc(var(--u)*2.1);color:#fff}.jn-enso span{font-size:calc(var(--u)*1.45);color:#bdeaff;text-align:right}
+.jn-right{min-width:0;display:flex;flex-direction:column;gap:2%;}
+.jn-h{font-size:calc(var(--u)*3.8);line-height:1.12;font-weight:800;color:#fff;text-wrap:balance;align-self:center;text-shadow:0 .5vmin 2vmin #0008}.jn-in{animation:jnin .75s ease}
+@keyframes jnin{from{opacity:0;transform:translateY(calc(var(--u)*1.2))}to{opacity:1;transform:none}}
+.jn-l{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:space-evenly;gap:1%;font-size:calc(var(--u)*1.65);line-height:1.25;color:#cfe5f7}
+.jn-l div{border-left:3px solid #52cfff;padding:1.2% 2.5%;background:#ffffff0a;border-radius:0 .8vmin .8vmin 0}
+.jn-c{position:relative;z-index:1;border-top:1px solid #9bdcff35;padding-top:1.2%;font-size:calc(var(--u)*1.5);line-height:1.35;color:#a9c9e4;min-height:7%;}
+@media(max-aspect-ratio:1/1){.jn{padding:4%}.jn-g{grid-template-columns:1fr 1fr;gap:2%}.jn-temp{font-size:calc(var(--u)*7)}.jn-icon{font-size:calc(var(--u)*7)}.jn-h{font-size:calc(var(--u)*3)}}
 /* gráfico de clima */
 .cg{position:absolute;left:3%;right:3%;top:11%;bottom:8%;z-index:2;display:grid;grid-template-columns:30% 1fr;gap:3%}
 .cg-a{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}.cg-c{font-size:calc(var(--u)*2.6);letter-spacing:.18em;color:#00e5ff;text-transform:uppercase}
@@ -675,6 +699,15 @@ html,body{background:#000}
   font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.85);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
+
+
+/* QR do horóscopo fica integrado ao rodapé da experiência do Sistema Solar */
+.tx-solar-qr{position:absolute;right:2.6%;bottom:7%;z-index:6;width:min(16vmin,190px);padding:1vmin;border-radius:1.4vmin;background:rgba(5,14,28,.84);border:1px solid rgba(117,218,255,.55);box-shadow:0 1vmin 3vmin #0008;backdrop-filter:blur(10px);display:flex;align-items:center;gap:.8vmin;color:#effaff}
+.tx-solar-qr img{width:8.2vmin;height:8.2vmin;min-width:8.2vmin;object-fit:contain;background:#fff;padding:.35vmin;border-radius:.6vmin}
+.tx-solar-qr b{display:block;font-size:calc(var(--u)*1.15);line-height:1.2;color:#9cecff}.tx-solar-qr span{display:block;font-size:calc(var(--u)*.95);line-height:1.2;color:#d0e7f6;margin-top:.3vmin}
+.tx-pensador{grid-column:1/-1;align-self:center;justify-self:center;width:min(88%,1100px);padding:4% 5%;border-radius:2vmin;border:1px solid #9b8cff55;background:radial-gradient(ellipse at 15% 0%,#4d3b8055,transparent 55%),linear-gradient(135deg,#12152eeb,#091a2deb);box-shadow:0 2vmin 6vmin #0008;text-align:left}
+.tp-kicker{font-size:calc(var(--u)*1.55);letter-spacing:.16em;color:#bba9ff;font-weight:800}.tp-tema{font-size:calc(var(--u)*4.3);line-height:1.1;color:#fff;font-weight:800;margin:2.2% 0}.tp-texto{font-size:calc(var(--u)*3);line-height:1.3;color:#e8eaff;max-width:95%;text-wrap:balance}.tp-autor{font-size:calc(var(--u)*1.8);color:#b9c8ed;margin-top:2.5%}.tp-nota{font-size:calc(var(--u)*1.35);color:#8fa7cc;margin-top:2%}
+@media(max-aspect-ratio:1/1){.tx-solar-qr{width:24vmin;right:2%;bottom:8%}.tx-solar-qr img{width:10vmin;height:10vmin;min-width:10vmin}.tp-tema{font-size:calc(var(--u)*3.4)}.tp-texto{font-size:calc(var(--u)*2.5)}}
 
 /* ALMAFLUXO · recado do amor: visual editorial, legível à distância */
 .tx-amor{background:radial-gradient(ellipse at 50% 35%,#4b1836 0%,#180d22 55%,#070912 100%);color:#fff7fb}
@@ -1774,6 +1807,19 @@ const imgUrl = i => { const id=driveIdFrom(i.driveId||i.url); return id ? totemM
 const vidUrl = i => { const id=driveIdFrom(i.driveId||i.url); return id ? totemMediaUrl(id) : assetUrl(i.url); };
 const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
 
+/* Toda tela/card recebe uma faixa comercial padrão. O conteúdo principal continua livre. */
+function txInserirPublicidade(slide, item) {
+  if (!slide || slide.querySelector('.tx-pub') || item && item.ocultarPublicidade === true) return;
+  const a = document.createElement('a');
+  a.className = 'tx-pub';
+  a.href = 'https://almafluxo.uk';
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  a.setAttribute('aria-label', 'Anuncie sua marca neste espaço. Entre em contato com ALMAFLUXO em almafluxo.uk');
+  a.innerHTML = '<strong>📣 ANUNCIE SUA MARCA AQUI</strong><em>Seu negócio pode aparecer neste espaço</em><b>Entre em contato: almafluxo.uk</b>';
+  slide.appendChild(a);
+}
+
 /* Cria um slide (item de conteúdo). Devolve {el, destroy, fimEvento} ou null */
 function criarSlide(P, item) {
   const s = el('div', 'sl'); const S = {el: s, destroy() {}, fimEvento: false, aoFim: null};
@@ -1811,6 +1857,7 @@ function criarSlide(P, item) {
     s.className += ' s-texto'; s.style.background = item.fundo || '#0b1830'; s.style.color = item.cor || '#ffffff'; const d = el('div', item.anim === 'marquee' ? 'mq' : (item.anim === 'pulso' ? 'pu' : ''));
     d.style.fontSize = 'calc(var(--u)*' + (+item.tamanho || 6) + ')'; d.textContent = item.texto || ''; s.appendChild(d);
   } else if (TX[t]) { TX[t].build(P, item, s, S); } else return null;
+  txInserirPublicidade(s, item);
   return S;
 }
 
@@ -2346,6 +2393,32 @@ const txHora = v => v ? new Date(v).toLocaleTimeString('pt-BR', {hour:'2-digit',
 const txRodape = d => esc(d.aviso || '') + ' · ' + esc(d.fontes || '') + ' · atualizado ' + txHora(d.atualizado) + txStaleTag(d);
 
 /* ═════ COTAÇÕES ═════ */
+TX.curiosidades = {def: {categoria: 'astronomia'}, build(P, item, s, S) {
+  s.className += ' tx'; txMorre(S);
+  const nomes = {astronomia:'ASTRONOMIA',catastrofes:'CATÁSTROFES NATURAIS',genios:'GÊNIOS E DESCOBERTAS'};
+  s.innerHTML = '<div class="tx-t">CURIOSIDADES · '+esc(nomes[item.categoria]||nomes.astronomia)+'</div><div class="tx-grid" style="position:absolute;left:4%;right:4%;top:12%;bottom:10%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2%;align-content:center"></div><div class="tx-av"></div>';
+  const grid=s.querySelector('.tx-grid'), av=s.querySelector('.tx-av');
+  txLoop(S,async()=>{
+    const d=await txDados('curiosidades','',3600000), cat=['astronomia','catastrofes','genios'].includes(item.categoria)?item.categoria:'astronomia';
+    const lista=Array.isArray(d[cat])?d[cat]:[];
+    if(!lista.length) throw new Error('Sem curiosidades nesta categoria');
+    grid.innerHTML=lista.slice(0,4).map(c=>'<article class="tx-card" style="padding:1.1em;min-height:0;overflow:hidden"><div style="font-size:calc(var(--u)*3)">'+esc(c.icone||'✨')+'</div><div style="font-size:calc(var(--u)*1.9);font-weight:800;color:#00e5ff;margin:.35em 0">'+esc(c.titulo||'Curiosidade')+'</div><div style="font-size:calc(var(--u)*1.45);color:#d7eaff;line-height:1.3">'+esc(c.texto||'')+'</div></article>').join('');
+    av.textContent=(d.fonte||'ALMAFLUXO')+' · atualizado '+txHora(d.atualizado)+txStaleTag(d);
+  },3600000,()=>{grid.innerHTML='<div class="tx-erro">Curiosidades temporariamente indisponíveis. A tela continuará tentando atualizar.</div>';});
+}};
+TX.linear = {def: {}, build(P,item,s,S) {
+  s.className += ' tx'; txMorre(S);
+  s.innerHTML='<div class="tx-t">LINEAR · CONSTANTES E INDICADORES</div><div class="tx-grid" style="position:absolute;left:4%;right:4%;top:13%;bottom:30%;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1.2%;align-content:center"></div><div class="tx-lista" style="left:4%;right:4%;top:auto;bottom:11%;width:auto;height:16%;display:flex;flex-direction:row;justify-content:center"></div><div class="tx-av"></div>';
+  const grid=s.querySelector('.tx-grid'),lista=s.querySelector('.tx-lista'),av=s.querySelector('.tx-av');
+  txLoop(S,async()=>{
+    const d=await txDados('linear','',120000), cs=[['φ','Proporção áurea',d.constante_phi],['CICLO','Constante de ciclo',d.constante_ciclo],['MARC','Paridade',d.constante_marc],['JÚBILO','Transição',d.constante_jubilo],['ORIGEM','Equilíbrio',d.constante_deus]];
+    grid.innerHTML=cs.map(([n,l,v])=>'<div class="tx-card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.6em;text-align:center"><b style="font-size:calc(var(--u)*2.1);color:#00e5ff">'+esc(n)+'</b><strong style="font:700 calc(var(--u)*3.4) Orbitron,sans-serif;color:#ffd24a;margin:.25em 0">'+txN(v, n==='φ'?5:2)+'</strong><span style="font-size:calc(var(--u)*1.25);color:#b9cde5">'+esc(l)+'</span></div>').join('');
+    const ativos=Array.isArray(d.ativos)?d.ativos.filter(a=>a&&a.id).slice(0,6):[];
+    lista.innerHTML=ativos.map(a=>'<div class="tx-li" style="flex:1;min-width:0"><div class="tx-ln"><b>'+esc(a.nome||a.id)+'</b></div><div style="font-size:calc(var(--u)*1.5);color:#ffd24a">'+(a.preco>0?txMoeda(a)+txN(a.preco,txDec(a)):'Sem cotação')+'</div><div style="font-size:calc(var(--u)*1.2);color:'+txCor(a.var_pct)+'">'+txPct(a.var_pct||0)+'</div></div>').join('');
+    av.textContent=(d.fonte||'Worker ALMAFLUXO')+' · atualizado '+txHora(d.atualizado)+' · indicadores informativos, não recomendações';
+  },120000,()=>{grid.innerHTML='<div class="tx-erro">Indicadores temporariamente indisponíveis.</div>';});
+}};
+
 TX.cotacoes = {def: {ativos: 'usd,eur,ouro,btc,eth,ibov'}, build(P, item, s, S) {
   s.className += ' tx'; s.innerHTML = '<div class="tx-t">COTAÇÕES · PROBABILIDADE DE ALTA / BAIXA</div><div class="tx-grid"></div><div class="tx-av"></div>';
   const g = s.querySelector('.tx-grid'), av = s.querySelector('.tx-av');
@@ -2455,8 +2528,11 @@ const TX_PLANETAS = [
 TX.planetas3d = {def: {vel: 'normal'}, build(P, item, s, S) {
   s.className += ' tx'; txMorre(S);
   if (P.preview) return txPreview(s, 'planetas3d');
-  s.innerHTML = '<div class="tx-t">SISTEMA SOLAR · POSIÇÕES APROXIMADAS · TEMPO ACELERADO</div><div class="tx-data"></div><div class="tx-av">Longitudes médias de órbita circular; distâncias comprimidas e planetas ampliados para visualização.</div>';
+  s.innerHTML = '<div class="tx-t">SISTEMA SOLAR · POSIÇÕES APROXIMADAS · TEMPO ACELERADO</div><div class="tx-data"></div><div class="tx-solar-qr"><img alt="QR Code para participar do alinhamento"/><div><b>Seu alinhamento</b><span>Escaneie para participar</span></div></div><div class="tx-av">Longitudes médias de órbita circular; distâncias comprimidas e planetas ampliados para visualização.</div>';
   const dt = s.querySelector('.tx-data');
+  const qrSolar=s.querySelector('.tx-solar-qr img');
+  const urlHoro=location.origin+'/participar-horoscopo?totem='+encodeURIComponent(P.t&&P.t.id||'totem1');
+  qrSolar.src='https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=4&data='+encodeURIComponent(urlHoro);
   txThree().then(THREE => {
     if (S.morto) return;
     const J2000 = Date.UTC(2000, 0, 1, 12), vel = {lenta: 4, normal: 10, rapida: 28}[item.vel] || 10, rad = a => 6 + Math.pow(a, .5) * 5.2, grupos = [];
@@ -2644,13 +2720,28 @@ function montarMapaPlano(s, S, ev, THREE) {
 /* ═════ JORNAL CLIMA FLUXO ═════ */
 TX.jornal = {def: {cidade: 'São Paulo'}, build(P, item, s, S) {
   s.className += ' tx'; txMorre(S);
-  s.innerHTML = '<div class="jn"><div class="jn-m">JORNAL CLIMA FLUXO</div><div class="jn-s"></div><div class="jn-g"><div class="jn-h"></div><div class="jn-l"></div></div><div class="jn-c"></div></div>';
-  const sub = s.querySelector('.jn-s'), h = s.querySelector('.jn-h'), l = s.querySelector('.jn-l'), c = s.querySelector('.jn-c'); let d = null, ih = 0, ic = 0, th = 0, tc = 0;
-  const hoje = new Date().toLocaleDateString('pt-BR', {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'});
-  const trocaH = () => { if (S.morto || !d) return; const m = d.manchetes; if (!m.length) return; const i = ih++ % m.length; h.classList.remove('jn-in'); void h.offsetWidth; h.textContent = m[i].titulo; h.classList.add('jn-in'); l.innerHTML = m.filter((_, j) => j !== i).slice(0, 5).map(x => '<div>' + esc(x.titulo) + '</div>').join(''); th = setTimeout(trocaH, 6500); };
-  const trocaC = () => { if (S.morto || !d || !d.corpo.length) return; c.classList.remove('jn-in'); void c.offsetWidth; c.textContent = d.corpo[ic++ % d.corpo.length]; c.classList.add('jn-in'); tc = setTimeout(trocaC, 9000); };
-  S.fins.push(() => { clearTimeout(th); clearTimeout(tc); });
-  txLoop(S, async () => { d = await txDados('jornal', 'cidade=' + encodeURIComponent(item.cidade || 'São Paulo'), 1800000); sub.textContent = hoje + ' · ' + (d.local || item.cidade || '') + ' · ' + d.fase + ' (ONI ' + d.oni + ') · entropia ' + txN(d.entropia, 2); if (!th) trocaH(); if (!tc) trocaC(); }, 1800000, () => { h.textContent = 'Edição em preparo…'; });
+  s.innerHTML = `<div class="jn">
+    <div class="jn-head"><div class="jn-m">CLIMAFLUXO · TEMPO & PLANETA</div><div class="jn-s"></div></div>
+    <div class="jn-g">
+      <section class="jn-weather">
+        <div class="jn-city">⦿ <span class="jn-local">SÃO PAULO</span></div>
+        <div class="jn-temp-row"><div class="jn-icon">🌤️</div><div><div class="jn-temp">--°</div><div class="jn-desc">Carregando condições…</div></div></div>
+        <div class="jn-stats"><div class="jn-stat jn-umid">💧 --%</div><div class="jn-stat jn-vento">💨 -- km/h</div><div class="jn-stat jn-range">↑ --° · ↓ --°</div></div>
+        <div class="jn-enso"><b class="jn-fase">ENSO · aguardando</b><span class="jn-oni">ONI --</span></div>
+      </section>
+      <section class="jn-right"><div class="jn-h">Carregando a edição climática…</div><div class="jn-l"></div></section>
+    </div>
+    <div class="jn-c">ClimaFluxo · Open-Meteo · NOAA · informações e tendências, não alertas oficiais.</div>
+  </div>`;
+  const root=s.querySelector('.jn'), sub=s.querySelector('.jn-s'), h=s.querySelector('.jn-h'), l=s.querySelector('.jn-l'), c=s.querySelector('.jn-c');
+  const city=s.querySelector('.jn-local'), temp=s.querySelector('.jn-temp'), icon=s.querySelector('.jn-icon'), desc=s.querySelector('.jn-desc'), umid=s.querySelector('.jn-umid'), vento=s.querySelector('.jn-vento'), range=s.querySelector('.jn-range'), fase=s.querySelector('.jn-fase'), oni=s.querySelector('.jn-oni');
+  let d=null, ih=0, ic=0, th=0, tc=0;
+  const hoje=()=>new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const trocaH=()=>{if(S.morto||!d)return;const m=d.manchetes||[];if(!m.length)return;const i=ih++%m.length;h.classList.remove('jn-in');void h.offsetWidth;h.textContent=m[i].titulo||'Atualização climática';h.classList.add('jn-in');l.innerHTML=m.filter((_,j)=>j!==i).slice(0,4).map(x=>'<div>'+esc(x.titulo||'')+'</div>').join('');th=setTimeout(trocaH,7200);};
+  const trocaC=()=>{if(S.morto||!d)return;const corpo=d.corpo||[];if(!corpo.length)return;c.textContent=corpo[ic++%corpo.length]+' · '+(d.fonte||'ClimaFluxo');tc=setTimeout(trocaC,9500);};
+  const render=()=>{if(!d)return;const cl=d.climaAtual||{};const w=WMO[Number(cl.codigo)]||['🌎','Condição atual'];city.textContent=String(d.cidade||item.cidade||'São Paulo').toLocaleUpperCase('pt-BR');temp.textContent=Number.isFinite(+cl.temp)?Math.round(+cl.temp)+'°':'--°';icon.textContent=w[0];desc.textContent=w[1];umid.textContent='💧 '+(cl.umid==null?'--':Math.round(cl.umid))+'%';vento.textContent='💨 '+(cl.vento==null?'--':Math.round(cl.vento))+' km/h';range.textContent='↑ '+(cl.max==null?'--':Math.round(cl.max))+'° · ↓ '+(cl.min==null?'--':Math.round(cl.min))+'°';fase.textContent=(d.fase||'ENSO indisponível').toUpperCase();oni.textContent='ONI '+(d.oni==null?'--':txN(d.oni,2));sub.textContent=hoje()+' · '+(d.local||item.cidade||'São Paulo')+' · atualizado '+txHora(d.atualizado);};
+  S.fins.push(()=>{clearTimeout(th);clearTimeout(tc);});
+  txLoop(S,async()=>{d=await txDados('jornal','cidade='+encodeURIComponent(item.cidade||'São Paulo'),1800000);render();if(!th)trocaH();if(!tc)trocaC();},1800000,()=>{if(!d){h.textContent='Sem conexão no momento. A edição será exibida quando houver dados disponíveis.';c.textContent='Aguardando conexão com o ClimaFluxo…';}else{c.textContent='Exibindo última edição salva · '+(d.fonte||'ClimaFluxo');}});
 }};
 
 /* ═════ GRÁFICO DE CLIMA ANIMADO (48 h) ═════ */
@@ -2735,60 +2826,45 @@ TX.recadoAmor = {
   }
 };
 
+const TX_PENSADORES = [
+  {nome:'Sócrates',tema:'Conhecer a si mesmo',texto:'Antes de procurar respostas prontas, faça uma pergunta melhor. A curiosidade é o começo da clareza.'},
+  {nome:'Aristóteles',tema:'Equilíbrio',texto:'A constância nas pequenas escolhas constrói hábitos; os hábitos, por sua vez, dão forma ao caminho.'},
+  {nome:'Hipátia',tema:'Conhecimento',texto:'Observar, estudar e questionar amplia a liberdade de pensar. A aprendizagem também é uma forma de coragem.'},
+  {nome:'Epicteto',tema:'Serenidade',texto:'Direcione energia ao que está sob seu cuidado: suas escolhas, atitudes e respostas.'},
+  {nome:'Marco Aurélio',tema:'Atenção ao presente',texto:'Faça bem a próxima tarefa. Um dia ganha sentido quando a ação de agora é feita com intenção.'},
+  {nome:'Sêneca',tema:'Tempo',texto:'O tempo merece atenção: reserve espaço para o que realmente importa e não apenas para o que faz barulho.'},
+  {nome:'Platão',tema:'Perspectiva',texto:'Mudar o ponto de vista pode revelar aspectos que antes estavam escondidos.'},
+  {nome:'Confúcio',tema:'Aprendizado',texto:'Aprender, revisar e praticar transforma conhecimento em uma atitude cotidiana.'}
+];
+function txPensadorDoDia(){const dia=Math.floor(Date.now()/86400000);return TX_PENSADORES[((dia%TX_PENSADORES.length)+TX_PENSADORES.length)%TX_PENSADORES.length];}
 TX.horoscopo = {
   def: { cadastroQr: true, porPagina: 4, cadastroUrl: '', apiUrl: '' },
   build(P, item, s, S) {
     s.className += ' tx'; txMorre(S);
-    s.innerHTML = `
-      <div class="tx-t">SIGNO SOLAR · LEITURA SIMBÓLICA</div>
-      <div class="tx-grid tx-horo"></div>
-      <div class="tx-horo-qr">
-        <div class="qr-box" id="horoQrBox"></div>
-        <div class="qr-cap">
-          <b>Participe</b> · nome e data de nascimento<br>
-          <span>Leitura simbólica do signo solar e do ciclo lunar</span>
-        </div>
-      </div>
-      <div class="tx-av">Participação opcional. Confira a política de privacidade antes de enviar seus dados.</div>`;
-    const grid = s.querySelector('.tx-horo'), qrBox = s.querySelector('#horoQrBox');
-    // Gera QR apontando para página de cadastro (URL no Worker)
-    const baseCadastro = String(item.cadastroUrl || (location.origin + '/participar-horoscopo?totem=' + encodeURIComponent(P.t && P.t.id || 'totem1'))).trim();
-    if (baseCadastro && /^https:\/\//i.test(baseCadastro)) qrBox.innerHTML = '<img alt="QR de cadastro" src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=0&data=' + encodeURIComponent(baseCadastro) + '">';
-    else qrBox.innerHTML = '<div style="color:#102030;text-align:center;font-size:12px;padding:18% 5%">Configure uma URL HTTPS para o cadastro</div>';
-    // Modo local de demonstração: localStorage não sincroniza celulares com o totem. Para produção, conecte este leitor a um endpoint do Worker.
+    s.innerHTML = '<div class="tx-t">ALINHAMENTO DO DIA · SIGNOS & PENSAMENTO</div><div class="tx-grid tx-horo"></div><div class="tx-av">Sem participantes cadastrados: reflexões diárias inspiradas em pensadores. Para participar, escaneie o QR Code na tela do Sistema Solar.</div>';
+    const grid=s.querySelector('.tx-horo');
     let remotos=[];
-    const carregar = () => {
-      try { const raw = localStorage.getItem('almafluxo_horo_pessoas_v1'); const locais = raw ? JSON.parse(raw) : [];
-        const mapa=new Map(); [...remotos,...(Array.isArray(locais)?locais:[])].filter(p=>p&&p.nasc&&p.nome).forEach(p=>mapa.set(String(p.id||p.nome+'|'+p.nasc),p));
+    const carregar=()=>{
+      try{
+        const raw=localStorage.getItem('almafluxo_horo_pessoas_v1'),locais=raw?JSON.parse(raw):[];
+        const mapa=new Map();[...remotos,...(Array.isArray(locais)?locais:[])].filter(p=>p&&p.nasc&&p.nome).forEach(p=>mapa.set(String(p.id||p.nome+'|'+p.nasc),p));
         return [...mapa.values()].map(p=>Object.assign({},p,hosoAlinhamentoHoje(p)));
-      } catch (e) { return remotos.filter(p=>p&&p.nasc&&p.nome).map(p=>Object.assign({},p,hosoAlinhamentoHoje(p))); }
+      }catch(e){return remotos.filter(p=>p&&p.nasc&&p.nome).map(p=>Object.assign({},p,hosoAlinhamentoHoje(p)));}
     };
-    const apiPessoas = String(item.apiUrl || ('/api/totem/horoscopo?totem=' + encodeURIComponent(P.t && P.t.id || 'totem1')));
-    const buscarRemotos = async () => { if(!apiPessoas || (urlOk(apiPessoas) && !/^https:\/\//i.test(apiPessoas))) return; try { const r=await fetch(apiPessoas,{cache:'no-store'}); if(!r.ok) throw new Error('HTTP '+r.status); const d=await r.json(); remotos=Array.isArray(d)?d:(Array.isArray(d.pessoas)?d.pessoas:(Array.isArray(d.data?.pessoas)?d.data.pessoas:[])); renderizar(); } catch(e) { /* mantém a última lista renderizada */ } };
-    const renderizar = () => {
-      const pessoas = carregar().slice(0, Math.max(2, Math.min(8, +item.porPagina || 4)));
-      if (!pessoas.length) {
-        grid.innerHTML = '<div class="tx-erro" style="grid-column:1/-1;color:#9fc7ff">'
-          + 'Escaneie o QR Code para participar. As leituras aparecem após aprovação.'
-          + '</div>';
+    const renderizar=()=>{
+      const pessoas=carregar().slice(0,Math.max(2,Math.min(8,+item.porPagina||4)));
+      if(!pessoas.length){
+        const p=txPensadorDoDia();
+        grid.innerHTML='<article class="tx-pensador"><div class="tp-kicker">✦ HORÓSCOPO DOS PENSADORES · REFLEXÃO DO DIA</div><div class="tp-tema">'+esc(p.tema)+'</div><div class="tp-texto">“'+esc(p.texto)+'”</div><div class="tp-autor">— Reflexão inspirada em <b>'+esc(p.nome)+'</b></div><div class="tp-nota">Quando alguém participar pelo QR do Sistema Solar, o alinhamento do signo solar aparecerá aqui.</div></article>';
         return;
       }
-      grid.innerHTML = pessoas.map(p => `
-        <div class="tx-card horo-card">
-          <div class="horo-signo">${p.signo.i} ${esc(p.signo.n)}</div>
-          <div class="horo-nome">${esc(p.nome)}</div>
-          <div class="horo-linha">${p.fase}</div>
-          <div class="horo-tom" data-tom="${p.tom}">${p.tom.toUpperCase()}</div>
-          <div class="horo-msg">${esc(p.msg)}</div>
-        </div>`).join('');
+      grid.innerHTML=pessoas.map(p=>'<div class="tx-card horo-card"><div class="horo-signo">'+p.signo.i+' '+esc(p.signo.n)+'</div><div class="horo-nome">'+esc(p.nome)+'</div><div class="horo-linha">'+esc(p.fase)+'</div><div class="horo-tom" data-tom="'+esc(p.tom)+'">'+esc(p.tom.toUpperCase())+'</div><div class="horo-msg">'+esc(p.msg)+'</div></div>').join('');
     };
-    renderizar(); buscarRemotos();
-    // recebe atualizações da página de cadastro
-    window.addEventListener('message', e => {
-      if (e.data && e.data.type === 'horo:nova') renderizar();
-    });
-    const iv = setInterval(()=>{renderizar();buscarRemotos();}, 20000);
-    S.fins.push(() => clearInterval(iv));
+    const apiPessoas=String(item.apiUrl||('/api/totem/horoscopo?totem='+encodeURIComponent(P.t&&P.t.id||'totem1')));
+    const buscarRemotos=async()=>{try{const r=await fetch(apiPessoas,{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);const d=await r.json();remotos=Array.isArray(d)?d:(Array.isArray(d.pessoas)?d.pessoas:(Array.isArray(d.data?.pessoas)?d.data.pessoas:[]));renderizar();}catch(e){/* conserva a última lista e o fallback de pensadores */}};
+    renderizar();buscarRemotos();
+    const iv=setInterval(()=>{renderizar();buscarRemotos();},20000);
+    S.fins.push(()=>clearInterval(iv));
   }
 };
 /* editor do painel para as telas novas */
@@ -2796,7 +2872,9 @@ function txEditor(it, k, i) {
   const t = it.tipo; let h = '';
   if (t === 'bolsa3d' || t === 'cotacoes') h = fld('Ativos (ids separados por vírgula)', k + 'ativos', it.ativos || '') + '<div class="hintx" style="grid-column:1/-1">Disponíveis: ibov, usd, eur, ouro, btc, eth, sp500, brent. Vazio = padrão da tela.</div>';
   else if (t === 'noticias') h = sel('Assunto', k + 'topico', it.topico || '', [['', 'Todos (rodízio)'], ['dolar', 'Dólar'], ['ouro', 'Ouro'], ['bitcoin', 'Bitcoin'], ['ethereum', 'Ethereum'], ['mercado', 'Mercado / Bolsa']]);
-  else if (t === 'horoscopo') h = fld('Pessoas exibidas',k+'porPagina',it.porPagina||4,'number','min="2" max="8"') + fld('URL HTTPS da página de cadastro',k+'cadastroUrl',it.cadastroUrl||'') + fld('URL HTTPS do endpoint GET JSON',k+'apiUrl',it.apiUrl||'') + '<div class="hintx">O endpoint GET deve retornar <code>{"pessoas":[{"nome":"...","nasc":"AAAA-MM-DD"}]}</code>. Sem URL personalizada, o totem usa a página integrada /participar-horoscopo e o banco CHAT_DB do Worker. O sistema armazena somente mês e dia do nascimento; o ano é descartado. A leitura é simbólica, não um mapa astronômico completo.</div>';
+  else if (t === 'curiosidades') h = sel('Categoria',k+'categoria',it.categoria||'astronomia',[['astronomia','✨ Astronomia'],['catastrofes','🌋 Catástrofes naturais'],['genios','🧠 Gênios e descobertas']]);
+  else if (t === 'linear') h = '<div class="hintx">Painel automático com constantes configuradas no Worker e indicadores de mercado. Dados informativos; não constituem recomendação financeira.</div>';
+  else if (t === 'horoscopo') h = fld('Pessoas exibidas',k+'porPagina',it.porPagina||4,'number','min="2" max="8"') + fld('URL HTTPS da página de cadastro',k+'cadastroUrl',it.cadastroUrl||'') + fld('URL HTTPS do endpoint GET JSON',k+'apiUrl',it.apiUrl||'') + '<div class="hintx">O QR de participação fica integrado ao rodapé da tela Sistema Solar. Sem URL personalizada, o totem usa /participar-horoscopo e o banco CHAT_DB do Worker. Sem participantes aprovados, aparece o Horóscopo dos Pensadores; com cadastros, aparecem os alinhamentos dos participantes. O sistema armazena somente mês e dia do nascimento; o ano é descartado. A leitura é simbólica.</div>';
   else if (t === 'recadoAmor') h = fld('Título principal',k+'titulo',it.titulo||'Uma mensagem pode mudar o dia de alguém') + fld('Mensagens exibidas',k+'porPagina',it.porPagina||3,'number','min="1" max="4"') + '<div class="hintx">O QR abre a página pública /recado-amor. As mensagens ficam pendentes e só aparecem no totem após aprovação pelo endpoint administrativo do Worker. Não solicite telefone, endereço ou dados pessoais.</div>';
   else if (t === 'planetas3d') h = sel('Velocidade do tempo', k + 'vel', it.vel || 'normal', [['lenta', 'Lenta (4 dias/s)'], ['normal', 'Normal (10 dias/s)'], ['rapida', 'Rápida (28 dias/s)']]);
   else if (t === 'terremotos') h = fld('Magnitude mínima', k + 'magMin', it.magMin == null ? 4.5 : it.magMin, 'number', 'min="4.5" max="9" step="0.1"') + sel('Visualização', k + 'mapa', it.mapa || 'globo', [['globo','🌍 Globo 3D'],['plano','🗺️ Mapa-múndi plano']]);
@@ -2807,7 +2885,7 @@ function txEditor(it, k, i) {
 
 /* tela de espera (sem configuração / sem login): playlist informativa, não só relógio */
 const TX_PADRAO = () => ({id: '-', status: 'liberado', tela: {}, layout: {modelo: 'full', gap: 0, raio: 0}, paineis: {r1: {itens: [
-  {tipo: 'bolsa3d', duracaoS: 20}, {tipo: 'cotacoes', duracaoS: 14}, {tipo: 'noticias', duracaoS: 30}, {tipo: 'planetas3d', duracaoS: 20}, {tipo: 'terremotos', duracaoS: 18}, {tipo: 'horoscopo', duracaoS: 24}, {tipo: 'recadoAmor', duracaoS: 24},
+  {tipo: 'bolsa3d', duracaoS: 20}, {tipo: 'cotacoes', duracaoS: 14}, {tipo: 'linear', duracaoS: 18}, {tipo: 'curiosidades', duracaoS: 22, categoria: 'astronomia'}, {tipo: 'noticias', duracaoS: 30}, {tipo: 'planetas3d', duracaoS: 20}, {tipo: 'terremotos', duracaoS: 18}, {tipo: 'horoscopo', duracaoS: 24}, {tipo: 'recadoAmor', duracaoS: 24},
   {tipo: 'jornal', duracaoS: 24, cidade: 'São Paulo'}, {tipo: 'climagrafico', duracaoS: 16, cidade: 'Rio de Janeiro', lat: -22.9068, lon: -43.1729}, {tipo: 'relogio', duracaoS: 8}
 ], transicao: {tipo: 'fade', ms: 900}, aleatorio: false}}});
 
@@ -2817,7 +2895,7 @@ const TX_PADRAO = () => ({id: '-', status: 'liberado', tela: {}, layout: {modelo
 const TX_PATH_ID = (() => { const m = location.pathname.match(/\/(?:conversa\/)?(totem[\w-]*)\/?$/i); return m ? m[1].toLowerCase() : null; })();
 (function txPwa() {
   if (TX_PATH_ID) { const l = document.createElement('link'); l.rel = 'manifest'; l.href = '/conversa/manifest.webmanifest?id=' + encodeURIComponent(TX_PATH_ID); document.head.appendChild(l); }
-  if ('serviceWorker' in navigator && location.protocol === 'https:' && /^\/conversa(\/|$)/.test(location.pathname)) navigator.serviceWorker.register('/conversa/sw.js', {scope: '/conversa/'}).catch(() => {});
+  if ('serviceWorker' in navigator && location.protocol === 'https:' && /^\/conversa(\/|$)/.test(location.pathname)) navigator.serviceWorker.register('/conversa/sw.js', {scope: '/conversa/', updateViaCache: 'none'}).catch(err => { console.warn('[ALMAFLUXO] PWA indisponível; totem segue sem cache de service worker:', err && err.message || err); });
   let bip = null, wl = null;
   const modoApp = () => matchMedia('(display-mode: fullscreen)').matches || matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
   const emTela = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
@@ -2841,6 +2919,14 @@ const TX_PATH_ID = (() => { const m = location.pathname.match(/\/(?:conversa\/)?
   box = el('div', 'tx-inst', '<div><b>📺 Tela cheia e instalação</b><br>Pressione <b>OK / Enter</b> no controle (ou clique) para entrar em tela cheia' + '<br><small>Se o navegador oferecer, aceite instalar o totem como aplicativo.</small></div><button>Ativar</button>');
   box.querySelector('button').addEventListener('click', e => { e.stopPropagation(); ativar(); });
   document.body.appendChild(box);
+  /* Controle permanente: TVs/controles remotos não dependem do aviso temporário. */
+  const btnFull = document.createElement('button');
+  btnFull.type = 'button'; btnFull.className = 'tx-fullscreen'; btnFull.textContent = '⛶';
+  btnFull.title = 'Alternar tela cheia'; btnFull.setAttribute('aria-label','Alternar tela cheia');
+  btnFull.style.cssText = 'position:fixed;right:12px;top:12px;z-index:100001;width:46px;height:46px;border-radius:50%;border:1px solid #00e5ff;background:rgba(3,8,18,.9);color:#00e5ff;font-size:25px;cursor:pointer;box-shadow:0 0 18px rgba(0,229,255,.25);opacity:.82';
+  btnFull.addEventListener('click', async e => { e.stopPropagation(); try { if (!emTela()) { const el=document.documentElement; const fn=el.requestFullscreen||el.webkitRequestFullscreen||el.msRequestFullscreen; if(fn) await fn.call(el); } else { const fn=document.exitFullscreen||document.webkitExitFullscreen; if(fn) await fn.call(document); } } catch(err) { console.warn('[ALMAFLUXO] Tela cheia:',err&&err.message||err); } });
+  document.body.appendChild(btnFull);
+  document.addEventListener('fullscreenchange',()=>{btnFull.textContent=emTela()?'⛶':'⛶';btnFull.title=emTela()?'Sair da tela cheia':'Entrar em tela cheia';});
   document.addEventListener('keydown', porTecla, true); document.addEventListener('pointerdown', ativar, true);
   setTimeout(esconder, 25000);   /* some sozinho; o próximo clique/OK ainda entra em tela cheia */
 })();
