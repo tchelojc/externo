@@ -484,12 +484,33 @@ html,body{background:#000}
 .sl{position:absolute;inset:0;overflow:hidden;--tr:800ms}
 
 /* PUBLICIDADE PADRÃO ALMAFLUXO: presente em cada tela e em cada card */
-.tx-pub{position:absolute;left:0;right:0;bottom:0;z-index:9999;min-height:clamp(24px,3.8vh,54px);display:flex;align-items:center;justify-content:center;gap:.65em;padding:.35em 1em;background:linear-gradient(90deg,rgba(2,10,24,.96),rgba(0,67,91,.96),rgba(2,10,24,.96));border-top:1px solid rgba(0,229,255,.72);color:#eafaff;text-decoration:none;font-family:Roboto,Arial,sans-serif;font-size:clamp(9px,1.25vmin,18px);line-height:1.15;text-align:center;box-shadow:0 -3px 18px rgba(0,0,0,.24);box-sizing:border-box;overflow:hidden}
-.tx-pub strong{color:#00e5ff;letter-spacing:.06em;font-weight:900}
-.tx-pub em{font-style:normal;color:#fff;opacity:.9}
-.tx-pub b{color:#ffe082;white-space:nowrap}
-.tx-pub:hover,.tx-pub:focus-visible{filter:brightness(1.25);outline:2px solid #00e5ff;outline-offset:-2px}
-.cards-runtime .tx-pub{font-size:clamp(7px,1.0vmin,12px);min-height:clamp(19px,2.6vh,34px);gap:.35em;padding:.2em .35em;flex-wrap:wrap}
+/* PUBLICIDADE PADRÃO ALMAFLUXO — duplicada (mais presença) */
+.tx-pub{
+  position:absolute;left:0;right:0;bottom:0;z-index:9999;
+  min-height:clamp(48px,7.6vh,108px);    /* ← DOBRO do anterior */
+  display:flex;align-items:center;justify-content:center;
+  gap:1.3em;padding:.9em 2em;             /* ← DOBRO */
+  background:linear-gradient(90deg,rgba(2,10,24,.97),rgba(0,67,91,.97),rgba(2,10,24,.97));
+  border-top:2px solid rgba(0,229,255,.85);   /* ← dobro */
+  color:#eafaff;text-decoration:none;
+  font-family:Roboto,Arial,sans-serif;
+  font-size:clamp(14px,2.4vmin,34px);     /* ← quase dobro */
+  line-height:1.25;text-align:center;
+  box-shadow:0 -6px 32px rgba(0,0,0,.45); /* ← dobro */
+  box-sizing:border-box;overflow:hidden;
+  transition:filter .2s;
+}
+.tx-pub strong{color:#00e5ff;letter-spacing:.08em;font-weight:900}
+.tx-pub em{font-style:normal;color:#fff;opacity:.92}
+.tx-pub b{color:#ffe082;white-space:nowrap;font-weight:800}
+.tx-pub:hover,.tx-pub:focus-visible{filter:brightness(1.3);outline:2px solid #00e5ff;outline-offset:-2px}
+
+/* Nos cards livres (mosaico) permanece proporcional, mas também duplicado */
+.cards-runtime .tx-pub{
+  font-size:clamp(10px,1.6vmin,22px);
+  min-height:clamp(34px,4.6vh,60px);
+  gap:.6em;padding:.4em .8em;flex-wrap:wrap
+}
 .cards-runtime .tx-pub em{display:none}
 .sl img,.sl video{width:100%;height:100%;display:block}
 .sl iframe{width:100%;height:100%;border:0;background:#fff}
@@ -715,7 +736,9 @@ html,body{background:#000}
 .amor-copy{min-width:0}.amor-kicker{font-size:calc(var(--u)*1.5);letter-spacing:.2em;color:#ffb8d2;text-transform:uppercase}.amor-title{font-size:calc(var(--u)*5.2);line-height:1.02;font-weight:800;margin:.18em 0;color:#fff;text-wrap:balance}.amor-sub{font-size:calc(var(--u)*2.1);line-height:1.35;color:#ffd8e7;max-width:95%}.amor-qr{justify-self:center;background:#fff;padding:calc(var(--u)*1.1);border-radius:calc(var(--u)*1.4);width:min(25vw,32vh);aspect-ratio:1;box-shadow:0 0 3vmin #ff8bb8aa}.amor-qr img{width:100%;height:100%;display:block}.amor-qr-cap{text-align:center;font-size:calc(var(--u)*1.45);color:#ffe6f0;margin-top:calc(var(--u)*1.1)}.amor-msgs{position:absolute;left:5%;right:5%;bottom:5%;display:flex;gap:1.2%;overflow:hidden}.amor-msg{flex:1;min-width:0;background:#ffffff12;border:1px solid #ffb8d233;border-radius:12px;padding:1.1%;font-size:calc(var(--u)*1.35);line-height:1.25;overflow:hidden}.amor-msg b{display:block;color:#ffbad4;margin-bottom:.25em}.amor-empty{color:#ffdfeb;font-size:calc(var(--u)*1.5)}
 .tpl-bar{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.tpl-bar .btn{font-size:.78rem}
 @media(max-aspect-ratio:1/1){.amor-wrap{grid-template-columns:1fr .7fr;inset:7% 4% 18%}.amor-title{font-size:calc(var(--u)*4)}.amor-qr{width:min(28vw,24vh)}.amor-msgs{bottom:3%}}
-
+#txBootOverlay { pointer-events: auto; }
+#txBootOverlay * { pointer-events: none; }
+#txBootOverlay button { pointer-events: auto; }
 </style>
 </head>
 <body>
@@ -2525,10 +2548,141 @@ const TX_PLANETAS = [
   ['Mercúrio', 252.25, 87.969, .387, .38, 0xb5b5b5], ['Vênus', 181.98, 224.701, .723, .7, 0xe8c27a], ['Terra', 100.47, 365.256, 1, .74, 0x4aa3ff], ['Marte', 355.43, 686.98, 1.524, .5, 0xe0623a],
   ['Júpiter', 34.35, 4332.59, 5.203, 1.7, 0xd8b48a], ['Saturno', 50.08, 10759.22, 9.537, 1.45, 0xe6d49a], ['Urano', 314.06, 30688.5, 19.19, 1.0, 0x8fe3ea], ['Netuno', 304.35, 60182, 30.07, 1.0, 0x4b6cff]
 ];
+/* Efemérides aproximadas para simulação de alinhamento na data de nascimento. */
+const TX_ANIVERSARIANTES = [
+  {nome:'Sócrates',         nasc:'-470-06-04', area:'Filosofia'},
+  {nome:'Platão',           nasc:'-428-05-21', area:'Filosofia'},
+  {nome:'Aristóteles',      nasc:'-384-05-15', area:'Filosofia'},
+  {nome:'Hipátia',          nasc:'0355-06-15', area:'Ciência'},
+  {nome:'Galileu Galilei',  nasc:'1564-02-15', area:'Astronomia'},
+  {nome:'Isaac Newton',     nasc:'1643-01-04', area:'Física'},
+  {nome:'Leonardo da Vinci',nasc:'1452-04-15', area:'Artes e ciência'},
+  {nome:'Ada Lovelace',     nasc:'1815-12-10', area:'Computação'},
+  {nome:'Nikola Tesla',     nasc:'1856-07-10', area:'Engenharia'},
+  {nome:'Marie Curie',      nasc:'1867-11-07', area:'Química'},
+  {nome:'Albert Einstein',  nasc:'1879-03-14', area:'Física'},
+  {nome:'Stephen Hawking',  nasc:'1942-01-08', area:'Cosmologia'},
+  {nome:'Alan Turing',      nasc:'1912-06-23', area:'Computação'},
+  {nome:'Carl Sagan',       nasc:'1934-11-09', area:'Astronomia'},
+  {nome:'Khalil Gibran',    nasc:'1883-01-06', area:'Poesia'},
+  {nome:'Rumi',             nasc:'1207-09-30', area:'Poesia'},
+  {nome:'Buda',             nasc:'-563-04-08', area:'Espiritualidade'},
+  {nome:'Confúcio',         nasc:'-551-09-28', area:'Filosofia'},
+  {nome:'Lao-Tsé',          nasc:'-604-03-22', area:'Filosofia'},
+  {nome:'Maomé',            nasc:'0570-04-22', area:'Espiritualidade'},
+  {nome:'Jesus de Nazaré',  nasc:'-4-12-25',   area:'Espiritualidade'},
+  {nome:'Nelson Mandela',   nasc:'1918-07-18', area:'Direitos humanos'},
+  {nome:'Martin Luther King Jr.',nasc:'1929-01-15',area:'Direitos humanos'},
+  {nome:'Gandhi',           nasc:'1869-10-02', area:'Direitos humanos'},
+  {nome:'Rosa Parks',       nasc:'1913-02-04', area:'Direitos humanos'},
+  {nome:'Malala Yousafzai', nasc:'1997-07-12', area:'Educação'},
+  {nome:'Viktor Frankl',    nasc:'1905-03-26', area:'Psiquiatria'},
+  {nome:'Sêneca',           nasc:'-4-01-01',   area:'Filosofia'},
+  {nome:'Marco Aurélio',    nasc:'0121-04-26', area:'Filosofia'},
+  {nome:'Epicteto',         nasc:'0050-01-01', area:'Filosofia'},
+  {nome:'Bertrand Russell', nasc:'1872-05-18', area:'Filosofia'},
+  {nome:'Kant',             nasc:'1724-04-22', area:'Filosofia'},
+  {nome:'Nietzsche',        nasc:'1844-10-15', area:'Filosofia'},
+  {nome:'Kierkegaard',      nasc:'1813-05-05', area:'Filosofia'},
+  {nome:'Anne Frank',       nasc:'1929-06-12', area:'Literatura'},
+  {nome:'Helen Keller',     nasc:'1880-06-27', area:'Literatura'}
+];
+
+/* Aniversariantes de hoje (mesmo dia/mês). */
+function txAniversariantesHoje() {
+  const d = new Date();
+  const mes = d.getMonth() + 1, dia = d.getDate();
+  return TX_ANIVERSARIANTES.filter(p => {
+    const [, m, dd] = (p.nasc.match(/-(\d{2})-(\d{2})$/) || []).map(Number);
+    return m === mes && dd === dia;
+  });
+}
+
+/* Longitudes planetárias médias (graus) aproximadas para J2000 + n dias. */
+const TX_EFEM = {
+  mercurio: { L0: 252.25, n: 4.09235 },
+  venus:    { L0: 181.98, n: 1.60213 },
+  terra:    { L0: 100.47, n: 0.98561 },
+  marte:    { L0: 355.43, n: 0.52402 },
+  jupiter:  { L0:  34.35, n: 0.08309 },
+  saturno:  { L0:  50.08, n: 0.03346 },
+  urano:    { L0: 314.06, n: 0.01172 },
+  netuno:   { L0: 304.35, n: 0.00598 }
+};
+const TX_SIGNOS = [
+  {n:'Áries',      i:'♈', ini:0},   {n:'Touro',     i:'♉', ini:30},
+  {n:'Gêmeos',     i:'♊', ini:60},  {n:'Câncer',    i:'♋', ini:90},
+  {n:'Leão',       i:'♌', ini:120}, {n:'Virgem',    i:'♍', ini:150},
+  {n:'Libra',      i:'♎', ini:180}, {n:'Escorpião', i:'♏', ini:210},
+  {n:'Sagitário',  i:'♐', ini:240}, {n:'Capricórnio',i:'♑', ini:270},
+  {n:'Aquário',    i:'♒', ini:300}, {n:'Peixes',    i:'♓', ini:330}
+];
+function txSignoDeLongitude(lonDeg) {
+  const L = ((lonDeg % 360) + 360) % 360;
+  return TX_SIGNOS.slice().reverse().find(s => L >= s.ini) || TX_SIGNOS[0];
+}
+/* Alinhamento na data de nascimento (n dias desde 2000-01-01T12Z). */
+function txAlinhamentoEm(isoDate) {
+  let dt;
+  if (isoDate.startsWith('-')) {
+    const [neg, a, m, d] = isoDate.match(/^-(\d+)-(\d{2})-(\d{2})$/) || [];
+    if (!a) return null;
+    dt = new Date(Date.UTC(-(+a), (+m) - 1, +d, 12));
+  } else {
+    dt = new Date(isoDate + 'T12:00:00Z');
+  }
+  if (!isFinite(dt.getTime())) return null;
+  const J2000 = Date.UTC(2000, 0, 1, 12);
+  const n = (dt - J2000) / 86400000;
+  const out = {};
+  for (const [k, v] of Object.entries(TX_EFEM)) {
+    const L = ((v.L0 + v.n * n) % 360 + 360) % 360;
+    out[k] = { lon: +L.toFixed(2), signo: txSignoDeLongitude(L) };
+  }
+  return { iso: isoDate, dias: n, planetas: out, sol: out.terra };
+}
 TX.planetas3d = {def: {vel: 'normal'}, build(P, item, s, S) {
   s.className += ' tx'; txMorre(S);
   if (P.preview) return txPreview(s, 'planetas3d');
   s.innerHTML = '<div class="tx-t">SISTEMA SOLAR · POSIÇÕES APROXIMADAS · TEMPO ACELERADO</div><div class="tx-data"></div><div class="tx-solar-qr"><img alt="QR Code para participar do alinhamento"/><div><b>Seu alinhamento</b><span>Escaneie para participar</span></div></div><div class="tx-av">Longitudes médias de órbita circular; distâncias comprimidas e planetas ampliados para visualização.</div>';
+  const aniversariantes = txAniversariantesHoje();
+  if (aniversariantes.length) {
+    const painel = document.createElement('div');
+    painel.className = 'tx-solar-aniv';
+    painel.style.cssText = 'position:absolute;left:2.5%;top:12%;z-index:6;max-width:28%;padding:1.4vmin 1.8vmin;border-radius:1.4vmin;background:rgba(8,16,32,.88);border:1px solid rgba(255,210,74,.6);box-shadow:0 1vmin 3vmin #0008;backdrop-filter:blur(10px);color:#eaf6ff;font-family:Roboto,sans-serif';
+    painel.innerHTML = '<div style="font-size:calc(var(--u)*1.35);letter-spacing:.14em;color:#ffd24a;text-transform:uppercase;font-weight:800;margin-bottom:.6em">✦ Aniversariantes de hoje</div>'
+      + aniversariantes.map(p => {
+        const al = txAlinhamentoEm(p.nasc);
+        const solSigno = al ? al.sol.signo.i + ' ' + al.sol.signo.n : '';
+        return '<div style="margin:.4em 0;font-size:calc(var(--u)*1.15);line-height:1.3">'
+          + '<b style="color:#00e5ff">' + esc(p.nome) + '</b> <span style="color:#8fa6c2;font-size:.85em">(' + esc(p.area) + ')</span>'
+          + (solSigno ? '<br><span style="color:#ffd24a">Sol em ' + solSigno + '</span>' : '')
+          + '</div>';
+      }).join('');
+    s.appendChild(painel);
+  }
+
+  /* A cada 15 s gira para outro aniversariante (simulação de alinhamento) */
+  if (aniversariantes.length) {
+    let i = 0;
+    const iv2 = setInterval(() => {
+      i = (i + 1) % aniversariantes.length;
+      const p = aniversariantes[i];
+      const al = txAlinhamentoEm(p.nasc);
+      if (al && s.querySelector('.tx-solar-aniv')) {
+        const avis = s.querySelector('.tx-solar-aniv');
+        avis.innerHTML = '<div style="font-size:calc(var(--u)*1.35);letter-spacing:.14em;color:#ffd24a;text-transform:uppercase;font-weight:800;margin-bottom:.6em">✦ ' + esc(p.nome) + '</div>'
+          + '<div style="font-size:calc(var(--u)*1.05);color:#8fa6c2;margin-bottom:.5em">' + esc(p.area) + ' · ' + al.iso + '</div>'
+          + Object.entries(al.planetas).map(([planeta, dado]) =>
+              '<div style="display:flex;justify-content:space-between;font-size:calc(var(--u)*1.05);padding:.15em 0;border-bottom:1px solid rgba(0,229,255,.1)">'
+              + '<span style="text-transform:capitalize;color:#cfe6ff">' + planeta + '</span>'
+              + '<span style="color:#ffd24a">' + dado.signo.i + ' ' + esc(dado.signo.n) + '</span>'
+              + '</div>'
+            ).join('');
+      }
+    }, 15000);
+    S.fins.push(() => clearInterval(iv2));
+  }
   const dt = s.querySelector('.tx-data');
   const qrSolar=s.querySelector('.tx-solar-qr img');
   const urlHoro=location.origin+'/participar-horoscopo?totem='+encodeURIComponent(P.t&&P.t.id||'totem1');
@@ -2827,44 +2981,178 @@ TX.recadoAmor = {
 };
 
 const TX_PENSADORES = [
-  {nome:'Sócrates',tema:'Conhecer a si mesmo',texto:'Antes de procurar respostas prontas, faça uma pergunta melhor. A curiosidade é o começo da clareza.'},
-  {nome:'Aristóteles',tema:'Equilíbrio',texto:'A constância nas pequenas escolhas constrói hábitos; os hábitos, por sua vez, dão forma ao caminho.'},
-  {nome:'Hipátia',tema:'Conhecimento',texto:'Observar, estudar e questionar amplia a liberdade de pensar. A aprendizagem também é uma forma de coragem.'},
-  {nome:'Epicteto',tema:'Serenidade',texto:'Direcione energia ao que está sob seu cuidado: suas escolhas, atitudes e respostas.'},
-  {nome:'Marco Aurélio',tema:'Atenção ao presente',texto:'Faça bem a próxima tarefa. Um dia ganha sentido quando a ação de agora é feita com intenção.'},
-  {nome:'Sêneca',tema:'Tempo',texto:'O tempo merece atenção: reserve espaço para o que realmente importa e não apenas para o que faz barulho.'},
-  {nome:'Platão',tema:'Perspectiva',texto:'Mudar o ponto de vista pode revelar aspectos que antes estavam escondidos.'},
-  {nome:'Confúcio',tema:'Aprendizado',texto:'Aprender, revisar e praticar transforma conhecimento em uma atitude cotidiana.'}
+  {nome:'Sócrates',tema:'Conhece-te a ti mesmo',texto:'Uma vida sem exame não vale a pena ser vivida.'},
+  {nome:'Sócrates',tema:'A dúvida',texto:'Só sei que nada sei — e é dessa consciência que nasce a sabedoria.'},
+  {nome:'Aristóteles',tema:'Hábito',texto:'Somos aquilo que fazemos repetidamente. A excelência, então, não é um ato, mas um hábito.'},
+  {nome:'Aristóteles',tema:'Propósito',texto:'A felicidade depende de nós mesmos.'},
+  {nome:'Platão',tema:'Perspectiva',texto:'O olho da alma começa a ver quando o corpo começa a falhar.'},
+  {nome:'Platão',tema:'Verdade',texto:'Aquele que aprendeu a ver a verdade não desce de novo às sombras por vontade própria.'},
+  {nome:'Hipátia',tema:'Razão',texto:'Reserve o direito de pensar. Errar de forma autônoma é mais digno do que acertar pela boca dos outros.'},
+  {nome:'Epicteto',tema:'Domínio',texto:'Não são os eventos que nos perturbam, mas o julgamento que fazemos deles.'},
+  {nome:'Epicteto',tema:'Liberdade',texto:'Nenhum homem é livre se não é senhor de si mesmo.'},
+  {nome:'Marco Aurélio',tema:'Presente',texto:'Viva como se já tivesses morrido e recebido a vida como um presente.'},
+  {nome:'Marco Aurélio',tema:'Ação',texto:'Não desperdice mais tempo discutindo o que deve ser um homem bom. Seja um.'},
+  {nome:'Sêneca',tema:'Tempo',texto:'Não é que temos pouco tempo, é que perdemos muito.'},
+  {nome:'Sêneca',tema:'Coragem',texto:'Às vezes até viver é um ato de coragem.'},
+  {nome:'Confúcio',tema:'Aprendizado',texto:'Aprender sem pensar é vão; pensar sem aprender é perigoso.'},
+  {nome:'Confúcio',tema:'Exemplo',texto:'Não é sobre ter razão: é sobre tornar o mundo um pouco melhor com o que se faz.'},
+  {nome:'Lao-Tsé',tema:'Simplicidade',texto:'Uma jornada de mil milhas começa com um único passo.'},
+  {nome:'Lao-Tsé',tema:'Silêncio',texto:'Conhecer os outros é sabedoria; conhecer a si mesmo é iluminação.'},
+  {nome:'Gandhi',tema:'Mudança',texto:'Seja a mudança que você quer ver no mundo.'},
+  {nome:'Gandhi',tema:'Persistência',texto:'A força não vem da capacidade física. Vem de uma vontade indomável.'},
+  {nome:'Nelson Mandela',tema:'Liberdade',texto:'A liberdade não é apenas livrar-se das próprias correntes, mas viver de um modo que respeite e aumente a liberdade dos outros.'},
+  {nome:'Martin Luther King Jr.',tema:'Justiça',texto:'A injustiça em qualquer lugar é uma ameaça à justiça em todo lugar.'},
+  {nome:'Martin Luther King Jr.',tema:'Esperança',texto:'A escuridão não pode expulsar a escuridão; só a luz pode. O ódio não pode expulsar o ódio; só o amor pode.'},
+  {nome:'Marie Curie',tema:'Persistência',texto:'Nada na vida deve ser temido, apenas compreendido. Agora é a hora de compreender mais, para temer menos.'},
+  {nome:'Albert Einstein',tema:'Curiosidade',texto:'O importante é não parar de questionar. A curiosidade tem sua própria razão de existir.'},
+  {nome:'Albert Einstein',tema:'Imaginação',texto:'A imaginação é mais importante que o conhecimento.'},
+  {nome:'Stephen Hawking',tema:'Olhar para cima',texto:'Lembre-se de olhar para as estrelas, e não para os seus pés.'},
+  {nome:'Stephen Hawking',tema:'Esperança',texto:'Enquanto há vida, há esperança.'},
+  {nome:'Leonardo da Vinci',tema:'Aprendizado',texto:'Estudar sem desejo estraga a memória e não retém nada do que absorve.'},
+  {nome:'Leonardo da Vinci',tema:'Simplicidade',texto:'A simplicidade é o último grau de sofisticação.'},
+  {nome:'Galileu Galilei',tema:'Verdade',texto:'E, no entanto, ela se move.'},
+  {nome:'Isaac Newton',tema:'Humildade',texto:'Se vi mais longe, foi por estar sobre ombros de gigantes.'},
+  {nome:'Nikola Tesla',tema:'Futuro',texto:'O presente é deles; o futuro, pelo qual trabalhei, é meu.'},
+  {nome:'Ada Lovelace',tema:'Criatividade',texto:'A imaginação é a faculdade que descobre; a razão é a que valida.'},
+  {nome:'Alan Turing',tema:'Pergunta',texto:'Podemos ver apenas uma curta distância à frente, mas podemos ver muito lá que precisa ser feito.'},
+  {nome:'Bertrand Russell',tema:'Conhecimento',texto:'O problema do mundo é que os tolos são cheios de certezas e os inteligentes cheios de dúvidas.'},
+  {nome:'Carl Sagan',tema:'Cosmos',texto:'Somos feitos de matéria estelar. O cosmos está em nós.'},
+  {nome:'Carl Sagan',tema:'Responsabilidade',texto:'Em algum lugar, algo incrível está esperando para ser conhecido.'},
+  {nome:'Buda',tema:'Presença',texto:'A mente é tudo. Aquilo que você pensa, você se torna.'},
+  {nome:'Buda',tema:'Desapego',texto:'A paz vem de dentro de você. Não a procure à sua volta.'},
+  {nome:'Jesus de Nazaré',tema:'Amor',texto:'Ame o próximo como a si mesmo.'},
+  {nome:'Jesus de Nazaré',tema:'Perdão',texto:'Aquele que nunca errou que atire a primeira pedra.'},
+  {nome:'Maomé',tema:'Compaixão',texto:'O forte não é aquele que vence os outros, mas o que domina a si mesmo quando está com raiva.'},
+  {nome:'Rumi',tema:'Silêncio',texto:'O silêncio é a linguagem de Deus; todo o resto é tradução ruim.'},
+  {nome:'Rumi',tema:'Ferida',texto:'A ferida é o lugar por onde a luz entra em você.'},
+  {nome:'Khalil Gibran',tema:'Trabalho',texto:'O trabalho é o amor tornado visível.'},
+  {nome:'Rosa Parks',tema:'Coragem',texto:'Eu tinha sido empurrada até o limite; não tinha mais medo.'},
+  {nome:'Malala Yousafzai',tema:'Educação',texto:'Uma criança, um professor, um livro e uma caneta podem mudar o mundo.'},
+  {nome:'Anne Frank',tema:'Esperança',texto:'Apesar de tudo, ainda acredito que as pessoas são realmente boas de coração.'},
+  {nome:'Helen Keller',tema:'Vida',texto:'A vida é uma aventura ousada, ou não é nada.'},
+  {nome:'Viktor Frankl',tema:'Sentido',texto:'Quem tem um porquê para viver pode suportar quase qualquer como.'},
+  {nome:'Viktor Frankl',tema:'Liberdade',texto:'Entre o estímulo e a resposta há um espaço; nesse espaço está o nosso poder de escolher.'},
+  {nome:'Nietzsche',tema:'Força',texto:'Aquilo que não me mata me fortalece.'},
+  {nome:'Kierkegaard',tema:'Coragem',texto:'Ousar é perder o equilíbrio momentaneamente. Não ousar é perder-se.'},
+  {nome:'Kant',tema:'Ação',texto:'Aja de tal forma que a sua ação possa se tornar lei universal.'},
+  {nome:'Kant',tema:'Autonomia',texto:'Sapere aude — tenha coragem de usar o seu próprio entendimento.'}
 ];
+
+/* Reflexão rotativa: independente do dia. Muda a cada 12 s. */
+const TX_PENSADORES_STATE = { idx: -1 };
+function txProximoPensador() {
+  TX_PENSADORES_STATE.idx = (TX_PENSADORES_STATE.idx + 1) % TX_PENSADORES.length;
+  return TX_PENSADORES[TX_PENSADORES_STATE.idx];
+}
 function txPensadorDoDia(){const dia=Math.floor(Date.now()/86400000);return TX_PENSADORES[((dia%TX_PENSADORES.length)+TX_PENSADORES.length)%TX_PENSADORES.length];}
 TX.horoscopo = {
   def: { cadastroQr: true, porPagina: 4, cadastroUrl: '', apiUrl: '' },
   build(P, item, s, S) {
     s.className += ' tx'; txMorre(S);
     s.innerHTML = '<div class="tx-t">ALINHAMENTO DO DIA · SIGNOS & PENSAMENTO</div><div class="tx-grid tx-horo"></div><div class="tx-av">Sem participantes cadastrados: reflexões diárias inspiradas em pensadores. Para participar, escaneie o QR Code na tela do Sistema Solar.</div>';
-    const grid=s.querySelector('.tx-horo');
-    let remotos=[];
-    const carregar=()=>{
-      try{
-        const raw=localStorage.getItem('almafluxo_horo_pessoas_v1'),locais=raw?JSON.parse(raw):[];
-        const mapa=new Map();[...remotos,...(Array.isArray(locais)?locais:[])].filter(p=>p&&p.nasc&&p.nome).forEach(p=>mapa.set(String(p.id||p.nome+'|'+p.nasc),p));
-        return [...mapa.values()].map(p=>Object.assign({},p,hosoAlinhamentoHoje(p)));
-      }catch(e){return remotos.filter(p=>p&&p.nasc&&p.nome).map(p=>Object.assign({},p,hosoAlinhamentoHoje(p)));}
+    const grid = s.querySelector('.tx-horo');
+    let remotos = [];
+
+    /* ── Estado do rotativo (isolado por slide, sem vazar) ── */
+    const rot = { timer: null, finRegistrado: false };
+
+    const pararRotativo = () => {
+      if (rot.timer) { clearInterval(rot.timer); rot.timer = null; }
     };
-    const renderizar=()=>{
-      const pessoas=carregar().slice(0,Math.max(2,Math.min(8,+item.porPagina||4)));
-      if(!pessoas.length){
-        const p=txPensadorDoDia();
-        grid.innerHTML='<article class="tx-pensador"><div class="tp-kicker">✦ HORÓSCOPO DOS PENSADORES · REFLEXÃO DO DIA</div><div class="tp-tema">'+esc(p.tema)+'</div><div class="tp-texto">“'+esc(p.texto)+'”</div><div class="tp-autor">— Reflexão inspirada em <b>'+esc(p.nome)+'</b></div><div class="tp-nota">Quando alguém participar pelo QR do Sistema Solar, o alinhamento do signo solar aparecerá aqui.</div></article>';
+
+    /* Registra o "cleanup" no S.fins uma única vez, independentemente de
+       quantas vezes o renderizar() alternar entre pensador e participantes. */
+    const registrarFin = () => {
+      if (rot.finRegistrado) return;
+      rot.finRegistrado = true;
+      S.fins.push(() => pararRotativo());
+    };
+
+    const carregar = () => {
+      try {
+        const raw = localStorage.getItem('almafluxo_horo_pessoas_v1');
+        const locais = raw ? JSON.parse(raw) : [];
+        const mapa = new Map();
+        [...remotos, ...(Array.isArray(locais) ? locais : [])]
+          .filter(p => p && p.nasc && p.nome)
+          .forEach(p => mapa.set(String(p.id || (p.nome + '|' + p.nasc)), p));
+        return [...mapa.values()].map(p => Object.assign({}, p, hosoAlinhamentoHoje(p)));
+      } catch (e) {
+        return remotos
+          .filter(p => p && p.nasc && p.nome)
+          .map(p => Object.assign({}, p, hosoAlinhamentoHoje(p)));
+      }
+    };
+
+    /* Desenha UM pensador. Devolve false se grid saiu do DOM ou se já há
+       participantes renderizados (aí o rotativo deve parar). */
+    const desenharPensador = () => {
+      if (!grid.isConnected) return false;
+      if (grid.querySelector('.horo-card')) return false;
+      const p = txProximoPensador();
+      grid.innerHTML = '<article class="tx-pensador">'
+        + '<div class="tp-kicker">✦ HORÓSCOPO DOS PENSADORES · REFLEXÃO ' + (TX_PENSADORES_STATE.idx + 1) + '/' + TX_PENSADORES.length + '</div>'
+        + '<div class="tp-tema">' + esc(p.tema) + '</div>'
+        + '<div class="tp-texto">“' + esc(p.texto) + '”</div>'
+        + '<div class="tp-autor">— ' + esc(p.nome) + '</div>'
+        + '<div class="tp-nota">Participantes do QR aparecerão aqui quando aprovados.</div>'
+        + '</article>';
+      return true;
+    };
+
+    const renderizar = () => {
+      const pessoas = carregar().slice(0, Math.max(2, Math.min(8, +item.porPagina || 4)));
+
+      /* ── Caso 1: sem participantes → rotativo de pensadores ── */
+      if (!pessoas.length) {
+        registrarFin();                     // registra limpeza só uma vez
+        // Se já está rodando, não recria
+        if (rot.timer) return;
+        // Desenha o primeiro pensador imediatamente (sem esperar 12s)
+        if (!desenharPensador()) return;    // grid saiu do DOM
+        // Programa o próximo
+        rot.timer = setInterval(() => {
+          if (!desenharPensador()) pararRotativo();   // para se grid sumiu ou apareceram cards
+        }, 12000);
         return;
       }
-      grid.innerHTML=pessoas.map(p=>'<div class="tx-card horo-card"><div class="horo-signo">'+p.signo.i+' '+esc(p.signo.n)+'</div><div class="horo-nome">'+esc(p.nome)+'</div><div class="horo-linha">'+esc(p.fase)+'</div><div class="horo-tom" data-tom="'+esc(p.tom)+'">'+esc(p.tom.toUpperCase())+'</div><div class="horo-msg">'+esc(p.msg)+'</div></div>').join('');
+
+      /* ── Caso 2: participantes → cards, sem rotativo ── */
+      pararRotativo();
+      grid.innerHTML = pessoas.map(p =>
+        '<div class="tx-card horo-card">'
+        + '<div class="horo-signo">' + p.signo.i + ' ' + esc(p.signo.n) + '</div>'
+        + '<div class="horo-nome">' + esc(p.nome) + '</div>'
+        + '<div class="horo-linha">' + esc(p.fase) + '</div>'
+        + '<div class="horo-tom" data-tom="' + esc(p.tom) + '">' + esc(p.tom.toUpperCase()) + '</div>'
+        + '<div class="horo-msg">' + esc(p.msg) + '</div>'
+        + '</div>'
+      ).join('');
     };
-    const apiPessoas=String(item.apiUrl||('/api/totem/horoscopo?totem='+encodeURIComponent(P.t&&P.t.id||'totem1')));
-    const buscarRemotos=async()=>{try{const r=await fetch(apiPessoas,{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);const d=await r.json();remotos=Array.isArray(d)?d:(Array.isArray(d.pessoas)?d.pessoas:(Array.isArray(d.data?.pessoas)?d.data.pessoas:[]));renderizar();}catch(e){/* conserva a última lista e o fallback de pensadores */}};
-    renderizar();buscarRemotos();
-    const iv=setInterval(()=>{renderizar();buscarRemotos();},20000);
-    S.fins.push(()=>clearInterval(iv));
+
+    const apiPessoas = String(
+      item.apiUrl || ('/api/totem/horoscopo?totem=' + encodeURIComponent((P.t && P.t.id) || 'totem1'))
+    );
+
+    const buscarRemotos = async () => {
+      try {
+        const r = await fetch(apiPessoas, { cache: 'no-store' });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const d = await r.json();
+        remotos = Array.isArray(d)
+          ? d
+          : (Array.isArray(d.pessoas) ? d.pessoas
+            : (Array.isArray(d.data && d.pessoas) ? d.data.pessoas : []));
+        renderizar();
+      } catch (e) {
+        /* conserva a última lista e o fallback de pensadores */
+      }
+    };
+
+    renderizar();
+    buscarRemotos();
+    const iv = setInterval(() => { renderizar(); buscarRemotos(); }, 20000);
+    S.fins.push(() => { clearInterval(iv); pararRotativo(); });
   }
 };
 /* editor do painel para as telas novas */
@@ -2894,41 +3182,122 @@ const TX_PADRAO = () => ({id: '-', status: 'liberado', tela: {}, layout: {modelo
    (regra dos navegadores); instalado como app, abre em tela cheia sozinho. */
 const TX_PATH_ID = (() => { const m = location.pathname.match(/\/(?:conversa\/)?(totem[\w-]*)\/?$/i); return m ? m[1].toLowerCase() : null; })();
 (function txPwa() {
-  if (TX_PATH_ID) { const l = document.createElement('link'); l.rel = 'manifest'; l.href = '/conversa/manifest.webmanifest?id=' + encodeURIComponent(TX_PATH_ID); document.head.appendChild(l); }
-  if ('serviceWorker' in navigator && location.protocol === 'https:' && /^\/conversa(\/|$)/.test(location.pathname)) navigator.serviceWorker.register('/conversa/sw.js', {scope: '/conversa/', updateViaCache: 'none'}).catch(err => { console.warn('[ALMAFLUXO] PWA indisponível; totem segue sem cache de service worker:', err && err.message || err); });
-  let bip = null, wl = null;
+  if (TX_PATH_ID) {
+    const l = document.createElement('link');
+    l.rel = 'manifest';
+    l.href = '/conversa/manifest.webmanifest?id=' + encodeURIComponent(TX_PATH_ID);
+    document.head.appendChild(l);
+  }
+  if ('serviceWorker' in navigator && location.protocol === 'https:' && /^\/conversa(\/|$)/.test(location.pathname)) {
+    navigator.serviceWorker.register('/conversa/sw.js', {scope: '/conversa/', updateViaCache: 'none'})
+      .catch(err => console.warn('[ALMAFLUXO] SW:', err && err.message || err));
+  }
+
+  let bip = null, wl = null, jaTentouAuto = false;
   const modoApp = () => matchMedia('(display-mode: fullscreen)').matches || matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
   const emTela = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
   const wake = async () => { try { if ('wakeLock' in navigator && !wl) { wl = await navigator.wakeLock.request('screen'); wl.addEventListener('release', () => { wl = null; }); } } catch (e) {} };
   document.addEventListener('visibilitychange', () => { if (!document.hidden) wake(); }); wake();
   if (!TX_PATH_ID) return;
-  /* recarrega a cada 6 h (limpa memória de animações longas), exceto com o painel aberto */
-  setInterval(() => { if (!$id('app').classList.contains('ativo') && !$id('menuLocal').classList.contains('ativo') && !$id('telaLogin').classList.contains('on')) location.reload(); }, 6 * 3600 * 1000);
+
+  // Auto-reload a cada 6 h, se painel/menu fechados
+  setInterval(() => {
+    if (!$id('app').classList.contains('ativo')
+        && !$id('menuLocal').classList.contains('ativo')
+        && !$id('telaLogin').classList.contains('on')) location.reload();
+  }, 6 * 3600 * 1000);
+
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); bip = e; });
-  window.addEventListener('appinstalled', () => esconder());
-  let box = null, ativado = false;
-  const esconder = () => { if (box) { box.remove(); box = null; } };
-  async function ativar() {
-    if (ativado) return; ativado = true;
-    try { const el = document.documentElement; (el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen || (() => {})).call(el); } catch (e) {}
-    try { if (bip) { bip.prompt(); await bip.userChoice; bip = null; } } catch (e) {}
-    wake(); esconder(); document.removeEventListener('keydown', porTecla, true); document.removeEventListener('pointerdown', ativar, true);
-  }
-  const porTecla = e => { if (e.key === 'Enter' || e.key === ' ' || e.keyCode === 13 || e.keyCode === 29443) ativar(); };
-  if (modoApp() || emTela()) return;
-  box = el('div', 'tx-inst', '<div><b>📺 Tela cheia e instalação</b><br>Pressione <b>OK / Enter</b> no controle (ou clique) para entrar em tela cheia' + '<br><small>Se o navegador oferecer, aceite instalar o totem como aplicativo.</small></div><button>Ativar</button>');
-  box.querySelector('button').addEventListener('click', e => { e.stopPropagation(); ativar(); });
-  document.body.appendChild(box);
-  /* Controle permanente: TVs/controles remotos não dependem do aviso temporário. */
+  window.addEventListener('appinstalled', () => esconderOverlay());
+
+  // Botão flutuante permanente (canto sup. direito)
   const btnFull = document.createElement('button');
-  btnFull.type = 'button'; btnFull.className = 'tx-fullscreen'; btnFull.textContent = '⛶';
-  btnFull.title = 'Alternar tela cheia'; btnFull.setAttribute('aria-label','Alternar tela cheia');
+  btnFull.type = 'button';
+  btnFull.className = 'tx-fullscreen';
+  btnFull.textContent = '⛶';
+  btnFull.title = 'Alternar tela cheia';
+  btnFull.setAttribute('aria-label', 'Alternar tela cheia');
   btnFull.style.cssText = 'position:fixed;right:12px;top:12px;z-index:100001;width:46px;height:46px;border-radius:50%;border:1px solid #00e5ff;background:rgba(3,8,18,.9);color:#00e5ff;font-size:25px;cursor:pointer;box-shadow:0 0 18px rgba(0,229,255,.25);opacity:.82';
-  btnFull.addEventListener('click', async e => { e.stopPropagation(); try { if (!emTela()) { const el=document.documentElement; const fn=el.requestFullscreen||el.webkitRequestFullscreen||el.msRequestFullscreen; if(fn) await fn.call(el); } else { const fn=document.exitFullscreen||document.webkitExitFullscreen; if(fn) await fn.call(document); } } catch(err) { console.warn('[ALMAFLUXO] Tela cheia:',err&&err.message||err); } });
+  btnFull.addEventListener('click', async e => {
+    e.stopPropagation();
+    try {
+      if (!emTela()) {
+        const el = document.documentElement;
+        const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+        if (fn) await fn.call(el);
+      } else {
+        const fn = document.exitFullscreen || document.webkitExitFullscreen;
+        if (fn) await fn.call(document);
+      }
+    } catch (err) { console.warn('[ALMAFLUXO] Tela cheia:', err && err.message || err); }
+  });
   document.body.appendChild(btnFull);
-  document.addEventListener('fullscreenchange',()=>{btnFull.textContent=emTela()?'⛶':'⛶';btnFull.title=emTela()?'Sair da tela cheia':'Entrar em tela cheia';});
-  document.addEventListener('keydown', porTecla, true); document.addEventListener('pointerdown', ativar, true);
-  setTimeout(esconder, 25000);   /* some sozinho; o próximo clique/OK ainda entra em tela cheia */
+  document.addEventListener('fullscreenchange', () => {
+    btnFull.title = emTela() ? 'Sair da tela cheia' : 'Entrar em tela cheia';
+    if (emTela()) esconderOverlay();
+  });
+
+  // ── Overlay de boot: cobre a tela até o usuário clicar ──
+  let overlay = null;
+  function criarOverlay() {
+    if (overlay) return;
+    overlay = document.createElement('div');
+    overlay.id = 'txBootOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:100000;background:radial-gradient(ellipse at center,#0b1a33 0%,#02040a 75%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2rem;padding:2rem;text-align:center;font-family:Orbitron,sans-serif;color:#eaf6ff;cursor:pointer;transition:opacity .4s';
+    overlay.innerHTML = `
+      <div style="font-size:clamp(2.4rem,7vmin,5rem);letter-spacing:.25em;color:#00e5ff;text-shadow:0 0 3vmin rgba(0,229,255,.6)">ALMAFLUXO</div>
+      <div style="font-size:clamp(1rem,2.4vmin,1.8rem);letter-spacing:.15em;color:#8fa6c2;text-transform:uppercase">Central de informação do seu dia</div>
+      <div style="font-size:clamp(.9rem,1.8vmin,1.4rem);color:#cfe6ff;max-width:52ch;line-height:1.5;font-family:Roboto,sans-serif">
+        Clique em qualquer lugar para entrar em <b style="color:#ffd24a">tela cheia</b>.
+        <br><span style="color:#8fa6c2;font-size:.85em">Se o navegador oferecer <b>instalar</b> como aplicativo, aceite — abre sem barra de endereço.</span>
+      </div>
+      <div style="display:flex;gap:1rem;flex-wrap:wrap;justify-content:center">
+        <button id="btnEntrarFS" style="font-family:Orbitron,sans-serif;font-size:clamp(.9rem,2vmin,1.4rem);font-weight:800;letter-spacing:.08em;padding:.9em 2.4em;border-radius:14px;border:2px solid #00e5ff;background:linear-gradient(135deg,#00e5ff,#0088cc);color:#001018;cursor:pointer;box-shadow:0 0 2rem rgba(0,229,255,.4)">
+          ▶ ENTRAR EM TELA CHEIA
+        </button>
+        <button id="btnInstalarApp" style="display:none;font-family:Orbitron,sans-serif;font-size:clamp(.85rem,1.7vmin,1.2rem);font-weight:700;letter-spacing:.06em;padding:.9em 1.8em;border-radius:14px;border:1px solid rgba(255,210,74,.6);background:transparent;color:#ffd24a;cursor:pointer">
+          📲 INSTALAR COMO APP
+        </button>
+      </div>
+      <div style="font-size:clamp(.7rem,1.2vmin,.9rem);color:#4d5b70;letter-spacing:.05em;font-family:Roboto,sans-serif">Ctrl + 10 cliques para acesso técnico</div>
+    `;
+    document.body.appendChild(overlay);
+    const btnFS = overlay.querySelector('#btnEntrarFS');
+    const btnApp = overlay.querySelector('#btnInstalarApp');
+    btnFS.addEventListener('click', async e => { e.stopPropagation(); await ativarTudo(); });
+    btnApp.addEventListener('click', async e => { e.stopPropagation(); await instalarApp(); });
+    overlay.addEventListener('click', ativarTudo);
+    window.addEventListener('beforeinstallprompt', () => { if (overlay && bip) btnApp.style.display = 'inline-block'; });
+    if (bip) btnApp.style.display = 'inline-block';
+  }
+  function esconderOverlay() {
+    if (!overlay) return;
+    overlay.style.opacity = '0';
+    setTimeout(() => { if (overlay) { overlay.remove(); overlay = null; } }, 450);
+  }
+  async function instalarApp() {
+    try { if (bip) { bip.prompt(); await bip.userChoice; bip = null; } } catch (e) {}
+  }
+  async function ativarTudo() {
+    esconderOverlay();
+    try {
+      const el = document.documentElement;
+      const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+      if (fn) await fn.call(el);
+    } catch (e) { console.warn('[ALMAFLUXO] Fullscreen negado; seguindo sem', e && e.message || e); }
+    wake();
+  }
+  // Se já está em modo app/fullscreen, não mostra overlay
+  if (modoApp() || emTela()) return;
+  // Mostra overlay imediatamente (antes mesmo do conteúdo carregar)
+  criarOverlay();
+  // Tecla OK / Enter do controle também ativa
+  document.addEventListener('keydown', function onKey(e) {
+    if (e.key === 'Enter' || e.key === ' ' || e.keyCode === 13 || e.keyCode === 29443) {
+      if (overlay) { e.preventDefault(); ativarTudo(); }
+    }
+  }, true);
+  setTimeout(() => { if (overlay) esconderOverlay(); }, 30000);
 })();
 
 /* ═════ PLAYER DE ÁUDIO AMBIENTE ═════
