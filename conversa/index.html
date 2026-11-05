@@ -2788,105 +2788,296 @@ function txAlinhamentoEm(isoDate) {
   }
   return { iso: isoDate, dias: n, planetas: out, sol: out.terra };
 }
-TX.planetas3d = {def: {vel: 'normal'}, build(P, item, s, S) {
+TX.planetas3d = {def: {vel: 'estagnado'}, build(P, item, s, S) {
   s.className += ' tx'; txMorre(S);
   if (P.preview) return txPreview(s, 'planetas3d');
-  s.innerHTML = '<div class="tx-t">SISTEMA SOLAR · POSIÇÕES APROXIMADAS · TEMPO ACELERADO</div><div class="tx-data"></div><div class="tx-solar-qr"><img alt="QR Code para participar do alinhamento"/><div><b>Seu alinhamento</b><span>Escaneie para participar</span></div></div><div class="tx-av">Longitudes médias de órbita circular; distâncias comprimidas e planetas ampliados para visualização.</div>';
-  const aniversariantes = txAniversariantesHoje();
-  if (aniversariantes.length) {
-    const painel = document.createElement('div');
-    painel.className = 'tx-solar-aniv';
-    painel.style.cssText = 'position:absolute;left:2.5%;top:12%;z-index:6;max-width:28%;padding:1.4vmin 1.8vmin;border-radius:1.4vmin;background:rgba(8,16,32,.88);border:1px solid rgba(255,210,74,.6);box-shadow:0 1vmin 3vmin #0008;backdrop-filter:blur(10px);color:#eaf6ff;font-family:Roboto,sans-serif';
-    painel.innerHTML = '<div style="font-size:calc(var(--u)*1.35);letter-spacing:.14em;color:#ffd24a;text-transform:uppercase;font-weight:800;margin-bottom:.6em">✦ Aniversariantes de hoje</div>'
-      + aniversariantes.map(p => {
-        const al = txAlinhamentoEm(p.nasc);
-        const solSigno = al ? al.sol.signo.i + ' ' + al.sol.signo.n : '';
-        return '<div style="margin:.4em 0;font-size:calc(var(--u)*1.15);line-height:1.3">'
-          + '<b style="color:#00e5ff">' + esc(p.nome) + '</b> <span style="color:#8fa6c2;font-size:.85em">(' + esc(p.area) + ')</span>'
-          + (solSigno ? '<br><span style="color:#ffd24a">Sol em ' + solSigno + '</span>' : '')
-          + '</div>';
-      }).join('');
-    s.appendChild(painel);
-  }
 
-  /* A cada 15 s gira para outro aniversariante (simulação de alinhamento) */
-  if (aniversariantes.length) {
-    let i = 0;
-    const iv2 = setInterval(() => {
-      i = (i + 1) % aniversariantes.length;
-      const p = aniversariantes[i];
-      const al = txAlinhamentoEm(p.nasc);
-      if (al && s.querySelector('.tx-solar-aniv')) {
-        const avis = s.querySelector('.tx-solar-aniv');
-        avis.innerHTML = '<div style="font-size:calc(var(--u)*1.35);letter-spacing:.14em;color:#ffd24a;text-transform:uppercase;font-weight:800;margin-bottom:.6em">✦ ' + esc(p.nome) + '</div>'
-          + '<div style="font-size:calc(var(--u)*1.05);color:#8fa6c2;margin-bottom:.5em">' + esc(p.area) + ' · ' + al.iso + '</div>'
-          + Object.entries(al.planetas).map(([planeta, dado]) =>
-              '<div style="display:flex;justify-content:space-between;font-size:calc(var(--u)*1.05);padding:.15em 0;border-bottom:1px solid rgba(0,229,255,.1)">'
-              + '<span style="text-transform:capitalize;color:#cfe6ff">' + planeta + '</span>'
-              + '<span style="color:#ffd24a">' + dado.signo.i + ' ' + esc(dado.signo.n) + '</span>'
-              + '</div>'
-            ).join('');
-      }
-    }, 15000);
-    S.fins.push(() => clearInterval(iv2));
-  }
+  // ── Base fixa de pensadores (mesma do TX_ANIVERSARIANTES) ──
+  const PENSADORES = TX_ANIVERSARIANTES.map(p => ({ nome: p.nome, nasc: p.nasc, area: p.area, origem: 'fixo' }));
+
+  // ── Numerologia pitagórica ──
+  // Para pensador: usa a data completa (inclui ano real).
+  // Para participante: usa só MM-DD (o Worker descarta o ano por privacidade
+  //   e devolve "2000-MM-DD"; somar o "2000" fictício distorceria o número).
+  const numerologia = (iso, somenteMesDia) => {
+    const str = String(iso == null ? '' : iso);
+    const fonte = somenteMesDia ? str.slice(5) : str;
+    const digs = fonte.replace(/[^0-9]/g, '').split('').map(Number);
+    if (!digs.length) return 0;
+    let soma = digs.reduce((a, b) => a + b, 0);
+    while (soma > 9 && soma !== 11 && soma !== 22 && soma !== 33) {
+      soma = String(soma).split('').map(Number).reduce((a, b) => a + b, 0);
+    }
+    return soma;
+  };
+
+  const significados = {
+    1: 'Liderança, iniciativa, identidade própria.',
+    2: 'Parceria, sensibilidade, diplomacia.',
+    3: 'Expressão, criatividade, comunicação.',
+    4: 'Estrutura, disciplina, trabalho concreto.',
+    5: 'Liberdade, movimento, experiência.',
+    6: 'Cuidado, responsabilidade, família.',
+    7: 'Introspecção, análise, busca interior.',
+    8: 'Poder material, justiça, gestão.',
+    9: 'Compaixão, conclusão, humanismo.',
+    11: 'Intuição elevada, inspiração, mestre espiritual (número mestre).',
+    22: 'Construtor, grande obra, realização coletiva (número mestre).',
+    33: 'Mestre do serviço, cura, sacrifício consciente (número mestre).'
+  };
+
+  const leitura = (p, al, num) => {
+    const sol = al && al.planetas.terra ? al.planetas.terra.signo : null;
+    const mer = al && al.planetas.mercurio ? al.planetas.mercurio.signo : null;
+    const aviso = p.origem === 'participante'
+      ? ' Alinhamento aproximado (ano não armazenado por privacidade).'
+      : '';
+    return `Alinhamento em ${p.nasc}: Sol em ${sol ? sol.n + ' ' + sol.i : '—'}, Mercúrio em ${mer ? mer.n + ' ' + mer.i : '—'}. ` +
+      `Numerologia ${num}: ${significados[num] || ''} ` +
+      `Área de atuação: ${p.area}.${aviso}`;
+  };
+
+  // ── Estado do rotativo (isolado por slide) ──
+  const rot = { idx: -1, timer: null, timerPart: null };
+  const parar = () => {
+    if (rot.timer) { clearInterval(rot.timer); rot.timer = null; }
+    if (rot.timerPart) { clearInterval(rot.timerPart); rot.timerPart = null; }
+  };
+  S.fins.push(parar);
+
+  // ── Estrutura: 3D em cima, leitura embaixo ──
+  s.innerHTML =
+    '<div class="tx-t">SISTEMA SOLAR · ALINHAMENTO DO PENSADOR</div>' +
+    '<div class="tx-data"></div>' +
+    '<div class="tx-solar-qr"><img alt="QR Code para participar do alinhamento"/><div><b>Seu alinhamento</b><span>Escaneie para participar</span></div></div>' +
+    '<div class="tx-solar-painel" style="position:absolute;left:3%;right:3%;bottom:calc(clamp(48px,7.6vh,108px) + 4%);height:40%;display:grid;grid-template-columns:1.1fr .9fr;gap:2%;z-index:6"></div>' +
+    '<div class="tx-av">Longitudes médias de órbita circular; distâncias comprimidas e planetas ampliados.</div>';
+
+  const painel = s.querySelector('.tx-solar-painel');
   const dt = s.querySelector('.tx-data');
-  const qrSolar=s.querySelector('.tx-solar-qr img');
-  const urlHoro=location.origin+'/participar-horoscopo?totem='+encodeURIComponent(P.t&&P.t.id||'totem1');
-  qrSolar.src='https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=4&data='+encodeURIComponent(urlHoro);
+  const qrSolar = s.querySelector('.tx-solar-qr img');
+  const urlHoro = location.origin + '/participar-horoscopo?totem=' + encodeURIComponent(P.t && P.t.id || 'totem1');
+  qrSolar.src = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=4&data=' + encodeURIComponent(urlHoro);
+
+  // ── Renderiza o painel de leitura ──
+  const renderPainel = (p) => {
+    if (!p) return;
+    const al = txAlinhamentoEm(p.nasc);
+    const isPart = p.origem === 'participante';
+    const num = numerologia(p.nasc, isPart);
+    const txtNum = num > 0 ? String(num) : '—';        // ← exibe "—" se inválido
+    const corBorda = isPart ? '46,204,113' : '255,210,74';
+    const corTitulo = isPart ? '#2ecc71' : '#ffd24a';
+
+    const planetas = al ? Object.entries(al.planetas).map(([planeta, dado]) =>
+      '<div style="display:flex;justify-content:space-between;font-size:calc(var(--u)*1.05);padding:.2em 0;border-bottom:1px solid rgba(0,229,255,.1)">' +
+      '<span style="text-transform:capitalize;color:#cfe6ff">' + planeta + '</span>' +
+      '<span style="color:#ffd24a">' + dado.signo.i + ' ' + esc(dado.signo.n) + '</span></div>'
+    ).join('') : '';
+
+    const badge = isPart
+      ? '<span style="display:inline-block;background:rgba(46,204,113,.18);border:1px solid rgba(46,204,113,.6);color:#2ecc71;font-size:calc(var(--u)*.95);padding:.15em .6em;border-radius:1em;margin-left:.6em;letter-spacing:.06em">PARTICIPANTE</span>'
+      : '<span style="display:inline-block;background:rgba(255,210,74,.15);border:1px solid rgba(255,210,74,.55);color:#ffd24a;font-size:calc(var(--u)*.95);padding:.15em .6em;border-radius:1em;margin-left:.6em;letter-spacing:.06em">PENSADOR</span>';
+
+    painel.innerHTML =
+      '<div style="padding:1.4vmin 1.8vmin;border-radius:1.4vmin;background:rgba(8,16,32,.88);border:1px solid rgba(' + corBorda + ',.6);overflow:auto">' +
+        '<div style="font-size:calc(var(--u)*1.35);letter-spacing:.14em;color:' + corTitulo + ';text-transform:uppercase;font-weight:800;margin-bottom:.6em">✦ ' + esc(p.nome) + badge + '</div>' +
+        '<div style="font-size:calc(var(--u)*1.05);color:#8fa6c2;margin-bottom:.5em">' + esc(p.area) + ' · ' + esc(p.nasc) + '</div>' +
+        '<div style="display:flex;align-items:baseline;gap:1em;margin-bottom:.6em">' +
+          '<span style="font-size:calc(var(--u)*4);font-weight:800;color:#00e5ff">' + txtNum + '</span>' +   // ← usa txtNum
+          '<span style="font-size:calc(var(--u)*1.05);color:#cfe6ff;line-height:1.3">' + (significados[num] || '') + '</span>' +
+        '</div>' +
+        '<div style="font-size:calc(var(--u)*1.05);line-height:1.35;color:#d7eaff;border-left:2px solid #00e5ff;padding-left:.8em;margin-bottom:.6em">' + esc(leitura(p, al, num)) + '</div>' +
+        planetas +
+      '</div>';
+
+    dt.textContent = p.nasc;
+  };
+
+  // ── Lista dinâmica: participantes (prioridade) + pensadores ──
+  let participantes = [];
+  let listaAtual = PENSADORES.slice();
+  let idxAtual = -1;
+
+  const carregarParticipantes = async () => {
+    try {
+      const totemId = (P.t && P.t.id) || 'totem1';
+      const r = await fetch('/api/totem/horoscopo?totem=' + encodeURIComponent(totemId), { cache: 'no-store' });
+      if (!r.ok) return;
+      const d = await r.json();
+      const lista = Array.isArray(d.pessoas) ? d.pessoas : [];
+      // Ordem de envio: quem chegou antes aparece antes.
+      // Filtra registros malformados (nasc não-ISO) para não exibir "0" no painel.
+      lista.sort((a, b) => (a.criado_em || 0) - (b.criado_em || 0));
+      participantes = lista
+        .filter(p => p && typeof p.nasc === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(p.nasc))
+        .map(p => ({
+          nome: p.nome || 'Participante',
+          nasc: p.nasc,
+          area: 'Participante · Alinhamento do Dia',
+          origem: 'participante'
+        }));
+    } catch (e) { /* mantém a última lista boa */ }
+  };
+
+  const montarLista = () => {
+    listaAtual = [...participantes, ...PENSADORES];
+  };
+
+  const proximo = () => {
+    if (!listaAtual.length) return;
+    idxAtual = (idxAtual + 1) % listaAtual.length;
+    const p = listaAtual[idxAtual];
+    renderPainel(p);
+    if (S._aplicar3D) S._aplicar3D(p);
+  };
+
+  // ── 3D ──
   txThree().then(THREE => {
     if (S.morto) return;
-    const J2000 = Date.UTC(2000, 0, 1, 12), vel = {lenta: 4, normal: 10, rapida: 28}[item.vel] || 10, rad = a => 6 + Math.pow(a, .5) * 5.2, grupos = [];
+    const J2000 = Date.UTC(2000, 0, 1, 12);
+    const rad = a => 6 + Math.pow(a, .5) * 5.2;
+    const grupos = [];
+
     tx3d(s, S, THREE, C => {
-      const {sc, cam} = C; sc.add(new THREE.AmbientLight(0x445566, .6));
-      const sol = new THREE.Mesh(new THREE.SphereGeometry(3.2, 32, 24), new THREE.MeshBasicMaterial({color: 0xffc94d})); sc.add(sol);
-      const gc = document.createElement('canvas'); gc.width = gc.height = 128; const gg = gc.getContext('2d'), gr = gg.createRadialGradient(64, 64, 4, 64, 64, 64); gr.addColorStop(0, 'rgba(255,220,120,.95)'); gr.addColorStop(.35, 'rgba(255,170,60,.35)'); gr.addColorStop(1, 'rgba(255,140,0,0)'); gg.fillStyle = gr; gg.fillRect(0, 0, 128, 128);
-      const glow = new THREE.Sprite(new THREE.SpriteMaterial({map: new THREE.CanvasTexture(gc), blending: THREE.AdditiveBlending, transparent: true, depthWrite: false})); glow.scale.set(26, 26, 1); sc.add(glow);
+      const {sc, cam} = C;
+      sc.add(new THREE.AmbientLight(0x445566, .6));
+
+      const sol = new THREE.Mesh(new THREE.SphereGeometry(3.2, 32, 24), new THREE.MeshBasicMaterial({color: 0xffc94d}));
+      sc.add(sol);
+
+      const gc = document.createElement('canvas'); gc.width = gc.height = 128;
+      const gg = gc.getContext('2d'), gr = gg.createRadialGradient(64, 64, 4, 64, 64, 64);
+      gr.addColorStop(0, 'rgba(255,220,120,.95)'); gr.addColorStop(.35, 'rgba(255,170,60,.35)'); gr.addColorStop(1, 'rgba(255,140,0,0)');
+      gg.fillStyle = gr; gg.fillRect(0, 0, 128, 128);
+      const glow = new THREE.Sprite(new THREE.SpriteMaterial({map: new THREE.CanvasTexture(gc), blending: THREE.AdditiveBlending, transparent: true, depthWrite: false}));
+      glow.scale.set(26, 26, 1); sc.add(glow);
       sc.add(new THREE.PointLight(0xfff0cc, 1.6, 400));
-      const est = []; for (let i = 0; i < 700; i++) { const u = Math.random() * 6.283, v = Math.acos(2 * Math.random() - 1), r = 260 + Math.random() * 120; est.push(r * Math.sin(v) * Math.cos(u), r * Math.cos(v), r * Math.sin(v) * Math.sin(u)); }
-      const eg = new THREE.BufferGeometry(); eg.setAttribute('position', new THREE.Float32BufferAttribute(est, 3)); sc.add(new THREE.Points(eg, new THREE.PointsMaterial({color: 0xaecbff, size: 1.1, sizeAttenuation: false})));
+
+      const est = [];
+      for (let i = 0; i < 700; i++) {
+        const u = Math.random() * 6.283, v = Math.acos(2 * Math.random() - 1), r = 260 + Math.random() * 120;
+        est.push(r * Math.sin(v) * Math.cos(u), r * Math.cos(v), r * Math.sin(v) * Math.sin(u));
+      }
+      const eg = new THREE.BufferGeometry();
+      eg.setAttribute('position', new THREE.Float32BufferAttribute(est, 3));
+      sc.add(new THREE.Points(eg, new THREE.PointsMaterial({color: 0xaecbff, size: 1.1, sizeAttenuation: false})));
+
       TX_PLANETAS.forEach(p => {
-        const R = rad(p[3]), pts = []; for (let i = 0; i <= 96; i++) { const a = i / 96 * 6.2832; pts.push(new THREE.Vector3(Math.cos(a) * R, 0, Math.sin(a) * R)); }
+        const R = rad(p[3]), pts = [];
+        for (let i = 0; i <= 96; i++) {
+          const a = i / 96 * 6.2832;
+          pts.push(new THREE.Vector3(Math.cos(a) * R, 0, Math.sin(a) * R));
+        }
         sc.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({color: 0x18405a, transparent: true, opacity: .8})));
+
         const m = new THREE.Mesh(new THREE.SphereGeometry(p[4], 24, 18), new THREE.MeshPhongMaterial({color: p[5], emissive: new THREE.Color(p[5]).multiplyScalar(.18)}));
-        if (p[0] === 'Saturno') { const rg = new THREE.Mesh(new THREE.RingGeometry(p[4] * 1.4, p[4] * 2.3, 48), new THREE.MeshBasicMaterial({color: 0xcdbb86, side: THREE.DoubleSide, transparent: true, opacity: .75})); rg.rotation.x = Math.PI / 2.4; m.add(rg); }
-        const lb = txLabel(THREE, p[0], '#' + new THREE.Color(p[5]).getHexString(), 7); lb.position.y = p[4] + 1.6; m.add(lb); sc.add(m); grupos.push({m, p, R});
+
+        if (p[0] === 'Saturno') {
+          const rg = new THREE.Mesh(new THREE.RingGeometry(p[4] * 1.4, p[4] * 2.3, 48), new THREE.MeshBasicMaterial({color: 0xcdbb86, side: THREE.DoubleSide, transparent: true, opacity: .75}));
+          rg.rotation.x = Math.PI / 2.4; m.add(rg);
+        }
+
+        const lb = txLabel(THREE, p[0], '#' + new THREE.Color(p[5]).getHexString(), 7);
+        lb.position.y = p[4] + 1.6; m.add(lb); sc.add(m);
+
+        grupos.push({m, p, R});
       });
-      C.cb = t => {
-        const ms = Date.now() + t * vel * 86400000 / 1, d = (ms - J2000) / 86400000, f = txDist(cam), ang = t * .05, el = .75;
-        grupos.forEach(g => { const a = (g.p[1] + 360 * d / g.p[2]) * Math.PI / 180; g.m.position.set(Math.cos(a) * g.R, 0, -Math.sin(a) * g.R); g.m.rotation.y += .01; });
-        const Rc = 78 * f; cam.position.set(Math.sin(ang) * Rc * Math.cos(el), Rc * Math.sin(el), Math.cos(ang) * Rc * Math.cos(el)); cam.lookAt(0, 0, 0);
-        if (((t * 4) | 0) !== C._u) { C._u = (t * 4) | 0; dt.textContent = new Date(ms).toLocaleDateString('pt-BR', {day: '2-digit', month: 'long', year: 'numeric'}) + ' · ' + vel + ' dias/s'; }
+
+      // ── Aplica o alinhamento de uma data e ESTAGNA ──
+      S._aplicar3D = (pensador) => {
+        const al = txAlinhamentoEm(pensador.nasc);
+        if (!al) return;
+        const n = al.dias;
+
+        TX_PLANETAS.forEach((p, i) => {
+          const g = grupos[i];
+          if (!g) return;
+          const ef = { 'Mercúrio': [252.25, 4.09235], 'Vênus': [181.98, 1.60213], 'Terra': [100.47, 0.98561], 'Marte': [355.43, 0.52402],
+                       'Júpiter': [34.35, 0.08309], 'Saturno': [50.08, 0.03346], 'Urano': [314.06, 0.01172], 'Netuno': [304.35, 0.00598] }[p[0]];
+          if (!ef) return;
+          const lon = ((ef[0] + ef[1] * n) % 360 + 360) % 360;
+          const a = lon * Math.PI / 180;
+          g.m.position.set(Math.cos(a) * g.R, 0, -Math.sin(a) * g.R);
+        });
+
+        // Câmera FIXA no alinhamento (sem rotação automática)
+        const f = txDist(cam), Rc = 78 * f;
+        cam.position.set(0, Rc * Math.sin(.75), Rc * Math.cos(.75));
+        cam.lookAt(0, 0, 0);
+
+        // Só micro-oscilação suave (não altera o alinhamento)
+        C.cb = t => {
+          cam.position.x = Math.sin(t * .15) * 2 * f;
+          cam.lookAt(0, 0, 0);
+        };
       };
+
+      // ── Boot do ciclo: carrega uma vez, inicia o ciclo e recarrega participantes a cada 5 min ──
+      carregarParticipantes().then(() => {
+        montarLista();
+        proximo();
+
+        // Avança o slide a cada 18 s (sem fetch)
+        rot.timer = setInterval(() => {
+          if (!s.isConnected) { parar(); return; }
+          proximo();
+        }, 18000);
+
+        // Recarrega participantes a cada 5 min (12 req/h em vez de 200)
+        rot.timerPart = setInterval(() => {
+          if (!s.isConnected) { parar(); return; }
+          carregarParticipantes().then(() => {
+            if (idxAtual >= listaAtual.length) idxAtual = -1;  // preserva a posição
+            montarLista();
+          });
+        }, 5 * 60 * 1000);
+      });
     });
   }).catch(() => { if (!S.morto) txSemWebgl(s, '3D indisponível (sem acesso ao three.js)'); });
 }};
-
 /* ═════ TERREMOTOS · GLOBO 3D ═════ */
 TX.terremotos = {
-  def: { magMin: 4.5, mapa: 'globo' },   // 'globo' | 'plano'
+  def: { magMin: 4.5, mapa: 'globo' },
   build(P, item, s, S) {
     s.className += ' tx'; txMorre(S);
     if (P.preview) return txPreview(s, 'terremotos');
-    s.innerHTML = '<div class="tx-t">TERREMOTOS · ÚLTIMOS 7 DIAS · MAPA-MÚNDI</div>'
+    s.innerHTML = '<div class="tx-t">TERREMOTOS · CARREGANDO · MAPA-MÚNDI</div>'
       + '<div class="tx-lista tx-sismos"></div><div class="tx-av"></div>';
-    const lista = s.querySelector('.tx-lista'), av = s.querySelector('.tx-av');
-    Promise.all([txThree(), txDados('terremotos', '', 300000)]).then(([THREE, d]) => {
-      if (S.morto) return;
-      const mm = Math.max(4.5, +item.magMin || 4.5), ev = (Array.isArray(d.eventos) ? d.eventos : []).filter(e => Number(e.mag) >= mm && Number.isFinite(Number(e.lat)) && Number.isFinite(Number(e.lon)));
-      const top = ev.slice().sort((a, b) => b.mag - a.mag).slice(0, 6);
-      lista.innerHTML = '<div class="tx-sm-h"><b>' + d.total + '</b> eventos M4,5+ · maior <b>M'
-        + txN(d.maior, 1) + '</b></div>' + top.map(e =>
-        '<div class="tx-li" style="border-color:' + (e.mag >= 6 ? '#ff5a6e' : e.mag >= 5.5 ? '#ff9f43' : '#ffd24a') + '">'
-        + '<div class="tx-ln"><b>M' + txN(e.mag, 1) + '</b><span>' + esc(e.lugar)
-        + '</span><em>' + txAgo(e.t) + '</em></div></div>').join('');
-      av.innerHTML = esc(d.fonte || '') + ' · atualizado ' + txHora(d.atualizado) + txStaleTag(d);
+    const lista = s.querySelector('.tx-lista'), av = s.querySelector('.tx-av'), titulo = s.querySelector('.tx-t');
+    // ── tenta 30 dias; se o Worker não aceitar, cai para 7 dias ──
+    txDados('terremotos', 'periodo=30d', 600000)
+      .catch(() => txDados('terremotos', '', 300000)
+        .then(d => ({ ...d, periodoAviso: 'O Worker devolveu 7 dias; atualize a rota para aceitar periodo=30d.' })))
+      .then(d => Promise.all([txThree(), Promise.resolve(d)]))
+      .then(([THREE, d]) => {
+        if (S.morto) return;
+        const dias = d.periodoAviso ? 7 : 30;
+        titulo.textContent = 'TERREMOTOS · ÚLTIMOS ' + dias + ' DIAS · MAPA-MÚNDI';
+        if (d.periodoAviso) {
+          const aviso = document.createElement('div');
+          aviso.className = 'tx-erro';
+          aviso.style.cssText = 'inset:auto;left:3%;right:3%;top:7%;font-size:calc(var(--u)*1.2);color:#ffc46b;pointer-events:none';
+          aviso.textContent = d.periodoAviso;
+          s.appendChild(aviso);
+        }
+        const mm = Math.max(4.5, +item.magMin || 4.5);
+        const ev = (Array.isArray(d.eventos) ? d.eventos : [])
+          .filter(e => Number(e.mag) >= mm && Number.isFinite(Number(e.lat)) && Number.isFinite(Number(e.lon)));
+        const top = ev.slice().sort((a, b) => b.mag - a.mag).slice(0, 6);
+        lista.innerHTML = '<div class="tx-sm-h"><b>' + d.total + '</b> eventos M4,5+ · maior <b>M'
+          + txN(d.maior, 1) + '</b></div>' + top.map(e =>
+          '<div class="tx-li" style="border-color:' + (e.mag >= 6 ? '#ff5a6e' : e.mag >= 5.5 ? '#ff9f43' : '#ffd24a') + '">'
+          + '<div class="tx-ln"><b>M' + txN(e.mag, 1) + '</b><span>' + esc(e.lugar)
+          + '</span><em>' + txAgo(e.t) + '</em></div></div>').join('');
+        av.innerHTML = esc(d.fonte || '') + ' · atualizado ' + txHora(d.atualizado) + txStaleTag(d);
 
-      if (item.mapa === 'plano') return montarMapaPlano(s, S, ev, THREE);
-      montarGlobo(s, S, ev, THREE);
-    }).catch(() => {
-      if (!S.morto) txSemWebgl(s, 'Sem dados de terremotos no momento…');
-    });
+        if (item.mapa === 'plano') return montarMapaPlano(s, S, ev, THREE);
+        montarGlobo(s, S, ev, THREE);
+      })
+      .catch(() => {
+        if (!S.morto) txSemWebgl(s, 'Sem dados de terremotos no momento…');
+      });
   }
 };
 
@@ -2962,41 +3153,130 @@ function montarGlobo(s, S, ev, THREE) {
   });
 }
 /* — versão mapa-múndi plano (projeção equiretangular) — */
-const TX_CONTINENTES = [
- [[72,-168],[70,-140],[58,-135],[48,-125],[32,-117],[20,-105],[15,-92],[9,-78],[18,-72],[25,-80],[35,-76],[47,-52],[58,-63],[68,-96]],
- [[12,-72],[4,-51],[-8,-35],[-23,-43],[-35,-55],[-52,-69],[-55,-60],[-40,-45],[-23,-43],[-8,-35],[5,-55]],
- [[37,10],[30,-10],[16,-17],[5,-10],[0,14],[-15,12],[-35,18],[-30,31],[-15,41],[-2,42],[12,44],[25,35],[37,10]],
- [[70,30],[58,8],[50,4],[43,2],[38,22],[45,20],[52,5],[63,20],[70,30]],
- [[75,140],[72,90],[68,60],[60,30],[50,30],[42,50],[40,80],[30,90],[18,80],[8,105],[22,120],[36,140],[50,142],[68,180]],
- [[-12,132],[-16,146],[-28,153],[-38,146],[-35,135],[-28,115],[-18,122]],
- [[-70,-180],[-70,-120],[-70,-60],[-70,0],[-70,60],[-70,120],[-70,180]]
+// Base de países com polígonos aproximados (lat, lon) — desenho reconhecível, não cartográfico
+const TX_PAISES_MAPA = [
+  // ── AMÉRICA DO SUL ──
+  { nome: 'Brasil', pts: [[5,-60],[-1,-50],[-5,-35],[-15,-39],[-23,-43],[-33,-53],[-30,-60],[-20,-65],[-10,-70],[-5,-72],[2,-68]] },
+  { nome: 'Argentina', pts: [[-22,-62],[-28,-58],[-35,-57],[-45,-65],[-53,-68],[-50,-70],[-30,-70],[-23,-68]] },
+  { nome: 'Chile', pts: [[-18,-70],[-30,-72],[-40,-74],[-52,-74],[-54,-70],[-35,-70],[-20,-69]] },
+  { nome: 'Peru', pts: [[0,-80],[-5,-78],[-15,-75],[-18,-70],[-10,-70],[0,-75]] },
+  { nome: 'Colômbia', pts: [[12,-72],[5,-70],[0,-75],[2,-78],[10,-77]] },
+  { nome: 'Venezuela', pts: [[12,-70],[5,-62],[1,-60],[8,-62],[11,-66]] },
+  { nome: 'Bolívia', pts: [[-10,-65],[-20,-63],[-22,-60],[-15,-60],[-10,-62]] },
+  { nome: 'Paraguai', pts: [[-20,-58],[-27,-56],[-25,-60],[-19,-62]] },
+  { nome: 'Uruguai', pts: [[-30,-54],[-35,-54],[-34,-58],[-30,-58]] },
+  { nome: 'Equador', pts: [[1,-80],[-2,-80],[-5,-79],[-3,-77],[1,-78]] },
+  { nome: 'Guiana', pts: [[8,-60],[5,-57],[2,-56],[1,-58],[5,-61]] },
+  { nome: 'Suriname', pts: [[6,-58],[4,-54],[2,-54],[2,-57],[5,-58]] },
+  // ── AMÉRICA CENTRAL E CARIBE ──
+  { nome: 'México', pts: [[32,-115],[23,-97],[18,-92],[15,-96],[22,-105],[28,-112]] },
+  { nome: 'Guatemala', pts: [[17,-92],[15,-89],[13,-89],[14,-92],[16,-93]] },
+  { nome: 'Belize', pts: [[18,-88],[17,-88],[17,-89],[18,-89]] },
+  { nome: 'Honduras', pts: [[16,-88],[15,-84],[13,-84],[13,-88]] },
+  { nome: 'El Salvador', pts: [[14,-90],[13,-89],[13,-88],[14,-88]] },
+  { nome: 'Nicarágua', pts: [[15,-86],[13,-84],[11,-84],[11,-86],[13,-87]] },
+  { nome: 'Costa Rica', pts: [[11,-85],[10,-83],[8,-83],[8,-85],[10,-86]] },
+  { nome: 'Panamá', pts: [[9,-83],[9,-79],[7,-79],[7,-82]] },
+  { nome: 'Cuba', pts: [[23,-83],[22,-79],[20,-75],[20,-77],[22,-80]] },
+  { nome: 'Haiti', pts: [[20,-73],[19,-72],[18,-72],[18,-74],[19,-74]] },
+  { nome: 'Rep. Dominicana', pts: [[20,-71],[19,-69],[18,-68],[18,-71]] },
+  { nome: 'Jamaica', pts: [[18.5,-78],[18,-76.5],[17.8,-77.5],[18.2,-78.5]] },
+  // ── AMÉRICA DO NORTE ──
+  { nome: 'EUA', pts: [[49,-125],[40,-120],[32,-117],[25,-100],[30,-82],[45,-67],[48,-95],[49,-110]] },
+  { nome: 'Canadá', pts: [[70,-140],[60,-135],[50,-125],[45,-65],[55,-60],[70,-80],[75,-120]] },
+  { nome: 'Groenlândia', pts: [[83,-30],[70,-20],[60,-45],[75,-60],[82,-50]] },
+  // ── EUROPA ──
+  { nome: 'Reino Unido', pts: [[59,-5],[55,-2],[51,1],[50,-5],[55,-6],[58,-4]] },
+  { nome: 'França', pts: [[51,2],[48,7],[43,7],[43,-2],[49,-2]] },
+  { nome: 'Espanha', pts: [[44,-9],[43,3],[37,-1],[36,-6],[43,-9]] },
+  { nome: 'Portugal', pts: [[42,-9],[37,-9],[37,-7],[42,-7]] },
+  { nome: 'Alemanha', pts: [[55,8],[51,15],[47,13],[47,6],[52,5]] },
+  { nome: 'Itália', pts: [[46,12],[45,14],[42,18],[38,16],[41,12],[44,8]] },
+  { nome: 'Grécia', pts: [[41,22],[41,26],[36,28],[36,21],[40,21]] },
+  { nome: 'Turquia', pts: [[42,26],[42,45],[36,45],[36,26]] },
+  // ── ÁSIA ──
+  { nome: 'Rússia', pts: [[70,30],[70,180],[50,180],[45,40],[55,30],[65,30]] },
+  { nome: 'Cazaquistão', pts: [[55,45],[55,85],[40,85],[40,45]] },
+  { nome: 'China', pts: [[50,120],[50,135],[20,120],[20,95],[35,75],[45,85]] },
+  { nome: 'Índia', pts: [[32,75],[28,90],[22,92],[8,78],[22,68],[28,68]] },
+  { nome: 'Japão', pts: [[45,142],[38,142],[32,132],[34,128],[42,132]] },
+  { nome: 'Filipinas', pts: [[19,121],[16,122],[12,125],[7,126],[6,122],[10,120],[14,120]] },
+  { nome: 'Indonésia', pts: [[5,95],[5,140],[-10,140],[-10,95]] },
+  { nome: 'Vietnã', pts: [[22,105],[20,107],[16,109],[10,107],[8,105],[18,104]] },
+  { nome: 'Tailândia', pts: [[20,100],[18,104],[14,102],[8,99],[12,98],[18,98]] },
+  { nome: 'Mianmar', pts: [[28,97],[24,98],[18,98],[12,99],[16,96],[22,95]] },
+  { nome: 'Coreia do Sul', pts: [[38,128],[36,130],[34,127],[35,125],[37,125]] },
+  { nome: 'Coreia do Norte', pts: [[42,130],[38,130],[38,125],[40,124],[42,126]] },
+  { nome: 'Irã', pts: [[38,45],[37,50],[30,60],[26,62],[27,52],[32,48],[36,44]] },
+  { nome: 'Iraque', pts: [[37,42],[36,46],[30,48],[30,42],[33,40],[36,41]] },
+  { nome: 'Arábia Saudita', pts: [[32,36],[32,56],[16,56],[16,36]] },
+  { nome: 'Israel', pts: [[33,35],[32,36],[30,35],[31,34]] },
+  // ── OCEANIA ──
+  { nome: 'Austrália', pts: [[-12,132],[-12,142],[-22,150],[-38,146],[-32,125],[-18,122]] },
+  { nome: 'Nova Zelândia', pts: [[-36,174],[-41,175],[-46,168],[-42,171]] },
+  { nome: 'Papua-Nova Guiné', pts: [[-1,141],[-3,146],[-8,150],[-10,143],[-6,141],[-3,140]] },
+  // ── ÁFRICA ──
+  { nome: 'Egito', pts: [[31,25],[31,35],[22,35],[22,25]] },
+  { nome: 'África do Sul', pts: [[-22,25],[-22,31],[-34,31],[-34,20],[-30,17]] },
+  { nome: 'Nigéria', pts: [[14,3],[14,14],[4,14],[4,3]] },
+  { nome: 'Gana', pts: [[11,-3],[11,1],[5,1],[5,-3]] },
+  { nome: 'Senegal', pts: [[16,-17],[16,-12],[12,-12],[12,-17]] },
+  { nome: 'Costa do Marfim', pts: [[10,-8],[10,-3],[5,-3],[5,-8]] },
+  // ── ANTÁRTIDA ──
+  { nome: 'Antártida', pts: [[-65,-180],[-65,180],[-85,180],[-85,-180]] }
 ];
 function montarMapaPlano(s, S, ev, THREE) {
   tx3d(s, S, THREE, C => {
     const { sc, cam } = C; C.ajustar();
     sc.background = new THREE.Color(0x02040a);
-    // plano como textura gerada em canvas
-    const W = 1024, H = 512;
+    const W = 2048, H = 1024;                      // dobra a resolução do mapa
     const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
     const g = cv.getContext('2d');
     g.fillStyle = '#030812'; g.fillRect(0, 0, W, H);
-    g.strokeStyle = 'rgba(0,229,255,.18)'; g.lineWidth = 1;
-    for (let x = 0; x <= W; x += W / 12) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); }
-    for (let y = 0; y <= H; y += H / 6)  { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
-    const px = lon => (lon + 180) / 360 * W, py = lat => (90 - lat) / 180 * H;
-    g.fillStyle='rgba(45,212,191,.13)'; g.strokeStyle='rgba(45,212,191,.78)'; g.lineWidth=2;
-    TX_CONTINENTES.forEach(poly=>{g.beginPath();poly.forEach((pt,i)=>{const x=px(pt[1]),y=py(pt[0]);if(i===0)g.moveTo(x,y);else g.lineTo(x,y);});g.closePath();g.fill();g.stroke();});
+
+    // grade lat/lon
+    g.strokeStyle = 'rgba(0,229,255,.15)'; g.lineWidth = 1;
+    for (let x = 0; x <= W; x += W / 24) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); }
+    for (let y = 0; y <= H; y += H / 12)  { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
+
+    const px = lon => (lon + 180) / 360 * W;
+    const py = lat => (90 - lat) / 180 * H;
+
+    // ── países: preenchimento + contorno + nome ──
+    TX_PAISES_MAPA.forEach(pais => {
+      g.beginPath();
+      pais.pts.forEach((pt, i) => {
+        const x = px(pt[1]), y = py(pt[0]);
+        i === 0 ? g.moveTo(x, y) : g.lineTo(x, y);
+      });
+      g.closePath();
+      g.fillStyle = 'rgba(45,212,191,.14)';
+      g.strokeStyle = 'rgba(45,212,191,.85)';
+      g.lineWidth = 2.5;
+      g.fill(); g.stroke();
+
+      // nome do país (centro aproximado)
+      const cx = pais.pts.reduce((a, p) => a + px(p[1]), 0) / pais.pts.length;
+      const cy = pais.pts.reduce((a, p) => a + py(p[0]), 0) / pais.pts.length;
+      g.fillStyle = 'rgba(230,246,255,.85)';
+      g.font = 'bold 22px Orbitron, Arial, sans-serif';
+      g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText(pais.nome.toUpperCase(), cx, cy);
+    });
+
     const tex = new THREE.CanvasTexture(cv);
-    const plano = new THREE.Mesh(new THREE.PlaneGeometry(90, 45),
-      new THREE.MeshBasicMaterial({ map: tex, transparent: true }));
+    const plano = new THREE.Mesh(new THREE.PlaneGeometry(90, 45), new THREE.MeshBasicMaterial({ map: tex, transparent: true }));
     sc.add(plano);
+
     const P2 = (lat, lon, z = 0) => new THREE.Vector3((lon / 180) * 45, (lat / 90) * 22.5, z || .5);
-    const mat = new THREE.MeshBasicMaterial({ color: 0x2dd4bf, transparent: true, opacity: .95 });
+
+    // ── sismos: ponto + anel animado ──
     ev.forEach((e, i) => {
       const cor = e.mag >= 6 ? 0xff3b55 : e.mag >= 5.5 ? 0xff9f43 : 0xffd24a;
       const m = new THREE.Mesh(new THREE.CircleGeometry(.18 + (e.mag - 4.4) * .14, 16),
         new THREE.MeshBasicMaterial({ color: cor, transparent: true, opacity: .9 }));
       m.position.copy(P2(e.lat, e.lon, 1)); sc.add(m);
+
       const r = new THREE.Mesh(new THREE.RingGeometry(.22, .3, 24),
         new THREE.MeshBasicMaterial({ color: cor, transparent: true, opacity: .6, side: THREE.DoubleSide }));
       r.position.copy(P2(e.lat, e.lon, 1.2)); sc.add(r);
@@ -3004,13 +3284,15 @@ function montarMapaPlano(s, S, ev, THREE) {
       if (!S._aneis) S._aneis = [];
       S._aneis.push(r);
     });
-    let t0 = performance.now();
+
+    // ── animação LENTA: anéis expandem em ciclo de ~4 s (antes era ~1,6 s) ──
+    const t0 = performance.now();
     C.cb = () => {
       const t = (performance.now() - t0) / 1000;
       const f = txDist(cam);
       cam.position.set(0, 0, 55 * f); cam.lookAt(0, 0, 0);
       (S._aneis || []).forEach(a => {
-        const k = ((t * .6) + a.userData.ph) % 1;
+        const k = ((t * .25) + a.userData.ph) % 1;   // .25 = ciclo de 4 s
         a.scale.setScalar(1 + k * 3);
         a.material.opacity = .6 * (1 - k);
       });
@@ -3298,7 +3580,7 @@ TX.horoscopo = {
 
     renderizar();
     buscarRemotos();
-    const iv = setInterval(() => { renderizar(); buscarRemotos(); }, 20000);
+    const iv = setInterval(() => { renderizar(); buscarRemotos(); }, 60000);
     S.fins.push(() => { clearInterval(iv); pararRotativo(); });
   }
 };
@@ -3310,7 +3592,7 @@ function txEditor(it, k, i) {
   else if (t === 'curiosidades') h = sel('Categoria',k+'categoria',it.categoria||'astronomia',[['astronomia','✨ Astronomia'],['catastrofes','🌋 Catástrofes naturais'],['genios','🧠 Gênios e descobertas']]);
   else if (t === 'horoscopo') h = fld('Pessoas exibidas',k+'porPagina',it.porPagina||4,'number','min="2" max="8"') + fld('URL HTTPS da página de cadastro',k+'cadastroUrl',it.cadastroUrl||'') + fld('URL HTTPS do endpoint GET JSON',k+'apiUrl',it.apiUrl||'') + '<div class="hintx">O QR de participação fica integrado ao rodapé da tela Sistema Solar. Sem URL personalizada, o totem usa /participar-horoscopo e o banco CHAT_DB do Worker. Sem participantes aprovados, aparece o Horóscopo dos Pensadores; com cadastros, aparecem os alinhamentos dos participantes. O sistema armazena somente mês e dia do nascimento; o ano é descartado. A leitura é simbólica.</div>';
   else if (t === 'recadoAmor') h = fld('Título principal',k+'titulo',it.titulo||'Uma mensagem pode mudar o dia de alguém') + fld('Mensagens exibidas',k+'porPagina',it.porPagina||3,'number','min="1" max="4"') + '<div class="hintx">O QR abre a página pública /recado-amor. As mensagens ficam pendentes e só aparecem no totem após aprovação pelo endpoint administrativo do Worker. Não solicite telefone, endereço ou dados pessoais.</div>';
-  else if (t === 'planetas3d') h = sel('Velocidade do tempo', k + 'vel', it.vel || 'normal', [['lenta', 'Lenta (4 dias/s)'], ['normal', 'Normal (10 dias/s)'], ['rapida', 'Rápida (28 dias/s)']]);
+  else if (t === 'planetas3d') h = '<div class="hintx" style="grid-column:1/-1">A câmera fica fixa no alinhamento do pensador/participante. A rotação automática foi removida.</div>';
   else if (t === 'terremotos') h = fld('Magnitude mínima', k + 'magMin', it.magMin == null ? 4.5 : it.magMin, 'number', 'min="4.5" max="9" step="0.1"') + sel('Visualização', k + 'mapa', it.mapa || 'globo', [['globo','🌍 Globo 3D'],['plano','🗺️ Mapa-múndi plano']]);
   else if (t === 'jornal') h = fld('Cidade do jornal', k + 'cidade', it.cidade || 'São Paulo');
   else if (t === 'climagrafico') h = fld('Cidade', k + 'cidade', it.cidade || '') + fld('Latitude', k + 'lat', it.lat, 'number', 'step="0.0001"') + fld('Longitude', k + 'lon', it.lon, 'number', 'step="0.0001"') + '<label>&nbsp;<button class="btn" onclick="buscarCidade(' + i + ')">🔎 Achar coordenadas pela cidade</button></label>';
