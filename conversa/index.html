@@ -4,14 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#000000">
-<!-- Manifest: aponta para a rota servida pelo Worker (fallback totem1) -->
-<link rel="manifest" id="manifestLink" href="/manifest.webmanifest?id=totem1">
-<!-- iOS: tela cheia em modo app -->
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="ALMAFLUXO">
-<!-- Ícone para o manifest (SVG inline, sem arquivo externo) -->
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%23030508'/%3E%3Ccircle cx='256' cy='256' r='180' fill='%2300e5ff'/%3E%3C/svg%3E">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>ALMAFLUXO · Totem</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
   :root{
@@ -533,36 +531,16 @@ html,body{background:#000}
 .tx-n{border-left:calc(var(--u)*.5) solid #00e5ff;padding:calc(var(--u)*.6) calc(var(--u)*1.6);background:linear-gradient(90deg,rgba(0,229,255,.09),transparent);opacity:0;animation:txin .7s ease forwards}
 @keyframes txin{from{opacity:0;transform:translateX(calc(var(--u)*-3))}to{opacity:1;transform:none}}
 .tx-nt{display:block;font-size:calc(var(--u)*3);line-height:1.22;font-weight:500}.tx-nf{display:block;font-size:calc(var(--u)*1.7);color:#7fa6c9;margin-top:calc(var(--u)*.4)}
-/* jornal — mesmo padrão visual de .tx (radial escuro + Roboto + paleta do totem) */
-.jn{position:absolute;inset:0;padding:3% 4%;display:flex;flex-direction:column;
-    background:radial-gradient(ellipse at 30% 15%,#0b1a33,#02040a 70%);color:#eaf6ff;
-    font-family:'Roboto',sans-serif}
-.jn-m{font-family:'Orbitron',sans-serif;font-size:calc(var(--u)*3.2);text-align:center;
-      letter-spacing:.14em;color:#00e5ff;border-bottom:calc(var(--u)*.3) solid rgba(0,229,255,.5);
-      padding-bottom:calc(var(--u)*.8);text-shadow:0 0 calc(var(--u)*1.2) rgba(0,229,255,.55)}
-.jn-s{text-align:center;font-size:calc(var(--u)*1.7);color:#9aa3b5;
-      margin:calc(var(--u)*.8) 0 calc(var(--u)*1.4);font-family:'Roboto',sans-serif;
-      text-transform:capitalize}
-.jn-g{flex:1;min-height:0;display:grid;grid-template-columns:1.5fr 1fr;gap:calc(var(--u)*2.4)}
-.jn-h{font-family:'Orbitron',sans-serif;font-size:calc(var(--u)*3.4);line-height:1.18;
-      font-weight:700;align-self:center;color:#ffd24a;text-shadow:0 0 calc(var(--u)*1) rgba(255,210,74,.35)}
-.jn-in{animation:jnin 1s ease}
+/* jornal */
+.jn{position:absolute;inset:0;padding:3% 4%;display:flex;flex-direction:column;background:#0c0e13;color:#ece6d6;font-family:Georgia,'Times New Roman',serif}
+.jn-m{font-family:'Orbitron',Georgia,serif;font-size:calc(var(--u)*5.2);text-align:center;letter-spacing:.14em;color:#d4a843;border-bottom:calc(var(--u)*.3) double #d4a843;padding-bottom:calc(var(--u)*.8)}
+.jn-s{text-align:center;font-size:calc(var(--u)*1.7);color:#9aa3b5;margin:calc(var(--u)*.8) 0 calc(var(--u)*1.6);font-family:'Roboto',sans-serif;text-transform:capitalize}
+.jn-g{flex:1;min-height:0;display:grid;grid-template-columns:1.5fr 1fr;gap:calc(var(--u)*3)}
+.jn-h{font-size:calc(var(--u)*5.2);line-height:1.12;font-weight:700;align-self:center}.jn-in{animation:jnin 1s ease}
 @keyframes jnin{from{opacity:0;transform:translateY(calc(var(--u)*1.5))}to{opacity:1;transform:none}}
-.jn-l{border-left:1px solid rgba(0,229,255,.25);padding-left:calc(var(--u)*2);
-      display:flex;flex-direction:column;justify-content:space-evenly;
-      font-size:calc(var(--u)*1.9);line-height:1.25;color:#cfe6ff}
-.jn-l div{border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:calc(var(--u)*.7)}
-.jn-c{margin-top:calc(var(--u)*1.2);border-top:1px solid rgba(0,229,255,.25);
-      padding-top:calc(var(--u)*1);font-size:calc(var(--u)*2);line-height:1.4;color:#cfe6ff;min-height:18%}
-
-/* ── retrato: empilha as colunas para a manchete não vazar ── */
-.pl-root[data-orient="retrato"] .jn-g,
-.regc:has(> .jn) .jn-g { grid-template-columns:1fr; }
-@media (max-aspect-ratio: 1/1) {
-  .jn-g{grid-template-columns:1fr;gap:calc(var(--u)*1.6)}
-  .jn-l{border-left:0;border-top:1px solid rgba(0,229,255,.25);padding-left:0;padding-top:calc(var(--u)*1)}
-  .jn-h{font-size:calc(var(--u)*2.6)}
-}
+.jn-l{border-left:1px solid #2a2f3a;padding-left:calc(var(--u)*2.2);display:flex;flex-direction:column;justify-content:space-evenly;font-size:calc(var(--u)*2);line-height:1.25;color:#cfc8b6}
+.jn-l div{border-bottom:1px solid #1d212b;padding-bottom:calc(var(--u)*.7)}
+.jn-c{margin-top:calc(var(--u)*1.2);border-top:1px solid #2a2f3a;padding-top:calc(var(--u)*1.2);font-size:calc(var(--u)*2.1);line-height:1.4;color:#b9b3a3;min-height:18%}
 /* gráfico de clima */
 .cg{position:absolute;left:3%;right:3%;top:11%;bottom:8%;z-index:2;display:grid;grid-template-columns:30% 1fr;gap:3%}
 .cg-a{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}.cg-c{font-size:calc(var(--u)*2.6);letter-spacing:.18em;color:#00e5ff;text-transform:uppercase}
@@ -656,6 +634,55 @@ html,body{background:#000}
 #cfgModal .modal-body{display:block}
 .modal{z-index:150}
 #prevModal,#espModal{z-index:170}
+/* ═══════ ESFERA DE MARCAS / ANÚNCIOS ═══════ */
+.orb-wrap{
+  position:absolute;z-index:8;pointer-events:none;
+  width:var(--orb-tam,14vmin);height:var(--orb-tam,14vmin);
+  display:grid;place-items:center;opacity:.96;
+  filter:drop-shadow(0 6px 18px rgba(0,0,0,.55));
+  transition:opacity .4s;
+}
+.orb-wrap.canto-id{right:2.5vmin;bottom:2.5vmin;}
+.orb-wrap.canto-ie{left:2.5vmin;bottom:2.5vmin;}
+.orb-wrap.canto-sd{right:2.5vmin;top:2.5vmin;}
+.orb-wrap.canto-se{left:2.5vmin;top:2.5vmin;}
+.orb-wrap .orb-face{
+  width:100%;height:100%;border-radius:50%;
+  background:radial-gradient(circle at 32% 28%,rgba(255,255,255,.18),transparent 42%),
+             radial-gradient(circle at 70% 78%,rgba(0,229,255,.22),transparent 55%),
+             #0a1220;
+  border:1px solid rgba(0,229,255,.35);
+  display:grid;place-items:center;overflow:hidden;position:relative;
+  animation:orb-flutua 8s ease-in-out infinite;
+}
+@keyframes orb-flutua{
+  0%,100%{transform:translateY(0) rotate(0);}
+  50%{transform:translateY(-3%) rotate(1.5deg);}
+}
+.orb-face .orb-img{
+  max-width:78%;max-height:78%;object-fit:contain;
+  transition:opacity .45s ease,transform .45s ease;
+  animation:orb-entra .55s ease both;
+}
+@keyframes orb-entra{
+  from{opacity:0;transform:scale(.82);}
+  to{opacity:1;transform:scale(1);}
+}
+.orb-face .orb-txt{
+  position:absolute;bottom:6%;left:8%;right:8%;
+  text-align:center;font-size:calc(var(--u,.6)*1.2);
+  color:#e8f6ff;letter-spacing:.04em;text-transform:uppercase;
+  font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.85);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
+/* ALMAFLUXO · recado do amor: visual editorial, legível à distância */
+.tx-amor{background:radial-gradient(ellipse at 50% 35%,#4b1836 0%,#180d22 55%,#070912 100%);color:#fff7fb}
+.amor-wrap{position:absolute;inset:8% 5%;display:grid;grid-template-columns:1.2fr .8fr;gap:4%;align-items:center}
+.amor-copy{min-width:0}.amor-kicker{font-size:calc(var(--u)*1.5);letter-spacing:.2em;color:#ffb8d2;text-transform:uppercase}.amor-title{font-size:calc(var(--u)*5.2);line-height:1.02;font-weight:800;margin:.18em 0;color:#fff;text-wrap:balance}.amor-sub{font-size:calc(var(--u)*2.1);line-height:1.35;color:#ffd8e7;max-width:95%}.amor-qr{justify-self:center;background:#fff;padding:calc(var(--u)*1.1);border-radius:calc(var(--u)*1.4);width:min(25vw,32vh);aspect-ratio:1;box-shadow:0 0 3vmin #ff8bb8aa}.amor-qr img{width:100%;height:100%;display:block}.amor-qr-cap{text-align:center;font-size:calc(var(--u)*1.45);color:#ffe6f0;margin-top:calc(var(--u)*1.1)}.amor-msgs{position:absolute;left:5%;right:5%;bottom:5%;display:flex;gap:1.2%;overflow:hidden}.amor-msg{flex:1;min-width:0;background:#ffffff12;border:1px solid #ffb8d233;border-radius:12px;padding:1.1%;font-size:calc(var(--u)*1.35);line-height:1.25;overflow:hidden}.amor-msg b{display:block;color:#ffbad4;margin-bottom:.25em}.amor-empty{color:#ffdfeb;font-size:calc(var(--u)*1.5)}
+.tpl-bar{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.tpl-bar .btn{font-size:.78rem}
+@media(max-aspect-ratio:1/1){.amor-wrap{grid-template-columns:1fr .7fr;inset:7% 4% 18%}.amor-title{font-size:calc(var(--u)*4)}.amor-qr{width:min(28vw,24vh)}.amor-msgs{bottom:3%}}
+
 </style>
 </head>
 <body>
@@ -1729,7 +1756,7 @@ function totemPadrao(id) {
     tela: {orientacao: 'auto', rotacao: 0, polegadas: 0, resW: 0, resH: 0, ajuste: 'auto', escala: 1, margem: 0, fundo: '#000000'},
     layout: {modelo: '2-v', regioes: null, gap: 6, raio: 10}, layoutRetrato: null,
     paineis: {r1: {itens: [{tipo: 'relogio', duracaoS: 10}], transicao: {tipo: 'fade', ms: 900}, aleatorio: false}, r2: {itens: [{tipo: 'clima', cidade: 'São Paulo', lat: -23.55, lon: -46.63, duracaoS: 10}], transicao: {tipo: 'fade', ms: 900}, aleatorio: false}},
-    heartbeatS: 60, configS: 30, mostrarPonto: false, criadoEm: new Date().toISOString()};
+    heartbeatS: 60, configS: 30, mostrarPonto: false, esferaMarcas: {posicao:'inferior-direita', tamanhoVmin:14, itens:[]}, criadoEm: new Date().toISOString()};
 }
 const WMO = {0:['☀️','Céu limpo'],1:['🌤️','Predomínio de sol'],2:['⛅','Parcialmente nublado'],3:['☁️','Nublado'],45:['🌫️','Neblina'],48:['🌫️','Neblina'],51:['🌦️','Garoa'],53:['🌦️','Garoa'],55:['🌦️','Garoa'],61:['🌧️','Chuva fraca'],63:['🌧️','Chuva'],65:['🌧️','Chuva forte'],71:['🌨️','Neve'],80:['🌦️','Pancadas'],81:['🌧️','Pancadas'],82:['⛈️','Pancadas fortes'],95:['⛈️','Tempestade'],96:['⛈️','Tempestade'],99:['⛈️','Tempestade']};
 const CLIMA_CACHE = {}, HTML_CACHE = {};
@@ -1739,8 +1766,12 @@ async function climaDados(lat, lon) {
   if (!r.ok) throw new Error('clima ' + r.status); const d = await r.json(); CLIMA_CACHE[k] = {t: Date.now(), d}; return d;
 }
 function ytId(s) { s = String(s || '').trim(); const m = s.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([\w-]{11})/); return m ? m[1] : (/^[\w-]{11}$/.test(s) ? s : null); }
-const imgUrl = i => i.driveId ? 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(i.driveId) + '&sz=w1920' : (urlOk(i.url) ? i.url : '');
-const vidUrl = i => i.driveId ? 'https://drive.google.com/uc?export=download&id=' + encodeURIComponent(i.driveId) : (urlOk(i.url) ? i.url : '');
+const assetUrl = u => { const v=String(u||'').trim(); if(!v || /^(javascript|data|vbscript):/i.test(v)) return ''; try { const x=new URL(v,location.href); return /^https?:$/.test(x.protocol) ? x.href : ''; } catch(e) { return ''; } };
+const driveIdFrom = v => { const s=String(v||'').trim(); if (/^[A-Za-z0-9_-]{15,160}$/.test(s)) return s; try { const u=new URL(s); return u.hostname.includes('drive.google.com') ? (u.searchParams.get('id') || (u.pathname.match(/\/file\/d\/([^/]+)/)||[])[1] || '') : ''; } catch(e) { return ''; } };
+const TOTEM_MEDIA_BASE = /(^|\\.)almafluxo\\.uk$/i.test(location.hostname) ? '' : 'https://almafluxo.uk';
+const totemMediaUrl = (id, base64=false, mime='') => TOTEM_MEDIA_BASE+'/api/totem/midia?id='+encodeURIComponent(id)+(base64?'&base64=1':'')+(mime?'&mime='+encodeURIComponent(mime):'');
+const imgUrl = i => { const id=driveIdFrom(i.driveId||i.url); return id ? totemMediaUrl(id) : assetUrl(i.url); };
+const vidUrl = i => { const id=driveIdFrom(i.driveId||i.url); return id ? totemMediaUrl(id) : assetUrl(i.url); };
 const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
 
 /* Cria um slide (item de conteúdo). Devolve {el, destroy, fimEvento} ou null */
@@ -1749,7 +1780,7 @@ function criarSlide(P, item) {
   const t = item.tipo;
   if (t === 'imagem') {
     const u = imgUrl(item); if (!u) return null; const im = new Image(); im.alt = ''; im.style.objectFit = item.fit || 'cover'; im.style.objectPosition = item.position || 'center';
-    let tent = 0; im.onerror = () => { if (item.driveId && tent++ === 0) im.src = 'https://lh3.googleusercontent.com/d/' + encodeURIComponent(item.driveId) + '=w1920'; else s.innerHTML = '<div class="s-carregando" style="position:absolute;inset:0">imagem indisponível</div>'; };
+    im.onerror = () => { s.innerHTML = '<div class="s-carregando" style="position:absolute;inset:0">imagem indisponível · confira o compartilhamento no Drive</div>'; };
     im.src = u; s.appendChild(im); if (item.kenburns) s.classList.add('kb');
   } else if (t === 'video') {
     const u = vidUrl(item); if (!u) return null; const v = document.createElement('video'); v.muted = item.mudo !== false || P.preview; v.autoplay = true; v.playsInline = true; v.preload = 'auto'; v.style.objectFit = item.fit || 'cover';
@@ -1791,7 +1822,7 @@ function criarPlayer(root, opts) {
   const P = {root, t: null, preview: !!opts.preview, orient: 'paisagem', rot: 0, agora: {}, regs: {}};
   root.classList.add('pl-root'); root.innerHTML = '<div class="pl-inner"></div><div class="pl-bloq"></div>';
   const inner = root.querySelector('.pl-inner'), bloq = root.querySelector('.pl-bloq');
-  P.parar = function () { Object.values(P.regs).forEach(r => r.parar()); P.regs = {}; P.agora = {}; inner.innerHTML = ''; };
+  P.parar = function () { Object.values(P.regs).forEach(r => r.parar()); P.regs = {}; P.agora = {}; if (P._esfera) { P._esfera.destruir(); P._esfera = null; } if (!P.preview) TOTEM_AUDIO.parar(); inner.innerHTML = ''; };
   P.aplicar = function (t, aj) {
     P.parar(); P.t = t; if (!t) return;
     if (t.status === 'bloqueado' && !P.preview) { bloq.textContent = t.msgBloqueio || 'Totem temporariamente indisponível.'; bloq.classList.add('on'); return; }
@@ -1810,6 +1841,8 @@ function criarPlayer(root, opts) {
       const e = el('div', 'reg'); e.style.cssText = 'left:' + r.x + '%;top:' + r.y + '%;width:' + r.w + '%;height:' + r.h + '%'; const c = el('div', 'regc'); e.appendChild(c); inner.appendChild(e);
       P.regs[r.id] = iniciarRegiao(P, c, r.id, (t.paineis || {})[r.id]);
     });
+      aplicarEsfera(P, t);
+      if (!P.preview && t.audioFundo) TOTEM_AUDIO.iniciar(t.audioFundo);
   };
   window.addEventListener('resize', P._rs = () => { if (P.t && !P._rt) P._rt = setTimeout(() => { P._rt = null; if (P.t) P.aplicar(P.t, P.aj); }, 350); });
   const aplicarOrig = P.aplicar; P.aplicar = function (t, aj) { P.aj = aj; return aplicarOrig(t, aj); };
@@ -1818,6 +1851,17 @@ function criarPlayer(root, opts) {
 }
 function iniciarRegiao(P, box, id, cont) {
   const R = {idx: -1, atual: null, timer: null, morto: false}; cont = cont || {};
+  if (cont.modo === 'cards' && Array.isArray(cont.cards) && cont.cards.length) {
+    const camada = el('div','cards-runtime'); camada.style.cssText='position:absolute;inset:0;overflow:hidden'; box.appendChild(camada);
+    const ativos=[];
+    cont.cards.forEach((c,i)=>{ if(c.ativo===false)return; const item=Object.assign({},c,{tipo:c.tipo||'imagem'}); const slide=criarSlide(P,item); if(!slide)return;
+      slide.el.style.cssText += `position:absolute;left:${Math.max(0,Math.min(100,Number(c.x)||0))}%;top:${Math.max(0,Math.min(100,Number(c.y)||0))}%;width:${Math.max(5,Math.min(100,Number(c.w)||30))}%;height:${Math.max(5,Math.min(100,Number(c.h)||30))}%;z-index:${Math.max(1,Number(c.z)||i+1)};`;
+      camada.appendChild(slide.el); ativos.push(slide);
+    });
+    R.parar=()=>{R.morto=true;ativos.forEach(x=>{try{x.destroy();}catch(e){}});camada.remove();};
+    return R;
+  }
+
   let itens = (cont.itens || []).filter(i => i && i.ativo !== false); if (!itens.length) itens = [{tipo: 'relogio', duracaoS: 3600}];
   const tr = Object.assign({tipo: 'fade', ms: 800}, cont.transicao || {}); const ms = Math.max(0, Math.min(3000, +tr.ms || 0));
   R.parar = function () { R.morto = true; clearTimeout(R.timer); if (R.atual) R.atual.destroy(); box.innerHTML = ''; };
@@ -1883,29 +1927,12 @@ function reagendar(t) {
   SYNC.tCfg = setInterval(syncConfig, Math.max(15, +t.configS || 30) * 1000); SYNC.tHb = setInterval(enviarHeartbeat, Math.max(20, +t.heartbeatS || 60) * 1000);
 }
 async function iniciarTotem() {
-  // Prioridade: URL (path ou ?t=) > localStorage > null
-  let id = TX_PATH_ID;
-  if (!id) id = new URLSearchParams(location.search).get('t');
-  if (!id) id = lsGet(LSK.id, null);
-  TID = id ? String(id).replace(/[^\w-]/g, '') : null;
-  if (TID) lsSet(LSK.id, TID);
-
+  TID = new URLSearchParams(location.search).get('t') || TX_PATH_ID || lsGet(LSK.id, null); if (TID && (TX_PATH_ID || new URLSearchParams(location.search).get('t'))) lsSet(LSK.id, String(TID).replace(/[^\w-]/g, '')); if (TID) TID = String(TID).replace(/[^\w-]/g, '');
   const cache = lsGet(LSK.cfg, null); const st = $id('stage');
   if (!MAIN) MAIN = criarPlayer(st);
-
-  // Se o cache é do totem certo, usa; senão, standby (e syncConfig busca do Drive)
-  if (TID && cache && cache.id === TID) {
-    MAIN.aplicar(cache, lsGet(LSK.aj, null));
-    mostrarPonto(!!cache.mostrarPonto);
-    reagendar(cache);
-  } else {
-    relogioStandby();
-  }
-
+  if (TID && cache && cache.id === TID) { MAIN.aplicar(cache, lsGet(LSK.aj, null)); mostrarPonto(!!cache.mostrarPonto); reagendar(cache); } else relogioStandby();
   if (!sessao || !TID) return;
-  reagendar(cache || {});
-  await syncConfig();
-  enviarHeartbeat();
+  reagendar(cache || {}); await syncConfig(); enviarHeartbeat();
 }
 
 /* ── Desbloqueio escondido: Ctrl pressionado + 10 cliques com o botão esquerdo (velocidade livre; passar de 10 também vale) ── */
@@ -2031,7 +2058,7 @@ async function verTela(id) {
 }
 function desenharEspelho() {
   const t = PAN.dados.totens.find(x => x.id === PAN.espId); if (!t) return; const hb = PAN.hb[t.id], e = estadoDe(t, hb), orient = (hb && hb.tela && hb.tela.orientacao) || 'paisagem', L = modeloDe(t, orient);
-  const cel = r => { const a = hb && hb.agora && hb.agora[r.id]; let conteudo = '<span style="color:#555">sem dados</span>'; if (a) { const ic = (TIPOS[a.tipo] || a.tipo).split(' ')[0]; const img = a.driveId && (a.tipo === 'imagem') ? `<img src="https://drive.google.com/thumbnail?id=${encodeURIComponent(a.driveId)}&sz=w400" alt="">` : `<div style="font-size:1.6rem">${ic}</div>`; conteudo = `${img}<div>${esc(String(a.nome).slice(0, 40))}</div><div style="color:#8b93a7">${a.total > 1 ? 'item ' + (a.idx + 1) + '/' + a.total + ' · ' : ''}há ${haQuanto((Date.now() - a.desde) / 1000)}</div>`; } return `<div class="esp-r" style="left:${r.x}%;top:${r.y}%;width:${r.w}%;height:${r.h}%"><div class="esp-c">${conteudo}</div></div>`; };
+  const cel = r => { const a = hb && hb.agora && hb.agora[r.id]; let conteudo = '<span style="color:#555">sem dados</span>'; if (a) { const ic = (TIPOS[a.tipo] || a.tipo).split(' ')[0]; const img = a.driveId && (a.tipo === 'imagem') ? `<img src="${totemMediaUrl(a.driveId)}" alt="">` : `<div style="font-size:1.6rem">${ic}</div>`; conteudo = `${img}<div>${esc(String(a.nome).slice(0, 40))}</div><div style="color:#8b93a7">${a.total > 1 ? 'item ' + (a.idx + 1) + '/' + a.total + ' · ' : ''}há ${haQuanto((Date.now() - a.desde) / 1000)}</div>`; } return `<div class="esp-r" style="left:${r.x}%;top:${r.y}%;width:${r.w}%;height:${r.h}%"><div class="esp-c">${conteudo}</div></div>`; };
   $id('espTitulo').textContent = '👁️ ' + (t.nome || t.id);
   $id('espBody').innerHTML = `<div class="espelho${orient === 'retrato' ? ' ret' : ''}">${retangulos(L).map(cel).join('')}</div>
   <div class="hintx" style="margin-top:10px"><span class="dot ${e.k}"></span><b>${e.txt}</b>${hb ? ' · sinal há ' + haQuanto(e.seg) + ' · tela ' + hb.tela.w + '×' + hb.tela.h + ' (' + hb.tela.orientacao + ')' : ''}<br>O espelho mostra <b>o que cada região está exibindo</b> no último sinal enviado (não é captura de pixels). Use “Reproduzir” para ver a programação rodando como no totem.</div>
@@ -2049,11 +2076,11 @@ function abrirConfigTotem(id) {
   const novo = !id; const t = novo ? totemPadrao('totem' + (PAN.dados.totens.length + 1)) : clone(PAN.dados.totens.find(x => x.id === id)); if (!t) return;
   PAN.cfg = {t, novo, aba: 'id', reg: 'r1', retrato: false, item: -1, senhaNova: ''}; $id('cfgModal').classList.add('ativo'); desenharCfg();
 }
-const ABAS_CFG = [['id', '🪪 Identificação'], ['tela', '🖥️ Tela'], ['layout', '🧩 Layout'], ['conteudo', '🎞️ Conteúdo'], ['avancado', '🛠️ Avançado']];
+const ABAS_CFG = [['id', '🪪 Identificação'], ['tela', '🖥️ Tela'], ['layout', '🧩 Layout'], ['conteudo', '🎞️ Conteúdo'], ['esfera', '🌟 Marcas'], ['audio', '🎵 Áudio'], ['avancado', '🛠️ Avançado']];
 function desenharCfg() {
   const C = PAN.cfg; if (!C) return; $id('cfgTitulo').textContent = C.novo ? '➕ Novo totem' : '⚙️ ' + (C.t.nome || C.t.id);
   const tabs = `<div class="cfg-tabs">${ABAS_CFG.map(a => `<button class="${C.aba === a[0] ? 'on' : ''}" onclick="PAN.cfg.aba='${a[0]}';desenharCfg()">${a[1]}</button>`).join('')}</div>`;
-  $id('cfgBody').innerHTML = tabs + ({id: cfgId, tela: cfgTela, layout: cfgLayout, conteudo: cfgConteudo, avancado: cfgAvancado}[C.aba])(C.t);
+  $id('cfgBody').innerHTML = tabs + ({id: cfgId, tela: cfgTela, layout: cfgLayout, conteudo: cfgConteudo, esfera: cfgEsfera, audio: cfgAudio, avancado: cfgAvancado}[C.aba] || cfgId)(C.t);
   $id('cfgExcluir').style.display = C.novo ? 'none' : '';
 }
 const fld = (rot, k, v, tipo, extra) => `<label>${rot}<input data-k="${k}" type="${tipo || 'text'}" value="${esc(v)}" ${extra || ''}></label>`;
@@ -2078,7 +2105,7 @@ function layoutAtual(t, retrato) { return retrato ? (t.layoutRetrato || null) : 
 function cfgLayout(t) {
   const C = PAN.cfg, L = C.retrato ? (t.layoutRetrato || {modelo: PAR_RETRATO[t.layout.modelo] || 'full', gap: t.layout.gap, raio: t.layout.raio}) : t.layout, base = C.retrato ? 'layoutRetrato' : 'layout';
   if (L.modelo === 'custom') garantirCustom(L);
-  const rects = retangulos(L), ops = Object.entries(MODELOS).map(([k, v]) => [k, v.nome]);
+  const rects = retangulos(L), ops = Object.entries(MODELOS).filter(([k]) => C.retrato || k !== '6p' || true).map(([k, v]) => [k, v.nome]);
   return `<div class="chips"><button class="${C.retrato ? '' : 'on'}" onclick="PAN.cfg.retrato=false;desenharCfg()">Paisagem (horizontal)</button><button class="${C.retrato ? 'on' : ''}" onclick="PAN.cfg.retrato=true;desenharCfg()">Retrato (vertical)</button></div>
   ${C.retrato ? `<div class="hintx">${t.layoutRetrato ? 'Layout de retrato <b>personalizado</b>. <button class="btn" onclick="PAN.cfg.t.layoutRetrato=null;desenharCfg()">Voltar ao automático</button>' : 'Em retrato o painel usa a conversão automática do layout horizontal. Escolha um modelo abaixo para personalizar.'}</div>` : ''}
   <div class="fm">${sel('Modelo', base + '.modelo', L.modelo, ops, true)}${fld('Espaço entre regiões (px)', base + '.gap', L.gap == null ? 6 : L.gap, 'number', 'min="0" max="60"')}${fld('Cantos arredondados (px)', base + '.raio', L.raio == null ? 10 : L.raio, 'number', 'min="0" max="60"')}</div>
@@ -2090,21 +2117,66 @@ function garantirCustom(L) { if (!Array.isArray(L.regioes) || !L.regioes.length)
 function addRegiao() { const C = PAN.cfg, L = C.retrato ? (C.t.layoutRetrato = C.t.layoutRetrato || {modelo: 'custom', gap: 6, raio: 10}) : C.t.layout, R = garantirCustom(L); if (R.length >= 8) return mostrarToast('Máximo de 8 regiões', true); R.push({id: 'r' + (R.length + 1), x: 10, y: 10, w: 40, h: 40}); desenharCfg(); }
 function rmRegiao(i) { const C = PAN.cfg, L = C.retrato ? C.t.layoutRetrato : C.t.layout, R = garantirCustom(L); if (R.length <= 1) return; R.splice(i, 1); R.forEach((r, j) => r.id = 'r' + (j + 1)); desenharCfg(); }
 function regioesIds(t, retrato) { const L = retrato ? modeloDe(t, 'retrato') : t.layout; return retangulos(L).map(r => r.id); }
+async function moderarRecadosAmor(){
+ const chave=prompt('Informe a chave administrativa TOTEM_AMOR_ADMIN_KEY (ela não será salva no navegador):');
+ if(!chave)return;
+ const chamar=async dados=>{const r=await fetch('/api/totem/amor/admin',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+chave},body:JSON.stringify(dados)});const d=await r.json().catch(()=>({}));if(!r.ok||!d.ok)throw new Error(d.error||('HTTP '+r.status));return d;};
+ try{const d=await chamar({action:'listar'});const lista=d.pendentes||[];if(!lista.length)return mostrarToast('Nenhum recado aguardando moderação.');
+  for(const m of lista){const escolha=prompt('Recado pendente de '+(m.de||'Alguém')+' para '+(m.para||'destinatário')+':\n\n'+m.mensagem+'\n\nDigite A para aprovar, R para rejeitar ou C para cancelar.','A');if(!escolha||/^c/i.test(escolha))break;const action=/^a/i.test(escolha)?'aprovar':/^r/i.test(escolha)?'rejeitar':null;if(!action)continue;await chamar({action,id:m.id});}
+  mostrarToast('Moderação concluída. O totem atualizará as mensagens em até 30 segundos.');
+ }catch(e){mostrarToast('Não foi possível moderar: '+e.message,true);}
+}
+async function moderarParticipantesHoro(){
+ const chave=prompt('Informe a chave administrativa TOTEM_AMOR_ADMIN_KEY (ela não será salva no navegador):');if(!chave)return;
+ const chamar=async dados=>{const r=await fetch('/api/totem/horoscopo/admin',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+chave},body:JSON.stringify(dados)});const d=await r.json().catch(()=>({}));if(!r.ok||!d.ok)throw new Error(d.error||('HTTP '+r.status));return d;};
+ try{const d=await chamar({action:'listar'}),lista=d.pendentes||[];if(!lista.length)return mostrarToast('Nenhuma participação aguardando moderação.');for(const x of lista){const v=prompt('Participante: '+x.nome+' · nascimento: '+x.mes_dia+'\nDigite A para aprovar, R para rejeitar ou C para cancelar.','A');if(!v||/^c/i.test(v))break;const action=/^a/i.test(v)?'aprovar':/^r/i.test(v)?'rejeitar':null;if(action)await chamar({action,id:x.id});}mostrarToast('Moderação concluída. O painel atualiza em até 20 segundos.');}catch(e){mostrarToast('Falha na moderação: '+e.message,true);}
+}
 function cfgConteudo(t) {
   const C = PAN.cfg, ids = regioesIds(t, C.retrato); if (!ids.includes(C.reg)) C.reg = ids[0]; t.paineis = t.paineis || {}; const p = t.paineis[C.reg] = t.paineis[C.reg] || {itens: [], transicao: {tipo: 'fade', ms: 800}, aleatorio: false}; p.itens = p.itens || []; p.transicao = p.transicao || {tipo: 'fade', ms: 800};
-  return `<div class="chips">${ids.map(i => `<button class="${i === C.reg ? 'on' : ''}" onclick="PAN.cfg.reg='${i}';PAN.cfg.item=-1;desenharCfg()">${i}${(t.paineis[i] && t.paineis[i].itens && t.paineis[i].itens.length) ? ' · ' + t.paineis[i].itens.length : ''}</button>`).join('')}<button onclick="PAN.cfg.aba='layout';desenharCfg()">🧩 ver layout</button></div>
+  const temAmor = (p.itens||[]).some(x=>x.tipo==='recadoAmor') || (p.cards||[]).some(x=>x.tipo==='recadoAmor');
+  const temHoro = (p.itens||[]).some(x=>x.tipo==='horoscopo') || (p.cards||[]).some(x=>x.tipo==='horoscopo');
+  const amorBtn = (temAmor||temHoro) ? `<div class="tpl-bar">${temAmor?'<button class="btn" onclick="moderarRecadosAmor()">💌 Moderar recados recebidos</button>':''}${temHoro?'<button class="btn" onclick="moderarParticipantesHoro()">🔮 Moderar participantes</button>':''}</div>` : '';
+  return `<div class="chips">${ids.map(i => `<button class="${i === C.reg ? 'on' : ''}" onclick="PAN.cfg.reg='${i}';PAN.cfg.item=-1;desenharCfg()">${i}${(t.paineis[i] && t.paineis[i].itens && t.paineis[i].itens.length) ? ' · ' + t.paineis[i].itens.length : ''}</button>`).join('')}<button onclick="PAN.cfg.aba='layout';desenharCfg()">🧩 ver layout</button></div>${amorBtn}
   <div class="fm">${sel('Transição entre itens', 'paineis.' + C.reg + '.transicao.tipo', p.transicao.tipo, Object.entries(TRANSICOES))}${fld('Duração da transição (ms)', 'paineis.' + C.reg + '.transicao.ms', p.transicao.ms, 'number', 'min="0" max="3000" step="100"')}${chk('Ordem aleatória', 'paineis.' + C.reg + '.aleatorio', p.aleatorio)}</div>
-  ${p.itens.map((it, i) => itemHtml(it, i, p, C)).join('') || '<div class="hintx">Nenhum item nesta região: o totem mostra um relógio.</div>'}
-  <div class="fm"><label>➕ Adicionar item<select id="addTipo">${Object.entries(TIPOS).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select></label><label>&nbsp;<button class="btn btn-primario" onclick="addItem()">Adicionar</button></label><label>&nbsp;<button class="btn" onclick="reproduzirTotem(null,PAN.cfg.t)">▶ Pré-visualizar totem</button></label></div>`;
+  <div class="fm"><label>Modo de exibição<select data-k="paineis.${C.reg}.modo" data-redraw="1"><option value="playlist"${p.modo!=='cards'?' selected':''}>Playlist / slides</option><option value="cards"${p.modo==='cards'?' selected':''}>Cards livres / mosaico</option></select></label></div>
+  ${p.modo === 'cards' ? renderCardsEditor(p,C.reg) : (p.itens.map((it, i) => itemHtml(it, i, p, C)).join('') || '<div class="hintx">Nenhum item nesta região: o totem mostra um relógio.</div>')}
+  ${p.modo === 'cards' ? '' : `<div class="fm"><label>➕ Adicionar item<select id="addTipo">${Object.entries(TIPOS).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select></label><label>&nbsp;<button class="btn btn-primario" onclick="addItem()">Adicionar</button></label><label>&nbsp;<button class="btn" onclick="reproduzirTotem(null,PAN.cfg.t)">▶ Pré-visualizar totem</button></label></div>`}`;
 }
+function renderCardsEditor(p,reg){
+  const cards=p.cards||[];
+  return `<div class="hintx">Arraste os cards para posicionar. Use as alças no canto inferior direito para redimensionar. As medidas são percentuais da região. Salve layouts para reutilizar em outras campanhas deste totem.</div>
+  <div class="tpl-bar"><button class="btn" onclick="aplicarTemplateCards('marketing')">📢 Marketing</button><button class="btn" onclick="aplicarTemplateCards('noticias')">📰 Notícias</button><button class="btn" onclick="aplicarTemplateCards('mosaico')">🧩 Mosaico</button><button class="btn" onclick="aplicarTemplateCards('amor')">💌 Recado do Amor</button><button class="btn btn-primario" onclick="salvarTemplateCards()">💾 Salvar template</button><select id="tplSalvo" style="max-width:190px"><option value="">Templates salvos…</option>${(PAN.cfg.t.templates||[]).map((t,i)=>`<option value="${i}">${esc(t.nome||'Template '+(i+1))}</option>`).join('')}</select><button class="btn" onclick="aplicarTemplateSalvo()">Aplicar</button><button class="btn" onclick="duplicarTemplateSalvo()">Duplicar</button><button class="btn" onclick="excluirTemplateSalvo()">Excluir</button></div>
+  <div class="sch cards-sch" id="cardsSch" style="position:relative;aspect-ratio:16/9;touch-action:none;overflow:hidden">
+  ${cards.map((c,i)=>`<div class="card-livre" data-i="${i}" onpointerdown="iniciarDragCard(event)" style="position:absolute;left:${c.x??5}%;top:${c.y??5}%;width:${c.w??30}%;height:${c.h??28}%;z-index:${c.z||i+1};border:1px solid #00e5ff;background:rgba(0,229,255,.12);color:#e8f6ff;padding:6px;font-size:11px;overflow:hidden;touch-action:none;cursor:grab"><b>${esc(TIPOS[c.tipo]||c.tipo||'Card')}</b><small style="display:block">${esc(c.nome||c.url||c.texto||'Sem conteúdo')}</small><span class="rz" style="position:absolute;right:0;bottom:0;width:18px;height:18px;background:#00e5ff;cursor:nwse-resize"></span></div>`).join('')}
+  </div>
+  ${cards.map((c,i)=>`<div class="it"><div class="it-h"><b>Card ${i+1}</b><span class="nome">${esc(c.nome||c.tipo||'')}</span><button onclick="moverCardLivre(${i},-1)">▲</button><button onclick="moverCardLivre(${i},1)">▼</button><button onclick="remCardLivre(${i})">🗑️</button></div><div class="it-b"><div class="fm">${sel('Tipo','paineis.'+reg+'.cards.'+i+'.tipo',c.tipo||'imagem',Object.entries(TIPOS))}${fld('Nome','paineis.'+reg+'.cards.'+i+'.nome',c.nome||'')}${fld('URL / caminho relativo','paineis.'+reg+'.cards.'+i+'.url',c.url||'')}${fld('Arquivo Drive ID','paineis.'+reg+'.cards.'+i+'.driveId',c.driveId||'')}${fld('Texto','paineis.'+reg+'.cards.'+i+'.texto',c.texto||'')}${fld('x (%)','paineis.'+reg+'.cards.'+i+'.x',c.x??5,'number','min="0" max="100" step="0.5"')}${fld('y (%)','paineis.'+reg+'.cards.'+i+'.y',c.y??5,'number','min="0" max="100" step="0.5"')}${fld('Largura (%)','paineis.'+reg+'.cards.'+i+'.w',c.w??30,'number','min="5" max="100" step="0.5"')}${fld('Altura (%)','paineis.'+reg+'.cards.'+i+'.h',c.h??28,'number','min="5" max="100" step="0.5"')}${fld('Camada (z)','paineis.'+reg+'.cards.'+i+'.z',c.z||i+1,'number','min="1" max="99"')}</div></div></div>`).join('')}
+  <button class="btn btn-primario" onclick="addCardLivre()">➕ Novo card</button> <button class="btn" onclick="reproduzirTotem(null,PAN.cfg.t)">▶ Pré-visualizar</button>`;
+}
+function aplicarTemplateCards(tipo){
+ const p=PAN.cfg.t.paineis[PAN.cfg.reg];
+ const presets={
+  marketing:[{tipo:'imagem',nome:'Marca / campanha',url:'',x:0,y:0,w:62,h:100,z:1,ativo:true,fit:'cover'},{tipo:'texto',nome:'Chamada',texto:'Sua mensagem principal aqui',x:64,y:8,w:34,h:34,z:2,ativo:true},{tipo:'texto',nome:'Oferta / benefício',texto:'Conheça. Participe. Aproveite.',x:64,y:48,w:34,h:42,z:3,ativo:true}],
+  noticias:[{tipo:'noticias',nome:'Notícias em destaque',x:0,y:0,w:66,h:100,z:1,ativo:true},{tipo:'texto',nome:'Chamada lateral',texto:'Informação clara, rápida e atualizada.',x:68,y:5,w:30,h:42,z:2,ativo:true},{tipo:'imagem',nome:'Imagem de apoio',url:'',x:68,y:52,w:30,h:43,z:3,ativo:true}],
+  amor:[{tipo:'recadoAmor',nome:'Recado do Amor',titulo:'Uma mensagem pode mudar o dia de alguém',porPagina:3,x:0,y:0,w:100,h:100,z:1,ativo:true}],
+  mosaico:[{tipo:'imagem',nome:'Destaque 1',url:'',x:0,y:0,w:49,h:49,z:1,ativo:true},{tipo:'imagem',nome:'Destaque 2',url:'',x:51,y:0,w:49,h:49,z:2,ativo:true},{tipo:'texto',nome:'Informação',texto:'Curiosidade do dia',x:0,y:51,w:49,h:49,z:3,ativo:true},{tipo:'texto',nome:'Publicidade',texto:'Sua marca aqui',x:51,y:51,w:49,h:49,z:4,ativo:true}]
+ };
+ p.modo='cards';p.cards=clone(presets[tipo]||presets.mosaico);desenharCfg();
+}
+function salvarTemplateCards(){const p=PAN.cfg.t.paineis[PAN.cfg.reg];if(!p.cards||!p.cards.length)return mostrarToast('Crie pelo menos um card antes de salvar.',true);const nome=prompt('Nome do template:','Meu template');if(!nome)return;const t=PAN.cfg.t;t.templates=t.templates||[];t.templates.push({nome:nome.slice(0,60),modo:'cards',cards:clone(p.cards),criadoEm:new Date().toISOString()});desenharCfg();mostrarToast('Template salvo neste totem. Salve a configuração para sincronizar.');}
+function aplicarTemplateSalvo(){const sel=$id('tplSalvo');if(!sel||sel.value==='')return mostrarToast('Escolha um template salvo.',true);const t=PAN.cfg.t.templates[+sel.value];if(!t)return;const p=PAN.cfg.t.paineis[PAN.cfg.reg];p.modo='cards';p.cards=clone(t.cards||[]);desenharCfg();}
+function duplicarTemplateSalvo(){const sel=$id('tplSalvo');if(!sel||sel.value==='')return mostrarToast('Escolha um template para duplicar.',true);const t=PAN.cfg.t.templates[+sel.value];if(!t)return;const nome=prompt('Nome da cópia:',(t.nome||'Template')+' · cópia');if(!nome)return;PAN.cfg.t.templates.push(Object.assign({},clone(t),{nome:nome.slice(0,60),criadoEm:new Date().toISOString()}));desenharCfg();mostrarToast('Template duplicado. Salve a configuração para sincronizar.');}
+function excluirTemplateSalvo(){const sel=$id('tplSalvo');if(!sel||sel.value==='')return mostrarToast('Escolha um template salvo.',true);const i=+sel.value;if(!confirm('Excluir este template salvo?'))return;PAN.cfg.t.templates.splice(i,1);desenharCfg();mostrarToast('Template excluído. Salve a configuração para sincronizar.');}
+function addCardLivre(){const p=PAN.cfg.t.paineis[PAN.cfg.reg];p.modo='cards';p.cards=p.cards||[];const i=p.cards.length;p.cards.push({tipo:'imagem',nome:'Novo card',url:'',x:5+(i%3)*31,y:5+(Math.floor(i/3)%3)*30,w:28,h:26,z:i+1,ativo:true});desenharCfg();}
+function remCardLivre(i){PAN.cfg.t.paineis[PAN.cfg.reg].cards.splice(i,1);desenharCfg();}
+function moverCardLivre(i,d){const a=PAN.cfg.t.paineis[PAN.cfg.reg].cards,j=i+d;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];desenharCfg();}
+let _dragCard=null;
+function iniciarDragCard(ev){const card=ev.currentTarget,sch=$id('cardsSch'),p=PAN.cfg.t.paineis[PAN.cfg.reg],i=Number(card.dataset.i),c=p.cards[i],r=sch.getBoundingClientRect();_dragCard={card,c,r,x:ev.clientX,y:ev.clientY,cx:+c.x||0,cy:+c.y||0,cw:+c.w||30,ch:+c.h||28,resize:ev.target.classList.contains('rz')};card.setPointerCapture(ev.pointerId);card.onpointermove=moverCardLivrePointer;card.onpointerup=soltarCardLivre;card.onpointercancel=soltarCardLivre;ev.preventDefault();}
+function moverCardLivrePointer(ev){if(!_dragCard)return;const q=_dragCard,dx=(ev.clientX-q.x)/q.r.width*100,dy=(ev.clientY-q.y)/q.r.height*100;if(q.resize){q.c.w=Math.max(5,Math.min(100-q.cx,q.cw+dx));q.c.h=Math.max(5,Math.min(100-q.cy,q.ch+dy));q.card.style.width=q.c.w+'%';q.card.style.height=q.c.h+'%';}else{q.c.x=Math.max(0,Math.min(100-q.cw,q.cx+dx));q.c.y=Math.max(0,Math.min(100-q.ch,q.cy+dy));q.card.style.left=q.c.x+'%';q.card.style.top=q.c.y+'%';}ev.preventDefault();}
+function soltarCardLivre(ev){if(_dragCard){_dragCard.card.onpointermove=null;_dragCard.card.onpointerup=null;_dragCard.card.onpointercancel=null;}_dragCard=null;}
 function addItem() { const C = PAN.cfg, tipo = $id('addTipo').value, p = C.t.paineis[C.reg], base = {tipo, duracaoS: tipo === 'video' ? 0 : (TX[tipo] ? 15 : 10)}; if (TX[tipo] && TX[tipo].def) Object.assign(base, clone(TX[tipo].def)); if (tipo === 'clima') Object.assign(base, {cidade: 'São Paulo', lat: -23.55, lon: -46.63}); if (tipo === 'texto') Object.assign(base, {texto: 'Seu texto aqui', tamanho: 6, cor: '#ffffff', fundo: '#0b1830'}); p.itens.push(base); C.item = p.itens.length - 1; desenharCfg(); }
 function moverItem(i, d) { const p = PAN.cfg.t.paineis[PAN.cfg.reg], j = i + d; if (j < 0 || j >= p.itens.length) return; [p.itens[i], p.itens[j]] = [p.itens[j], p.itens[i]]; PAN.cfg.item = j; desenharCfg(); }
 function remItem(i) { const p = PAN.cfg.t.paineis[PAN.cfg.reg]; p.itens.splice(i, 1); PAN.cfg.item = -1; desenharCfg(); }
-function arqOps(tipo, atual) {
-  // A API pode devolver o MIME em tipo, mimeType ou mime_type, conforme a origem.
-  const lista = (arquivosCache || []).filter(a => tipoDoArquivo(a.nome || a.name, a.tipo || a.mimeType || a.mime_type) === tipo);
-  const mot = tipo === 'html' ? lista.filter(a => /almaditor|olho|clima|editor/i.test(a.nome || a.name || '')) : [];
-  const resto = lista.filter(a => !mot.includes(a));
+function arqOps(tipo, atual) { const lista = (arquivosCache || []).filter(a => tipoDoArquivo(a.nome, a.mimeType) === tipo); const mot = tipo === 'html' ? lista.filter(a => /almaditor|olho|clima|editor/i.test(a.nome)) : []; const resto = lista.filter(a => !mot.includes(a));
   const op = a => `<option value="${esc(a.id)}"${a.id === atual ? ' selected' : ''}>${esc(a.nome)}</option>`; return `<option value="">— escolher do Drive —</option>${mot.length ? `<optgroup label="Motores ALMAFLUXO">${mot.map(op).join('')}</optgroup>` : ''}<optgroup label="Arquivos">${resto.map(op).join('')}</optgroup>`; }
 function itemHtml(it, i, p, C) {
   const k = 'paineis.' + C.reg + '.itens.' + i + '.', aberto = C.item === i, ic = (TIPOS[it.tipo] || it.tipo);
@@ -2127,6 +2199,15 @@ function itemHtml(it, i, p, C) {
 }
 async function buscarCidade(i) { const C = PAN.cfg, it = C.t.paineis[C.reg].itens[i]; try { const r = await fetch('https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(it.cidade || '') + '&count=1&language=pt'); const d = await r.json(); if (d.results && d.results[0]) { it.lat = d.results[0].latitude; it.lon = d.results[0].longitude; it.cidade = d.results[0].name; desenharCfg(); mostrarToast('📍 ' + it.cidade); } else mostrarToast('Cidade não encontrada', true); } catch (e) { mostrarToast('Erro na busca', true); } }
 function editarItemNoEditor(i) { const C = PAN.cfg, it = C.t.paineis[C.reg].itens[i], a = it.driveId && arquivosCache.find(x => x.id === it.driveId); if (!a) return mostrarToast('Escolha um vídeo do Drive primeiro', true); abrirEditorDrive(a); }
+function cfgEsfera(t) {
+  const e = t.esferaMarcas || (t.esferaMarcas = {posicao:'inferior-direita', tamanhoVmin:14, itens:[]});
+  const itens = (e.itens || []).map((it,i) => `<div class="it"><div class="it-h"><span>🌐</span><span class="nome">${esc(it.nome || 'Marca '+(i+1))}</span><button onclick="moverMarca(${i},-1)">▲</button><button onclick="moverMarca(${i},1)">▼</button><button onclick="remMarca(${i})">🗑️</button></div><div class="it-b"><div class="fm">${fld('Nome da marca/anúncio','esferaMarcas.itens.'+i+'.nome',it.nome||'')}${sel('Imagem da pasta CONVERSA (Drive)','esferaMarcas.itens.'+i+'.driveId',it.driveId||'', [['','— selecionar imagem do Drive —'],...(arquivosCache||[]).filter(x=>tipoDoArquivo(x.nome||'',x.tipo||'').toLowerCase()==='foto').map(x=>[x.id,x.nome])])}${fld('URL externa (alternativa)','esferaMarcas.itens.'+i+'.url',it.url||'')}${fld('Link ao tocar (opcional)','esferaMarcas.itens.'+i+'.link',it.link||'')}${fld('Duração do slide (s)','esferaMarcas.itens.'+i+'.duracaoS',it.duracaoS||8,'number','min="3" max="90"')}</div></div></div>`).join('');
+  return `<div class="fm">${sel('Posição','esferaMarcas.posicao',e.posicao||'inferior-direita',[['inferior-direita','Inferior direita'],['inferior-esquerda','Inferior esquerda'],['superior-direita','Superior direita'],['superior-esquerda','Superior esquerda']])}${fld('Tamanho (vmin)','esferaMarcas.tamanhoVmin',e.tamanhoVmin||14,'number','min="8" max="30" step="0.5"')}</div><div class="hintx">A esfera fica sobre o conteúdo, sem bloquear os cards. Selecione uma imagem já enviada para a pasta CONVERSA do Drive. A imagem será carregada pela rota de mídia do Worker; o arquivo precisa estar compartilhado como <b>Qualquer pessoa com o link · Leitor</b>. URL externa HTTPS continua disponível como alternativa.</div>${itens || '<div class="hintx">Nenhuma marca cadastrada.</div>'}<button class="btn btn-primario" onclick="addMarca()">➕ Adicionar marca</button>`;
+}
+function addMarca(){const t=PAN.cfg.t;t.esferaMarcas=t.esferaMarcas||{posicao:'inferior-direita',tamanhoVmin:14,itens:[]};t.esferaMarcas.itens.push({nome:'Nova marca',url:'',duracaoS:8});desenharCfg();}
+function moverMarca(i,d){const a=PAN.cfg.t.esferaMarcas.itens,j=i+d;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];desenharCfg();}
+function remMarca(i){PAN.cfg.t.esferaMarcas.itens.splice(i,1);desenharCfg();}
+function cfgAudio(t){const a=t.audioFundo||{ativo:false,url:'',driveId:'',volume:.16,loop:true};const aud=(arquivosCache||[]).filter(x=>/\.(mp3|m4a|aac|ogg|wav|opus)$/i.test(x.nome||''));return `<div class="fm">${chk('Ativar música ambiente','audioFundo.ativo',a.ativo)}${sel('Faixa da pasta CONVERSA','audioFundo.driveId',a.driveId||'', [['','— selecionar arquivo —'],...aud.map(x=>[x.id,x.nome])])}${fld('URL direta (alternativa)','audioFundo.url',a.url||'')}${fld('Volume (0–1)','audioFundo.volume',a.volume==null?.16:a.volume,'number','min="0" max="1" step="0.02"')}${chk('Repetir continuamente','audioFundo.loop',a.loop!==false)}</div><div class="hintx">Envie o MP3/M4A/OGG para a pasta CONVERSA pela aba Upload e selecione-o aqui. O Worker busca o arquivo no Drive e o converte para Base64 durante o carregamento; o HTML reproduz em segundo plano sem controles visíveis. Limite de conversão: 18 MB por faixa. O Drive precisa estar como “Qualquer pessoa com o link · Leitor”. O Chrome pode exigir um primeiro toque ou a política de autoplay do modo quiosque para liberar áudio. Use apenas áudio que você tenha autorização para reproduzir.</div>`;}
 function cfgAvancado(t) {
   return `<div class="fm">${fld('Sinal de vida a cada (s) · mín. 20', 'heartbeatS', t.heartbeatS || 60, 'number', 'min="20" max="900"')}${fld('Ler configuração a cada (s) · mín. 15', 'configS', t.configS || 30, 'number', 'min="15" max="900"')}${chk('Mostrar ponto de status no canto (técnico)', 'mostrarPonto', t.mostrarPonto)}</div>
   <div class="hintx">Cada sinal de vida e cada leitura de configuração é uma chamada ao Apps Script. Valores menores dão alerta mais rápido, mas gastam mais da cota diária. Para dezenas de totens, use 60–120 s.<br>O arquivo de sinal (<b>totem_ID_heartbeat.json</b>) tem formato aberto: um servidor local (Python, etc.) pode gravar o mesmo arquivo como vigia, caso o navegador do totem trave.</div>`;
@@ -2161,19 +2242,47 @@ async function salvarCfgTotem() {
    ══════════════════════════════════════════════════════════════ */
 const TX = {};
 Object.assign(TIPOS, {
-  bolsa3d: '📊 Bolsa 3D (gráfico + probabilidade)', cotacoes: '💱 Cotações (dólar, ouro, Bitcoin…)', noticias: '📰 Notícias do mercado',
-  planetas3d: '🪐 Sistema Solar 3D', terremotos: '🌍 Terremotos (globo 3D)', jornal: '🗞️ Jornal Clima Fluxo', climagrafico: '📈 Gráfico de clima animado'
+  recadoAmor: '💌 Recado do Amor (QR + mensagens)', bolsa3d: '📊 Bolsa 3D (gráfico + probabilidade)', cotacoes: '💱 Cotações (dólar, ouro, Bitcoin…)', noticias: '📰 Notícias do mercado',
+  planetas3d: '🪐 Sistema Solar 3D', terremotos: '🌍 Terremotos (globo 3D)', horoscopo: '🔮 Alinhamento colaborativo', jornal: '🗞️ Jornal Clima Fluxo', climagrafico: '📈 Gráfico de clima animado'
 });
 const TX_BASE = (/(^|\.)almafluxo\.uk$/i.test(location.hostname) ? '' : 'https://almafluxo.uk') + '/api/totem/dados/';
 const TX_C = {};
+/* ═════ CACHE LOCAL COM FALLBACK ═════
+   Guarda o último payload bom de cada endpoint. Se a API falhar, o slide
+   continua exibindo o último estado renderizado em vez de ficar vazio. */
+const TX_CACHE_MS = 6 * 60 * 60 * 1000;      // 6 h de validade
+const TX_CACHE_PREFIX = 'almafluxo_txcache_v1_';
+function txCacheSalvar(chave, dados) {
+  try {
+    const payload = JSON.stringify({ t: Date.now(), d: dados });
+    if (payload.length < 380 * 1024) localStorage.setItem(TX_CACHE_PREFIX + chave, payload);
+  } catch (e) {}
+}
+function txCacheLer(chave) {
+  try {
+    const raw = localStorage.getItem(TX_CACHE_PREFIX + chave);
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    if (!obj || !obj.d) return null;
+    return obj.d;                            // TTL generoso: dados "velhos" > tela preta
+  } catch (e) { return null; }
+}
 async function txDados(tipo, qs, ttl) {
   const k = tipo + '?' + (qs || ''), c = TX_C[k];
   if (c && Date.now() - c.t < (ttl || 60000)) return c.d;
+  const chave = k.replace(/[^\w]/g, '_');
   try {
     const r = await fetch(TX_BASE + tipo + (qs ? '?' + qs : '')), d = await r.json();
     if (!r.ok || d.ok === false) throw new Error(d.error || ('HTTP ' + r.status));
-    TX_C[k] = {t: Date.now(), d}; return d;
-  } catch (e) { if (c) return c.d; throw e; }
+    TX_C[k] = { t: Date.now(), d };
+    txCacheSalvar(chave, d);
+    return d;
+  } catch (e) {
+    if (c) return Object.assign({}, c.d, {_stale: true, _cacheAt: c.t, _cacheError: String(e.message || e)});
+    const backup = txCacheLer(chave);
+    if (backup) return Object.assign({}, backup, {_stale: true, _cacheError: String(e.message || e)});
+    throw e;
+  }
 }
 const txN = (v, d) => (v == null || !isFinite(v)) ? '—' : Number(v).toLocaleString('pt-BR', {minimumFractionDigits: d, maximumFractionDigits: d});
 const txDec = a => a.preco >= 1000 ? 0 : 2;
@@ -2232,7 +2341,9 @@ function txCard(a) {
   const c = txCor(a.var_pct);
   return '<div class="tx-card"><div class="tx-cn">' + esc(a.nome) + '</div><div class="tx-cp">' + txMoeda(a) + txN(a.preco, txDec(a)) + '</div><div class="tx-cv2" style="color:' + c + '">' + (a.var_pct > 0 ? '▲' : a.var_pct < 0 ? '▼' : '■') + ' ' + txPct(a.var_pct) + ' hoje</div>' + txSpark(a.serie, c) + txProb(a) + '<div class="tx-ct">curto prazo: <b>' + esc(a.tendencia || '—') + '</b> · RSI ' + txN(a.rsi, 0) + '</div></div>';
 }
-const txRodape = d => esc(d.aviso || '') + ' · ' + esc(d.fontes || '') + ' · atualizado ' + new Date(d.atualizado).toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'});
+const txStaleTag = d => d && d._stale ? ' · <b style="color:#ffc46b">última leitura salva · dados podem estar desatualizados</b>' : '';
+const txHora = v => v ? new Date(v).toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'}) : '—';
+const txRodape = d => esc(d.aviso || '') + ' · ' + esc(d.fontes || '') + ' · atualizado ' + txHora(d.atualizado) + txStaleTag(d);
 
 /* ═════ COTAÇÕES ═════ */
 TX.cotacoes = {def: {ativos: 'usd,eur,ouro,btc,eth,ibov'}, build(P, item, s, S) {
@@ -2277,7 +2388,46 @@ TX.bolsa3d = {def: {ativos: 'usd,ouro,btc,eth,ibov,sp500'}, build(P, item, s, S)
     });
   }).catch(() => { if (!S.morto) { lista.remove(); TX.cotacoes.build(P, item, s, S); } });
 }};
-
+/* ═══════ ESFERA DE MARCAS ═══════
+   Config: { posicao:'inferior-direita'|'inferior-esquerda'|'superior-direita'|'superior-esquerda',
+             tamanhoVmin: 14, itens: [{url|driveId, nome, duracaoS, linkQr}] }
+*/
+const ESFERA_CLASSES = {
+  'inferior-direita':'canto-id','inferior-esquerda':'canto-ie',
+  'superior-direita':'canto-sd','superior-esquerda':'canto-se'
+};
+function criarEsfera(host, cfg) {
+  if (!host || !cfg || !Array.isArray(cfg.itens) || !cfg.itens.length) return null;
+  const wrap = el('div','orb-wrap ' + (ESFERA_CLASSES[cfg.posicao] || 'canto-id'));
+  wrap.style.setProperty('--orb-tam', (Math.max(8, Math.min(30, +cfg.tamanhoVmin || 14))) + 'vmin'); wrap.style.pointerEvents='auto';
+  const face = el('div','orb-face'); wrap.appendChild(face); host.appendChild(wrap);
+  let idx = -1, timer = null;
+  const proximo = () => {
+    if (!wrap.isConnected) return;
+    idx = (idx + 1) % cfg.itens.length;
+    const it = cfg.itens[idx];
+    const mid = driveIdFrom(it.driveId || it.url); const url = mid ? totemMediaUrl(mid) : assetUrl(it.url);
+    face.innerHTML = '';
+    if (url) {
+      const im = new Image(); im.className = 'orb-img'; im.alt = it.nome || '';
+      im.onerror = () => { face.innerHTML = '<div class="orb-txt">' + esc(it.nome || '') + '</div>'; };
+      im.src = url; face.appendChild(im);
+    }
+    if (it.nome) { const tx = el('div','orb-txt', it.nome); face.appendChild(tx); }
+    if (it.link && urlOk(it.link)) { wrap.style.cursor='pointer'; wrap.onclick=()=>window.open(it.link,'_blank','noopener'); }
+    const dur = Math.max(3, Math.min(60, +it.duracaoS || 8));
+    timer = setTimeout(proximo, dur * 1000);
+  };
+  proximo();
+  return { destruir(){ clearTimeout(timer); wrap.remove(); }, wrap };
+}
+/* NO APLICAR DO PLAYER: chamar isso em P.aplicar */
+function aplicarEsfera(P, t) {
+  if (P._esfera) { P._esfera.destruir(); P._esfera = null; }
+  if (t && t.esferaMarcas && t.esferaMarcas.itens && t.esferaMarcas.itens.length) {
+    P._esfera = criarEsfera(P.root, t.esferaMarcas);
+  }
+}
 /* ═════ NOTÍCIAS ═════ */
 TX.noticias = {def: {topico: ''}, build(P, item, s, S) {
   s.className += ' tx'; s.innerHTML = '<div class="tx-t">NOTÍCIAS · MERCADO E ATIVOS</div><div class="tx-tp"></div><div class="tx-nl"></div><div class="tx-av"></div>';
@@ -2291,7 +2441,10 @@ TX.noticias = {def: {topico: ''}, build(P, item, s, S) {
     tm = setTimeout(mostrar, Math.max(4, Math.min(9, (+item.duracaoS || 15) / ks.length)) * 1000);
   };
   S.fins.push(() => clearTimeout(tm));
-  txLoop(S, async () => { dados = await txDados('noticias', '', 600000); av.textContent = (dados.fonte || '') + ' · manchetes públicas · atualizado ' + new Date(dados.atualizado).toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'}); if (!tm) mostrar(); }, 600000, () => { nl.innerHTML = '<div class="tx-erro">Sem notícias no momento…</div>'; });
+  txLoop(S, async () => { dados = await txDados('noticias', '', 600000); av.innerHTML = esc(dados.fonte || '') + ' · manchetes públicas · atualizado ' + txHora(dados.atualizado) + txStaleTag(dados); if (!tm) mostrar(); }, 600000, () => {const backup = txCacheLer('noticias_');
+  if (!backup) nl.innerHTML = '<div class="tx-erro">Sem notícias no momento…</div>';
+  // se houver backup, os dados já apareceram no txLoop bem-sucedido anterior
+});
 }};
 
 /* ═════ SISTEMA SOLAR 3D (posições aproximadas por longitude média, órbitas circulares) ═════ */
@@ -2333,37 +2486,160 @@ TX.planetas3d = {def: {vel: 'normal'}, build(P, item, s, S) {
 }};
 
 /* ═════ TERREMOTOS · GLOBO 3D ═════ */
-TX.terremotos = {def: {magMin: 4.5}, build(P, item, s, S) {
-  s.className += ' tx'; txMorre(S);
-  if (P.preview) return txPreview(s, 'terremotos');
-  s.innerHTML = '<div class="tx-t">TERREMOTOS · ÚLTIMOS 7 DIAS</div><div class="tx-lista tx-sismos"></div><div class="tx-av"></div>';
-  const lista = s.querySelector('.tx-lista'), av = s.querySelector('.tx-av');
-  Promise.all([txThree(), txDados('terremotos', '', 300000)]).then(([THREE, d]) => {
-    if (S.morto) return;
-    const mm = Math.max(4.5, +item.magMin || 4.5), ev = d.eventos.filter(e => e.mag >= mm), top = ev.slice().sort((a, b) => b.mag - a.mag).slice(0, 6);
-    lista.innerHTML = '<div class="tx-sm-h"><b>' + d.total + '</b> eventos M4,5+ · maior <b>M' + txN(d.maior, 1) + '</b></div>' + top.map(e => '<div class="tx-li" style="border-color:' + (e.mag >= 6 ? '#ff5a6e' : e.mag >= 5.5 ? '#ff9f43' : '#ffd24a') + '"><div class="tx-ln"><b>M' + txN(e.mag, 1) + '</b><span>' + esc(e.lugar) + '</span><em>' + txAgo(e.t) + '</em></div></div>').join('');
-    av.textContent = d.fonte + ' · atualizado ' + new Date(d.atualizado).toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'});
-    tx3d(s, S, THREE, C => {
-      const {sc, cam} = C, RG = 10, glob = new THREE.Group(); C.desloca = .14; C.ajustar(); sc.add(glob);
-      sc.add(new THREE.AmbientLight(0x6688aa, .9)); const dl = new THREE.DirectionalLight(0xffffff, .8); dl.position.set(20, 15, 25); sc.add(dl);
-      glob.add(new THREE.Mesh(new THREE.SphereGeometry(RG, 48, 32), new THREE.MeshPhongMaterial({color: 0x071a33, emissive: 0x041224, transparent: true, opacity: .96, shininess: 18})));
-      const V = (lat, lon, r) => { const ph = (90 - lat) * Math.PI / 180, th = (lon + 180) * Math.PI / 180; return new THREE.Vector3(-r * Math.sin(ph) * Math.cos(th), r * Math.cos(ph), r * Math.sin(ph) * Math.sin(th)); };
-      const mat = new THREE.LineBasicMaterial({color: 0x15557a, transparent: true, opacity: .75});
-      for (let la = -60; la <= 60; la += 30) { const pts = []; for (let lo = -180; lo <= 180; lo += 6) pts.push(V(la, lo, RG + .02)); glob.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat)); }
-      for (let lo = -180; lo < 180; lo += 30) { const pts = []; for (let la = -90; la <= 90; la += 6) pts.push(V(la, lo, RG + .02)); glob.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat)); }
-      const aneis = [];
-      ev.forEach((e, i) => {
-        const rec = Date.now() - e.t < 864e5, cor = e.mag >= 6 ? 0xff3b55 : e.mag >= 5.5 ? 0xff9f43 : 0xffd24a, p = V(e.lat, e.lon, RG + .1);
-        const m = new THREE.Mesh(new THREE.SphereGeometry(.07 + (e.mag - 4.4) * .06, 12, 10), new THREE.MeshBasicMaterial({color: cor})); m.position.copy(p); glob.add(m);
-        if (i < 14 || e.mag >= 5.5) { const r = new THREE.Mesh(new THREE.RingGeometry(.14, .18, 28), new THREE.MeshBasicMaterial({color: cor, side: THREE.DoubleSide, transparent: true, opacity: .8})); r.position.copy(p); r.lookAt(p.clone().multiplyScalar(2)); glob.add(r); aneis.push({r, ph: i * .37, rec}); }
-      });
-      C.cb = t => {
-        glob.rotation.y = t * .14; const f = txDist(cam); cam.position.set(0, 9 * f, 36 * f); cam.lookAt(0, 0, 0);
-        aneis.forEach(a => { const k = ((t * (a.rec ? .9 : .5)) + a.ph) % 1; a.r.scale.setScalar(1 + k * (a.rec ? 5 : 3.2)); a.r.material.opacity = .8 * (1 - k); });
-      };
+TX.terremotos = {
+  def: { magMin: 4.5, mapa: 'globo' },   // 'globo' | 'plano'
+  build(P, item, s, S) {
+    s.className += ' tx'; txMorre(S);
+    if (P.preview) return txPreview(s, 'terremotos');
+    s.innerHTML = '<div class="tx-t">TERREMOTOS · ÚLTIMOS 7 DIAS · MAPA-MÚNDI</div>'
+      + '<div class="tx-lista tx-sismos"></div><div class="tx-av"></div>';
+    const lista = s.querySelector('.tx-lista'), av = s.querySelector('.tx-av');
+    Promise.all([txThree(), txDados('terremotos', '', 300000)]).then(([THREE, d]) => {
+      if (S.morto) return;
+      const mm = Math.max(4.5, +item.magMin || 4.5), ev = (Array.isArray(d.eventos) ? d.eventos : []).filter(e => Number(e.mag) >= mm && Number.isFinite(Number(e.lat)) && Number.isFinite(Number(e.lon)));
+      const top = ev.slice().sort((a, b) => b.mag - a.mag).slice(0, 6);
+      lista.innerHTML = '<div class="tx-sm-h"><b>' + d.total + '</b> eventos M4,5+ · maior <b>M'
+        + txN(d.maior, 1) + '</b></div>' + top.map(e =>
+        '<div class="tx-li" style="border-color:' + (e.mag >= 6 ? '#ff5a6e' : e.mag >= 5.5 ? '#ff9f43' : '#ffd24a') + '">'
+        + '<div class="tx-ln"><b>M' + txN(e.mag, 1) + '</b><span>' + esc(e.lugar)
+        + '</span><em>' + txAgo(e.t) + '</em></div></div>').join('');
+      av.innerHTML = esc(d.fonte || '') + ' · atualizado ' + txHora(d.atualizado) + txStaleTag(d);
+
+      if (item.mapa === 'plano') return montarMapaPlano(s, S, ev, THREE);
+      montarGlobo(s, S, ev, THREE);
+    }).catch(() => {
+      if (!S.morto) txSemWebgl(s, 'Sem dados de terremotos no momento…');
     });
-  }).catch(() => { if (!S.morto) txSemWebgl(s, 'Sem dados de terremotos no momento…'); });
-}};
+  }
+};
+
+/* — versão globo COM continentes wireframe — */
+function montarGlobo(s, S, ev, THREE) {
+  tx3d(s, S, THREE, C => {
+    const { sc, cam } = C, RG = 10, glob = new THREE.Group();
+    C.desloca = .14; C.ajustar(); sc.add(glob);
+    sc.add(new THREE.AmbientLight(0x6688aa, .9));
+    const dl = new THREE.DirectionalLight(0xffffff, .8); dl.position.set(20, 15, 25); sc.add(dl);
+
+    // esfera base
+    glob.add(new THREE.Mesh(new THREE.SphereGeometry(RG, 64, 48),
+      new THREE.MeshPhongMaterial({ color: 0x071a33, emissive: 0x041224, transparent: true, opacity: .96, shininess: 18 })));
+
+    const V = (lat, lon, r) => {
+      const ph = (90 - lat) * Math.PI / 180, th = (lon + 180) * Math.PI / 180;
+      return new THREE.Vector3(-r * Math.sin(ph) * Math.cos(th), r * Math.cos(ph), r * Math.sin(ph) * Math.sin(th));
+    };
+    const gradeMat = new THREE.LineBasicMaterial({ color: 0x0d3a55, transparent: true, opacity: .5 });
+    for (let la = -60; la <= 60; la += 30) {
+      const pts = []; for (let lo = -180; lo <= 180; lo += 6) pts.push(V(la, lo, RG + .01));
+      glob.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), gradeMat));
+    }
+    for (let lo = -180; lo < 180; lo += 30) {
+      const pts = []; for (let la = -90; la <= 90; la += 6) pts.push(V(la, lo, RG + .01));
+      glob.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), gradeMat));
+    }
+    // continentes em wireframe (linhas costeiras aproximadas, baixa resolução — 1 ponto por ~8°)
+    const CONT = [
+      // [nome, [ [lat,lon], ...coordenadas aproximadas do litoral ] ]
+      ['AmericaNorte',[[72,-168],[71,-156],[70,-142],[60,-140],[58,-135],[54,-130],[48,-125],[40,-124],[32,-117],[23,-110],[20,-105],[16,-96],[15,-92],[10,-83],[9,-78],[12,-72],[18,-72],[22,-80],[25,-80],[30,-81],[35,-76],[40,-70],[45,-63],[47,-52],[52,-55],[58,-63],[63,-77],[68,-96],[70,-120]]],
+      ['AmericaSul',[[12,-72],[8,-60],[4,-51],[0,-50],[-5,-35],[-8,-35],[-15,-39],[-23,-43],[-28,-48],[-35,-55],[-38,-62],[-45,-65],[-52,-69],[-55,-67],[-53,-60],[-50,-45],[-40,-45],[-30,-48],[-23,-43],[-15,-38],[-8,-35],[0,-50],[5,-55],[10,-62]]],
+      ['Africa',[[37,10],[36,0],[35,-6],[30,-10],[27,-13],[22,-17],[16,-17],[12,-16],[5,-10],[4,0],[2,10],[0,14],[-5,12],[-15,12],[-22,14],[-30,18],[-35,18],[-35,25],[-30,31],[-22,35],[-15,41],[-10,42],[-2,42],[4,41],[12,44],[18,42],[25,35],[30,32],[34,26],[37,10]]],
+      ['Europa',[[70,30],[66,15],[58,8],[56,10],[54,8],[50,4],[46,3],[44,-2],[43,2],[43,7],[42,15],[38,22],[36,28],[40,26],[42,25],[45,20],[47,14],[52,5],[54,10],[58,12],[63,20],[68,25]]],
+      ['Asia',[[75,140],[73,120],[72,90],[70,70],[68,60],[60,30],[60,30],[58,30],[56,22],[50,30],[46,52],[42,50],[40,45],[42,50],[44,60],[40,80],[35,85],[30,90],[22,95],[18,80],[10,80],[8,80],[8,105],[15,110],[22,120],[25,122],[32,130],[36,140],[42,140],[50,142],[58,158],[68,180]]],
+      ['Australia',[[-12,132],[-12,142],[-16,146],[-22,150],[-28,153],[-34,151],[-38,146],[-38,140],[-35,135],[-32,125],[-28,115],[-22,114],[-18,122],[-14,127]]],
+      ['Antartida',[[-70,-180],[-70,-120],[-70,-60],[-70,0],[-70,60],[-70,120],[-70,180]]]
+    ];
+    const costaMat = new THREE.LineBasicMaterial({ color: 0x2dd4bf, transparent: true, opacity: .85 });
+    CONT.forEach(([_, pts]) => {
+      for (let i = 0; i < pts.length - 1; i++) {
+        const a = V(pts[i][0], pts[i][1], RG + .02), b = V(pts[i + 1][0], pts[i + 1][1], RG + .02);
+        glob.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([a, b]), costaMat));
+      }
+    });
+
+    // sismos
+    const aneis = [];
+    ev.forEach((e, i) => {
+      const rec = Date.now() - e.t < 864e5;
+      const cor = e.mag >= 6 ? 0xff3b55 : e.mag >= 5.5 ? 0xff9f43 : 0xffd24a;
+      const p = V(e.lat, e.lon, RG + .1);
+      const m = new THREE.Mesh(new THREE.SphereGeometry(.07 + (e.mag - 4.4) * .06, 12, 10),
+        new THREE.MeshBasicMaterial({ color: cor }));
+      m.position.copy(p); glob.add(m);
+      if (i < 14 || e.mag >= 5.5) {
+        const r = new THREE.Mesh(new THREE.RingGeometry(.14, .18, 28),
+          new THREE.MeshBasicMaterial({ color: cor, side: THREE.DoubleSide, transparent: true, opacity: .8 }));
+        r.position.copy(p); r.lookAt(p.clone().multiplyScalar(2)); glob.add(r);
+        aneis.push({ r, ph: i * .37, rec });
+      }
+    });
+    C.cb = t => {
+      glob.rotation.y = t * .14;
+      const f = txDist(cam); cam.position.set(0, 9 * f, 36 * f); cam.lookAt(0, 0, 0);
+      aneis.forEach(a => {
+        const k = ((t * (a.rec ? .9 : .5)) + a.ph) % 1;
+        a.r.scale.setScalar(1 + k * (a.rec ? 5 : 3.2));
+        a.r.material.opacity = .8 * (1 - k);
+      });
+    };
+  });
+}
+/* — versão mapa-múndi plano (projeção equiretangular) — */
+const TX_CONTINENTES = [
+ [[72,-168],[70,-140],[58,-135],[48,-125],[32,-117],[20,-105],[15,-92],[9,-78],[18,-72],[25,-80],[35,-76],[47,-52],[58,-63],[68,-96]],
+ [[12,-72],[4,-51],[-8,-35],[-23,-43],[-35,-55],[-52,-69],[-55,-60],[-40,-45],[-23,-43],[-8,-35],[5,-55]],
+ [[37,10],[30,-10],[16,-17],[5,-10],[0,14],[-15,12],[-35,18],[-30,31],[-15,41],[-2,42],[12,44],[25,35],[37,10]],
+ [[70,30],[58,8],[50,4],[43,2],[38,22],[45,20],[52,5],[63,20],[70,30]],
+ [[75,140],[72,90],[68,60],[60,30],[50,30],[42,50],[40,80],[30,90],[18,80],[8,105],[22,120],[36,140],[50,142],[68,180]],
+ [[-12,132],[-16,146],[-28,153],[-38,146],[-35,135],[-28,115],[-18,122]],
+ [[-70,-180],[-70,-120],[-70,-60],[-70,0],[-70,60],[-70,120],[-70,180]]
+];
+function montarMapaPlano(s, S, ev, THREE) {
+  tx3d(s, S, THREE, C => {
+    const { sc, cam } = C; C.ajustar();
+    sc.background = new THREE.Color(0x02040a);
+    // plano como textura gerada em canvas
+    const W = 1024, H = 512;
+    const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+    const g = cv.getContext('2d');
+    g.fillStyle = '#030812'; g.fillRect(0, 0, W, H);
+    g.strokeStyle = 'rgba(0,229,255,.18)'; g.lineWidth = 1;
+    for (let x = 0; x <= W; x += W / 12) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); }
+    for (let y = 0; y <= H; y += H / 6)  { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
+    const px = lon => (lon + 180) / 360 * W, py = lat => (90 - lat) / 180 * H;
+    g.fillStyle='rgba(45,212,191,.13)'; g.strokeStyle='rgba(45,212,191,.78)'; g.lineWidth=2;
+    TX_CONTINENTES.forEach(poly=>{g.beginPath();poly.forEach((pt,i)=>{const x=px(pt[1]),y=py(pt[0]);if(i===0)g.moveTo(x,y);else g.lineTo(x,y);});g.closePath();g.fill();g.stroke();});
+    const tex = new THREE.CanvasTexture(cv);
+    const plano = new THREE.Mesh(new THREE.PlaneGeometry(90, 45),
+      new THREE.MeshBasicMaterial({ map: tex, transparent: true }));
+    sc.add(plano);
+    const P2 = (lat, lon, z = 0) => new THREE.Vector3((lon / 180) * 45, (lat / 90) * 22.5, z || .5);
+    const mat = new THREE.MeshBasicMaterial({ color: 0x2dd4bf, transparent: true, opacity: .95 });
+    ev.forEach((e, i) => {
+      const cor = e.mag >= 6 ? 0xff3b55 : e.mag >= 5.5 ? 0xff9f43 : 0xffd24a;
+      const m = new THREE.Mesh(new THREE.CircleGeometry(.18 + (e.mag - 4.4) * .14, 16),
+        new THREE.MeshBasicMaterial({ color: cor, transparent: true, opacity: .9 }));
+      m.position.copy(P2(e.lat, e.lon, 1)); sc.add(m);
+      const r = new THREE.Mesh(new THREE.RingGeometry(.22, .3, 24),
+        new THREE.MeshBasicMaterial({ color: cor, transparent: true, opacity: .6, side: THREE.DoubleSide }));
+      r.position.copy(P2(e.lat, e.lon, 1.2)); sc.add(r);
+      r.userData = { ph: i * .37 };
+      if (!S._aneis) S._aneis = [];
+      S._aneis.push(r);
+    });
+    let t0 = performance.now();
+    C.cb = () => {
+      const t = (performance.now() - t0) / 1000;
+      const f = txDist(cam);
+      cam.position.set(0, 0, 55 * f); cam.lookAt(0, 0, 0);
+      (S._aneis || []).forEach(a => {
+        const k = ((t * .6) + a.userData.ph) % 1;
+        a.scale.setScalar(1 + k * 3);
+        a.material.opacity = .6 * (1 - k);
+      });
+    };
+  });
+}
 
 /* ═════ JORNAL CLIMA FLUXO ═════ */
 TX.jornal = {def: {cidade: 'São Paulo'}, build(P, item, s, S) {
@@ -2391,218 +2667,234 @@ TX.climagrafico = {def: {cidade: 'Rio de Janeiro', lat: -22.9068, lon: -43.1729}
     const rot = hs.map((x, i) => i % 6 === 0 ? '<text x="' + X(i).toFixed(1) + '" y="' + (H - 16) + '" fill="#8fb3d4" font-size="24" text-anchor="middle">' + esc(x.t.slice(11, 13)) + 'h</text>' : '').join('');
     const pts = hs.map((x, i) => i % 6 === 0 ? '<text x="' + X(i).toFixed(1) + '" y="' + (Y(x.temp) - 12).toFixed(1) + '" fill="#fff" font-size="26" text-anchor="middle" font-weight="700">' + Math.round(x.temp) + '°</text>' : '').join('');
     g.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet"><defs><linearGradient id="cgg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#00e5ff" stop-opacity=".45"/><stop offset="1" stop-color="#00e5ff" stop-opacity="0"/></linearGradient></defs>' + barras + '<path class="cg-ar" d="' + area + '" fill="url(#cgg)"/><path class="cg-ln" pathLength="1" d="' + linha + '" fill="none" stroke="#00e5ff" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>' + rot + pts + '</svg>';
-    av.textContent = 'Linha = temperatura · barras = probabilidade de chuva · ' + d.fonte + ' (a mesma base do ClimaFluxo)';
-  }, 900000, () => { g.innerHTML = '<div class="tx-erro">Sem dados de clima no momento…</div>'; });
+    av.innerHTML = 'Linha = temperatura · barras = probabilidade de chuva · ' + esc(d.fonte || '') + ' (a mesma base do ClimaFluxo)' + txStaleTag(d);
+  }, 900000, () => { if (!g.innerHTML.trim()) g.innerHTML = '<div class="tx-erro">Aguardando dados de clima…</div>'; });
 }};
+/* ═════ HORÓSCOPO COM CADASTRO VIA QR ═════ */
+const HORO_SIGNS = [
+  { n: 'Áries',      i: '♈', ini: [3,21], fim: [4,19] },
+  { n: 'Touro',      i: '♉', ini: [4,20], fim: [5,20] },
+  { n: 'Gêmeos',     i: '♊', ini: [5,21], fim: [6,20] },
+  { n: 'Câncer',     i: '♋', ini: [6,21], fim: [7,22] },
+  { n: 'Leão',       i: '♌', ini: [7,23], fim: [8,22] },
+  { n: 'Virgem',     i: '♍', ini: [8,23], fim: [9,22] },
+  { n: 'Libra',      i: '♎', ini: [9,23], fim: [10,22] },
+  { n: 'Escorpião',  i: '♏', ini: [10,23], fim: [11,21] },
+  { n: 'Sagitário',  i: '♐', ini: [11,22], fim: [12,21] },
+  { n: 'Capricórnio',i: '♑', ini: [12,22], fim: [1,19] },
+  { n: 'Aquário',    i: '♒', ini: [1,20], fim: [2,18] },
+  { n: 'Peixes',     i: '♓', ini: [2,19], fim: [3,20] }
+];
+function hosoSigno(dia, mes) {
+  return HORO_SIGNS.find(s => {
+    const [mi, di] = s.ini, [mf, df] = s.fim;
+    if (mi <= mf) return (mes === mi && dia >= di) || (mes === mf && dia <= df);
+    return (mes === mi && dia >= di) || (mes === mf && dia <= df);
+  }) || HORO_SIGNS[0];
+}
+function hosoFaseLua(d) {
+  const n = Math.floor(((d.getTime() / 86400000) - 947105) % 29.53059);
+  return ['🌑 Lua nova','🌒 Crescente côncava','🌓 Quarto crescente','🌔 Crescente gibosa','🌕 Lua cheia','🌖 Minguante gibosa','🌗 Quarto minguante','🌘 Minguante côncava'][Math.floor(n / 3.7) % 8];
+}
+function hosoAlinhamentoHoje(p) {
+  const hoje = new Date();
+  const nascRaw = String(p.nasc || '2000-01-01');
+  const partes = nascRaw.match(/(?:\d{4}-)?(\d{2})-(\d{2})$/);
+  const mes = partes ? +partes[1] : 1, dia = partes ? +partes[2] : 1;
+  let nasc = new Date(hoje.getFullYear(), mes - 1, dia, 12);
+  if (nasc > hoje) nasc.setFullYear(hoje.getFullYear() - 1);
+  const dias = Math.floor((hoje - nasc) / 86400000);
+  const signo = hosoSigno(dia, mes);
+  const fase = hosoFaseLua(hoje);
+  const num = (dias * 7 + hoje.getDate() + signo.n.length) % 100;
+  const tom = num > 66 ? 'expansão' : num > 33 ? 'equilíbrio' : 'introspecção';
+  const msgs = {
+    'expansão': 'Dia de abrir caminhos. Dê o primeiro passo no que vinha adiando.',
+    'equilíbrio': 'Respire. As decisões amadurecem melhor quando você não força o ritmo.',
+    'introspecção': 'Escute antes de responder. O silêncio é o mapa de hoje.'
+  };
+  return { signo, fase, tom, msg: msgs[tom], dias };
+}
+TX.recadoAmor = {
+  def: {porPagina: 3, titulo: 'Uma mensagem pode mudar o dia de alguém'},
+  build(P, item, s, S) {
+    s.className += ' tx tx-amor'; txMorre(S);
+    const totem = encodeURIComponent(String(P.t && P.t.id || 'totem1'));
+    const cadastro = location.origin + '/recado-amor?totem=' + totem;
+    const qr = 'https://api.qrserver.com/v1/create-qr-code/?size=420x420&margin=8&data=' + encodeURIComponent(cadastro);
+    s.innerHTML = `<div class="tx-t" style="color:#ffc4dc">ALMAFLUXO · GESTO DE CARINHO</div>
+      <div class="amor-wrap"><div class="amor-copy"><div class="amor-kicker">Recado do Amor</div>
+      <div class="amor-title">${esc(item.titulo || 'Uma mensagem pode mudar o dia de alguém')}</div>
+      <div class="amor-sub">Envie uma declaração, uma lembrança ou uma palavra de carinho. Aponte a câmera para o QR Code e deixe sua mensagem.</div></div>
+      <div><div class="amor-qr"><img alt="QR Code para enviar um recado" src="${qr}"></div><div class="amor-qr-cap">📱 Escaneie e escreva seu recado</div></div></div>
+      <div class="amor-msgs"><div class="amor-empty">Mensagens carinhosas aparecerão aqui depois de aprovadas.</div></div>
+      <div class="tx-av">Mensagens exibidas somente após moderação. Não informe telefone, endereço ou dados pessoais.</div>`;
+    const box=s.querySelector('.amor-msgs');
+    const carregar=async()=>{try{const r=await fetch('/api/totem/amor?totem='+totem,{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);const d=await r.json();const msgs=Array.isArray(d.mensagens)?d.mensagens:[];box.innerHTML=msgs.length?msgs.slice(0,Math.max(1,Math.min(4,+item.porPagina||3))).map(m=>`<div class="amor-msg"><b>${esc(m.de||'Alguém especial')} → ${esc(m.para||'')}</b>${esc(m.mensagem||'')}</div>`).join(''):'<div class="amor-empty">Seja a primeira pessoa a espalhar carinho por aqui.</div>';}catch(e){if(!box.textContent.trim())box.textContent='Mensagens temporariamente indisponíveis.';}};
+    carregar(); const iv=setInterval(carregar,30000); S.fins.push(()=>clearInterval(iv));
+  }
+};
 
+TX.horoscopo = {
+  def: { cadastroQr: true, porPagina: 4, cadastroUrl: '', apiUrl: '' },
+  build(P, item, s, S) {
+    s.className += ' tx'; txMorre(S);
+    s.innerHTML = `
+      <div class="tx-t">SIGNO SOLAR · LEITURA SIMBÓLICA</div>
+      <div class="tx-grid tx-horo"></div>
+      <div class="tx-horo-qr">
+        <div class="qr-box" id="horoQrBox"></div>
+        <div class="qr-cap">
+          <b>Participe</b> · nome e data de nascimento<br>
+          <span>Leitura simbólica do signo solar e do ciclo lunar</span>
+        </div>
+      </div>
+      <div class="tx-av">Participação opcional. Confira a política de privacidade antes de enviar seus dados.</div>`;
+    const grid = s.querySelector('.tx-horo'), qrBox = s.querySelector('#horoQrBox');
+    // Gera QR apontando para página de cadastro (URL no Worker)
+    const baseCadastro = String(item.cadastroUrl || (location.origin + '/participar-horoscopo?totem=' + encodeURIComponent(P.t && P.t.id || 'totem1'))).trim();
+    if (baseCadastro && /^https:\/\//i.test(baseCadastro)) qrBox.innerHTML = '<img alt="QR de cadastro" src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=0&data=' + encodeURIComponent(baseCadastro) + '">';
+    else qrBox.innerHTML = '<div style="color:#102030;text-align:center;font-size:12px;padding:18% 5%">Configure uma URL HTTPS para o cadastro</div>';
+    // Modo local de demonstração: localStorage não sincroniza celulares com o totem. Para produção, conecte este leitor a um endpoint do Worker.
+    let remotos=[];
+    const carregar = () => {
+      try { const raw = localStorage.getItem('almafluxo_horo_pessoas_v1'); const locais = raw ? JSON.parse(raw) : [];
+        const mapa=new Map(); [...remotos,...(Array.isArray(locais)?locais:[])].filter(p=>p&&p.nasc&&p.nome).forEach(p=>mapa.set(String(p.id||p.nome+'|'+p.nasc),p));
+        return [...mapa.values()].map(p=>Object.assign({},p,hosoAlinhamentoHoje(p)));
+      } catch (e) { return remotos.filter(p=>p&&p.nasc&&p.nome).map(p=>Object.assign({},p,hosoAlinhamentoHoje(p))); }
+    };
+    const apiPessoas = String(item.apiUrl || ('/api/totem/horoscopo?totem=' + encodeURIComponent(P.t && P.t.id || 'totem1')));
+    const buscarRemotos = async () => { if(!apiPessoas || (urlOk(apiPessoas) && !/^https:\/\//i.test(apiPessoas))) return; try { const r=await fetch(apiPessoas,{cache:'no-store'}); if(!r.ok) throw new Error('HTTP '+r.status); const d=await r.json(); remotos=Array.isArray(d)?d:(Array.isArray(d.pessoas)?d.pessoas:(Array.isArray(d.data?.pessoas)?d.data.pessoas:[])); renderizar(); } catch(e) { /* mantém a última lista renderizada */ } };
+    const renderizar = () => {
+      const pessoas = carregar().slice(0, Math.max(2, Math.min(8, +item.porPagina || 4)));
+      if (!pessoas.length) {
+        grid.innerHTML = '<div class="tx-erro" style="grid-column:1/-1;color:#9fc7ff">'
+          + 'Escaneie o QR Code para participar. As leituras aparecem após aprovação.'
+          + '</div>';
+        return;
+      }
+      grid.innerHTML = pessoas.map(p => `
+        <div class="tx-card horo-card">
+          <div class="horo-signo">${p.signo.i} ${esc(p.signo.n)}</div>
+          <div class="horo-nome">${esc(p.nome)}</div>
+          <div class="horo-linha">${p.fase}</div>
+          <div class="horo-tom" data-tom="${p.tom}">${p.tom.toUpperCase()}</div>
+          <div class="horo-msg">${esc(p.msg)}</div>
+        </div>`).join('');
+    };
+    renderizar(); buscarRemotos();
+    // recebe atualizações da página de cadastro
+    window.addEventListener('message', e => {
+      if (e.data && e.data.type === 'horo:nova') renderizar();
+    });
+    const iv = setInterval(()=>{renderizar();buscarRemotos();}, 20000);
+    S.fins.push(() => clearInterval(iv));
+  }
+};
 /* editor do painel para as telas novas */
 function txEditor(it, k, i) {
   const t = it.tipo; let h = '';
   if (t === 'bolsa3d' || t === 'cotacoes') h = fld('Ativos (ids separados por vírgula)', k + 'ativos', it.ativos || '') + '<div class="hintx" style="grid-column:1/-1">Disponíveis: ibov, usd, eur, ouro, btc, eth, sp500, brent. Vazio = padrão da tela.</div>';
   else if (t === 'noticias') h = sel('Assunto', k + 'topico', it.topico || '', [['', 'Todos (rodízio)'], ['dolar', 'Dólar'], ['ouro', 'Ouro'], ['bitcoin', 'Bitcoin'], ['ethereum', 'Ethereum'], ['mercado', 'Mercado / Bolsa']]);
+  else if (t === 'horoscopo') h = fld('Pessoas exibidas',k+'porPagina',it.porPagina||4,'number','min="2" max="8"') + fld('URL HTTPS da página de cadastro',k+'cadastroUrl',it.cadastroUrl||'') + fld('URL HTTPS do endpoint GET JSON',k+'apiUrl',it.apiUrl||'') + '<div class="hintx">O endpoint GET deve retornar <code>{"pessoas":[{"nome":"...","nasc":"AAAA-MM-DD"}]}</code>. Sem URL personalizada, o totem usa a página integrada /participar-horoscopo e o banco CHAT_DB do Worker. O sistema armazena somente mês e dia do nascimento; o ano é descartado. A leitura é simbólica, não um mapa astronômico completo.</div>';
+  else if (t === 'recadoAmor') h = fld('Título principal',k+'titulo',it.titulo||'Uma mensagem pode mudar o dia de alguém') + fld('Mensagens exibidas',k+'porPagina',it.porPagina||3,'number','min="1" max="4"') + '<div class="hintx">O QR abre a página pública /recado-amor. As mensagens ficam pendentes e só aparecem no totem após aprovação pelo endpoint administrativo do Worker. Não solicite telefone, endereço ou dados pessoais.</div>';
   else if (t === 'planetas3d') h = sel('Velocidade do tempo', k + 'vel', it.vel || 'normal', [['lenta', 'Lenta (4 dias/s)'], ['normal', 'Normal (10 dias/s)'], ['rapida', 'Rápida (28 dias/s)']]);
-  else if (t === 'terremotos') h = fld('Magnitude mínima', k + 'magMin', it.magMin == null ? 4.5 : it.magMin, 'number', 'min="4.5" max="9" step="0.1"');
+  else if (t === 'terremotos') h = fld('Magnitude mínima', k + 'magMin', it.magMin == null ? 4.5 : it.magMin, 'number', 'min="4.5" max="9" step="0.1"') + sel('Visualização', k + 'mapa', it.mapa || 'globo', [['globo','🌍 Globo 3D'],['plano','🗺️ Mapa-múndi plano']]);
   else if (t === 'jornal') h = fld('Cidade do jornal', k + 'cidade', it.cidade || 'São Paulo');
   else if (t === 'climagrafico') h = fld('Cidade', k + 'cidade', it.cidade || '') + fld('Latitude', k + 'lat', it.lat, 'number', 'step="0.0001"') + fld('Longitude', k + 'lon', it.lon, 'number', 'step="0.0001"') + '<label>&nbsp;<button class="btn" onclick="buscarCidade(' + i + ')">🔎 Achar coordenadas pela cidade</button></label>';
   return '<div class="fm">' + h + '</div><div class="hintx">Dados do motor do Worker (/api/totem/dados/…), atualizados sozinhos. Probabilidades são estatística do passado recente, não recomendação.</div>';
 }
 
+/* tela de espera (sem configuração / sem login): playlist informativa, não só relógio */
 const TX_PADRAO = () => ({id: '-', status: 'liberado', tela: {}, layout: {modelo: 'full', gap: 0, raio: 0}, paineis: {r1: {itens: [
-  {tipo: 'bolsa3d', duracaoS: 20}, {tipo: 'cotacoes', duracaoS: 14}, {tipo: 'noticias', duracaoS: 30}, {tipo: 'planetas3d', duracaoS: 20}, {tipo: 'terremotos', duracaoS: 18},
+  {tipo: 'bolsa3d', duracaoS: 20}, {tipo: 'cotacoes', duracaoS: 14}, {tipo: 'noticias', duracaoS: 30}, {tipo: 'planetas3d', duracaoS: 20}, {tipo: 'terremotos', duracaoS: 18}, {tipo: 'horoscopo', duracaoS: 24}, {tipo: 'recadoAmor', duracaoS: 24},
   {tipo: 'jornal', duracaoS: 24, cidade: 'São Paulo'}, {tipo: 'climagrafico', duracaoS: 16, cidade: 'Rio de Janeiro', lat: -22.9068, lon: -43.1729}, {tipo: 'relogio', duracaoS: 8}
 ], transicao: {tipo: 'fade', ms: 900}, aleatorio: false}}});
 
-/* ══════ IDENTIFICA O TOTEM PELA URL ══════
-   Formatos aceitos:
-     /conversa/totem1      → "totem1"
-     /conversa/totem7      → "totem7"
-     /conversa/totem-emp   → "totem-emp"
-     /conversa/?t=totem7   → "totem7"
-     /qualquer?t=totem7    → "totem7"
-     /conversa             → "totem1" (fallback, ou localStorage)
-   Se não achar nada, retorna null. O boot trata null como "standby". */
-const TX_PATH_ID = (() => {
-  // /conversa/totem1 → "totem1"
-  const m = location.pathname.match(/\/(?:conversa\/)(totem[\w-]*)\/?$/i);
-  if (m) return m[1].toLowerCase();
-
-  // /conversa/ ou /conversa → "totem1" (fallback)
-  if (/^\/conversa\/?$/i.test(location.pathname)) {
-    const q = new URLSearchParams(location.search).get('t');
-    if (q) return String(q).replace(/[^\w-]/g, '');
-    const ls = (() => { try { return JSON.parse(localStorage.getItem('almafluxo_totem_id') || 'null'); } catch(e){ return null; } })();
-    return ls || 'totem1';
-  }
-
-  // 3) qualquer outra URL com ?t= (Drive aberto direto, por exemplo)
-  const q = new URLSearchParams(location.search).get('t');
-  if (q) return String(q).replace(/[^\w-]/g, '');
-
-  return null;
-})();
-/* ══════ TELA CHEIA (funciona em qualquer URL: /conversa, /conversa/totem1, Drive direto) ══════ */
+/* ══════ ENDEREÇO → TOTEM, INSTALAÇÃO E TELA CHEIA ══════
+   /conversa/totem1 (ou ?t=totem1) escolhe o totem. A TV precisa de 1 clique/OK para tela cheia
+   (regra dos navegadores); instalado como app, abre em tela cheia sozinho. */
+const TX_PATH_ID = (() => { const m = location.pathname.match(/\/(?:conversa\/)?(totem[\w-]*)\/?$/i); return m ? m[1].toLowerCase() : null; })();
 (function txPwa() {
-  // Atualiza o manifest já declarado no <head>; evita manifest duplicado.
-  if (TX_PATH_ID) {
-    const manifest = document.getElementById('manifestLink') || document.querySelector('link[rel="manifest"]');
-    if (manifest) manifest.href = '/manifest.webmanifest?id=' + encodeURIComponent(TX_PATH_ID);
-  }
-
-  // Service Worker registration with explicit scope and error handling.
-  // The worker must serve the SW file at the path it's registered from.
-  if ('serviceWorker' in navigator && location.protocol === 'https:') {
-    const swPath = '/conversa/sw.js';
-    const swScope = '/conversa/';
-    
-    navigator.serviceWorker.register(swPath, { scope: swScope })
-      .then(registration => {
-        console.log('Service Worker registered successfully for scope:', registration.scope);
-      })
-      .catch(err => {
-        console.error('Service Worker registration failed:', err);
-      });
-  }
-
-  let bip = null, wl = null, saidaAutorizada = false, jaEntrou = false;
+  if (TX_PATH_ID) { const l = document.createElement('link'); l.rel = 'manifest'; l.href = '/conversa/manifest.webmanifest?id=' + encodeURIComponent(TX_PATH_ID); document.head.appendChild(l); }
+  if ('serviceWorker' in navigator && location.protocol === 'https:' && /^\/conversa(\/|$)/.test(location.pathname)) navigator.serviceWorker.register('/conversa/sw.js', {scope: '/conversa/'}).catch(() => {});
+  let bip = null, wl = null;
   const modoApp = () => matchMedia('(display-mode: fullscreen)').matches || matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
-  const emTela  = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
-
+  const emTela = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
   const wake = async () => { try { if ('wakeLock' in navigator && !wl) { wl = await navigator.wakeLock.request('screen'); wl.addEventListener('release', () => { wl = null; }); } } catch (e) {} };
   document.addEventListener('visibilitychange', () => { if (!document.hidden) wake(); }); wake();
-
-  // recarrega a cada 6 h, exceto com painel/menu/login abertos
-  setInterval(() => {
-    if (!$id('app')?.classList.contains('ativo') && !$id('menuLocal')?.classList.contains('ativo') && !$id('telaLogin')?.classList.contains('on')) location.reload();
-  }, 6 * 3600 * 1000);
-
+  if (!TX_PATH_ID) return;
+  /* recarrega a cada 6 h (limpa memória de animações longas), exceto com o painel aberto */
+  setInterval(() => { if (!$id('app').classList.contains('ativo') && !$id('menuLocal').classList.contains('ativo') && !$id('telaLogin').classList.contains('on')) location.reload(); }, 6 * 3600 * 1000);
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); bip = e; });
   window.addEventListener('appinstalled', () => esconder());
-
-  // A função original pode ser simplificada ou removida, mas se a
-  // usarmos em outro lugar (como no botão do banner), deve ser síncrona.
-  function entrarTelaCheia() {
-    if (emTela() || modoApp()) return Promise.resolve(true);
-    try {
-      const alvo = document.documentElement;
-      const fn = alvo.requestFullscreen || alvo.webkitRequestFullscreen || alvo.msRequestFullscreen;
-      if (!fn) return Promise.reject(new Error('Fullscreen API não suportada neste navegador'));
-      // Algumas implementações antigas (webkit/ms) retornam undefined, não Promise.
-      // A chamada continua síncrona para preservar a autorização do gesto do usuário.
-      const retorno = fn.call(alvo);
-      return Promise.resolve(retorno).then(() => true);
-    } catch (e) {
-      console.warn('fullscreen falhou:', e && e.message);
-      return Promise.reject(e);
-    }
-  }
-
-  // ── 1) ENTRAR: primeiro clique em qualquer lugar ──
-  document.addEventListener('click', (ev) => {
-    // Ignore if the panel, local menu, or login screen is open
-    if ($id('app')?.classList.contains('ativo')) return;
-    if ($id('menuLocal')?.classList.contains('ativo')) return;
-    if ($id('telaLogin')?.classList.contains('on')) return;
-    if (saidaAutorizada) return;
-    
-    // If already in fullscreen or app mode, do nothing
-    if (emTela() || modoApp()) {
-      jaEntrou = true;
-      esconder(); // Hide the banner if it's still visible
-      return;
-    }
-
-    // The requestFullscreen call MUST be synchronous within the user gesture.
-    const el = document.documentElement;
-    const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
-
-    if (!fn) {
-      console.warn('Fullscreen API not supported by this browser.');
-      return;
-    }
-
-    // Call the function synchronously. The promise is handled afterwards.
-    try {
-      const result = fn.call(el);
-      // Now handle the promise. The .then/.catch are just to know if it worked.
-      Promise.resolve(result).then(() => {
-        jaEntrou = true;
-        esconder(); // Hide banner on success
-      }).catch((err) => {
-        // This catch is for promise rejections (e.g., permissions, user denies, etc.)
-        console.warn('Fullscreen request rejected:', err && err.message ? err.message : err);
-      });
-    } catch (syncErr) {
-      // This catches synchronous errors (e.g., API call itself throws)
-      console.warn('Fullscreen API call threw an error:', syncErr && syncErr.message ? syncErr.message : syncErr);
-    }
-  }, true);
-
-  // ── 2) SAIR: ESC + 5 cliques do botão esquerdo em até 2 s ──
-  let escArmado = false, escTs = 0, cliquesSaida = 0, cliquesTs = 0;
-  document.addEventListener('keydown', (ev) => {
-    if (ev.key === 'Escape' || ev.key === 'Esc') {
-      escArmado = true; escTs = Date.now(); cliquesSaida = 0;
-      if ($id('menuLocal')?.classList.contains('ativo')) return;
-      ev.stopPropagation();
-    }
-  }, true);
-
-  document.addEventListener('mousedown', (ev) => {
-    if (ev.button !== 0 || !escArmado) return;
-    if (Date.now() - escTs > 2000) { escArmado = false; cliquesSaida = 0; return; }
-    const agora = Date.now();
-    if (agora - cliquesTs > 1500) cliquesSaida = 0;
-    cliquesTs = agora; cliquesSaida++;
-    if (cliquesSaida >= 5) {
-      escArmado = false; cliquesSaida = 0; saidaAutorizada = true;
-      sairTelaCheia();
-      setTimeout(() => { saidaAutorizada = false; jaEntrou = false; }, 1500);
-    }
-  }, true);
-
-  async function sairTelaCheia() {
-    try {
-      if (document.exitFullscreen) await document.exitFullscreen();
-      else if (document.webkitExitFullscreen) await document.webkitExitFullscreen();
-      else if (document.msExitFullscreen) await document.msExitFullscreen();
-    } catch (e) {}
-  }
-
-  // ── 3) Se o navegador sair do fullscreen sozinho (ESC), reentra em 60 ms ──
-  function onFullscreenChange() {
-    if (!emTela()) {
-      if (!saidaAutorizada) {
-        setTimeout(() => { if (!saidaAutorizada && !emTela()) entrarTelaCheia(); }, 60);
-      }
-    } else {
-      jaEntrou = true; esconder();
-    }
-  }
-  document.addEventListener('fullscreenchange', onFullscreenChange);
-  document.addEventListener('webkitfullscreenchange', onFullscreenChange);
-  document.addEventListener('MSFullscreenChange', onFullscreenChange);
-
-  // ── 4) Banner inicial (some no primeiro clique; o clique já entra em fullscreen) ──
-  let box = null;
+  let box = null, ativado = false;
   const esconder = () => { if (box) { box.remove(); box = null; } };
-
-  box = el('div', 'tx-inst',
-    '<div><b>📺 Tela cheia</b><br>Clique em qualquer lugar para entrar em tela cheia.' +
-    '<br><small>Para sair: pressione <b>ESC</b> e clique <b>5×</b> com o botão esquerdo (em até 2 s).</small></div>' +
-    '<button>Entrar</button>');
-  // No banner de instrução
-  // No banner de instrução
-  box.querySelector('button').addEventListener('click', (e) => {
-    e.stopPropagation(); // Prevent the document click handler from firing
-    // Call the fullscreen function directly and handle the promise.
-    entrarTelaCheia().catch(err => {
-      console.warn("Failed to enter fullscreen from button:", err && err.message ? err.message : err);
-    });
-  });
+  async function ativar() {
+    if (ativado) return; ativado = true;
+    try { const el = document.documentElement; (el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen || (() => {})).call(el); } catch (e) {}
+    try { if (bip) { bip.prompt(); await bip.userChoice; bip = null; } } catch (e) {}
+    wake(); esconder(); document.removeEventListener('keydown', porTecla, true); document.removeEventListener('pointerdown', ativar, true);
+  }
+  const porTecla = e => { if (e.key === 'Enter' || e.key === ' ' || e.keyCode === 13 || e.keyCode === 29443) ativar(); };
+  if (modoApp() || emTela()) return;
+  box = el('div', 'tx-inst', '<div><b>📺 Tela cheia e instalação</b><br>Pressione <b>OK / Enter</b> no controle (ou clique) para entrar em tela cheia' + '<br><small>Se o navegador oferecer, aceite instalar o totem como aplicativo.</small></div><button>Ativar</button>');
+  box.querySelector('button').addEventListener('click', e => { e.stopPropagation(); ativar(); });
   document.body.appendChild(box);
-  document.addEventListener('click', esconder, { once: true, capture: true });
-  setTimeout(esconder, 25000);
+  document.addEventListener('keydown', porTecla, true); document.addEventListener('pointerdown', ativar, true);
+  setTimeout(esconder, 25000);   /* some sozinho; o próximo clique/OK ainda entra em tela cheia */
 })();
+
+/* ═════ PLAYER DE ÁUDIO AMBIENTE ═════
+   O arquivo é compartilhado pelo Drive/URL (não IndexedDB local), para que todos os totens
+   consigam reproduzir a mesma faixa. O navegador exige primeiro gesto para liberar áudio.
+*/
+const TOTEM_AUDIO = {
+  audio:null, cfg:null, pendente:false, carregando:false, versao:0,
+  async iniciar(cfg){
+    this.parar();
+    if(!cfg || !cfg.ativo || !cfg.url && !cfg.driveId) return;
+    const versao=++this.versao;
+    try {
+      let src='';
+      if(cfg.driveId){
+        const id=driveIdFrom(cfg.driveId);
+        if(!id) throw new Error('ID de áudio do Drive inválido.');
+        this.carregando=true;
+        const meta=(arquivosCache||[]).find(x=>String(x.id)===String(id));
+        const ext=String(meta&&meta.nome||'').split('.').pop().toLowerCase();
+        const mimeExt={mp3:'audio/mpeg',m4a:'audio/mp4',mp4:'audio/mp4',aac:'audio/aac',ogg:'audio/ogg',opus:'audio/ogg',wav:'audio/wav',flac:'audio/flac'};
+        const mimeHint=meta&&/^audio\//i.test(String(meta.tipo||''))?String(meta.tipo):(mimeExt[ext]||'');
+        const r=await fetch(totemMediaUrl(id,true,mimeHint),{cache:'force-cache'});
+        if(!r.ok) { const e=await r.json().catch(()=>({})); throw new Error(e.error||('HTTP '+r.status)); }
+        const d=await r.json();
+        if(!d.ok || !d.base64) throw new Error(d.error||'Base64 do áudio não retornado.');
+        if(versao!==this.versao) return;
+        src='data:'+(d.mime||'audio/mpeg')+';base64,'+d.base64;
+      } else {
+        src=assetUrl(cfg.url);
+        if(!src) throw new Error('URL de áudio inválida.');
+      }
+      if(versao!==this.versao) return;
+      const a=new Audio(); a.preload='auto'; a.loop=cfg.loop!==false;
+      a.volume=Math.max(0,Math.min(1,Number(cfg.volume??.16)));
+      a.src=src; this.audio=a; this.cfg=cfg; this.carregando=false;
+      const p=a.play(); if(p&&p.catch) p.catch(()=>{this.pendente=true;});
+    } catch(e) {
+      this.carregando=false;
+      console.warn('[TOTEM_AUDIO]',e.message||e);
+      this.pendente=false;
+    }
+  },
+  retomar(){if(!this.audio||!this.pendente)return;this.audio.play().then(()=>{this.pendente=false;}).catch(()=>{});},
+  parar(){
+    this.versao++; this.carregando=false;
+    if(this.audio){try{this.audio.pause();this.audio.removeAttribute('src');this.audio.load();}catch(e){}}
+    this.audio=null;this.cfg=null;this.pendente=false;
+  }
+};
+document.addEventListener('pointerdown',()=>TOTEM_AUDIO.retomar(),{passive:true});
+document.addEventListener('keydown',()=>TOTEM_AUDIO.retomar());
 
 /* ══════════ BOOT: o totem sobe sozinho; nada de interface visível ══════════ */
 (function bootTotem() {
