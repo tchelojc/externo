@@ -952,7 +952,15 @@ const PASTA_BOTECO_ID = '1vht7fAibqldxaFp25PzG5cwwYok0vMD9';
 /* ═══════════ ESTADO ═══════════ */
 let sessao = null;
 let arquivosCache = [];
-
+/* ── Gesto técnico: Ctrl + 10 cliques (mouse) ou 10 toques no canto sup. esquerdo ──
+   Também é o ÚNICO caminho para sair da tela cheia: após validar a senha do
+   totem (ou login admin), o bloqueio de saída é suspenso por 2 min (totem) ou
+   5 min (admin). Enquanto não liberado, o botão ⛶ fica desativado e, se o
+   usuário escapar via ESC/F11, o guardião reentra em fullscreen sozinho. */
+let _cliques = 0, _toques = 0, _ultToque = 0;
+let _saidaLiberadaAte = 0;            // timestamp até quando é permitido sair
+function saidaLiberada() { return Date.now() < _saidaLiberadaAte; }
+function liberarSaidaTemporaria(ms) { _saidaLiberadaAte = Date.now() + (ms || 120000); }
 /* ═══════════ PERSISTÊNCIA ═══════════ */
 function salvarSessao() {
   try { localStorage.setItem('almafluxo_conversa_sessao', JSON.stringify(sessao)); } catch(e){}
@@ -1010,6 +1018,7 @@ async function fazerLogin() {
     const r = resp.result || resp;
 
     if (r.autenticado === true && r.token) {
+      liberarSaidaTemporaria(300000);      // ← ADICIONAR: 5 min para admin
       sessao = {
         email: email,
         token: r.token,
@@ -2005,26 +2014,87 @@ async function iniciarTotem() {
   reagendar(cache || {}); await syncConfig(); enviarHeartbeat();
 }
 
-/* ── Desbloqueio escondido: Ctrl pressionado + 10 cliques com o botão esquerdo (velocidade livre; passar de 10 também vale) ── */
-let _cliques = 0, _toques = 0, _ultToque = 0;
-function gestoAtivo() { return !$id('telaLogin').classList.contains('on') && !$id('app').classList.contains('ativo') && !$id('menuLocal').classList.contains('ativo'); }
+function gestoAtivo() {
+  return !$id('telaLogin').classList.contains('on')
+      && !$id('app').classList.contains('ativo')
+      && !$id('menuLocal').classList.contains('ativo');
+}
 document.addEventListener('mousedown', e => {
-  if (!gestoAtivo()) return; if (e.button !== 0 || !e.ctrlKey) { _cliques = 0; return; }
-  _cliques++; if (_cliques >= 10) { _cliques = 0; abrirDesbloqueio(); }
+  if (!gestoAtivo()) return;
+  if (e.button !== 0 || !e.ctrlKey) { _cliques = 0; return; }
+  _cliques++;
+  if (_cliques >= 10) { _cliques = 0; abrirDesbloqueio(); }
 }, true);
 document.addEventListener('keyup', e => { if (e.key === 'Control') _cliques = 0; });
 window.addEventListener('blur', () => { _cliques = 0; });
 document.addEventListener('contextmenu', e => { if (gestoAtivo()) e.preventDefault(); });
 /* alternativa para telas de toque (sem teclado): 10 toques no canto superior esquerdo */
 document.addEventListener('pointerdown', e => {
-  if (e.pointerType === 'mouse' || !gestoAtivo()) return; const agora = Date.now();
-  if (e.clientX > 96 || e.clientY > 96) { _toques = 0; return; } if (agora - _ultToque > 45000) _toques = 0; _ultToque = agora; _toques++; if (_toques >= 10) { _toques = 0; abrirDesbloqueio(); }
+  if (e.pointerType === 'mouse' || !gestoAtivo()) return;
+  const agora = Date.now();
+  if (e.clientX > 96 || e.clientY > 96) { _toques = 0; return; }
+  if (agora - _ultToque > 45000) _toques = 0;
+  _ultToque = agora; _toques++;
+  if (_toques >= 10) { _toques = 0; abrirDesbloqueio(); }
 }, true);
+
 let _modoLogin = 'totem';
 function abrirDesbloqueio() {
-  const c = lsGet(LSK.cfg, null), temSenha = !!(c && c.senhaHash && c.id === TID); _modoLogin = temSenha ? 'totem' : 'admin'; desenharLogin();
-  $id('telaLogin').classList.add('on'); mostrarMsgLogin('', ''); setTimeout(() => { const f = _modoLogin === 'totem' ? $id('loginSenhaTotem') : $id('loginEmail'); if (f) f.focus(); }, 60);
+  const c = lsGet(LSK.cfg, null), temSenha = !!(c && c.senhaHash && c.id === TID);
+  _modoLogin = temSenha ? 'totem' : 'admin';
+  desenharLogin();
+  $id('telaLogin').classList.add('on');
+  mostrarMsgLogin('', '');
+  setTimeout(() => {
+    const f = _modoLogin === 'totem' ? $id('loginSenhaTotem') : $id('loginEmail');
+    if (f) f.focus();
+  }, 60);
 }
+
+/* ═══════ GUARDIÃO DA TELA CHEIA ═══════
+   - Se o usuário sair da fullscreen sem o gesto técnico, reentra.
+   - O botão ⛶ fica escondido/desabilitado enquanto a saída não estiver liberada.
+   - O gesto Ctrl+10 (validado com senha) suspende o bloqueio por 2 min. */
+(function guardiaoTelaCheia() {
+  const emTela = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+  const modoApp = () => matchMedia('(display-mode: fullscreen)').matches
+                     || matchMedia('(display-mode: standalone)').matches
+                     || navigator.standalone === true;
+  let reentrando = false;
+
+  function aplicarEstadoBotoes() {
+    document.querySelectorAll('.tx-fullscreen').forEach(b => {
+      if (emTela() && !saidaLiberada()) {
+        b.style.opacity = '0.15';
+        b.style.pointerEvents = 'none';
+        b.title = 'Saída protegida — use Ctrl + 10 cliques e a senha do totem';
+      } else {
+        b.style.opacity = '';
+        b.style.pointerEvents = '';
+        b.title = emTela() ? 'Sair da tela cheia' : 'Entrar em tela cheia';
+      }
+    });
+  }
+
+  async function reentrar() {
+    if (reentrando) return;
+    if (!emTela() && !saidaLiberada() && !modoApp()) {
+      reentrando = true;
+      try {
+        const el = document.documentElement;
+        const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+        if (fn) await fn.call(el);
+      } catch (e) { /* navegador recusou; fica sem fullscreen */ }
+      reentrando = false;
+    }
+    aplicarEstadoBotoes();
+  }
+
+  document.addEventListener('fullscreenchange', reentrar);
+  document.addEventListener('webkitfullscreenchange', reentrar);
+  setInterval(aplicarEstadoBotoes, 2000);
+  aplicarEstadoBotoes();
+})();
 function fecharDesbloqueio() { $id('telaLogin').classList.remove('on'); $id('loginSenha').value = ''; $id('loginSenhaTotem').value = ''; }
 function desenharLogin() {
   document.querySelectorAll('.lg-tabs button').forEach(b => b.classList.toggle('on', b.dataset.m === _modoLogin));
@@ -2034,7 +2104,11 @@ function trocarModoLogin(m) { _modoLogin = m; desenharLogin(); mostrarMsgLogin('
 async function entrarComSenhaTotem() {
   const c = lsGet(LSK.cfg, null), s = $id('loginSenhaTotem').value;
   if (!c || !c.senhaHash || !c.salt) { mostrarMsgLogin('error', '⚠️ Este aparelho ainda não tem senha de totem. Use o acesso de administrador.'); return; }
-  if (hashSenha(s, c.salt) === c.senhaHash) { fecharDesbloqueio(); abrirMenuLocal(); } else mostrarMsgLogin('error', '❌ Senha incorreta.');
+  if (hashSenha(s, c.salt) === c.senhaHash) {
+    liberarSaidaTemporaria(120000);        // ← ADICIONAR esta linha
+    fecharDesbloqueio();
+    abrirMenuLocal();
+  } else mostrarMsgLogin('error', '❌ Senha incorreta.');
 }
 function abrirPainel() {
   fecharDesbloqueio(); $id('app').classList.add('ativo'); $id('nomeUsuario').textContent = (sessao && (sessao.nome || sessao.email)) || '—'; document.body.style.overflow = 'hidden';
