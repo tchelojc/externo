@@ -3671,7 +3671,32 @@ const TOTEM_AUDIO = {
 };
 document.addEventListener('pointerdown',()=>TOTEM_AUDIO.retomar(),{passive:true});
 document.addEventListener('keydown',()=>TOTEM_AUDIO.retomar());
-
+/* ══════ BOTÃO DE TELA CHEIA — SEMPRE PRESENTE ══════ */
+(function botaoTelaCheiaSempre() {
+  if (document.querySelector('.tx-fullscreen')) return;
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'tx-fullscreen';
+  btn.textContent = '⛶';
+  btn.title = 'Alternar tela cheia';
+  btn.setAttribute('aria-label', 'Alternar tela cheia');
+  btn.style.cssText = 'position:fixed;right:12px;top:12px;z-index:100001;width:46px;height:46px;border-radius:50%;border:1px solid #00e5ff;background:rgba(3,8,18,.9);color:#00e5ff;font-size:25px;cursor:pointer;box-shadow:0 0 18px rgba(0,229,255,.25);opacity:.82';
+  const emTela = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+  btn.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    try {
+      if (!emTela()) {
+        const el = document.documentElement;
+        const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+        if (fn) await fn.call(el);
+      } else {
+        const fn = document.exitFullscreen || document.webkitExitFullscreen;
+        if (fn) await fn.call(document);
+      }
+    } catch (err) { console.warn('[ALMAFLUXO] Tela cheia:', err && err.message || err); }
+  });
+  document.body.appendChild(btn);
+})();
 /* ══════════ BOOT: o totem sobe sozinho; nada de interface visível ══════════ */
 (function bootTotem() {
   const s = carregarSessaoSalva(); if (s) sessao = s;
