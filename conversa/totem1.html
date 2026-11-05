@@ -741,6 +741,33 @@ html,body{background:#000}
 #txBootOverlay { pointer-events: auto; }
 #txBootOverlay * { pointer-events: none; }
 #txBootOverlay button { pointer-events: auto; }
+.jn-brasil { display:flex; flex-direction:column; gap:2%; overflow:hidden; }
+.jn-brasil-head { display:flex; justify-content:space-between; align-items:center; padding:1% 0; border-bottom:1px solid #9bdcff35; }
+.jn-nac { font-family:'Orbitron',sans-serif; font-size:calc(var(--u)*3); color:#ffd24a; }
+.jn-estados { display:grid; grid-template-columns:repeat(auto-fill,minmax(calc(var(--u)*6),1fr)); gap:calc(var(--u)*.8); overflow:auto; padding:1%; }
+.jn-uf { background:rgba(8,18,38,.8); border:1px solid rgba(0,229,255,.2); border-radius:calc(var(--u)*.8); padding:calc(var(--u)*.6); display:flex; flex-direction:column; align-items:center; gap:calc(var(--u)*.3); }
+.jn-uf-tag { font-family:'Orbitron',sans-serif; font-size:calc(var(--u)*1.4); color:#9fc7ff; font-weight:800; }
+.jn-uf-ic { font-size:calc(var(--u)*2.4); line-height:1; }
+.jn-uf-temps { display:flex; gap:calc(var(--u)*.6); font-size:calc(var(--u)*1.4); }
+.jn-uf-temps b { font-weight:800; }
+.jn-uf-temps span { opacity:.7; }
+.jn-uf-chuva { font-size:calc(var(--u)*1); color:#7cc4ff; }
+.jn-mundo { margin-top:2%; display:flex; flex-direction:column; gap:calc(var(--u)*.8); max-height:40%; overflow:hidden; }
+.jn-mundo-cat { border-left:3px solid #52cfff; padding:calc(var(--u)*.4) calc(var(--u)*.8); background:#ffffff0a; border-radius:0 .8vmin .8vmin 0; }
+.jn-mundo-tit { font-size:calc(var(--u)*1.3); color:#ffd24a; font-weight:800; letter-spacing:.06em; margin-bottom:calc(var(--u)*.3); }
+.jn-mundo-item { font-size:calc(var(--u)*1.2); color:#cfe5f7; line-height:1.25; }
+.amor-exemplo {
+  background: linear-gradient(135deg, rgba(255,184,210,.15), rgba(255,139,184,.08));
+  border: 1px dashed rgba(255,184,210,.5);
+  border-radius: 12px;
+  padding: 1.1%;
+  font-size: calc(var(--u)*1.35);
+  line-height: 1.3;
+  color: #ffe6f0;
+  font-style: italic;
+  margin-bottom: .8%;
+}
+.amor-exemplo b { display:block; color:#ffbad4; font-style: normal; margin-bottom:.25em; }
 </style>
 </head>
 <body>
@@ -3296,27 +3323,111 @@ function montarMapaPlano(s, S, ev, THREE) {
 TX.jornal = {def: {cidade: 'São Paulo'}, build(P, item, s, S) {
   s.className += ' tx'; txMorre(S);
   s.innerHTML = `<div class="jn">
-    <div class="jn-head"><div class="jn-m">CLIMAFLUXO · TEMPO & PLANETA</div><div class="jn-s"></div></div>
+    <div class="jn-head"><div class="jn-m">CLIMAFLUXO · BRASIL & MUNDO</div><div class="jn-s"></div></div>
     <div class="jn-g">
-      <section class="jn-weather">
-        <div class="jn-city">⦿ <span class="jn-local">SÃO PAULO</span></div>
-        <div class="jn-temp-row"><div class="jn-icon">🌤️</div><div><div class="jn-temp">--°</div><div class="jn-desc">Carregando condições…</div></div></div>
-        <div class="jn-stats"><div class="jn-stat jn-umid">💧 --%</div><div class="jn-stat jn-vento">💨 -- km/h</div><div class="jn-stat jn-range">↑ --° · ↓ --°</div></div>
+      <section class="jn-brasil">
+        <div class="jn-brasil-head">
+          <div class="jn-city">🇧🇷 <span>BRASIL · MÁX/MÍN POR ESTADO</span></div>
+          <div class="jn-nac"><span class="jn-nac-max">--°</span> / <span class="jn-nac-min">--°</span></div>
+        </div>
+        <div class="jn-estados" id="jnEstados"></div>
         <div class="jn-enso"><b class="jn-fase">ENSO · aguardando</b><span class="jn-oni">ONI --</span></div>
       </section>
-      <section class="jn-right"><div class="jn-h">Carregando a edição climática…</div><div class="jn-l"></div></section>
+      <section class="jn-right">
+        <div class="jn-h">Carregando…</div>
+        <div class="jn-l"></div>
+        <div class="jn-mundo" id="jnMundo"></div>
+      </section>
     </div>
-    <div class="jn-c">ClimaFluxo · Open-Meteo · NOAA · informações e tendências, não alertas oficiais.</div>
+    <div class="jn-c">ClimaFluxo · Open-Meteo · NOAA · G1 · BBC · RSS públicas</div>
   </div>`;
-  const root=s.querySelector('.jn'), sub=s.querySelector('.jn-s'), h=s.querySelector('.jn-h'), l=s.querySelector('.jn-l'), c=s.querySelector('.jn-c');
-  const city=s.querySelector('.jn-local'), temp=s.querySelector('.jn-temp'), icon=s.querySelector('.jn-icon'), desc=s.querySelector('.jn-desc'), umid=s.querySelector('.jn-umid'), vento=s.querySelector('.jn-vento'), range=s.querySelector('.jn-range'), fase=s.querySelector('.jn-fase'), oni=s.querySelector('.jn-oni');
-  let d=null, ih=0, ic=0, th=0, tc=0;
-  const hoje=()=>new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  const trocaH=()=>{if(S.morto||!d)return;const m=d.manchetes||[];if(!m.length)return;const i=ih++%m.length;h.classList.remove('jn-in');void h.offsetWidth;h.textContent=m[i].titulo||'Atualização climática';h.classList.add('jn-in');l.innerHTML=m.filter((_,j)=>j!==i).slice(0,4).map(x=>'<div>'+esc(x.titulo||'')+'</div>').join('');th=setTimeout(trocaH,7200);};
-  const trocaC=()=>{if(S.morto||!d)return;const corpo=d.corpo||[];if(!corpo.length)return;c.textContent=corpo[ic++%corpo.length]+' · '+(d.fonte||'ClimaFluxo');tc=setTimeout(trocaC,9500);};
-  const render=()=>{if(!d)return;const cl=d.climaAtual||{};const w=WMO[Number(cl.codigo)]||['🌎','Condição atual'];city.textContent=String(d.cidade||item.cidade||'São Paulo').toLocaleUpperCase('pt-BR');temp.textContent=Number.isFinite(+cl.temp)?Math.round(+cl.temp)+'°':'--°';icon.textContent=w[0];desc.textContent=w[1];umid.textContent='💧 '+(cl.umid==null?'--':Math.round(cl.umid))+'%';vento.textContent='💨 '+(cl.vento==null?'--':Math.round(cl.vento))+' km/h';range.textContent='↑ '+(cl.max==null?'--':Math.round(cl.max))+'° · ↓ '+(cl.min==null?'--':Math.round(cl.min))+'°';fase.textContent=(d.fase||'ENSO indisponível').toUpperCase();oni.textContent='ONI '+(d.oni==null?'--':txN(d.oni,2));sub.textContent=hoje()+' · '+(d.local||item.cidade||'São Paulo')+' · atualizado '+txHora(d.atualizado);};
-  S.fins.push(()=>{clearTimeout(th);clearTimeout(tc);});
-  txLoop(S,async()=>{d=await txDados('jornal','cidade='+encodeURIComponent(item.cidade||'São Paulo'),1800000);render();if(!th)trocaH();if(!tc)trocaC();},1800000,()=>{if(!d){h.textContent='Sem conexão no momento. A edição será exibida quando houver dados disponíveis.';c.textContent='Aguardando conexão com o ClimaFluxo…';}else{c.textContent='Exibindo última edição salva · '+(d.fonte||'ClimaFluxo');}});
+
+  /* ── referências do DOM ── */
+  const estBox  = s.querySelector('#jnEstados');
+  const mundoBox = s.querySelector('#jnMundo');
+  const nacMax  = s.querySelector('.jn-nac-max');
+  const nacMin  = s.querySelector('.jn-nac-min');
+  const faseEl  = s.querySelector('.jn-fase');   // ← FALTAVA
+  const oniEl   = s.querySelector('.jn-oni');    // ← FALTAVA
+  const headEl  = s.querySelector('.jn-h');
+  const listaEl = s.querySelector('.jn-l');
+  const subEl   = s.querySelector('.jn-s');
+
+  /* ── mapa de estados (máx/mín por UF) ── */
+  const renderEstados = (d) => {
+    if (!d || !Array.isArray(d.estados)) return;
+    nacMax.textContent = (d.maxNacional != null ? Math.round(d.maxNacional) : '--') + '°';
+    nacMin.textContent = (d.minNacional != null ? Math.round(d.minNacional) : '--') + '°';
+    estBox.innerHTML = d.estados.map(e => {
+      const w = WMO[e.codigo] || ['🌡️', ''];
+      const cor = e.max >= 35 ? '#ff5a6e' : e.max >= 30 ? '#ff9f43' : e.max >= 25 ? '#ffd24a' : '#2ecc71';
+      return `<div class="jn-uf" title="${esc(e.nome)} · ${esc(e.capital)}">
+        <div class="jn-uf-tag">${esc(e.uf)}</div>
+        <div class="jn-uf-ic">${w[0]}</div>
+        <div class="jn-uf-temps" style="color:${cor}">
+          <b>${e.max != null ? Math.round(e.max)+'°' : '--'}</b>
+          <span>${e.min != null ? Math.round(e.min)+'°' : '--'}</span>
+        </div>
+        ${e.chuvaProb != null && e.chuvaProb >= 50 ? `<div class="jn-uf-chuva">💧${e.chuvaProb}%</div>` : ''}
+      </div>`;
+    }).join('');
+  };
+
+  /* ── bloco de notícias mundiais (guerra, política, catástrofe, mundo) ── */
+  const renderMundo = (cats) => {
+    if (!cats) return;
+    const icones = { guerra: '⚔️', catastrofe: '⚠️', politica: '🏛️', mundo: '🌍' };
+    const blocos = Object.entries(icones).map(([k, ic]) => {
+      const itens = (cats[k] || []).slice(0, 2);
+      if (!itens.length) return '';
+      return `<div class="jn-mundo-cat">
+        <div class="jn-mundo-tit">${ic} ${k.toUpperCase()}</div>
+        ${itens.map(i => `<div class="jn-mundo-item">${esc(i.titulo)}</div>`).join('')}
+      </div>`;
+    }).filter(Boolean);
+    mundoBox.innerHTML = blocos.join('') || '<div class="jn-mundo-item">Sem notícias no momento.</div>';
+  };
+
+  /* ── manchetes rotativas da coluna direita ── */
+  let manchetes = [], mIdx = 0, mTimer = null;
+  const trocaH = () => {
+    if (S.morto || !manchetes.length) return;
+    const m = manchetes[mIdx % manchetes.length];
+    headEl.textContent = m.titulo;
+    headEl.classList.remove('jn-in'); void headEl.offsetWidth; headEl.classList.add('jn-in');
+    listaEl.innerHTML = manchetes
+      .filter((_, i) => i !== (mIdx % manchetes.length))
+      .slice(0, 3)
+      .map(x => '<div>' + esc(x.titulo) + '</div>').join('');
+    mIdx++;
+    clearTimeout(mTimer);
+    mTimer = setTimeout(trocaH, 6000);
+  };
+  S.fins.push(() => clearTimeout(mTimer));
+
+  /* ── loop de dados (jornal + brasil) ── */
+  txLoop(S, async () => {
+    const [j, b] = await Promise.all([
+      txDados('jornal', 'cidade=' + encodeURIComponent(item.cidade || 'São Paulo'), 1800000),
+      txDados('brasil', '', 900000)
+    ]);
+
+    if (j && j.ok) {
+      if (subEl) subEl.textContent = j.atualizado ? 'atualizado ' + txHora(j.atualizado) : '';
+      if (faseEl) faseEl.textContent = 'ENSO · ' + (j.fase || '—');
+      if (oniEl)  oniEl.textContent  = 'ONI ' + (j.oni != null ? Number(j.oni).toFixed(2) : '--');
+      manchetes = Array.isArray(j.manchetes) && j.manchetes.length
+        ? j.manchetes
+        : [{titulo: 'ClimaFluxo · aguardando manchetes'}];
+      trocaH();
+      renderMundo(j.mundo);
+      if (j.brasil) renderEstados(j.brasil);   // fallback: brasil já vem no payload
+    }
+
+    if (b && b.ok) renderEstados(b);          // caminho dedicado /brasil
+  }, 900000, () => {
+    if (estBox && !estBox.children.length) estBox.innerHTML = '<div class="tx-erro" style="grid-column:1/-1">Clima dos estados indisponível.</div>';
+  });
 }};
 
 /* ═════ GRÁFICO DE CLIMA ANIMADO (48 h) ═════ */
@@ -3393,11 +3504,38 @@ TX.recadoAmor = {
       <div class="amor-title">${esc(item.titulo || 'Uma mensagem pode mudar o dia de alguém')}</div>
       <div class="amor-sub">Envie uma declaração, uma lembrança ou uma palavra de carinho. Aponte a câmera para o QR Code e deixe sua mensagem.</div></div>
       <div><div class="amor-qr"><img alt="QR Code para enviar um recado" src="${qr}"></div><div class="amor-qr-cap">📱 Escaneie e escreva seu recado</div></div></div>
-      <div class="amor-msgs"><div class="amor-empty">Mensagens carinhosas aparecerão aqui depois de aprovadas.</div></div>
+      <div class="amor-msgs" id="amorMsgs"></div>
       <div class="tx-av">Mensagens exibidas somente após moderação. Não informe telefone, endereço ou dados pessoais.</div>`;
-    const box=s.querySelector('.amor-msgs');
-    const carregar=async()=>{try{const r=await fetch('/api/totem/amor?totem='+totem,{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);const d=await r.json();const msgs=Array.isArray(d.mensagens)?d.mensagens:[];box.innerHTML=msgs.length?msgs.slice(0,Math.max(1,Math.min(4,+item.porPagina||3))).map(m=>`<div class="amor-msg"><b>${esc(m.de||'Alguém especial')} → ${esc(m.para||'')}</b>${esc(m.mensagem||'')}</div>`).join(''):'<div class="amor-empty">Seja a primeira pessoa a espalhar carinho por aqui.</div>';}catch(e){if(!box.textContent.trim())box.textContent='Mensagens temporariamente indisponíveis.';}};
-    carregar(); const iv=setInterval(carregar,30000); S.fins.push(()=>clearInterval(iv));
+    const box = s.querySelector('#amorMsgs');
+
+    /* Card de exemplo — sempre no topo, nunca removido. */
+    const exemploHTML = '<div class="amor-msg amor-exemplo"><b>Exemplo 💌</b>"Você é a razão pela qual acredito que o amor existe de verdade. Cada dia ao seu lado é um presente que eu não sei merecer, mas agradeço todos os dias."</div>';
+
+    const montar = (msgs) => {
+      const reais = (msgs || []).slice(0, Math.max(1, Math.min(4, +item.porPagina || 3)))
+        .map(m => `<div class="amor-msg"><b>${esc(m.de || 'Alguém especial')} → ${esc(m.para || '')}</b>${esc(m.mensagem || '')}</div>`)
+        .join('');
+      const vazio = '<div class="amor-empty">Seja a primeira pessoa a espalhar carinho por aqui.</div>';
+      box.innerHTML = exemploHTML + (reais || vazio);
+    };
+
+    montar([]);
+
+    const carregar = async () => {
+      try {
+        const r = await fetch('/api/totem/amor?totem=' + totem, {cache: 'no-store'});
+        if (!r.ok) throw Error('HTTP ' + r.status);
+        const d = await r.json();
+        montar(Array.isArray(d.mensagens) ? d.mensagens : []);
+      } catch (e) {
+        /* mantém o exemplo visível mesmo em falha */
+        if (!box.querySelector('.amor-exemplo')) montar([]);
+      }
+    };
+
+    carregar();
+    const iv = setInterval(carregar, 30000);
+    S.fins.push(() => clearInterval(iv));
   }
 };
 
