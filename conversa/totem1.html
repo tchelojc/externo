@@ -2521,53 +2521,73 @@ TX.curiosidades = {def: {categoria: 'astronomia'}, build(P, item, s, S) {
     av.textContent=(d.fonte||'ALMAFLUXO')+' · atualizado '+txHora(d.atualizado)+txStaleTag(d);
   },3600000,()=>{grid.innerHTML='<div class="tx-erro">Curiosidades temporariamente indisponíveis. A tela continuará tentando atualizar.</div>';});
 }};
-TX.linear = {def: {}, build(P,item,s,S) {
-  s.className += ' tx'; txMorre(S);
-  s.innerHTML = '<div class="tx-t">LINEAR · ATIVOS EM DESTAQUE & CONSTANTES</div>'
-    /* zona 1: ativos em destaque (topo, grande) */
-    + '<div class="ln-ativos" style="position:absolute;left:3%;right:3%;top:11%;height:44%;display:grid;grid-template-columns:repeat(3,1fr);gap:calc(var(--u)*1.6);align-content:center"></div>'
-    /* zona 2: constantes embaixo (menor) */
-    + '<div class="ln-const" style="position:absolute;left:3%;right:3%;top:58%;bottom:calc(clamp(48px,7.6vh,108px) + 6%);display:grid;grid-template-columns:repeat(5,1fr);gap:calc(var(--u)*1.2);align-content:center"></div>'
-    + '<div class="tx-av"></div>';
-  const zonaAtivos = s.querySelector('.ln-ativos');
-  const zonaConst = s.querySelector('.ln-const');
-  const av = s.querySelector('.tx-av');
-  txLoop(S, async () => {
-    const d = await txDados('linear', '', 120000);
-    const ativos = Array.isArray(d.ativos) ? d.ativos.filter(a => a && a.id).slice(0, 6) : [];
-    const cols = ativos.length <= 3 ? ativos.length || 1 : ativos.length <= 4 ? 2 : 3;
-    zonaAtivos.style.gridTemplateColumns = 'repeat(' + cols + ',1fr)';
-    zonaAtivos.innerHTML = ativos.map(a => {
-      const cor = txCor(a.var_pct);
-      const seta = a.var_pct > 0 ? '▲' : a.var_pct < 0 ? '▼' : '■';
-      const preco = a.preco > 0 ? txMoeda(a) + txN(a.preco, txDec(a)) : '—';
-      return '<div class="tx-card" style="padding:calc(var(--u)*1.8);display:flex;flex-direction:column;justify-content:space-between;min-height:0;overflow:hidden">'
-        + '<div style="font-size:calc(var(--u)*2);color:#9fc7ff;letter-spacing:.06em;font-weight:700">' + esc(a.nome || a.id) + '</div>'
-        + '<div style="font-size:calc(var(--u)*5);font-weight:700;font-family:Orbitron,sans-serif;color:#fff;white-space:nowrap;line-height:1.1;margin:.15em 0">' + preco + '</div>'
-        + '<div style="font-size:calc(var(--u)*2.2);font-weight:700;color:' + cor + '">' + seta + ' ' + txPct(a.var_pct || 0) + ' hoje</div>'
-        + (a.prob_alta != null ? '<div style="margin-top:.4em"><div class="tx-pb"><i style="width:' + a.prob_alta + '%"></i></div><div class="tx-pl"><span style="color:#2ecc71">▲ ' + a.prob_alta + '%</span><span style="color:#ff5a6e">▼ ' + a.prob_baixa + '%</span></div></div>' : '')
-        + '</div>';
-    }).join('') || '<div class="tx-erro" style="grid-column:1/-1">Sem ativos no momento</div>';
-    const cs = [
-      ['φ', 'Proporção áurea', d.constante_phi],
-      ['CICLO', 'Constante de ciclo', d.constante_ciclo],
-      ['MARC', 'Paridade', d.constante_marc],
-      ['JÚBILO', 'Transição', d.constante_jubilo],
-      ['ORIGEM', 'Equilíbrio', d.constante_deus]
-    ];
-    zonaConst.innerHTML = cs.map(([n, l, v]) =>
-      '<div style="border:1px solid rgba(0,229,255,.22);border-radius:calc(var(--u)*1);padding:calc(var(--u)*.8);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:rgba(8,18,38,.7);min-height:0;overflow:hidden">'
-      + '<div style="font-size:calc(var(--u)*1.5);color:#00e5ff;letter-spacing:.08em;font-weight:800">' + esc(n) + '</div>'
-      + '<div style="font:700 calc(var(--u)*2.6) Orbitron,sans-serif;color:#ffd24a;margin:.15em 0">' + txN(v, n === 'φ' ? 5 : 2) + '</div>'
-      + '<div style="font-size:calc(var(--u)*1.1);color:#8fa6c2;line-height:1.2">' + esc(l) + '</div>'
-      + '</div>'
-    ).join('');
-    av.innerHTML = esc(d.fonte || 'Worker ALMAFLUXO') + ' · atualizado ' + txHora(d.atualizado) + ' · dados informativos, não recomendação financeira';
-  }, 120000, () => {
-    zonaAtivos.innerHTML = '<div class="tx-erro" style="grid-column:1/-1">Ativos temporariamente indisponíveis</div>';
-    zonaConst.innerHTML = '<div class="tx-erro" style="grid-column:1/-1">Constantes temporariamente indisponíveis</div>';
-  });
-}};
+TX.linear = {
+  def: { ativos: 'sp500,brent,nasdaq,prata,gbp,jpy' },   // ← ativos DIFERENTES do cotacoes
+  build(P, item, s, S) {
+    s.className += ' tx'; txMorre(S);
+    s.innerHTML = '<div class="tx-t">LINEAR · ATIVOS COMPLEMENTARES & CONSTANTES</div>'
+      /* zona 1: ativos em destaque (topo, grande) — sem probabilidade ▲▼ (isso fica no cotacoes) */
+      + '<div class="ln-ativos" style="position:absolute;left:3%;right:3%;top:11%;height:44%;display:grid;grid-template-columns:repeat(3,1fr);gap:calc(var(--u)*1.6);align-content:center"></div>'
+      /* zona 2: constantes embaixo (menor) */
+      + '<div class="ln-const" style="position:absolute;left:3%;right:3%;top:58%;bottom:calc(clamp(48px,7.6vh,108px) + 6%);display:grid;grid-template-columns:repeat(5,1fr);gap:calc(var(--u)*1.2);align-content:center"></div>'
+      + '<div class="tx-av"></div>';
+    const zonaAtivos = s.querySelector('.ln-ativos');
+    const zonaConst = s.querySelector('.ln-const');
+    const av = s.querySelector('.tx-av');
+    /* Lista EXCLUSAO: garante que linear nunca repete os ativos do cotacoes */
+    const ATIVOS_COTACOES = ['usd', 'eur', 'ouro', 'btc', 'eth', 'ibov'];
+    txLoop(S, async () => {
+      const d = await txDados('linear', '', 120000);
+      const todos = Array.isArray(d.ativos) ? d.ativos.filter(a => a && a.id) : [];
+      /* Preferência: (1) ids definidos em item.ativos; (2) os que NÃO estão em cotacoes; (3) resto */
+      const preferidos = String(item.ativos || this.def.ativos)
+        .split(/[\s,;]+/).map(x => x.trim().toLowerCase()).filter(Boolean);
+      let escolhidos = preferidos
+        .map(id => todos.find(a => a.id === id))
+        .filter(Boolean);
+      if (!escolhidos.length) {
+        escolhidos = todos.filter(a => !ATIVOS_COTACOES.includes(a.id));
+      }
+      if (!escolhidos.length) {
+        escolhidos = todos;   // fallback: se o Worker só devolve os 6 clássicos
+      }
+      const ativos = escolhidos.slice(0, 6);
+      const cols = ativos.length <= 3 ? ativos.length || 1 : ativos.length <= 4 ? 2 : 3;
+      zonaAtivos.style.gridTemplateColumns = 'repeat(' + cols + ',1fr)';
+      zonaAtivos.innerHTML = ativos.map(a => {
+        const cor = txCor(a.var_pct);
+        const seta = a.var_pct > 0 ? '▲' : a.var_pct < 0 ? '▼' : '■';
+        const preco = a.preco > 0 ? txMoeda(a) + txN(a.preco, txDec(a)) : '—';
+        /* Sem barra de probabilidade: essa informação fica exclusiva do cotacoes */
+        const rsi = a.rsi != null ? '<div style="font-size:calc(var(--u)*1.4);color:#8fa6c2;letter-spacing:.04em">RSI ' + txN(a.rsi, 0) + (a.tendencia ? ' · <b style="color:#cfe6ff">' + esc(a.tendencia) + '</b>' : '') + '</div>' : '';
+        return '<div class="tx-card" style="padding:calc(var(--u)*1.8);display:flex;flex-direction:column;justify-content:space-between;min-height:0;overflow:hidden">'
+          + '<div style="font-size:calc(var(--u)*2);color:#9fc7ff;letter-spacing:.06em;font-weight:700">' + esc(a.nome || a.id) + '</div>'
+          + '<div style="font-size:calc(var(--u)*5);font-weight:700;font-family:Orbitron,sans-serif;color:#fff;white-space:nowrap;line-height:1.1;margin:.15em 0">' + preco + '</div>'
+          + '<div style="font-size:calc(var(--u)*2.2);font-weight:700;color:' + cor + '">' + seta + ' ' + txPct(a.var_pct || 0) + ' hoje</div>'
+          + rsi
+          + '</div>';
+      }).join('') || '<div class="tx-erro" style="grid-column:1/-1">Sem ativos complementares no momento</div>';
+      const cs = [
+        ['φ', 'Proporção áurea', d.constante_phi],
+        ['CICLO', 'Constante de ciclo', d.constante_ciclo],
+        ['MARC', 'Paridade', d.constante_marc],
+        ['JÚBILO', 'Transição', d.constante_jubilo],
+        ['ORIGEM', 'Equilíbrio', d.constante_deus]
+      ];
+      zonaConst.innerHTML = cs.map(([n, l, v]) =>
+        '<div style="border:1px solid rgba(0,229,255,.22);border-radius:calc(var(--u)*1);padding:calc(var(--u)*.8);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:rgba(8,18,38,.7);min-height:0;overflow:hidden">'
+        + '<div style="font-size:calc(var(--u)*1.5);color:#00e5ff;letter-spacing:.08em;font-weight:800">' + esc(n) + '</div>'
+        + '<div style="font:700 calc(var(--u)*2.6) Orbitron,sans-serif;color:#ffd24a;margin:.15em 0">' + txN(v, n === 'φ' ? 5 : 2) + '</div>'
+        + '<div style="font-size:calc(var(--u)*1.1);color:#8fa6c2;line-height:1.2">' + esc(l) + '</div>'
+        + '</div>'
+      ).join('');
+      av.innerHTML = esc(d.fonte || 'Worker ALMAFLUXO') + ' · atualizado ' + txHora(d.atualizado) + ' · dados informativos, não recomendação financeira';
+    }, 120000, () => {
+      zonaAtivos.innerHTML = '<div class="tx-erro" style="grid-column:1/-1">Ativos temporariamente indisponíveis</div>';
+      zonaConst.innerHTML = '<div class="tx-erro" style="grid-column:1/-1">Constantes temporariamente indisponíveis</div>';
+    });
+  }
+};
 
 TX.cotacoes = {def: {ativos: 'usd,eur,ouro,btc,eth,ibov'}, build(P, item, s, S) {
   s.className += ' tx'; s.innerHTML = '<div class="tx-t">COTAÇÕES · PROBABILIDADE DE ALTA / BAIXA</div><div class="tx-grid"></div><div class="tx-av"></div>';
@@ -3285,10 +3305,9 @@ TX.horoscopo = {
 /* editor do painel para as telas novas */
 function txEditor(it, k, i) {
   const t = it.tipo; let h = '';
-  if (t === 'bolsa3d' || t === 'cotacoes') h = fld('Ativos (ids separados por vírgula)', k + 'ativos', it.ativos || '') + '<div class="hintx" style="grid-column:1/-1">Disponíveis: ibov, usd, eur, ouro, btc, eth, sp500, brent. Vazio = padrão da tela.</div>';
+  if (t === 'bolsa3d' || t === 'cotacoes' || t === 'linear') h = fld('Ativos (ids separados por vírgula)', k + 'ativos', it.ativos || '') + '<div class="hintx" style="grid-column:1/-1">Disponíveis: ibov, usd, eur, ouro, btc, eth, sp500, brent, nasdaq, prata, gbp, jpy. Vazio = padrão da tela. No <b>linear</b>, os ativos de <b>cotacoes</b> (usd, eur, ouro, btc, eth, ibov) são ignorados automaticamente para evitar duplicação.</div>';
   else if (t === 'noticias') h = sel('Assunto', k + 'topico', it.topico || '', [['', 'Todos (rodízio)'], ['dolar', 'Dólar'], ['ouro', 'Ouro'], ['bitcoin', 'Bitcoin'], ['ethereum', 'Ethereum'], ['mercado', 'Mercado / Bolsa']]);
   else if (t === 'curiosidades') h = sel('Categoria',k+'categoria',it.categoria||'astronomia',[['astronomia','✨ Astronomia'],['catastrofes','🌋 Catástrofes naturais'],['genios','🧠 Gênios e descobertas']]);
-  else if (t === 'linear') h = '<div class="hintx">Painel automático com constantes configuradas no Worker e indicadores de mercado. Dados informativos; não constituem recomendação financeira.</div>';
   else if (t === 'horoscopo') h = fld('Pessoas exibidas',k+'porPagina',it.porPagina||4,'number','min="2" max="8"') + fld('URL HTTPS da página de cadastro',k+'cadastroUrl',it.cadastroUrl||'') + fld('URL HTTPS do endpoint GET JSON',k+'apiUrl',it.apiUrl||'') + '<div class="hintx">O QR de participação fica integrado ao rodapé da tela Sistema Solar. Sem URL personalizada, o totem usa /participar-horoscopo e o banco CHAT_DB do Worker. Sem participantes aprovados, aparece o Horóscopo dos Pensadores; com cadastros, aparecem os alinhamentos dos participantes. O sistema armazena somente mês e dia do nascimento; o ano é descartado. A leitura é simbólica.</div>';
   else if (t === 'recadoAmor') h = fld('Título principal',k+'titulo',it.titulo||'Uma mensagem pode mudar o dia de alguém') + fld('Mensagens exibidas',k+'porPagina',it.porPagina||3,'number','min="1" max="4"') + '<div class="hintx">O QR abre a página pública /recado-amor. As mensagens ficam pendentes e só aparecem no totem após aprovação pelo endpoint administrativo do Worker. Não solicite telefone, endereço ou dados pessoais.</div>';
   else if (t === 'planetas3d') h = sel('Velocidade do tempo', k + 'vel', it.vel || 'normal', [['lenta', 'Lenta (4 dias/s)'], ['normal', 'Normal (10 dias/s)'], ['rapida', 'Rápida (28 dias/s)']]);
