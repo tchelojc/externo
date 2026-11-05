@@ -8,6 +8,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <title>ALMAFLUXO · Totem</title>
+<link rel="manifest" id="manifestLink" href="/manifest.webmanifest?id=totem1">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%23030508'/%3E%3Ccircle cx='256' cy='256' r='180' fill='%2300e5ff'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
@@ -2006,12 +2008,28 @@ function reagendar(t) {
   SYNC.tCfg = setInterval(syncConfig, Math.max(15, +t.configS || 30) * 1000); SYNC.tHb = setInterval(enviarHeartbeat, Math.max(20, +t.heartbeatS || 60) * 1000);
 }
 async function iniciarTotem() {
-  TID = new URLSearchParams(location.search).get('t') || TX_PATH_ID || lsGet(LSK.id, null); if (TID && (TX_PATH_ID || new URLSearchParams(location.search).get('t'))) lsSet(LSK.id, String(TID).replace(/[^\w-]/g, '')); if (TID) TID = String(TID).replace(/[^\w-]/g, '');
+  /* Prioridade: URL de path (/conversa/totemN) > ?t= > localStorage.
+     Assim, se o usuário estiver em /conversa/totem7?t=totem99, vale o "totem7"
+     (URL canônica), não o parâmetro de querystring. */
+  let id = TX_PATH_ID;
+  if (!id) id = new URLSearchParams(location.search).get('t');
+  if (!id) id = lsGet(LSK.id, null);
+  TID = id ? String(id).replace(/[^\w-]/g, '') : null;
+  if (TID) lsSet(LSK.id, TID);
+
   const cache = lsGet(LSK.cfg, null); const st = $id('stage');
   if (!MAIN) MAIN = criarPlayer(st);
-  if (TID && cache && cache.id === TID) { MAIN.aplicar(cache, lsGet(LSK.aj, null)); mostrarPonto(!!cache.mostrarPonto); reagendar(cache); } else relogioStandby();
+  if (TID && cache && cache.id === TID) {
+    MAIN.aplicar(cache, lsGet(LSK.aj, null));
+    mostrarPonto(!!cache.mostrarPonto);
+    reagendar(cache);
+  } else {
+    relogioStandby();
+  }
   if (!sessao || !TID) return;
-  reagendar(cache || {}); await syncConfig(); enviarHeartbeat();
+  reagendar(cache || {});
+  await syncConfig();
+  enviarHeartbeat();
 }
 
 function gestoAtivo() {
@@ -3289,17 +3307,34 @@ const TX_PADRAO = () => ({id: '-', status: 'liberado', tela: {}, layout: {modelo
 /* ══════ ENDEREÇO → TOTEM, INSTALAÇÃO E TELA CHEIA ══════
    /conversa/totem1 (ou ?t=totem1) escolhe o totem. A TV precisa de 1 clique/OK para tela cheia
    (regra dos navegadores); instalado como app, abre em tela cheia sozinho. */
-const TX_PATH_ID = (() => { const m = location.pathname.match(/\/(?:conversa\/)?(totem[\w-]*)\/?$/i); return m ? m[1].toLowerCase() : null; })();
+const TX_PATH_ID = (() => {
+  // /conversa/totem1 → "totem1"
+  const m = location.pathname.match(/\/(?:conversa\/)(totem[\w-]*)\/?$/i);
+  if (m) return m[1].toLowerCase();
+  // /conversa/ ou /conversa → "totem1" (fallback)
+  if (/^\/conversa\/?$/i.test(location.pathname)) {
+    const q = new URLSearchParams(location.search).get('t');
+    if (q) return String(q).replace(/[^\w-]/g, '');
+    const ls = (() => { try { return JSON.parse(localStorage.getItem('almafluxo_totem_id') || 'null'); } catch(e){ return null; } })();
+    return ls || 'totem1';
+  }
+  // qualquer outra URL com ?t=
+  const q = new URLSearchParams(location.search).get('t');
+  if (q) return String(q).replace(/[^\w-]/g, '');
+  return null;
+})();
 (function txPwa() {
   if (TX_PATH_ID) {
-    const l = document.createElement('link');
-    l.rel = 'manifest';
-    l.href = '/conversa/manifest.webmanifest?id=' + encodeURIComponent(TX_PATH_ID);
-    document.head.appendChild(l);
+    const manifest = document.getElementById('manifestLink') || document.querySelector('link[rel="manifest"]');
+    if (manifest) manifest.href = '/manifest.webmanifest?id=' + encodeURIComponent(TX_PATH_ID);
   }
-  if ('serviceWorker' in navigator && location.protocol === 'https:' && /^\/conversa(\/|$)/.test(location.pathname)) {
-    navigator.serviceWorker.register('/conversa/sw.js', {scope: '/conversa/', updateViaCache: 'none'})
-      .catch(err => console.warn('[ALMAFLUXO] SW:', err && err.message || err));
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    fetch('/conversa/sw.js', { method: 'HEAD', cache: 'no-store' })
+      .then(r => {
+        if (!r.ok) return;   // arquivo não existe → ignora silenciosamente
+        return navigator.serviceWorker.register('/conversa/sw.js', {scope: '/conversa/', updateViaCache: 'none'});
+      })
+      .catch(() => { /* SW não é crítico */ });
   }
 
   let bip = null, wl = null, jaTentouAuto = false;
