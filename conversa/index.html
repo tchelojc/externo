@@ -2431,15 +2431,50 @@ TX.curiosidades = {def: {categoria: 'astronomia'}, build(P, item, s, S) {
 }};
 TX.linear = {def: {}, build(P,item,s,S) {
   s.className += ' tx'; txMorre(S);
-  s.innerHTML='<div class="tx-t">LINEAR · CONSTANTES E INDICADORES</div><div class="tx-grid" style="position:absolute;left:4%;right:4%;top:13%;bottom:30%;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1.2%;align-content:center"></div><div class="tx-lista" style="left:4%;right:4%;top:auto;bottom:11%;width:auto;height:16%;display:flex;flex-direction:row;justify-content:center"></div><div class="tx-av"></div>';
-  const grid=s.querySelector('.tx-grid'),lista=s.querySelector('.tx-lista'),av=s.querySelector('.tx-av');
-  txLoop(S,async()=>{
-    const d=await txDados('linear','',120000), cs=[['φ','Proporção áurea',d.constante_phi],['CICLO','Constante de ciclo',d.constante_ciclo],['MARC','Paridade',d.constante_marc],['JÚBILO','Transição',d.constante_jubilo],['ORIGEM','Equilíbrio',d.constante_deus]];
-    grid.innerHTML=cs.map(([n,l,v])=>'<div class="tx-card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.6em;text-align:center"><b style="font-size:calc(var(--u)*2.1);color:#00e5ff">'+esc(n)+'</b><strong style="font:700 calc(var(--u)*3.4) Orbitron,sans-serif;color:#ffd24a;margin:.25em 0">'+txN(v, n==='φ'?5:2)+'</strong><span style="font-size:calc(var(--u)*1.25);color:#b9cde5">'+esc(l)+'</span></div>').join('');
-    const ativos=Array.isArray(d.ativos)?d.ativos.filter(a=>a&&a.id).slice(0,6):[];
-    lista.innerHTML=ativos.map(a=>'<div class="tx-li" style="flex:1;min-width:0"><div class="tx-ln"><b>'+esc(a.nome||a.id)+'</b></div><div style="font-size:calc(var(--u)*1.5);color:#ffd24a">'+(a.preco>0?txMoeda(a)+txN(a.preco,txDec(a)):'Sem cotação')+'</div><div style="font-size:calc(var(--u)*1.2);color:'+txCor(a.var_pct)+'">'+txPct(a.var_pct||0)+'</div></div>').join('');
-    av.textContent=(d.fonte||'Worker ALMAFLUXO')+' · atualizado '+txHora(d.atualizado)+' · indicadores informativos, não recomendações';
-  },120000,()=>{grid.innerHTML='<div class="tx-erro">Indicadores temporariamente indisponíveis.</div>';});
+  s.innerHTML = '<div class="tx-t">LINEAR · ATIVOS EM DESTAQUE & CONSTANTES</div>'
+    /* zona 1: ativos em destaque (topo, grande) */
+    + '<div class="ln-ativos" style="position:absolute;left:3%;right:3%;top:11%;height:44%;display:grid;grid-template-columns:repeat(3,1fr);gap:calc(var(--u)*1.6);align-content:center"></div>'
+    /* zona 2: constantes embaixo (menor) */
+    + '<div class="ln-const" style="position:absolute;left:3%;right:3%;top:58%;bottom:calc(clamp(48px,7.6vh,108px) + 6%);display:grid;grid-template-columns:repeat(5,1fr);gap:calc(var(--u)*1.2);align-content:center"></div>'
+    + '<div class="tx-av"></div>';
+  const zonaAtivos = s.querySelector('.ln-ativos');
+  const zonaConst = s.querySelector('.ln-const');
+  const av = s.querySelector('.tx-av');
+  txLoop(S, async () => {
+    const d = await txDados('linear', '', 120000);
+    const ativos = Array.isArray(d.ativos) ? d.ativos.filter(a => a && a.id).slice(0, 6) : [];
+    const cols = ativos.length <= 3 ? ativos.length || 1 : ativos.length <= 4 ? 2 : 3;
+    zonaAtivos.style.gridTemplateColumns = 'repeat(' + cols + ',1fr)';
+    zonaAtivos.innerHTML = ativos.map(a => {
+      const cor = txCor(a.var_pct);
+      const seta = a.var_pct > 0 ? '▲' : a.var_pct < 0 ? '▼' : '■';
+      const preco = a.preco > 0 ? txMoeda(a) + txN(a.preco, txDec(a)) : '—';
+      return '<div class="tx-card" style="padding:calc(var(--u)*1.8);display:flex;flex-direction:column;justify-content:space-between;min-height:0;overflow:hidden">'
+        + '<div style="font-size:calc(var(--u)*2);color:#9fc7ff;letter-spacing:.06em;font-weight:700">' + esc(a.nome || a.id) + '</div>'
+        + '<div style="font-size:calc(var(--u)*5);font-weight:700;font-family:Orbitron,sans-serif;color:#fff;white-space:nowrap;line-height:1.1;margin:.15em 0">' + preco + '</div>'
+        + '<div style="font-size:calc(var(--u)*2.2);font-weight:700;color:' + cor + '">' + seta + ' ' + txPct(a.var_pct || 0) + ' hoje</div>'
+        + (a.prob_alta != null ? '<div style="margin-top:.4em"><div class="tx-pb"><i style="width:' + a.prob_alta + '%"></i></div><div class="tx-pl"><span style="color:#2ecc71">▲ ' + a.prob_alta + '%</span><span style="color:#ff5a6e">▼ ' + a.prob_baixa + '%</span></div></div>' : '')
+        + '</div>';
+    }).join('') || '<div class="tx-erro" style="grid-column:1/-1">Sem ativos no momento</div>';
+    const cs = [
+      ['φ', 'Proporção áurea', d.constante_phi],
+      ['CICLO', 'Constante de ciclo', d.constante_ciclo],
+      ['MARC', 'Paridade', d.constante_marc],
+      ['JÚBILO', 'Transição', d.constante_jubilo],
+      ['ORIGEM', 'Equilíbrio', d.constante_deus]
+    ];
+    zonaConst.innerHTML = cs.map(([n, l, v]) =>
+      '<div style="border:1px solid rgba(0,229,255,.22);border-radius:calc(var(--u)*1);padding:calc(var(--u)*.8);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:rgba(8,18,38,.7);min-height:0;overflow:hidden">'
+      + '<div style="font-size:calc(var(--u)*1.5);color:#00e5ff;letter-spacing:.08em;font-weight:800">' + esc(n) + '</div>'
+      + '<div style="font:700 calc(var(--u)*2.6) Orbitron,sans-serif;color:#ffd24a;margin:.15em 0">' + txN(v, n === 'φ' ? 5 : 2) + '</div>'
+      + '<div style="font-size:calc(var(--u)*1.1);color:#8fa6c2;line-height:1.2">' + esc(l) + '</div>'
+      + '</div>'
+    ).join('');
+    av.innerHTML = esc(d.fonte || 'Worker ALMAFLUXO') + ' · atualizado ' + txHora(d.atualizado) + ' · dados informativos, não recomendação financeira';
+  }, 120000, () => {
+    zonaAtivos.innerHTML = '<div class="tx-erro" style="grid-column:1/-1">Ativos temporariamente indisponíveis</div>';
+    zonaConst.innerHTML = '<div class="tx-erro" style="grid-column:1/-1">Constantes temporariamente indisponíveis</div>';
+  });
 }};
 
 TX.cotacoes = {def: {ativos: 'usd,eur,ouro,btc,eth,ibov'}, build(P, item, s, S) {
@@ -3236,7 +3271,84 @@ const TX_PATH_ID = (() => { const m = location.pathname.match(/\/(?:conversa\/)?
     btnFull.title = emTela() ? 'Sair da tela cheia' : 'Entrar em tela cheia';
     if (emTela()) esconderOverlay();
   });
+  /* ═════ Reforço: botão de tela cheia sempre presente ═════
+    O txPwa() só cria overlay/botão quando a URL tem /conversa/totemN.
+    Se o usuário abrir /conversa/ puro, o botão ⛶ e o overlay de boot
+    ficam ausentes. Este bloco garante os dois em qualquer URL do totem. */
+  (function reforcarTelaCheia() {
+    // 1) Botão ⛶ flutuante — sempre
+    if (!document.querySelector('.tx-fullscreen')) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'tx-fullscreen';
+      btn.textContent = '⛶';
+      btn.title = 'Alternar tela cheia';
+      btn.setAttribute('aria-label', 'Alternar tela cheia');
+      btn.style.cssText = 'position:fixed;right:12px;top:12px;z-index:100001;width:46px;height:46px;border-radius:50%;border:1px solid #00e5ff;background:rgba(3,8,18,.9);color:#00e5ff;font-size:25px;cursor:pointer;box-shadow:0 0 18px rgba(0,229,255,.25);opacity:.82';
+      const emTela = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        try {
+          if (!emTela()) {
+            const el = document.documentElement;
+            const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+            if (fn) await fn.call(el);
+          } else {
+            const fn = document.exitFullscreen || document.webkitExitFullscreen;
+            if (fn) await fn.call(document);
+          }
+        } catch (err) { console.warn('[ALMAFLUXO] Tela cheia:', err && err.message || err); }
+      });
+      document.body.appendChild(btn);
+      document.addEventListener('fullscreenchange', () => {
+        btn.title = emTela() ? 'Sair da tela cheia' : 'Entrar em tela cheia';
+      });
+    }
 
+    // 2) Overlay de boot — só se não estiver em modo app nem em fullscreen
+    if (document.getElementById('txBootOverlay')) return;
+    const modoApp = () => matchMedia('(display-mode: fullscreen)').matches || matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+    const emTela = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+    if (modoApp() || emTela()) return;
+
+    let overlay = null;
+    function criarOverlay() {
+      if (overlay) return;
+      overlay = document.createElement('div');
+      overlay.id = 'txBootOverlay';
+      overlay.style.cssText = 'position:fixed;inset:0;z-index:100000;background:radial-gradient(ellipse at center,#0b1a33 0%,#02040a 75%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2rem;padding:2rem;text-align:center;font-family:Orbitron,sans-serif;color:#eaf6ff;cursor:pointer;transition:opacity .4s';
+      overlay.innerHTML = `
+        <div style="font-size:clamp(2.4rem,7vmin,5rem);letter-spacing:.25em;color:#00e5ff;text-shadow:0 0 3vmin rgba(0,229,255,.6)">ALMAFLUXO</div>
+        <div style="font-size:clamp(1rem,2.4vmin,1.8rem);letter-spacing:.15em;color:#8fa6c2;text-transform:uppercase">Central de informação do seu dia</div>
+        <div style="display:flex;gap:1rem;flex-wrap:wrap;justify-content:center">
+          <button id="btnEntrarFS2" style="font-family:Orbitron,sans-serif;font-size:clamp(.9rem,2vmin,1.4rem);font-weight:800;letter-spacing:.08em;padding:.9em 2.4em;border-radius:14px;border:2px solid #00e5ff;background:linear-gradient(135deg,#00e5ff,#0088cc);color:#001018;cursor:pointer;box-shadow:0 0 2rem rgba(0,229,255,.4)">
+            ▶ ENTRAR EM TELA CHEIA
+          </button>
+        </div>
+        <div style="font-size:clamp(.7rem,1.2vmin,.9rem);color:#4d5b70;letter-spacing:.05em;font-family:Roboto,sans-serif">Ctrl + 10 cliques para acesso técnico</div>
+      `;
+      document.body.appendChild(overlay);
+      const btn = overlay.querySelector('#btnEntrarFS2');
+      const fechar = () => { overlay.style.opacity = '0'; setTimeout(() => { if (overlay) { overlay.remove(); overlay = null; } }, 450); };
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        fechar();
+        try {
+          const el = document.documentElement;
+          const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+          if (fn) await fn.call(el);
+        } catch (err) { console.warn('[ALMAFLUXO] Fullscreen negado:', err && err.message || err); }
+      });
+      overlay.addEventListener('click', () => btn.click());
+      document.addEventListener('keydown', function onKey(e) {
+        if (e.key === 'Enter' || e.key === ' ' || e.keyCode === 13 || e.keyCode === 29443) {
+          if (overlay) { e.preventDefault(); btn.click(); }
+        }
+      }, true);
+      setTimeout(fechar, 30000);
+    }
+    criarOverlay();
+  })();
   // ── Overlay de boot: cobre a tela até o usuário clicar ──
   let overlay = null;
   function criarOverlay() {
