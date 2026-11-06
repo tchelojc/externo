@@ -648,26 +648,35 @@ html,body{background:#000}
 .tot-now{font-size:.74rem;color:#9fc7ff;background:rgba(0,229,255,.06);border-radius:8px;padding:6px 8px}
 .tot-acoes{display:flex;gap:6px;flex-wrap:wrap}
 .tot-acoes .btn{padding:6px 10px;font-size:.74rem}
-.cfg-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
-.cfg-tabs button{background:var(--panel2);border:1px solid var(--borda);color:var(--texto2);padding:7px 12px;border-radius:9px;cursor:pointer;font-size:.78rem}
-.cfg-tabs button.on{border-color:var(--ciano);color:var(--ciano)}
-.fm{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:10px}
-.fm label{display:flex;flex-direction:column;gap:4px;font-size:.72rem;color:var(--texto2)}
-.fm input,.fm select,.fm textarea{background:#0a1220;border:1px solid #1d2a44;border-radius:8px;color:var(--texto);padding:8px;font-size:.82rem;font-family:inherit}
-.fm input[type=checkbox]{width:18px;height:18px;align-self:flex-start}
-.hintx{font-size:.72rem;color:var(--texto2);line-height:1.5;background:rgba(255,255,255,.03);border-radius:8px;padding:8px 10px;margin:6px 0}
+.cfg-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:10px}
+.cfg-tabs button{background:transparent;border:none;border-bottom:2px solid transparent;color:#8b93a7;padding:8px 14px;border-radius:0;cursor:pointer;font-size:.88rem;font-weight:500;letter-spacing:.02em;transition:color .15s,border-color .15s}
+.cfg-tabs button:hover{color:#e8e6e3}
+.cfg-tabs button.on{border-bottom-color:var(--ciano);color:var(--ciano);font-weight:600}
+.fm{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:14px}
+.fm label{display:flex;flex-direction:column;gap:6px;font-size:.82rem;color:#b8c0d0;font-weight:500;letter-spacing:.02em}
+.fm input,.fm select,.fm textarea{background:rgba(10,18,32,.6);border:none;border-bottom:1px solid rgba(255,255,255,.12);border-radius:0;color:#e8e6e3;padding:8px 2px;font-size:.92rem;font-family:inherit;outline:none;transition:border-color .2s,background .2s}
+.fm input:focus,.fm select:focus,.fm textarea:focus{border-bottom-color:var(--ciano);background:rgba(0,229,255,.04)}
+.fm textarea{resize:vertical;min-height:60px;padding:8px;border-bottom:1px solid rgba(255,255,255,.12)}
+.fm input[type=checkbox]{width:20px;height:20px;align-self:flex-start;margin-top:4px;accent-color:var(--ciano);border:none}
+.fm input[type=color]{height:36px;padding:2px;border-radius:6px;border:none;background:transparent;cursor:pointer}
+.hintx{font-size:.85rem;color:#a8b0c0;line-height:1.6;background:rgba(0,229,255,.04);border-left:2px solid rgba(0,229,255,.35);border-radius:0;padding:10px 14px;margin:12px 0}
 .sch{position:relative;width:100%;max-width:420px;aspect-ratio:16/9;background:#02050a;border:1px solid #1d2a44;border-radius:8px;overflow:hidden;margin:8px 0}
 .sch.ret{aspect-ratio:9/16;max-width:220px}
 .sch div{position:absolute;border:1px dashed #00e5ff;background:rgba(0,229,255,.07);display:flex;align-items:center;justify-content:center;font-size:.75rem;color:#00e5ff;cursor:pointer;box-sizing:border-box}
 .sch div.sel{background:rgba(212,168,67,.25);border-color:#d4a843;color:#d4a843}
-.chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
-.chips button{border:1px solid var(--borda);background:var(--panel2);color:var(--texto2);border-radius:999px;padding:5px 12px;cursor:pointer;font-size:.76rem}
-.chips button.on{border-color:var(--dourado);color:var(--dourado)}
-.it{border:1px solid var(--borda);border-radius:10px;padding:8px 10px;margin:6px 0;background:var(--panel2)}
-.it-h{display:flex;gap:8px;align-items:center;font-size:.8rem}
-.it-h .nome{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.it-h button{background:none;border:1px solid var(--borda);color:var(--texto2);border-radius:6px;cursor:pointer;padding:3px 8px}
-.it-b{margin-top:8px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.chips button{border:none;background:rgba(255,255,255,.05);color:#8b93a7;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:.85rem;font-weight:500;transition:background .15s,color .15s}
+.chips button:hover{background:rgba(255,255,255,.09);color:#e8e6e3}
+.chips button.on{background:rgba(212,168,67,.18);color:var(--dourado);font-weight:600}
+.it{padding:14px 0;margin:0;background:none;border-bottom:1px solid rgba(255,255,255,.06)}
+.it:last-child{border-bottom:none}
+.it-h{display:flex;gap:10px;align-items:center;font-size:.92rem;padding:2px 0}
+.it-h .nome{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#e8e6e3;font-weight:500}
+.it-h .obs{color:#8b93a7;font-size:.78rem;white-space:nowrap}
+.it-h button{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.10);color:#b8c0d0;border-radius:6px;cursor:pointer;padding:4px 10px;font-size:.78rem;transition:background .15s,border-color .15s,color .15s}
+.it-h button:hover{background:rgba(0,229,255,.10);border-color:rgba(0,229,255,.35);color:#00e5ff}
+.it-b{margin-top:12px;padding-top:10px;border-top:1px dashed rgba(255,255,255,.06)}
+.it + .it{margin-top:4px}
 .espelho{position:relative;width:100%;max-width:880px;aspect-ratio:16/9;background:#000;border:1px solid #1d2a44;border-radius:8px;overflow:hidden;margin:0 auto}
 .espelho.ret{aspect-ratio:9/16;max-width:360px}
 .esp-r{position:absolute;box-sizing:border-box;padding:2px}
@@ -677,8 +686,8 @@ html,body{background:#000}
 .prev-wrap.ret{aspect-ratio:9/16;max-width:360px}
 .banner-bind{background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.4);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:.8rem;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .banner-bind select{background:#0a1220;color:var(--texto);border:1px solid #1d2a44;border-radius:8px;padding:6px}
-#menuLocal .modal-box,#cfgModal .modal-box{max-width:760px}
-#cfgModal .modal-body{display:block}
+#menuLocal .modal-box,#cfgModal .modal-box{max-width:820px}
+#cfgModal .modal-body{display:block;padding:24px 28px}
 .modal{z-index:150}
 #prevModal,#espModal{z-index:170}
 /* ═══════ ESFERA DE MARCAS / ANÚNCIOS ═══════ */
@@ -845,6 +854,38 @@ html,body{background:#000}
 .ed-hero-orbit span{font-size:calc(var(--u)*5);filter:drop-shadow(0 0 14px currentColor)}
 .ed-hero-orbit i,.ed-hero-orbit b{position:absolute;width:calc(var(--u)*1);height:calc(var(--u)*1);border-radius:50%;background:currentColor;top:12%;right:17%;box-shadow:0 0 12px currentColor}
 .ed-hero-orbit b{top:auto;right:auto;bottom:17%;left:12%;background:#fff}
+/* ── Card 5: motor 3D no editorial ─────────────────────────────── */
+.tx-editorial .ed-hero{position:relative;overflow:hidden}
+.tx-editorial .ed-hero-3d{
+  position:absolute;
+  right:3%; bottom:3%;
+  width:34%; aspect-ratio:4/3;
+  min-width:130px; min-height:100px;
+  border-radius:calc(var(--u)*1.2);
+  background:radial-gradient(ellipse at 50% 40%,#0b2038 0%,#030810 70%);
+  border:1px solid rgba(0,229,255,.22);
+  overflow:hidden;
+  pointer-events:none;
+  box-shadow:inset 0 0 28px rgba(0,229,255,.10);
+}
+.tx-editorial .ed-hero-3d canvas{
+  width:100%; height:100%; display:block;
+}
+/* Respiro no texto para não colidir com o motor no canto */
+.tx-editorial .ed-hero .ed-concept-text{padding-right:36%}
+.tx-editorial .ed-hero .ed-concept-title{padding-right:32%}
+
+/* Retrato / quadrado: motor fica embaixo do texto, largura total */
+@media(max-aspect-ratio:1/1){
+  .tx-editorial .ed-hero-3d{
+    position:relative;
+    right:auto; bottom:auto;
+    width:100%; aspect-ratio:16/9;
+    margin:2% 0 0 0;
+  }
+  .tx-editorial .ed-hero .ed-concept-text,
+  .tx-editorial .ed-hero .ed-concept-title{padding-right:0}
+}
 .ed-eyebrow{font-size:calc(var(--u)*1.15);letter-spacing:.16em;color:#9bb9d4;font-weight:800;margin-bottom:1.2em}
 .ed-concept-title{font-size:calc(var(--u)*3);line-height:1.12;margin:0 20% .55em 0;font-weight:800}
 .ed-concept-text{font-size:calc(var(--u)*1.7);line-height:1.5;color:#c4d3e2;margin:0;max-width:95%}
@@ -4724,8 +4765,709 @@ document.addEventListener('keydown',()=>TOTEM_AUDIO.retomar());
   iniciarTotem();
   document.getElementById('tabTotens').addEventListener('click', () => carregarTotens());
 })();
+</script>
 
-/* ALMAFLUXO EDITORIAL · Mecânica, Energia, Artes e Música */
+<script>
+function M(c, m, r) {
+  return new THREE.MeshStandardMaterial({ color: c, metalness: m, roughness: r == null ? .45 : r });
+}
+function bx(w, h, d, mat, x, y, z) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+  m.position.set(x || 0, y || 0, z || 0);
+  return m;
+}
+function cy(r, l, mat, ax, x, y, z, seg) {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, l, seg || 28), mat);
+  if (ax === 'x') m.rotation.z = Math.PI / 2;
+  if (ax === 'z') m.rotation.x = Math.PI / 2;
+  m.position.set(x || 0, y || 0, z || 0);
+  return m;
+}
+const XS = [-2.7, -0.9, 0.9, 2.7];
+
+function build(p){
+  const g=new THREE.Group(),c=M(p.cor,p.metal),dk=M('#0b0d11',.3,.7);
+  const { L = 8, H = 4, D = 3.6, C = 4 } = p.dim || {};
+  switch(p.kind){
+ case'tampa':g.add(bx(7.6,.9,3.3,c));g.add(bx(2.2,.15,1.2,M('#2a2f3a',.4),0,.5,0));g.add(cy(.45,.1,M('#cfd8e3',.9,.2),'y',0,.55,0));XS.forEach(x=>g.add(cy(.12,.2,M('#8a929c',.9),'y',x,.5,1.3,10)));break;
+ case'comando':g.add(cy(.22,7.2,c,'x'));XS.forEach(x=>{g.add(bx(.5,.7,.25,c,x-.3,0,0));g.add(bx(.5,.7,.25,c,x+.3,0,.1))});g.add(cy(.5,.4,M('#555c66',.8),'x',-3.8,0,0));break;
+ case'cabecote':g.add(bx(7.8,1.5,3.6,c));XS.forEach(x=>{g.add(cy(.38,.2,dk,'y',x,.78,0));g.add(cy(.12,.4,M('#d9dde3',.9),'y',x,.9,-.7,10))});g.add(bx(7.8,.3,.3,M('#7d858f',.9),0,-.6,1.8));break;
+ case'junta':{const s=new THREE.Shape();s.moveTo(-4,-1.8);s.lineTo(4,-1.8);s.lineTo(4,1.8);s.lineTo(-4,1.8);XS.forEach(x=>{const h=new THREE.Path();h.absarc(x,0,.62,0,Math.PI*2,true);s.holes.push(h)});const m=new THREE.Mesh(new THREE.ExtrudeGeometry(s,{depth:.08,bevelEnabled:false}),M(p.cor,.3,.5));m.rotation.x=-Math.PI/2;g.add(m);break}
+ case'bloco':g.add(bx(8,4,3.6,c));XS.forEach(x=>g.add(cy(.6,.1,dk,'y',x,2.02,0)));g.add(bx(8.2,.3,3.8,M('#737b85',.9),0,-1.9,0));g.add(bx(.5,3,3.8,M('#7a828c',.9),-4.1,0,0));break;
+ case'correia':{const t=new THREE.Mesh(new THREE.TorusGeometry(1.5,.14,10,40),c);t.rotation.y=Math.PI/2;t.scale.set(1,1.3,1);g.add(t);g.add(cy(.7,.4,M('#3a3f47',.8),'x',-.5,-.9,0));g.add(cy(.7,.4,M('#3a3f47',.8),'x',-.5,1.5,0));break}
+ case'alternador':g.add(cy(1,1.7,c,'x'));g.add(cy(.7,.3,M('#222',.5),'x',.95,0,0));g.add(cy(.45,.5,M('#9aa3ad',.8),'x',-1,0,0));for(let i=0;i<8;i++){const a=i*Math.PI/4;g.add(bx(.6,.12,.2,M('#d3452e',.5),-.2,Math.sin(a)*1.02,Math.cos(a)*1.02))}break;
+ case'partida':g.add(cy(.7,2,c,'x'));g.add(cy(.9,.8,M('#3b4048',.7),'x',1.2,0,0));g.add(cy(.28,.6,M('#a8b0ba',.9),'x',-1.2,0,0));break;
+ case'carter':g.add(bx(6.8,1.5,3.4,c,0,0,0));g.add(bx(7.2,.2,3.8,M('#22262d',.6),0,.8,0));g.add(cy(.2,.3,M('#888',.9),'y',-2.2,-.85,0));break;
+ case'admissao':g.add(bx(6.4,1.1,1.4,c,0,.7,-.9));XS.forEach(x=>{g.add(cy(.28,1.8,c,'z',x,.1,.3));g.add(bx(.7,.15,.7,c,x,0,1.1))});g.add(cy(.6,1.2,c,'z',-3.3,.7,-.9));break;
+ case'escape':XS.forEach((x,i)=>{g.add(cy(.22,1.7,c,'y',x,.2,.2));const e=cy(.22,1.2,c,'z',x,-.55,1.1);g.add(e)});g.add(cy(.38,7,c,'x',0,-.55,1.8));g.add(cy(.55,1,M('#9a5226',.8),'z',-3.7,-.55,1.8));break;
+  case'bateria_ev':g.add(bx(6.4,1.4,3.2,c));for(let i=0;i<8;i++)g.add(bx(.55,.12,2.9,M('#2fd48a',.3,.4),-2.8+i*.8,.76,0));g.add(cy(.18,.3,M('#ff4d57',.5),'y',-3,.9,1.3,12));g.add(cy(.18,.3,M('#222',.5),'y',3,.9,1.3,12));break;
+  case'gerador_ev':g.add(cy(1,3,c,'x'));g.add(bx(1.4,1.6,1.6,M('#3a4048',.6),2.2,0,0));g.add(cy(.3,.6,M('#cfd8e3',.9),'x',-1.8,0,0));break;
+  case'tampa_ev':g.add(bx(6.4,0.5,3.4,c));for(let i=0;i<6;i++){g.add(cy(.1,.15,M('#cfd8e3',.9),'y',-2.4+i*1,0.3,1.5,10))}g.add(bx(.8,.2,.5,M('#2a2f3a',.5),1.5,0.25,0));break;
+  case'inversor_ev':g.add(bx(6.0,0.2,3.0,c));for(let i=0;i<4;i++){g.add(bx(.5,.3,.3,M('#222',.5),-2.0+i*1.3,0.2,0.8))}g.add(cy(.3,.3,M('#9aa3ad',.8),'x',2.5,0.2,0,16));break;
+  case'mcu_ev':g.add(bx(4.0,0.15,2.2,c));g.add(bx(1.0,0.2,1.0,M('#111',.4),0,0.1,0));g.add(bx(.3,.3,.3,M('#d3452e',.5),1.2,0.15,0.6));break;
+  case'bloco_ev':g.add(cy(1.8,3.0,c,'x'));g.add(cy(1.9,.2,M('#3a3f47',.8),'x',-1.4,0,0));g.add(cy(1.9,.2,M('#3a3f47',.8),'x', 1.4,0,0));for(let i=0;i<8;i++){const a=i*Math.PI/4;g.add(bx(.4,.15,.4,M('#b0b8c8',.9),-0.6,Math.sin(a)*1.85,Math.cos(a)*1.85))}break;
+  case'rotor_ev':g.add(cy(1.5,.6,c,'x'));g.add(cy(1.55,.2,M('#4a5059',.9),'x',0.3,0,0,48));for(let i=0;i<8;i++){const a=i*Math.PI/4;g.add(bx(.5,.3,.2,M('#222',.5),0,Math.sin(a)*1.55,Math.cos(a)*1.55))}g.add(cy(.4,.8,M('#2c3036',.8),'x',0,0,0));break;
+  case'admissao_ev':g.add(cy(.4,1.5,c,'z'));g.add(cy(.5,.3,M('#111',.6),'z',0,0,0.8));g.add(cy(.5,.3,M('#111',.6),'z',0,0,-0.8));break;
+  case'escape_ev':g.add(cy(.4,1.5,c,'z'));g.add(cy(.55,.3,M('#9a5226',.8),'z',0,0,0.8));break;
+  case "tampa_multi": {
+    g.add(bx(L * 0.92, .5, D * 0.85, c));
+    g.add(bx(L * 0.3, .15, D * 0.35, M('#2a2f3a', .4), 0, .3, 0));
+    g.add(cy(.4, .1, M('#cfd8e3', .9, .2), 'y', 0, .35, 0));
+    for (let i = 0; i < 4; i++) g.add(cy(.1, .15, M('#8a929c', .9), 'y', -L*0.4 + i*L*0.27, .3, D*0.35, 8));
+    break;
+  }
+  case "comando_multi": {
+    g.add(cy(.2, L * 0.9, c, 'x'));
+    for (let i = 0; i < C; i++) {
+      const x = -L/2 + (i+1)*L/(C+1);
+      g.add(bx(.4, .6, .2, c, x - .25, 0, 0));
+      g.add(bx(.4, .6, .2, c, x + .25, 0, .1));
+    }
+    break;
+  }
+  case "comando_duplo": {
+    const yOff = .35;
+    g.add(cy(.18, L * 0.9, c, 'x', 0, -yOff, 0));
+    g.add(cy(.18, L * 0.9, c, 'x', 0,  yOff, 0));
+    for (let i = 0; i < C; i++) {
+      const x = -L/2 + (i+1)*L/(C+1);
+      g.add(bx(.35, .5, .18, c, x - .2, -yOff, 0));
+      g.add(bx(.35, .5, .18, c, x - .2,  yOff, 0));
+    }
+    break;
+  }
+  case "cabecote_multi": {
+    g.add(bx(L * 0.96, 1.3, D * 0.9, c));
+    for (let i = 0; i < C; i++) {
+      const x = -L/2 + (i+1)*L/(C+1);
+      g.add(cy(.32, .2, dk, 'y', x, .7, 0));
+      g.add(cy(.1, .35, M('#d9dde3', .9), 'y', x, .8, -D*0.25, 8));
+    }
+    break;
+  }
+  case "junta_multi": {
+    const shape = new THREE.Shape();
+    shape.moveTo(-L/2, -D/2); shape.lineTo(L/2, -D/2);
+    shape.lineTo(L/2, D/2);   shape.lineTo(-L/2, D/2);
+    for (let i = 0; i < C; i++) {
+      const x = -L/2 + (i+1)*L/(C+1);
+      const h = new THREE.Path(); h.absarc(x, 0, .5, 0, Math.PI * 2, true);
+      shape.holes.push(h);
+    }
+    const m = new THREE.Mesh(new THREE.ExtrudeGeometry(shape, { depth: .06, bevelEnabled: false }), M(p.cor, .3, .5));
+    m.rotation.x = -Math.PI / 2; g.add(m);
+    break;
+  }
+  case "bloco_multi": {
+    g.add(bx(L, H, D, c));
+    for (let i = 0; i < C; i++) {
+      const x = -L/2 + (i+1)*L/(C+1);
+      g.add(cy(.5, .08, dk, 'y', x, H/2 + .02, 0));
+    }
+    g.add(bx(L * 1.02, .25, D * 1.02, M('#737b85', .9), 0, -H/2, 0));
+    break;
+  }
+  case "bloco_v": {
+    const bE = bx(L, H, D * 0.45, c, 0, H * 0.1, -D * 0.25);
+    bE.rotation.z = -Math.PI / 6;
+    const bD = bx(L, H, D * 0.45, c, 0, H * 0.1,  D * 0.25);
+    bD.rotation.z =  Math.PI / 6;
+    g.add(bE); g.add(bD);
+    for (let i = 0; i < C; i++) {
+      const x = -L/2 + (i+1)*L/(C+1);
+      g.add(cy(.45, .08, dk, 'y', x, H * 0.55, -D * 0.15));
+      g.add(cy(.45, .08, dk, 'y', x, H * 0.55,  D * 0.15));
+    }
+    break;
+  }
+  case "bloco_boxer": {
+    g.add(bx(L, H * 0.6, D * 0.35, c, 0, 0, -D * 0.35));
+    g.add(bx(L, H * 0.6, D * 0.35, c, 0, 0,  D * 0.35));
+    for (let i = 0; i < C; i++) {
+      const x = -L/2 + (i+1)*L/(C+1);
+      g.add(cy(.4, .08, dk, 'z', x, 0, -D * 0.25));
+      g.add(cy(.4, .08, dk, 'z', x, 0,  D * 0.25));
+    }
+    break;
+  }
+  case "correia_multi": {
+    const t = new THREE.Mesh(
+      new THREE.TorusGeometry(L * 0.55, .12, 8, 32),
+      c
+    );
+    t.scale.set(1, H * 0.35, 1);
+    t.rotation.y = Math.PI / 2;
+    g.add(t);
+    g.add(cy(.5, .3, M('#3a3f47', .8), 'x', -L/2, -H * 0.3, 0));
+    g.add(cy(.5, .3, M('#3a3f47', .8), 'x', -L/2,  H * 0.5, 0));
+    break;
+  }
+  case "carter_multi": {
+    g.add(bx(L * 0.85, 1.1, D * 0.85, c));
+    g.add(bx(L * 0.9, .18, D * 0.9, M('#22262d', .6), 0, .55, 0));
+    g.add(cy(.18, .3, M('#888', .9), 'y', -L * 0.35, -.65, 0));
+    break;
+  }
+  case "admissao_multi": {
+    g.add(bx(L * 0.85, .9, D * 0.5, c, 0, .4, 0));
+    for (let i = 0; i < C; i++) {
+      const x = -L/2 + (i+1)*L/(C+1);
+      g.add(cy(.22, D * 0.8, c, 'z', x, .1, D * 0.2));
+      g.add(bx(.55, .12, .55, c, x, 0, D * 0.55));
+    }
+    g.add(cy(.5, D * 0.8, c, 'z', -L * 0.4, .4, 0));
+    break;
+  }
+  case "escape_multi": {
+    for (let i = 0; i < C; i++) {
+      const x = -L/2 + (i+1)*L/(C+1);
+      g.add(cy(.2, 1.3, c, 'y', x, .2, .2));
+      g.add(cy(.2, .9, c, 'z', x, -.45, .9));
+    }
+    g.add(cy(.35, L * 0.85, c, 'x', 0, -.45, 1.6));
+    g.add(cy(.5, .8, M('#9a5226', .8), 'z', -L * 0.42, -.45, 1.6));
+    break;
+  }
+  case "turbo": {
+    g.add(cy(.8, 1.2, c, 'x'));
+    g.add(cy(.55, 1.0, c, 'x', 1.2, 0, 0));
+    g.add(cy(.4, .5, M('#222', .5), 'x', -.9, 0, 0));
+    g.add(bx(.5, .5, .5, M('#5a6068', .7), 1.9, 0, 0));
+    g.add(cy(.12, .4, M('#cfd8e3', .9), 'y', -.4, .7, 0, 8));
+    break;
+  }
+  case "intercooler": {
+    g.add(bx(L * 0.7, 1.4, .3, c));
+    for (let i = 0; i < 12; i++) g.add(bx(L * 0.7, .06, .04, M('#222', .5), 0, -.6 + i*.1, .16));
+    g.add(cy(.25, .3, M('#111', .6), 'z', -L * 0.35, 0, 0));
+    g.add(cy(.25, .3, M('#111', .6), 'z',  L * 0.35, 0, 0));
+    break;
+  }
+  case "bomba_inj": {
+    g.add(cy(.6, 1.4, c, 'y'));
+    g.add(cy(.35, .3, M('#222', .5), 'y', 0, .8, 0));
+    for (let i = 0; i < 4; i++) g.add(cy(.08, .5, M('#cfd8e3', .9), 'z', 0, .2, .4 + i*.1, 6));
+    break;
+  }
+  case "filtro": {
+    g.add(cy(.5, 1.0, c, 'y'));
+    g.add(cy(.55, .1, M('#111', .6), 'y', 0, .55, 0));
+    g.add(cy(.55, .1, M('#111', .6), 'y', 0, -.55, 0));
+    break;
+  }
+  case "mola_helicoidal": {
+    const pts = [];
+    for (let i = 0; i <= 120; i++) {
+      const a = i / 120 * Math.PI * 2 * 6;
+      pts.push(new THREE.Vector3(Math.cos(a) * .55, i / 120 * 2.0 - 1.0, Math.sin(a) * .55));
+    }
+    const curve = new THREE.CatmullRomCurve3(pts);
+    const m = new THREE.Mesh(new THREE.TubeGeometry(curve, 200, .07, 8, false), c);
+    g.add(m);
+    g.add(cy(.6, .1, M('#333', .8), 'y', 0, -1.0, 0));
+    g.add(cy(.6, .1, M('#333', .8), 'y', 0,  1.0, 0));
+    break;
+  }
+  case "amortecedor": {
+    g.add(cy(.28, 1.8, c, 'y', 0, -.3, 0));
+    g.add(cy(.09, 1.4, M('#cfd8e3', .9), 'y', 0, 1.1, 0, 12));
+    g.add(cy(.35, .2, M('#222', .7), 'y', 0, 1.8, 0, 12));
+    g.add(cy(.35, .2, M('#222', .7), 'y', 0, -1.25, 0, 12));
+    break;
+  }
+  case "batente": {
+    g.add(cy(.45, .35, c, 'y', 0, 0, 0, 16));
+    for (let i = 0; i < 3; i++) g.add(cy(.35 - i*.06, .15, c, 'y', 0, .25 + i*.15, 0, 12));
+    break;
+  }
+  case "coxim": {
+    g.add(cy(.55, .5, c, 'y', 0, 0, 0, 20));
+    g.add(cy(.5, .12, M('#555', .7), 'y', 0, .28, 0, 20));
+    g.add(cy(.5, .12, M('#555', .7), 'y', 0, -.28, 0, 20));
+    for (let i = 0; i < 3; i++) {
+      const a = i * Math.PI * 2 / 3;
+      g.add(cy(.06, .25, M('#888', .9), 'y', Math.cos(a)*.4, .3, Math.sin(a)*.4, 6));
+    }
+    break;
+  }
+  case "rolamento": {
+    g.add(cy(.45, .25, c, 'y', 0, 0, 0, 24));
+    g.add(cy(.30, .28, M('#111', .8), 'y', 0, 0, 0, 24));
+    for (let i = 0; i < 8; i++) {
+      const a = i * Math.PI / 4;
+      g.add(cy(.06, .05, M('#cfd8e3', .9), 'y', Math.cos(a)*.37, 0, Math.sin(a)*.37, 8));
+    }
+    break;
+  }
+  case "trize": {
+    g.add(cy(.2, 1.6, c, 'x', -.5, 0, 0));
+    g.add(cy(.42, .5, c, 'x', .6, 0, 0));
+    g.add(cy(.12, .35, M('#555', .7), 'x', .9, 0, 0));
+    for (let i = 0; i < 6; i++) {
+      const a = i * Math.PI / 3;
+      const s = new THREE.Mesh(new THREE.SphereGeometry(.06, 8, 8), M('#cfd8e3', .95));
+      s.position.set(.6, Math.sin(a) * .3, Math.cos(a) * .3);
+      g.add(s);
+    }
+    break;
+  }
+  case "bandeja": {
+    g.add(bx(1.8, .18, .5, c, -.4, 0, 0));
+    g.add(bx(.5, .18, 1.0, c, .6, 0, .2));
+    g.add(cy(.12, .2, M('#111', .8), 'y', -.3, 0, 0, 10));
+    g.add(cy(.12, .2, M('#111', .8), 'y', 1.0, 0, 0, 10));
+    break;
+  }
+  case "pivo": {
+    g.add(cy(.32, .6, c, 'y', 0, 0, 0, 20));
+    g.add(cy(.10, .8, M('#cfd8e3', .9), 'y', 0, .5, 0, 12));
+    g.add(cy(.36, .12, M('#333', .7), 'y', 0, .25, 0, 20));
+    break;
+  }
+  case "terminal": {
+    g.add(cy(.07, 1.0, c, 'x', 0, 0, 0, 12));
+    g.add(new THREE.Mesh(new THREE.SphereGeometry(.18, 14, 14), c));
+    g.add(cy(.08, .3, M('#cfd8e3', .9), 'y', -.18, .15, 0, 8));
+    break;
+  }
+  case "estab": {
+    g.add(cy(.12, 3.2, c, 'x'));
+    g.add(cy(.28, .12, M('#333', .8), 'x', -1.2, 0, 0, 16));
+    g.add(cy(.28, .12, M('#333', .8), 'x',  1.2, 0, 0, 16));
+    g.add(cy(.08, .55, M('#555', .8), 'y', -1.2, .35, 0, 10));
+    g.add(cy(.08, .55, M('#555', .8), 'y',  1.2, .35, 0, 10));
+    break;
+  }
+  case "cubo_roda": {
+    g.add(cy(.85, .35, c, 'x', 0, 0, 0, 32));
+    g.add(cy(.5, .45, M('#555', .7), 'x', 0, 0, 0, 20));
+    for (let i = 0; i < 4; i++) {
+      const a = i * Math.PI / 2 + Math.PI / 4;
+      g.add(cy(.06, .55, M('#cfd8e3', .9), 'x', .35, Math.sin(a)*.5, Math.cos(a)*.5, 8));
+    }
+    break;
+  }
+  case "disco_freio": {
+    g.add(cy(.9, .08, c, 'x', 0, 0, 0, 48));
+    g.add(cy(.35, .15, M('#333', .8), 'x', 0, 0, 0, 20));
+    for (let i = 0; i < 6; i++) {
+      const a = i * Math.PI / 3;
+      g.add(cy(.05, .1, M('#111', .8), 'x', 0, Math.sin(a)*.65, Math.cos(a)*.65, 8));
+    }
+    break;
+  }
+  case "chassi": {
+    const dk = M('#3a4550', .85);
+    g.add(bx(8, .4, .5, dk,  0, 0,  1.8));
+    g.add(bx(8, .4, .5, dk,  0, 0, -1.8));
+    g.add(bx(.4, .3, 4.2, dk,  3.8, 0, 0));
+    g.add(bx(.4, .3, 4.2, dk, -3.8, 0, 0));
+    g.add(bx(7, .12, 3.6, M('#2c3540', .7), 0, -.2, 0));
+    break;
+  }
+  case "subchassi": {
+    g.add(bx(2.6, .4, 3.2, M('#4a5560', .85)));
+    for (let i = 0; i < 4; i++)
+      g.add(cy(.08, .22, M('#8a929c', .9), 'y', -1 + i * .66, .3, 1.4, 8));
+    g.add(bx(.3, .3, .3, M('#8a929c', .9), -1.2, .3, -1.4));
+    g.add(bx(.3, .3, .3, M('#8a929c', .9),  1.2, .3, -1.4));
+    break;
+  }
+  case "longarina": {
+    g.add(bx(8, .4, .5, M('#3a4550', .85)));
+    g.add(bx(2, .3, .5, M('#4a5560', .85), 2, .1, 0));
+    g.add(bx(.6, .5, .6, M('#2c3540', .8), -3.4, -.1, 0));
+    break;
+  }
+  case "assoalho": {
+    g.add(bx(7, .1, 3.8, M('#2c3540', .7)));
+    for (let i = 0; i < 5; i++)
+      g.add(bx(.08, .06, 3.6, M('#4a5560', .85), -2.4 + i * 1.2, .06, 0));
+    break;
+  }
+  case "torre": {
+    g.add(cy(.7, 1.0, M('#3a4550', .85), 'y', 0, 0, 0, 24));
+    g.add(cy(.55, .15, M('#4a5560', .85), 'y', 0, .55, 0, 24));
+    for (let i = 0; i < 3; i++) {
+      const a = i * Math.PI * 2 / 3;
+      g.add(cy(.06, .25, M('#8a929c', .9), 'y', Math.cos(a) * .5, .35, Math.sin(a) * .5, 6));
+    }
+    break;
+  }
+  case "travessa": {
+    g.add(bx(7, .3, .5, M('#4a5560', .85)));
+    g.add(bx(.4, .3, 1.2, M('#3a4550', .85), -2, 0, 0));
+    g.add(bx(.4, .3, 1.2, M('#3a4550', .85),  2, 0, 0));
+    break;
+  }
+  case "berco": {
+    g.add(bx(2.6, .4, 2.2, M('#4a5560', .85)));
+    g.add(cy(.35, .3, M('#222', .5), 'y', 0, .3, 0, 16));
+    for (let i = 0; i < 4; i++) {
+      const x = (i % 2 ? 1 : -1) * 1.1;
+      const z = (i < 2 ? 1 : -1) * .8;
+      g.add(cy(.07, .2, M('#8a929c', .9), 'y', x, .3, z, 6));
+    }
+    break;
+  }
+  case "coluna": {
+    g.add(cy(.08, 2.2, c, 'y'));
+    g.add(cy(.14, .25, M('#333', .8), 'y', 0,  1.0, 0, 12));
+    g.add(cy(.14, .25, M('#333', .8), 'y', 0, -1.0, 0, 12));
+    g.add(bx(.15, .15, .15, M('#8a929c', .9), .15, .6, 0));
+    g.add(bx(.15, .15, .15, M('#8a929c', .9), -.15, -.6, 0));
+    break;
+  }
+  case 'cilindro_inclinado': {
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 2.2, 20), c);
+    m.rotation.z = Math.PI / 6;
+    m.position.set(0, 1.0, 0);
+    g.add(m);
+    g.add(bx(1.2, 0.8, 1.2, c, 0, 0, 0));
+    break;
+  }
+  case 'bloco_moto': {
+    g.add(bx(L * 0.8, H * 0.6, D * 0.8, c));
+    for (let i = 0; i < C; i++) {
+      const x = -L * 0.3 + (i + 0.5) * (L * 0.6 / C);
+      g.add(cy(.35, .06, dk, 'y', x, H * 0.3 + .02, 0));
+    }
+    g.add(bx(L * 0.9, .25, D * 0.9, M('#737b85', .9), 0, -H * 0.3, 0));
+    g.add(bx(L * 0.35, H * 0.3, D * 0.5, M('#4a5059', .8), L * 0.45, -H * 0.1, 0));
+    break;
+  }
+  case 'tampa_moto': {
+    g.add(bx(L * 0.7, .35, D * 0.6, c));
+    g.add(bx(L * 0.2, .08, D * 0.25, M('#2a2f3a', .4), 0, .2, 0));
+    g.add(cy(.2, .06, M('#cfd8e3', .9), 'y', 0, .2, 0));
+    break;
+  }
+  case 'comando_moto': {
+    g.add(cy(.18, L * 0.75, c, 'x'));
+    for (let i = 0; i < C; i++) {
+      const x = -L * 0.3 + (i + 0.5) * (L * 0.6 / C);
+      g.add(bx(.35, .5, .18, c, x - .2, 0, 0));
+      g.add(bx(.35, .5, .18, c, x + .2, 0, .1));
+    }
+    break;
+  }
+  case 'cabecote_moto': {
+    g.add(bx(L * 0.75, .9, D * 0.75, c));
+    for (let i = 0; i < C; i++) {
+      const x = -L * 0.3 + (i + 0.5) * (L * 0.6 / C);
+      g.add(cy(.28, .16, dk, 'y', x, .5, 0));
+      g.add(cy(.08, .3, M('#d9dde3', .9), 'y', x, .6, -D * 0.2, 8));
+    }
+    break;
+  }
+  case 'junta_moto': {
+    const s = new THREE.Shape();
+    s.moveTo(-L * 0.38, -D * 0.38); s.lineTo(L * 0.38, -D * 0.38);
+    s.lineTo(L * 0.38, D * 0.38);  s.lineTo(-L * 0.38, D * 0.38);
+    for (let i = 0; i < C; i++) {
+      const x = -L * 0.3 + (i + 0.5) * (L * 0.6 / C);
+      const h = new THREE.Path(); h.absarc(x, 0, .38, 0, Math.PI * 2, true);
+      s.holes.push(h);
+    }
+    const m = new THREE.Mesh(new THREE.ExtrudeGeometry(s, { depth: .05, bevelEnabled: false }), M(p.cor, .3, .5));
+    m.rotation.x = -Math.PI / 2; g.add(m);
+    break;
+  }
+  case 'carter_seco': {
+    g.add(bx(1.2, 1.6, 1.2, c, 0, 0, 0));
+    g.add(cy(.3, .5, M('#222', .6), 'y', 0, .9, 0, 12));
+    g.add(cy(.18, .4, M('#8a929c', .9), 'z', .6, .3, .4, 8));
+    break;
+  }
+  case 'embreagem_seca': {
+    g.add(cy(.9, .25, c, 'x'));
+    g.add(cy(.8, .1, M('#555', .6), 'x', .15, 0, 0, 24));
+    g.add(cy(.5, .15, M('#8a6f2a', .8), 'x', .15, 0, 0, 24));
+    for (let i = 0; i < 6; i++) {
+      const a = i * Math.PI / 3;
+      g.add(cy(.06, .35, M('#cfd8e3', .9), 'y', Math.cos(a) * .75, .15, Math.sin(a) * .75, 6));
+    }
+    break;
+  }
+  case 'embreagem_umida': {
+    g.add(cy(.85, .3, c, 'x'));
+    g.add(cy(.7, .15, M('#3a6b8a', .6), 'x', .2, 0, 0, 24));
+    for (let i = 0; i < 3; i++) g.add(cy(.7, .04, M('#a8a8a8', .5), 'x', .1 + i * .06, 0, 0, 24));
+    break;
+  }
+  case 'escapamento_moto': {
+    g.add(cy(.18, 1.5, c, 'x', -1.2, 0, 0));
+    g.add(cy(.28, 1.4, c, 'x', .6, .2, 0));
+    g.add(cy(.32, .5, M('#555', .7), 'x', 1.4, .2, 0, 16));
+    g.add(cy(.3, .3, M('#111', .5), 'x', 1.65, .2, 0, 16));
+    break;
+  }
+  case 'tanque_moto': {
+    g.add(bx(2.4, 1.0, 1.4, c));
+    g.add(cy(.4, .8, M('#333', .6), 'y', -.9, -.3, .5, 16));
+    g.add(bx(1.6, .3, 1.4, M('#333', .5), .2, -.55, 0));
+    break;
+  }
+  case 'banco_moto': {
+    g.add(bx(2.6, .28, 1.0, c));
+    g.add(bx(2.8, .08, 1.1, M('#333', .7), 0, -.18, 0));
+    break;
+  }
+  case 'guidon': {
+    g.add(cy(.07, 2.4, c, 'z'));
+    g.add(cy(.06, 1.2, c, 'y', 0, .6, 0));
+    g.add(bx(.4, .4, .15, M('#8a929c', .9), 0, 1.1, 0));
+    break;
+  }
+  case 'garfo': {
+    g.add(cy(.08, 2.2, c, 'y', -.7, 0, 0));
+    g.add(cy(.08, 2.2, c, 'y',  .7, 0, 0));
+    g.add(cy(.12, .4, M('#555', .8), 'y', -.7, .8, 0, 12));
+    g.add(cy(.12, .4, M('#555', .8), 'y',  .7, .8, 0, 12));
+    break;
+  }
+  case 'balanca_moto': {
+    g.add(bx(1.8, .15, .15, c, -1, 0, 0));
+    g.add(bx(.15, 1.0, .15, c, -.2, .5, 0));
+    g.add(cy(.15, 1.4, M('#8a929c', .85), 'y', -.5, .5, 0, 12));
+    g.add(cy(.08, .8, M('#555', .8), 'y', -.5, 1.1, 0, 10));
+    break;
+  }
+  case 'roda_moto': {
+    const t = new THREE.Mesh(new THREE.TorusGeometry(1.0, .35, 12, 32), M('#1a1a1a', .2, .7));
+    t.rotation.y = Math.PI / 2;
+    g.add(t);
+    g.add(cy(.55, .18, M('#a8b0ba', .9), 'x', 0, 0, 0, 24));
+    g.add(cy(.15, .2, M('#555', .8), 'x', 0, 0, 0, 16));
+    for (let i = 0; i < 6; i++) {
+      const a = i * Math.PI / 3;
+      g.add(cy(.04, 1.0, M('#a8b0ba', .9), 'x', 0, Math.sin(a) * .5, Math.cos(a) * .5, 6));
+    }
+    g.add(cy(.7, .05, M('#555', .8), 'x', .15, 0, 0, 32));
+    break;
+  }
+  case 'carburador': {
+    g.add(bx(1.2, .8, .8, c));
+    g.add(cy(.3, .4, M('#111', .5), 'x', .8, 0, 0, 16));
+    g.add(cy(.25, .5, M('#555', .6), 'y', 0, .8, 0, 12));
+    g.add(cy(.05, .3, M('#cfd8e3', .9), 'z', 0, -.6, 0, 6));
+    break;
+  }
+  case 'injecao_moto': {
+    g.add(bx(1.0, .6, .6, c));
+    g.add(cy(.15, .5, M('#8a929c', .9), 'z', 0, .2, .3, 12));
+    g.add(cy(.08, .3, M('#cfd8e3', .9), 'x', .3, 0, 0, 6));
+    break;
+  }
+  case 'bloco_popa': {
+    g.add(bx(L * 0.7, H * 0.5, D * 0.7, c));
+    g.add(bx(L * 0.3, H * 0.4, D * 0.3, M('#3a4550', .8), 0, -H * 0.5, 0));
+    g.add(cy(.3, .5, M('#3a4550', .8), 'y', 0, -H * 0.9, 0, 16));
+    for (let i = 0; i < C; i++) {
+      const x = -L * 0.25 + (i + 0.5) * (L * 0.5 / C);
+      g.add(cy(.3, .06, dk, 'y', x, H * 0.25 + .02, 0));
+    }
+    break;
+  }
+  case 'bloco_inboard': {
+    g.add(bx(L * 0.85, H * 0.7, D * 0.85, c));
+    for (let i = 0; i < C; i++) {
+      const x = -L * 0.35 + (i + 0.5) * (L * 0.7 / C);
+      g.add(cy(.4, .06, dk, 'y', x, H * 0.35 + .02, 0));
+    }
+    g.add(bx(L * 0.95, .2, D * 0.95, M('#5a6068', .8), 0, -H * 0.35, 0));
+    break;
+  }
+  case 'carenagem_popa': {
+    g.add(bx(L * 0.9, H * 0.6, D * 0.85, c));
+    g.add(cy(.5, .15, M('#111', .6), 'z', 0, H * 0.2, D * 0.4, 16));
+    g.add(bx(L * 0.5, .15, D * 0.3, M('#0a0a0a', .4), 0, H * 0.35, 0));
+    break;
+  }
+  case 'rabeta': {
+    g.add(cy(.35, 1.8, c, 'y'));
+    g.add(bx(1.0, .6, .8, M('#3a4550', .85), 0, -.9, 0));
+    g.add(cy(.3, .8, c, 'z', 0, -.9, .4));
+    g.add(cy(.15, .3, M('#8a929c', .9), 'y', 0, .9, 0, 12));
+    break;
+  }
+  case 'helice': {
+    g.add(cy(.35, .3, M('#a8b0ba', .85), 'z'));
+    for (let i = 0; i < 3; i++) {
+      const a = i * Math.PI * 2 / 3;
+      const pas = new THREE.Mesh(new THREE.BoxGeometry(.15, 1.3, .5), c);
+      pas.position.set(Math.sin(a) * .8, Math.cos(a) * .8, 0);
+      pas.rotation.z = a;
+      g.add(pas);
+    }
+    break;
+  }
+  case 'pe_de_galinha': {
+    g.add(bx(1.0, .5, 1.2, c));
+    g.add(cy(.4, .6, M('#555', .8), 'x', 0, -.5, 0, 16));
+    g.add(cy(.3, .5, M('#555', .8), 'z', 0, -.8, 0, 12));
+    break;
+  }
+  case 'eixo_helice': {
+    g.add(cy(.15, L * 0.7, c, 'x'));
+    g.add(cy(.25, .3, M('#555', .7), 'x', L * 0.4, 0, 0, 16));
+    g.add(cy(.3, .2, M('#8a929c', .9), 'z', 0, 0, 0, 12));
+    break;
+  }
+  case 'tanque_barco': {
+    g.add(bx(1.6, 1.0, 1.2, c));
+    g.add(cy(.12, .3, M('#555', .7), 'y', .6, .55, 0, 12));
+    g.add(cy(.06, .3, M('#555', .7), 'y', -.6, .55, 0, 8));
+    break;
+  }
+  case 'casco': {
+    const s = new THREE.Shape();
+    s.moveTo(-1.5, 1.0); s.lineTo(1.5, 1.0); s.lineTo(1.0, -1.0); s.lineTo(-1.0, -1.0);
+    s.lineTo(-1.5, 1.0);
+    const m = new THREE.Mesh(new THREE.ExtrudeGeometry(s, { depth: 3.5, bevelEnabled: false }), M(p.cor, .3, .8));
+    m.position.set(0, 0, -1.75);
+    g.add(m);
+    g.add(bx(2.5, .15, 3.6, M('#5a6068', .7), 0, -1.05, 0));
+    break;
+  }
+  case'generico':g.add(bx(2,1,1.4,c));g.add(cy(.18,.2,M('#d9dde3',.9),'y',-.6,.55,0,10));g.add(cy(.18,.2,M('#d9dde3',.9),'y',.6,.55,0,10));break;
+  case'volante':g.add(cy(1.7,.45,c,'x'));g.add(cy(1.75,.18,M('#4a5059',.9),'x',.15,0,0,48));g.add(cy(.55,.6,M('#2c3036',.8),'x',-.1,0,0));break;
+  default:g.add(bx(2,1,1.4,c));g.add(cy(.18,.2,M('#d9dde3',.9),'y',-.6,.55,0,10));g.add(cy(.18,.2,M('#d9dde3',.9),'y',.6,.55,0,10));break}
+  g.traverse(o=>{if(o.isMesh)o.userData.id=p.id});return g
+}
+window.build = build;   // ← expõe globalmente para o MiniMotorPlayer
+
+(function instalarMiniMotorPlayer() {
+  if (typeof window === 'undefined') return;
+  if (window.MiniMotorPlayer) return;
+
+  const LISTA_PADRAO = [
+    "ea111_10", "fire_10", "celta_10", "escort_cht",
+    "motor_3cil", "motor_6cil", "motor_v8", "motor_diesel",
+    "moto_125_single", "moto_1200_vtwin", "barco_outboard_150"
+  ];
+
+  const LISTA_POR_TIPO = {
+    mecanica3d: ["ea111_10", "motor_v8", "motor_6cil", "motor_diesel",
+                 "motor_3cil", "moto_1200_vtwin", "moto_125_single",
+                 "barco_outboard_150", "escort_cht", "celta_10"],
+    eletrica:   ["eletrico_vesc", "ev_conversao_gol", "ev_offgrid_48v",
+                 "ev_range_extender"],
+    artes:      ["ea111_10", "motor_6cil", "motor_v8", "motor_3cil"],
+    musica:     ["ea111_10", "motor_6cil", "motor_v8", "motor_3cil"]
+  };
+
+  function getCatalogo() {
+    if (typeof window.MECANICA_MOTORES === 'object' && window.MECANICA_MOTORES) return window.MECANICA_MOTORES;
+    if (typeof window.MOTORES_TOTEM === 'object' && window.MOTORES_TOTEM) return window.MOTORES_TOTEM;
+    return null;
+  }
+
+  function criar(canvasEl, opcoes) {
+    if (!canvasEl) return null;
+    const THREE = window.THREE;
+    const build = window.build;
+    const catalogo = getCatalogo();
+    if (!THREE || typeof build !== 'function' || !catalogo) return null;
+
+    const o = Object.assign({ trocaMs: 8000, rotacaoY: true }, opcoes || {});
+    const lista = Array.isArray(o.lista) && o.lista.length ? o.lista : LISTA_PADRAO;
+
+    let renderer, scene, camera;
+    try {
+      renderer = new THREE.WebGLRenderer({ canvas: canvasEl, antialias: true, alpha: true });
+    } catch (e) { return null; }
+
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(38, 1, 0.1, 400);
+    camera.position.set(0, 4, 18);
+    camera.lookAt(0, 0.6, 0);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.85));
+    const dl1 = new THREE.DirectionalLight(0xffffff, 1.2); dl1.position.set(6, 10, 8); scene.add(dl1);
+    const dl2 = new THREE.PointLight(0x27c8ff, 1.0, 60); dl2.position.set(-8, 3, -6); scene.add(dl2);
+
+    let grupo = null, idx = -1, timer = null, raf = 0, vivo = true;
+
+    function ajustar() {
+      const w = canvasEl.clientWidth || 1, h = canvasEl.clientHeight || 1;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+    }
+    let ro = null;
+    if (typeof ResizeObserver !== 'undefined') { ro = new ResizeObserver(ajustar); ro.observe(canvasEl); }
+    ajustar();
+
+    function limparGrupo() {
+      if (!grupo) return;
+      scene.remove(grupo);
+      grupo.traverse(n => {
+        if (n.geometry) n.geometry.dispose();
+        if (n.material) (Array.isArray(n.material) ? n.material : [n.material]).forEach(m => {
+          if (m.map) m.map.dispose && m.map.dispose();
+          m.dispose && m.dispose();
+        });
+      });
+      grupo = null;
+    }
+
+    function carregarMotor(id) {
+      const base = catalogo[id];
+      if (!base || !Array.isArray(base.pecas) || !base.pecas.length) return false;
+      limparGrupo();
+      const g = new THREE.Group();
+      base.pecas.forEach(p => { try { const obj = build(p); if (obj) g.add(obj); } catch (e) {} });
+      if (!g.children.length) return false;
+      const box = new THREE.Box3().setFromObject(g);
+      const centro = box.getCenter(new THREE.Vector3());
+      g.position.sub(centro);
+      grupo = g;
+      scene.add(grupo);
+      const tam = box.getSize(new THREE.Vector3()).length() || 20;
+      const d = Math.max(12, tam * 1.1);
+      camera.position.set(d * 0.35, tam * 0.35, d);
+      camera.lookAt(0, 0, 0);
+      return true;
+    }
+
+    function proximo() {
+      if (!vivo) return;
+      for (let tent = 0; tent < lista.length; tent++) {
+        idx = (idx + 1) % lista.length;
+        if (carregarMotor(lista[idx])) return;
+      }
+      clearInterval(timer); timer = null;
+    }
+
+    function loop() {
+      if (!vivo) return;
+      raf = requestAnimationFrame(loop);
+      if (grupo && o.rotacaoY) grupo.rotation.y += 0.006;
+      renderer.render(scene, camera);
+    }
+
+    proximo(); loop();
+    timer = setInterval(proximo, Math.max(2000, o.trocaMs));
+
+    return {
+      proximo,
+      destruir() {
+        vivo = false;
+        if (timer) { clearInterval(timer); timer = null; }
+        cancelAnimationFrame(raf);
+        if (ro) ro.disconnect();
+        limparGrupo();
+        try { renderer.dispose(); } catch (e) {}
+        try { renderer.forceContextLoss(); } catch (e) {}
+      }
+    };
+  }
+
+  window.MiniMotorPlayer = { criar, LISTA_PADRAO, LISTA_POR_TIPO };
+})();
+
 (function registrarEditoriasTotem() {
   const EDITORIAS = {
     mecanica3d:{titulo:'MECÂNICA & MOBILIDADE',subtitulo:'Engenharia, motores, manutenção e futuro da mobilidade',categoria:'mecanica',icone:'⚙️',link:'https://almafluxo.uk/mecanica',
@@ -4741,40 +5483,132 @@ document.addEventListener('keydown',()=>TOTEM_AUDIO.retomar());
       conceitos:[['Ritmo','Organiza a duração dos sons e silêncios; padrões rítmicos ajudam a caracterizar gêneros e tradições.'],['Timbre','É a qualidade que permite distinguir fontes sonoras mesmo quando tocam a mesma nota e intensidade.'],['Gravação','A passagem de registros acústicos para técnicas elétricas e digitais mudou a produção e a circulação musical.'],['Música brasileira','Samba, choro, baião, bossa nova, rock e muitos outros movimentos formam uma história diversa.'],['Produção musical','Arranjo, captação, edição, mixagem e masterização são etapas distintas de construção de uma gravação.']],
       blocos:[['HISTÓRIA','Gêneros e movimentos'],['LINGUAGEM','Ritmo, timbre e harmonia'],['TECNOLOGIA','Estúdio, síntese e áudio digital']]}
   };
-  const clean=(v,n)=>String(v==null?'':v).replace(/[<>]/g,'').slice(0,n||220);
-  function montar(P,item,s,S,cfg){
-    s.className+=' tx tx-editorial tx-editorial-'+item.tipo;txMorre(S);
-    const conceito=cfg.conceitos[(new Date().getDate()+new Date().getMonth())%cfg.conceitos.length];
-    s.innerHTML=`<header class="ed-head"><div class="ed-kicker">${cfg.icone} ALMAFLUXO · CANAL DIÁRIO</div><div class="ed-title">${cfg.titulo}</div><div class="ed-sub">${cfg.subtitulo}</div></header>
-      <main class="ed-layout"><section class="ed-hero"><div class="ed-hero-orbit"><span>${cfg.icone}</span><i></i><b></b></div><div class="ed-eyebrow">IDEIA EM DESTAQUE</div><h2 class="ed-concept-title">${clean(conceito[0],90)}</h2><p class="ed-concept-text">${clean(conceito[1],260)}</p>
-      <div class="ed-tags">${cfg.blocos.map(x=>`<span><b>${clean(x[0],30)}</b>${clean(x[1],70)}</span>`).join('')}</div></section>
-      <section class="ed-news"><div class="ed-news-top"><span>GIRO DE NOTÍCIAS</span><small class="ed-source">Consultando feeds públicos…</small></div><div class="ed-news-list"><div class="ed-news-empty">Carregando manchetes da editoria…</div></div>
-      <div class="ed-news-foot">Manchetes de feeds públicos. A disponibilidade e a atualização dependem das fontes.</div></section></main>
+
+  const clean = (v, n) => String(v == null ? '' : v).replace(/[<>]/g, '').slice(0, n || 220);
+
+  function montar(P, item, s, S, cfg) {
+    s.className += ' tx tx-editorial tx-editorial-' + item.tipo;
+    txMorre(S);
+
+    const conceito = cfg.conceitos[(new Date().getDate() + new Date().getMonth()) % cfg.conceitos.length];
+
+    s.innerHTML = `<header class="ed-head"><div class="ed-kicker">${cfg.icone} ALMAFLUXO · CANAL DIÁRIO</div><div class="ed-title">${cfg.titulo}</div><div class="ed-sub">${cfg.subtitulo}</div></header>
+      <main class="ed-layout">
+        <section class="ed-hero">
+          <div class="ed-hero-orbit"><span>${cfg.icone}</span><i></i><b></b></div>
+          <div class="ed-hero-3d" hidden><canvas class="ed-hero-cv" aria-hidden="true"></canvas></div>
+          <div class="ed-eyebrow">IDEIA EM DESTAQUE</div>
+          <h2 class="ed-concept-title">${clean(conceito[0], 90)}</h2>
+          <p class="ed-concept-text">${clean(conceito[1], 260)}</p>
+          <div class="ed-tags">${cfg.blocos.map(x => `<span><b>${clean(x[0], 30)}</b>${clean(x[1], 70)}</span>`).join('')}</div>
+        </section>
+        <section class="ed-news"><div class="ed-news-top"><span>GIRO DE NOTÍCIAS</span><small class="ed-source">Consultando feeds públicos…</small></div><div class="ed-news-list"><div class="ed-news-empty">Carregando manchetes da editoria…</div></div>
+        <div class="ed-news-foot">Manchetes de feeds públicos. A disponibilidade e a atualização dependem das fontes.</div></section>
+      </main>
       <footer class="ed-bottom"><span class="ed-date"></span><span class="ed-index">CONHECIMENTO · TECNOLOGIA · CULTURA</span></footer>`;
-    const list=s.querySelector('.ed-news-list'),source=s.querySelector('.ed-source');
-    s.querySelector('.ed-date').textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
-    let idx=0,items=[];
-    const render=()=>{
-      if(!items.length){list.innerHTML='<div class="ed-news-empty">Sem manchetes disponíveis agora.<br><small>O conteúdo educativo permanece disponível.</small></div>';return;}
-      const n=items[idx%items.length],others=items.filter((_,i)=>i!==idx%items.length).slice(0,3);
-      const ago=n.t?txAgo(Number.isFinite(+n.t)?+n.t:new Date(n.t).getTime()):'';
-      list.innerHTML=`<article class="ed-news-feature"><span class="ed-live">DESTAQUE</span><h3>${clean(n.titulo,160)}</h3><small>${clean(n.fonte||'Feed público',60)}${ago?' · '+ago:''}</small></article>`+
-        others.map((x,i)=>`<div class="ed-news-item"><b>0${i+2}</b><span>${clean(x.titulo,140)}<small>${clean(x.fonte||'Feed público',60)}</small></span></div>`).join('');
+
+    const list = s.querySelector('.ed-news-list'), source = s.querySelector('.ed-source');
+    s.querySelector('.ed-date').textContent = new Date().toLocaleDateString('pt-BR', {weekday:'long', day:'2-digit', month:'long', year:'numeric'});
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  MOTOR 3D NO CARD 5  ← CORRIGIDO
+    //  1) Garante que THREE esteja carregado (via txThree)
+    //  2) Busca TODOS os motores da lista no Worker (Promise.all)
+    //  3) Só então cria o MiniMotorPlayer
+    //  Se qualquer passo falhar → órbita decorativa continua (fallback).
+    // ═══════════════════════════════════════════════════════════════════
+    (function montarMotorEditorial() {
+      const wrap = s.querySelector('.ed-hero-3d');
+      const cv   = s.querySelector('.ed-hero-cv');
+      const orb  = s.querySelector('.ed-hero-orbit');
+      if (!wrap || !cv || !window.MiniMotorPlayer) return;
+
+      const lista = (window.MiniMotorPlayer.LISTA_POR_TIPO || {})[item.tipo] || window.MiniMotorPlayer.LISTA_PADRAO;
+
+      const tentar = () => {
+        if (S.morto) return;
+        let player = null;
+        try { player = window.MiniMotorPlayer.criar(cv, { trocaMs: 8000, lista }); } catch (e) { player = null; }
+        if (!player) return;
+        wrap.hidden = false;
+        if (orb) orb.style.display = 'none';
+        S._motorEditorial = player;
+        S.fins.push(() => {
+          if (S._motorEditorial) {
+            try { S._motorEditorial.destruir(); } catch (e) {}
+            S._motorEditorial = null;
+          }
+        });
+      };
+
+      // 1) THREE pronto
+      txThree().then(() => {
+        if (typeof window.build !== 'function') return;
+
+        // 2) Catálogo: TODOS os motores da lista (paralelo)
+        window.MECANICA_MOTORES = window.MECANICA_MOTORES || {};
+        const faltando = lista.filter(id => !window.MECANICA_MOTORES[id]);
+        if (!faltando.length) { tentar(); return; }
+
+        Promise.all(faltando.map(id =>
+          fetch('https://almafluxo.uk/api/mecanica/motor', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id })
+          })
+          .then(r => r.json())
+          .then(j => {
+            if (j && j.ok && j.motor && j.motor.id) {
+              window.MECANICA_MOTORES[j.motor.id] = j.motor;
+            }
+          })
+          .catch(() => {})
+        )).then(() => {
+          // 3) Só cria se pelo menos 1 motor carregou
+          if (Object.keys(window.MECANICA_MOTORES).length > 0) tentar();
+        });
+      }).catch(() => {});
+    })();
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  NOTÍCIAS (GIRO)
+    // ═══════════════════════════════════════════════════════════════════
+    let idx = 0, items = [];
+    const render = () => {
+      if (!items.length) {
+        list.innerHTML = '<div class="ed-news-empty">Sem manchetes disponíveis agora.<br><small>O conteúdo educativo permanece disponível.</small></div>';
+        return;
+      }
+      const n = items[idx % items.length], others = items.filter((_, i) => i !== idx % items.length).slice(0, 3);
+      const ago = n.t ? txAgo(Number.isFinite(+n.t) ? +n.t : new Date(n.t).getTime()) : '';
+      list.innerHTML = `<article class="ed-news-feature"><span class="ed-live">DESTAQUE</span><h3>${clean(n.titulo, 160)}</h3><small>${clean(n.fonte || 'Feed público', 60)}${ago ? ' · ' + ago : ''}</small></article>` +
+        others.map((x, i) => `<div class="ed-news-item"><b>0${i + 2}</b><span>${clean(x.titulo, 140)}<small>${clean(x.fonte || 'Feed público', 60)}</small></span></div>`).join('');
     };
-    const carregar=async()=>{
-      try{const d=await txDados('noticias-mundo','',600000);items=(d.categorias&&Array.isArray(d.categorias[cfg.categoria])?d.categorias[cfg.categoria]:[]).filter(x=>x&&x.titulo).slice(0,6);
-        source.textContent=((d.fontes_por_categoria&&d.fontes_por_categoria[cfg.categoria])||d.fonte||'Feed público')+' · '+txHora(d.atualizado)+(d._stale?' · cache':'');render();}
-      catch(e){items=[];source.textContent='fonte temporariamente indisponível';render();}
+    const carregar = async () => {
+      try {
+        const d = await txDados('noticias-mundo', '', 600000);
+        items = (d.categorias && Array.isArray(d.categorias[cfg.categoria]) ? d.categorias[cfg.categoria] : []).filter(x => x && x.titulo).slice(0, 6);
+        source.textContent = ((d.fontes_por_categoria && d.fontes_por_categoria[cfg.categoria]) || d.fonte || 'Feed público') + ' · ' + txHora(d.atualizado) + (d._stale ? ' · cache' : '');
+        render();
+      } catch (e) {
+        items = [];
+        source.textContent = 'fonte temporariamente indisponível';
+        render();
+      }
     };
     carregar();
-    const iv=setInterval(()=>{if(items.length>1){idx=(idx+1)%items.length;render();}},8000);
-    const refresh=setInterval(carregar,600000);
-    S.fins.push(()=>{clearInterval(iv);clearInterval(refresh);});
-    s.dataset.editorialLink=cfg.link;
+    const iv = setInterval(() => { if (items.length > 1) { idx = (idx + 1) % items.length; render(); } }, 8000);
+    const refresh = setInterval(carregar, 600000);
+    S.fins.push(() => { clearInterval(iv); clearInterval(refresh); });
+    s.dataset.editorialLink = cfg.link;
   }
-  Object.keys(EDITORIAS).forEach(tipo=>{const cfg=EDITORIAS[tipo];TX[tipo]={def:{duracaoS:26},build(P,item,s,S){montar(P,item,s,S,cfg);}};});
-})();
 
+  Object.keys(EDITORIAS).forEach(tipo => {
+    const cfg = EDITORIAS[tipo];
+    TX[tipo] = { def: { duracaoS: 26 }, build(P, item, s, S) { montar(P, item, s, S, cfg); } };
+  });
+})();
 </script>
+
 </body>
 </html>
