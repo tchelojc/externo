@@ -744,14 +744,6 @@ html,body{background:#000}
 .jn-brasil { display:flex; flex-direction:column; gap:2%; overflow:hidden; }
 .jn-brasil-head { display:flex; justify-content:space-between; align-items:center; padding:1% 0; border-bottom:1px solid #9bdcff35; }
 .jn-nac { font-family:'Orbitron',sans-serif; font-size:calc(var(--u)*3); color:#ffd24a; }
-.jn-estados { display:grid; grid-template-columns:repeat(auto-fill,minmax(calc(var(--u)*6),1fr)); gap:calc(var(--u)*.8); overflow:auto; padding:1%; }
-.jn-uf { background:rgba(8,18,38,.8); border:1px solid rgba(0,229,255,.2); border-radius:calc(var(--u)*.8); padding:calc(var(--u)*.6); display:flex; flex-direction:column; align-items:center; gap:calc(var(--u)*.3); }
-.jn-uf-tag { font-family:'Orbitron',sans-serif; font-size:calc(var(--u)*1.4); color:#9fc7ff; font-weight:800; }
-.jn-uf-ic { font-size:calc(var(--u)*2.4); line-height:1; }
-.jn-uf-temps { display:flex; gap:calc(var(--u)*.6); font-size:calc(var(--u)*1.4); }
-.jn-uf-temps b { font-weight:800; }
-.jn-uf-temps span { opacity:.7; }
-.jn-uf-chuva { font-size:calc(var(--u)*1); color:#7cc4ff; }
 .jn-mundo { margin-top:2%; display:flex; flex-direction:column; gap:calc(var(--u)*.8); max-height:40%; overflow:hidden; }
 .jn-mundo-cat { border-left:3px solid #52cfff; padding:calc(var(--u)*.4) calc(var(--u)*.8); background:#ffffff0a; border-radius:0 .8vmin .8vmin 0; }
 .jn-mundo-tit { font-size:calc(var(--u)*1.3); color:#ffd24a; font-weight:800; letter-spacing:.06em; margin-bottom:calc(var(--u)*.3); }
@@ -2051,7 +2043,7 @@ const TRANSICOES = {'fade':'Fade','slide-esq':'Deslizar da esquerda','slide-dir'
 const TIPOS = {
   imagem:'🖼️ Imagem', video:'🎬 Vídeo', youtube:'▶️ YouTube', site:'🌐 Site', 
   'html-drive':'🧩 HTML do Drive', relogio:'🕐 Relógio', clima:'⛅ Clima', 
-  texto:'📝 Texto', temperaturas:'🌡️ Temperaturas (Mapa)' // ← Adicione esta linha
+  texto:'📝 Texto'
 };
 function modeloDe(t, orient) {
   const L = (t && t.layout) || {modelo: 'full'};
@@ -2070,7 +2062,7 @@ function totemPadrao(id) {
       {tipo:'bolsa3d',duracaoS:22},{tipo:'cotacoes',duracaoS:18},{tipo:'noticias',duracaoS:24},
       {tipo:'mecanica3d',duracaoS:26},{tipo:'eletrica',duracaoS:26},{tipo:'artes',duracaoS:26},{tipo:'musica',duracaoS:26},
       {tipo:'planetas3d',duracaoS:22},{tipo:'horoscopo',duracaoS:24},{tipo:'jornal',cidade:'auto',duracaoS:26},
-      {tipo:'climagrafico',cidade:'auto',duracaoS:24},{tipo:'temperaturas',duracaoS:22},
+      {tipo:'climagrafico',cidade:'auto',duracaoS:24},
       {tipo:'terremotos',duracaoS:18},{tipo:'curiosidades',categoria:'astronomia',duracaoS:22}
     ], transicao: {tipo: 'fade', ms: 850}, aleatorio: false}},
     heartbeatS: 60, configS: 30, mostrarPonto: false, esferaMarcas: {posicao:'inferior-direita', tamanhoVmin:14, itens:[]}, criadoEm: new Date().toISOString()};
@@ -2114,7 +2106,6 @@ const TRANSICAO_POR_TIPO = {
   horoscopo:   { tipo: 'blur',       ms: 1200 },
   jornal:      { tipo: 'slide-baixo',ms: 900 },
   climagrafico:{ tipo: 'fade',       ms: 800 },
-  temperaturas:{ tipo: 'cortina',    ms: 1000 },
   // Emoção → suavidade
   recadoAmor:  { tipo: 'blur',       ms: 1500 },
   terremotos:  { tipo: 'flip',       ms: 1000 },
@@ -2135,8 +2126,6 @@ const RODAPE_POR_TIPO = {
   horoscopo:   { href: 'https://almafluxo.uk',            forte: '🌌 UNIVERSO ALMAFLUXO',     em: 'Alinhamentos e estudos simbólicos',          b: 'almafluxo.uk' },
   jornal:      { href: 'https://almafluxo.uk/climafluxo', forte: '🌦️ CLIMAFLUXO',            em: 'Previsão local + análise ENSO',              b: 'almafluxo.uk/climafluxo' },
   climagrafico:{ href: 'https://almafluxo.uk/climafluxo', forte: '🌦️ CLIMAFLUXO',            em: 'Gráfico de 48h e ensemble de modelos',       b: 'almafluxo.uk/climafluxo' },
-  temperaturas:{ href: 'https://almafluxo.uk/climafluxo', forte: '🌡️ TEMPERATURA AO VIVO',   em: 'Mapa interativo por estado',                 b: 'almafluxo.uk/climafluxo' },
-  // Engajamento social
   recadoAmor:  { href: 'https://almafluxo.uk/recado-amor',forte: '💌 RECADO DO AMOR',         em: 'Envie sua mensagem pelo QR',                 b: 'almafluxo.uk/recado-amor' },
   terremotos:  { href: 'https://almafluxo.uk/solution',   forte: '🌍 DADOS DO MUNDO',         em: 'Informação global para seu totem',           b: 'almafluxo.uk/solution' },
   curiosidades:{ href: 'https://almafluxo.uk/solution',   forte: '✨ CURIOSIDADES',           em: 'Conteúdo que engaja sua audiência',          b: 'almafluxo.uk/solution' },
@@ -3522,9 +3511,11 @@ const TOTEM_MAPA_TERRA = {
   cor: 0x0a4a66
 };
 /* Mapa do Brasil — usado pelo slide de temperaturas */
+/* Mapa do Brasil — usado pelo slide de temperaturas (dentro do jornal) */
 const TOTEM_MAPA_BRASIL = {
   urlExterna: 'https://tchelojc.github.io/externo/conversar/imagens/brasil.png',
-  urlFallback: '',
+  urlFallback: 'https://i.ibb.co/G4KpmPcG/brasil.png',
+  driveId: '',
   cor: 0x061a2e
 };
 
@@ -3802,19 +3793,24 @@ function montarMapaBrasil(parentEl, dadosEstados) {
   box.style.cssText = 'position:relative;height:100%;aspect-ratio:1/1;max-width:100%;';
   wrap.appendChild(box);
 
-  // Fundo (Imagem do GitHub com fallback)
-  // Fundo (Imagem do GitHub com fallback)
+  // Fundo (GitHub → ImgBB → procedural)
+  // Fundo (GitHub → ImgBB → Drive → procedural)
   const img = new Image();
   img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0.85;';
-  img.src = TOTEM_MAPA_BRASIL.urlExterna || 'https://tchelojc.github.io/externo/conversar/imagens/brasil.png';
+  const _fila = [
+    (TOTEM_MAPA_BRASIL.urlExterna || '').trim(),
+    (TOTEM_MAPA_BRASIL.urlFallback || '').trim(),
+    (TOTEM_MAPA_BRASIL.driveId && /^[A-Za-z0-9_-]{15,160}$/.test(TOTEM_MAPA_BRASIL.driveId))
+      ? totemMediaUrl(TOTEM_MAPA_BRASIL.driveId) : ''
+  ].filter(u => u && /^https?:\/\//i.test(u));
+  let _idx = 0;
   img.onerror = () => {
-    if (TOTEM_MAPA_BRASIL.urlFallback && img.src !== TOTEM_MAPA_BRASIL.urlFallback) {
-      img.src = TOTEM_MAPA_BRASIL.urlFallback;
-    } else {
-      box.style.background = 'radial-gradient(circle, #061426, #020408)';
-      console.warn('[TOTEM] brasil.png não carregou, usando fundo procedural');
-    }
+    _idx++;
+    if (_idx < _fila.length) { img.src = _fila[_idx]; return; }
+    box.style.background = 'radial-gradient(circle, #061426, #020408)';
+    console.warn('[TOTEM] brasil.png não carregou, usando fundo procedural');
   };
+  img.src = _fila[_idx] || '';
   box.appendChild(img);
   // Canvas de Partículas
   const canvas = document.createElement('canvas');
@@ -3929,38 +3925,7 @@ function montarMapaBrasil(parentEl, dadosEstados) {
     }
   };
 }
-/* ═══════════════════════════════════════════════════════════════════
-   TELA: TEMPERATURAS · MAPA DO BRASIL COM PARTÍCULAS
-   ═══════════════════════════════════════════════════════════════════ */
-TX.temperaturas = {
-  def: {},
-  build(P, item, s, S) {
-    s.className += ' tx'; txMorre(S);
-    s.innerHTML = `
-      <div class="tx-t">TEMPERATURA POR ESTADO · BRASIL</div>
-      <div class="tx-mapa-br" style="position:absolute;inset:0;padding-top:calc(var(--u)*4);padding-bottom:calc(var(--u)*6)"></div>
-      <div class="tx-av" style="font-family:'JetBrains Mono',monospace"></div>
-    `;
-    const mapaEl = s.querySelector('.tx-mapa-br');
-    const av = s.querySelector('.tx-av');
-    let mapa = null;
 
-    txLoop(S, async () => {
-      const d = await txDados('brasil', '', 900000); // cache de 15 min
-      const estados = (d.estados || []).filter(e => e.max != null);
-      
-      if (mapa) mapa.destruir();
-      mapa = montarMapaBrasil(mapaEl, estados);
-      
-      const hora = d.atualizado ? new Date(d.atualizado).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '—';
-      av.innerHTML = `Open-Meteo · capitais · atualizado ${hora} · partículas indicam temperatura saindo do estado`;
-    }, 900000, () => {
-      mapaEl.innerHTML = '<div class="tx-erro" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#8fa6c2">Mapa indisponível agora.</div>';
-    });
-
-    S.fins.push(() => { if (mapa) mapa.destruir(); });
-  }
-};
 /* ═════ JORNAL CLIMA FLUXO · EDIÇÃO DINÂMICA ═════ */
 TX.jornal = {
   def: { cidade: 'auto' },
@@ -3974,10 +3939,10 @@ TX.jornal = {
       <div class="jn-g">
         <section class="jn-brasil">
           <div class="jn-brasil-head">
-            <div class="jn-city">🇧🇷 <span>BRASIL · MÁX/MÍN POR ESTADO</span></div>
+            <div class="jn-city">🇧🇷 <span>BRASIL · TEMPERATURA POR ESTADO</span></div>
             <div class="jn-nac"><span class="jn-nac-max">--°</span> / <span class="jn-nac-min">--°</span></div>
           </div>
-          <div class="jn-estados" id="jnEstados"></div>
+          <div class="jn-mapa-br" id="jnMapaBr" style="flex:1;min-height:0;position:relative"></div>
           <div class="jn-enso"><b class="jn-fase">ENSO · aguardando</b><span class="jn-oni">ONI --</span></div>
         </section>
         <section class="jn-right">
@@ -3989,7 +3954,7 @@ TX.jornal = {
       <div class="jn-c">ClimaFluxo · Open-Meteo · NOAA · G1 · BBC · RSS públicas · atualizado <span class="jn-ts">—</span></div>
     </div>`;
 
-    const estBox   = s.querySelector('#jnEstados');
+    const mapaBox  = s.querySelector('#jnMapaBr');
     const mundoBox = s.querySelector('#jnMundo');
     const nacMax   = s.querySelector('.jn-nac-max');
     const nacMin   = s.querySelector('.jn-nac-min');
@@ -4001,25 +3966,16 @@ TX.jornal = {
     const tsEl     = s.querySelector('.jn-ts');
 
     let cidadeAtual = (item.cidade && item.cidade !== 'auto') ? item.cidade : null;
+    let mapaBr = null;
 
-    /* ═══ 1. Mapa de estados (máx/mín por UF) ═══ */
+    /* ═══ 1. Mapa de estados (máx/mín por UF) — mapa do Brasil com partículas ═══ */
     const renderEstados = (d) => {
-      if (!d || !Array.isArray(d.estados)) return;
+      if (!d || !Array.isArray(d.estados) || !mapaBox) return;
       nacMax.textContent = (d.maxNacional != null ? Math.round(d.maxNacional) : '--') + '°';
       nacMin.textContent = (d.minNacional != null ? Math.round(d.minNacional) : '--') + '°';
-      estBox.innerHTML = d.estados.map(e => {
-        const w = WMO[e.codigo] || ['🌡️', ''];
-        const cor = e.max >= 35 ? '#ff5a6e' : e.max >= 30 ? '#ff9f43' : e.max >= 25 ? '#ffd24a' : '#2ecc71';
-        return `<div class="jn-uf" title="${esc(e.nome)} · ${esc(e.capital)}">
-          <div class="jn-uf-tag">${esc(e.uf)}</div>
-          <div class="jn-uf-ic">${w[0]}</div>
-          <div class="jn-uf-temps" style="color:${cor}">
-            <b>${e.max != null ? Math.round(e.max)+'°' : '--'}</b>
-            <span>${e.min != null ? Math.round(e.min)+'°' : '--'}</span>
-          </div>
-          ${e.chuvaProb != null && e.chuvaProb >= 50 ? `<div class="jn-uf-chuva">💧${e.chuvaProb}%</div>` : ''}
-        </div>`;
-      }).join('');
+      const estados = d.estados.filter(e => e.max != null);
+      if (mapaBr) mapaBr.destruir();
+      mapaBr = montarMapaBrasil(mapaBox, estados);
     };
 
     /* ═══ 2. Priorização editorial (o que importa primeiro) ═══ */
@@ -4107,6 +4063,9 @@ TX.jornal = {
     };
     S.fins.push(() => clearTimeout(mTimer));
 
+    /* Garante limpeza do mapa de partículas quando o slide sair */
+    S.fins.push(() => { if (mapaBr) { mapaBr.destruir(); mapaBr = null; } });
+
     /* ═══ 4. Loop de dados ═══ */
     txLoop(S, async () => {
       // Sorteia cidade se "auto" (nunca repete a mesma em ciclos consecutivos)
@@ -4160,16 +4119,17 @@ TX.jornal = {
         }
       }
     }, 900000, () => {
-      if (estBox && !estBox.children.length) {
-        estBox.innerHTML = '<div class="tx-erro" style="grid-column:1/-1">Clima dos estados indisponível.</div>';
-      }
       if (!manchetes.length) {
         headEl.textContent = 'Sem notícias no momento';
         listaEl.innerHTML = '';
       }
+      if (mapaBox && !mapaBr) {
+        mapaBox.innerHTML = '<div class="tx-erro" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#8fa6c2">Mapa do Brasil indisponível agora.</div>';
+      }
     });
   }
-};/* ═════ GRÁFICO DE CLIMA ANIMADO (48 h) · NAVEGAÇÃO POR CIDADE ═════ */
+};
+/* ═════ GRÁFICO DE CLIMA ANIMADO (48 h) · NAVEGAÇÃO POR CIDADE ═════ */
 TX.climagrafico = {
   def: { cidade: 'auto' },
   build(P, item, s, S) {
@@ -4659,7 +4619,6 @@ const TX_PADRAO = () => ({id: '-', status: 'liberado', tela: {}, layout: {modelo
   {tipo: 'horoscopo',    duracaoS: 24},
   {tipo: 'jornal',       duracaoS: 24, cidade: 'auto'},                                   // ← sorteia a cada ciclo
   {tipo: 'climagrafico', duracaoS: 16, cidade: 'auto'},                                   // ← navegação manual
-  {tipo: 'temperaturas', duracaoS: 22},
   {tipo: 'recadoAmor',   duracaoS: 24},
   {tipo: 'terremotos',   duracaoS: 18},
   {tipo: 'curiosidades', duracaoS: 22, categoria: 'astronomia'},
