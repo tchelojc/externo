@@ -982,6 +982,110 @@ function tick(){
     l.style.top  = ((-v.y*0.5+0.5)*h + (p.pos[1]>2?-40:p.pos[1]<-2?40:0)) + 'px';
   });
 }
+/* ═══════════════════════════════════════════════════════════════
+   MINI-PLAYER 3D DE MOTOR (reaproveitado pelo card 5 do editorial)
+   ─ Renderiza em um <canvas> isolado, sem tocar na cena principal.
+   ─ A cada `trocaMs` ele troca por outro motor da lista.
+   ─ Peças do motor são desenhadas com o mesmo build(p) da oficina.
+   ═══════════════════════════════════════════════════════════════ */
+const MiniMotorPlayer = (() => {
+  // Lista de motores que vamos alternar (podem ser do MECANICA_MOTORES).
+  // Se estiver vazio, cai no catálogo base que já está no arquivo.
+  const listaIds = ["ea111_10", "fire_10", "celta_10", "escort_cht",
+                    "motor_3cil", "motor_6cil", "motor_v8",
+                    "moto_125_single", "moto_1200_vtwin",
+                    "barco_outboard_150"];
+
+  function criar(canvasEl, opcoes) {
+    if (!canvasEl || typeof THREE === "undefined") return null;
+    const o = Object.assign({ trocaMs: 8000, alturaRot: true }, opcoes || {});
+    const renderer = new THREE.WebGLRenderer({ canvas: canvasEl, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 200);
+    camera.position.set(0, 4, 18);
+    camera.lookAt(0, 0.6, 0);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.85));
+    const d1 = new THREE.DirectionalLight(0xffffff, 1.2); d1.position.set(6, 10, 8); scene.add(d1);
+    const d2 = new THREE.PointLight(0x27c8ff, 1.0, 40); d2.position.set(-8, 3, -6); scene.add(d2);
+
+    let motorAtual = null;
+    let idx = -1;
+    let timer = null;
+    let raf = 0;
+
+    function ajustar() {
+      const w = canvasEl.clientWidth || 1, h = canvasEl.clientHeight || 1;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+    }
+    const ro = new ResizeObserver(ajustar);
+    ro.observe(canvasEl);
+    ajustar();
+
+    function limpar() {
+      if (!motorAtual) return;
+      scene.remove(motorAtual);
+      motorAtual.traverse(n => {
+        if (n.geometry) n.geometry.dispose();
+        if (n.material) (Array.isArray(n.material) ? n.material : [n.material]).forEach(m => m.dispose());
+      });
+      motorAtual = null;
+    }
+
+    function carregarMotor(id) {
+      const base = (typeof MECANICA_MOTORES !== "undefined" && MECANICA_MOTORES[id]) || null;
+      if (!base) return false;
+      limpar();
+      const grupo = new THREE.Group();
+      base.pecas.forEach(p => {
+        try { grupo.add(build(p)); } catch (e) {}
+      });
+      // centraliza
+      const box = new THREE.Box3().setFromObject(grupo);
+      const c = box.getCenter(new THREE.Vector3());
+      grupo.position.sub(c);
+      motorAtual = grupo;
+      scene.add(grupo);
+      // reenquadra a câmera
+      const tam = box.getSize(new THREE.Vector3()).length() || 20;
+      camera.position.set(0, tam * 0.35, tam * 0.9);
+      camera.lookAt(0, 0, 0);
+      return true;
+    }
+
+    function proximo() {
+      for (let tent = 0; tent < listaIds.length; tent++) {
+        idx = (idx + 1) % listaIds.length;
+        if (carregarMotor(listaIds[idx])) return;
+      }
+    }
+
+    function loop() {
+      raf = requestAnimationFrame(loop);
+      if (motorAtual && o.alturaRot) motorAtual.rotation.y += 0.006;
+      renderer.render(scene, camera);
+    }
+
+    proximo();
+    loop();
+    timer = setInterval(proximo, o.trocaMs);
+
+    return {
+      destruir() {
+        clearInterval(timer);
+        cancelAnimationFrame(raf);
+        ro.disconnect();
+        limpar();
+        renderer.dispose();
+        try { renderer.forceContextLoss(); } catch (e) {}
+      },
+      proximo
+    };
+  }
+  return { criar, listaIds };
+})();
 function removido(id){if(modo!=='desmontar')return false;return D.passos.slice(0,si).some(s=>s.peca===id)}
 function choose(id,fromScene){sel=id;const i=D.passos.findIndex(s=>s.peca===id);if(i>=0)si=i;render();if(typeof renderSys==='function'&&D)renderSys()}
 function render(){
