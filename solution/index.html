@@ -724,6 +724,7 @@
                 <div class="suggestion-chip-olho" onclick="enviarSugestao('💻 Quero saber sobre Sites e Plataformas')">💻 Sites</div>
                 <div class="suggestion-chip-olho" onclick="enviarSugestao('📊 Quero saber sobre Sistemas de Gestão')">📊 Sistemas</div>
                 <div class="suggestion-chip-olho" onclick="enviarSugestao('🎨 Quero saber sobre Design e Identidade')">🎨 Design</div>
+                <div class="suggestion-chip-olho" onclick="enviarSugestao('📺 Quero saber sobre o Totem AlmaFluxo')">📺 Totem</div>
                 <div class="suggestion-chip-olho" onclick="enviarSugestao('💰 Quero saber os preços')">💰 Preços</div>
                 <div class="suggestion-chip-olho" onclick="enviarSugestao('🧩 Quero montar minha arquitetura no FLOW')">🧩 FLOW</div>
             </div>
@@ -765,6 +766,7 @@
                     <div class="chat-messages-olho" id="chatMessages_a"></div>
                     <div class="quick-suggestions-olho">
                         <div class="suggestion-chip-olho" onclick="enviarSugestaoCanal('a','🤖 Quero saber sobre Células de Atendimento IA')">🤖 Células IA</div>
+                        <div class="suggestion-chip-olho" onclick="enviarSugestaoCanal('a','📺 Quero saber sobre o Totem AlmaFluxo')">📺 Totem</div>
                         <div class="suggestion-chip-olho" onclick="enviarSugestaoCanal('a','💰 Quero saber os preços')">💰 Preços</div>
                     </div>
                     <div class="chat-input-area-olho">
@@ -791,6 +793,7 @@
                     <div class="chat-messages-olho" id="chatMessages_b"></div>
                     <div class="quick-suggestions-olho">
                         <div class="suggestion-chip-olho" onclick="enviarSugestaoCanal('b','🤖 Quero saber sobre Células de Atendimento IA')">🤖 Células IA</div>
+                        <div class="suggestion-chip-olho" onclick="enviarSugestaoCanal('b','📺 Quero saber sobre o Totem AlmaFluxo')">📺 Totem</div>
                         <div class="suggestion-chip-olho" onclick="enviarSugestaoCanal('b','💰 Quero saber os preços')">💰 Preços</div>
                     </div>
                     <div class="chat-input-area-olho">
@@ -928,6 +931,12 @@
                 <p>Monte sua arquitetura visual e gere o prompt de implementação. Cobrado por estrutura.</p>
                 <div class="service-price">Por estrutura criada</div>
             </div>
+            <div class="service-card" onclick="enviarSugestao('📺 Quero contratar o Totem AlmaFluxo para o meu negócio')">
+                <span class="service-icon">📺</span>
+                <h4>Totem AlmaFluxo</h4>
+                <p>Painéis digitais informativos com IA, notícias, clima, cotações e conteúdo próprio para o seu espaço.</p>
+                <div class="service-price">A partir de R$ 3.500</div>
+            </div>
         </div>
     </section>
 
@@ -1025,6 +1034,11 @@
                 numeroRespostasAntes = mensagensAntes.filter(m => m.de === 'atendente').length;
             } catch(e) {}
 
+            // 📺 Enriquecer o contexto quando for sobre Totem
+            const textoEnviado = mensagem.toLowerCase().includes('totem')
+                ? '[CONTEXTO: O cliente está perguntando sobre o serviço TOTEM ALMAFLUXO — painel digital informativo com IA, notícias, cotações, clima e conteúdo próprio. Investimento a partir de R$ 3.500. Diferencie do FLOW (arquitetura visual) e do Chat IA.]\n\n' + mensagem
+                : mensagem;
+            
             await fetch(PROXY_R5FIT, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1033,7 +1047,7 @@
                     leadId: sessionIdChat,
                     nomeLead: 'Visitante Solutions',
                     de: 'lead',
-                    texto: mensagem,
+                    texto: textoEnviado,
                     origem: 'almafluxo_solutions'
                 })
             });
@@ -1075,6 +1089,19 @@
         const msg = mensagem.toLowerCase();
         if (msg.includes('flow') || msg.includes('arquitetura') || msg.includes('montar')) {
             return '🧩 O ALMAFLUXO FLOW é nossa ferramenta de arquitetura visual!\n\nVocê arrasta blocos (GitHub, Worker, Apps Script, Drive, Streamlit, HTML), conecta com contratos e gera JSON + prompt de implementação.\n\n💰 Cobrado por estrutura criada (blocos + conexões).\n\nClique em "🚀 Abrir FLOW" no topo ou na seção FLOW para começar!';
+        }
+        if (msg.includes('totem') || msg.includes('painel') || msg.includes('tela digital') || msg.includes('totem-fluxo')) {
+            return '📺 O Totem AlmaFluxo é o nosso painel informativo inteligente!\n\n' +
+                   'Ele combina em uma única tela:\n' +
+                   '✅ Notícias e manchetes em tempo real (com fallback de fontes)\n' +
+                   '✅ Cotações do mercado e câmbio\n' +
+                   '✅ Clima por cidade e previsão do tempo\n' +
+                   '✅ Curiosidades, ciência e cultura\n' +
+                   '✅ Conteúdo próprio da sua marca\n' +
+                   '✅ Publicidade rotativa\n\n' +
+                   '💡 Ideal para: recepções, clínicas, restaurantes, lojas, academias e eventos.\n\n' +
+                   '💰 Investimento a partir de R$ 3.500 (inclui instalação, configuração e 30 dias de suporte).\n\n' +
+                   '📺 Quer contratar o Totem AlmaFluxo para o seu negócio? Clique em "📺 Quero contratar o Totem" ou fale com a gente pelo chatfluxo!';
         }
         if (msg.includes('ia') || msg.includes('célula') || msg.includes('atendimento')) {
             return '🤖 Nossas Células de Atendimento IA são incríveis!\n\nElas podem:\n✅ Atender clientes 24/7\n✅ Responder perguntas frequentes\n✅ Fazer vendas automaticamente\n✅ Capturar leads\n✅ Integrar com WhatsApp\n\nO investimento começa em R$ 1.500. Quer saber mais detalhes?';
@@ -1176,6 +1203,11 @@
                 numeroRespostasAntes = mensagensAntes.filter(m => m.de === 'atendente').length;
             } catch(e) {}
 
+            // 📺 Enriquecer o contexto quando for sobre Totem
+            const textoEnviado = mensagem.toLowerCase().includes('totem')
+                ? '[CONTEXTO: O cliente está perguntando sobre o serviço TOTEM ALMAFLUXO — painel digital informativo com IA, notícias, cotações, clima e conteúdo próprio. Investimento a partir de R$ 3.500. Diferencie do FLOW (arquitetura visual) e do Chat IA.]\n\n' + mensagem
+                : mensagem;
+            
             await fetch(canal.proxy, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1184,7 +1216,7 @@
                     leadId: canal.sessionId,
                     nomeLead: 'Visitante Solutions',
                     de: 'lead',
-                    texto: mensagem,
+                    texto: textoEnviado,
                     origem: 'almafluxo_solutions'
                 })
             });
