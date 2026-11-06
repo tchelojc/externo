@@ -745,12 +745,62 @@ html,body{background:#000}
 
 
 /* QR do horóscopo fica integrado ao rodapé da experiência do Sistema Solar */
-.tx-solar-qr{position:absolute;right:2.6%;bottom:7%;z-index:6;width:min(16vmin,190px);padding:1vmin;border-radius:1.4vmin;background:rgba(5,14,28,.84);border:1px solid rgba(117,218,255,.55);box-shadow:0 1vmin 3vmin #0008;backdrop-filter:blur(10px);display:flex;align-items:center;gap:.8vmin;color:#effaff}
-.tx-solar-qr img{width:8.2vmin;height:8.2vmin;min-width:8.2vmin;object-fit:contain;background:#fff;padding:.35vmin;border-radius:.6vmin}
-.tx-solar-qr b{display:block;font-size:calc(var(--u)*1.15);line-height:1.2;color:#9cecff}.tx-solar-qr span{display:block;font-size:calc(var(--u)*.95);line-height:1.2;color:#d0e7f6;margin-top:.3vmin}
+/* QR do horóscopo — MESMO TAMANHO do QR do Recado do Amor */
+.tx-solar-qr{
+  position:absolute;right:2.6%;bottom:7%;z-index:6;
+  width:min(25vw,32vh);                    /* ← igual ao .amor-qr */
+  padding:calc(var(--u)*1.1);              /* ← igual ao .amor-qr */
+  border-radius:calc(var(--u)*1.4);        /* ← igual ao .amor-qr */
+  background:rgba(5,14,28,.9);
+  border:1px solid rgba(117,218,255,.55);
+  box-shadow:0 0 3vmin rgba(0,229,255,.35), 0 1vmin 3vmin #0008;
+  backdrop-filter:blur(10px);
+  display:flex;flex-direction:column;      /* ← empilha QR em cima, texto embaixo */
+  align-items:center;justify-content:center;
+  gap:calc(var(--u)*.9);
+  color:#effaff;
+  aspect-ratio:1;                          /* ← quadrado como o .amor-qr */
+}
+.tx-solar-qr img{
+  width:100%;                              /* ← ocupa todo o container */
+  height:auto;
+  aspect-ratio:1;
+  object-fit:contain;
+  background:#fff;
+  padding:calc(var(--u)*.5);
+  border-radius:calc(var(--u)*.8);
+  display:block;
+}
+.tx-solar-qr div{                          /* ← bloco de texto abaixo do QR */
+  text-align:center;
+  width:100%;
+}
+.tx-solar-qr b{
+  display:block;
+  font-size:calc(var(--u)*1.55);           /* ← aumenta o título */
+  line-height:1.2;
+  color:#9cecff;
+  letter-spacing:.04em;
+}
+.tx-solar-qr span{
+  display:block;
+  font-size:calc(var(--u)*1.15);           /* ← aumenta o subtítulo */
+  line-height:1.25;
+  color:#d0e7f6;
+  margin-top:calc(var(--u)*.35);
+}
 .tx-pensador{grid-column:1/-1;align-self:center;justify-self:center;width:min(88%,1100px);padding:4% 5%;border-radius:2vmin;border:1px solid #9b8cff55;background:radial-gradient(ellipse at 15% 0%,#4d3b8055,transparent 55%),linear-gradient(135deg,#12152eeb,#091a2deb);box-shadow:0 2vmin 6vmin #0008;text-align:left}
 .tp-kicker{font-size:calc(var(--u)*1.55);letter-spacing:.16em;color:#bba9ff;font-weight:800}.tp-tema{font-size:calc(var(--u)*4.3);line-height:1.1;color:#fff;font-weight:800;margin:2.2% 0}.tp-texto{font-size:calc(var(--u)*3);line-height:1.3;color:#e8eaff;max-width:95%;text-wrap:balance}.tp-autor{font-size:calc(var(--u)*1.8);color:#b9c8ed;margin-top:2.5%}.tp-nota{font-size:calc(var(--u)*1.35);color:#8fa7cc;margin-top:2%}
-@media(max-aspect-ratio:1/1){.tx-solar-qr{width:24vmin;right:2%;bottom:8%}.tx-solar-qr img{width:10vmin;height:10vmin;min-width:10vmin}.tp-tema{font-size:calc(var(--u)*3.4)}.tp-texto{font-size:calc(var(--u)*2.5)}}
+@media(max-aspect-ratio:1/1){
+  .tx-solar-qr{
+    width:min(28vw,24vh);                  /* ← cresce no retrato também */
+    right:2%;bottom:8%;
+  }
+  .tx-solar-qr b{font-size:calc(var(--u)*1.4)}
+  .tx-solar-qr span{font-size:calc(var(--u)*1.05)}
+  .tp-tema{font-size:calc(var(--u)*3.4)}
+  .tp-texto{font-size:calc(var(--u)*2.5)}
+}
 
 /* ALMAFLUXO · recado do amor: visual editorial, legível à distância */
 .tx-amor{background:radial-gradient(ellipse at 50% 35%,#4b1836 0%,#180d22 55%,#070912 100%);color:#fff7fb}
@@ -950,14 +1000,142 @@ html,body{background:#000}
 .ed-art-cap span{display:block;font-size:calc(var(--u)*1.05);color:#c9b48a}
 .ed-art-cap i{display:block;font-style:normal;font-size:calc(var(--u)*.85);color:#8f7fa0}
 @media(prefers-reduced-motion:reduce){.tx-editorial *{animation:none!important;transition:none!important}}
-.pl-controls{position:absolute;z-index:10020;left:50%;bottom:clamp(12px,2.2vh,30px);transform:translateX(-50%);width:min(560px,92%);padding:10px 14px 12px;border:1px solid rgba(180,220,250,.2);border-radius:16px;background:rgba(5,13,24,.78);backdrop-filter:blur(14px);color:#e9f5ff;display:flex;align-items:center;gap:10px;opacity:0;pointer-events:none;transition:opacity .35s ease}
-.pl-controls.visivel{opacity:1;pointer-events:auto}
-.pl-controls button{border:1px solid rgba(190,220,245,.22);background:rgba(255,255,255,.08);color:#f4fbff;border-radius:10px;min-width:38px;height:36px;font-size:16px;cursor:pointer}
-.pl-controls button:focus-visible{outline:2px solid #8edcff;outline-offset:2px}
-.pl-controls .pl-ctl-label{min-width:0;flex:1;font:600 11px/1.3 system-ui,sans-serif;color:#c2d7e9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pl-controls .pl-ctl-track{position:absolute;left:14px;right:14px;bottom:5px;height:2px;border-radius:4px;background:rgba(255,255,255,.15);overflow:hidden}
-.pl-controls .pl-ctl-progress{height:100%;width:0;background:#8edcff;transition:width .2s linear}
-@media(prefers-reduced-motion:reduce){.pl-controls{transition:none}}
+/* ═══════════════════════════════════════════════════════════════
+   BARRA DE CONTROLES UNIFICADA — topo, ao lado dos botões técnicos
+   - Aparece ao mexer o mouse / tocar na tela
+   - Navegação de slides à esquerda
+   - Título do slide atual no centro
+   - Áudio + tela cheia à direita
+   - Banner de publicidade (.tx-pub) fica livre embaixo
+   ═══════════════════════════════════════════════════════════════ */
+.pl-controls {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  right: 68px;                    /* abre espaço p/ botão ⛶ fixo à direita */
+  z-index: 100002;                /* ACIMA do banner (.tx-pub z:9999) */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid rgba(180,220,250,.2);
+  border-radius: 14px;
+  background: rgba(5,13,24,.85);
+  backdrop-filter: blur(14px);
+  color: #e9f5ff;
+  opacity: 0;
+  transform: translateY(-8px);
+  pointer-events: none;
+  transition: opacity .35s ease, transform .35s ease;
+}
+.pl-controls.visivel {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* Grupo de botões */
+.pl-controls .pl-grupo {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* Botões */
+.pl-controls button {
+  border: 1px solid rgba(190,220,245,.22);
+  background: rgba(255,255,255,.08);
+  color: #f4fbff;
+  border-radius: 10px;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 8px;
+  font-size: 15px;
+  font-family: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s, border-color .15s;
+}
+.pl-controls button:hover {
+  background: rgba(0,229,255,.15);
+  border-color: rgba(0,229,255,.45);
+}
+.pl-controls button:focus-visible {
+  outline: 2px solid #8edcff;
+  outline-offset: 2px;
+}
+.pl-controls button:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+}
+.pl-controls button[data-ativo="1"] {
+  background: rgba(0,229,255,.22);
+  border-color: rgba(0,229,255,.55);
+  color: #00e5ff;
+}
+
+/* Título do slide atual — centro elástico */
+.pl-controls .pl-titulo {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  font: 600 12px/1.3 system-ui, sans-serif;
+  color: #c2d7e9;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: .04em;
+}
+
+/* Indicador de progresso do slide — barra fina abaixo do título */
+.pl-controls .pl-progresso {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 3px;
+  height: 2px;
+  border-radius: 4px;
+  background: rgba(255,255,255,.12);
+  overflow: hidden;
+  pointer-events: none;
+}
+.pl-controls .pl-progresso-fill {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, #8edcff, #00e5ff);
+  transition: width .25s linear;
+}
+
+/* Botão de volume com slider nativo */
+.pl-controls .pl-volume {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 6px;
+}
+.pl-controls .pl-volume input[type="range"] {
+  width: 70px;
+  accent-color: #00e5ff;
+  cursor: pointer;
+}
+
+/* Em telas pequenas: esconde o slider de volume, mantém os botões */
+@media (max-width: 720px) {
+  .pl-controls { gap: 4px; padding: 6px 8px; }
+  .pl-controls button { min-width: 32px; height: 32px; font-size: 14px; }
+  .pl-controls .pl-titulo { font-size: 11px; }
+  .pl-controls .pl-volume input[type="range"] { display: none; }
+}
+/* Ajuste fino: em telas pequenas, o banner não cobre o player */
+@media (max-width: 720px) {
+  .tx-pub { min-height: clamp(44px, 6.4vh, 90px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl-controls { transition: none; }
+}
 
 </style>
 </head>
@@ -2428,20 +2606,187 @@ function criarPlayer(root, opts) {
   root.classList.add('pl-root'); root.innerHTML = '<div class="pl-inner"></div><div class="pl-bloq"></div>';
   const inner = root.querySelector('.pl-inner'), bloq = root.querySelector('.pl-bloq');
   if (!P.preview) {
-    const ui=document.createElement('div'); ui.className='pl-controls';
-    ui.innerHTML='<button type="button" data-ctl="prev" aria-label="Slide anterior">‹</button><button type="button" data-ctl="pause" aria-label="Pausar ou continuar">Ⅱ</button><button type="button" data-ctl="next" aria-label="Próximo slide">›</button><span class="pl-ctl-label">ALMAFLUXO · Nossa Conversa Diária</span><div class="pl-ctl-track"><div class="pl-ctl-progress"></div></div>';
-    root.appendChild(ui); P._controls=ui;
-    P._showControls=()=>{ui.classList.add('visivel');clearTimeout(P._ctlHide);P._ctlHide=setTimeout(()=>ui.classList.remove('visivel'),5200);};
-    P._activeReg=()=>P.regs.r1||Object.values(P.regs)[0]||null;
-    ui.querySelector('[data-ctl="prev"]').addEventListener('click',()=>{P._showControls();const r=P._activeReg();if(r&&r.navegar)r.navegar(-1);});
-    ui.querySelector('[data-ctl="next"]').addEventListener('click',()=>{P._showControls();const r=P._activeReg();if(r&&r.navegar)r.navegar(1);});
-    ui.querySelector('[data-ctl="pause"]').addEventListener('click',()=>{const r=P._activeReg();if(!r)return;if(r.pausado){r.retomar();ui.querySelector('[data-ctl="pause"]').textContent='Ⅱ';}else{r.pausar();ui.querySelector('[data-ctl="pause"]').textContent='▶';}P._showControls();});
-    P._ctlTick=setInterval(()=>{const r=P._activeReg(),info=P.agora.r1||Object.values(P.agora)[0],bar=ui.querySelector('.pl-ctl-progress'),label=ui.querySelector('.pl-ctl-label');if(label)label.textContent=info?((info.nome||info.tipo)+' · '+(info.idx+1)+'/'+info.total):'ALMAFLUXO · Nossa Conversa Diária';if(bar)bar.style.width=(r&&r.duracao>0?Math.max(0,Math.min(100,100-(Math.max(0,r.prazo-Date.now())/r.duracao*100))):0)+'%';},250);
-    root.addEventListener('pointermove',P._ctlMove=()=>P._showControls(),{passive:true});
-    root.addEventListener('touchstart',P._ctlTouch=e=>{P._touchX=e.changedTouches[0].clientX;P._touchY=e.changedTouches[0].clientY;P._showControls();},{passive:true});
-    root.addEventListener('touchend',P._ctlEnd=e=>{if(P._touchX==null)return;const dx=e.changedTouches[0].clientX-P._touchX,dy=e.changedTouches[0].clientY-P._touchY;if(Math.abs(dx)>65&&Math.abs(dx)>Math.abs(dy)*1.25){const r=P._activeReg();if(r&&r.navegar)r.navegar(dx<0?1:-1);}P._touchX=P._touchY=null;},{passive:true});
-    P._ctlKey=e=>{if(e.target&&/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;if(e.key==='ArrowRight'){const r=P._activeReg();if(r&&r.navegar)r.navegar(1);P._showControls();}if(e.key==='ArrowLeft'){const r=P._activeReg();if(r&&r.navegar)r.navegar(-1);P._showControls();}if(e.key===' '){e.preventDefault();ui.querySelector('[data-ctl="pause"]').click();}};
-    document.addEventListener('keydown',P._ctlKey); P._showControls();
+    const ui = document.createElement('div');
+    ui.className = 'pl-controls';
+    ui.innerHTML = `
+      <div class="pl-grupo" role="group" aria-label="Navegação de slides">
+        <button type="button" data-ctl="prev" aria-label="Slide anterior" title="Slide anterior">‹</button>
+        <button type="button" data-ctl="pause" aria-label="Pausar slide" title="Pausar slide">Ⅱ</button>
+        <button type="button" data-ctl="next" aria-label="Próximo slide" title="Próximo slide">›</button>
+      </div>
+      <div class="pl-titulo" aria-live="polite">ALMAFLUXO · Nossa Conversa Diária</div>
+      <div class="pl-grupo" role="group" aria-label="Áudio">
+        <button type="button" data-ctl="audio-toggle" aria-label="Pausar música" title="Pausar música">⏸</button>
+        <button type="button" data-ctl="vol-down" aria-label="Diminuir volume" title="Diminuir volume">🔉</button>
+        <button type="button" data-ctl="vol-up" aria-label="Aumentar volume" title="Aumentar volume">🔊</button>
+        <button type="button" data-ctl="audio-mute" aria-label="Silenciar" title="Silenciar">🔇</button>
+      </div>
+      <div class="pl-progresso"><div class="pl-progresso-fill"></div></div>
+    `;
+    root.appendChild(ui);
+    P._controls = ui;
+
+    // ── Aparecer/sumir ao mexer o mouse ──
+    P._showControls = () => {
+      ui.classList.add('visivel');
+      clearTimeout(P._ctlHide);
+      P._ctlHide = setTimeout(() => ui.classList.remove('visivel'), 5200);
+    };
+    P._activeReg = () => P.regs.r1 || Object.values(P.regs)[0] || null;
+
+    // ── Navegação de slides ──
+    ui.querySelector('[data-ctl="prev"]').addEventListener('click', () => {
+      P._showControls();
+      const r = P._activeReg();
+      if (r && r.navegar) r.navegar(-1);
+    });
+    ui.querySelector('[data-ctl="next"]').addEventListener('click', () => {
+      P._showControls();
+      const r = P._activeReg();
+      if (r && r.navegar) r.navegar(1);
+    });
+    ui.querySelector('[data-ctl="pause"]').addEventListener('click', () => {
+      const r = P._activeReg();
+      if (!r) return;
+      const btn = ui.querySelector('[data-ctl="pause"]');
+      if (r.pausado) {
+        r.retomar();
+        btn.textContent = 'Ⅱ';
+        btn.setAttribute('aria-label', 'Pausar slide');
+        btn.title = 'Pausar slide';
+      } else {
+        r.pausar();
+        btn.textContent = '▶';
+        btn.setAttribute('aria-label', 'Retomar slide');
+        btn.title = 'Retomar slide';
+      }
+      P._showControls();
+    });
+
+    // ── Controles de áudio (usa TOTEM_AMBIENTE quando disponível) ──
+    const audioBtn = ui.querySelector('[data-ctl="audio-toggle"]');
+    const muteBtn  = ui.querySelector('[data-ctl="audio-mute"]');
+
+    function atualizarBotaoAudio() {
+      const A = window.TOTEM_AMBIENTE;
+      if (!A || !A.temFaixas || !A.temFaixas()) {
+        audioBtn.disabled = true;
+        muteBtn.disabled = true;
+        audioBtn.title = 'Nenhuma música ambiente configurada';
+        return;
+      }
+      audioBtn.disabled = false;
+      muteBtn.disabled = false;
+      const pausado = A.audio ? A.audio.paused : false;
+      audioBtn.textContent = pausado ? '▶' : '⏸';
+      audioBtn.title = pausado ? 'Reproduzir música' : 'Pausar música';
+      audioBtn.setAttribute('aria-label', audioBtn.title);
+      audioBtn.dataset.ativo = pausado ? '0' : '1';
+      muteBtn.textContent = A.mudo ? '🔇' : '🔊';
+      muteBtn.title = A.mudo ? 'Ativar som' : 'Silenciar';
+      muteBtn.setAttribute('aria-label', muteBtn.title);
+      muteBtn.dataset.ativo = A.mudo ? '1' : '0';
+    }
+
+    audioBtn.addEventListener('click', () => {
+      const A = window.TOTEM_AMBIENTE;
+      if (!A || !A.audio) return;
+      if (A.audio.paused) {
+        A.audio.play().catch(() => {});
+        A.destravar && A.destravar();
+      } else {
+        A.audio.pause();
+      }
+      atualizarBotaoAudio();
+      P._showControls();
+    });
+
+    muteBtn.addEventListener('click', () => {
+      const A = window.TOTEM_AMBIENTE;
+      if (!A || !A.alternarMudo) return;
+      A.alternarMudo();
+      atualizarBotaoAudio();
+      P._showControls();
+    });
+
+    ui.querySelector('[data-ctl="vol-down"]').addEventListener('click', () => {
+      const A = window.TOTEM_AMBIENTE;
+      if (!A || !A.gain) return;
+      A.gain.gain.value = Math.max(0, A.gain.gain.value - 0.08);
+      A.VOLUME = A.gain.gain.value;
+      atualizarBotaoAudio();
+      P._showControls();
+    });
+    ui.querySelector('[data-ctl="vol-up"]').addEventListener('click', () => {
+      const A = window.TOTEM_AMBIENTE;
+      if (!A || !A.gain) return;
+      A.gain.gain.value = Math.min(1, A.gain.gain.value + 0.08);
+      A.VOLUME = A.gain.gain.value;
+      atualizarBotaoAudio();
+      P._showControls();
+    });
+
+    // Atualiza o estado dos botões de áudio a cada 2s (reflete mudanças externas)
+    P._ctlAudioTick = setInterval(atualizarBotaoAudio, 2000);
+    atualizarBotaoAudio();
+
+    // ── Progresso do slide atual ──
+    P._ctlTick = setInterval(() => {
+      const r = P._activeReg();
+      const info = P.agora.r1 || Object.values(P.agora)[0];
+      const bar = ui.querySelector('.pl-progresso-fill');
+      const label = ui.querySelector('.pl-titulo');
+      if (label) {
+        label.textContent = info
+          ? (info.nome || info.tipo) + ' · ' + (info.idx + 1) + '/' + info.total
+          : 'ALMAFLUXO · Nossa Conversa Diária';
+      }
+      if (bar) {
+        bar.style.width = (r && r.duracao > 0
+          ? Math.max(0, Math.min(100, 100 - (Math.max(0, r.prazo - Date.now()) / r.duracao * 100)))
+          : 0) + '%';
+      }
+    }, 250);
+
+    // ── Aparece com movimento do mouse / toque ──
+    root.addEventListener('pointermove', P._ctlMove = () => P._showControls(), { passive: true });
+    root.addEventListener('touchstart', P._ctlTouch = e => {
+      P._touchX = e.changedTouches[0].clientX;
+      P._touchY = e.changedTouches[0].clientY;
+      P._showControls();
+    }, { passive: true });
+    root.addEventListener('touchend', P._ctlEnd = e => {
+      if (P._touchX == null) return;
+      const dx = e.changedTouches[0].clientX - P._touchX;
+      const dy = e.changedTouches[0].clientY - P._touchY;
+      if (Math.abs(dx) > 65 && Math.abs(dx) > Math.abs(dy) * 1.25) {
+        const r = P._activeReg();
+        if (r && r.navegar) r.navegar(dx < 0 ? 1 : -1);
+      }
+      P._touchX = P._touchY = null;
+    }, { passive: true });
+
+    // ── Teclado: ← → para navegar, espaço para pausar ──
+    P._ctlKey = e => {
+      if (e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+      if (e.key === 'ArrowRight') {
+        const r = P._activeReg();
+        if (r && r.navegar) r.navegar(1);
+        P._showControls();
+      }
+      if (e.key === 'ArrowLeft') {
+        const r = P._activeReg();
+        if (r && r.navegar) r.navegar(-1);
+        P._showControls();
+      }
+      if (e.key === ' ') {
+        e.preventDefault();
+        ui.querySelector('[data-ctl="pause"]').click();
+      }
+    };
+    document.addEventListener('keydown', P._ctlKey);
+
+    P._showControls();
   }
   P.parar = function () { Object.values(P.regs).forEach(r => r.parar()); P.regs = {}; P.agora = {}; if (P._esfera) { P._esfera.destruir(); P._esfera = null; } if (!P.preview) TOTEM_AUDIO.parar(); inner.innerHTML = ''; };
   P.aplicar = function (t, aj) {
@@ -2469,8 +2814,17 @@ function criarPlayer(root, opts) {
   const aplicarOrig = P.aplicar; P.aplicar = function (t, aj) { P.aj = aj; return aplicarOrig(t, aj); };
   P.destruir = function () {
     window.removeEventListener('resize', P._rs);
-    if(P._controls){clearInterval(P._ctlTick);clearTimeout(P._ctlHide);document.removeEventListener('keydown',P._ctlKey);root.removeEventListener('pointermove',P._ctlMove);root.removeEventListener('touchstart',P._ctlTouch);root.removeEventListener('touchend',P._ctlEnd);}
-    P.parar(); root.innerHTML = '';
+    if (P._controls) {
+      clearInterval(P._ctlTick);
+      clearInterval(P._ctlAudioTick);
+      clearTimeout(P._ctlHide);
+      document.removeEventListener('keydown', P._ctlKey);
+      root.removeEventListener('pointermove', P._ctlMove);
+      root.removeEventListener('touchstart', P._ctlTouch);
+      root.removeEventListener('touchend', P._ctlEnd);
+    }
+    P.parar();
+    root.innerHTML = '';
   };
   return P;
 }
