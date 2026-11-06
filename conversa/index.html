@@ -6014,6 +6014,99 @@ window.build = build;   // ← expõe globalmente para o MiniMotorPlayer
 
   const PALCOS = { eletrica: palcoEolica, artes: palcoArtes, musica: palcoMusica };
 
+  const PRAIAS_BRASIL = [
+    { nome: 'Praia do Rosa', estado: 'SC', lat: -28.13, lon: -48.64 },
+    { nome: 'Joaquina', estado: 'SC', lat: -27.63, lon: -48.45 },
+    { nome: 'Maresias', estado: 'SP', lat: -23.79, lon: -45.56 },
+    { nome: 'Itamambuca', estado: 'SP', lat: -23.40, lon: -45.01 },
+    { nome: 'Saquarema - Itaúna', estado: 'RJ', lat: -22.93, lon: -42.49 },
+    { nome: 'Arpoador', estado: 'RJ', lat: -22.98, lon: -43.19 },
+    { nome: 'Praia da Vila', estado: 'ES', lat: -20.81, lon: -40.68 },
+    { nome: 'Porto da Barra', estado: 'BA', lat: -13.00, lon: -38.53 },
+    { nome: 'Pipa', estado: 'RN', lat: -6.23, lon: -35.05 },
+    { nome: 'Cumbuco', estado: 'CE', lat: -3.62, lon: -38.73 },
+    { nome: 'Jericoacoara', estado: 'CE', lat: -2.79, lon: -40.51 },
+  ];
+
+  // Função que busca os dados de surf, vento e notícias
+  async function buildSurfPanel(container) {
+    const select = document.createElement('select');
+    select.style.cssText = 'width:100%; padding:8px; border-radius:8px; background:#0a1220; color:#e8f6ff; border:1px solid #1d2a44; font-size:1rem; margin-bottom:10px;';
+    
+    PRAIAS_BRASIL.forEach(praia => {
+      const opt = document.createElement('option');
+      opt.value = praia.nome;
+      opt.textContent = `${praia.nome} - ${praia.estado}`;
+      select.appendChild(opt);
+    });
+
+    container.appendChild(select);
+
+    const infoDiv = document.createElement('div');
+    infoDiv.style.cssText = 'font-size:calc(var(--u)*1.4); line-height:1.5; color:#c4d3e2; min-height: 12vh';
+    container.appendChild(infoDiv);
+
+    async function updateInfo(praiaNome) {
+      infoDiv.innerHTML = 'Carregando dados...';
+      const praia = PRAIAS_BRASIL.find(p => p.nome === praiaNome);
+      if (!praia) return;
+
+      try {
+        // 1. Vento e Clima (Open-Meteo)
+        const climaUrl = `https://api.open-meteo.com/v1/forecast?latitude=${praia.lat}&longitude=${praia.lon}&current=wind_speed_10m,wind_direction_10m,weather_code&daily=wave_height_max,wave_direction_dominant,wave_period_max&timezone=auto`;
+        const climaResp = await fetch(climaUrl);
+        if (!climaResp.ok) throw new Error('Clima indisponível');
+        const climaData = await climaResp.json();
+        
+        const vento = climaData.current.wind_speed_10m;
+        const onda = climaData.daily.wave_height_max[0];
+        const periodo = climaData.daily.wave_period_max[0];
+        const wmo = WMO[climaData.current.weather_code] || ['❓', 'N/A'];
+
+        let qualidade = '⚪ Indefinida';
+        if (onda > 0.8 && vento < 20) qualidade = '🟢 Boa';
+        else if (onda > 0.5 && vento > 25) qualidade = '🟡 Regular (vento forte)';
+        else if (onda < 0.5) qualidade = '🔴 Ruim (mar calmo)';
+
+        // 2. Notícias de Surf (G1)
+        let noticiasHtml = '<div style="font-size:calc(var(--u)*1.1); color:#8fa6c2; margin-top:10px">Nenhuma notícia de surf encontrada.</div>';
+        try {
+            const noticiasResp = await fetch('/api/totem/dados/noticias-mundo');
+            if (noticiasResp.ok) {
+                const noticiasData = await noticiasResp.json();
+                // Tenta pegar notícias de "mundo" ou "catastrofe" que falem de "onda" ou "surfe"
+                const todasNoticias = [...(noticiasData.categorias.catastrofe || []), ...(noticiasData.categorias.mundo || [])];
+                const filtradas = todasNoticias.filter(n => /surf|onda|mar|praia/i.test(n.titulo)).slice(0, 2);
+                if(filtradas.length > 0){
+                    noticiasHtml = '<div style="font-size:calc(var(--u)*1.2); color:#00e5ff; margin-top:10px">Notícias de Surf:</div>';
+                    noticiasHtml += filtradas.map(n => `<div style="font-size:calc(var(--u)*1.15); color:#c4d3e2; margin-top:5px;">• ${n.titulo}</div>`).join('');
+                }
+            }
+        } catch(e) { /* Mantém o fallback */ }
+
+
+        infoDiv.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span><strong>${praia.nome} - ${praia.estado}</strong></span>
+            <span>${wmo[0]} ${Math.round(climaData.current.temperature_2m)}°C</span>
+          </div>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 6px;">
+            <span>💨 Vento: ${Math.round(vento)} km/h</span>
+            <span>🌊 Onda: ${onda != null ? onda.toFixed(1) + 'm' : 'N/A'}</span>
+            <span>⏱️ Período: ${periodo != null ? periodo.toFixed(0) + 's' : 'N/A'}</span>
+            <span>⭐ Condição: ${qualidade}</span>
+          </div>
+          ${noticiasHtml}
+        `;
+      } catch (e) {
+        infoDiv.innerHTML = `<div style="color:#ff9090; text-align:center;">Dados indisponíveis para ${praia.nome}.<br><small>${e.message}</small></div>`;
+      }
+    }
+
+    select.addEventListener('change', (e) => updateInfo(e.target.value));
+    updateInfo(PRAIAS_BRASIL[0].nome);
+  }
+
 
   function montar(P, item, s, S, cfg) {
     s.className += ' tx tx-editorial tx-editorial-' + item.tipo;
@@ -6021,15 +6114,18 @@ window.build = build;   // ← expõe globalmente para o MiniMotorPlayer
 
     const conceito = cfg.conceitos[(new Date().getDate() + new Date().getMonth()) % cfg.conceitos.length];
 
+    // A MUDANÇA ESTÁ AQUI: O HTML base agora tem uma estrutura diferente
+    // para o hero-card, permitindo o posicionamento flexível do painel de surf.
     s.innerHTML = `<header class="ed-head"><div class="ed-kicker">${cfg.icone} ALMAFLUXO · CANAL DIÁRIO</div><div class="ed-title">${cfg.titulo}</div><div class="ed-sub">${cfg.subtitulo}</div></header>
       <main class="ed-layout">
         <section class="ed-hero">
-          <div class="ed-hero-orbit"><span>${cfg.icone}</span><i></i><b></b></div>
+          ${item.tipo !== 'eletrica' ? `<div class="ed-hero-orbit"><span>${cfg.icone}</span><i></i><b></b></div>` : ''}
           <div class="ed-hero-3d" hidden><canvas class="ed-hero-cv" aria-hidden="true"></canvas></div>
           <div class="ed-eyebrow">IDEIA EM DESTAQUE</div>
           <h2 class="ed-concept-title">${clean(conceito[0], 90)}</h2>
           <p class="ed-concept-text">${clean(conceito[1], 260)}</p>
-          <div class="ed-tags">${cfg.blocos.map(x => `<span><b>${clean(x[0], 30)}</b>${clean(x[1], 70)}</span>`).join('')}</div>
+          ${item.tipo !== 'eletrica' ? `<div class="ed-tags">${cfg.blocos.map(x => `<span><b>${clean(x[0], 30)}</b>${clean(x[1], 70)}</span>`).join('')}</div>` : ''}
+          ${item.tipo === 'eletrica' ? `<div class="ed-surf-panel" style="margin-top:2vh; flex-grow: 1; display:flex; flex-direction:column;"></div>` : ''}
         </section>
         <section class="ed-news"><div class="ed-news-top"><span>GIRO DE NOTÍCIAS</span><small class="ed-source">Consultando feeds públicos…</small></div><div class="ed-news-list"><div class="ed-news-empty">Carregando manchetes da editoria…</div></div>
         <div class="ed-news-foot">Manchetes de feeds públicos. A disponibilidade e a atualização dependem das fontes.</div></section>
@@ -6038,6 +6134,14 @@ window.build = build;   // ← expõe globalmente para o MiniMotorPlayer
 
     const list = s.querySelector('.ed-news-list'), source = s.querySelector('.ed-source');
     s.querySelector('.ed-date').textContent = new Date().toLocaleDateString('pt-BR', {weekday:'long', day:'2-digit', month:'long', year:'numeric'});
+
+    // Se for a aba de Energia, constrói o painel de surfe
+    if (item.tipo === 'eletrica') {
+      const surfPanel = s.querySelector('.ed-surf-panel');
+      if (surfPanel) {
+        buildSurfPanel(surfPanel);
+      }
+    }
 
 
     // ═══ PALCOS (slides 6, 7 e 8) ═══
@@ -6061,9 +6165,13 @@ window.build = build;   // ← expõe globalmente para o MiniMotorPlayer
     (function montarMotorEditorial() {
       const wrap = s.querySelector('.ed-hero-3d');
       const cv   = s.querySelector('.ed-hero-cv');
-      const orb  = s.querySelector('.ed-hero-orbit');
+      // A órbita decorativa só existe se não for elétrica
+      const orb  = s.querySelector('.ed-hero-orbit'); 
       if (item.tipo !== 'mecanica3d' || !wrap || !cv || !window.MiniMotorPlayer) return;
 
+      // A MUDANÇA ESTÁ AQUI: CSS inline para forçar o posicionamento.
+      wrap.style.cssText = 'position:relative; width:100%; aspect-ratio:16/9; margin-top:2vh; display:block;';
+      
       const lista = (window.MiniMotorPlayer.LISTA_POR_TIPO || {})[item.tipo] || window.MiniMotorPlayer.LISTA_PADRAO;
 
       const tentar = () => {
