@@ -959,6 +959,7 @@ html,body{background:#000}
 .ed-news-list{display:flex;flex-direction:column;gap:2.2%;padding-top:2.4%;min-height:0;flex:1}
 .ed-news-feature{padding:3.2%;border-radius:calc(var(--u)*1);background:rgba(255,255,255,.055);border-left:3px solid currentColor}
 .ed-live{font-size:calc(var(--u)*.95);font-weight:850;letter-spacing:.14em;opacity:.82}
+.ed-news-section-label{flex:0 0 auto;font-size:calc(var(--u)*.95);font-weight:850;letter-spacing:.14em;color:#9bb9d4;padding:.5% 1%;border-bottom:1px solid rgba(170,210,245,.12)}
 .ed-news-feature h3{font-size:calc(var(--u)*2.15);line-height:1.23;margin:.5em 0 .45em;font-weight:760}
 .ed-news-feature small,.ed-news-item small{font-size:calc(var(--u)*1.05);color:#91a8bd}
 .ed-news-item{display:flex;align-items:flex-start;gap:3%;padding:1.4% 1%;border-bottom:1px solid rgba(170,210,245,.1);font-size:calc(var(--u)*1.45);line-height:1.3;color:#dce8f4}
@@ -966,6 +967,17 @@ html,body{background:#000}
 .ed-news-item span{display:flex;flex-direction:column;gap:.3em}
 .ed-news-empty{display:grid;place-content:center;flex:1;text-align:center;color:#9eb1c4;font-size:calc(var(--u)*1.5);line-height:1.5;padding:5%}
 .ed-news-foot{font-size:calc(var(--u)*.95);color:#8298ad;line-height:1.35;padding-top:2%;border-top:1px solid rgba(170,210,245,.1)}
+/* Organização editorial: separa manchete, contexto, fonte e atualização sem alterar os dados. */
+.ed-news-list{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(125,190,225,.45) transparent;padding-right:1.2%}
+.ed-news-list::-webkit-scrollbar{width:5px}.ed-news-list::-webkit-scrollbar-thumb{background:rgba(125,190,225,.42);border-radius:8px}
+.ed-news-feature{flex:0 0 auto}.ed-news-item{flex:0 0 auto}
+.ed-news-feature h3{overflow-wrap:anywhere}.ed-news-item span{min-width:0;overflow-wrap:anywhere}
+.ed-news-feature small,.ed-news-item small{display:block;line-height:1.45;margin-top:.35em}
+.ed-news-top{flex-wrap:wrap}.ed-source{max-width:58%;line-height:1.35}
+.ed-news-foot{display:flex;flex-wrap:wrap;gap:.35em .8em;align-items:center}
+.tx-editorial button:focus-visible,.tx-editorial a:focus-visible{outline:2px solid #a8e7ff;outline-offset:3px}
+@media(max-aspect-ratio:1/1){.ed-news-list{gap:3%;padding-right:2%}.ed-news-top{align-items:flex-start}.ed-source{max-width:100%;text-align:left}.ed-news-foot{font-size:calc(var(--u)*.9)}}
+@media(max-width:520px){.ed-news-feature h3{font-size:calc(var(--u)*1.75)}.ed-news-item{font-size:calc(var(--u)*1.15)}.ed-news-feature small,.ed-news-item small{font-size:calc(var(--u)*.95)}}
 .ed-bottom{position:absolute;left:4.2%;right:4.2%;bottom:2.2%;display:flex;justify-content:space-between;gap:1em;color:#8499ae;font-size:calc(var(--u)*1.05);letter-spacing:.04em}
 .tx-editorial-mecanica3d{--ed-accent:#64c8ff}.tx-editorial-eletrica{--ed-accent:#ffd36a}.tx-editorial-artes{--ed-accent:#e8a7ff}.tx-editorial-musica{--ed-accent:#8fe2c2}
 .tx-editorial .ed-title,.tx-editorial .ed-news-top,.tx-editorial .ed-live{color:var(--ed-accent)}
@@ -1124,9 +1136,11 @@ html,body{background:#000}
 
 /* Em telas pequenas: esconde o slider de volume, mantém os botões */
 @media (max-width: 720px) {
-  .pl-controls { gap: 4px; padding: 6px 8px; }
+  .pl-controls { gap: 4px; padding: 6px 8px; max-width:calc(100vw - 92px); box-sizing:border-box; overflow-x:auto; overflow-y:hidden; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+  .pl-controls::-webkit-scrollbar { display:none; }
+  .pl-controls .pl-grupo { flex:0 0 auto; }
   .pl-controls button { min-width: 32px; height: 32px; font-size: 14px; }
-  .pl-controls .pl-titulo { font-size: 11px; }
+  .pl-controls .pl-titulo { font-size: 11px; flex:1 0 72px; }
   .pl-controls .pl-volume input[type="range"] { display: none; }
 }
 /* Ajuste fino: em telas pequenas, o banner não cobre o player */
@@ -2394,7 +2408,7 @@ const RODAPE_POR_TIPO = {
   horoscopo:   { href: 'https://almafluxo.uk',            forte: '🌌 UNIVERSO ALMAFLUXO',     em: 'Alinhamentos e estudos simbólicos',          b: 'almafluxo.uk' },
   jornal:      { href: 'https://almafluxo.uk/climafluxo', forte: '🌦️ CLIMAFLUXO',            em: 'Previsão local + análise ENSO',              b: 'almafluxo.uk/climafluxo' },
   climagrafico:{ href: 'https://almafluxo.uk/climafluxo', forte: '🌦️ CLIMAFLUXO',            em: 'Gráfico de 48h e ensemble de modelos',       b: 'almafluxo.uk/climafluxo' },
-  recadoAmor:  { href: 'https://almafluxo.uk/recado-amor',forte: '💌 RECADO DO AMOR',         em: 'Envie sua mensagem pelo QR',                 b: 'almafluxo.uk/recado-amor' },
+  recadoAmor:  { href: 'https://tchelojc.github.io/fuder/', forte: '📖 FUDER OU NÃO FUDER', em: 'Conheça o livro', b: 'tchelojc.github.io/fuder' },
   terremotos:  { href: 'https://almafluxo.uk/solution',   forte: '🌍 DADOS DO MUNDO',         em: 'Informação global para seu totem',           b: 'almafluxo.uk/solution' },
   curiosidades:{ href: 'https://almafluxo.uk/solution',   forte: '✨ CURIOSIDADES',           em: 'Conteúdo que engaja sua audiência',          b: 'almafluxo.uk/solution' },
   // Placeholder padrão
@@ -3485,6 +3499,7 @@ const txCor = v => v > 0 ? '#2ecc71' : v < 0 ? '#ff5a6e' : '#9fb3c8';
 const txMoeda = a => a.un === 'R$' ? 'R$ ' : a.un === 'US$' ? 'US$ ' : '';
 const txSelAtivos = (lista, str, padrao) => { const ids = String(str || padrao).split(/[\s,;]+/).map(x => x.toLowerCase()).filter(Boolean), r = ids.map(i => lista.find(a => a.id === i)).filter(Boolean); return r.length ? r : lista; };
 const txAgo = t => { const m = Math.max(0, Math.round((Date.now() - t) / 60000)); return m < 60 ? 'há ' + m + ' min' : m < 1440 ? 'há ' + Math.round(m / 60) + ' h' : 'há ' + Math.round(m / 1440) + ' d'; };
+const txDataPublicacao = v => { if (v == null || v === '') return ''; const n = Number.isFinite(+v) ? +v : Date.parse(v); if (!Number.isFinite(n) || n <= 0) return ''; const d = new Date(n); return Number.isNaN(d.getTime()) ? '' : d.toLocaleString('pt-BR', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'}); };
 const TX_PALETA = ['#00e5ff', '#d4a843', '#f7931a', '#9a5fd8', '#2ecc71', '#ff7a59', '#7cc4ff', '#c9d1d9'];
 
 /* ciclo de vida: S.morto vira true quando o slide sai; loops/timers se desligam sozinhos */
@@ -3705,14 +3720,22 @@ function aplicarEsfera(P, t) {
 }
 /* ═════ NOTÍCIAS ═════ */
 TX.noticias = {def: {topico: ''}, build(P, item, s, S) {
-  s.className += ' tx'; s.innerHTML = '<div class="tx-t">NOTÍCIAS · MERCADO E ATIVOS</div><div class="tx-tp"></div><div class="tx-nl"></div><div class="tx-av"></div>';
+  s.className += ' tx'; s.innerHTML = '<div class="tx-t">NOTÍCIAS · MERCADO E ATIVOS</div><div class="tx-tp" aria-live="polite"></div><div class="tx-nl" aria-live="polite"></div><div class="tx-av"></div>';
   const tp = s.querySelector('.tx-tp'), nl = s.querySelector('.tx-nl'), av = s.querySelector('.tx-av'), NOMES = {dolar: '💵 Dólar', ouro: '🥇 Ouro', bitcoin: '₿ Bitcoin', ethereum: 'Ξ Ethereum', mercado: '📈 Mercado e Bolsa'};
   txMorre(S); let dados = null, idx = 0, tm = 0;
   const mostrar = () => {
     if (S.morto || !dados) return; clearTimeout(tm);
+    const regAtual = P._activeReg ? P._activeReg() : null;
+    // A pausa geral do totem também pausa a troca automática das editorias.
+    if (document.hidden || (regAtual && regAtual.pausado)) { tm = setTimeout(mostrar, 1200); return; }
     const ks = item.topico ? [item.topico] : Object.keys(NOMES).filter(k => (dados.topicos[k] || []).length); if (!ks.length) return;
     const k = ks[idx++ % ks.length]; tp.textContent = NOMES[k] || k;
-    nl.innerHTML = (dados.topicos[k] || []).slice(0, 5).map((n, i) => '<div class="tx-n" style="animation-delay:' + (i * .25) + 's"><span class="tx-nt">' + esc(n.titulo) + '</span><span class="tx-nf">' + esc(n.fonte || '') + (n.t ? ' · ' + txAgo(n.t) : '') + '</span></div>').join('');
+    nl.innerHTML = (dados.topicos[k] || []).slice(0, 5).map((n, i) => {
+      const publicada = txDataPublicacao(n.t);
+      const relativa = n.t ? txAgo(Number.isFinite(+n.t) ? +n.t : new Date(n.t).getTime()) : '';
+      const meta = [n.fonte || 'Fonte não informada', publicada ? 'publicado ' + publicada : '', relativa].filter(Boolean).join(' · ');
+      return '<article class="tx-n" style="animation-delay:' + (i * .25) + 's"><span class="tx-nt">' + esc(n.titulo) + '</span><span class="tx-nf">' + esc(meta) + '</span></article>';
+    }).join('');
     tm = setTimeout(mostrar, Math.max(4, Math.min(9, (+item.duracaoS || 15) / ks.length)) * 1000);
   };
   S.fins.push(() => clearTimeout(tm));
@@ -6624,8 +6647,8 @@ window.build = build;   // ← expõe globalmente para o MiniMotorPlayer
     // A MUDANÇA ESTÁ AQUI: O HTML base agora tem uma estrutura diferente
     // para o hero-card, permitindo o posicionamento flexível do painel de surf.
     s.innerHTML = `<header class="ed-head"><div class="ed-kicker">${cfg.icone} ALMAFLUXO · CANAL DIÁRIO</div><div class="ed-title">${cfg.titulo}</div><div class="ed-sub">${cfg.subtitulo}</div></header>
-      <main class="ed-layout">
-        <section class="ed-hero">
+      <main class="ed-layout" aria-label="Conteúdo da editoria">
+        <section class="ed-hero" aria-label="Conteúdo educativo em destaque">
           ${item.tipo !== 'eletrica' ? `<div class="ed-hero-orbit"><span>${cfg.icone}</span><i></i><b></b></div>` : ''}
           <div class="ed-hero-3d" hidden><canvas class="ed-hero-cv" aria-hidden="true"></canvas></div>
           <div class="ed-eyebrow">IDEIA EM DESTAQUE</div>
@@ -6634,8 +6657,8 @@ window.build = build;   // ← expõe globalmente para o MiniMotorPlayer
           ${item.tipo !== 'eletrica' ? `<div class="ed-tags">${cfg.blocos.map(x => `<span><b>${clean(x[0], 30)}</b>${clean(x[1], 70)}</span>`).join('')}</div>` : ''}
           ${item.tipo === 'eletrica' ? `<div class="ed-surf-panel" style="margin-top:2vh; flex-grow: 1; display:flex; flex-direction:column;"></div>` : ''}
         </section>
-        <section class="ed-news"><div class="ed-news-top"><span>GIRO DE NOTÍCIAS</span><small class="ed-source">Consultando feeds públicos…</small></div><div class="ed-news-list"><div class="ed-news-empty">Carregando manchetes da editoria…</div></div>
-        <div class="ed-news-foot">Manchetes de feeds públicos. A disponibilidade e a atualização dependem das fontes.</div></section>
+        <section class="ed-news" aria-label="Manchetes e fontes"><div class="ed-news-top"><span>GIRO DE NOTÍCIAS</span><small class="ed-source">Consultando feeds públicos…</small></div><div class="ed-news-list"><div class="ed-news-empty">Carregando manchetes da editoria…</div></div>
+        <div class="ed-news-foot"><span>Conteúdo de feeds públicos</span><span>·</span><span>Horário exibido conforme os dados recebidos da fonte</span></div></section>
       </main>
       <footer class="ed-bottom"><span class="ed-date"></span><span class="ed-index">CONHECIMENTO · TECNOLOGIA · CULTURA</span></footer>`;
 
@@ -6736,15 +6759,22 @@ window.build = build;   // ← expõe globalmente para o MiniMotorPlayer
         return;
       }
       const n = items[idx % items.length], others = items.filter((_, i) => i !== idx % items.length).slice(0, 3);
-      const ago = n.t ? txAgo(Number.isFinite(+n.t) ? +n.t : new Date(n.t).getTime()) : '';
-      list.innerHTML = `<article class="ed-news-feature"><span class="ed-live">DESTAQUE</span><h3>${clean(n.titulo, 160)}</h3><small>${clean(n.fonte || 'Feed público', 60)}${ago ? ' · ' + ago : ''}</small></article>` +
-        others.map((x, i) => `<div class="ed-news-item"><b>0${i + 2}</b><span>${clean(x.titulo, 140)}<small>${clean(x.fonte || 'Feed público', 60)}</small></span></div>`).join('');
+      const metaNoticia = x => {
+        const publicada = txDataPublicacao(x.t);
+        const relativa = x.t ? txAgo(Number.isFinite(+x.t) ? +x.t : new Date(x.t).getTime()) : '';
+        return [x.fonte || 'Fonte não informada', publicada ? 'publicado ' + publicada : '', relativa].filter(Boolean).join(' · ');
+      };
+      list.innerHTML = `<article class="ed-news-feature"><span class="ed-live">DESTAQUE · ${idx + 1} DE ${items.length}</span><h3>${esc(clean(n.titulo, 160))}</h3><small>${esc(metaNoticia(n))}</small></article>` +
+        (others.length ? '<div class="ed-news-section-label">MAIS DESTA EDITORIA</div>' : '') +
+        others.map((x, i) => `<article class="ed-news-item"><b>0${i + 2}</b><span>${esc(clean(x.titulo, 140))}<small>${esc(metaNoticia(x))}</small></span></article>`).join('');
     };
     const carregar = async () => {
       try {
         const d = await txDados('noticias-mundo', '', 600000);
         items = (d.categorias && Array.isArray(d.categorias[cfg.categoria]) ? d.categorias[cfg.categoria] : []).filter(x => x && x.titulo).slice(0, 6);
-        source.textContent = ((d.fontes_por_categoria && d.fontes_por_categoria[cfg.categoria]) || d.fonte || 'Feed público') + ' · ' + txHora(d.atualizado) + (d._stale ? ' · cache' : '');
+        const fonteEditorial = (d.fontes_por_categoria && d.fontes_por_categoria[cfg.categoria]) || d.fonte || 'Feed público';
+        source.textContent = 'Fonte: ' + fonteEditorial + ' · feed atualizado ' + txHora(d.atualizado) + (d._stale ? ' · última cópia em cache' : '');
+        source.title = source.textContent;
         render();
       } catch (e) {
         items = [];
@@ -6753,8 +6783,12 @@ window.build = build;   // ← expõe globalmente para o MiniMotorPlayer
       }
     };
     carregar();
-    const iv = setInterval(() => { if (items.length > 1) { idx = (idx + 1) % items.length; render(); } }, 8000);
-    const refresh = setInterval(carregar, 600000);
+    const iv = setInterval(() => {
+      const regAtual = P._activeReg ? P._activeReg() : null;
+      if (!document.hidden && !(regAtual && regAtual.pausado) && items.length > 1) { idx = (idx + 1) % items.length; render(); }
+    }, 8000);
+    // Evita atualizações em segundo plano; os dados voltam a ser consultados no próximo ciclo visível.
+    const refresh = setInterval(() => { if (!document.hidden) carregar(); }, 600000);
     S.fins.push(() => { clearInterval(iv); clearInterval(refresh); });
     s.dataset.editorialLink = cfg.link;
   }
