@@ -1143,10 +1143,10 @@ html, body { overscroll-behavior: none; }
 .pl-pausado { position: fixed; top: 72px; left: 50%; transform: translateX(-50%); z-index: 100001; padding: 6px 14px; border-radius: 999px;
   background: rgba(255,176,32,.94); color: #1b1200; font: 800 12px/1 system-ui, sans-serif; letter-spacing: .08em; display: none; pointer-events: none; }
 .pl-pausado.on { display: block; }
-.pl-lupa { position: fixed; left: 10px; right: 10px; top: 10px; height: clamp(120px, 27vh, 240px); z-index: 100004; border: 2px solid #00e5ff; border-radius: 16px;
+.pl-lupa { position: fixed; left: 10px; right: 10px; top: auto; bottom: max(10px, env(safe-area-inset-bottom)); height: clamp(120px, 27vh, 240px); z-index: 100000; border: 2px solid #00e5ff; border-radius: 16px;
   background: #000; box-shadow: 0 8px 40px rgba(0,0,0,.7), 0 0 0 3px rgba(0,229,255,.18); overflow: hidden; display: none; pointer-events: none; }
 .pl-lupa.on { display: block; }
-.pl-lupa.baixo { top: auto; bottom: 10px; }
+.pl-lupa.baixo { top: auto; bottom: max(10px, env(safe-area-inset-bottom)); }
 .pl-lupa-vp { position: absolute; inset: 0; overflow: hidden; }
 .pl-lupa-vp * { animation-delay: -100s !important; animation-iteration-count: 1 !important; transition: none !important; }
 .pl-lupa-mira { position: absolute; left: 50%; top: 50%; width: 26px; height: 26px; margin: -13px 0 0 -13px; border: 2px solid rgba(255,255,255,.8); border-radius: 50%; box-shadow: 0 0 0 1px rgba(0,0,0,.6); }
@@ -2647,9 +2647,10 @@ function criarPlayer(root, opts) {
 
     // ── Aparecer/sumir ao mexer o mouse ──
     P._showControls = () => {
-      if (P._lupaOn) return;
-      ui.classList.add('visivel');
       clearTimeout(P._ctlHide);
+      ui.classList.add('visivel');
+      // Enquanto a lupa estiver ativa, os controles permanecem disponíveis.
+      if (P._lupaOn) return;
       P._ctlHide = setTimeout(() => ui.classList.remove('visivel'), 5200);
     };
     P._activeReg = () => P.regs.r1 || Object.values(P.regs)[0] || null;
@@ -2754,13 +2755,16 @@ function criarPlayer(root, opts) {
     const lenteLigar = e => {
       lAtiva = true; P._lupaOn = true; lPos = {x: e.clientX, y: e.clientY};
       const r = P._activeReg(); lPausou = !!(r && !r.pausado); if (lPausou) r.pausar();   // o conteúdo fica parado enquanto o dedo está na tela
-      atualizarBotaoPausa(); ui.classList.remove('visivel');
+      atualizarBotaoPausa();
+      // A barra continua visível e clicável durante a leitura ampliada.
+      P._showControls();
       lrot.textContent = '🔍 ' + ZOOMS[zi] + '×'; lente.classList.add('on');
       lenteClonar(); clearInterval(lTimer); lTimer = setInterval(() => { if (lAtiva) lenteClonar(); }, 700);
     };
     const lenteDesligar = () => {
       if (!lAtiva) return; lAtiva = false; P._lupaOn = false; clearInterval(lTimer); lente.classList.remove('on'); lvp.innerHTML = ''; lClone = null;
       const r = P._activeReg(); if (lPausou && r && r.pausado) r.retomar(); lPausou = false; atualizarBotaoPausa();
+      P._showControls();
     };
     // ── Toque: com lupa ligada abre a lente; sem lupa, SEGURAR o dedo ~0,5 s pausa/retoma (toque curto só mostra os controles) ──
     const dentroUI = e => e.target && e.target.closest && e.target.closest('.pl-controls,.pl-lupa,.tx-mudo,.tx-audio-dica');
