@@ -1136,6 +1136,24 @@ html,body{background:#000}
 @media (prefers-reduced-motion: reduce) {
   .pl-controls { transition: none; }
 }
+/* anti “puxar para atualizar” do Chrome do celular (recarregava a página inteira) */
+html, body { overscroll-behavior: none; }
+.pl-root { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+.pl-root.lupa-on { touch-action: none; }
+.pl-pausado { position: fixed; top: 72px; left: 50%; transform: translateX(-50%); z-index: 100001; padding: 6px 14px; border-radius: 999px;
+  background: rgba(255,176,32,.94); color: #1b1200; font: 800 12px/1 system-ui, sans-serif; letter-spacing: .08em; display: none; pointer-events: none; }
+.pl-pausado.on { display: block; }
+.pl-lupa { position: fixed; left: 10px; right: 10px; top: 10px; height: clamp(120px, 27vh, 240px); z-index: 100004; border: 2px solid #00e5ff; border-radius: 16px;
+  background: #000; box-shadow: 0 8px 40px rgba(0,0,0,.7), 0 0 0 3px rgba(0,229,255,.18); overflow: hidden; display: none; pointer-events: none; }
+.pl-lupa.on { display: block; }
+.pl-lupa.baixo { top: auto; bottom: 10px; }
+.pl-lupa-vp { position: absolute; inset: 0; overflow: hidden; }
+.pl-lupa-vp * { animation-delay: -100s !important; animation-iteration-count: 1 !important; transition: none !important; }
+.pl-lupa-mira { position: absolute; left: 50%; top: 50%; width: 26px; height: 26px; margin: -13px 0 0 -13px; border: 2px solid rgba(255,255,255,.8); border-radius: 50%; box-shadow: 0 0 0 1px rgba(0,0,0,.6); }
+.pl-lupa-rot { position: absolute; right: 10px; top: 8px; font: 700 11px system-ui, sans-serif; color: #00e5ff; background: rgba(0,0,0,.65); padding: 3px 8px; border-radius: 8px; }
+.tx-audio-dica { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 100003; max-width: 92vw; padding: 10px 16px; border-radius: 14px;
+  background: rgba(5,13,24,.94); border: 1px solid #00e5ff; color: #e9f5ff; font: 600 14px/1.35 system-ui, sans-serif; text-align: center; display: none; box-shadow: 0 0 24px rgba(0,229,255,.25); }
+.tx-audio-dica.on { display: block; }
 
 </style>
 </head>
@@ -2616,6 +2634,7 @@ function criarPlayer(root, opts) {
       </div>
       <div class="pl-titulo" aria-live="polite">ALMAFLUXO · Nossa Conversa Diária</div>
       <div class="pl-grupo" role="group" aria-label="Áudio">
+        <button type="button" data-ctl="lupa" aria-label="Lupa" title="Lupa: ligue e arraste o dedo sobre o texto">🔍</button>
         <button type="button" data-ctl="audio-toggle" aria-label="Pausar música" title="Pausar música">⏸</button>
         <button type="button" data-ctl="vol-down" aria-label="Diminuir volume" title="Diminuir volume">🔉</button>
         <button type="button" data-ctl="vol-up" aria-label="Aumentar volume" title="Aumentar volume">🔊</button>
@@ -2628,6 +2647,7 @@ function criarPlayer(root, opts) {
 
     // ── Aparecer/sumir ao mexer o mouse ──
     P._showControls = () => {
+      if (P._lupaOn) return;
       ui.classList.add('visivel');
       clearTimeout(P._ctlHide);
       P._ctlHide = setTimeout(() => ui.classList.remove('visivel'), 5200);
@@ -2663,68 +2683,106 @@ function criarPlayer(root, opts) {
       P._showControls();
     });
 
-    // ── Controles de áudio (usa TOTEM_AMBIENTE quando disponível) ──
-    const audioBtn = ui.querySelector('[data-ctl="audio-toggle"]');
-    const muteBtn  = ui.querySelector('[data-ctl="audio-mute"]');
+    // ── Áudio, pausa e lupa ──
+    const AMBX = () => (typeof TOTEM_AMBIENTE !== 'undefined' ? TOTEM_AMBIENTE : null);
+    const audioBtn = ui.querySelector('[data-ctl="audio-toggle"]'), muteBtn = ui.querySelector('[data-ctl="audio-mute"]');
+    const lupaBtn = ui.querySelector('[data-ctl="lupa"]'), pauseBtn = ui.querySelector('[data-ctl="pause"]');
+    const pill = document.createElement('div'); pill.className = 'pl-pausado'; pill.textContent = '⏸ PAUSADO'; root.appendChild(pill); P._pill = pill;
 
-    function atualizarBotaoAudio() {
-      const A = window.TOTEM_AMBIENTE;
-      if (!A || !A.temFaixas || !A.temFaixas()) {
-        audioBtn.disabled = true;
-        muteBtn.disabled = true;
-        audioBtn.title = 'Nenhuma música ambiente configurada';
-        return;
-      }
-      audioBtn.disabled = false;
-      muteBtn.disabled = false;
-      const pausado = A.audio ? A.audio.paused : false;
-      audioBtn.textContent = pausado ? '▶' : '⏸';
-      audioBtn.title = pausado ? 'Reproduzir música' : 'Pausar música';
-      audioBtn.setAttribute('aria-label', audioBtn.title);
-      audioBtn.dataset.ativo = pausado ? '0' : '1';
-      muteBtn.textContent = A.mudo ? '🔇' : '🔊';
-      muteBtn.title = A.mudo ? 'Ativar som' : 'Silenciar';
-      muteBtn.setAttribute('aria-label', muteBtn.title);
-      muteBtn.dataset.ativo = A.mudo ? '1' : '0';
-    }
-
+    const atualizarBotaoPausa = () => {
+      const r = P._activeReg(), p = !!(r && r.pausado);
+      pauseBtn.textContent = p ? '▶' : 'Ⅱ'; pauseBtn.title = p ? 'Retomar slide' : 'Pausar slide'; pauseBtn.setAttribute('aria-label', pauseBtn.title);
+      pill.classList.toggle('on', p);
+    };
+    const atualizarBotaoAudio = () => {
+      const A = AMBX(), tem = !!(A && A.temFaixas && A.temFaixas());
+      audioBtn.disabled = false; muteBtn.disabled = !tem;
+      if (!tem) { audioBtn.textContent = '🎵'; audioBtn.title = A ? A.diagnostico() : 'Áudio indisponível'; audioBtn.dataset.ativo = '0'; return; }
+      const parado = !A.audio || A.audio.paused;
+      audioBtn.textContent = parado ? '▶' : '⏸'; audioBtn.title = parado ? 'Reproduzir música' : 'Pausar música'; audioBtn.setAttribute('aria-label', audioBtn.title);
+      audioBtn.dataset.ativo = parado ? '0' : '1';
+      const mv = A.mudo || A.bloqueado;
+      muteBtn.textContent = mv ? '🔇' : '🔊'; muteBtn.title = A.mudo ? 'Ativar som' : (A.bloqueado ? 'Toque para ativar o som' : 'Silenciar'); muteBtn.setAttribute('aria-label', muteBtn.title); muteBtn.dataset.ativo = mv ? '1' : '0';
+    };
     audioBtn.addEventListener('click', () => {
-      const A = window.TOTEM_AMBIENTE;
-      if (!A || !A.audio) return;
-      if (A.audio.paused) {
-        A.audio.play().catch(() => {});
-        A.destravar && A.destravar();
-      } else {
-        A.audio.pause();
-      }
-      atualizarBotaoAudio();
-      P._showControls();
+      const A = AMBX(); if (!A) return;
+      if (!A.temFaixas()) { A.avisar(A.diagnostico(), 7000); } else { A.alternarPausa(); }
+      atualizarBotaoAudio(); P._showControls();
     });
-
     muteBtn.addEventListener('click', () => {
-      const A = window.TOTEM_AMBIENTE;
-      if (!A || !A.alternarMudo) return;
-      A.alternarMudo();
-      atualizarBotaoAudio();
-      P._showControls();
+      const A = AMBX(); if (!A) return;
+      if (A.bloqueado) A.destravar(); else A.alternarMudo();
+      atualizarBotaoAudio(); P._showControls();
     });
+    ui.querySelector('[data-ctl="vol-down"]').addEventListener('click', () => { const A = AMBX(); if (!A) return; A.setVolume((A.VOLUME || 0) - 0.08); atualizarBotaoAudio(); P._showControls(); });
+    ui.querySelector('[data-ctl="vol-up"]').addEventListener('click', () => { const A = AMBX(); if (!A) return; A.destravar(); A.setVolume((A.VOLUME || 0) + 0.08); atualizarBotaoAudio(); P._showControls(); });
 
-    ui.querySelector('[data-ctl="vol-down"]').addEventListener('click', () => {
-      const A = window.TOTEM_AMBIENTE;
-      if (!A || !A.gain) return;
-      A.gain.gain.value = Math.max(0, A.gain.gain.value - 0.08);
-      A.VOLUME = A.gain.gain.value;
-      atualizarBotaoAudio();
+    // ── LUPA: arraste o dedo e o trecho sob o dedo aparece ampliado onde ficam os controles ──
+    const ZOOMS = [0, 2.2, 3.2], ROTS = ['🔍', '🔍 2×', '🔍 3×'];
+    let zi = 0, lAtiva = false, lClone = null, lTimer = null, lPausou = false, lPos = {x: 0, y: 0};
+    const lente = document.createElement('div'); lente.className = 'pl-lupa';
+    lente.innerHTML = '<div class="pl-lupa-vp"></div><div class="pl-lupa-mira"></div><div class="pl-lupa-rot"></div>';
+    root.appendChild(lente); P._lente = lente;
+    const lvp = lente.querySelector('.pl-lupa-vp'), lrot = lente.querySelector('.pl-lupa-rot');
+    lupaBtn.addEventListener('click', () => {
+      zi = (zi + 1) % ZOOMS.length; lupaBtn.textContent = ROTS[zi]; lupaBtn.dataset.ativo = zi ? '1' : '0';
+      root.classList.toggle('lupa-on', zi > 0);
+      if (zi > 0) txAviso('🔍 Lupa ' + ZOOMS[zi] + '×: arraste o dedo sobre o texto', 3500); else txAviso('');
       P._showControls();
     });
-    ui.querySelector('[data-ctl="vol-up"]').addEventListener('click', () => {
-      const A = window.TOTEM_AMBIENTE;
-      if (!A || !A.gain) return;
-      A.gain.gain.value = Math.min(1, A.gain.gain.value + 0.08);
-      A.VOLUME = A.gain.gain.value;
-      atualizarBotaoAudio();
-      P._showControls();
+    const paraInner = (cx, cy) => {
+      const g = P._geo; if (!g) return null;
+      const r = inner.getBoundingClientRect(), vx = cx - (r.left + r.width / 2), vy = cy - (r.top + r.height / 2), a = -(g.rot || 0) * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
+      return {x: g.sw / 2 + (vx * c - vy * s) / g.esc, y: g.sh / 2 + (vx * s + vy * c) / g.esc};
+    };
+    const lenteAtualizar = () => {
+      if (!lClone) return; const p = paraInner(lPos.x, lPos.y); if (!p) return;
+      const z = ZOOMS[zi] || 2.2, vw = lvp.clientWidth, vh = lvp.clientHeight;
+      lClone.style.transform = 'translate(' + (vw / 2 - p.x * z) + 'px,' + (vh / 2 - p.y * z) + 'px) scale(' + z + ')';
+      lente.classList.toggle('baixo', lPos.y < lente.offsetHeight + 30);   // se o dedo estiver embaixo da lente, ela vai para o rodapé
+    };
+    const lenteClonar = () => {
+      const g = P._geo; if (!g) return;
+      const cl = inner.cloneNode(true), oc = inner.querySelectorAll('canvas'), cc = cl.querySelectorAll('canvas');
+      oc.forEach((c, i) => { const d = cc[i]; if (!d || !c.width || !c.height) return; try { d.width = c.width; d.height = c.height; d.getContext('2d').drawImage(c, 0, 0); } catch (e) {} });
+      cl.querySelectorAll('video,audio,iframe,script,object,embed').forEach(n => n.remove());
+      cl.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'));
+      cl.style.position = 'absolute'; cl.style.left = '0'; cl.style.top = '0'; cl.style.margin = '0'; cl.style.transformOrigin = '0 0';
+      cl.style.pointerEvents = 'none'; cl.style.width = g.sw + 'px'; cl.style.height = g.sh + 'px';
+      lvp.innerHTML = ''; lvp.appendChild(cl); lClone = cl; lenteAtualizar();
+    };
+    const lenteLigar = e => {
+      lAtiva = true; P._lupaOn = true; lPos = {x: e.clientX, y: e.clientY};
+      const r = P._activeReg(); lPausou = !!(r && !r.pausado); if (lPausou) r.pausar();   // o conteúdo fica parado enquanto o dedo está na tela
+      atualizarBotaoPausa(); ui.classList.remove('visivel');
+      lrot.textContent = '🔍 ' + ZOOMS[zi] + '×'; lente.classList.add('on');
+      lenteClonar(); clearInterval(lTimer); lTimer = setInterval(() => { if (lAtiva) lenteClonar(); }, 700);
+    };
+    const lenteDesligar = () => {
+      if (!lAtiva) return; lAtiva = false; P._lupaOn = false; clearInterval(lTimer); lente.classList.remove('on'); lvp.innerHTML = ''; lClone = null;
+      const r = P._activeReg(); if (lPausou && r && r.pausado) r.retomar(); lPausou = false; atualizarBotaoPausa();
+    };
+    // ── Toque: com lupa ligada abre a lente; sem lupa, SEGURAR o dedo ~0,5 s pausa/retoma (toque curto só mostra os controles) ──
+    const dentroUI = e => e.target && e.target.closest && e.target.closest('.pl-controls,.pl-lupa,.tx-mudo,.tx-audio-dica');
+    root.addEventListener('pointerdown', P._pDown = e => {
+      if (dentroUI(e)) return;
+      if (zi > 0) { try { root.setPointerCapture(e.pointerId); } catch (x) {} lenteLigar(e); return; }
+      if (e.pointerType === 'mouse') return;
+      P._hx = e.clientX; P._hy = e.clientY; clearTimeout(P._hold);
+      P._hold = setTimeout(() => {
+        P._hold = null; try { navigator.vibrate && navigator.vibrate(25); } catch (x) {}
+        const engole = ev => { ev.stopPropagation(); ev.preventDefault(); };
+        document.addEventListener('click', engole, true); setTimeout(() => document.removeEventListener('click', engole, true), 700);
+        pauseBtn.click();
+      }, 500);
     });
+    root.addEventListener('pointermove', P._pMove = e => {
+      if (lAtiva) { lPos = {x: e.clientX, y: e.clientY}; lenteAtualizar(); return; }
+      if (P._hold && Math.hypot(e.clientX - P._hx, e.clientY - P._hy) > 14) { clearTimeout(P._hold); P._hold = null; }
+    }, { passive: true });
+    root.addEventListener('pointerup', P._pUp = () => { clearTimeout(P._hold); P._hold = null; lenteDesligar(); });
+    root.addEventListener('pointercancel', P._pUp);
+    P._lenteDesligar = lenteDesligar;
 
     // Atualiza o estado dos botões de áudio a cada 2s (reflete mudanças externas)
     P._ctlAudioTick = setInterval(atualizarBotaoAudio, 2000);
@@ -2732,6 +2790,7 @@ function criarPlayer(root, opts) {
 
     // ── Progresso do slide atual ──
     P._ctlTick = setInterval(() => {
+      atualizarBotaoPausa();
       const r = P._activeReg();
       const info = P.agora.r1 || Object.values(P.agora)[0];
       const bar = ui.querySelector('.pl-progresso-fill');
@@ -2757,6 +2816,7 @@ function criarPlayer(root, opts) {
     }, { passive: true });
     root.addEventListener('touchend', P._ctlEnd = e => {
       if (P._touchX == null) return;
+      if (zi > 0 || P._lupaOn) { P._touchX = P._touchY = null; return; }
       const dx = e.changedTouches[0].clientX - P._touchX;
       const dy = e.changedTouches[0].clientY - P._touchY;
       if (Math.abs(dx) > 65 && Math.abs(dx) > Math.abs(dy) * 1.25) {
@@ -2802,15 +2862,37 @@ function criarPlayer(root, opts) {
     inner.style.width = sw + 'px'; inner.style.height = sh + 'px'; inner.style.background = tela.fundo || '#000';
     inner.style.transform = 'translate(-50%,-50%) rotate(' + rot + 'deg) scale(' + ((1 - 2 * margem / 100) * esc0) + ')';
     root.style.setProperty('--u', (Math.min(sw, sh) / 100 * texto) + 'px');
+    P._geo = {sw, sh, rot, esc: (1 - 2 * margem / 100) * esc0}; P._tam = {w: W, h: H};
     const L = modeloDe(t, orient); inner.style.setProperty('--gap', ((+L.gap >= 0 ? +L.gap : 6) / 2) + 'px'); inner.style.setProperty('--raio', (+L.raio >= 0 ? +L.raio : 0) + 'px');
     retangulos(L).forEach(r => {
       const e = el('div', 'reg'); e.style.cssText = 'left:' + r.x + '%;top:' + r.y + '%;width:' + r.w + '%;height:' + r.h + '%'; const c = el('div', 'regc'); e.appendChild(c); inner.appendChild(e);
       P.regs[r.id] = iniciarRegiao(P, c, r.id, (t.paineis || {})[r.id]);
     });
+      P._startIdx = null;
+      if (P._pausaAntes) { P._pausaAntes = false; Object.values(P.regs).forEach(r => r.pausar && r.pausar()); }
       aplicarEsfera(P, t);
       if (!P.preview && t.audioFundo) TOTEM_AUDIO.iniciar(t.audioFundo);
   };
-  window.addEventListener('resize', P._rs = () => { if (P.t && !P._rt) P._rt = setTimeout(() => { P._rt = null; if (P.t) P.aplicar(P.t, P.aj); }, 350); });
+  /* Resize: no celular a barra de endereço aparece/some a cada toque e dispara 'resize'.
+     Antes isso REINICIAVA o loop. Agora só reconstrói se a ORIENTAÇÃO mudar (e mesmo assim volta ao mesmo slide);
+     variações de tamanho só reajustam o quadro, sem recriar os slides. */
+  window.addEventListener('resize', P._rs = () => { if (P.t && !P._rt) P._rt = setTimeout(() => {
+    P._rt = null; if (!P.t) return;
+    const w = root.clientWidth || window.innerWidth, h = root.clientHeight || window.innerHeight, g = P._tam || {w: 0, h: 0};
+    if (Math.abs(w - g.w) <= 2 && Math.abs(h - g.h) <= 2) return;
+    if ((w >= h) !== (g.w >= g.h) && g.w) {
+      P._startIdx = {}; Object.keys(P.agora).forEach(k => { P._startIdx[k] = P.agora[k].idx; });
+      const r1 = P.regs.r1 || Object.values(P.regs)[0]; P._pausaAntes = !!(r1 && r1.pausado);
+      P.aplicar(P.t, P.aj); return;
+    }
+    const tela = Object.assign({}, P.t.tela || {}, P.aj || {}), rot = P.rot || 0, sw = rot % 180 ? h : w, sh = rot % 180 ? w : h;
+    const manual = tela.ajuste === 'manual', margem = Math.max(0, Math.min(15, +tela.margem || 0)), esc0 = manual ? Math.max(.3, Math.min(2, +tela.escala || 1)) : 1;
+    const pol = +tela.polegadas || 0, texto = pol ? Math.max(.8, Math.min(2, pol / 32)) : 1;
+    inner.style.width = sw + 'px'; inner.style.height = sh + 'px';
+    inner.style.transform = 'translate(-50%,-50%) rotate(' + rot + 'deg) scale(' + ((1 - 2 * margem / 100) * esc0) + ')';
+    root.style.setProperty('--u', (Math.min(sw, sh) / 100 * texto) + 'px');
+    P._geo = {sw, sh, rot, esc: (1 - 2 * margem / 100) * esc0}; P._tam = {w, h};
+  }, 350); });
   const aplicarOrig = P.aplicar; P.aplicar = function (t, aj) { P.aj = aj; return aplicarOrig(t, aj); };
   P.destruir = function () {
     window.removeEventListener('resize', P._rs);
@@ -2822,6 +2904,12 @@ function criarPlayer(root, opts) {
       root.removeEventListener('pointermove', P._ctlMove);
       root.removeEventListener('touchstart', P._ctlTouch);
       root.removeEventListener('touchend', P._ctlEnd);
+      root.removeEventListener('pointerdown', P._pDown);
+      root.removeEventListener('pointermove', P._pMove);
+      root.removeEventListener('pointerup', P._pUp);
+      root.removeEventListener('pointercancel', P._pUp);
+      clearTimeout(P._hold);
+      if (P._lenteDesligar) P._lenteDesligar();
     }
     P.parar();
     root.innerHTML = '';
@@ -2848,8 +2936,11 @@ function iniciarRegiao(P, box, id, cont) {
   const tr = trGlobal;
   const ms = msGlobal;
   R.parar = function () { R.morto = true; clearTimeout(R.timer); if (R.atual) R.atual.destroy(); box.innerHTML = ''; };
-  R.proximo = function () {
+  const midias = fn => { try { const e = R.atual && R.atual.el; if (e) e.querySelectorAll('video,audio').forEach(fn); } catch (x) {} };
+  R.proximo = function (manual) {
     if (R.morto) return; clearTimeout(R.timer);
+    const manteraPausa = manual === true && R.pausado;   // navegar (‹ ›) com o slide pausado continua pausado
+    R._fimPendente = false;
     R.pausado=false;
     let ni;
     if(R._forcedIndex!=null){ni=R._forcedIndex;R._forcedIndex=null;}
@@ -2868,12 +2959,27 @@ function iniciarRegiao(P, box, id, cont) {
     if (!P.preview && id === 'r1' && itens.length > 1 && R._vis > 1 && (R._vis - 1) % itens.length === 0) { try { TOTEM_AMBIENTE.cicloCompleto(); } catch (e) {} }
     const dur = item.duracaoS === 0 && s.fimEvento ? 0 : Math.max(2, +item.duracaoS || 10);
     R.duracao=dur>0?dur*1000:0;R.restante=R.duracao;R.prazo=R.duracao?Date.now()+R.duracao:0;
+    if (manteraPausa) { R.pausado = true; R.restante = R.duracao; return; }
     if (itens.length === 1) { if (item.tipo === 'video') { const v = s.el.querySelector('video'); if (v) v.loop = true; } return; }
-    if (dur > 0) R.timer = setTimeout(R.proximo, dur * 1000); else s.aoFim = () => R.proximo();
+    if (dur > 0) R.timer = setTimeout(R.proximo, dur * 1000); else s.aoFim = () => { if (R.pausado) { R._fimPendente = true; return; } R.proximo(); };
   };
-  R.pausar=function(){if(R.morto||R.pausado)return;R.pausado=true;if(R.duracao>0)R.restante=Math.max(0,R.prazo-Date.now());clearTimeout(R.timer);};
-  R.retomar=function(){if(R.morto||!R.pausado)return;R.pausado=false;if(R.duracao>0&&itens.length>1){R.prazo=Date.now()+Math.max(500,R.restante||500);R.timer=setTimeout(R.proximo,Math.max(500,R.restante||500));}};
-  R.navegar=function(delta){if(R.morto||!itens.length)return;clearTimeout(R.timer);const alvo=((R.idx+(delta<0?-1:1))%itens.length+itens.length)%itens.length;R._forcedIndex=alvo;R.proximo();};
+  R.pausar=function(){
+    if(R.morto||R.pausado)return;
+    R.pausado=true; if(R.duracao>0)R.restante=Math.max(0,R.prazo-Date.now()); clearTimeout(R.timer);
+    midias(v=>{ if(!v.paused){ v._pTela=1; v.pause(); } });
+  };
+  R.retomar=function(){
+    if(R.morto||!R.pausado)return;
+    R.pausado=false;
+    midias(v=>{ if(v._pTela){ v._pTela=0; v.play().catch(()=>{}); } });
+    if(R._fimPendente){ R._fimPendente=false; R.proximo(); return; }
+    if(R.duracao>0&&itens.length>1){ const ms=Math.max(500,R.restante||500); R.prazo=Date.now()+ms; R.timer=setTimeout(R.proximo,ms); }
+  };
+  R.navegar=function(delta){
+    if(R.morto||!itens.length)return; clearTimeout(R.timer);
+    R._forcedIndex=((R.idx+(delta<0?-1:1))%itens.length+itens.length)%itens.length; R.proximo(true);
+  };
+  if (P._startIdx && P._startIdx[id] != null && P._startIdx[id] < itens.length) R._forcedIndex = P._startIdx[id];   // volta ao slide em que estava
   R.proximo(); return R;
 }
 
@@ -2941,7 +3047,7 @@ async function iniciarTotem() {
   } else {
     relogioStandby();
   }
-  if (TID) TOTEM_AMBIENTE.iniciar();
+  TOTEM_AMBIENTE.iniciar();
   if (!sessao || !TID) return;
   reagendar(cache || {});
   await syncConfig();
@@ -5120,17 +5226,26 @@ const TOTEM_AUDIO = {
   }
 };
 /* ══════ ÁUDIO AMBIENTE — músicas da pasta CONVERSA (ambiente1, ambiente2, ambiente3…) ══════
-   Regras: o número no nome define a ordem/importância (ambiente1 toca primeiro).
-   Cada faixa toca por CICLOS passadas completas pelos slides; depois vai para a próxima
-   (a última volta para a ambiente1). Vem do Worker em base64 (/api/totem/midia?base64=1).
-   Mute: botão 🔊/🔇 no totem, lembrado neste aparelho. O gráfico do slide 8 usa este áudio. */
+   Número no nome = ordem. Cada faixa toca por CICLOS voltas completas pelos slides e passa para a próxima.
+   Vem do Worker em base64 (/api/totem/midia?base64=1) e toca como Blob.
+   Navegadores só liberam som depois de um toque/clique/tecla: até lá a música toca MUDA e aparece um aviso. */
+function txAviso(txt, ms) {
+  let d = document.querySelector('.tx-audio-dica');
+  if (!d) { d = document.createElement('div'); d.className = 'tx-audio-dica'; document.body.appendChild(d); }
+  clearTimeout(d._t);
+  if (!txt) { d.classList.remove('on'); return; }
+  d.textContent = txt; d.classList.add('on');
+  if (ms) d._t = setTimeout(() => d.classList.remove('on'), ms);
+}
 const TOTEM_AMBIENTE = {
   CICLOS: 10, VOLUME: .35,
   EXT: /\.(mp3|m4a|aac|ogg|oga|opus|wav|flac)$/i,
   MIME: {mp3:'audio/mpeg',m4a:'audio/mp4',aac:'audio/aac',ogg:'audio/ogg',oga:'audio/ogg',opus:'audio/ogg',wav:'audio/wav',flac:'audio/flac'},
   K_MUDO:'almafluxo_totem_mudo', K_LISTA:'almafluxo_totem_ambiente', K_POS:'almafluxo_totem_ambiente_pos',
+  IOS: /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1),
   lista:[], pos:0, ciclos:0, audio:null, ctx:null, gain:null, an:null, btn:null, cache:new Map(),
-  mudo:false, bloqueado:false, versao:0, iniciado:false, _tl:null,
+  mudo:false, bloqueado:false, gesto:false, pausadoUsuario:false, versao:0, iniciado:false, _tl:null,
+  estado:'parado', erro:'', totalArquivos:0, semSessao:false,
 
   reconhecer(arq){
     const out=[];
@@ -5146,29 +5261,37 @@ const TOTEM_AMBIENTE = {
   },
   temFaixas(){ return this.lista.length>0; },
   rotulo(){ const f=this.lista[this.pos]; return f?('AMBIENTE '+f.n+' · ciclo '+Math.min(this.ciclos+1,this.CICLOS)+'/'+this.CICLOS):''; },
-  analisador(){ return (this.an&&this.audio&&!this.audio.paused)?this.an:null; },
+  analisador(){ return (this.an&&this.audio&&!this.audio.paused&&!this.audio.muted)?this.an:null; },
+  diagnostico(){
+    if(this.lista.length) return 'Música: '+this.estado+(this.erro?' · '+this.erro:'');
+    if(this.semSessao) return 'Música: sem sessão para ler a pasta CONVERSA (entre com a conta uma vez).';
+    return 'Música: nenhum áudio "ambiente1, ambiente2…" na pasta'+(this.totalArquivos?' ('+this.totalArquivos+' arquivos lidos).':'.');
+  },
+  avisar(t,ms){ txAviso(t,ms); },
+  dicaToque(){ if(this.bloqueado&&this.lista.length) txAviso('🔇 Toque na tela (ou pressione OK) para ligar o som da música'); },
 
   iniciar(){
     if(this.iniciado) return;
-    // só na tela do totem (/conversa/totemN ou ?t=), nunca no painel de administração
-    if(!/\/totem[\w-]*\/?$/i.test(location.pathname) && !/[?&]t=/.test(location.search)) return;
+    if(!/\/totem[\w-]*\/?$/i.test(location.pathname) && !/[?&]t=/.test(location.search) && !/\/conversa\/?$/i.test(location.pathname)) return;
     this.iniciado=true; this.mudo=!!lsGet(this.K_MUDO,false); this.botao();
     const cache=lsGet(this.K_LISTA,null);
     if(Array.isArray(cache)&&cache.length) this.aplicarLista(cache);
-    const rodar=()=>this.atualizar().catch(()=>{});
+    const rodar=()=>this.atualizar().catch(e=>{ this.erro=String(e&&e.message||e).slice(0,80); });
     setTimeout(rodar,2500); setTimeout(rodar,20000); setInterval(rodar,10*60000);
   },
   async atualizar(){
-    if(typeof sessao==='undefined'||!sessao) return;
+    if(typeof sessao==='undefined'||!sessao){ this.semSessao=!this.lista.length; return; }
+    this.semSessao=false;
     const arq=await listarPasta();
     if(!Array.isArray(arq)||!arq.length) return;
+    this.totalArquivos=arq.length;
     const nova=this.reconhecer(arq); lsSet(this.K_LISTA,nova); this.aplicarLista(nova);
   },
   aplicarLista(nova){
     const atual=this.lista[this.pos]; this.lista=nova;
     if(!nova.length){ this.pararAudio(); this.atualizarBotao(); return; }
     const i=atual?nova.findIndex(f=>f.id===atual.id):-1;
-    if(i>=0){ this.pos=i; this.atualizarBotao(); return; }   // a mesma faixa segue tocando
+    if(i>=0){ this.pos=i; this.atualizarBotao(); return; }
     const sv=lsGet(this.K_POS,null), j=sv?nova.findIndex(f=>f.id===sv.id):-1;
     this.pos=j>=0?j:0; this.ciclos=j>=0?Math.min(this.CICLOS-1,+sv.ciclos||0):0;
     this.atualizarBotao(); this.tocar();
@@ -5177,7 +5300,7 @@ const TOTEM_AMBIENTE = {
   async baixar(f){
     const c=this.cache.get(f.id); if(c) return c.url;
     const r=await fetch(totemMediaUrl(f.id,true,f.mime),{cache:'force-cache'});
-    if(!r.ok){ const e=await r.json().catch(()=>({})); throw new Error(e.error||('HTTP '+r.status)); }
+    if(!r.ok){ const e=await r.json().catch(()=>({})); throw new Error((e.error||('HTTP '+r.status))+(e.dica?' — '+e.dica:'')); }
     const d=await r.json(); if(!d.ok||!d.base64) throw new Error(d.error||'Base64 do áudio não retornado.');
     const bin=atob(d.base64), u8=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u8[i]=bin.charCodeAt(i);
     const url=URL.createObjectURL(new Blob([u8],{type:d.mime||f.mime||'audio/mpeg'}));
@@ -5188,54 +5311,76 @@ const TOTEM_AMBIENTE = {
   },
   montar(){
     if(this.audio) return;
-    const a=new Audio(); a.preload='auto'; a.loop=true; this.audio=a;
+    const a=new Audio(); a.preload='auto'; a.loop=true; a.setAttribute('playsinline',''); this.audio=a;
+    a.addEventListener('error',()=>{ this.estado='erro'; this.erro='o navegador não conseguiu tocar este arquivo'; clearTimeout(this._tl); this._tl=setTimeout(()=>this.proximaFaixa(),5000); });
+    if(this.gesto) this.montarGrafo();
+  },
+  /* O grafo WebAudio (analisador do slide 8) só é criado depois de um gesto — antes disso o áudio toca direto, sem risco de ficar mudo. */
+  montarGrafo(){
+    if(this.ctx||this.IOS||!this.audio) return;
     try{
-      const AC=window.AudioContext||window.webkitAudioContext, ctx=new AC(), src=ctx.createMediaElementSource(a);
+      const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
+      const ctx=new AC(), src=ctx.createMediaElementSource(this.audio);
       const an=ctx.createAnalyser(); an.fftSize=2048; an.smoothingTimeConstant=.6; an.minDecibels=-90; an.maxDecibels=-20;
-      const g=ctx.createGain(); src.connect(an); an.connect(g); g.connect(ctx.destination);   // analisador ANTES do ganho: o gráfico funciona mesmo no mute
-      this.ctx=ctx; this.an=an; this.gain=g;
+      const g=ctx.createGain(); src.connect(an); an.connect(g); g.connect(ctx.destination);
+      this.ctx=ctx; this.an=an; this.gain=g; this.audio.volume=1; this.aplicarGain();
+      ctx.resume().catch(()=>{});
+      setTimeout(()=>{ if(this.ctx&&this.ctx.state!=='running'){ this.bloqueado=true; this.dicaToque(); } },700);
     }catch(e){ this.ctx=this.an=this.gain=null; }
-    a.addEventListener('error',()=>{ console.warn('[AMBIENTE] erro ao tocar a faixa'); clearTimeout(this._tl); this._tl=setTimeout(()=>this.proximaFaixa(),5000); });
   },
   aplicarGain(){
     const v=this.mudo?0:this.VOLUME;
     if(this.gain) this.gain.gain.value=v; else if(this.audio) this.audio.volume=v;
   },
+  setVolume(v){
+    this.VOLUME=Math.max(0,Math.min(1,v));
+    if(this.VOLUME>0&&this.mudo){ this.mudo=false; lsSet(this.K_MUDO,false); }
+    this.aplicarGain(); this.atualizarBotao();
+  },
   async tocar(){
-    const f=this.lista[this.pos]; if(!f) return; const v=++this.versao;
+    const f=this.lista[this.pos]; if(!f) return; const v=++this.versao; this.estado='baixando'; this.erro='';
     try{
       const url=await this.baixar(f); if(v!==this.versao) return;
       this.montar(); const a=this.audio;
       a.muted=false; a.loop=true; a.src=url; this.aplicarGain(); this.salvar();
-      try{ await a.play(); }
-      catch(e){ this.bloqueado=true; a.muted=true; try{ await a.play(); }catch(e2){} }   // navegador exigiu gesto: toca mudo até o 1º toque/OK
-      if(this.ctx&&this.ctx.state==='suspended'){ this.ctx.resume().catch(()=>{}); setTimeout(()=>{ if(this.ctx&&this.ctx.state==='suspended') this.bloqueado=true; },400); }
+      if(this.pausadoUsuario){ this.estado='pausado'; return; }
+      try{ await a.play(); this.bloqueado=false; this.estado='tocando'; }
+      catch(e){ this.bloqueado=true; a.muted=true; this.estado='aguardando toque'; try{ await a.play(); }catch(e2){} this.dicaToque(); }
+      if(this.ctx&&this.ctx.state==='suspended'){ this.ctx.resume().catch(()=>{}); }
     }catch(e){
-      console.warn('[AMBIENTE]',e.message||e);
+      this.estado='erro'; this.erro=String(e.message||e).slice(0,140); console.warn('[AMBIENTE]',this.erro);
+      txAviso('🎵 '+this.erro,9000);
       clearTimeout(this._tl);
       this._tl=setTimeout(()=>{ if(this.lista.length>1){ this.pos=(this.pos+1)%this.lista.length; this.ciclos=0; } this.tocar(); },20000);
     }
   },
+  /* chamado em QUALQUER gesto do usuário (toque, clique, tecla/OK do controle) */
   destravar(){
+    this.gesto=true;
+    const a=this.audio;
+    if(a&&!this.ctx) this.montarGrafo();
     if(this.ctx&&this.ctx.state==='suspended') this.ctx.resume().catch(()=>{});
-    const a=this.audio; if(!a) return;
-    if(this.bloqueado){ a.muted=false; this.bloqueado=false; }
-    if(a.paused&&a.src) a.play().catch(()=>{});
+    if(!a) return;
+    if(this.bloqueado){ a.muted=false; this.bloqueado=false; this.estado='tocando'; txAviso(''); }
+    if(a.paused&&a.src&&!this.pausadoUsuario) a.play().catch(()=>{});
+  },
+  alternarPausa(){
+    if(!this.audio){ this.pausadoUsuario=false; this.tocar(); return; }
+    if(this.audio.paused){ this.pausadoUsuario=false; this.destravar(); this.audio.play().catch(()=>{}); this.estado='tocando'; }
+    else { this.pausadoUsuario=true; this.audio.pause(); this.estado='pausado'; }
   },
   pararAudio(){ this.versao++; if(this.audio){ try{this.audio.pause();}catch(e){} } },
   salvar(){ const f=this.lista[this.pos]; if(f) lsSet(this.K_POS,{id:f.id,ciclos:this.ciclos}); },
   proximaFaixa(){ if(!this.lista.length) return; this.pos=(this.pos+1)%this.lista.length; this.ciclos=0; this.tocar(); },
-  /* chamado pelo player a cada volta completa pelos slides do painel principal */
   cicloCompleto(){
     if(!this.lista.length||!this.audio) return;
     this.ciclos++;
     if(this.lista.length>1){
-      if(this.ciclos>=this.CICLOS-1){ const p=this.lista[(this.pos+1)%this.lista.length]; if(p) this.baixar(p).catch(()=>{}); }   // aquece a próxima
+      if(this.ciclos>=this.CICLOS-1){ const p=this.lista[(this.pos+1)%this.lista.length]; if(p) this.baixar(p).catch(()=>{}); }
       if(this.ciclos>=this.CICLOS){ this.proximaFaixa(); return; }
     } else if(this.ciclos>=this.CICLOS) this.ciclos=0;
     this.salvar();
   },
-
   botao(){
     if(document.querySelector('.tx-mudo')) return;
     const b=document.createElement('button'); b.type='button'; b.className='tx-mudo';
@@ -5245,13 +5390,17 @@ const TOTEM_AMBIENTE = {
   },
   atualizarBotao(){
     const b=this.btn; if(!b) return;
-    b.textContent=this.mudo?'🔇':'🔊'; b.title=this.mudo?'Ativar som':'Silenciar'; b.setAttribute('aria-label',b.title);
+    b.textContent=(this.mudo||this.bloqueado)?'🔇':'🔊'; b.title=this.mudo?'Ativar som':'Silenciar'; b.setAttribute('aria-label',b.title);
     b.style.display=this.lista.length?'':'none';
   },
-  alternarMudo(){ this.mudo=!this.mudo; lsSet(this.K_MUDO,this.mudo); this.aplicarGain(); this.destravar(); this.atualizarBotao(); }
+  alternarMudo(){
+    this.mudo=!this.mudo; lsSet(this.K_MUDO,this.mudo); this.aplicarGain(); this.destravar();
+    if(!this.mudo&&this.VOLUME<=0) this.setVolume(.35);
+  }
 };
-document.addEventListener('pointerdown',()=>TOTEM_AMBIENTE.destravar(),{passive:true});
-document.addEventListener('keydown',()=>TOTEM_AMBIENTE.destravar());
+window.TOTEM_AMBIENTE = TOTEM_AMBIENTE;
+['pointerup','touchend','click','keydown','mousedown'].forEach(ev=>document.addEventListener(ev,()=>TOTEM_AMBIENTE.destravar(),{passive:true,capture:true}));
+
 document.addEventListener('pointerdown',()=>TOTEM_AUDIO.retomar(),{passive:true});
 document.addEventListener('keydown',()=>TOTEM_AUDIO.retomar());
 /* ══════ BOTÃO DE TELA CHEIA — SEMPRE PRESENTE ══════ */
