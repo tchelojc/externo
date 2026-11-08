@@ -3089,7 +3089,14 @@ function iniciarRegiao(P, box, id, cont) {
     if(R._forcedIndex!=null){ni=R._forcedIndex;R._forcedIndex=null;}
     else if(cont.aleatorio&&itens.length>1){ if(!R._ordem||R._op>=R._ordem.length){R._ordem=ordemCiclo();R._op=0;} ni=R._ordem[R._op++]; }
     else ni=(R.idx+1)%itens.length;
-    const item = itens[ni], s = criarSlide(P, item); R.idx = ni; if (!s) { R.timer = setTimeout(R.proximo, 1500); return; }
+    let item = itens[ni], s = null;
+    try {
+      s = criarSlide(P, item);
+    } catch (err) {
+      console.error('[ALMAFLUXO] Falha ao criar slide "' + (item && item.tipo) + '":', err);
+    }
+    R.idx = ni;
+    if (!s) { R.timer = setTimeout(R.proximo, 1500); return; }
     // Transição personalizada por tipo (fallback para a global da região)
     const trTipo = TRANSICAO_POR_TIPO[item.tipo] || tr;
     const msTipo = Math.max(0, Math.min(3000, +trTipo.ms || ms));
@@ -4270,20 +4277,15 @@ function txAlinhamentoEm(isoDate) {
   }
   return { iso: isoDate, dias: n, planetas: out, sol: out.terra };
 }
-TX.planetas3d = {def: {vel: 'estagnado'}, build(P, item, s, S) {
-  s.className += ' tx'; txMorre(S);
-  if (P.preview) return txPreview(s, 'planetas3d');
 
-  /* ── SORTEIO SEM REPETIÇÃO (frases, pensadores e alinhamentos) ──
-   Nada de sequência fixa: cada item é sorteado ao acaso e só volta depois que TODOS da rodada já apareceram.
-   O estado fica fora do slide, então continua entre uma visita e outra (não recomeça sempre do mesmo ponto).
-   Se houver itens "prioritários" (participantes), eles saem primeiro — também em ordem aleatória. */
+/* ══════ SORTEIO SEM REPETIÇÃO (frases, pensadores e alinhamentos) ══════
+   Funções utilitárias compartilhadas entre planetas3d e horoscopo. */
 function txEmbaralhar(a) { const r = a.slice(); for (let i = r.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const x = r[i]; r[i] = r[j]; r[j] = x; } return r; }
 function txSortear(lista, est, idFn, prioFn) {
   if (!lista || !lista.length) return null;
   idFn = idFn || (p => p.nome + '|' + (p.nasc || p.tema || ''));
   let pool = lista.filter(p => !est.vistos.has(idFn(p)));
-  if (!pool.length) {                                   // rodada completa → começa outra, sem repetir o último
+  if (!pool.length) {
     est.vistos.clear(); est.rodada = (est.rodada || 0) + 1;
     pool = lista.filter(p => idFn(p) !== est.ult); if (!pool.length) pool = lista.slice();
   }
@@ -4292,8 +4294,13 @@ function txSortear(lista, est, idFn, prioFn) {
   est.vistos.add(idFn(p)); est.ult = idFn(p); est.n = (est.n || 0) + 1;
   return p;
 }
-const TX_EST_FRASES = {vistos: new Set(), ult: null, n: 0}, TX_EST_ALINH = {vistos: new Set(), ult: null, n: 0};
-// ── Base fixa de pensadores (mesma do TX_ANIVERSARIANTES) ──
+const TX_EST_FRASES = {vistos: new Set(), ult: null, n: 0};
+const TX_EST_ALINH  = {vistos: new Set(), ult: null, n: 0};
+
+TX.planetas3d = {def: {vel: 'estagnado'}, build(P, item, s, S) {
+  s.className += ' tx'; txMorre(S);
+  if (P.preview) return txPreview(s, 'planetas3d');
+  // ── Base fixa de pensadores ──
   const PENSADORES = TX_ANIVERSARIANTES.map(p => ({ nome: p.nome, nasc: p.nasc, area: p.area, origem: 'fixo' }));
 
   // ── Numerologia pitagórica ──
