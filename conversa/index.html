@@ -529,6 +529,121 @@ html,body{background:#000}
 .sl iframe{width:100%;height:100%;border:0;background:#fff}
 .sl.kb img{animation:kenb 14s ease-in-out infinite alternate}
 @keyframes kenb{from{transform:scale(1) translate(0,0)}to{transform:scale(1.12) translate(-2%,-1.5%)}}
+
+
+/* ── Painel Rio: praias, ondas e vento ── */
+.tx-editorial .ed-surf-panel{font-size:calc(var(--u)*1.1);color:#cfe0f2;overflow:hidden;min-height:0}
+.ed-surf-panel .sf-sel{width:100%;padding:.5em .6em;border-radius:.6em;background:#0a1220;color:#e8f6ff;border:1px solid #1d2a44;font-size:calc(var(--u)*1.25);margin-bottom:.5em}
+.ed-surf-panel .sf-l1{display:flex;gap:.6em;align-items:baseline;flex-wrap:wrap}.ed-surf-panel .sf-l1 b{font-size:calc(var(--u)*1.7);color:#fff}.ed-surf-panel .sf-l1 span{color:#8fa6c2}.ed-surf-panel .sf-l1 em{margin-left:auto;font-style:normal;color:#ffd36a;font-weight:700}
+.ed-surf-panel .sf-g{display:grid;grid-template-columns:1fr 1fr;gap:.25em .8em;margin-top:.4em}.ed-surf-panel .sf-g b{color:#fff}.ed-surf-panel .sf-nota{grid-column:1/-1}
+.ed-surf-panel .sf-alerta{margin-top:.4em;padding:.35em .6em;border-radius:.5em;background:rgba(255,90,110,.16);border:1px solid rgba(255,90,110,.5);color:#ffb0ba;font-weight:700}
+.ed-surf-panel .sf-melhor{margin-top:.5em;color:#9fe8c7}.ed-surf-panel .sf-melhor b{color:#fff}
+.ed-surf-panel .sf-rank{margin-top:.5em;display:grid;grid-template-columns:1fr 1fr;gap:.2em .8em}
+.ed-surf-panel .sf-r{display:flex;align-items:center;gap:.4em;padding:.15em .3em;border-radius:.4em;cursor:pointer}.ed-surf-panel .sf-r.on{background:rgba(0,229,255,.12);outline:1px solid rgba(0,229,255,.4)}
+.ed-surf-panel .sf-r b{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e8f6ff;font-weight:700}.ed-surf-panel .sf-r span{color:#8fa6c2;white-space:nowrap}.ed-surf-panel .sf-r i{font-style:normal}
+/* ── DEMO KPG (slide de publicidade) ── */
+.s-demo{background:#06121f;color:#fff;font-family:'Inter',system-ui,sans-serif;--azul-primario:#1a5276;--azul-medio:#2980b9;--azul-claro:#3498db;--azul-ceu:#85c1e9;--azul-branco:#ebf5fb;--dourado:#f39c12;--verde:#27ae60;--texto:#2c3e50;--texto-suave:#7f8c8d;--border:#d4e6f1;--sombra:0 8px 30px rgba(26,82,118,.12)}
+.s-demo .tx-pub{display:none!important}
+.kd-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 75% 42%,#13406b 0%,#0a2038 45%,#050d17 100%)}
+.kd-bg::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(135deg,rgba(255,255,255,.025) 0 2px,transparent 2px 22px)}
+.kd-top{position:absolute;left:4%;right:4%;top:2.2%;height:7%;display:flex;align-items:center;justify-content:space-between;z-index:2}
+.kd-logo{font:800 calc(var(--u)*2.6)/1 'Orbitron',sans-serif;letter-spacing:.08em}.kd-logo b{color:var(--dourado)}
+.kd-tag{font-size:calc(var(--u)*1.3);letter-spacing:.2em;color:#9fd0f5;font-weight:700}
+.kd-main{position:absolute;left:4%;right:4%;top:11%;bottom:3%;display:flex;gap:4%;align-items:center;z-index:2}
+.kd-info{flex:1 1 50%;min-width:0;display:flex;flex-direction:column;gap:calc(var(--u)*1.6)}
+.kd-kick{font:700 calc(var(--u)*1.6)/1 'Orbitron',sans-serif;letter-spacing:.2em;color:var(--dourado);min-height:1em}
+.kd-h{font:800 calc(var(--u)*4.6)/1.08 'Inter',sans-serif;margin:0}
+.kd-p{font-size:calc(var(--u)*2.2);line-height:1.35;color:#cfe6fb;margin:0;min-height:4em}
+.kd-kick.pop,.kd-h.pop,.kd-p.pop{animation:kdPop .55s ease both}
+@keyframes kdPop{from{opacity:0;transform:translateY(calc(var(--u)*1.2))}to{opacity:1;transform:none}}
+.kd-do{align-self:flex-start;font-weight:800;font-size:calc(var(--u)*1.9);color:#06121f;background:var(--dourado);padding:.45em .9em;border-radius:99px;opacity:0;transform:translateY(8px);transition:opacity .25s,transform .25s;min-height:1.2em}
+.kd-do.on{opacity:1;transform:none}
+.kd-prog{display:flex;gap:calc(var(--u)*.8)}
+.kd-prog i{height:calc(var(--u)*.7);flex:1;border-radius:9px;background:rgba(255,255,255,.18);transition:background .4s}.kd-prog i.on{background:var(--dourado)}.kd-prog i.ok{background:#3fd08a}
+.kd-ben{list-style:none;margin:0;padding:0;display:flex;gap:calc(var(--u)*2);flex-wrap:wrap;font-size:calc(var(--u)*1.55);color:#9fd0f5;font-weight:700}
+.kd-phone{flex:0 0 auto;height:100%;aspect-ratio:9/17.2;max-width:46%;border-radius:calc(var(--u)*4);background:#02060c;padding:calc(var(--u)*.9);box-shadow:0 0 0 calc(var(--u)*.25) #1d3a57,0 30px 80px rgba(0,0,0,.65),0 0 60px rgba(52,152,219,.25);position:relative}
+.kd-stage{position:relative;width:100%;height:100%;overflow:hidden;border-radius:calc(var(--u)*3.2);background:#f0f4f8}
+.kd-world{position:absolute;left:0;top:0;width:430px;transform-origin:0 0;transition:transform 1.1s cubic-bezier(.45,.05,.2,1)}
+.kd-wiz{position:relative;padding:14px 14px 96px;color:#2c3e50;font-family:'Nunito','Inter',system-ui,sans-serif;font-size:16px;line-height:1.5;text-align:left}
+.s-demo .kd-wiz .gb-total{display:none}
+.s-demo .kd-wiz .gb-tipo:hover,.s-demo .kd-wiz .gb-chip:hover{transform:none}
+.kd-hl{outline:3px solid #f39c12!important;outline-offset:2px;border-radius:8px}
+.kd-cursor{position:absolute;left:0;top:0;width:0;height:0;z-index:9;opacity:0;pointer-events:none;transition:transform .95s cubic-bezier(.45,.05,.2,1),opacity .4s;transform:translate(300px,900px)}
+.kd-cursor.on{opacity:1}
+.kd-cursor svg{display:block;transform-origin:3px 2px;transform:scale(var(--inv,1));filter:drop-shadow(0 3px 4px rgba(0,0,0,.45))}
+.kd-rip{position:absolute;left:-16px;top:-17px;width:36px;height:36px;border-radius:50%;border:3px solid #f39c12;opacity:0}
+.kd-rip.tap{animation:kdRip .7s ease-out}
+@keyframes kdRip{0%{opacity:.95;transform:scale(calc(var(--inv,1)*.4))}100%{opacity:0;transform:scale(calc(var(--inv,1)*2.6))}}
+.kd-spot{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .6s;z-index:2;background:radial-gradient(ellipse 64% 44% at 50% 50%,transparent 55%,rgba(2,8,16,.4) 100%)}.kd-spot.on{opacity:1}
+.kd-hud{position:absolute;left:3%;right:3%;bottom:2.5%;z-index:3;background:linear-gradient(135deg,#1a5276,#2980b9);color:#fff;border-radius:calc(var(--u)*2);padding:calc(var(--u)*1.1) calc(var(--u)*1.6);display:flex;justify-content:space-between;align-items:center;box-shadow:0 10px 30px rgba(26,82,118,.4);opacity:0;transform:translateY(20px);transition:opacity .4s,transform .4s}
+.kd-hud.on{opacity:1;transform:none}.kd-hud small{display:block;opacity:.85;font-size:calc(var(--u)*1.05)}.kd-hud b{font-size:calc(var(--u)*2.4);font-weight:800}
+.kd-hud.pulse{animation:kdPulse .6s}
+@keyframes kdPulse{0%{transform:scale(1)}40%{transform:scale(1.06);box-shadow:0 0 0 calc(var(--u)*.5) rgba(243,156,18,.45)}100%{transform:scale(1)}}
+.kd-ov{position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;text-align:center;background:radial-gradient(ellipse at center,rgba(8,30,52,.97),rgba(3,9,16,.99));opacity:0;pointer-events:none;transition:opacity .7s}
+.kd-ov.on{opacity:1}
+.kd-ov small{display:block;font:700 calc(var(--u)*1.8)/1 'Orbitron',sans-serif;letter-spacing:.3em;color:var(--dourado);margin-bottom:calc(var(--u)*2)}
+.kd-ov h1{font:800 calc(var(--u)*7.5)/1.05 'Inter',sans-serif;margin:0 6%}
+.kd-ov p{font-size:calc(var(--u)*2.4);color:#9fd0f5;margin:calc(var(--u)*2) 6% 0}
+.kd-zap{display:inline-block;margin-top:calc(var(--u)*2.5);font:800 calc(var(--u)*5)/1 'Orbitron',sans-serif;color:#06121f;background:var(--dourado);padding:.35em .8em;border-radius:.5em}
+.kd-port .kd-main{flex-direction:column-reverse;gap:2%}
+.kd-port .kd-phone{height:62%;max-width:100%}
+.kd-port .kd-info{flex:1 1 auto;width:100%}
+.kd-port .kd-h{font-size:calc(var(--u)*6.4)}.kd-port .kd-p{font-size:calc(var(--u)*3.2)}.kd-port .kd-do{font-size:calc(var(--u)*2.8)}.kd-port .kd-ben{font-size:calc(var(--u)*2.2)}
+
+.s-demo .kd-wiz *{box-sizing:border-box}
+.s-demo .gb-steps{display:flex;gap:6px;margin:0 0 1rem;overflow-x:auto;padding-bottom:4px}
+.s-demo .gb-step{flex:1;min-width:84px;text-align:center;font-size:.72rem;font-weight:700;padding:.5rem .3rem;border-radius:10px;background:var(--azul-branco);color:var(--texto-suave);border:1px solid var(--border)}
+.s-demo .gb-step.on{background:var(--azul-primario);color:#fff;border-color:var(--azul-primario)}
+.s-demo .gb-step.ok{background:#e8f6ee;color:var(--verde);border-color:#bfe5cd}
+.s-demo .gb-card{background:#fff;border:1px solid var(--border);border-radius:18px;padding:1.2rem;box-shadow:var(--sombra);margin-bottom:1rem}
+.s-demo .gb-card h3{margin:0 0 .3rem;color:var(--azul-primario);font-size:1.15rem}
+.s-demo .gb-sub{color:var(--texto-suave);font-size:.85rem;margin:0 0 .9rem}
+.s-demo .gb-tipos{display:grid;gap:.8rem;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.s-demo .gb-tipo{cursor:pointer;border:2px solid var(--border);border-radius:16px;padding:1rem;text-align:left;background:#fff;font:inherit;color:inherit;transition:.15s}
+.s-demo .gb-tipo:hover{border-color:var(--azul-claro);transform:translateY(-2px)}
+.s-demo .gb-tipo.on{border-color:var(--dourado);background:#fff8ec}
+.s-demo .gb-tipo .ic{font-size:2rem}
+.s-demo .gb-tipo b{display:block;margin:.3rem 0 .15rem;color:var(--azul-primario)}
+.s-demo .gb-tipo span.d{font-size:.8rem;color:var(--texto-suave)}
+.s-demo .gb-grid{display:grid;gap:.8rem;grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.s-demo .gb-f{display:flex;flex-direction:column;gap:.25rem;font-size:.78rem;font-weight:700;color:var(--texto-suave)}
+.s-demo .gb-f input,.s-demo .gb-f select,.s-demo .gb-f textarea,.s-demo .gb-in{border:1px solid var(--border);border-radius:10px;padding:.55rem .6rem;font:inherit;font-size:.95rem;color:var(--texto);background:#fff;width:100%}
+.s-demo .gb-f textarea{min-height:90px;resize:vertical}
+.s-demo .gb-row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
+.s-demo .gb-btn{border:0;border-radius:12px;padding:.7rem 1.1rem;font:inherit;font-weight:700;cursor:pointer;background:var(--azul-primario);color:#fff}
+.s-demo .gb-btn.gold{background:var(--dourado);color:#fff}
+.s-demo .gb-btn.ghost{background:var(--azul-branco);color:var(--azul-primario);border:1px solid var(--border)}
+.s-demo .gb-btn.sm{padding:.4rem .7rem;font-size:.8rem;border-radius:9px}
+.s-demo .gb-btn.red{background:#fdecea;color:#c0392b}
+.s-demo .gb-btn[disabled]{opacity:.5;cursor:not-allowed}
+.s-demo .gb-room{border:1px solid var(--border);border-radius:14px;margin-bottom:.7rem;overflow:hidden;background:#fff}
+.s-demo .gb-room>.hd{display:flex;align-items:center;gap:.6rem;padding:.7rem .9rem;background:var(--azul-branco);cursor:pointer}
+.s-demo .gb-room>.hd b{flex:1;color:var(--azul-primario)}
+.s-demo .gb-room>.hd small{color:var(--texto-suave)}
+.s-demo .gb-room>.bd{padding:.9rem;display:none}
+.s-demo .gb-room.open>.bd{display:block}
+.s-demo .gb-sec{border-top:1px dashed var(--border);margin-top:.8rem;padding-top:.7rem}
+.s-demo .gb-sec h4{margin:0 0 .4rem;font-size:.9rem;color:var(--azul-medio)}
+.s-demo .gb-step-q{display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.s-demo .gb-step-q button{border:0;background:var(--azul-branco);width:34px;height:34px;font-size:1.1rem;cursor:pointer;color:var(--azul-primario)}
+.s-demo .gb-step-q input{width:52px;text-align:center;border:0;font:inherit;font-weight:700;padding:0}
+.s-demo .gb-chip{border:1px solid var(--border);background:#fff;border-radius:99px;padding:.3rem .7rem;font-size:.78rem;cursor:pointer;font-weight:600;color:var(--azul-primario)}
+.s-demo .gb-chip:hover{background:var(--azul-branco)}
+.s-demo .gb-line{display:grid;gap:.5rem;grid-template-columns:repeat(auto-fit,minmax(110px,1fr)) auto;align-items:end;margin-bottom:.5rem}
+.s-demo .gb-total{position:sticky;bottom:10px;z-index:5;background:linear-gradient(135deg,var(--azul-primario),var(--azul-medio));color:#fff;border-radius:16px;padding:.8rem 1.1rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;box-shadow:0 10px 30px rgba(26,82,118,.35);margin-top:1rem}
+.s-demo .gb-total .v{font-size:1.5rem;font-weight:800}
+.s-demo .gb-total small{opacity:.85}
+.s-demo .gb-big{font-size:2.2rem;font-weight:800;color:var(--azul-primario)}
+.s-demo .gb-bar{height:10px;border-radius:6px;background:var(--azul-claro)}
+.s-demo .gb-barbg{background:var(--azul-branco);border-radius:6px;margin:.2rem 0 .6rem}
+.s-demo .gb-tb{width:100%;border-collapse:collapse;font-size:.85rem}
+.s-demo .gb-tb th,.s-demo .gb-tb td{padding:.45rem .5rem;border-bottom:1px solid var(--border);text-align:left}
+.s-demo .gb-tb th{color:var(--texto-suave);font-size:.72rem;text-transform:uppercase}
+.s-demo .gb-tb .n{text-align:right;white-space:nowrap}
+.s-demo .gb-ok{background:#e8f6ee;border:1px solid #bfe5cd;color:#1e7b46;border-radius:14px;padding:1rem;margin-top:1rem}
+.s-demo .gb-warn{background:#fff8ec;border:1px solid #f5d9a6;color:#8a5a00;border-radius:12px;padding:.7rem .9rem;font-size:.85rem;margin-top:.7rem}
+.s-demo .gb-note{font-size:.76rem;color:var(--texto-suave);margin-top:.5rem}
+.s-demo .gb-line{grid-template-columns:1fr 1fr}
 .s-relogio{display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#0b1830,#03050a);color:#e8f6ff;font-family:'Orbitron',sans-serif}
 .s-relogio .rl-h{font-size:calc(var(--u)*11);font-weight:700;letter-spacing:.06em;text-shadow:0 0 calc(var(--u)*2) rgba(0,229,255,.5)}
 .s-relogio .rl-d{font-size:calc(var(--u)*2.6);color:#00e5ff;letter-spacing:.2em;text-transform:uppercase;margin-top:calc(var(--u)*1)}
@@ -2948,6 +3063,16 @@ function iniciarRegiao(P, box, id, cont) {
   }
 
   let itens = (cont.itens || []).filter(i => i && i.ativo !== false); if (!itens.length) itens = [{tipo: 'relogio', duracaoS: 3600}];
+  // O relógio é a referência de ciclo: sempre o ÚLTIMO slide da volta (também no modo aleatório).
+  // Fim da volta: … demais slides → DEMO da KPG (publicidade) → RELÓGIO. Vale também no modo aleatório.
+  const pesoFim = i => i.tipo === 'relogio' ? 2 : (i.tipo === 'demoKpg' ? 1 : 0);
+  itens = itens.map((i, n) => [i, n]).sort((a, b) => pesoFim(a[0]) - pesoFim(b[0]) || a[1] - b[1]).map(x => x[0]);
+  const ordemCiclo = () => {
+    const idx = itens.map((_, i) => i), p0 = idx.filter(i => pesoFim(itens[i]) === 0), p1 = idx.filter(i => pesoFim(itens[i]) === 1), p2 = idx.filter(i => pesoFim(itens[i]) === 2);
+    for (let i = p0.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const x = p0[i]; p0[i] = p0[j]; p0[j] = x; }
+    if (p0.length > 1 && p0[0] === R.idx) p0.push(p0.shift());   // não repete o último slide da volta anterior
+    return p0.concat(p1, p2);
+  };
   // Transição: usa a personalizada do tipo de slide (se existir), senão a global da região
   const trGlobal = Object.assign({tipo: 'fade', ms: 800}, cont.transicao || {});
   const msGlobal = Math.max(0, Math.min(3000, +trGlobal.ms || 0));
@@ -2962,7 +3087,7 @@ function iniciarRegiao(P, box, id, cont) {
     R.pausado=false;
     let ni;
     if(R._forcedIndex!=null){ni=R._forcedIndex;R._forcedIndex=null;}
-    else if(cont.aleatorio&&itens.length>1){do{ni=Math.floor(Math.random()*itens.length);}while(ni===R.idx);}
+    else if(cont.aleatorio&&itens.length>1){ if(!R._ordem||R._op>=R._ordem.length){R._ordem=ordemCiclo();R._op=0;} ni=R._ordem[R._op++]; }
     else ni=(R.idx+1)%itens.length;
     const item = itens[ni], s = criarSlide(P, item); R.idx = ni; if (!s) { R.timer = setTimeout(R.proximo, 1500); return; }
     // Transição personalizada por tipo (fallback para a global da região)
@@ -2975,7 +3100,8 @@ function iniciarRegiao(P, box, id, cont) {
     P.agora[id] = {idx: ni, total: itens.length, tipo: item.tipo, nome: item.nome || item.cidade || item.texto || item.url || item.driveId || item.tipo, driveId: item.driveId || null, desde: Date.now()};
     R._vis = (R._vis || 0) + 1;
     if (!P.preview && id === 'r1' && itens.length > 1 && R._vis > 1 && (R._vis - 1) % itens.length === 0) { try { TOTEM_AMBIENTE.cicloCompleto(); } catch (e) {} }
-    const dur = item.duracaoS === 0 && s.fimEvento ? 0 : Math.max(2, +item.duracaoS || 10);
+    let dur = item.duracaoS === 0 && s.fimEvento ? 0 : Math.max(2, +item.duracaoS || 10);
+    const dMin = TX[item.tipo] && TX[item.tipo].duracaoMin; if (dMin && dur > 0 && dur < dMin) dur = dMin;   // slides que precisam de tempo mínimo (ex.: demo da KPG)
     R.duracao=dur>0?dur*1000:0;R.restante=R.duracao;R.prazo=R.duracao?Date.now()+R.duracao:0;
     if (manteraPausa) { R.pausado = true; R.restante = R.duracao; return; }
     if (itens.length === 1) { if (item.tipo === 'video') { const v = s.el.querySelector('video'); if (v) v.loop = true; } return; }
@@ -3447,6 +3573,7 @@ Object.assign(TIPOS, {
   recadoAmor: '💌 Recado do Amor (QR + mensagens)', bolsa3d: '📊 Bolsa 3D (gráfico + probabilidade)', cotacoes: '💱 Cotações (dólar, ouro, Bitcoin…)', noticias: '📰 Notícias do mercado',
   planetas3d: '🪐 Sistema Solar 3D', terremotos: '🌍 Terremotos (globo 3D)', horoscopo: '🔮 Alinhamento colaborativo', jornal: '🗞️ Jornal Clima Fluxo', climagrafico: '📈 Gráfico de clima animado'
 });
+Object.assign(TIPOS, {demoKpg: '🏗️ Demo: Orçamento guiado (KPG · publicidade)'});
 Object.assign(TIPOS, {
   mecanica3d: '⚙️ Mecânica & Mobilidade',
   eletrica: '⚡ Energia & Eletricidade',
@@ -3555,6 +3682,373 @@ const txHora = v => v ? new Date(v).toLocaleTimeString('pt-BR', {hour:'2-digit',
 const txRodape = d => esc(d.aviso || '') + ' · ' + esc(d.fontes || '') + ' · atualizado ' + txHora(d.atualizado) + txStaleTag(d);
 
 /* ═════ COTAÇÕES ═════ */
+/* ══════ motor do Orçamento Guiado (cópia do site da KPG, só em memória — sem rede e sem localStorage) ══════ */
+function kdWizard(root) {
+'use strict';
+const $ = id => root.querySelector('#' + id);
+const R$=v=>(+v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
+const N1=v=>(+v||0).toLocaleString('pt-BR',{maximumFractionDigits:1});
+const N2=v=>(+v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const E=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const num=v=>{const x=parseFloat(String(v).replace(',','.'));return isFinite(x)?x:0};
+let PR={
+  bdi:.22,reserva:.05,faixaMin:-.08,faixaMax:.12,
+  estrutura:{economico:1350,medio:1750,alto:2300},      // R$/m² — fundação, estrutura, alvenaria, cobertura e impermeabilização
+  tipoFator:{casa:1,chale:1.08},
+  piso:{ceramica:95,porcelanato:160,laminado:130,vinilico:140,cimento:85},   // R$/m² (material + mão de obra)
+  parede:{pintura:38,textura:52,ceramica:120,porcelanato:190},               // R$/m² de parede
+  forro:{laje:0,gesso:85,pvc:62},
+  tomada:135,luz:120,interruptor:95,quadroBase:1800,quadroCirc:190,tue:340,
+  hid:{banheiro:6800,lavabo:4200,cozinha:3600,servico:2400,outro:0},
+  janela:{aluminio:780,temperado:1150,acustica:1650,madeira:620,pvc:1050},   // R$/m² de esquadria instalada
+  porta:{madeira:780,cortachamas:3200,sanfonada:520,aluminio:1150,vidro:2400},// R$/un instalada
+  ar:{9000:2900,12000:3300,18000:4700,24000:6200,30000:7900,36000:9800,48000:13200},
+  arTipo:{split:1,parede:.75,pisoteto:1.25,cassete:1.5},arInfra:600,
+  vent:{teto:480,parede:360},
+  muro:{ml:1150,acab:120,portao:{nenhum:0,social:1900,garagem:6800,deslizante:9800}},
+  reforma:{leve:1300,media:2100,pesada:3200,demol:120},
+  offgrid:{nenhum:0,A:7000,B:9500,C:18500}   // cenários do projeto do Chalé: backup / híbrido / off-grid completo
+};
+const L={
+  tipo:{muro:['🧱','Muro','Muro de divisa, fechamento e portão'],chale:['🏡','Chalé','Chalé completo, obra fechada'],casa:['🏠','Casa','Casa nova, do projeto à entrega'],reforma:['🔧','Reforma total','Reformar toda a construção']},
+  padrao:{economico:'Econômico',medio:'Médio',alto:'Alto padrão'},
+  piso:{ceramica:'Cerâmica',porcelanato:'Porcelanato',laminado:'Laminado',vinilico:'Vinílico',cimento:'Cimento queimado'},
+  parede:{pintura:'Pintura',textura:'Textura',ceramica:'Revestimento cerâmico',porcelanato:'Porcelanato'},
+  forro:{laje:'Laje aparente + pintura',gesso:'Forro de gesso',pvc:'Forro de PVC'},
+  janela:{aluminio:'Alumínio',temperado:'Vidro temperado (blindex)',acustica:'Esquadria acústica',madeira:'Madeira',pvc:'PVC'},
+  porta:{madeira:'Madeira',cortachamas:'Corta-chamas',sanfonada:'Sanfonada',aluminio:'Alumínio',vidro:'Vidro de correr'},
+  arTipo:{split:'Split (hi-wall)',parede:'De parede (janela)',pisoteto:'Piso-teto',cassete:'Cassete'},
+  vent:{teto:'Ventilador de teto',parede:'Ventilador de parede'},
+  acab:{reboco:'Reboco e pintura',aparente:'Bloco aparente',textura:'Textura'},
+  portao:{nenhum:'Sem portão',social:'Portão social',garagem:'Portão de garagem (basculante)',deslizante:'Portão deslizante'},
+  estado:{leve:'Leve (pintura e ajustes)',media:'Média (troca de pisos, elétrica e hidráulica parciais)',pesada:'Pesada (refazer instalações e estrutura leve)'},
+  offgrid:{nenhum:'Ligado na rede (sem solar)',A:'Backup (estação ~1 kWh + 2 placas)',B:'Híbrido (2 baterias + 3 placas + inversor 1,5 kW)',C:'Off-grid completo (4 baterias + 2 placas + inversor 1500 W)'},
+  hid:{banheiro:'Banheiro',lavabo:'Lavabo',cozinha:'Cozinha',servico:'Área de serviço',outro:'Seco (sem hidráulica)'}
+};
+const TPL={
+  sala:{nome:'Sala',w:4,h:5,tom:6,luz:2,jan:1,por:1,hid:'outro'},
+  quarto:{nome:'Quarto',w:3,h:3.5,tom:5,luz:1,jan:1,por:1,hid:'outro'},
+  suite:{nome:'Suíte',w:3.5,h:4,tom:6,luz:1,jan:1,por:1,hid:'outro'},
+  cozinha:{nome:'Cozinha',w:3,h:3.5,tom:8,luz:1,jan:1,por:1,hid:'cozinha',itens:[['Geladeira',250],['Micro-ondas',1200]],piso:'porcelanato',parede:'ceramica'},
+  banheiro:{nome:'Banheiro',w:1.8,h:2.4,tom:1,luz:1,jan:1,por:1,hid:'banheiro',itens:[['Chuveiro elétrico',5500]],piso:'ceramica',parede:'ceramica',jw:.6,jh:.6},
+  lavabo:{nome:'Lavabo',w:1.2,h:1.6,tom:1,luz:1,jan:0,por:1,hid:'lavabo',piso:'porcelanato',parede:'ceramica'},
+  servico:{nome:'Área de serviço',w:2,h:2.5,tom:3,luz:1,jan:1,por:1,hid:'servico',itens:[['Máquina de lavar',1000]],piso:'ceramica',parede:'ceramica'},
+  varanda:{nome:'Varanda',w:3,h:4,tom:2,luz:1,jan:0,por:1,hid:'outro',pt:'vidro'},
+  garagem:{nome:'Garagem',w:3,h:5.5,tom:2,luz:1,jan:0,por:1,hid:'outro',piso:'cimento',parede:'textura'},
+  escritorio:{nome:'Escritório',w:3,h:3,tom:6,luz:1,jan:1,por:1,hid:'outro',itens:[['Computador',300]]},
+  outro:{nome:'Cômodo',w:3,h:3,tom:3,luz:1,jan:1,por:1,hid:'outro'}
+};
+const QUICK=[['TV',150],['Geladeira',250],['Micro-ondas',1200],['Chuveiro elétrico',5500],['Forno elétrico',2000],['Máquina de lavar',1000],['Computador',300],['Freezer',200],['Bomba d’água',750],['Outro aparelho',200]];
+let G=fresh();
+function fresh(){return {passo:1,tipo:'',padrao:'medio',offgrid:'nenhum',pe:2.8,muro:{comp:20,alt:2.2,acab:'reboco',portao:'garagem',pw:3.5},reforma:{area:80,estado:'media',demol:true},comodos:[],cliente:{nome:'',whats:'',cidade:'',obs:''},enviado:null}}
+const save=()=>{};
+const uid=()=>Math.random().toString(36).slice(2,8);
+function newRoom(k){
+  const t=TPL[k]||TPL.outro;
+  const c={id:uid(),tipo:k,nome:t.nome,w:t.w,h:t.h,piso:t.piso||'ceramica',parede:t.parede||'pintura',forro:'laje',hid:t.hid,tom:t.tom,luz:t.luz,itens:(t.itens||[]).map(x=>({nome:x[0],w:x[1]})),janelas:[],portas:[],ar:[],vent:[],open:true};
+  if(t.jan)c.janelas.push({tipo:'aluminio',w:t.jw||1.2,h:t.jh||1,q:t.jan});
+  if(t.por)c.portas.push({tipo:t.pt||'madeira',q:t.por});
+  return c;
+}
+
+/* ===== cálculo ===== */
+function san(g){const c=JSON.parse(JSON.stringify(g));const P=v=>Math.max(0,+v||0),I=v=>Math.round(P(v));
+  c.pe=Math.max(2,P(c.pe)||2.8);c.muro.comp=P(c.muro.comp);c.muro.alt=P(c.muro.alt);c.muro.pw=P(c.muro.pw);c.reforma.area=P(c.reforma.area);
+  c.comodos.forEach(r=>{r.w=P(r.w);r.h=P(r.h);r.tom=I(r.tom);r.luz=I(r.luz);r.itens.forEach(i=>i.w=P(i.w));r.janelas.forEach(j=>{j.w=P(j.w);j.h=P(j.h);j.q=I(j.q)});r.portas.forEach(x=>x.q=I(x.q));r.ar.forEach(x=>x.q=I(x.q));r.vent.forEach(x=>x.q=I(x.q))});return c}
+function calc(g){
+  g=san(g);
+  const it=[];const add=(cat,desc,un,q,pr,com)=>{q=+q;pr=+pr;if(q>0&&pr>=0)it.push({cat,desc,un,qtd:+q.toFixed(2),preco:+pr.toFixed(2),total:+(q*pr).toFixed(2),comodo:com||''})};
+  let area=0,tomT=0,luzT=0,tueT=0;const porCom={};
+  const CAT={civ:'Estrutura e obra civil',acab:'Acabamentos',ele:'Elétrica',hid:'Hidráulica',esq:'Esquadrias (janelas e portas)',clima:'Climatização e ventilação',muro:'Muro e portão',ref:'Reforma'};
+  if(g.tipo==='muro'){
+    const m=g.muro,L0=Math.max(0,num(m.comp)),H=Math.max(.5,num(m.alt));
+    add(CAT.muro,'Muro — fundação, estrutura e alvenaria ('+N1(L0)+' m × '+N1(H)+' m)','m',L0,PR.muro.ml*(H/2)*(H>3?1.5:1));
+    add(CAT.muro,'Acabamento do muro — '+L.acab[m.acab]+' (2 faces)','m²',L0*H*2,PR.muro.acab*(m.acab==='aparente'?.4:m.acab==='textura'?1.35:1));
+    if(m.portao&&m.portao!=='nenhum')add(CAT.muro,L.portao[m.portao]+' ('+N1(m.pw)+' m)','un',1,PR.muro.portao[m.portao]*Math.max(.7,num(m.pw)/(m.portao==='social'?1:3.5)));
+    area=L0*.3;
+  }else{
+    if(g.tipo==='reforma'){const a=Math.max(0,num(g.reforma.area));add(CAT.ref,'Reforma geral — '+L.estado[g.reforma.estado],'m²',a,PR.reforma[g.reforma.estado]);if(g.reforma.demol)add(CAT.ref,'Demolição, retirada de entulho e proteção','m²',a,PR.reforma.demol);area=a}
+    g.comodos.forEach(c=>{
+      const A=Math.max(0,c.w*c.h),per=2*(c.w+c.h);let sub=0;const n0=it.length;const com=c.nome;
+      if(g.tipo!=='reforma')area+=A;
+      add(CAT.acab,'Piso '+L.piso[c.piso],'m²',A,PR.piso[c.piso],com);
+      const jArea=c.janelas.reduce((a,j)=>a+j.w*j.h*j.q,0),pArea=c.portas.reduce((a,p)=>a+1.6*p.q,0);
+      add(CAT.acab,'Parede — '+L.parede[c.parede],'m²',Math.max(0,per*g.pe-jArea-pArea),PR.parede[c.parede],com);
+      add(CAT.acab,L.forro[c.forro],'m²',A,PR.forro[c.forro],com);
+      add(CAT.ele,'Tomadas','un',c.tom,PR.tomada,com);tomT+=c.tom;
+      add(CAT.ele,'Pontos de luz + interruptor','un',c.luz,PR.luz+PR.interruptor,com);luzT+=c.luz;
+      const tues=c.itens.filter(x=>x.w>=1500);tueT+=tues.length;
+      if(tues.length)add(CAT.ele,'Circuito dedicado ('+tues.map(x=>x.nome).join(', ')+')','un',tues.length,PR.tue,com);
+      if(PR.hid[c.hid])add(CAT.hid,'Kit hidráulico e louças — '+L.hid[c.hid],'vb',1,PR.hid[c.hid],com);
+      c.janelas.forEach(j=>add(CAT.esq,'Janela '+L.janela[j.tipo]+' '+N2(j.w)+'×'+N2(j.h),'m²',j.w*j.h*j.q,PR.janela[j.tipo],com));
+      c.portas.forEach(p=>add(CAT.esq,'Porta '+L.porta[p.tipo],'un',p.q,PR.porta[p.tipo],com));
+      c.ar.forEach(a=>add(CAT.clima,'Ar-condicionado '+L.arTipo[a.tipo]+' '+(a.btu/1000)+'.000 BTU','un',a.q,PR.ar[a.btu]*PR.arTipo[a.tipo]+PR.arInfra,com));
+      c.vent.forEach(v=>add(CAT.clima,L.vent[v.tipo],'un',v.q,PR.vent[v.tipo],com));
+      porCom[c.id]=it.slice(n0).reduce((a,x)=>a+x.total,0);
+    });
+    if(g.tipo!=='reforma'&&area>0)add(CAT.civ,'Fundação, estrutura, alvenaria, cobertura e impermeabilização ('+L.padrao[g.padrao]+')','m²',area*1.12,PR.estrutura[g.padrao]*(PR.tipoFator[g.tipo]||1));
+    const circ=Math.ceil(tomT/8)+Math.ceil(luzT/10)+tueT;
+    if((g.tipo==='casa'||g.tipo==='chale')&&g.offgrid&&g.offgrid!=='nenhum')add(CAT.ele,'Energia solar — '+L.offgrid[g.offgrid],'vb',1,PR.offgrid[g.offgrid]);
+    if(g.comodos.length)add(CAT.ele,'Quadro de distribuição (DR/DPS) e entrada — '+circ+' circuitos','vb',1,PR.quadroBase+circ*PR.quadroCirc);
+  }
+  const subtotal=it.reduce((a,x)=>a+x.total,0);const bdi=subtotal*PR.bdi,res=(subtotal+bdi)*PR.reserva,total=subtotal+bdi+res;
+  const porDisc={};it.forEach(x=>porDisc[x.cat]=(porDisc[x.cat]||0)+x.total);
+  const k=1+PR.bdi;Object.keys(porDisc).forEach(c=>porDisc[c]=porDisc[c]*k*(1+PR.reserva));
+  let prazo=0;
+  if(g.tipo==='muro')prazo=Math.round(8+num(g.muro.comp)*.5);else if(g.tipo==='reforma')prazo=Math.round(20+num(g.reforma.area)*1+(g.reforma.demol?7:0));else prazo=Math.round(45+area*1.5);
+  Object.keys(porCom).forEach(i=>porCom[i]=porCom[i]*k*(1+PR.reserva));
+  return {itens:it,subtotal,bdi,reserva:res,total,min:total*(1+PR.faixaMin),max:total*(1+PR.faixaMax),prazo,area,porDisc,porCom};
+}
+/* ===== interface ===== */
+const STEPS=['Obra','Medidas','Cômodos','Orçamento','Seus dados'];
+function stepsFor(){return G.tipo==='muro'?[1,2,4,5]:[1,2,3,4,5]}
+function head(){
+  const ss=stepsFor();
+  return `<div class="gb-steps">${ss.map((s,i)=>`<div class="gb-step ${G.passo===s?'on':ss.indexOf(G.passo)>i?'ok':''}">${i+1}. ${STEPS[s-1]}</div>`).join('')}</div>`;
+}
+function totalBar(){
+  if(!G.tipo)return '';const c=calc(G);
+  return `<div class="gb-total"><div><small>Estimativa da obra fechada</small><div class="v" id="gbTV">${R$(c.total)}</div></div><div style="text-align:right"><small>Prazo estimado</small><div style="font-weight:800" id="gbTP">${c.prazo} dias</div></div></div>`;
+}
+function nav(back,next,nextLabel,nextOk){
+  return `<div class="gb-row" style="justify-content:space-between;margin-top:1rem">${back?`<button class="gb-btn ghost" data-a="go" data-i="${back}">← Voltar</button>`:'<span></span>'}${next?`<button class="gb-btn gold" data-a="go" data-i="${next}" ${nextOk===false?'disabled':''}>${nextLabel||'Continuar'} →</button>`:''}</div>`;
+}
+function vTipo(){
+  return `<div class="gb-card"><h3>O que vamos construir hoje?</h3><p class="gb-sub">Trabalhamos com obra fechada: você escolhe o módulo e configura do seu jeito — nós entregamos pronto.</p>
+  <div class="gb-tipos">${Object.keys(L.tipo).map(k=>`<button class="gb-tipo ${G.tipo===k?'on':''}" data-a="tipo" data-i="${k}"><div class="ic">${L.tipo[k][0]}</div><b>${L.tipo[k][1]}</b><span class="d">${L.tipo[k][2]}</span></button>`).join('')}</div></div>${nav(0,G.tipo?2:0,'Continuar',!!G.tipo)}`;
+}
+const fld=(label,html)=>`<label class="gb-f">${label}${html}</label>`;
+const sel=(k,opts,cur,extra)=>`<select data-k="${k}" ${extra||''}>${Object.keys(opts).map(o=>`<option value="${o}" ${String(cur)===o?'selected':''}>${E(opts[o])}</option>`).join('')}</select>`;
+const numIn=(k,v,step)=>`<input type="number" inputmode="decimal" step="${step||'any'}" min="0" data-k="${k}" data-t="n" value="${v}">`;
+function vBase(){
+  let b='';
+  if(G.tipo==='muro'){
+    b=`<div class="gb-grid">${fld('Comprimento (m)',numIn('muro.comp',G.muro.comp,'0.5'))}${fld('Altura (m)',numIn('muro.alt',G.muro.alt,'0.1'))}${fld('Acabamento',sel('muro.acab',L.acab,G.muro.acab))}${fld('Portão',sel('muro.portao',L.portao,G.muro.portao))}${G.muro.portao!=='nenhum'?fld('Largura do portão (m)',numIn('muro.pw',G.muro.pw,'0.1')):''}</div><div class="gb-warn" id="gbMuroWarn" style="display:${G.muro.alt>3?'block':'none'}">Muro acima de 3 m exige projeto estrutural e sondagem; o valor é uma estimativa inicial.</div>`;
+  }else{
+    b=`<div class="gb-grid">${fld('Padrão de acabamento',sel('padrao',L.padrao,G.padrao))}${fld('Pé-direito (m)',numIn('pe',G.pe,'0.1'))}${(G.tipo==='casa'||G.tipo==='chale')?fld('Energia',sel('offgrid',L.offgrid,G.offgrid)):''}${G.tipo==='reforma'?fld('Área existente (m²)',numIn('reforma.area',G.reforma.area,'1'))+fld('Estado da construção',sel('reforma.estado',L.estado,G.reforma.estado))+fld('Demolição necessária',sel('reforma.demol',{true:'Sim',false:'Não'},String(G.reforma.demol)))+'':''}</div>`;
+  }
+  return `<div class="gb-card"><h3>${L.tipo[G.tipo][0]} ${L.tipo[G.tipo][1]} — medidas básicas</h3><p class="gb-sub">${G.tipo==='muro'?'Informe as medidas do muro.':'Defina o padrão. No próximo passo você monta cômodo por cômodo.'}</p>${b}</div>${nav(1,G.tipo==='muro'?4:3)}`;
+}
+function roomHTML(c,i){
+  const A=c.w*c.h;
+  const lineJ=c.janelas.map((j,x)=>`<div class="gb-line">${fld('Tipo',sel(`comodos.${i}.janelas.${x}.tipo`,L.janela,j.tipo))}${fld('Larg. (m)',numIn(`comodos.${i}.janelas.${x}.w`,j.w,'0.1'))}${fld('Alt. (m)',numIn(`comodos.${i}.janelas.${x}.h`,j.h,'0.1'))}${fld('Qtd',numIn(`comodos.${i}.janelas.${x}.q`,j.q,'1'))}<button class="gb-btn red sm" data-a="del" data-i="${i}" data-s="janelas" data-x="${x}">✕</button></div>`).join('');
+  const lineP=c.portas.map((p,x)=>`<div class="gb-line">${fld('Tipo',sel(`comodos.${i}.portas.${x}.tipo`,L.porta,p.tipo))}${fld('Qtd',numIn(`comodos.${i}.portas.${x}.q`,p.q,'1'))}<button class="gb-btn red sm" data-a="del" data-i="${i}" data-s="portas" data-x="${x}">✕</button></div>`).join('');
+  const btus={};Object.keys(PR.ar).forEach(b=>btus[b]=(b/1000)+'.000 BTU');
+  const lineA=c.ar.map((a,x)=>`<div class="gb-line">${fld('Tipo',sel(`comodos.${i}.ar.${x}.tipo`,L.arTipo,a.tipo))}${fld('Potência',sel(`comodos.${i}.ar.${x}.btu`,btus,a.btu))}${fld('Qtd',numIn(`comodos.${i}.ar.${x}.q`,a.q,'1'))}<button class="gb-btn red sm" data-a="del" data-i="${i}" data-s="ar" data-x="${x}">✕</button></div>`).join('');
+  const lineV=c.vent.map((v,x)=>`<div class="gb-line">${fld('Tipo',sel(`comodos.${i}.vent.${x}.tipo`,L.vent,v.tipo))}${fld('Qtd',numIn(`comodos.${i}.vent.${x}.q`,v.q,'1'))}<button class="gb-btn red sm" data-a="del" data-i="${i}" data-s="vent" data-x="${x}">✕</button></div>`).join('');
+  const lineI=c.itens.map((t,x)=>`<div class="gb-line">${fld('O que vai ligar',`<input class="gb-in" data-k="comodos.${i}.itens.${x}.nome" value="${E(t.nome)}">`)}${fld('Potência (W)',numIn(`comodos.${i}.itens.${x}.w`,t.w,'50'))}<button class="gb-btn red sm" data-a="del" data-i="${i}" data-s="itens" data-x="${x}">✕</button></div>`).join('');
+  return `<div class="gb-room ${c.open?'open':''}"><div class="hd" data-a="toggle" data-i="${i}"><b>${E(c.nome)}</b><small>${N1(A)} m²</small><small id="gbRC${i}"></small><span>${c.open?'▲':'▼'}</span></div><div class="bd">
+   <div class="gb-grid">${fld('Nome do cômodo',`<input class="gb-in" data-k="comodos.${i}.nome" value="${E(c.nome)}">`)}${fld('Largura (m)',numIn(`comodos.${i}.w`,c.w,'0.1'))}${fld('Comprimento (m)',numIn(`comodos.${i}.h`,c.h,'0.1'))}${fld('Piso',sel(`comodos.${i}.piso`,L.piso,c.piso))}${fld('Parede',sel(`comodos.${i}.parede`,L.parede,c.parede))}${fld('Forro',sel(`comodos.${i}.forro`,L.forro,c.forro))}${fld('Hidráulica',sel(`comodos.${i}.hid`,L.hid,c.hid))}</div>
+   <div class="gb-sec"><h4>🔌 Tomadas e pontos de luz</h4><div class="gb-grid">${fld('Quantidade de tomadas',numIn(`comodos.${i}.tom`,c.tom,'1'))}${fld('Pontos de luz',numIn(`comodos.${i}.luz`,c.luz,'1'))}</div>
+    <div style="margin-top:.6rem"><b style="font-size:.8rem;color:var(--texto-suave)">O que vai ligar neste cômodo:</b>${lineI||'<div class="gb-note">Nada informado ainda.</div>'}<div class="gb-row">${QUICK.map(q=>`<button class="gb-chip" data-a="addItem" data-i="${i}" data-n="${E(q[0])}" data-w="${q[1]}">＋ ${E(q[0])}</button>`).join('')}</div></div></div>
+   <div class="gb-sec"><h4>🪟 Janelas</h4>${lineJ||'<div class="gb-note">Sem janelas.</div>'}<button class="gb-btn ghost sm" data-a="add" data-i="${i}" data-s="janelas">＋ Janela</button></div>
+   <div class="gb-sec"><h4>🚪 Portas</h4>${lineP||'<div class="gb-note">Sem portas.</div>'}<button class="gb-btn ghost sm" data-a="add" data-i="${i}" data-s="portas">＋ Porta</button></div>
+   <div class="gb-sec"><h4>❄️ Ar-condicionado</h4>${lineA||'<div class="gb-note">Sem ar-condicionado.</div>'}<button class="gb-btn ghost sm" data-a="add" data-i="${i}" data-s="ar">＋ Ar-condicionado</button></div>
+   <div class="gb-sec"><h4>🌀 Ventilador</h4>${lineV||'<div class="gb-note">Sem ventilador.</div>'}<button class="gb-btn ghost sm" data-a="add" data-i="${i}" data-s="vent">＋ Ventilador</button></div>
+   <div class="gb-row" style="margin-top:.8rem"><button class="gb-btn ghost sm" data-a="dup" data-i="${i}">Duplicar cômodo</button><button class="gb-btn red sm" data-a="rm" data-i="${i}">Remover cômodo</button></div></div></div>`;
+}
+function vComodos(){
+  return `<div class="gb-card"><h3>Monte sua obra cômodo por cômodo</h3><p class="gb-sub">Adicione os cômodos e configure tomadas (e o que vai ligar), janelas, portas, ar-condicionado e ventiladores. O valor acompanha cada escolha.</p>
+  <div class="gb-row" style="margin-bottom:.8rem">${Object.keys(TPL).map(k=>`<button class="gb-chip" data-a="addRoom" data-i="${k}">＋ ${TPL[k].nome}</button>`).join('')}</div>
+  ${G.comodos.length?G.comodos.map(roomHTML).join(''):'<div class="gb-warn">Toque em um cômodo acima para começar.</div>'}</div>${nav(2,4,'Ver orçamento',G.tipo==='reforma'||G.comodos.length>0)}`;
+}
+function vResumo(){
+  const c=calc(G),mx=Math.max(1,...Object.values(c.porDisc));
+  return `<div class="gb-card"><h3>Seu orçamento guiado</h3><p class="gb-sub">${L.tipo[G.tipo][1]} · ${N1(c.area)} m² · obra fechada (mão de obra, material, administração e reserva incluídos)</p>
+  <div class="gb-big">${R$(c.total)}</div><div class="gb-note">Faixa provável: ${R$(c.min)} a ${R$(c.max)} · Prazo estimado: ${c.prazo} dias</div>
+  <div style="margin-top:1rem">${Object.keys(c.porDisc).map(k=>`<div style="display:flex;justify-content:space-between;font-size:.85rem"><span>${E(k)}</span><b>${R$(c.porDisc[k])}</b></div><div class="gb-barbg"><div class="gb-bar" style="width:${Math.max(2,c.porDisc[k]/mx*100)}%"></div></div>`).join('')}</div></div>
+  ${G.comodos.length?`<div class="gb-card"><h3>Por cômodo</h3><table class="gb-tb"><tr><th>Cômodo</th><th class="n">m²</th><th class="n">Tomadas</th><th class="n">Janelas</th><th class="n">Portas</th><th class="n">Ar</th><th class="n">Valor</th></tr>${G.comodos.map(r=>`<tr><td>${E(r.nome)}</td><td class="n">${N1(r.w*r.h)}</td><td class="n">${r.tom}</td><td class="n">${r.janelas.reduce((a,x)=>a+x.q,0)}</td><td class="n">${r.portas.reduce((a,x)=>a+x.q,0)}</td><td class="n">${r.ar.reduce((a,x)=>a+x.q,0)}</td><td class="n"><b>${R$(c.porCom[r.id]||0)}</b></td></tr>`).join('')}<tr><td>Obra geral (estrutura, cobertura, energia e quadro)</td><td class="n" colspan="5"></td><td class="n"><b>${R$(c.total-Object.values(c.porCom).reduce((a,b)=>a+b,0))}</b></td></tr></table></div>`:''}
+  <div class="gb-warn">Valor de referência para validar o seu projeto. O orçamento final é fechado após visita técnica e projeto executivo.</div>${nav(G.tipo==='muro'?2:3,5,'Enviar para a KPG')}`;
+}
+function vEnvio(){
+  const c=calc(G);
+  if(G.enviado){const e=G.enviado;
+    return `<div class="gb-card"><h3>${e.ok?'Projeto criado ✅':'Pedido recebido ✅'}</h3><div class="${e.ok?'gb-ok':'gb-warn'}"><b>Código: ${E(e.id)}</b><br>${e.ok?'Seu projeto foi salvo na KPG e já está disponível para a nossa equipe montar a simulação.':'Guardamos o seu projeto neste aparelho e vamos enviá-lo automaticamente assim que a conexão estiver estável. Para agilizar, fale com a gente agora pelo WhatsApp.'}</div>
+  <div class="gb-row" style="margin-top:1rem"><button class="gb-btn gold" data-a="wpp">Falar no WhatsApp</button><button class="gb-btn ghost" data-a="dl">Baixar projeto (.json)</button><button class="gb-btn ghost" data-a="novo">Montar outro</button></div></div>`}
+  const ok=G.cliente.nome.trim().length>1&&G.cliente.whats.replace(/\D/g,'').length>=10;
+  return `<div class="gb-card"><h3>Seus dados</h3><p class="gb-sub">Criamos o seu projeto com tudo que você configurou e nossa equipe entra em contato.</p>
+  <div class="gb-grid">${fld('Nome',`<input class="gb-in" data-k="cliente.nome" value="${E(G.cliente.nome)}" autocomplete="name">`)}${fld('WhatsApp (com DDD)',`<input class="gb-in" inputmode="tel" data-k="cliente.whats" value="${E(G.cliente.whats)}" autocomplete="tel">`)}${fld('Cidade / bairro da obra',`<input class="gb-in" data-k="cliente.cidade" value="${E(G.cliente.cidade)}">`)}</div>
+  <div style="margin-top:.8rem">${fld('Conte o seu sonho (referências, prazos, o que não pode faltar)',`<textarea data-k="cliente.obs">${E(G.cliente.obs)}</textarea>`)}</div>
+  <div class="gb-note">Estimativa: ${R$(c.total)} · ${c.prazo} dias · ${G.comodos.length} cômodos</div><div id="gbMsg"></div>
+  <div class="gb-row" style="margin-top:1rem;justify-content:space-between"><button class="gb-btn ghost" data-a="go" data-i="4">← Voltar</button><button class="gb-btn gold" id="gbSend" data-a="send" ${ok?'':'disabled'}>Criar meu projeto</button></div></div>`;
+}
+function render(){
+  const v=G.passo===1?vTipo():G.passo===2?vBase():G.passo===3?vComodos():G.passo===4?vResumo():vEnvio();
+  root.innerHTML=head()+v+(G.passo>=2&&G.passo<=3?totalBar():'');
+  upd();
+}
+function upd(){
+  if(!G.tipo)return;const c=calc(G);if(root._onUpd)root._onUpd(c);const a=$('gbTV');if(a)a.textContent=R$(c.total);const b=$('gbTP');if(b)b.textContent=c.prazo+' dias';
+  G.comodos.forEach((r,i)=>{const e=$('gbRC'+i);if(e)e.textContent=R$(c.porCom[r.id]||0)});
+  const mw=$('gbMuroWarn');if(mw)mw.style.display=G.muro.alt>3?'block':'none';
+  const s=$('gbSend');if(s){const ok=G.cliente.nome.trim().length>1&&G.cliente.whats.replace(/\D/g,'').length>=10;s.disabled=!ok}
+}
+function setPath(p,v){const k=p.split('.');let o=G;for(let i=0;i<k.length-1;i++)o=o[k[i]];o[k[k.length-1]]=v}
+root.addEventListener('click',ev=>{
+  const b=ev.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,i=b.dataset.i;
+  if(a==='tipo'){G.tipo=i;if(!G.comodos.length&&i!=='muro'&&i!=='reforma')G.comodos=[newRoom('sala'),newRoom('quarto'),newRoom('cozinha'),newRoom('banheiro')];G.comodos.forEach(c=>c.open=false);if(G.comodos[0])G.comodos[0].open=true;save();render();return}
+  if(a==='go'){G.passo=+i;save();render();return}
+  if(a==='addRoom'){G.comodos.forEach(c=>c.open=false);G.comodos.push(newRoom(i));save();render();return}
+  if(a==='toggle'){const c=G.comodos[+i];c.open=!c.open;save();render();return}
+  if(a==='rm'){G.comodos.splice(+i,1);save();render();return}
+  if(a==='dup'){const c=JSON.parse(JSON.stringify(G.comodos[+i]));c.id=uid();c.nome+=' (2)';G.comodos.splice(+i+1,0,c);save();render();return}
+  if(a==='add'){const c=G.comodos[+i],s=b.dataset.s;c[s].push(s==='janelas'?{tipo:'aluminio',w:1.2,h:1,q:1}:s==='portas'?{tipo:'madeira',q:1}:s==='ar'?{tipo:'split',btu:12000,q:1}:{tipo:'teto',q:1});save();render();return}
+  if(a==='del'){G.comodos[+i][b.dataset.s].splice(+b.dataset.x,1);save();render();return}
+  if(a==='addItem'){G.comodos[+i].itens.push({nome:b.dataset.n,w:+b.dataset.w});save();render();return}
+  if(a==='send'){G._id='KPG-DEMO';G.enviado={id:'KPG-'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'-DEMO',ok:true};render();return}
+  if(a==='wpp'||a==='dl'){return}
+  if(a==='novo'){G=fresh();save();render();return}
+});
+function onField(ev){
+  const el=ev.target.closest('[data-k]');if(!el)return;
+  let v=el.dataset.t==='n'?num(el.value):el.value;
+  if(el.dataset.k==='reforma.demol')v=el.value==='true';
+  if(el.dataset.k.endsWith('.btu'))v=+v;
+  setPath(el.dataset.k,v);save();
+  if(ev.type==='change'&&el.tagName==='SELECT'){render()}else upd();
+}
+root.addEventListener('input',onField);root.addEventListener('change',onField);
+
+render();
+return {render, calc: () => calc(G), reset: () => { G = fresh(); render(); }};
+}
+
+/* ══════ TX.demoKpg — slide de publicidade: DEMO do Orçamento Guiado da KPG ══════
+   Um “vídeo ao vivo”: o orçamento guiado de verdade (mesmo cálculo do site) é operado sozinho, com cursor,
+   zoom de câmera, legendas e a descrição de cada interação. Só memória: não grava nada nem chama a rede. */
+TX.demoKpg = { def: { duracaoS: 62, whats: '(21) 96470-0935', chamada: 'Faça o seu orçamento agora' }, duracaoMin: 45, build(P, item, s, S) {
+  txMorre(S);
+  s.className += ' s-demo';
+  const WW = 430, DUR0 = 62;
+  s.innerHTML =
+    '<div class="kd-bg"></div>' +
+    '<div class="kd-top"><div class="kd-logo">KPG <b>CONSTRUÇÕES</b></div><div class="kd-tag">ORÇAMENTO GUIADO · DEMONSTRAÇÃO</div></div>' +
+    '<div class="kd-main"><div class="kd-info"><div class="kd-kick"></div><h2 class="kd-h"></h2><p class="kd-p"></p><div class="kd-do"></div><div class="kd-prog"><i></i><i></i><i></i><i></i><i></i></div>' +
+    '<ul class="kd-ben"><li>✔ Obra fechada</li><li>✔ Valor na hora</li><li>✔ Sem compromisso</li></ul></div>' +
+    '<div class="kd-phone"><div class="kd-stage"><div class="kd-world"><div class="kd-wiz"></div>' +
+    '<div class="kd-cursor"><svg viewBox="0 0 24 24" width="36" height="36"><path d="M3 2l7 19 3-8 8-3z" fill="#fff" stroke="#0b1830" stroke-width="1.6" stroke-linejoin="round"/></svg><i class="kd-rip"></i></div></div>' +
+    '<div class="kd-spot"></div><div class="kd-hud"><div><small>Estimativa da obra fechada</small><b class="kd-hv">R$ 0</b></div><div style="text-align:right"><small>Prazo estimado</small><b class="kd-hp">0 dias</b></div></div></div></div></div>' +
+    '<div class="kd-ov kd-intro"><div><small>KPG CONSTRUÇÕES</small><h1>Quanto custa a sua obra?</h1><p>Descubra em 1 minuto, direto do celular.</p></div></div>' +
+    '<div class="kd-ov kd-outro"><div><small>ORÇAMENTO GUIADO</small><h1>' + esc(item.chamada || 'Faça o seu orçamento agora') + '</h1><div class="kd-zap">📱 ' + esc(item.whats || '(21) 96470-0935') + '</div><p>Valores de referência · o orçamento final é fechado após visita técnica</p></div></div>';
+
+  const q1 = c => s.querySelector(c);
+  const wiz = q1('.kd-wiz'), world = q1('.kd-world'), stage = q1('.kd-stage'), cursor = q1('.kd-cursor'), spot = q1('.kd-spot'), hud = q1('.kd-hud');
+  const hv = q1('.kd-hv'), hp = q1('.kd-hp'), kick = q1('.kd-kick'), hh = q1('.kd-h'), pp = q1('.kd-p'), doEl = q1('.kd-do'), dots = s.querySelectorAll('.kd-prog i');
+  const intro = q1('.kd-intro'), outro = q1('.kd-outro');
+  const brl = v => (+v || 0).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL', maximumFractionDigits: 0});
+  const W = kdWizard(wiz);
+
+  // ── relógio do roteiro: congela quando o slide está em pausa (botão ⏸ ou toque longo) ──
+  const dur = Math.max(+item.duracaoS || DUR0, 45), ritmo = Math.max(.55, Math.min(2.2, dur / DUR0));
+  let vivo = true, clock = 0, ult = performance.now(), raf = 0, espera = [];
+  const pausado = () => { try { const r = P.regs && (P.regs.r1 || Object.values(P.regs)[0]); return !!(r && r.pausado) || document.hidden; } catch (e) { return false; } };
+  const tick = now => {
+    if (!vivo) return; const dt = Math.min(100, now - ult); ult = now;
+    if (!pausado()) { clock += dt; const prontos = espera.filter(x => x.t <= clock); if (prontos.length) { espera = espera.filter(x => x.t > clock); prontos.forEach(x => x.ok()); } }
+    raf = requestAnimationFrame(tick);
+  };
+  raf = requestAnimationFrame(tick);
+  const w = ms => new Promise((ok, no) => { if (!vivo) return no(new Error('fim')); espera.push({t: clock + ms * ritmo, ok: () => vivo ? ok() : no(new Error('fim'))}); });
+
+  // ── câmera: enquadra um elemento com zoom (posição pelo layout, imune à transição em andamento) ──
+  const pos = el => { let x = 0, y = 0, e = el; while (e && e !== world) { x += e.offsetLeft; y += e.offsetTop; e = e.offsetParent; } return {x, y, w: el.offsetWidth, h: el.offsetHeight}; };
+  let ultCam = [null, 1];
+  const cam = (el, Z) => {
+    ultCam = [el, Z || 1]; Z = Z || 1;
+    const sw = stage.clientWidth, sh = stage.clientHeight; if (!sw) return;
+    const k = sw / WW * Z; let cx = WW / 2, cy = sh / (2 * k);
+    if (el && el.isConnected) { const p = pos(el); cx = p.x + p.w / 2; cy = p.y + p.h / 2; }
+    const wh = world.offsetHeight * k;
+    const tx = Math.min(0, Math.max(sw - WW * k, sw / 2 - cx * k)), ty = Math.min(0, Math.max(Math.min(0, sh - wh), sh / 2 - cy * k));
+    world.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + k + ')';
+    spot.classList.toggle('on', Z > 1.15);
+    cursor.style.setProperty('--inv', (Math.max(30, sw * .085) / (36 * k)).toFixed(3));
+  };
+  const cursorTo = el => { const p = pos(el); cursor.classList.add('on'); cursor.style.transform = 'translate(' + (p.x + p.w * .62) + 'px,' + (p.y + p.h * .62) + 'px)'; };
+  const tap = () => { const r = cursor.querySelector('.kd-rip'); r.classList.remove('tap'); void r.offsetWidth; r.classList.add('tap'); };
+  const hl = el => { el.classList.add('kd-hl'); setTimeout(() => el.classList.remove('kd-hl'), 1400); };
+
+  // ── painel de texto ──
+  const fmt = t => { const c = W.calc(); return t.replace('{total}', brl(c.total)).replace('{prazo}', c.prazo).replace('{faixa}', brl(c.min) + ' a ' + brl(c.max)); };
+  const legenda = (n, titulo, texto) => {
+    kick.textContent = 'PASSO ' + n + ' DE 5'; hh.textContent = titulo; pp.textContent = fmt(texto);
+    [kick, hh, pp].forEach(e => { e.classList.remove('pop'); void e.offsetWidth; e.classList.add('pop'); });
+    dots.forEach((d, i) => { d.className = i + 1 < n ? 'ok' : (i + 1 === n ? 'on' : ''); });
+  };
+  const agir = t => { doEl.classList.remove('on'); void doEl.offsetWidth; doEl.textContent = t; doEl.classList.add('on'); };
+
+  // ── HUD com a estimativa viva (contagem animada) ──
+  let hVal = 0, hAnim = 0;
+  wiz._onUpd = c => {
+    const de = hVal, para = c.total, t0 = performance.now(); cancelAnimationFrame(hAnim);
+    const passo = n => { const p = Math.min(1, (n - t0) / 700); hVal = de + (para - de) * (1 - Math.pow(1 - p, 3)); hv.textContent = brl(hVal); if (p < 1 && vivo) hAnim = requestAnimationFrame(passo); };
+    passo(t0); hp.textContent = c.prazo + ' dias'; hud.classList.remove('pulse'); void hud.offsetWidth; hud.classList.add('pulse');
+  };
+
+  // ── ações “humanas” sobre o wizard real ──
+  const q = sel => wiz.querySelector(sel);
+  async function ir(sel, rotulo, Z) { let e = q(sel); if (!e) return null; agir(rotulo); cam(e, Z || 1.5); cursorTo(e); await w(1000); e = q(sel); return e; }
+  async function tocar(sel, rotulo, Z) { const e = await ir(sel, '👆 TOQUE · ' + rotulo, Z); if (!e) return; tap(); e.dispatchEvent(new MouseEvent('click', {bubbles: true, cancelable: true})); await w(450); }
+  async function escolher(sel, valor, rotulo, Z) { const e = await ir(sel, '📋 ESCOLHA · ' + rotulo, Z); if (!e) return; hl(e); await w(500); tap(); e.value = valor; e.dispatchEvent(new Event('change', {bubbles: true})); await w(450); }
+  async function digitar(sel, texto, rotulo, Z) {
+    const e = await ir(sel, '⌨️ DIGITE · ' + rotulo, Z); if (!e) return; hl(e); tap(); e.value = ''; e.dispatchEvent(new Event('input', {bubbles: true}));
+    for (let i = 1; i <= texto.length; i++) { const c = q(sel) || e; c.value = texto.slice(0, i); c.dispatchEvent(new Event('input', {bubbles: true})); await w(55); }
+    await w(300);
+  }
+  const contar = async sel => { const e = q(sel); if (!e) return; const alvo = W.calc().total, t0 = clock; e.textContent = brl(0); for (let i = 1; i <= 12; i++) { await w(90); e.textContent = brl(alvo * (1 - Math.pow(1 - i / 12, 3))); } };
+  const ov = (el, on) => el.classList.toggle('on', on);
+
+  // ── roteiro ──
+  async function roteiro() {
+    W.reset(); hud.classList.remove('on'); cursor.classList.remove('on'); hVal = 0; hv.textContent = brl(0); hp.textContent = '0 dias';
+    dots.forEach(d => d.className = ''); doEl.classList.remove('on'); kick.textContent = ''; hh.textContent = 'Orçamento guiado'; pp.textContent = 'Veja como é simples montar o orçamento da sua obra.';
+    cam(null, 1); ov(outro, false); ov(intro, true); await w(3300); ov(intro, false); await w(600);
+
+    legenda(1, 'Escolha o tipo de obra', 'Muro, chalé, casa ou reforma total: você começa com um toque.');
+    cam(q('.gb-tipos'), 1.05); await w(1400);
+    await tocar('[data-a="tipo"][data-i="casa"]', 'Casa', 1.5); await w(800);
+    await tocar('[data-a="go"][data-i="2"]', 'Continuar', 1.5);
+
+    legenda(2, 'Defina o padrão de acabamento', 'Econômico, médio ou alto padrão — e o valor aparece na hora.'); hud.classList.add('on'); await w(900);
+    await escolher('select[data-k="padrao"]', 'alto', 'Alto padrão', 1.7);
+    legenda(2, 'O valor acompanha cada escolha', 'Com alto padrão a estimativa vai para {total}, prazo de {prazo} dias.'); await w(2200);
+    await digitar('input[data-k="pe"]', '3.2', 'pé-direito 3,2 m', 1.7);
+    await tocar('[data-a="go"][data-i="3"]', 'Continuar', 1.5);
+
+    legenda(3, 'Monte a obra cômodo por cômodo', 'Sala, quarto, cozinha, banheiro… cada ambiente tem o seu próprio custo.');
+    const chips = q('.gb-card .gb-row'); cam(chips, 1.25); await w(1500);
+    await tocar('[data-a="addRoom"][data-i="suite"]', '＋ Suíte', 1.35); await w(900);
+    legenda(3, 'Configure piso, parede e instalações', 'Porcelanato no piso? O orçamento recalcula na hora: {total}.');
+    await escolher('.gb-room.open select[data-k$=".piso"]', 'porcelanato', 'Piso porcelanato', 1.8);
+    legenda(3, 'Ar-condicionado, janelas e tomadas', 'Cada item entra na conta. Adicione o que a sua obra precisa.');
+    await tocar('.gb-room.open [data-a="add"][data-s="ar"]', '＋ Ar-condicionado', 1.7); await w(700);
+    await tocar('.gb-room.open [data-a="addItem"][data-n="TV"]', '＋ TV (circuito elétrico)', 1.7); await w(900);
+    await tocar('[data-a="go"][data-i="4"]', 'Ver orçamento', 1.5);
+
+    legenda(4, 'Seu orçamento completo', 'Valor total, faixa provável e prazo da obra fechada.'); hud.classList.remove('on'); await w(700);
+    cam(q('.gb-big'), 1.9); await contar('.gb-big'); await w(1400);
+    legenda(4, 'Faixa provável e prazo', 'Estimativa entre {faixa} — prazo de {prazo} dias.'); cam(q('.gb-note'), 1.8); await w(2200);
+    legenda(4, 'Quanto vai em cada etapa', 'Estrutura, acabamentos, elétrica, hidráulica, esquadrias e climatização.'); cam(q('.gb-barbg'), 1.35); await w(2600);
+    legenda(4, 'E o valor de cada cômodo', 'Compare os ambientes e ajuste o que quiser.'); cam(q('.gb-tb'), 1.3); await w(2400);
+    await tocar('[data-a="go"][data-i="5"]', 'Enviar para a KPG', 1.5);
+
+    legenda(5, 'Receba o projeto da sua obra', 'Deixe seu nome e WhatsApp: a equipe da KPG recebe tudo e entra em contato.'); await w(800);
+    await digitar('input[data-k="cliente.nome"]', 'Marcos Almeida', 'seu nome', 1.7);
+    await digitar('input[data-k="cliente.whats"]', '(21) 98765-4321', 'seu WhatsApp', 1.7);
+    await digitar('input[data-k="cliente.cidade"]', 'Jacarepaguá, RJ', 'bairro da obra', 1.7);
+    await tocar('#gbSend', 'Criar meu projeto', 1.6); await w(1300);
+    legenda(5, 'Pronto! Projeto criado', 'Sem planilhas e sem fila: o seu orçamento já está com a KPG.'); cam(q('.gb-ok'), 1.5); await w(3600);
+
+    cursor.classList.remove('on'); doEl.classList.remove('on'); cam(null, 1); ov(outro, true); await w(6200);
+  }
+  (async () => { while (vivo) { try { await roteiro(); } catch (e) { if (!vivo) return; console.warn('[demoKpg]', e); try { await w(1500); } catch (x) { return; } } } })();
+
+  // ── layout: paisagem × retrato; reenquadra câmera ao redimensionar ──
+  const ro = new ResizeObserver(() => { const c = s.clientWidth >= s.clientHeight; s.classList.toggle('kd-land', c); s.classList.toggle('kd-port', !c); cam(ultCam[0], ultCam[1]); });
+  ro.observe(s); ro.observe(stage);
+  S.fins.push(() => { vivo = false; cancelAnimationFrame(raf); cancelAnimationFrame(hAnim); ro.disconnect(); espera = []; });
+}};
+
 TX.curiosidades = {def: {categoria: 'astronomia'}, build(P, item, s, S) {
   s.className += ' tx'; txMorre(S);
   const nomes = {astronomia:'ASTRONOMIA',catastrofes:'CATÁSTROFES NATURAIS',genios:'GÊNIOS E DESCOBERTAS'};
@@ -3780,7 +4274,26 @@ TX.planetas3d = {def: {vel: 'estagnado'}, build(P, item, s, S) {
   s.className += ' tx'; txMorre(S);
   if (P.preview) return txPreview(s, 'planetas3d');
 
-  // ── Base fixa de pensadores (mesma do TX_ANIVERSARIANTES) ──
+  /* ── SORTEIO SEM REPETIÇÃO (frases, pensadores e alinhamentos) ──
+   Nada de sequência fixa: cada item é sorteado ao acaso e só volta depois que TODOS da rodada já apareceram.
+   O estado fica fora do slide, então continua entre uma visita e outra (não recomeça sempre do mesmo ponto).
+   Se houver itens "prioritários" (participantes), eles saem primeiro — também em ordem aleatória. */
+function txEmbaralhar(a) { const r = a.slice(); for (let i = r.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const x = r[i]; r[i] = r[j]; r[j] = x; } return r; }
+function txSortear(lista, est, idFn, prioFn) {
+  if (!lista || !lista.length) return null;
+  idFn = idFn || (p => p.nome + '|' + (p.nasc || p.tema || ''));
+  let pool = lista.filter(p => !est.vistos.has(idFn(p)));
+  if (!pool.length) {                                   // rodada completa → começa outra, sem repetir o último
+    est.vistos.clear(); est.rodada = (est.rodada || 0) + 1;
+    pool = lista.filter(p => idFn(p) !== est.ult); if (!pool.length) pool = lista.slice();
+  }
+  if (prioFn) { const pr = pool.filter(prioFn); if (pr.length) pool = pr; }
+  const p = pool[Math.floor(Math.random() * pool.length)];
+  est.vistos.add(idFn(p)); est.ult = idFn(p); est.n = (est.n || 0) + 1;
+  return p;
+}
+const TX_EST_FRASES = {vistos: new Set(), ult: null, n: 0}, TX_EST_ALINH = {vistos: new Set(), ult: null, n: 0};
+// ── Base fixa de pensadores (mesma do TX_ANIVERSARIANTES) ──
   const PENSADORES = TX_ANIVERSARIANTES.map(p => ({ nome: p.nome, nasc: p.nasc, area: p.area, origem: 'fixo' }));
 
   // ── Numerologia pitagórica ──
@@ -3917,8 +4430,7 @@ TX.planetas3d = {def: {vel: 'estagnado'}, build(P, item, s, S) {
   const montarLista = () => { listaAtual = [...participantes, ...PENSADORES]; };
   const proximo = () => {
     if (!listaAtual.length) return;
-    idxAtual = (idxAtual + 1) % listaAtual.length;
-    const p = listaAtual[idxAtual];
+    const p = txSortear(listaAtual, TX_EST_ALINH, null, x => x.origem === 'participante');   // sorteio sem repetição (participantes primeiro)
     renderPainel(p);
     if (S._aplicar3D) S._aplicar3D(p);
   };
@@ -4982,10 +5494,9 @@ TX.recadoAmor = {
 
 /* Estado isolado por slide — sem vazamento entre regiões. */
 function criarRotativoPensadores() {
-  let idx = -1;
   return () => {
-    idx = (idx + 1) % TX_PENSADORES.length;
-    return { pensador: TX_PENSADORES[idx], idx };
+    const p = txSortear(TX_PENSADORES, TX_EST_FRASES, x => x.nome + '|' + x.tema + '|' + x.texto.slice(0, 24));
+    return { pensador: p, idx: (TX_EST_FRASES.n - 1) % TX_PENSADORES.length };   // idx = posição na rodada (1…N)
   };
 }
 function txPensadorDoDia(){const dia=Math.floor(Date.now()/86400000);return TX_PENSADORES[((dia%TX_PENSADORES.length)+TX_PENSADORES.length)%TX_PENSADORES.length];}
@@ -5044,7 +5555,7 @@ TX.horoscopo = {
     };
 
     const renderizar = () => {
-      const pessoas = carregar().slice(0, Math.max(2, Math.min(8, +item.porPagina || 4)));
+      const pessoas = txEmbaralhar(carregar()).slice(0, Math.max(2, Math.min(8, +item.porPagina || 4)));
 
       /* ── Caso 1: sem participantes → rotativo de pensadores ── */
       if (!pessoas.length) {
@@ -5112,6 +5623,7 @@ function txEditor(it, k, i) {
   else if (t === 'recadoAmor') h = fld('Título principal',k+'titulo',it.titulo||'Uma mensagem pode mudar o dia de alguém') + fld('Mensagens exibidas',k+'porPagina',it.porPagina||3,'number','min="1" max="4"') + '<div class="hintx">O QR abre a página pública /recado-amor. As mensagens ficam pendentes e só aparecem no totem após aprovação pelo endpoint administrativo do Worker. Não solicite telefone, endereço ou dados pessoais.</div>';
   else if (t === 'planetas3d') h = '<div class="hintx" style="grid-column:1/-1">A câmera fica fixa no alinhamento do pensador/participante. A rotação automática foi removida.</div>';
   else if (t === 'terremotos') h = fld('Magnitude mínima', k + 'magMin', it.magMin == null ? 4.5 : it.magMin, 'number', 'min="4.5" max="9" step="0.1"') + sel('Visualização', k + 'mapa', it.mapa || 'globo', [['globo','🌍 Globo 3D'],['plano','🗺️ Mapa-múndi plano']]);
+  else if (t === 'demoKpg') h = fld('WhatsApp exibido no final', k + 'whats', it.whats || '(21) 96470-0935') + fld('Chamada final', k + 'chamada', it.chamada || 'Faça o seu orçamento agora') + '<div class="hintx" style="grid-column:1/-1">Demonstração automática do Orçamento Guiado da KPG: cursor, zoom e legendas explicando cada interação. Usa o mesmo cálculo do site, mas não grava nada. Duração mínima de 45 s (ideal: 60 s).</div>';
   else if (t === 'jornal') h = fld('Cidade do jornal', k + 'cidade', it.cidade || 'São Paulo');
   else if (t === 'climagrafico') h = sel('Cidade inicial', k + 'cidade', it.cidade || 'auto',
     [['auto', '🎲 Sortear ao abrir'], ...TX_CIDADES.map(c => [c.nome, c.nome + ' (' + c.uf + ')'])])
@@ -5184,6 +5696,7 @@ const TX_PADRAO = () => ({id: '-', status: 'liberado', tela: {}, layout: {modelo
   {tipo: 'recadoAmor',   duracaoS: 24},
   {tipo: 'terremotos',   duracaoS: 18},
   {tipo: 'curiosidades', duracaoS: 22, categoria: 'astronomia'},
+  {tipo: 'demoKpg',      duracaoS: 62},                                                          // ← publicidade KPG (sempre antes do relógio)
   {tipo: 'relogio',      duracaoS: 8}
 ], transicao: {tipo: 'fade', ms: 900}, aleatorio: false}}});
 
@@ -6544,97 +7057,207 @@ window.build = build;   // ← expõe globalmente para o MiniMotorPlayer
 
   const PALCOS = { eletrica: palcoEolica, artes: palcoArtes, musica: palcoMusica };
 
-  const PRAIAS_BRASIL = [
+  /* ══════ PRAIAS DO RIO + NOTÍCIAS LOCAIS (slide de Energia) ══════
+     Mar: Open-Meteo Marine (ondas) · Vento/temperatura: Open-Meteo Forecast · Notícias: vários feeds com reserva. */
+  const PRAIAS_RJ = [
+    { nome: 'Barra da Tijuca',          zona: 'Zona Oeste', lat: -23.0125, lon: -43.3640 },
+    { nome: 'Recreio dos Bandeirantes', zona: 'Zona Oeste', lat: -23.0282, lon: -43.4640 },
+    { nome: 'Macumba',                  zona: 'Zona Oeste', lat: -23.0335, lon: -43.4780 },
+    { nome: 'Prainha',                  zona: 'Zona Oeste', lat: -23.0410, lon: -43.5040 },
+    { nome: 'Grumari',                  zona: 'Zona Oeste', lat: -23.0485, lon: -43.5260 },
+    { nome: 'São Conrado',              zona: 'Zona Sul',   lat: -22.9990, lon: -43.2640 },
+    { nome: 'Leblon',                   zona: 'Zona Sul',   lat: -22.9890, lon: -43.2230 },
+    { nome: 'Ipanema',                  zona: 'Zona Sul',   lat: -22.9870, lon: -43.2070 },
+    { nome: 'Arpoador',                 zona: 'Zona Sul',   lat: -22.9894, lon: -43.1927 },
+    { nome: 'Copacabana',               zona: 'Zona Sul',   lat: -22.9710, lon: -43.1860 }
+  ].map(p => Object.assign({ estado: 'RJ', rio: true }, p));
+  const PRAIAS_OUTRAS = [
+    { nome: 'Saquarema - Itaúna', estado: 'RJ', lat: -22.93, lon: -42.49 },
     { nome: 'Praia do Rosa', estado: 'SC', lat: -28.13, lon: -48.64 },
     { nome: 'Joaquina', estado: 'SC', lat: -27.63, lon: -48.45 },
     { nome: 'Maresias', estado: 'SP', lat: -23.79, lon: -45.56 },
     { nome: 'Itamambuca', estado: 'SP', lat: -23.40, lon: -45.01 },
-    { nome: 'Saquarema - Itaúna', estado: 'RJ', lat: -22.93, lon: -42.49 },
-    { nome: 'Arpoador', estado: 'RJ', lat: -22.98, lon: -43.19 },
     { nome: 'Praia da Vila', estado: 'ES', lat: -20.81, lon: -40.68 },
     { nome: 'Porto da Barra', estado: 'BA', lat: -13.00, lon: -38.53 },
     { nome: 'Pipa', estado: 'RN', lat: -6.23, lon: -35.05 },
     { nome: 'Cumbuco', estado: 'CE', lat: -3.62, lon: -38.73 },
-    { nome: 'Jericoacoara', estado: 'CE', lat: -2.79, lon: -40.51 },
+    { nome: 'Jericoacoara', estado: 'CE', lat: -2.79, lon: -40.51 }
   ];
+  const PRAIAS_BRASIL = PRAIAS_RJ.concat(PRAIAS_OUTRAS);
+  const SURF_TMO = ms => { const a = new AbortController(); setTimeout(() => a.abort(), ms); return a.signal; };
+  const SURF_JSON = r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status));
+  const SURF_C = {};
+  const bussola = g => g == null ? '—' : ['N', 'NE', 'L', 'SE', 'S', 'SO', 'O', 'NO'][Math.round(((g % 360) + 360) % 360 / 45) % 8];
+  const n1 = v => v == null || !isFinite(v) ? '—' : Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
-  // Função que busca os dados de surf, vento e notícias
-  async function buildSurfPanel(container) {
-    const select = document.createElement('select');
-    select.style.cssText = 'width:100%; padding:8px; border-radius:8px; background:#0a1220; color:#e8f6ff; border:1px solid #1d2a44; font-size:1rem; margin-bottom:10px;';
-    
-    PRAIAS_BRASIL.forEach(praia => {
-      const opt = document.createElement('option');
-      opt.value = praia.nome;
-      opt.textContent = `${praia.nome} - ${praia.estado}`;
-      select.appendChild(opt);
-    });
+  /* Busca vento + mar de várias praias de uma vez (uma chamada por serviço). A temperatura da água é opcional. */
+  async function surfDados(praias) {
+    const chave = praias.map(p => p.nome).join('|'), c = SURF_C[chave];
+    if (c && Date.now() - c.t < 600000) return c.d;
+    const lat = praias.map(p => p.lat).join(','), lon = praias.map(p => p.lon).join(',');
+    const [vento, mar, agua] = await Promise.allSettled([
+      fetch('https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&current=temperature_2m,wind_speed_10m,wind_direction_10m,wind_gusts_10m,weather_code&wind_speed_unit=kmh&timezone=auto', { signal: SURF_TMO(9000) }).then(SURF_JSON),
+      fetch('https://marine-api.open-meteo.com/v1/marine?latitude=' + lat + '&longitude=' + lon + '&current=wave_height,wave_period,wave_direction,swell_wave_height,swell_wave_period&timezone=auto', { signal: SURF_TMO(9000) }).then(SURF_JSON),
+      fetch('https://marine-api.open-meteo.com/v1/marine?latitude=' + lat + '&longitude=' + lon + '&current=sea_surface_temperature&timezone=auto', { signal: SURF_TMO(9000) }).then(SURF_JSON)
+    ]);
+    const arr = x => x.status === 'fulfilled' ? (Array.isArray(x.value) ? x.value : [x.value]) : [];
+    const V = arr(vento), M = arr(mar), T = arr(agua);
+    if (!V.length && !M.length) throw new Error('serviço de clima/mar sem resposta');
+    const d = praias.map((p, i) => ({ praia: p, v: (V[i] && V[i].current) || {}, m: (M[i] && M[i].current) || {}, t: (T[i] && T[i].current) || {} }));
+    SURF_C[chave] = { t: Date.now(), d };
+    return d;
+  }
+  /* Nota simples para surf: altura e período do mar, e vento fraco. Não é previsão oficial. */
+  function surfNota(m, v) {
+    const h = m.wave_height, per = m.wave_period, w = v.wind_speed_10m;
+    if (h == null) return { ic: '⚪', txt: 'sem dado de mar', n: -1 };
+    if (h >= 3) return { ic: '🔴', txt: 'ressaca · não entre no mar', n: 0.5 };
+    if (h < 0.5) return { ic: '🔴', txt: 'mar calmo (flat)', n: 1 };
+    let n = 2 + ((h >= 0.8 && h <= 2.2) ? 1.5 : 0.5);
+    if (per != null) { if (per >= 9) n += 1; if (per >= 12) n += 0.5; }
+    if (w != null) { if (w < 15) n += 1; else if (w > 28) n -= 1.2; else if (w > 22) n -= 0.5; }
+    if (n >= 4.5) return { ic: '🟢', txt: 'muito boa', n };
+    if (n >= 3.5) return { ic: '🟢', txt: 'boa', n };
+    if (n >= 2.5) return { ic: '🟡', txt: 'regular', n };
+    return { ic: '🔴', txt: 'fraca', n };
+  }
 
-    container.appendChild(select);
+  async function buildSurfPanel(container, S) {
+    let escolhida = 'Barra da Tijuca';
+    try { escolhida = localStorage.getItem('almafluxo_praia') || escolhida; } catch (e) {}
+    if (!PRAIAS_BRASIL.some(p => p.nome === escolhida)) escolhida = 'Barra da Tijuca';
+    const og = (rotulo, lista) => '<optgroup label="' + rotulo + '">' + lista.map(p => '<option value="' + esc(p.nome) + '">' + esc(p.nome) + ' · ' + p.estado + '</option>').join('') + '</optgroup>';
+    container.innerHTML =
+      '<select class="sf-sel" aria-label="Escolha a praia">' + og('Rio de Janeiro (cidade)', PRAIAS_RJ) + og('Outras praias do Brasil', PRAIAS_OUTRAS) + '</select>' +
+      '<div class="sf-det">Carregando o mar…</div><div class="sf-melhor"></div><div class="sf-rank"></div>';
+    const sel = container.querySelector('.sf-sel'), det = container.querySelector('.sf-det'), melhor = container.querySelector('.sf-melhor'), rank = container.querySelector('.sf-rank');
+    sel.value = escolhida;
 
-    const infoDiv = document.createElement('div');
-    infoDiv.style.cssText = 'font-size:calc(var(--u)*1.4); line-height:1.5; color:#c4d3e2; min-height: 12vh';
-    container.appendChild(infoDiv);
-
-    async function updateInfo(praiaNome) {
-      infoDiv.innerHTML = 'Carregando dados...';
-      const praia = PRAIAS_BRASIL.find(p => p.nome === praiaNome);
-      if (!praia) return;
-
-      try {
-        // 1. Vento e Clima (Open-Meteo)
-        const climaUrl = `https://api.open-meteo.com/v1/forecast?latitude=${praia.lat}&longitude=${praia.lon}&current=wind_speed_10m,wind_direction_10m,weather_code&daily=wave_height_max,wave_direction_dominant,wave_period_max&timezone=auto`;
-        const climaResp = await fetch(climaUrl);
-        if (!climaResp.ok) throw new Error('Clima indisponível');
-        const climaData = await climaResp.json();
-        
-        const vento = climaData.current.wind_speed_10m;
-        const onda = climaData.daily.wave_height_max[0];
-        const periodo = climaData.daily.wave_period_max[0];
-        const wmo = WMO[climaData.current.weather_code] || ['❓', 'N/A'];
-
-        let qualidade = '⚪ Indefinida';
-        if (onda > 0.8 && vento < 20) qualidade = '🟢 Boa';
-        else if (onda > 0.5 && vento > 25) qualidade = '🟡 Regular (vento forte)';
-        else if (onda < 0.5) qualidade = '🔴 Ruim (mar calmo)';
-
-        // 2. Notícias de Surf (G1)
-        let noticiasHtml = '<div style="font-size:calc(var(--u)*1.1); color:#8fa6c2; margin-top:10px">Nenhuma notícia de surf encontrada.</div>';
-        try {
-            const noticiasResp = await fetch('/api/totem/dados/noticias-mundo');
-            if (noticiasResp.ok) {
-                const noticiasData = await noticiasResp.json();
-                // Tenta pegar notícias de "mundo" ou "catastrofe" que falem de "onda" ou "surfe"
-                const todasNoticias = [...(noticiasData.categorias.catastrofe || []), ...(noticiasData.categorias.mundo || [])];
-                const filtradas = todasNoticias.filter(n => /surf|onda|mar|praia/i.test(n.titulo)).slice(0, 2);
-                if(filtradas.length > 0){
-                    noticiasHtml = '<div style="font-size:calc(var(--u)*1.2); color:#00e5ff; margin-top:10px">Notícias de Surf:</div>';
-                    noticiasHtml += filtradas.map(n => `<div style="font-size:calc(var(--u)*1.15); color:#c4d3e2; margin-top:5px;">• ${n.titulo}</div>`).join('');
-                }
-            }
-        } catch(e) { /* Mantém o fallback */ }
-
-
-        infoDiv.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span><strong>${praia.nome} - ${praia.estado}</strong></span>
-            <span>${wmo[0]} ${Math.round(climaData.current.temperature_2m)}°C</span>
-          </div>
-          <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 6px;">
-            <span>💨 Vento: ${Math.round(vento)} km/h</span>
-            <span>🌊 Onda: ${onda != null ? onda.toFixed(1) + 'm' : 'N/A'}</span>
-            <span>⏱️ Período: ${periodo != null ? periodo.toFixed(0) + 's' : 'N/A'}</span>
-            <span>⭐ Condição: ${qualidade}</span>
-          </div>
-          ${noticiasHtml}
-        `;
-      } catch (e) {
-        infoDiv.innerHTML = `<div style="color:#ff9090; text-align:center;">Dados indisponíveis para ${praia.nome}.<br><small>${e.message}</small></div>`;
+    const pintar = (dados, nome) => {
+      const rio = dados.filter(x => x.praia.rio);
+      const atual = (dados.find(x => x.praia.nome === nome)) || dados[0];
+      if (atual) {
+        const { praia, v, m, t } = atual, nota = surfNota(m, v), wmo = WMO[v.weather_code] || ['🌡️', ''];
+        det.innerHTML =
+          '<div class="sf-l1"><b>' + esc(praia.nome) + '</b><span>' + (praia.zona ? esc(praia.zona) + ' · ' : '') + esc(praia.estado) + '</span><em>' + wmo[0] + ' ' + (v.temperature_2m != null ? Math.round(v.temperature_2m) + '°C' : '') + (t.sea_surface_temperature != null ? ' · água ' + Math.round(t.sea_surface_temperature) + '°C' : '') + '</em></div>' +
+          '<div class="sf-g"><span>🌊 Onda <b>' + n1(m.wave_height) + ' m</b></span><span>⏱️ Período <b>' + (m.wave_period != null ? Math.round(m.wave_period) + ' s' : '—') + '</b></span>' +
+          '<span>💨 Vento <b>' + (v.wind_speed_10m != null ? Math.round(v.wind_speed_10m) + ' km/h' : '—') + '</b> do ' + bussola(v.wind_direction_10m) + (v.wind_gusts_10m != null ? ' · rajada ' + Math.round(v.wind_gusts_10m) : '') + '</span>' +
+          '<span>🧭 Mar de <b>' + bussola(m.wave_direction) + '</b></span><span class="sf-nota">⭐ Surf: ' + nota.ic + ' <b>' + nota.txt + '</b></span></div>' +
+          (m.wave_height >= 2.5 ? '<div class="sf-alerta">⚠️ Ondas altas: atenção para banhistas e correntes.</div>' : '');
       }
-    }
+      if (rio.length) {
+        const pont = rio.map(x => Object.assign({ nota: surfNota(x.m, x.v) }, x)).sort((a, b) => b.nota.n - a.nota.n);
+        const topo = pont[0], calmo = rio.filter(x => x.m.wave_height != null).sort((a, b) => a.m.wave_height - b.m.wave_height)[0];
+        melhor.innerHTML = (topo && topo.nota.n > 0 ? '🏆 Melhor onda agora: <b>' + esc(topo.praia.nome) + '</b> (' + n1(topo.m.wave_height) + ' m · ' + (topo.m.wave_period != null ? Math.round(topo.m.wave_period) : '—') + ' s)' : '') +
+          (calmo ? ' &nbsp;·&nbsp; 🏖️ Mar mais calmo: <b>' + esc(calmo.praia.nome) + '</b> (' + n1(calmo.m.wave_height) + ' m)' : '');
+        rank.innerHTML = pont.map(x => '<div class="sf-r' + (x.praia.nome === nome ? ' on' : '') + '" data-p="' + esc(x.praia.nome) + '"><b>' + esc(x.praia.nome.replace(' dos Bandeirantes', '')) + '</b><span>' + n1(x.m.wave_height) + ' m · ' + (x.m.wave_period != null ? Math.round(x.m.wave_period) + ' s' : '—') + ' · 💨' + (x.v.wind_speed_10m != null ? Math.round(x.v.wind_speed_10m) : '—') + '</span><i>' + x.nota.ic + '</i></div>').join('');
+      }
+    };
+    const atualizar = async () => {
+      const nome = sel.value, extra = PRAIAS_BRASIL.find(p => p.nome === nome);
+      try {
+        const lista = PRAIAS_RJ.slice(); if (extra && !extra.rio) lista.push(extra);   // sempre as praias do Rio + a escolhida
+        pintar(await surfDados(lista), nome);
+      } catch (e) {
+        det.innerHTML = '<div style="color:#ff9090">Dados do mar indisponíveis agora.<br><small>' + esc(e.message || e) + ' · nova tentativa automática.</small></div>';
+      }
+    };
+    sel.addEventListener('change', () => { try { localStorage.setItem('almafluxo_praia', sel.value); } catch (e) {} atualizar(); });
+    rank.addEventListener('click', ev => { const r = ev.target.closest('[data-p]'); if (!r) return; sel.value = r.dataset.p; sel.dispatchEvent(new Event('change')); });
+    atualizar();
+    const iv = setInterval(() => { if (!document.hidden) atualizar(); }, 15 * 60000);
+    if (S && S.fins) S.fins.push(() => clearInterval(iv));
+  }
 
-    select.addEventListener('change', (e) => updateInfo(e.target.value));
-    updateInfo(PRAIAS_BRASIL[0].nome);
+  /* ── NOTÍCIAS LOCAIS DO RIO (muitas fontes; se uma cair, as outras seguram) ── */
+  const RIO_FEEDS = [
+    { f: 'G1 Rio',                u: 'https://g1.globo.com/rss/g1/rio-de-janeiro/' },
+    { f: 'Google Notícias',       u: 'https://news.google.com/rss/search?q=%22Barra+da+Tijuca%22+OR+Recreio+OR+%22Zona+Oeste%22+Rio&hl=pt-BR&gl=BR&ceid=BR:pt-419' },
+    { f: 'Google Notícias',       u: 'https://news.google.com/rss/search?q=Rio+de+Janeiro+praia+OR+tr%C3%A2nsito+OR+prefeitura&hl=pt-BR&gl=BR&ceid=BR:pt-419' },
+    { f: 'Bing Notícias',         u: 'https://www.bing.com/news/search?q=Barra+da+Tijuca+Recreio+Rio&format=rss&setmkt=pt-BR' },
+    { f: 'O Dia',                 u: 'https://odia.ig.com.br/rss.xml' },
+    { f: 'Extra',                 u: 'https://extra.globo.com/rss.xml' },
+    { f: 'Diário do Rio',         u: 'https://diariodorio.com/feed/' },
+    { f: 'Prefeitura do Rio',     u: 'https://prefeitura.rio/feed/' }
+  ];
+  const RIO_BAIRROS = /barra da tijuca|recreio|jacarepagu|zona oeste|grumari|prainha|macumba|s[ãa]o conrado|leblon|ipanema|copacabana|arpoador/i;
+  const rioXml = (xml, fonte) => {
+    const doc = new DOMParser().parseFromString(xml, 'text/xml');
+    return Array.prototype.slice.call(doc.querySelectorAll('item, entry'), 0, 25).map(n => {
+      const g = t => { const e = n.querySelector(t); return e ? e.textContent : ''; };
+      let titulo = g('title').trim(), f = fonte; const src = n.querySelector('source');
+      if (src && src.textContent) f = src.textContent.trim();
+      const k = titulo.lastIndexOf(' - '); if (k > 20 && /news\.google|google/i.test(fonte)) { f = titulo.slice(k + 3).trim() || f; titulo = titulo.slice(0, k).trim(); }
+      return { titulo, t: Date.parse(g('pubDate') || g('updated') || g('published')) || 0, fonte: f };
+    }).filter(x => x.titulo);
+  };
+  async function rioLerFeed(f) {
+    try {   // 1) conversor JSON público (aceita chamadas do navegador)
+      const r = await fetch('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(f.u), { signal: SURF_TMO(8000) }), j = await r.json();
+      if (j && j.status === 'ok' && j.items && j.items.length) return j.items.map(it => {
+        let titulo = String(it.title || '').trim(), fonte = f.f; const k = titulo.lastIndexOf(' - ');
+        if (k > 20 && /google/i.test(f.f)) { fonte = titulo.slice(k + 3).trim() || fonte; titulo = titulo.slice(0, k).trim(); }
+        return { titulo, t: Date.parse(String(it.pubDate || '').replace(' ', 'T') + 'Z') || 0, fonte };
+      }).filter(x => x.titulo);
+    } catch (e) {}
+    for (const px of ['https://api.allorigins.win/raw?url=', 'https://corsproxy.io/?']) {   // 2) proxies de reserva
+      try { const r = await fetch(px + encodeURIComponent(f.u), { signal: SURF_TMO(8000) }); if (!r.ok) continue; const l = rioXml(await r.text(), f.f); if (l.length) return l; } catch (e) {}
+    }
+    return [];
+  }
+  let RIO_NEWS = null;
+  async function noticiasRio() {
+    if (RIO_NEWS && Date.now() - RIO_NEWS.t < 15 * 60000 && RIO_NEWS.itens.length) return RIO_NEWS;
+    const partes = await Promise.allSettled([
+      txDados('noticias-mundo', '', 600000).then(d => ((d.categorias && d.categorias.rio) || []).map(x => ({ titulo: x.titulo, t: x.t, fonte: x.fonte || 'Worker' }))),   // se o Worker tiver a categoria "rio"
+      ...RIO_FEEDS.map(rioLerFeed)
+    ]);
+    const todas = []; const fontesOk = new Set();
+    partes.forEach(p => { if (p.status === 'fulfilled' && Array.isArray(p.value)) p.value.forEach(x => { if (x && x.titulo) { todas.push(x); fontesOk.add(x.fonte); } }); });
+    const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim().slice(0, 70);
+    const vistos = new Set(), unicas = todas.filter(x => { const k = norm(x.titulo); if (!k || vistos.has(k)) return false; vistos.add(k); return true; });
+    const agoraMs = Date.now(), recentes = unicas.filter(x => !x.t || agoraMs - x.t < 4 * 86400000);
+    const base = (recentes.length >= 4 ? recentes : unicas).sort((a, b) => (b.t || 0) - (a.t || 0));
+    const local = base.filter(x => RIO_BAIRROS.test(x.titulo)).slice(0, 4), resto = base.filter(x => !local.includes(x));
+    const itens = local.concat(resto).slice(0, 8);
+    if (itens.length) {
+      RIO_NEWS = { t: Date.now(), itens, fontes: Array.from(fontesOk).slice(0, 4) };
+      try { localStorage.setItem('almafluxo_rio_news', JSON.stringify(RIO_NEWS)); } catch (e) {}
+      return RIO_NEWS;
+    }
+    try { const c = JSON.parse(localStorage.getItem('almafluxo_rio_news') || 'null'); if (c && c.itens && c.itens.length) return Object.assign({}, c, { stale: true }); } catch (e) {}
+    throw new Error('nenhuma fonte respondeu');
+  }
+  function montarRioNoticias(s, S, P) {
+    const top = s.querySelector('.ed-news-top span'), src = s.querySelector('.ed-source'), list = s.querySelector('.ed-news-list');
+    if (!list) return;
+    if (top) top.textContent = 'NOTÍCIAS DO RIO · ONDE VOCÊ MORA';
+    let idx = 0, itens = [], meta = '';
+    const quando = x => x.t ? txAgo(x.t) : '';
+    const render = () => {
+      if (!itens.length) return;
+      const n = itens[idx % itens.length], outros = itens.filter((_, i) => i !== idx % itens.length).slice(0, 3);
+      list.innerHTML = '<article class="ed-news-feature"><span class="ed-live">DESTAQUE · ' + (idx % itens.length + 1) + ' DE ' + itens.length + '</span><h3>' + esc(clean(n.titulo, 170)) + '</h3><small>' + esc([n.fonte, quando(n)].filter(Boolean).join(' · ')) + '</small></article>' +
+        '<div class="ed-news-section-label">MAIS DO RIO</div>' + outros.map((x, i) => '<article class="ed-news-item"><b>0' + (i + 2) + '</b><span>' + esc(clean(x.titulo, 140)) + '<small>' + esc([x.fonte, quando(x)].filter(Boolean).join(' · ')) + '</small></span></article>').join('');
+    };
+    const carregar = async () => {
+      try {
+        const d = await noticiasRio(); if (S.morto) return;
+        itens = d.itens; idx = 0; meta = 'Fontes: ' + (d.fontes || []).join(', ') + ' · atualizado ' + txHora(d.t) + (d.stale ? ' · última cópia salva' : '');
+        if (src) { src.textContent = meta; src.title = meta; }
+        render();
+      } catch (e) {
+        if (!itens.length) list.innerHTML = '<div class="ed-news-empty">Sem notícias do Rio agora.<br><small>Todas as fontes falharam; tentando de novo em instantes.</small></div>';
+        if (src) src.textContent = 'fontes temporariamente indisponíveis';
+      }
+    };
+    carregar();
+    const ivC = setInterval(carregar, 15 * 60000);
+    const ivR = setInterval(() => {
+      const reg = P && P._activeReg ? P._activeReg() : null;
+      if (!document.hidden && !(reg && reg.pausado) && itens.length > 1) { idx = (idx + 1) % itens.length; render(); }
+    }, 9000);
+    S.fins.push(() => { clearInterval(ivC); clearInterval(ivR); });
   }
 
 
@@ -6669,8 +7292,9 @@ window.build = build;   // ← expõe globalmente para o MiniMotorPlayer
     if (item.tipo === 'eletrica') {
       const surfPanel = s.querySelector('.ed-surf-panel');
       if (surfPanel) {
-        buildSurfPanel(surfPanel);
+        buildSurfPanel(surfPanel, S);
       }
+      montarRioNoticias(s, S, P);   // coluna da direita: notícias locais do Rio
     }
 
 
@@ -6769,6 +7393,7 @@ window.build = build;   // ← expõe globalmente para o MiniMotorPlayer
         others.map((x, i) => `<article class="ed-news-item"><b>0${i + 2}</b><span>${esc(clean(x.titulo, 140))}<small>${esc(metaNoticia(x))}</small></span></article>`).join('');
     };
     const carregar = async () => {
+      if (item.tipo === 'eletrica') return;   // a coluna de notícias da Energia agora mostra o Rio (montarRioNoticias)
       try {
         const d = await txDados('noticias-mundo', '', 600000);
         items = (d.categorias && Array.isArray(d.categorias[cfg.categoria]) ? d.categorias[cfg.categoria] : []).filter(x => x && x.titulo).slice(0, 6);
