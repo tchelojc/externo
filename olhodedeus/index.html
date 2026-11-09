@@ -1112,11 +1112,10 @@
                 Selecione a duração do acesso
             </p>
             <select id="planoAcesso" style="width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:#0d1220;color:#fff;font-size:1rem;margin-bottom:1rem;">
-                <option value="10">⏱️ 1 Hora - 10 tokens</option>
-                <option value="30">📆 1 Dia - 30 tokens</option>
-                <option value="100">📆 1 Semana - 100 tokens</option>
-                <option value="300" selected>📆 1 Mês - 300 tokens</option>
-                <option value="2000">📆 1 Ano - 2000 tokens</option>
+                <option value="hora"   selected>⏱️ 1 Hora   — 30 tokens</option>
+                <option value="dia"             >📆 1 Dia    — 70 tokens</option>
+                <option value="semana"          >📆 1 Semana — 200 tokens</option>
+                <option value="mes"             >📆 1 Mês    — 350 tokens</option>
             </select>
             <button class="btn-pagar" onclick="ativarAcesso()">✅ Ativar Acesso</button>
             <div class="status-msg" id="acessoStatus"></div>
@@ -1221,57 +1220,58 @@
         // ATIVAR ACESSO
         // ======================================================
         async function ativarAcesso() {
-            if (!usuarioLogadoOlho) {
-                abrirModalLogin();
-                return;
-            }
-
-            const tokensNecessarios = parseInt(document.getElementById('planoAcesso').value);
+            if (!usuarioLogadoOlho) { abrirModalLogin(); return; }
+        
+            const plano = document.getElementById('planoAcesso').value; // hora|dia|semana|mes
             const statusEl = document.getElementById('acessoStatus');
-
-            statusEl.textContent = `⏳ Verificando saldo (${tokensNecessarios} tokens necessários)...`;
+        
+            statusEl.textContent = '⏳ Ativando plano...';
             statusEl.style.color = 'var(--ciano)';
-
+        
             try {
-                const saldoData = await consultarSaldoOlho(usuarioLogadoOlho.email, usuarioLogadoOlho.sessionToken);
-
-                if (!saldoData.ok) {
-                    throw new Error(saldoData.error || 'Erro ao consultar saldo');
-                }
-
-                if (saldoData.balance < tokensNecessarios) {
-                    statusEl.textContent = `❌ Saldo insuficiente! Você tem ${saldoData.balance} tokens. Necessário: ${tokensNecessarios}`;
+                const response = await fetch('https://almafluxo.uk/proxy/central', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'comprarAcessoPorTempo',
+                        email: usuarioLogadoOlho.email,
+                        plataforma: 'olhodedeus',
+                        plano: plano,
+                        sessionToken: usuarioLogadoOlho.sessionToken,
+                        tk: TOKEN_INTERNO
+                    })
+                });
+                const data = await response.json();
+        
+                if (!data.ok) {
+                    statusEl.textContent = '❌ ' + (data.error || 'Não foi possível ativar.');
                     statusEl.style.color = '#ff6b6b';
                     return;
                 }
-
-                const debitoData = await debitarTokensOlho(usuarioLogadoOlho.email, tokensNecessarios, usuarioLogadoOlho.sessionToken);
-
-                if (debitoData.ok) {
-                    usuarioLogadoOlho.balance = debitoData.saldoRestante || (saldoData.balance - tokensNecessarios);
-                    localStorage.setItem('olho_de_deus_usuario', JSON.stringify(usuarioLogadoOlho));
-                    localStorage.setItem('almafluxo_usuario', JSON.stringify({
-                        email: usuarioLogadoOlho.email,
-                        sessionToken: usuarioLogadoOlho.sessionToken,
-                        nome: usuarioLogadoOlho.nome,
-                        balance: usuarioLogadoOlho.balance,
-                        master: usuarioLogadoOlho.master
-                    }));
-                    document.getElementById('tokenDisplay').textContent = `⚡ ${usuarioLogadoOlho.balance} Tokens`;
-
-                    statusEl.textContent = '✅ Acesso ativado!';
-                    statusEl.style.color = '#4caf50';
-                    mostrarToastOlho('✅ Acesso ativado com sucesso!');
-
-                    setTimeout(() => {
-                        fecharModalPlanos();
-                        acessarConteudoOlho();
-                    }, 1500);
-                } else {
-                    throw new Error(debitoData.error || 'Erro ao debitar tokens');
-                }
-            } catch (erro) {
-                statusEl.textContent = '❌ ' + erro.message;
+        
+                // servidor devolve saldoRestante e expiraEm
+                usuarioLogadoOlho.balance = data.saldoRestante;
+                localStorage.setItem('olho_de_deus_usuario', JSON.stringify(usuarioLogadoOlho));
+                localStorage.setItem('almafluxo_usuario', JSON.stringify({
+                    email: usuarioLogadoOlho.email,
+                    sessionToken: usuarioLogadoOlho.sessionToken,
+                    nome: usuarioLogadoOlho.nome,
+                    balance: usuarioLogadoOlho.balance,
+                    master: usuarioLogadoOlho.master
+                }));
+                document.getElementById('tokenDisplay').textContent = `⚡ ${data.saldoRestante} Tokens`;
+        
+                const exp = data.expiraEm ? new Date(data.expiraEm).toLocaleString('pt-BR') : '—';
+                statusEl.textContent = `✅ Ativado até ${exp}`;
+                statusEl.style.color = '#4caf50';
+                mostrarToastOlho('✅ Plano ativado!');
+        
+                setTimeout(() => {
+                    fecharModalPlanos();
+                    acessarConteudoOlho();
+                }, 1200);
+            } catch (e) {
+                statusEl.textContent = '❌ ' + e.message;
                 statusEl.style.color = '#ff6b6b';
             }
         }
