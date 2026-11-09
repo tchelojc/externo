@@ -1112,10 +1112,11 @@
                 Selecione a duração do acesso
             </p>
             <select id="planoAcesso" style="width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:#0d1220;color:#fff;font-size:1rem;margin-bottom:1rem;">
-                <option value="hora"   selected>⏱️ 1 Hora   — 30 tokens</option>
-                <option value="dia"             >📆 1 Dia    — 70 tokens</option>
-                <option value="semana"          >📆 1 Semana — 200 tokens</option>
-                <option value="mes"             >📆 1 Mês    — 350 tokens</option>
+                <option value="hora">⏱️ 1 Hora - 10 tokens</option>
+                <option value="dia">📆 1 Dia - 30 tokens</option>
+                <option value="semana">📆 1 Semana - 100 tokens</option>
+                <option value="mes" selected>📆 1 Mês - 300 tokens</option>
+                <option value="ano">📆 1 Ano - 2000 tokens</option>
             </select>
             <button class="btn-pagar" onclick="ativarAcesso()">✅ Ativar Acesso</button>
             <div class="status-msg" id="acessoStatus"></div>
@@ -1221,13 +1222,13 @@
         // ======================================================
         async function ativarAcesso() {
             if (!usuarioLogadoOlho) { abrirModalLogin(); return; }
-        
+
             const plano = document.getElementById('planoAcesso').value; // hora|dia|semana|mes
             const statusEl = document.getElementById('acessoStatus');
-        
+
             statusEl.textContent = '⏳ Ativando plano...';
             statusEl.style.color = 'var(--ciano)';
-        
+
             try {
                 const response = await fetch('https://almafluxo.uk/proxy/central', {
                     method: 'POST',
@@ -1242,14 +1243,13 @@
                     })
                 });
                 const data = await response.json();
-        
+
                 if (!data.ok) {
                     statusEl.textContent = '❌ ' + (data.error || 'Não foi possível ativar.');
                     statusEl.style.color = '#ff6b6b';
                     return;
                 }
-        
-                // servidor devolve saldoRestante e expiraEm
+
                 usuarioLogadoOlho.balance = data.saldoRestante;
                 localStorage.setItem('olho_de_deus_usuario', JSON.stringify(usuarioLogadoOlho));
                 localStorage.setItem('almafluxo_usuario', JSON.stringify({
@@ -1260,12 +1260,12 @@
                     master: usuarioLogadoOlho.master
                 }));
                 document.getElementById('tokenDisplay').textContent = `⚡ ${data.saldoRestante} Tokens`;
-        
+
                 const exp = data.expiraEm ? new Date(data.expiraEm).toLocaleString('pt-BR') : '—';
                 statusEl.textContent = `✅ Ativado até ${exp}`;
                 statusEl.style.color = '#4caf50';
                 mostrarToastOlho('✅ Plano ativado!');
-        
+
                 setTimeout(() => {
                     fecharModalPlanos();
                     acessarConteudoOlho();
@@ -1325,17 +1325,32 @@
                     return;
                 }
 
-                if (data.balance < 10) {
-                    mostrarToastOlho(`⚠️ Saldo insuficiente! Você tem ${data.balance} tokens. Mínimo: 10`);
-                    abrirModalPlanos();
-                    return;
-                }
+                // 1) Já tem plano ativo? Abre direto.
+                try {
+                    const respPlano = await fetch('https://almafluxo.uk/proxy/central', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'verificarAcessoPorTempo',
+                            email: usuarioLogadoOlho.email,
+                            sessionToken: usuarioLogadoOlho.sessionToken,
+                            plataforma: 'olhodedeus',
+                            tk: TOKEN_INTERNO
+                        })
+                    });
+                    const planoData = await respPlano.json();
+                    if (planoData.ok && planoData.acessoAtivo) {
+                        const params = new URLSearchParams({
+                            email: usuarioLogadoOlho.email,
+                            sessionToken: usuarioLogadoOlho.sessionToken
+                        });
+                        window.open(`https://almafluxo.uk/app-olhodedeus?${params}`, '_blank');
+                        return;
+                    }
+                } catch (e) { /* segue */ }
 
-                const params = new URLSearchParams({
-                    email: usuarioLogadoOlho.email,
-                    sessionToken: usuarioLogadoOlho.sessionToken
-                });
-                window.open(`https://almafluxo.uk/app-olhodedeus?${params}`, '_blank');
+                // 2) Sem plano → abre modal para escolher período.
+                abrirModalPlanos();
 
             } catch (e) {
                 console.error('❌ [ACESSO] Erro:', e);
