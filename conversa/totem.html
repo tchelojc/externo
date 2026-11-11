@@ -3346,6 +3346,11 @@ async function iniciarTotem() {
   }
   TOTEM_AMBIENTE.iniciar();
   if (!sessao || !TID) return;
+  // A inicialização do módulo de áudio pode ter ocorrido antes do login.
+  // Faça a leitura da pasta imediatamente após a autenticação, sem esperar
+  // o próximo intervalo automático de 10 minutos.
+  try { await TOTEM_AMBIENTE.atualizar(); }
+  catch (e) { console.warn('[TOTEM_AMBIENTE] leitura após login:', e && e.message || e); }
   reagendar(cache || {});
   await syncConfig();
   enviarHeartbeat();
@@ -5973,18 +5978,36 @@ const TOTEM_AMBIENTE = {
     setTimeout(rodar,2500); setTimeout(rodar,20000); setInterval(rodar,10*60000);
   },
   async atualizar(){
-    if(typeof sessao==='undefined'||!sessao){ this.semSessao=!this.lista.length; return; }
+    // Se o totem abriu antes do login, tenta recuperar uma sessão lembrada.
+    // Se o usuário acabou de entrar manualmente, a sessão atual já será usada.
+    if(typeof sessao==='undefined'||!sessao){
+      const recuperou = (typeof reloginSilencioso==='function') ? await reloginSilencioso() : false;
+      if(!recuperou){ this.semSessao=true; this.atualizarBotao(); return; }
+    }
     this.semSessao=false;
     const arq=await listarPasta();
-    if(!Array.isArray(arq)||!arq.length) return;
+    if(!Array.isArray(arq)) { this.erro='não foi possível ler a pasta CONVERSA'; this.atualizarBotao(); return; }
     this.totalArquivos=arq.length;
-    const nova=this.reconhecer(arq); lsSet(this.K_LISTA,nova); this.aplicarLista(nova);
+    const nova=this.reconhecer(arq);
+    lsSet(this.K_LISTA,nova);
+    this.aplicarLista(nova);
+    // Se a lista já era conhecida, mas o download/reprodução falhou antes,
+    // tenta novamente agora que a sessão está disponível.
+    if(nova.length && (!this.audio || this.estado==='erro') && !this.pausadoUsuario) {
+      if(this.estado!=='baixando') this.tocar();
+    }
   },
   aplicarLista(nova){
     const atual=this.lista[this.pos]; this.lista=nova;
     if(!nova.length){ this.pararAudio(); this.atualizarBotao(); return; }
     const i=atual?nova.findIndex(f=>f.id===atual.id):-1;
-    if(i>=0){ this.pos=i; this.atualizarBotao(); return; }
+    if(i>=0){
+      this.pos=i; this.atualizarBotao();
+      // A lista pode vir do cache local antes da autenticação. Ao confirmar
+      // a sessão, garante que a faixa atual seja efetivamente carregada.
+      if(!this.audio && !this.pausadoUsuario && this.estado!=='baixando') this.tocar();
+      return;
+    }
     const sv=lsGet(this.K_POS,null), j=sv?nova.findIndex(f=>f.id===sv.id):-1;
     this.pos=j>=0?j:0; this.ciclos=j>=0?Math.min(this.CICLOS-1,+sv.ciclos||0):0;
     this.atualizarBotao(); this.tocar();
