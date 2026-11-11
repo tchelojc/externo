@@ -5,17 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ALMAFLUXO — Pagamentos</title>
     <style>
-        :root {
-            --bg: #0a0a0f; --gold: #d4a843;
-            --text: #e0e0e0; --text-secondary: #a0a0b0;
-        }
+        :root { --bg: #0a0a0f; --gold: #d4a843; --text: #e0e0e0; --text-secondary: #a0a0b0; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
             background: var(--bg); color: var(--text); min-height: 100vh;
-            display: flex; align-items: center; justify-content: center;
         }
-        .loading-container { text-align: center; padding: 40px; }
+        .loading-container {
+            text-align: center; padding: 40px; min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
         .logo {
             font-size: 2rem; font-weight: 700;
             background: linear-gradient(135deg, var(--gold), #f0d078);
@@ -28,8 +27,13 @@
             animation: spin 0.8s linear infinite; margin: 0 auto 20px;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-        
-        /* Container inline (igual ao atendimento.html) */
+        .btn-retry {
+            margin-top: 16px; padding: 12px 24px; background: #d4a843; color: #1a1a1a;
+            border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 1rem;
+        }
+        .detalhe { margin-top: 12px; color: #6f6f80; font-size: .75rem; max-width: 420px; word-break: break-word; }
+
+        /* Container inline (mesmo padrão do atendimento.html) */
         #drivePageContainer {
             position: fixed; inset: 0; z-index: 5000; background: #0a0a0a;
             display: none; flex-direction: column;
@@ -51,10 +55,9 @@
     <div class="loading-container" id="loadingContainer">
         <div class="logo">ALMAFLUXO</div>
         <div class="spinner"></div>
-        <p style="color:#a0a0b0">Carregando sistema de pagamentos...</p>
+        <p style="color:#a0a0b0" id="loadingMsg">Carregando sistema de pagamentos...</p>
     </div>
 
-    <!-- Container inline (igual ao atendimento.html) -->
     <div class="drive-page-container" id="drivePageContainer">
         <div id="driveInlineWrapper">
             <div id="driveInlineContent"></div>
@@ -62,77 +65,109 @@
     </div>
 
     <script>
-        // "central" existe no SCRIPT_MAP do worker — "pagamentos" não existe, por isso caía no fallback.
+        // O Central devolve o HTML puro da página de pagamentos (arquivo do Drive) para a ação "pagamentos".
         const PROXY_CLOUDFLARE = 'https://almafluxo.uk/proxy/central';
         let carregado = false;
 
-        async function carregarPagamentosHTML() {
-            if (carregado) return;
-            
-            try {
-                console.log('📄 Buscando pagamentos.html via proxy...');
-                
-                const response = await fetch(PROXY_CLOUDFLARE, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'pagamentos' })
-                });
-                
-                // O Central_gs.js devolve HTML puro (ContentService.MimeType.HTML) para esta ação,
-                // não um objeto { status, html }. O worker reencaminha o corpo como veio.
-                const html = await response.text();
-                console.log('📄 Tamanho recebido:', html.length);
-                
-                if (response.ok && html && html.length > 100 && !html.trim().startsWith('{')) {
-                    carregado = true;
-                    renderizarHTML(html);
-                } else {
-                    throw new Error('HTML não encontrado — resposta: ' + html.substring(0, 200));
+        function esperar(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+        async function buscarHTML() {
+            let ultimoErro = null;
+            for (let tentativa = 1; tentativa <= 2; tentativa++) {
+                const ctl = new AbortController();
+                const t = setTimeout(() => ctl.abort(), 25000);
+                try {
+                    const response = await fetch(PROXY_CLOUDFLARE, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'pagamentos' }),
+                        signal: ctl.signal
+                    });
+                    const html = await response.text();
+                    clearTimeout(t);
+                    if (response.ok && html && html.length > 100 && !html.trim().startsWith('{')) return html;
+                    ultimoErro = new Error('Resposta inesperada (' + response.status + '): ' + html.substring(0, 160));
+                } catch (e) {
+                    clearTimeout(t);
+                    ultimoErro = e.name === 'AbortError' ? new Error('Tempo esgotado ao buscar a página.') : e;
                 }
-                
+                if (tentativa < 2) { document.getElementById('loadingMsg').textContent = 'Tentando novamente...'; await esperar(1200); }
+            }
+            throw ultimoErro;
+        }
+
+        // Só "desescapa" se o servidor tiver mandado o HTML como texto escapado (não é o caso normal).
+        function normalizar(html) {
+            if (/^\s*<(!doctype|html|head|body|div|style|meta)/i.test(html)) return html;
+            return html.replace(/\\"/g, '"').replace(/\\'/g, "'").replace(/\\n/g, '\n').replace(/\\r/g, '').replace(/\\t/g, '');
+        }
+
+        function carregarScriptExterno(origem) {
+            return new Promise(resolve => {
+                const s = document.createElement('script');
+                for (const a of origem.attributes) s.setAttribute(a.name, a.value);
+                const assincrono = origem.hasAttribute('async') || origem.hasAttribute('defer');
+                s.onload = () => resolve(true);
+                s.onerror = () => { console.warn('Falha ao carregar script:', origem.src); resolve(false); };
+                document.head.appendChild(s);
+                if (assincrono) resolve(true);   // não trava a página esperando (ex.: Google Sign-In)
+            });
+        }
+
+        async function renderizarHTML(htmlBruto) {
+            const doc = new DOMParser().parseFromString(normalizar(htmlBruto), 'text/html');
+            const inline = document.getElementById('driveInlineContent');
+
+            // 1) estilos e links de estilo do <head> da página carregada
+            doc.head.querySelectorAll('style, link[rel="stylesheet"]').forEach(n => document.head.appendChild(n.cloneNode(true)));
+            if (doc.title) document.title = doc.title;
+
+            // 2) scripts em ordem original (head + body), removidos do conteúdo
+            const scripts = Array.from(doc.querySelectorAll('script'));
+            scripts.forEach(s => s.remove());
+            inline.innerHTML = doc.body.innerHTML;
+
+            document.getElementById('loadingContainer').style.display = 'none';
+            document.getElementById('drivePageContainer').classList.add('active');
+
+            // 3) executa: externos (aguarda, exceto async/defer) e inline, nesta ordem
+            for (const s of scripts) {
+                if (s.src) {
+                    await carregarScriptExterno(s);
+                } else {
+                    const n = document.createElement('script');
+                    n.textContent = s.textContent;
+                    document.body.appendChild(n);
+                    n.remove();
+                }
+            }
+
+            // 4) a página original usa DOMContentLoaded, que aqui já passou: dispara manualmente
+            document.dispatchEvent(new Event('DOMContentLoaded', { bubbles: true, cancelable: true }));
+            console.log('✅ Página de pagamentos renderizada.');
+        }
+
+        function mostrarErro(e) {
+            document.getElementById('loadingContainer').innerHTML =
+                '<div class="logo">ALMAFLUXO</div>' +
+                '<p style="color:#e74c3c">Não foi possível carregar a página de pagamentos.</p>' +
+                '<button class="btn-retry" onclick="location.reload()">🔄 Tentar novamente</button>' +
+                '<div class="detalhe"></div>';
+            document.querySelector('#loadingContainer .detalhe').textContent = e && e.message ? e.message : String(e);
+        }
+
+        async function iniciar() {
+            if (carregado) return;
+            try {
+                const html = await buscarHTML();
+                carregado = true;
+                await renderizarHTML(html);
             } catch (e) {
-                console.error('❌ Erro:', e.message);
-                document.getElementById('loadingContainer').innerHTML = `
-                    <div class="logo">ALMAFLUXO</div>
-                    <p style="color:#e74c3c">Não foi possível carregar.</p>
-                    <button onclick="location.reload()" style="margin-top:16px;padding:12px 24px;background:#d4a843;color:#1a1a1a;border:none;border-radius:10px;font-weight:600;cursor:pointer">🔄 Tentar novamente</button>
-                `;
+                console.error('❌ Erro:', e);
+                if (!carregado) mostrarErro(e);
             }
         }
-
-        function renderizarHTML(htmlContent) {
-            const loading = document.getElementById('loadingContainer');
-            const container = document.getElementById('drivePageContainer');
-            const inlineDiv = document.getElementById('driveInlineContent');
-            
-            loading.style.display = 'none';
-            container.classList.add('active');
-            
-            // Limpa o HTML
-            let htmlLimpo = htmlContent
-                .replace(/\\"/g, '"')
-                .replace(/\\'/g, "'")
-                .replace(/\\n/g, '\n')
-                .replace(/\\r/g, '')
-                .replace(/\\t/g, '');
-            
-            // Insere o HTML
-            inlineDiv.innerHTML = htmlLimpo;
-            
-            // Reexecuta scripts
-            const scripts = inlineDiv.querySelectorAll('script');
-            scripts.forEach(script => {
-                const newScript = document.createElement('script');
-                newScript.textContent = script.textContent;
-                script.remove();
-                document.body.appendChild(newScript);
-                setTimeout(() => { if (newScript.parentNode) newScript.remove(); }, 100);
-            });
-            
-            console.log('✅ Página de pagamentos renderizada!');
-        }
-
-        carregarPagamentosHTML();
+        iniciar();
     </script>
 </body>
 </html>
