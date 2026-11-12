@@ -994,6 +994,8 @@ html,body{background:#000}
 .cg-ln{stroke-dasharray:1;stroke-dashoffset:1;animation:txd 3s ease forwards}.cg-ar{opacity:0;animation:txf 1.6s 1.6s ease forwards}
 @keyframes txf{to{opacity:1}}
 .cg-b{transform-box:fill-box;transform-origin:bottom;animation:txg .8s ease backwards}
+.cg-now{display:flex;align-items:center;justify-content:center;gap:1.2%;width:100%;line-height:1}.cg-now .cg-i{font-size:calc(var(--u)*5.4)}.cg-now .cg-t{font-size:calc(var(--u)*7.2);font-weight:800;letter-spacing:-.06em;color:#f4fbff;text-shadow:0 0 2vmin #55d8ff55}.cg-now .cg-t span{font-size:.48em;vertical-align:top;color:#9fc7ff}.cg-now .cg-d{font-size:calc(var(--u)*1.8);max-width:25%;text-align:left}
+.cg-forecast{width:100%;min-height:0;margin-top:1.2%;padding:.6% 1.2%;border:1px solid rgba(110,190,230,.18);border-radius:1vmin;background:rgba(255,255,255,.035)}.cg-fc-head{display:flex;justify-content:space-between;align-items:center;color:#dceeff;font-size:calc(var(--u)*1.25);letter-spacing:.08em}.cg-fc-head span{font-size:.82em;letter-spacing:0;color:#9bb9d4}.cg-fc-head i{color:#ffbd59;font-style:normal}.cg-fc-head em{color:#55d8ff;font-style:normal}.cg-forecast svg{display:block;width:100%;height:auto;max-height:calc(var(--u)*14);overflow:visible}.cg-fc-rain{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:.3%;font-size:calc(var(--u)*.95);color:#8faac2;text-align:center}.cg-fc-rain span{white-space:nowrap}.cg-fc-rain b{color:#8fe4ff;margin-left:.15em}.cg-fc-empty{font-size:calc(var(--u)*1.1);color:#9bb9d4;padding:1em}
 @keyframes txg{from{transform:scaleY(0)}}
 /* aviso de instalação / tela cheia */
 .tx-inst{position:fixed;left:50%;bottom:4%;transform:translateX(-50%);z-index:9999;display:flex;gap:18px;align-items:center;background:rgba(3,8,18,.94);border:1px solid #00e5ff;border-radius:16px;padding:16px 22px;color:#eaf6ff;font-family:'Roboto',sans-serif;font-size:clamp(14px,2.2vmin,26px);box-shadow:0 0 40px rgba(0,229,255,.35);max-width:90vw;line-height:1.4}
@@ -4058,10 +4060,14 @@ async function txDados(tipo, qs, ttl) {
   const chave = k.replace(/[^\w]/g, '_');
   try {
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 12000);   // ← 12 s de teto
-    const r = await fetch(TX_BASE + tipo + (qs ? '?' + qs : ''), { signal: ctrl.signal });
-    clearTimeout(timer);
-    const d = await r.json();
+    const timer = setTimeout(() => ctrl.abort(), 12000);
+    let r, d;
+    try {
+      r = await fetch(TX_BASE + tipo + (qs ? '?' + qs : ''), { signal: ctrl.signal });
+      d = await r.json();
+    } finally {
+      clearTimeout(timer);
+    }
     if (!r.ok || d.ok === false) throw new Error(d.error || ('HTTP ' + r.status));
     TX_C[k] = { t: Date.now(), d };
     txCacheSalvar(chave, d);
@@ -5866,8 +5872,8 @@ TX.climagrafico = {
     // ── Estado local ─────────────────────────────────────────────────
     let ufAtual = null;
     let reqSeq = 0;
-    let carregandoClima = false;
-    let carregandoNot = false;
+    const pendentesClima = new Map();
+    const pendentesNot = new Map();
 
     // ─────────────────────────────────────────────────────────────────
     // PREFETCH — pipeline de 2 ciclos
@@ -5895,7 +5901,7 @@ TX.climagrafico = {
       if (prefetchEmAndamento.has(chave)) return prefetchEmAndamento.get(chave);
       const capital = TOTEM_UFS.find(u => u.uf === uf);
       if (!capital) return;
-      const memKey = 'clima?lat=' + capital.lat + '&lon=' + capital.lon;
+      const memKey = 'clima?lat=' + capital.lat + '&lon=' + capital.lon + '&cidade=' + encodeURIComponent(capital.cap);
       const mem = TX_C[memKey];
       if (mem && Date.now() - mem.t < TTL_MEM) { prefetchJaFeito.add(chave); return; }
       const p = (async () => {
@@ -5961,23 +5967,39 @@ TX.climagrafico = {
       const temp   = (c.temp   != null) ? c.temp   : c.temperature_2m;
       const umid   = (c.umid   != null) ? c.umid   : c.relative_humidity_2m;
       const vento  = (c.vento  != null) ? c.vento  : c.wind_speed_10m;
-      const maxDia = (dia.max  != null) ? dia.max  : (Array.isArray(dia.temperature_2m_max) ? dia.temperature_2m_max[0] : undefined);
-      const minDia = (dia.min  != null) ? dia.min  : (Array.isArray(dia.temperature_2m_min) ? dia.temperature_2m_min[0] : undefined);
+      const maxDia = (dia.max != null) ? dia.max : (Array.isArray(dia.temperature_2m_max) ? dia.temperature_2m_max[0] : undefined);
+      const minDia = (dia.min != null) ? dia.min : (Array.isArray(dia.temperature_2m_min) ? dia.temperature_2m_min[0] : undefined);
       if (temp == null || maxDia == null || minDia == null) {
         throw new Error('payload de clima inesperado: ' + JSON.stringify(Object.keys(c)));
       }
       const w = WMO[codigo] || ['🌡️', '—'];
+      const datas = Array.isArray(dia.datas) ? dia.datas : (Array.isArray(dia.time) ? dia.time : []);
+      const maximas = Array.isArray(dia.maximas) ? dia.maximas : (Array.isArray(dia.temperature_2m_max) ? dia.temperature_2m_max : [maxDia]);
+      const minimas = Array.isArray(dia.minimas) ? dia.minimas : (Array.isArray(dia.temperature_2m_min) ? dia.temperature_2m_min : [minDia]);
+      const chuvas = Array.isArray(dia.chuva) ? dia.chuva : (Array.isArray(dia.precipitation_probability_max) ? dia.precipitation_probability_max : []);
+      const nDias = Math.min(7, datas.length || maximas.length || minimas.length);
+      const previsao = Array.from({length:nDias}, (_,i) => ({
+        data: datas[i] || '', max: Number(maximas[i]), min: Number(minimas[i]), chuva: chuvas[i]
+      })).filter(x => Number.isFinite(x.max) && Number.isFinite(x.min));
+      const fmtDia = v => { if (!v) return '—'; const d = new Date(v + 'T12:00:00'); return d.toLocaleDateString('pt-BR',{weekday:'short'}).replace('.',''); };
+      let grafico = '<div class="cg-fc-empty">Previsão estendida indisponível.</div>';
+      if (previsao.length > 1) {
+        const lo = Math.floor(Math.min(...previsao.map(x=>x.min)) - 2), hi = Math.ceil(Math.max(...previsao.map(x=>x.max)) + 2);
+        const x = i => 28 + i * (644 / Math.max(1, previsao.length - 1));
+        const y = v => 116 - ((v - lo) / Math.max(1, hi - lo)) * 82;
+        const linha = campo => previsao.map((d,i)=>x(i)+','+y(d[campo])).join(' ');
+        grafico = `<svg viewBox="0 0 700 158" role="img" aria-label="Gráfico de temperaturas máximas e mínimas para os próximos dias"><line x1="18" y1="120" x2="682" y2="120" stroke="#ffffff30"/><polyline points="${linha('max')}" fill="none" stroke="#ffbd59" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><polyline points="${linha('min')}" fill="none" stroke="#55d8ff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>${previsao.map((d,i)=>`<g><circle cx="${x(i)}" cy="${y(d.max)}" r="4.5" fill="#ffbd59"/><circle cx="${x(i)}" cy="${y(d.min)}" r="4.5" fill="#55d8ff"/><text x="${x(i)}" y="${Math.max(13,y(d.max)-9)}" text-anchor="middle" fill="#ffe0aa" font-size="13">${Math.round(d.max)}°</text><text x="${x(i)}" y="${Math.min(139,y(d.min)+17)}" text-anchor="middle" fill="#a9eaff" font-size="13">${Math.round(d.min)}°</text><text x="${x(i)}" y="153" text-anchor="middle" fill="#b8c9da" font-size="12">${esc(fmtDia(d.data))}</text></g>`).join('')}</svg>`;
+      }
       climaCol.innerHTML = `
         <div class="cg-a">
           <div class="cg-c">${esc(capital.cap)} <small>${uf}</small></div>
-          <div class="cg-i">${w[0]}</div>
-          <div class="cg-t">${Math.round(temp)}<span>°</span></div>
-          <div class="cg-d">${esc(w[1])}</div>
+          <div class="cg-now"><span class="cg-i">${w[0]}</span><span class="cg-t">${Math.round(temp)}<span>°</span></span><span class="cg-d">${esc(w[1])}</span></div>
           <div class="cg-p">
-            <div><b>💧</b> ${umid != null ? umid : '—'}%</div>
+            <div><b>💧</b> ${umid != null ? Math.round(umid) : '—'}%</div>
             <div><b>💨</b> ${vento != null ? Math.round(vento) : '—'} km/h</div>
             <div><b>↑</b> ${Math.round(maxDia)}° <b>↓</b> ${Math.round(minDia)}°</div>
           </div>
+          <section class="cg-forecast"><div class="cg-fc-head"><b>PRÓXIMOS DIAS</b><span>máxima <i>●</i> mínima <em>●</em></span></div>${grafico}<div class="cg-fc-rain">${previsao.map(d=>`<span>${esc(fmtDia(d.data))} <b>${d.chuva == null ? '—' : Math.round(d.chuva)+'%'}</b></span>`).join('')}</div></section>
         </div>`;
     };
 
@@ -6033,7 +6055,7 @@ TX.climagrafico = {
 
       // ── 1) Clima ──
       try {
-        const memClima = TX_C['clima?lat=' + capital.lat + '&lon=' + capital.lon];
+        const memClima = TX_C['clima?lat=' + capital.lat + '&lon=' + capital.lon + '&cidade=' + encodeURIComponent(capital.cap)];
         const lsClima  = LER_LS(CK.clima(uf), TTL_LS_CLIMA);
         if (memClima && Date.now() - memClima.t < TTL_MEM) {
           renderClima(uf, capital, memClima.d);
@@ -6081,49 +6103,51 @@ TX.climagrafico = {
     };
 
     // ── Busca de rede (fallback) ─────────────────────────────────────
-    const buscarClima = async (uf, capital, seq) => {
-      if (carregandoClima) return;
-      carregandoClima = true;
-      try {
-        const clima = await txDados('clima',
-          `lat=${capital.lat}&lon=${capital.lon}&cidade=${encodeURIComponent(capital.cap)}`,
-          900000);
-        if (S.morto || seq !== reqSeq) return;
-        GRAVAR_LS(CK.clima(uf), clima);
-        prefetchJaFeito.add(chavePre('clima', uf));
-        renderClima(uf, capital, clima);
-        av.textContent = `Clima de ${capital.cap} (${uf}) · atualizado ${txHora(clima.atualizado)}`;
-      } catch (e) {
-        if (S.morto || seq !== reqSeq) return;
-        const ultimo = LER_LS(CK.clima(uf), Infinity);
-        if (ultimo) {
-          renderClima(uf, capital, ultimo);
-          av.textContent = `Clima de ${capital.cap} (${uf}) · última cópia salva (offline)`;
-        } else {
-          climaCol.innerHTML = '<div class="tx-erro">Falha ao carregar clima.</div>';
+    const buscarClima = (uf, capital, seq) => {
+      if (pendentesClima.has(uf)) return pendentesClima.get(uf);
+      const tarefa = (async () => {
+        try {
+          const clima = await txDados('clima',
+            `lat=${capital.lat}&lon=${capital.lon}&cidade=${encodeURIComponent(capital.cap)}`,
+            900000);
+          GRAVAR_LS(CK.clima(uf), clima);
+          prefetchJaFeito.add(chavePre('clima', uf));
+          if (S.morto || seq !== reqSeq) return;
+          renderClima(uf, capital, clima);
+          av.textContent = `Clima de ${capital.cap} (${uf}) · atualizado ${txHora(clima.atualizado)}`;
+        } catch (e) {
+          if (S.morto || seq !== reqSeq) return;
+          const ultimo = LER_LS(CK.clima(uf), Infinity);
+          if (ultimo) {
+            renderClima(uf, capital, ultimo);
+            av.textContent = `Clima de ${capital.cap} (${uf}) · última cópia salva (offline)`;
+          } else {
+            climaCol.innerHTML = '<div class="tx-erro">Falha ao carregar clima.</div>';
+          }
         }
-      } finally {
-        carregandoClima = false;
-      }
+      })().finally(() => pendentesClima.delete(uf));
+      pendentesClima.set(uf, tarefa);
+      return tarefa;
     };
 
-    const buscarNoticias = async (uf, seq) => {
-      if (carregandoNot) return;
-      carregandoNot = true;
-      try {
-        const noticias = await txDados('noticias-mundo', `uf=${uf}`, 600000);
-        if (S.morto || seq !== reqSeq) return;
-        GRAVAR_LS(CK.noticias(uf), noticias);
-        prefetchJaFeito.add(chavePre('noticias', uf));
-        renderNoticias(uf, noticias);
-      } catch (e) {
-        if (S.morto || seq !== reqSeq) return;
-        const ultimo = LER_LS(CK.noticias(uf), Infinity);
-        if (ultimo) renderNoticias(uf, ultimo);
-        else noticiasCol.innerHTML = '<div class="tx-erro">Falha ao carregar notícias.</div>';
-      } finally {
-        carregandoNot = false;
-      }
+    const buscarNoticias = (uf, seq) => {
+      if (pendentesNot.has(uf)) return pendentesNot.get(uf);
+      const tarefa = (async () => {
+        try {
+          const noticias = await txDados('noticias-mundo', `uf=${uf}`, 600000);
+          GRAVAR_LS(CK.noticias(uf), noticias);
+          prefetchJaFeito.add(chavePre('noticias', uf));
+          if (S.morto || seq !== reqSeq) return;
+          renderNoticias(uf, noticias);
+        } catch (e) {
+          if (S.morto || seq !== reqSeq) return;
+          const ultimo = LER_LS(CK.noticias(uf), Infinity);
+          if (ultimo) renderNoticias(uf, ultimo);
+          else noticiasCol.innerHTML = '<div class="tx-erro">Falha ao carregar notícias.</div>';
+        }
+      })().finally(() => pendentesNot.delete(uf));
+      pendentesNot.set(uf, tarefa);
+      return tarefa;
     };
 
     // ─────────────────────────────────────────────────────────────────
@@ -7361,8 +7385,6 @@ window.build = build;   // ← expõe globalmente para o MiniMotorPlayer
                  "barco_outboard_150", "escort_cht", "celta_10"],
     eletrica:   ["eletrico_vesc", "ev_conversao_gol", "ev_offgrid_48v",
                  "ev_range_extender"],
-    artes:      ["ea111_10", "motor_6cil", "motor_v8", "motor_3cil"],
-    musica:     ["ea111_10", "motor_6cil", "motor_v8", "motor_3cil"]
   };
 
   function getCatalogo() {
@@ -8239,13 +8261,17 @@ window.build = build;   // ← expõe globalmente para o MiniMotorPlayer
       // CSS inline para forçar o posicionamento.
       wrap.style.cssText = 'position:relative; width:100%; aspect-ratio:16/9; margin-top:2vh; display:block;';
 
-      const lista = (window.MiniMotorPlayer.LISTA_POR_TIPO || {})[item.tipo] || window.MiniMotorPlayer.LISTA_PADRAO;
-
+      const listaSolicitada = (window.MiniMotorPlayer.LISTA_POR_TIPO || {}).mecanica3d || window.MiniMotorPlayer.LISTA_PADRAO;
+      let playerIniciado = false;
       const tentar = () => {
-        if (S.morto) return;
+        if (S.morto || playerIniciado) return;
+        const catalogo = window.MECANICA_MOTORES || window.MOTORES_TOTEM || {};
+        const disponiveis = listaSolicitada.filter(id => catalogo[id]);
+        if (!disponiveis.length) return;
         let player = null;
-        try { player = window.MiniMotorPlayer.criar(cv, { trocaMs: 8000, lista }); } catch (e) { player = null; }
+        try { player = window.MiniMotorPlayer.criar(cv, { trocaMs: 8000, lista: disponiveis }); } catch (e) { console.warn('[TOTEM] motor 3D:', e); }
         if (!player) return;
+        playerIniciado = true;
         wrap.hidden = false;
         if (orb) orb.style.display = 'none';
         S._motorEditorial = player;
@@ -8257,33 +8283,25 @@ window.build = build;   // ← expõe globalmente para o MiniMotorPlayer
         });
       };
 
-      // 1) THREE pronto
-      txThree().then(() => {
-        if (typeof window.build !== 'function') return;
-
-        // 2) Catálogo: TODOS os motores da lista (paralelo)
+      // THREE e catálogo têm prazo limitado; um modelo disponível já basta para iniciar.
+      txThree().then(async () => {
+        if (S.morto || typeof window.build !== 'function') return;
         window.MECANICA_MOTORES = window.MECANICA_MOTORES || {};
-        const faltando = lista.filter(id => !window.MECANICA_MOTORES[id]);
+        const faltando = listaSolicitada.filter(id => !window.MECANICA_MOTORES[id]);
         if (!faltando.length) { tentar(); return; }
-
-        Promise.all(faltando.map(id =>
-          fetch((typeof TOTEM_MEDIA_BASE !== 'undefined' ? TOTEM_MEDIA_BASE : 'https://almafluxo.uk') + '/api/totem/motor', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id })
-          })
-          .then(r => r.json())
-          .then(j => {
-            if (j && j.ok && j.motor && j.motor.id) {
-              window.MECANICA_MOTORES[j.motor.id] = j.motor;
-            }
-          })
-          .catch(() => {})
-        )).then(() => {
-          // 3) Só cria se pelo menos 1 motor carregou
-          if (Object.keys(window.MECANICA_MOTORES).length > 0) tentar();
-        });
-      }).catch(() => {});
+        await Promise.allSettled(faltando.map(async id => {
+          try {
+            const r = await fetch((typeof TOTEM_MEDIA_BASE !== 'undefined' ? TOTEM_MEDIA_BASE : 'https://almafluxo.uk') + '/api/totem/motor', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id }), signal: AbortSignal.timeout(6500)
+            });
+            if (!r.ok) return;
+            const j = await r.json();
+            if (j && j.ok && j.motor && j.motor.id) window.MECANICA_MOTORES[j.motor.id] = j.motor;
+          } catch (e) {}
+        }));
+        if (!S.morto) tentar();
+      }).catch(e => console.warn('[TOTEM] Three.js indisponível:', e && e.message || e));
     })();
 
     // ═══════════════════════════════════════════════════════════════════
