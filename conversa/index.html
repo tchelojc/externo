@@ -2720,6 +2720,39 @@ const UFS_GEO = {
   RO: { lat: -8.76, lon: -63.90 }, RR: { lat: 2.82, lon: -60.67 }, SC: { lat: -27.59, lon: -48.55 },
   SP: { lat: -23.55, lon: -46.63 }, SE: { lat: -10.91, lon: -37.07 }, TO: { lat: -10.18, lon: -48.33 }
 };
+/* ══════════════════════════════════════════════════════════════
+   TOTEM_UFS — capitais das 27 UFs com lat/lon
+   Usado pelo slide climagrafico (clima + notícias por estado).
+   ══════════════════════════════════════════════════════════════ */
+const TOTEM_UFS = [
+  {uf:"AC",nome:"Acre",       cap:"Rio Branco",  lat:-9.97,  lon:-67.81},
+  {uf:"AL",nome:"Alagoas",    cap:"Maceió",      lat:-9.66,  lon:-35.73},
+  {uf:"AP",nome:"Amapá",      cap:"Macapá",      lat:0.03,   lon:-51.07},
+  {uf:"AM",nome:"Amazonas",   cap:"Manaus",      lat:-3.10,  lon:-60.02},
+  {uf:"BA",nome:"Bahia",      cap:"Salvador",    lat:-12.97, lon:-38.50},
+  {uf:"CE",nome:"Ceará",      cap:"Fortaleza",   lat:-3.71,  lon:-38.54},
+  {uf:"DF",nome:"Distrito Federal", cap:"Brasília", lat:-15.79, lon:-47.88},
+  {uf:"ES",nome:"Espírito Santo", cap:"Vitória", lat:-20.31, lon:-40.31},
+  {uf:"GO",nome:"Goiás",      cap:"Goiânia",     lat:-16.68, lon:-49.25},
+  {uf:"MA",nome:"Maranhão",   cap:"São Luís",    lat:-2.53,  lon:-44.30},
+  {uf:"MT",nome:"Mato Grosso",cap:"Cuiabá",      lat:-15.60, lon:-56.10},
+  {uf:"MS",nome:"Mato Grosso do Sul", cap:"Campo Grande", lat:-20.44, lon:-54.65},
+  {uf:"MG",nome:"Minas Gerais", cap:"Belo Horizonte", lat:-19.92, lon:-43.94},
+  {uf:"PA",nome:"Pará",       cap:"Belém",       lat:-1.46,  lon:-48.50},
+  {uf:"PB",nome:"Paraíba",    cap:"João Pessoa", lat:-7.12,  lon:-34.86},
+  {uf:"PR",nome:"Paraná",     cap:"Curitiba",    lat:-25.43, lon:-49.27},
+  {uf:"PE",nome:"Pernambuco", cap:"Recife",      lat:-8.05,  lon:-34.88},
+  {uf:"PI",nome:"Piauí",      cap:"Teresina",    lat:-5.09,  lon:-42.80},
+  {uf:"RJ",nome:"Rio de Janeiro", cap:"Rio de Janeiro", lat:-22.91, lon:-43.17},
+  {uf:"RN",nome:"Rio Grande do Norte", cap:"Natal", lat:-5.79, lon:-35.21},
+  {uf:"RS",nome:"Rio Grande do Sul", cap:"Porto Alegre", lat:-30.03, lon:-51.23},
+  {uf:"RO",nome:"Rondônia",   cap:"Porto Velho", lat:-8.76,  lon:-63.90},
+  {uf:"RR",nome:"Roraima",    cap:"Boa Vista",   lat:2.82,   lon:-60.67},
+  {uf:"SC",nome:"Santa Catarina", cap:"Florianópolis", lat:-27.59, lon:-48.55},
+  {uf:"SP",nome:"São Paulo",  cap:"São Paulo",   lat:-23.55, lon:-46.63},
+  {uf:"SE",nome:"Sergipe",    cap:"Aracaju",     lat:-10.91, lon:-37.07},
+  {uf:"TO",nome:"Tocantins",  cap:"Palmas",      lat:-10.18, lon:-48.33}
+];
 
 /* ═══════════════════════════════════════════════════════════════════
    📣 VITRINE EDITORIAL — rodapé com anúncios giratórios
@@ -5025,25 +5058,73 @@ function montarMapaBrasil(parentEl, dadosEstados) {
   box.style.cssText = 'position:relative;height:100%;aspect-ratio:1/1;max-width:100%;';
   wrap.appendChild(box);
 
-  // Fundo (GitHub → ImgBB → procedural)
-  // Fundo (GitHub → ImgBB → Drive → procedural)
+  // ═══════════════════════════════════════════════════════════════════
+  // FUNDO DO MAPA — cascata de URLs com fallback garantido.
+  // Cada tentativa tem seu próprio par onload/onerror + timeout de 8s.
+  // Só desiste (fundo procedural) quando a fila inteira esgotar.
+  // ═══════════════════════════════════════════════════════════════════
   const img = new Image();
   img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0.85;';
+
   const _fila = [
     (TOTEM_MAPA_BRASIL.urlExterna || '').trim(),
     (TOTEM_MAPA_BRASIL.urlFallback || '').trim(),
     (TOTEM_MAPA_BRASIL.driveId && /^[A-Za-z0-9_-]{15,160}$/.test(TOTEM_MAPA_BRASIL.driveId))
       ? totemMediaUrl(TOTEM_MAPA_BRASIL.driveId) : ''
   ].filter(u => u && /^https?:\/\//i.test(u));
+
   let _idx = 0;
-  img.onerror = () => {
-    _idx++;
-    if (_idx < _fila.length) { img.src = _fila[_idx]; return; }
+  let _timeoutId = null;
+
+  const limparTimer = () => { if (_timeoutId) { clearTimeout(_timeoutId); _timeoutId = null; } };
+
+  const cairParaProcedural = () => {
+    limparTimer();
     box.style.background = 'radial-gradient(circle, #061426, #020408)';
-    console.warn('[TOTEM] brasil.png não carregou, usando fundo procedural');
+    img.style.display = 'none';
+    console.warn('[TOTEM] brasil.png: nenhuma das fontes carregou, usando fundo procedural');
   };
-  img.src = _fila[_idx] || '';
-  box.appendChild(img);
+
+  const tentarProxima = () => {
+    limparTimer();
+    if (_idx >= _fila.length) { cairParaProcedural(); return; }
+    const url = _fila[_idx++];
+
+    // Cada tentativa tem handlers NOVOS (evita onerror "consumido")
+    const onOk = () => {
+      limparTimer();
+      img.removeEventListener('load', onOk);
+      img.removeEventListener('error', onErr);
+      // Sucesso — a imagem está no DOM, nada mais a fazer.
+    };
+    const onErr = () => {
+      limparTimer();
+      img.removeEventListener('load', onOk);
+      img.removeEventListener('error', onErr);
+      tentarProxima();
+    };
+
+    img.addEventListener('load', onOk);
+    img.addEventListener('error', onErr);
+
+    // Timeout de segurança: se a URL travar (sem resposta), segue para a próxima.
+    _timeoutId = setTimeout(() => {
+      img.removeEventListener('load', onOk);
+      img.removeEventListener('error', onErr);
+      tentarProxima();
+    }, 8000);
+
+    img.src = url;
+  };
+
+  if (_fila.length) {
+    box.appendChild(img);
+    tentarProxima();
+  } else {
+    // Nenhuma URL configurada → fundo procedural direto
+    cairParaProcedural();
+  }
+
   // Canvas de Partículas
   const canvas = document.createElement('canvas');
   canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;';
@@ -5078,11 +5159,8 @@ function montarMapaBrasil(parentEl, dadosEstados) {
     if (est.max == null || !UFS_GEO[est.uf]) return;
     const geo = UFS_GEO[est.uf];
     const { u, v } = latLonParaUV(geo.lat, geo.lon);
-    
-    // Quantidade de partículas baseada na temperatura (ex: 15°C = 5 partículas, 40°C = 40)
+
     const n = Math.max(4, Math.round((est.max - 10) * 1.2));
-    
-    // Cor baseada na temperatura
     const cor = est.max >= 34 ? CORES.calor
               : est.max >= 27 ? CORES.quente
               : est.max >= 20 ? CORES.ameno
@@ -5093,14 +5171,13 @@ function montarMapaBrasil(parentEl, dadosEstados) {
         ux: u, vy: v,
         x: u, y: v,
         vx: (Math.random() - 0.5) * 0.0003,
-        vySpeed: 0.0004 + Math.random() * 0.0006 + ((est.max - 15) * 0.00002), // Mais quente = sobe mais rápido
+        vySpeed: 0.0004 + Math.random() * 0.0006 + ((est.max - 15) * 0.00002),
         vida: Math.random(),
         cor: cor,
         tam: 1.5 + Math.random() * 2
       });
     }
 
-    // Adiciona a Label (Ex: SP 28°)
     const lbl = document.createElement('div');
     lbl.style.cssText = `
       position:absolute;left:${(u * 100).toFixed(2)}%;top:${(v * 100).toFixed(2)}%;
@@ -5114,6 +5191,8 @@ function montarMapaBrasil(parentEl, dadosEstados) {
   });
 
   let animando = true;
+  let rafId = null;
+
   const desenhar = () => {
     if (!animando) return;
     const W = box.clientWidth, H = box.clientHeight;
@@ -5133,25 +5212,26 @@ function montarMapaBrasil(parentEl, dadosEstados) {
 
       const alpha = Math.sin(p.vida * Math.PI) * 0.85;
       const raio = p.tam * (1 + p.vida);
-      
-      // Desenha um "borrão" de calor
+
       const grad = ctx.createRadialGradient(p.x * W, p.y * H, 0, p.x * W, p.y * H, raio);
       grad.addColorStop(0, `rgba(${p.cor}, ${alpha})`);
       grad.addColorStop(1, `rgba(${p.cor}, 0)`);
-      
+
       ctx.fillStyle = grad;
       ctx.beginPath();
       ctx.arc(p.x * W, p.y * H, raio, 0, Math.PI * 2);
       ctx.fill();
     });
 
-    requestAnimationFrame(desenhar);
+    rafId = requestAnimationFrame(desenhar);
   };
   desenhar();
 
   return {
     destruir() {
       animando = false;
+      if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+      limparTimer();
       ro.disconnect();
       wrap.remove();
     }
