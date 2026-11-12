@@ -8180,8 +8180,8 @@ window.build = build;   // ← expõe globalmente para o MiniMotorPlayer
   async function noticiasRio() {
     if (RIO_NEWS && Date.now() - RIO_NEWS.t < 15 * 60000 && RIO_NEWS.itens.length) return RIO_NEWS;
     const partes = await Promise.allSettled([
-      txDados('noticias-mundo', '', 600000).then(d => ((d.categorias && d.categorias.rio) || []).map(x => ({ titulo: x.titulo, t: x.t, fonte: x.fonte || 'Worker' }))),   // se o Worker tiver a categoria "rio"
-      ...RIO_FEEDS.map(rioLerFeed)
+      // Somente o Worker (sem CORS, com cache e fallback). O navegador não consulta mais proxies externos.
+      txDados('noticias-mundo', 'uf=RJ', 600000).then(d => ((d.categorias && d.categorias.RJ) || []).map(x => ({ titulo: x.titulo, t: x.t, fonte: x.fonte || 'Worker' })))
     ]);
     const todas = []; const fontesOk = new Set();
     partes.forEach(p => { if (p.status === 'fulfilled' && Array.isArray(p.value)) p.value.forEach(x => { if (x && x.titulo) { todas.push(x); fontesOk.add(x.fonte); } }); });
