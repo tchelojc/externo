@@ -1364,11 +1364,44 @@ html,body{background:#000}
 .tx-editorial.ed-com-palco .ed-concept-title{font-size:calc(var(--u)*2);margin:0 0 .25em;padding-right:0}
 .tx-editorial.ed-com-palco .ed-concept-text{font-size:calc(var(--u)*1.2);line-height:1.38;padding-right:0;max-width:100%}
 .tx-editorial .ed-stage.ed-art{display:flex;flex-direction:column;background:radial-gradient(ellipse at 50% 28%,#35233f,#0b0710 78%)}
-.ed-art-fr{position:relative;flex:1 1 auto;min-height:0;margin:3% 16% 0;border:calc(var(--u)*.38) solid #c9a45c;box-shadow:0 0 0 calc(var(--u)*.14) #6b5326,0 14px 44px rgba(0,0,0,.75);background:#120c16;overflow:hidden}
-.ed-art-fr img,.ed-art-fr canvas{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity 1.1s ease}
-.ed-art-fr img{object-fit:contain}
-.ed-art-fr .on{opacity:1}
-.ed-art-fr img.on{animation:edKb 8s ease-out both}
+/* ── Aba 7/17 · galeria de artes ── */
+.ed-art-fr { position: relative; }
+.ed-art-fr img,
+.ed-art-fr canvas.ed-gen {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity .8s ease;
+  pointer-events: none;
+}
+.ed-art-fr img.on,
+.ed-art-fr canvas.ed-gen.on { opacity: 1; }
+.ed-art-fr img.on { animation: edKb 9s ease-out both; }
+.ed-art-fr canvas.ed-gen { opacity: .0; }
+.ed-art-fr canvas.ed-gen.on { opacity: .55; animation: edGen 9s ease-out both; }
+
+@keyframes edGen {
+  0%   { opacity: 0;   filter: blur(12px); transform: scale(1.05); }
+  30%  { opacity: .55; filter: blur(0);    transform: scale(1);    }
+  100% { opacity: .55; filter: blur(0);    transform: scale(1.03); }
+}
+
+/* Overlay "carregando obra…" */
+.ed-art-loading {
+  position: absolute;
+  bottom: 8%; left: 50%; transform: translateX(-50%);
+  background: rgba(3, 10, 20, .78);
+  border: 1px solid rgba(0, 229, 255, .45);
+  color: #bfe9ff;
+  padding: .4em 1em;
+  border-radius: 999px;
+  font: 600 12px/1 'Inter', system-ui, sans-serif;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  pointer-events: none;
+  z-index: 4;
+}
 @keyframes edKb{from{transform:scale(1)}to{transform:scale(1.07)}}
 .ed-art-cap{flex:0 0 auto;padding:1.6% 4% 2%;text-align:center;line-height:1.3;transition:opacity .5s}
 .ed-art-cap b{display:block;font-size:calc(var(--u)*1.55);color:#f3e3bd;letter-spacing:.03em}
@@ -7616,45 +7649,160 @@ window.build = build;   // ← expõe globalmente para o MiniMotorPlayer
     x.globalAlpha = 1;
   }
 
-  function palcoArtes(st, S) {
+  /* ── SLIDE 7 · ARTES: galeria de obras de domínio público ───────────
+    Correções:
+    1) Respeita o duracaoS do slide (não usa mais 6500 ms fixo).
+        Cada obra fica na tela por duracaoS / N_OBRAS_POR_CICLO.
+    2) Aguarda a imagem carregar ANTES de mostrar a obra (sem race).
+        Se a imagem demorar > 8 s, cai no fallback generativo e segue.
+    3) Não dispara dois "mostrar()" em paralelo: usa fila sequencial.
+    4) Capa o canvas generativo assim que a imagem real chega.
+    5) Avisa o usuário (aria-live) quando está carregando.
+    6) Para tudo quando o slide sai (S.morto). */
+  function palcoArtes(st, S, slideItem) {
     st.classList.add('ed-art');
-    st.innerHTML = '<div class="ed-art-fr"><img alt="" class="ed-ia"><img alt="" class="ed-ib"><canvas></canvas></div><div class="ed-art-cap"><b></b><span></span><i></i></div>';
-    const fr = st.querySelector('.ed-art-fr'), imgs = [st.querySelector('.ed-ia'), st.querySelector('.ed-ib')], gen = fr.querySelector('canvas');
-    const cb = st.querySelector('.ed-art-cap b'), cs = st.querySelector('.ed-art-cap span'), ci = st.querySelector('.ed-art-cap i');
-    imgs.forEach(im => { im.referrerPolicy = 'no-referrer'; });
-    let idx = (new Date().getDate() * 3 + new Date().getHours()) % OBRAS.length, ativo = 0, timer = 0;
+    st.innerHTML =
+      '<div class="ed-art-fr">' +
+        '<img alt="" class="ed-ia">' +
+        '<img alt="" class="ed-ib">' +
+        '<canvas class="ed-gen" aria-hidden="true"></canvas>' +
+        '<div class="ed-art-loading" aria-live="polite">carregando obra…</div>' +
+      '</div>' +
+      '<div class="ed-art-cap"><b></b><span></span><i></i></div>';
 
-    function carregar(obra, fim) {
-      let k = 0;
-      const tentar = () => {
-        if (S.morto) return;
-        if (k >= obra.f.length) { fim(null); return; }
-        const im = new Image(); im.referrerPolicy = 'no-referrer';
-        const to = setTimeout(() => { im.onload = im.onerror = null; k++; tentar(); }, 9000);
-        im.onload = () => { clearTimeout(to); fim(im.src); };
-        im.onerror = () => { clearTimeout(to); k++; tentar(); };
-        im.src = commonsUrl(obra.f[k]);
-      };
-      tentar();
-    }
-    function mostrar() {
-      if (S.morto) return;
-      const o = OBRAS[idx % OBRAS.length]; idx++;
-      cb.textContent = o.t; cs.textContent = o.a + ' · ' + o.y + ' · ' + o.m; ci.textContent = 'carregando obra…';
-      pintarGenerativo(gen, o.pal, o.t.length * 97 + o.a.length * 13);
-      gen.classList.add('on'); imgs.forEach(im => im.classList.remove('on'));
-      carregar(o, src => {
-        if (S.morto) return;
-        if (src) {
-          const novo = imgs[1 - ativo], velho = imgs[ativo]; ativo = 1 - ativo;
-          novo.src = src; novo.classList.remove('on'); void novo.offsetWidth; novo.classList.add('on');
-          velho.classList.remove('on'); gen.classList.remove('on'); ci.textContent = 'domínio público · Wikimedia Commons';
-        } else { ci.textContent = 'ilustração generativa · imagem da obra indisponível agora'; }
+    const fr     = st.querySelector('.ed-art-fr');
+    const imgs   = [st.querySelector('.ed-ia'), st.querySelector('.ed-ib')];
+    const gen    = fr.querySelector('canvas.ed-gen');
+    const loadEl = fr.querySelector('.ed-art-loading');
+    const cb     = st.querySelector('.ed-art-cap b');
+    const cs     = st.querySelector('.ed-art-cap span');
+    const ci     = st.querySelector('.ed-art-cap i');
+
+    imgs.forEach(im => { im.referrerPolicy = 'no-referrer'; });
+
+    // Duração total do slide (padrão 26 s). Cada obra fica ~7 s (mín 5 s, máx 12 s).
+    const durSlide = Math.max(12, +((slideItem && slideItem.duracaoS) || 26));
+    const obrasNoCiclo = 3;  // 3 obras por ciclo de 26 s → ~8,7 s cada
+    const durObraMs = Math.max(5000, Math.min(12000, (durSlide * 1000) / obrasNoCiclo));
+
+    let idx = (new Date().getDate() * 3 + new Date().getHours()) % OBRAS.length;
+    let ativo = 0;
+    let timer = 0;
+    let carregando = false;
+    let imagemChegou = false;
+
+    // ── Carrega a imagem com timeout de 8 s por fonte ──
+    function carregarImagem(obra) {
+      return new Promise((resolve) => {
+        let k = 0;
+        const tentar = () => {
+          if (S.morto) return resolve(null);
+          if (k >= obra.f.length) return resolve(null);
+
+          const im = new Image();
+          im.referrerPolicy = 'no-referrer';
+          let finalizado = false;
+
+          const concluir = (src) => {
+            if (finalizado) return;
+            finalizado = true;
+            clearTimeout(to);
+            im.onload = im.onerror = null;
+            resolve(src);
+          };
+
+          const to = setTimeout(() => {
+            if (finalizado) return;
+            finalizado = true;
+            im.onload = im.onerror = null;
+            k++;
+            tentar();
+          }, 8000);
+
+          im.onload  = () => concluir(im.src);
+          im.onerror = () => { clearTimeout(to); finalizado = true; k++; tentar(); };
+          im.src = commonsUrl(obra.f[k]);
+        };
+        tentar();
       });
     }
-    mostrar();
-    timer = setInterval(mostrar, 6500);
-    S.fins.push(() => clearInterval(timer));
+
+    // ── Desenha a "pintura generativa" de fallback (não é erro, é reserva) ──
+    function desenharFallback(obra) {
+      pintarGenerativo(gen, obra.pal, obra.t.length * 97 + obra.a.length * 13);
+      gen.classList.add('on');
+      imgs.forEach(im => im.classList.remove('on'));
+    }
+
+    // ── Mostra UMA obra e agenda a próxima ──
+    async function mostrarProxima() {
+      if (S.morto || carregando) return;
+      carregando = true;
+      imagemChegou = false;
+
+      const obra = OBRAS[idx % OBRAS.length];
+      idx++;
+
+      // 1) Legenda IMEDIATA (o usuário já vê de quem é antes da imagem)
+      cb.textContent = obra.t;
+      cs.textContent = obra.a + ' · ' + obra.y + ' · ' + obra.m;
+      ci.textContent = 'carregando imagem…';
+      loadEl.style.display = 'block';
+      loadEl.textContent = 'carregando obra…';
+
+      // 2) Fallback generativo enquanto a imagem não chega
+      desenharFallback(obra);
+
+      // 3) Carrega a imagem real
+      const src = await carregarImagem(obra);
+      if (S.morto) { carregando = false; return; }
+
+      if (src) {
+        imagemChegou = true;
+        const novo = imgs[1 - ativo];
+        const velho = imgs[ativo];
+        ativo = 1 - ativo;
+
+        novo.src = src;
+        // Só ativa depois que o navegador decodificou (evita flash branco)
+        if (novo.decode) {
+          novo.decode().catch(() => {}).finally(() => {
+            if (S.morto) return;
+            novo.classList.add('on');
+            velho.classList.remove('on');
+            gen.classList.remove('on');
+          });
+        } else {
+          novo.classList.add('on');
+          velho.classList.remove('on');
+          gen.classList.remove('on');
+        }
+
+        ci.textContent = 'domínio público · Wikimedia Commons';
+        loadEl.style.display = 'none';
+      } else {
+        // Falhou: mantém o generativo + avisa
+        ci.textContent = 'imagem indisponível agora · ilustração generativa';
+        loadEl.style.display = 'none';
+      }
+
+      carregando = false;
+
+      // 4) Agenda a próxima obra DEPOIS do tempo mínimo de leitura
+      //    (mas se o slide inteiro acabar antes, o timer da região mata tudo)
+      if (!S.morto) {
+        timer = setTimeout(mostrarProxima, durObraMs);
+      }
+    }
+
+    // ── Primeira obra ──
+    mostrarProxima();
+
+    // ── Limpeza ──
+    S.fins.push(() => {
+      clearTimeout(timer);
+      carregando = false;
+    });
   }
 
   /* ── SLIDE 8 · MÚSICA: analisador de espectro + forma de onda + bandas ── */
@@ -8051,7 +8199,7 @@ window.build = build;   // ← expõe globalmente para o MiniMotorPlayer
         s.classList.add('ed-com-palco');
         const st = document.createElement('div'); st.className = 'ed-stage';
         hero.insertBefore(st, hero.firstChild);
-        try { PALCOS[item.tipo](st, S, s); } catch (e) { console.warn('[TOTEM] palco', item.tipo, e); }
+        try { PALCOS[item.tipo](st, S, item); } catch (e) { console.warn('[TOTEM] palco', item.tipo, e); }
       }
     }
 
