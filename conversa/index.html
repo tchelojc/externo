@@ -4057,7 +4057,11 @@ async function txDados(tipo, qs, ttl) {
   if (c && Date.now() - c.t < (ttl || 60000)) return c.d;
   const chave = k.replace(/[^\w]/g, '_');
   try {
-    const r = await fetch(TX_BASE + tipo + (qs ? '?' + qs : '')), d = await r.json();
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 12000);   // ← 12 s de teto
+    const r = await fetch(TX_BASE + tipo + (qs ? '?' + qs : ''), { signal: ctrl.signal });
+    clearTimeout(timer);
+    const d = await r.json();
     if (!r.ok || d.ok === false) throw new Error(d.error || ('HTTP ' + r.status));
     TX_C[k] = { t: Date.now(), d };
     txCacheSalvar(chave, d);
@@ -6748,11 +6752,26 @@ document.addEventListener('keydown',()=>TOTEM_AUDIO.retomar());
   document.body.appendChild(btn);
 })();
 /* ══════════ BOOT: o totem sobe sozinho; nada de interface visível ══════════ */
+/* ══════════ BOOT: o totem sobe sozinho; nada de interface visível ══════════ */
 (function bootTotem() {
   const s = carregarSessaoSalva(); if (s) sessao = s;
   document.title = 'ALMAFLUXO';
-  iniciarTotem();
-  document.getElementById('tabTotens').addEventListener('click', () => carregarTotens());
+
+  // Garante que TODAS as IIFEs de registro (TX.artes, TX.musica, etc.)
+  // rodaram antes de iniciar o totem. Sem isso, os slides 7 e 8 são pulados
+  // porque o TX_PADRAO referencia tipos que ainda não existem.
+  const iniciar = () => {
+    setTimeout(() => {
+      iniciarTotem();
+      const tabTotens = document.getElementById('tabTotens');
+      if (tabTotens) tabTotens.addEventListener('click', () => carregarTotens());
+    }, 0);
+  };
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    iniciar();
+  } else {
+    window.addEventListener('DOMContentLoaded', iniciar, { once: true });
+  }
 })();
 </script>
 
@@ -8318,10 +8337,12 @@ window.build = build;   // ← expõe globalmente para o MiniMotorPlayer
     };
 
     const carregar = async () => {
-      if (item.tipo === 'eletrica') return;   // a coluna de notícias da Energia agora mostra o Rio (montarRioNoticias)
+      if (item.tipo === 'eletrica') return;
 
       try {
         const d = await txDados('noticias-mundo', '', 600000);
+        if (S.morto) return;   // ← slide saiu; não escrever num DOM morto
+
         const lista = (d.categorias && Array.isArray(d.categorias[cfg.categoria]))
           ? d.categorias[cfg.categoria].filter(x => x && x.titulo).slice(0, 6)
           : [];
