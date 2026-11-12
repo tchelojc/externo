@@ -5363,201 +5363,170 @@ TX.jornal = {
 };
 /* ═════ GRÁFICO DE CLIMA ANIMADO (48 h) · NAVEGAÇÃO POR CIDADE ═════ */
 TX.climagrafico = {
-  def: { cidade: 'auto' },
+  def: { cidade: 'SP' }, // UF padrão
   build(P, item, s, S) {
     s.className += ' tx'; txMorre(S);
+
+    const UFS = [
+      'AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB',
+      'PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'
+    ];
+
     s.innerHTML = `
-      <div class="tx-t">CLIMA · PRÓXIMAS 48 HORAS</div>
-      <div class="cg-nav" style="position:absolute;left:3%;right:3%;top:9%;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:8px;font-family:'Orbitron',sans-serif">
-        <button class="cg-seta" data-dir="-1" style="background:rgba(0,229,255,.12);border:1px solid rgba(0,229,255,.45);color:#00e5ff;border-radius:50%;width:calc(var(--u)*4.5);height:calc(var(--u)*4.5);font-size:calc(var(--u)*2.2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,transform .1s;user-select:none">◀</button>
-        <div class="cg-cidade" style="flex:1;text-align:center;font-size:calc(var(--u)*2.4);letter-spacing:.12em;color:#ffd24a;text-transform:uppercase;font-weight:700;transition:opacity .2s">—</div>
-        <button class="cg-seta" data-dir="1" style="background:rgba(0,229,255,.12);border:1px solid rgba(0,229,255,.45);color:#00e5ff;border-radius:50%;width:calc(var(--u)*4.5);height:calc(var(--u)*4.5);font-size:calc(var(--u)*2.2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,transform .1s;user-select:none">▶</button>
+      <div class="tx-t">CLIMA E NOTÍCIAS LOCAIS</div>
+      <div class="cg-nav" style="position:absolute;left:3%;right:3%;top:9%;z-index:5;display:flex;align-items:center;justify-content:center;gap:12px;font-family:'Orbitron',sans-serif">
+        <label for="cg-uf-select" style="font-size:calc(var(--u)*1.8);color:#9fc7ff;letter-spacing:.1em;">ESTADO:</label>
+        <select id="cg-uf-select" class="cg-uf-select" style="background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.45);color:#ffd24a;border-radius:8px;padding:.5em 1em;font-size:calc(var(--u)*2);font-family:'Orbitron',sans-serif;cursor:pointer;outline:none;">
+          ${UFS.map(uf => `<option value="${uf}">${uf}</option>`).join('')}
+        </select>
       </div>
-      <div class="cg" style="top:16%">
-        <div class="cg-a"></div>
-        <div class="cg-g"></div>
+
+      <div class="cg-main" style="position:absolute;inset:16% 3% 6% 3%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:2%;">
+        <div class="cg-clima-col" style="display:flex;flex-direction:column;min-height:0;"></div>
+        <div class="cg-noticias-col" style="display:flex;flex-direction:column;min-height:0;"></div>
       </div>
-      <div class="cg-noticias" style="position:absolute;left:3%;right:3%;bottom:calc(clamp(48px,7.6vh,108px) + 6%);z-index:5;display:flex;flex-direction:column;gap:6px;font-family:'Roboto',sans-serif"></div>
       <div class="tx-av"></div>
     `;
 
-    const a = s.querySelector('.cg-a'), g = s.querySelector('.cg-g'), av = s.querySelector('.tx-av');
-    const lblCidade = s.querySelector('.cg-cidade');
-    const setas = s.querySelectorAll('.cg-seta');
-    const boxNoticias = s.querySelector('.cg-noticias');
+    const ufSelect   = s.querySelector('#cg-uf-select');
+    const climaCol   = s.querySelector('.cg-clima-col');
+    const noticiasCol= s.querySelector('.cg-noticias-col');
+    const av         = s.querySelector('.tx-av');
 
-    // Estado local isolado por slide
-    let cidadeIdx = -1;
-    let carregando = false;
-    let cacheCidades = {};   // { nome: { clima, noticias } }
-    let touchX = 0, touchY = 0;
-
-    // ── Cidade inicial: 'auto' sorteia, 'nome' fixa, 'rotação' começa em SP ──
-    const escolherInicial = () => {
-      if (item.cidade && item.cidade !== 'auto') {
-        const i = TX_CIDADES.findIndex(c => c.nome === item.cidade);
-        return i >= 0 ? i : 0;
-      }
-      return Math.floor(Math.random() * TX_CIDADES.length);
-    };
-    cidadeIdx = escolherInicial();
-
-    // ── Feedback tátil nas setas ──
-    setas.forEach(b => {
-      b.addEventListener('pointerdown', () => { b.style.transform = 'scale(0.9)'; });
-      b.addEventListener('pointerup',   () => { b.style.transform = 'scale(1)'; });
-      b.addEventListener('pointerleave',() => { b.style.transform = 'scale(1)'; });
-      b.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const dir = parseInt(b.dataset.dir, 10);
-        cidadeIdx = (cidadeIdx + dir + TX_CIDADES.length) % TX_CIDADES.length;
-        desenhar(true);
-      });
-    });
-
-    // ── Swipe horizontal para trocar cidade (totem com toque) ──
-    s.addEventListener('pointerdown', e => { touchX = e.clientX; touchY = e.clientY; }, { passive: true });
-    s.addEventListener('pointerup', e => {
-      if (!touchX) return;
-      const dx = e.clientX - touchX, dy = e.clientY - touchY;
-      touchX = touchY = 0;
-      // Ignora se for scroll vertical ou movimento pequeno
-      if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
-      // Ignora se o toque começou nas setas (evita troca dupla)
-      if (e.target.closest('.cg-seta')) return;
-      if (dx < 0) cidadeIdx = (cidadeIdx + 1) % TX_CIDADES.length;
-      else        cidadeIdx = (cidadeIdx - 1 + TX_CIDADES.length) % TX_CIDADES.length;
-      desenhar(true);
-    }, { passive: true });
-
-    // ── Desenha o gráfico ──
-    const desenhar = async (comFeedback) => {
-      if (S.morto || carregando) return;
-      const cid = TX_CIDADES[cidadeIdx];
-      if (!cid) return;
-      carregando = true;
-
-      // Label: nome + posição + (carregando)
-      lblCidade.innerHTML = `${esc(cid.nome)} <span style="opacity:.6;font-weight:400">· ${cid.uf}</span>`
-        + `<span style="display:block;font-size:.55em;color:#8fa6c2;letter-spacing:.2em;margin-top:2px">${cidadeIdx + 1} / ${TX_CIDADES.length}</span>`;
-      if (comFeedback) {
-        lblCidade.style.opacity = '0.5';
-        g.style.opacity = '0.4';
-      }
-
+    // ═══════════════════════════════════════════════════════════════
+    // RESET DO CICLO DO SLIDE
+    // A região do player expõe: R.duracao (ms), R.prazo (timestamp),
+    // R.timer (setTimeout), R.pausado, R.pausar(), R.retomar().
+    // Ao trocar de estado, reiniciamos o prazo e o timer para dar
+    // tempo total de leitura ao usuário.
+    // ═══════════════════════════════════════════════════════════════
+    const reiniciarCicloDoSlide = () => {
       try {
-        // Cache por cidade (10 min)
-        const agora = Date.now();
-        const cache = cacheCidades[cid.nome];
-        let climaDados;
-        if (cache && (agora - cache.t) < 600000) {
-          climaDados = cache.clima;
-        } else {
-          climaDados = await txDados('clima', 'lat=' + cid.lat + '&lon=' + cid.lon + '&cidade=' + encodeURIComponent(cid.nome), 900000);
-          cacheCidades[cid.nome] = { clima: climaDados, noticias: null, t: agora };
+        const reg = P._activeReg ? P._activeReg() : null;
+        if (!reg || !reg.duracao) return;   // slide sem duração própria (relógio etc.)
+        // Cancela o avanço automático pendente
+        clearTimeout(reg.timer);
+        // Restaura o tempo total do slide a partir de AGORA
+        reg.restante = reg.duracao;
+        reg.prazo    = Date.now() + reg.duracao;
+        // Se estava pausado, mantém pausado (respeita o usuário);
+        // se estava rodando, agenda de novo com o tempo cheio.
+        if (!reg.pausado) {
+          reg.timer = setTimeout(reg.proximo, reg.duracao);
         }
-        if (S.morto) return;
-
-        const w = WMO[climaDados.atual.codigo] || ['🌡️', '—'], hs = climaDados.horas, n = hs.length;
-        if (n < 4) throw new Error('curto');
-
-        // ── Painel esquerdo (resumo) ──
-        a.innerHTML = `
-          <div class="cg-c">${esc(cid.nome)}</div>
-          <div class="cg-i">${w[0]}</div>
-          <div class="cg-t">${Math.round(climaDados.atual.temp)}°</div>
-          <div class="cg-d">${esc(w[1])}</div>
-          <div class="cg-p">
-            <div>💧 ${climaDados.atual.umid}%</div>
-            <div>💨 ${Math.round(climaDados.atual.vento)} km/h</div>
-            <div>↑ ${Math.round(climaDados.dia.max)}° ↓ ${Math.round(climaDados.dia.min)}°</div>
-          </div>
-        `;
-
-        // ── Gráfico SVG ──
-        const W = 1000, H = 560, pd = 50, tp = hs.map(x => x.temp);
-        const mn = Math.floor(Math.min(...tp) - 1), mx = Math.ceil(Math.max(...tp) + 1);
-        const X = i => pd + i / (n - 1) * (W - 2 * pd);
-        const Y = v => H - pd - (v - mn) / (mx - mn) * (H - 2 * pd - 30);
-        const linha = tp.map((v, i) => (i ? 'L' : 'M') + X(i).toFixed(1) + ',' + Y(v).toFixed(1)).join(' ');
-        const area = linha + ' L' + X(n - 1).toFixed(1) + ',' + (H - pd) + ' L' + X(0).toFixed(1) + ',' + (H - pd) + ' Z';
-        const bw = (W - 2 * pd) / n * .6;
-        const barras = hs.map((x, i) => {
-          const hh = Math.max(0, (x.chuva || 0)) / 100 * (H - 2 * pd) * .55;
-          return '<rect class="cg-b" style="animation-delay:' + (i * 25) + 'ms" x="' + (X(i) - bw / 2).toFixed(1) + '" y="' + (H - pd - hh).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + hh.toFixed(1) + '" fill="rgba(80,150,255,.55)"/>';
-        }).join('');
-        const rot = hs.map((x, i) => i % 6 === 0
-          ? '<text x="' + X(i).toFixed(1) + '" y="' + (H - 16) + '" fill="#8fb3d4" font-size="24" text-anchor="middle">' + esc(x.t.slice(11, 13)) + 'h</text>' : '').join('');
-        const pts = hs.map((x, i) => i % 6 === 0
-          ? '<text x="' + X(i).toFixed(1) + '" y="' + (Y(x.temp) - 12).toFixed(1) + '" fill="#fff" font-size="26" text-anchor="middle" font-weight="700">' + Math.round(x.temp) + '°</text>' : '').join('');
-
-        g.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet">'
-          + '<defs><linearGradient id="cgg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#00e5ff" stop-opacity=".45"/><stop offset="1" stop-color="#00e5ff" stop-opacity="0"/></linearGradient></defs>'
-          + barras
-          + '<path class="cg-ar" d="' + area + '" fill="url(#cgg)"/>'
-          + '<path class="cg-ln" pathLength="1" d="' + linha + '" fill="none" stroke="#00e5ff" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>'
-          + rot + pts
-          + '</svg>';
-
-        // ── Notícias locais da cidade (bloco embaixo) ──
-        const noticiasTexto = await buscarNoticiasLocais(cid.nome);
-        if (S.morto) return;
-        renderNoticiasLocais(cid, noticiasTexto);
-
-        av.innerHTML = '◀ ▶ troca de cidade · ' + cidadeIdx + ' de ' + TX_CIDADES.length + ' · ' + esc(climaDados.fonte || 'Open-Meteo') + txStaleTag(climaDados);
       } catch (e) {
-        g.innerHTML = '<div class="tx-erro">Aguardando dados de clima…</div>';
-        av.textContent = 'Falha ao carregar ' + cid.nome + '. Tentando novamente em 15 min.';
-        boxNoticias.innerHTML = '';
-      } finally {
+        // Sem região acessível (preview): segue sem reset
+      }
+    };
+
+    // ── Cache local por UF (evita refetch repetido no mesmo ciclo) ──
+    const cache = {};   // { SP: { clima, noticias, t } }
+    let ufAtual = null;
+    let carregando = false;
+
+    const carregarEstado = async (uf) => {
+      if (S.morto || carregando) return;
+      carregando = true;
+      ufAtual = uf;
+
+      climaCol.innerHTML    = '<div class="tx-erro">Carregando clima…</div>';
+      noticiasCol.innerHTML = '<div class="tx-erro">Carregando notícias…</div>';
+
+      const capital = TOTEM_UFS.find(u => u.uf === uf);
+      if (!capital) {
+        climaCol.innerHTML = '<div class="tx-erro">UF inválida.</div>';
         carregando = false;
-        lblCidade.style.opacity = '1';
-        g.style.opacity = '1';
-      }
-    };
-
-    // ── Notícias locais: busca geral e filtra por cidade ──
-    const buscarNoticiasLocais = async (nomeCidade) => {
-      const cache = cacheCidades[nomeCidade];
-      if (cache && cache.noticias && (Date.now() - cache.t) < 600000) return cache.noticias;
-      try {
-        const d = await txDados('noticias', '', 600000);
-        const norm = t => String(t || '').toLowerCase()
-          .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-        const alvo = norm(nomeCidade);
-        // Junta todas as categorias e filtra por cidade no título
-        const todas = Object.entries(d.topicos || {}).flatMap(([cat, itens]) =>
-          (itens || []).map(n => ({ cat, ...n }))
-        );
-        const locais = todas.filter(n => norm(n.titulo).includes(alvo)).slice(0, 2);
-        const estadoCache = cacheCidades[nomeCidade] || (cacheCidades[nomeCidade] = { clima: null, noticias: null, t: Date.now() });
-        estadoCache.noticias = locais;
-        return locais;
-      } catch (e) {
-        return [];
-      }
-    };
-
-    // ── Render do bloco de notícias locais ──
-    const renderNoticiasLocais = (cid, noticias) => {
-      if (!noticias || !noticias.length) {
-        boxNoticias.innerHTML = `
-          <div style="font-size:calc(var(--u)*1.2);color:#8fa6c2;text-align:center;padding:calc(var(--u)*.8) 0;opacity:.7">
-            Sem notícias específicas de ${esc(cid.nome)} agora.
-          </div>`;
         return;
       }
-      boxNoticias.innerHTML = '<div style="font-size:calc(var(--u)*1.05);color:#00e5ff;letter-spacing:.12em;text-transform:uppercase;font-weight:700;margin-bottom:calc(var(--u)*.3)">📰 ' + esc(cid.nome) + '</div>'
-        + noticias.map(n =>
-          '<div style="background:rgba(0,229,255,.06);border-left:calc(var(--u)*.3) solid #00e5ff;border-radius:calc(var(--u)*.6);padding:calc(var(--u)*.6) calc(var(--u)*1);font-size:calc(var(--u)*1.35);line-height:1.35;color:#d7eaff">'
-          + esc(n.titulo)
-          + '</div>'
-        ).join('');
+
+      try {
+        // Cache de 10 min por UF
+        const agora = Date.now();
+        const c = cache[uf];
+        let clima, noticias;
+
+        if (c && agora - c.t < 600000) {
+          ({ clima, noticias } = c);
+        } else {
+          const [climaNovo, noticiasNovas] = await Promise.all([
+            txDados('clima',
+              `lat=${capital.lat}&lon=${capital.lon}&cidade=${encodeURIComponent(capital.cap)}`,
+              900000),
+            txDados('noticias-mundo', `uf=${uf}`, 600000)
+          ]);
+          clima = climaNovo;
+          noticias = noticiasNovas;
+          cache[uf] = { clima, noticias, t: agora };
+        }
+
+        if (S.morto || ufAtual !== uf) { carregando = false; return; }
+
+        // ── Coluna esquerda: clima ──
+        const w = WMO[clima.atual.codigo] || ['🌡️', '—'];
+        climaCol.innerHTML = `
+          <div class="cg-a" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1em;background:rgba(8,18,38,.7);border-radius:1.4vmin;border:1px solid rgba(0,229,255,.22);">
+            <div class="cg-c">${esc(capital.cap)} (${uf})</div>
+            <div class="cg-i" style="font-size:calc(var(--u)*8);">${w[0]}</div>
+            <div class="cg-t" style="font-size:calc(var(--u)*7);">${Math.round(clima.atual.temp)}°</div>
+            <div class="cg-d">${esc(w[1])}</div>
+            <div class="cg-p" style="display:flex;flex-wrap:wrap;justify-content:center;gap:1em;margin-top:1em;font-size:calc(var(--u)*1.8);">
+              <div>💧 ${clima.atual.umid}%</div>
+              <div>💨 ${Math.round(clima.atual.vento)} km/h</div>
+              <div>↑ ${Math.round(clima.dia.max)}° ↓ ${Math.round(clima.dia.min)}°</div>
+            </div>
+          </div>`;
+        // Esconde o box de notícias antigo (o antigo tinha classe .cg-noticias; o novo é .cg-noticias-col)
+        // (nada a fazer — o HTML antigo não existe mais neste slide)
+
+        // ── Coluna direita: notícias ──
+        const lista = (noticias.categorias && noticias.categorias[uf]) || [];
+        if (lista.length) {
+          noticiasCol.innerHTML = `
+            <div style="flex:1;display:flex;flex-direction:column;gap:1em;overflow-y:auto;padding-right:5px;">
+              <h3 style="color:#ffd24a;font-family:'Orbitron',sans-serif;font-size:calc(var(--u)*2.2);border-bottom:1px solid rgba(255,210,74,.3);padding-bottom:.5em;margin:0;">Últimas do ${uf}</h3>
+              ${lista.slice(0, 5).map(n => `
+                <div style="background:rgba(0,229,255,.06);border-left:3px solid #00e5ff;border-radius:8px;padding:1em;font-size:calc(var(--u)*1.5);line-height:1.4;color:#d7eaff;">
+                  <b>${esc(n.titulo)}</b><br>
+                  <small style="color:#8fa6c2;font-size:.8em;margin-top:.5em;display:block;">${esc(n.fonte || 'Fonte não informada')}</small>
+                </div>`).join('')}
+            </div>`;
+        } else {
+          noticiasCol.innerHTML = '<div class="tx-erro" style="flex:1;">Sem notícias para este estado no momento.</div>';
+        }
+
+        av.innerHTML = `Exibindo dados para ${esc(capital.cap)} (${uf}) · Fonte clima: Open-Meteo · Fonte notícias: feeds públicos · Atualizado ${txHora(noticias.atualizado)}${txStaleTag(noticias)}`;
+
+      } catch (e) {
+        if (S.morto) return;
+        console.error('[TX.climagrafico]', uf, e);
+        climaCol.innerHTML    = '<div class="tx-erro" style="flex:1;">Falha ao carregar clima.</div>';
+        noticiasCol.innerHTML = '<div class="tx-erro" style="flex:1;">Falha ao carregar notícias.</div>';
+        av.textContent = 'Não foi possível carregar os dados para ' + uf + '. Tentando novamente em 5 min.';
+      } finally {
+        carregando = false;
+      }
     };
 
-    desenhar(false);
-    // Recarrega a cada 15 min (mantém a cidade escolhida pelo usuário)
-    const iv = setInterval(() => { if (!document.hidden) desenhar(false); }, 900000);
+    // Inicializa com a UF padrão
+    ufSelect.value = (item.cidade && UFS.includes(item.cidade)) ? item.cidade : 'SP';
+    carregarEstado(ufSelect.value);
+
+    // ── Ao trocar de estado ──
+    //  1) marca o UF atual (para descartar fetch obsoleto)
+    //  2) reinicia o ciclo do slide (dá tempo de leitura total)
+    //  3) carrega os dados do novo estado
+    ufSelect.addEventListener('change', () => {
+      const uf = ufSelect.value;
+      reiniciarCicloDoSlide();
+      carregarEstado(uf);
+    });
+
+    // Recarrega periodicamente (mantém o estado selecionado)
+    const iv = setInterval(() => {
+      if (!document.hidden && ufSelect.value) {
+        carregarEstado(ufSelect.value);
+      }
+    }, 900000); // 15 min
     S.fins.push(() => clearInterval(iv));
   }
 };
