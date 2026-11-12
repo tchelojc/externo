@@ -578,6 +578,232 @@ html,body{background:#000}
 
 /* ── Painel Rio: praias, ondas e vento ── */
 .tx-editorial .ed-surf-panel{font-size:calc(var(--u)*1.1);color:#cfe0f2;overflow:hidden;min-height:0}
+/* ═══════ CLIMAGRAFICO · layout e cache visual ═══════ */
+.cg-nav {
+  position: absolute;
+  left: 3%; right: 3%;
+  top: 9%;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-family: 'Orbitron', sans-serif;
+}
+.cg-nav label {
+  font-size: calc(var(--u) * 1.8);
+  color: #9fc7ff;
+  letter-spacing: .1em;
+}
+.cg-nav select {
+  background: rgba(0,229,255,.08);
+  border: 1px solid rgba(0,229,255,.45);
+  color: #ffd24a;
+  border-radius: 8px;
+  padding: .5em 1em;
+  font-size: calc(var(--u) * 2);
+  font-family: 'Orbitron', sans-serif;
+  cursor: pointer;
+  outline: none;
+}
+
+.cg-main {
+  position: absolute;
+  inset: 16% 3% 6% 3%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 2%;
+  min-height: 0;
+}
+
+.cg-clima-col,
+.cg-noticias-col {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* card do clima (hero) */
+.cg-a {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1em;
+  background: linear-gradient(145deg, rgba(8,18,38,.85), rgba(4,10,22,.85));
+  border-radius: 1.4vmin;
+  border: 1px solid rgba(0,229,255,.22);
+  position: relative;
+  overflow: hidden;
+}
+.cg-a::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 20%, rgba(0,229,255,.08), transparent 60%);
+  pointer-events: none;
+}
+.cg-c {
+  font-size: calc(var(--u) * 2.6);
+  letter-spacing: .18em;
+  color: #00e5ff;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.cg-c small {
+  color: #8fa6c2;
+  font-size: .6em;
+  margin-left: .5em;
+  font-weight: 400;
+}
+.cg-i { font-size: calc(var(--u) * 9); line-height: 1.1; margin: .15em 0; }
+.cg-t {
+  font-size: calc(var(--u) * 7);
+  font-weight: 300;
+  color: #fff;
+  line-height: 1;
+}
+.cg-t span { font-size: .5em; vertical-align: super; }
+.cg-d {
+  font-size: calc(var(--u) * 2.4);
+  color: #9fc7ff;
+  margin-bottom: .6em;
+}
+.cg-p {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1em;
+  margin-top: 1em;
+  font-size: calc(var(--u) * 1.8);
+  color: #cfe6ff;
+}
+.cg-p div {
+  background: rgba(255,255,255,.06);
+  padding: .6em 1.2em;
+  border-radius: 1em;
+}
+.cg-p b { color: #00e5ff; font-weight: 800; margin-right: .25em; }
+
+/* painel de notícias */
+.cg-not-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-bottom: .6em;
+  margin-bottom: .6em;
+  border-bottom: 1px solid rgba(255,210,74,.3);
+}
+.cg-not-top h3 {
+  color: #ffd24a;
+  font-family: 'Orbitron', sans-serif;
+  font-size: calc(var(--u) * 2);
+  margin: 0;
+  letter-spacing: .06em;
+}
+.cg-not-top small {
+  color: #8fa6c2;
+  font-size: calc(var(--u) * 1.4);
+}
+.cg-not-lista {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: .7em;
+  padding-right: .4em;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(125,190,225,.4) transparent;
+}
+.cg-not-lista::-webkit-scrollbar { width: 5px; }
+.cg-not-lista::-webkit-scrollbar-thumb {
+  background: rgba(125,190,225,.4);
+  border-radius: 8px;
+}
+.cg-not-item {
+  display: flex;
+  align-items: flex-start;
+  gap: .8em;
+  background: rgba(0,229,255,.05);
+  border-left: 3px solid #00e5ff;
+  border-radius: 8px;
+  padding: .9em 1em;
+  transition: background .2s, transform .2s;
+  animation: cgEntra .45s ease both;
+}
+.cg-not-item:hover {
+  background: rgba(0,229,255,.1);
+  transform: translateX(3px);
+}
+@keyframes cgEntra {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+.cg-not-num {
+  font-family: 'Orbitron', sans-serif;
+  font-size: calc(var(--u) * 1.8);
+  color: #ffd24a;
+  font-weight: 800;
+  min-width: 2.2em;
+}
+.cg-not-txt { min-width: 0; flex: 1; }
+.cg-not-txt b {
+  display: block;
+  font-size: calc(var(--u) * 1.5);
+  line-height: 1.4;
+  color: #d7eaff;
+  font-weight: 600;
+}
+.cg-not-txt small {
+  display: block;
+  margin-top: .35em;
+  color: #8fa6c2;
+  font-size: calc(var(--u) * 1.15);
+}
+
+/* estados de carregamento / vazio */
+.cg-loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #8fa6c2;
+  font-size: calc(var(--u) * 1.8);
+  animation: cgPulsa 1.4s ease-in-out infinite;
+}
+@keyframes cgPulsa {
+  50% { opacity: .5; }
+}
+.cg-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: .6em;
+  color: #8fa6c2;
+  font-size: calc(var(--u) * 1.6);
+  padding: 2em;
+}
+.cg-empty-ic { font-size: calc(var(--u) * 5); opacity: .6; }
+.cg-empty small { font-size: .85em; opacity: .8; }
+
+/* responsivo: retrato */
+@media (max-aspect-ratio: 1/1) {
+  .cg-main {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    gap: 1.5%;
+  }
+  .cg-a { padding: .6em; }
+  .cg-i { font-size: calc(var(--u) * 6); }
+  .cg-t { font-size: calc(var(--u) * 5); }
+}
 .ed-surf-panel .sf-sel{width:100%;padding:.5em .6em;border-radius:.6em;background:#0a1220;color:#e8f6ff;border:1px solid #1d2a44;font-size:calc(var(--u)*1.25);margin-bottom:.5em}
 .ed-surf-panel .sf-l1{display:flex;gap:.6em;align-items:baseline;flex-wrap:wrap}.ed-surf-panel .sf-l1 b{font-size:calc(var(--u)*1.7);color:#fff}.ed-surf-panel .sf-l1 span{color:#8fa6c2}.ed-surf-panel .sf-l1 em{margin-left:auto;font-style:normal;color:#ffd36a;font-weight:700}
 .ed-surf-panel .sf-g{display:grid;grid-template-columns:1fr 1fr;gap:.25em .8em;margin-top:.4em}.ed-surf-panel .sf-g b{color:#fff}.ed-surf-panel .sf-nota{grid-column:1/-1}
@@ -5441,9 +5667,15 @@ TX.jornal = {
     });
   }
 };
-/* ═════ GRÁFICO DE CLIMA ANIMADO (48 h) · NAVEGAÇÃO POR CIDADE ═════ */
+/* ═════ GRÁFICO DE CLIMA ANIMADO (48 h) · NAVEGAÇÃO POR ESTADO ═════
+   • Cache em 2 camadas (memória + localStorage) → volta instantânea
+   • Renderização progressiva (clima rápido, notícias depois)
+   • Prefetch da próxima UF em idle
+   • Debounce ao trocar de estado (evita requests em cascata)
+   • Fallback "última cópia salva" quando a rede falha
+   ═══════════════════════════════════════════════════════════════════ */
 TX.climagrafico = {
-  def: { cidade: 'SP' }, // UF padrão
+  def: { cidade: 'SP' },
   build(P, item, s, S) {
     s.className += ' tx'; txMorre(S);
 
@@ -5452,161 +5684,255 @@ TX.climagrafico = {
       'PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'
     ];
 
+    // ═══════════════════════════════════════════════════════════════════
+    // CACHE EM DUAS CAMADAS
+    //   TX_C[chave]        → memória do isolate (TTL curto, cobre o slide)
+    //   localStorage[...]  → persistente (TTL longo, cobre voltas do slide)
+    // Elimina o "Carregando…" quando o usuário troca de UF e volta.
+    // ═══════════════════════════════════════════════════════════════════
+    const CK = {
+      clima: uf => 'almafluxo_clima_' + uf,
+      noticias: uf => 'almafluxo_noticias_' + uf
+    };
+    const TTL_MEM = 5 * 60 * 1000;        // 5 min em memória
+    const TTL_LS_CLIMA = 30 * 60 * 1000;  // 30 min no localStorage
+    const TTL_LS_NOT = 15 * 60 * 1000;    // 15 min (notícias mudam mais)
+
+    const LER_LS = (chave, ttl) => {
+      try {
+        const raw = localStorage.getItem(chave);
+        if (!raw) return null;
+        const obj = JSON.parse(raw);
+        if (!obj || !obj.t || Date.now() - obj.t > ttl) return null;
+        return obj.d;
+      } catch (e) { return null; }
+    };
+    const GRAVAR_LS = (chave, dados) => {
+      try { localStorage.setItem(chave, JSON.stringify({ t: Date.now(), d: dados })); } catch (e) {}
+    };
+
+    // ── Layout HTML ───────────────────────────────────────────────────
+    // Duas colunas: esquerda = clima (hero), direita = notícias (lista).
+    // O painel de clima aparece antes das notícias graças à renderização
+    // progressiva (fetch separado para cada um).
     s.innerHTML = `
-      <div class="tx-t">CLIMA E NOTÍCIAS LOCAIS</div>
-      <div class="cg-nav" style="position:absolute;left:3%;right:3%;top:9%;z-index:5;display:flex;align-items:center;justify-content:center;gap:12px;font-family:'Orbitron',sans-serif">
-        <label for="cg-uf-select" style="font-size:calc(var(--u)*1.8);color:#9fc7ff;letter-spacing:.1em;">ESTADO:</label>
-        <select id="cg-uf-select" class="cg-uf-select" style="background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.45);color:#ffd24a;border-radius:8px;padding:.5em 1em;font-size:calc(var(--u)*2);font-family:'Orbitron',sans-serif;cursor:pointer;outline:none;">
+      <div class="tx-t">CLIMA · NOTÍCIAS DO ESTADO</div>
+
+      <div class="cg-nav">
+        <label for="cg-uf-select">ESTADO</label>
+        <select id="cg-uf-select" aria-label="Escolher estado">
           ${UFS.map(uf => `<option value="${uf}">${uf}</option>`).join('')}
         </select>
       </div>
 
-      <div class="cg-main" style="position:absolute;inset:16% 3% 6% 3%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:2%;">
-        <div class="cg-clima-col" style="display:flex;flex-direction:column;min-height:0;"></div>
-        <div class="cg-noticias-col" style="display:flex;flex-direction:column;min-height:0;"></div>
+      <div class="cg-main">
+        <div class="cg-clima-col" role="region" aria-label="Clima atual"></div>
+        <div class="cg-noticias-col" role="region" aria-live="polite" aria-label="Notícias do estado"></div>
       </div>
+
       <div class="tx-av"></div>
     `;
 
-    const ufSelect   = s.querySelector('#cg-uf-select');
-    const climaCol   = s.querySelector('.cg-clima-col');
-    const noticiasCol= s.querySelector('.cg-noticias-col');
-    const av         = s.querySelector('.tx-av');
+    const ufSelect    = s.querySelector('#cg-uf-select');
+    const climaCol    = s.querySelector('.cg-clima-col');
+    const noticiasCol = s.querySelector('.cg-noticias-col');
+    const av          = s.querySelector('.tx-av');
 
-    // ═══════════════════════════════════════════════════════════════
-    // RESET DO CICLO DO SLIDE
-    // A região do player expõe: R.duracao (ms), R.prazo (timestamp),
-    // R.timer (setTimeout), R.pausado, R.pausar(), R.retomar().
-    // Ao trocar de estado, reiniciamos o prazo e o timer para dar
-    // tempo total de leitura ao usuário.
-    // ═══════════════════════════════════════════════════════════════
+    // ── Reset do ciclo do slide (mantido) ─────────────────────────────
     const reiniciarCicloDoSlide = () => {
       try {
         const reg = P._activeReg ? P._activeReg() : null;
-        if (!reg || !reg.duracao) return;   // slide sem duração própria (relógio etc.)
-        // Cancela o avanço automático pendente
+        if (!reg || !reg.duracao) return;
         clearTimeout(reg.timer);
-        // Restaura o tempo total do slide a partir de AGORA
         reg.restante = reg.duracao;
         reg.prazo    = Date.now() + reg.duracao;
-        // Se estava pausado, mantém pausado (respeita o usuário);
-        // se estava rodando, agenda de novo com o tempo cheio.
-        if (!reg.pausado) {
-          reg.timer = setTimeout(reg.proximo, reg.duracao);
-        }
-      } catch (e) {
-        // Sem região acessível (preview): segue sem reset
-      }
+        if (!reg.pausado) reg.timer = setTimeout(reg.proximo, reg.duracao);
+      } catch (e) {}
     };
 
-    // ── Cache local por UF (evita refetch repetido no mesmo ciclo) ──
-    const cache = {};   // { SP: { clima, noticias, t } }
+    // ── Estado local ──────────────────────────────────────────────────
     let ufAtual = null;
-    let carregando = false;
+    let reqSeq = 0;              // descarta respostas antigas (troca rápida)
+    let carregandoClima = false;
+    let carregandoNot = false;
 
+    // ═══════════════════════════════════════════════════════════════════
+    // RENDER: clima (rápido, ~200 ms)
+    // ═══════════════════════════════════════════════════════════════════
+    const renderClima = (uf, capital, clima) => {
+      const w = WMO[clima.atual.codigo] || ['🌡️', '—'];
+      climaCol.innerHTML = `
+        <div class="cg-a">
+          <div class="cg-c">${esc(capital.cap)} <small>${uf}</small></div>
+          <div class="cg-i">${w[0]}</div>
+          <div class="cg-t">${Math.round(clima.atual.temp)}<span>°</span></div>
+          <div class="cg-d">${esc(w[1])}</div>
+          <div class="cg-p">
+            <div><b>💧</b> ${clima.atual.umid}%</div>
+            <div><b>💨</b> ${Math.round(clima.atual.vento)} km/h</div>
+            <div><b>↑</b> ${Math.round(clima.dia.max)}° <b>↓</b> ${Math.round(clima.dia.min)}°</div>
+          </div>
+        </div>`;
+    };
+
+    // ═══════════════════════════════════════════════════════════════════
+    // RENDER: notícias (lento, 1–3 s)
+    // ═══════════════════════════════════════════════════════════════════
+    const renderNoticias = (uf, noticias) => {
+      const lista = (noticias && noticias.categorias && noticias.categorias[uf]) || [];
+      if (!lista.length) {
+        noticiasCol.innerHTML = `
+          <div class="cg-empty">
+            <div class="cg-empty-ic">📰</div>
+            <div>Sem notícias para ${uf} agora.</div>
+            <small>Tentando de novo em instantes.</small>
+          </div>`;
+        return;
+      }
+      const fmtData = t => {
+        if (!t) return '';
+        const d = new Date(t);
+        const agora = new Date();
+        const horas = Math.round((agora - d) / 3600000);
+        if (horas < 1) return 'agora';
+        if (horas < 24) return `há ${horas}h`;
+        return d.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'});
+      };
+      noticiasCol.innerHTML = `
+        <div class="cg-not-top">
+          <h3>📰 ${esc(uf)} · últimas</h3>
+          <small>${lista.length} manchetes</small>
+        </div>
+        <div class="cg-not-lista">
+          ${lista.slice(0, 6).map((n, i) => `
+            <article class="cg-not-item" data-i="${i}">
+              <span class="cg-not-num">${String(i + 1).padStart(2, '0')}</span>
+              <div class="cg-not-txt">
+                <b>${esc(n.titulo)}</b>
+                <small>${esc(n.fonte || 'Fonte não informada')}${n.t ? ' · ' + fmtData(n.t) : ''}</small>
+              </div>
+            </article>`).join('')}
+        </div>`;
+    };
+
+    // ═══════════════════════════════════════════════════════════════════
+    // CARGA: clima + notícias em paralelo, renderização progressiva
+    // ═══════════════════════════════════════════════════════════════════
     const carregarEstado = async (uf) => {
-      if (S.morto || carregando) return;
-      carregando = true;
+      if (S.morto) return;
+      const minhaSeq = ++reqSeq;
       ufAtual = uf;
-
-      climaCol.innerHTML    = '<div class="tx-erro">Carregando clima…</div>';
-      noticiasCol.innerHTML = '<div class="tx-erro">Carregando notícias…</div>';
 
       const capital = TOTEM_UFS.find(u => u.uf === uf);
       if (!capital) {
         climaCol.innerHTML = '<div class="tx-erro">UF inválida.</div>';
-        carregando = false;
         return;
       }
 
-      try {
-        // Cache de 10 min por UF
-        const agora = Date.now();
-        const c = cache[uf];
-        let clima, noticias;
+      // ── 1) Clima: memória → localStorage → rede ───────────────────
+      const memClima = TX_C['clima?lat=' + capital.lat + '&lon=' + capital.lon];
+      const lsClima  = LER_LS(CK.clima(uf), TTL_LS_CLIMA);
 
-        if (c && agora - c.t < 600000) {
-          ({ clima, noticias } = c);
-        } else {
-          const [climaNovo, noticiasNovas] = await Promise.all([
-            txDados('clima',
-              `lat=${capital.lat}&lon=${capital.lon}&cidade=${encodeURIComponent(capital.cap)}`,
-              900000),
-            txDados('noticias-mundo', `uf=${uf}`, 600000)
-          ]);
-          clima = climaNovo;
-          noticias = noticiasNovas;
-          cache[uf] = { clima, noticias, t: agora };
-        }
+      if (memClima && Date.now() - memClima.t < TTL_MEM) {
+        renderClima(uf, capital, memClima.d);
+        av.textContent = `Clima de ${capital.cap} (${uf}) · cache em memória`;
+      } else if (lsClima) {
+        renderClima(uf, capital, lsClima);
+        av.textContent = `Clima de ${capital.cap} (${uf}) · cache local`;
+        buscarClima(uf, capital, minhaSeq).catch(() => {});
+      } else {
+        climaCol.innerHTML = '<div class="cg-loading">⛅ Carregando clima…</div>';
+        buscarClima(uf, capital, minhaSeq).catch(() => {});
+      }
 
-        if (S.morto || ufAtual !== uf) { carregando = false; return; }
+      // ── 2) Notícias: memória → localStorage → rede ────────────────
+      const memNot = TX_C['noticias-mundo?uf=' + uf];
+      const lsNot  = LER_LS(CK.noticias(uf), TTL_LS_NOT);
 
-        // ── Coluna esquerda: clima ──
-        const w = WMO[clima.atual.codigo] || ['🌡️', '—'];
-        climaCol.innerHTML = `
-          <div class="cg-a" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1em;background:rgba(8,18,38,.7);border-radius:1.4vmin;border:1px solid rgba(0,229,255,.22);">
-            <div class="cg-c">${esc(capital.cap)} (${uf})</div>
-            <div class="cg-i" style="font-size:calc(var(--u)*8);">${w[0]}</div>
-            <div class="cg-t" style="font-size:calc(var(--u)*7);">${Math.round(clima.atual.temp)}°</div>
-            <div class="cg-d">${esc(w[1])}</div>
-            <div class="cg-p" style="display:flex;flex-wrap:wrap;justify-content:center;gap:1em;margin-top:1em;font-size:calc(var(--u)*1.8);">
-              <div>💧 ${clima.atual.umid}%</div>
-              <div>💨 ${Math.round(clima.atual.vento)} km/h</div>
-              <div>↑ ${Math.round(clima.dia.max)}° ↓ ${Math.round(clima.dia.min)}°</div>
-            </div>
-          </div>`;
-        // Esconde o box de notícias antigo (o antigo tinha classe .cg-noticias; o novo é .cg-noticias-col)
-        // (nada a fazer — o HTML antigo não existe mais neste slide)
-
-        // ── Coluna direita: notícias ──
-        const lista = (noticias.categorias && noticias.categorias[uf]) || [];
-        if (lista.length) {
-          noticiasCol.innerHTML = `
-            <div style="flex:1;display:flex;flex-direction:column;gap:1em;overflow-y:auto;padding-right:5px;">
-              <h3 style="color:#ffd24a;font-family:'Orbitron',sans-serif;font-size:calc(var(--u)*2.2);border-bottom:1px solid rgba(255,210,74,.3);padding-bottom:.5em;margin:0;">Últimas do ${uf}</h3>
-              ${lista.slice(0, 5).map(n => `
-                <div style="background:rgba(0,229,255,.06);border-left:3px solid #00e5ff;border-radius:8px;padding:1em;font-size:calc(var(--u)*1.5);line-height:1.4;color:#d7eaff;">
-                  <b>${esc(n.titulo)}</b><br>
-                  <small style="color:#8fa6c2;font-size:.8em;margin-top:.5em;display:block;">${esc(n.fonte || 'Fonte não informada')}</small>
-                </div>`).join('')}
-            </div>`;
-        } else {
-          noticiasCol.innerHTML = '<div class="tx-erro" style="flex:1;">Sem notícias para este estado no momento.</div>';
-        }
-
-        av.innerHTML = `Exibindo dados para ${esc(capital.cap)} (${uf}) · Fonte clima: Open-Meteo · Fonte notícias: feeds públicos · Atualizado ${txHora(noticias.atualizado)}${txStaleTag(noticias)}`;
-
-      } catch (e) {
-        if (S.morto) return;
-        console.error('[TX.climagrafico]', uf, e);
-        climaCol.innerHTML    = '<div class="tx-erro" style="flex:1;">Falha ao carregar clima.</div>';
-        noticiasCol.innerHTML = '<div class="tx-erro" style="flex:1;">Falha ao carregar notícias.</div>';
-        av.textContent = 'Não foi possível carregar os dados para ' + uf + '. Tentando novamente em 5 min.';
-      } finally {
-        carregando = false;
+      if (memNot && Date.now() - memNot.t < TTL_MEM) {
+        renderNoticias(uf, memNot.d);
+      } else if (lsNot) {
+        renderNoticias(uf, lsNot);
+        buscarNoticias(uf, minhaSeq).catch(() => {});
+      } else {
+        noticiasCol.innerHTML = '<div class="cg-loading">📰 Carregando notícias…</div>';
+        buscarNoticias(uf, minhaSeq).catch(() => {});
       }
     };
 
-    // Inicializa com a UF padrão
-    ufSelect.value = (item.cidade && UFS.includes(item.cidade)) ? item.cidade : 'SP';
-    carregarEstado(ufSelect.value);
+    // ── Funções separadas (não bloqueiam uma à outra) ─────────────────
+    const buscarClima = async (uf, capital, seq) => {
+      if (carregandoClima) return;
+      carregandoClima = true;
+      try {
+        const clima = await txDados('clima',
+          `lat=${capital.lat}&lon=${capital.lon}&cidade=${encodeURIComponent(capital.cap)}`,
+          900000);
+        if (S.morto || seq !== reqSeq) return;
+        GRAVAR_LS(CK.clima(uf), clima);
+        renderClima(uf, capital, clima);
+        av.textContent = `Clima de ${capital.cap} (${uf}) · atualizado ${txHora(clima.atualizado)}`;
+      } catch (e) {
+        if (S.morto || seq !== reqSeq) return;
+        const ultimo = LER_LS(CK.clima(uf), Infinity);
+        if (ultimo) {
+          renderClima(uf, capital, ultimo);
+          av.textContent = `Clima de ${capital.cap} (${uf}) · última cópia salva (offline)`;
+        } else {
+          climaCol.innerHTML = '<div class="tx-erro">Falha ao carregar clima.</div>';
+        }
+      } finally {
+        carregandoClima = false;
+      }
+    };
 
-    // ── Ao trocar de estado ──
-    //  1) marca o UF atual (para descartar fetch obsoleto)
-    //  2) reinicia o ciclo do slide (dá tempo de leitura total)
-    //  3) carrega os dados do novo estado
+    const buscarNoticias = async (uf, seq) => {
+      if (carregandoNot) return;
+      carregandoNot = true;
+      try {
+        const noticias = await txDados('noticias-mundo', `uf=${uf}`, 600000);
+        if (S.morto || seq !== reqSeq) return;
+        GRAVAR_LS(CK.noticias(uf), noticias);
+        renderNoticias(uf, noticias);
+      } catch (e) {
+        if (S.morto || seq !== reqSeq) return;
+        const ultimo = LER_LS(CK.noticias(uf), Infinity);
+        if (ultimo) renderNoticias(uf, ultimo);
+        else noticiasCol.innerHTML = '<div class="tx-erro">Falha ao carregar notícias.</div>';
+      } finally {
+        carregandoNot = false;
+      }
+    };
+
+    // ── Inicializa com a UF padrão ──────────────────────────────────
+    const ufInicial = (item.cidade && UFS.includes(item.cidade)) ? item.cidade : 'SP';
+    ufSelect.value = ufInicial;
+    carregarEstado(ufInicial);
+
+    // ── Troca de estado com debounce (evita requests em cascata) ────
+    let debTimer = null;
     ufSelect.addEventListener('change', () => {
-      const uf = ufSelect.value;
-      reiniciarCicloDoSlide();
-      carregarEstado(uf);
+      clearTimeout(debTimer);
+      debTimer = setTimeout(() => {
+        const uf = ufSelect.value;
+        reiniciarCicloDoSlide();
+        carregarEstado(uf);
+        // prefetch da próxima UF (não bloqueia a atual)
+        const i = UFS.indexOf(uf);
+        const prox = UFS[(i + 1) % UFS.length];
+        if (prox) setTimeout(() => {
+          const cap = TOTEM_UFS.find(u => u.uf === prox);
+          if (cap) txDados('clima', `lat=${cap.lat}&lon=${cap.lon}&cidade=${encodeURIComponent(cap.cap)}`, 900000).catch(() => {});
+        }, 1500);
+      }, 120);
     });
 
-    // Recarrega periodicamente (mantém o estado selecionado)
+    // ── Recarrega em background a cada 15 min (mantém UF selecionada) ─
     const iv = setInterval(() => {
       if (!document.hidden && ufSelect.value) {
         carregarEstado(ufSelect.value);
       }
-    }, 900000); // 15 min
+    }, 900000);
     S.fins.push(() => clearInterval(iv));
   }
 };
