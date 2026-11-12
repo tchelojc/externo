@@ -1367,7 +1367,14 @@ html,body{background:#000}
 .tx-editorial.ed-com-palco .ed-concept-text{font-size:calc(var(--u)*1.2);line-height:1.38;padding-right:0;max-width:100%}
 .tx-editorial .ed-stage.ed-art{display:flex;flex-direction:column;background:radial-gradient(ellipse at 50% 28%,#35233f,#0b0710 78%)}
 /* ── Aba 7/17 · galeria de artes ── */
-.ed-art-fr { position: relative; }
+.ed-art-fr {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
 .ed-art-fr img,
 .ed-art-fr canvas.ed-gen {
   position: absolute; inset: 0;
@@ -1391,6 +1398,7 @@ html,body{background:#000}
 
 /* Overlay "carregando obra…" */
 .ed-art-loading {
+  z-index: 4;
   position: absolute;
   bottom: 8%; left: 50%; transform: translateX(-50%);
   background: rgba(3, 10, 20, .78);
@@ -7674,7 +7682,7 @@ window.build = build;   // ← expõe globalmente para o MiniMotorPlayer
     { t: 'Girassóis', a: 'Vincent van Gogh', y: '1888', m: 'Pós-impressionismo', f: ['Vincent_van_Gogh_-_Sunflowers_-_VGM_F458.jpg'], pal: ['#6b5a1a', '#d9a521', '#f0d060', '#3d6b4a'] },
     { t: 'Primeira Missa no Brasil', a: 'Victor Meirelles', y: '1861', m: 'Academismo brasileiro', f: ['Meirelles-primeiramissa.jpg'], pal: ['#2c4a3a', '#8fb08a', '#e0cfa0', '#3a6a9a'] }
   ];
-  const commonsUrl = f => 'https://commons.wikimedia.org/wiki/Special:FilePath/' + encodeURIComponent(f) + '?width=1100';
+  const commonsUrl = f => TX_BASE + 'arte?arquivo=' + encodeURIComponent(f);
 
   function pintarGenerativo(c, pal, semente) {
     c.width = 640; c.height = 400;
@@ -8372,7 +8380,7 @@ window.build = build;   // ← expõe globalmente para o MiniMotorPlayer
           aplicarLista(
             lista,
             'fresh',
-            'Fonte: ' + fonteEditorial + ' · atualizado ' + txHora(d.atualizado) + (d._stale ? ' · última cópia em cache' : '')
+            'Fonte: ' + fonteEditorial + ' · atualizado ' + txHora(d.atualizado) + (d._stale ? ' · última edição relevante disponível' : '')
           );
           return;
         }
