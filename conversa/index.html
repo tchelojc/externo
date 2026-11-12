@@ -5464,7 +5464,16 @@ function montarMapaBrasil(parentEl, dadosEstados) {
   };
 }
 
-/* ═════ JORNAL CLIMA FLUXO · EDIÇÃO DINÂMICA ═════ */
+/* ═════ JORNAL CLIMA FLUXO · EDIÇÃO DINÂMICA ═════
+   • Cache em 2 camadas (memória do isolate + localStorage)
+   • Pipeline de PREFETCH em 2 CICLOS: ao exibir o ciclo N, os dados de
+     N+1 (próxima cidade) e N+2 (a seguinte) já estão sendo baixados em
+     paralelo; ao terminar N, N+1 e N+2 já estão em TX_C — a troca de
+     cidade não espera a rede.
+   • Fallback visual: se a próxima cidade ainda não chegou, mostra a
+     última edição válida em vez de "aguardando manchetes".
+   • NÃO sobrescreve manchetes em memória quando o Worker devolve vazio.
+   ═══════════════════════════════════════════════════════════════════ */
 TX.jornal = {
   def: { cidade: 'auto' },
   build(P, item, s, S) {
@@ -5506,12 +5515,87 @@ TX.jornal = {
     let cidadeAtual = (item.cidade && item.cidade !== 'auto') ? item.cidade : null;
     let mapaBr = null;
 
+    // ═══════════════════════════════════════════════════════════════════
+    // PREFETCH — pipeline de 2 ciclos
+    //
+    //   Ao exibir o ciclo N (cidade C):
+    //     • dispara o download de N+1 (próxima cidade)
+    //     • dispara o download de N+2 (a seguinte)
+    //
+    //   Ao terminar o ciclo N:
+    //     • N+1 já está em TX_C → troca instantânea
+    //     • N+2 também já está em TX_C
+    //     • e o N+3 começa a ser baixado no ciclo de N+1
+    // ═══════════════════════════════════════════════════════════════════
+    const prefetchEmAndamento = new Map();   // chave cidade → Promise
+    const prefetchJaFeito     = new Set();   // cidade já em TX_C / localStorage
+
+    const chaveJ = c => 'jornal:' + String(c).toLowerCase();
+
+    // Retorna o nome da próxima cidade na rotação circular.
+    // Usa TX_CIDADES se disponível; senão mantém a cidade atual.
+    function proximaCidade(nomeAtual) {
+      try {
+        if (typeof TX_CIDADES !== 'undefined' && Array.isArray(TX_CIDADES) && TX_CIDADES.length) {
+          const i = TX_CIDADES.findIndex(c => c.nome.toLowerCase() === String(nomeAtual).toLowerCase());
+          const j = i < 0 ? 0 : (i + 1) % TX_CIDADES.length;
+          return TX_CIDADES[j].nome;
+        }
+      } catch (e) {}
+      return nomeAtual;
+    }
+
+    function prefetchJornal(cidade) {
+      if (!cidade) return;
+      const chave = chaveJ(cidade);
+      if (prefetchJaFeito.has(chave)) return;                         // já está em TX_C
+      if (prefetchEmAndamento.has(chave)) return prefetchEmAndamento.get(chave);
+
+      // Verifica TX_C antes de disparar rede.
+      // A chave real do cache é `jornal?cidade=...&lat=...&lon=...` (ver txDados),
+      // então a checagem "barata" é pelo prefixo.
+      const jaEmMemoria = Object.keys(TX_C).some(k =>
+        k.indexOf('jornal?cidade=' + encodeURIComponent(cidade)) === 0
+      );
+      if (jaEmMemoria) { prefetchJaFeito.add(chave); return; }
+
+      const geo = (typeof TX_CIDADES !== 'undefined' && Array.isArray(TX_CIDADES))
+        ? TX_CIDADES.find(c => c.nome.toLowerCase() === String(cidade).toLowerCase())
+        : null;
+      const qs = 'cidade=' + encodeURIComponent(cidade)
+        + (geo ? '&lat=' + encodeURIComponent(geo.lat) + '&lon=' + encodeURIComponent(geo.lon) : '');
+
+      const p = (async () => {
+        try {
+          await txDados('jornal', qs, 1800000);
+          prefetchJaFeito.add(chave);
+        } catch (e) {
+          // falha silenciosa: o ciclo atual não depende deste prefetch
+        } finally {
+          prefetchEmAndamento.delete(chave);
+        }
+      })();
+      prefetchEmAndamento.set(chave, p);
+      return p;
+    }
+
+    // Dispara o prefetch de N+1 e N+2 a partir da cidade exibida agora.
+    // Os setTimeout NÃO são cancelados se o slide sair — o guard S.morto
+    // impede o request, e o cache fica para a próxima visita ao slide.
+    function agendarPrefetch2Ciclos(cidadeBase) {
+      const prox1 = proximaCidade(cidadeBase);
+      const prox2 = proximaCidade(prox1);
+      setTimeout(() => { if (!S.morto) prefetchJornal(prox1); }, 300);
+      setTimeout(() => { if (!S.morto) prefetchJornal(prox2); }, 700);
+    }
+
     /* ═══ 1. Mapa de estados (máx/mín por UF) — mapa do Brasil com partículas ═══ */
     const renderEstados = (d) => {
       if (!d || !Array.isArray(d.estados) || !mapaBox) return;
       nacMax.textContent = (d.maxNacional != null ? Math.round(d.maxNacional) : '--') + '°';
       nacMin.textContent = (d.minNacional != null ? Math.round(d.minNacional) : '--') + '°';
       const estados = d.estados.filter(e => e.max != null);
+      if (!estados.length) return;
       if (mapaBr) mapaBr.destruir();
       mapaBr = montarMapaBrasil(mapaBox, estados);
     };
@@ -5520,21 +5604,18 @@ TX.jornal = {
     const PESO_CATEGORIA = { guerra: 100, catastrofe: 90, politica: 70, mundo: 50 };
     const ICONE_CATEGORIA = { guerra: '⚔️', catastrofe: '⚠️', politica: '🏛️', mundo: '🌍' };
 
-    /* Deduplica por "título normalizado" (evita G1 + BBC da mesma notícia) */
     const norm = t => String(t || '').toLowerCase()
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
       .replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80);
 
-    /* Calcula "novidade": quão recente é (30 min = 1.0; 6h = 0.0) */
     const novidade = (t) => {
       if (t == null || !Number.isFinite(Number(t)) || Number(t) <= 0) return 0;
       const m = (Date.now() - Number(t)) / 60000;
-      if (m < 0) return 0; // data futura/relógio inconsistente não vira notícia nova
+      if (m < 0) return 0;
       if (m > 360) return 0;
       return 1 - (m / 360);
     };
 
-    /* Constrói a lista unificada, pontua e ordena */
     const construirLista = (mundo) => {
       if (!mundo) return [];
       const vistas = new Set();
@@ -5544,7 +5625,6 @@ TX.jornal = {
           const k = norm(n.titulo);
           if (!k || vistas.has(k)) return;
           vistas.add(k);
-          // pontuação = peso da categoria + bônus de novidade (0..30)
           const peso = (PESO_CATEGORIA[cat] || 30) + novidade(n.t) * 30;
           lista.push({ cat, ...n, peso });
         });
@@ -5562,7 +5642,6 @@ TX.jornal = {
       headEl.innerHTML = `<span style="opacity:.7">${ic}</span> ${esc(m.titulo)}`;
       headEl.classList.remove('jn-in'); void headEl.offsetWidth; headEl.classList.add('jn-in');
 
-      // Lista: as 3 próximas (excluindo a atual), com categoria e tempo
       const proximas = manchetes
         .filter((_, i) => i !== (mIdx % manchetes.length))
         .slice(0, 3);
@@ -5572,7 +5651,6 @@ TX.jornal = {
         + `</div>`
       ).join('');
 
-      // Bloco "Agora": só o que mudou nos últimos 30 min (top 2)
       const agora = manchetes.filter(x => x.t != null && Number.isFinite(Number(x.t)) && Number(x.t) > 0 && (Date.now() - Number(x.t)) >= 0 && (Date.now() - Number(x.t)) <= 30 * 60000).slice(0, 2);
       if (mundoBox) {
         if (agora.length) {
@@ -5581,7 +5659,6 @@ TX.jornal = {
             + agora.map(x => `<div class="jn-mundo-item">${esc(x.titulo)}</div>`).join('')
             + '</div>';
         } else {
-          // Sem breaking news: mostra o resumo por categoria (2 por bloco)
           const blocos = Object.entries(ICONE_CATEGORIA).map(([k, ic]) => {
             const itens = manchetes.filter(x => x.cat === k).slice(0, 2);
             if (!itens.length) return '';
@@ -5596,45 +5673,59 @@ TX.jornal = {
 
       mIdx++;
       clearTimeout(mTimer);
-      // 8s por manchete (em vez de 6s) — dá tempo de ler no totem
       mTimer = setTimeout(renderManchete, 8000);
     };
     S.fins.push(() => clearTimeout(mTimer));
 
-    /* Garante limpeza do mapa de partículas quando o slide sair */
     S.fins.push(() => { if (mapaBr) { mapaBr.destruir(); mapaBr = null; } });
 
-    /* ═══ 4. Loop de dados ═══ */
+    /* ═══ 4. Loop de dados — BLINDADO + PREFETCH 2 CICLOS ═══ */
     txLoop(S, async () => {
-      // Sorteia cidade se "auto" (nunca repete a mesma em ciclos consecutivos)
-      if (!cidadeAtual || item.cidade === 'auto') {
-        cidadeAtual = txSorteiaCidade(cidadeAtual).nome;
+      // Blindagem 1: TX_CIDADES pode ainda estar em TDZ se o módulo não terminou de carregar.
+      // Não deixa o primeiro ciclo explodir: usa fallback explícito e loga.
+      let cidadeGeo = null;
+      try {
+        if (typeof TX_CIDADES !== 'undefined' && Array.isArray(TX_CIDADES) && TX_CIDADES.length) {
+          if (!cidadeAtual || item.cidade === 'auto') {
+            cidadeAtual = txSorteiaCidade(cidadeAtual).nome;
+          }
+          cidadeGeo = TX_CIDADES.find(c => c.nome.toLowerCase() === String(cidadeAtual).toLowerCase());
+        } else if (!cidadeAtual) {
+          cidadeAtual = 'São Paulo';
+        }
+      } catch (e) {
+        console.error('[TX.jornal] TX_CIDADES indisponível:', e && (e.message || e));
+        if (!cidadeAtual) cidadeAtual = 'São Paulo';
       }
 
-      const cidadeGeo = TX_CIDADES.find(c => c.nome.toLowerCase() === String(cidadeAtual).toLowerCase());
-      // Só envia coordenadas quando a cidade existe no catálogo. Para cidades
-      // configuradas manualmente, o Worker tenta geocodificar pelo nome;
-      // nunca reaproveita silenciosamente as coordenadas de São Paulo.
+      // ── PREFETCH 2 CICLOS ──
+      // Dispara N+1 e N+2 ANTES do await do ciclo atual, para que o
+      // download aconteça em paralelo com a renderização.
+      agendarPrefetch2Ciclos(cidadeAtual);
+
       const qsJornal = 'cidade=' + encodeURIComponent(cidadeAtual)
         + (cidadeGeo ? '&lat=' + encodeURIComponent(cidadeGeo.lat)
           + '&lon=' + encodeURIComponent(cidadeGeo.lon) : '');
       const j = await txDados('jornal', qsJornal, 1800000);
 
       if (j && j.ok) {
-        // Subtítulo: cidade + timestamp exato
         if (subEl) {
           const hora = j.atualizado ? txHora(j.atualizado) : '—';
           subEl.textContent = (cidadeAtual ? cidadeAtual + ' · ' : '') + 'atualizado ' + hora;
         }
-        // Rodapé: timestamp global (do jornal)
         if (tsEl) tsEl.textContent = j.atualizado ? txHora(j.atualizado) : '—';
 
-        // ENSO
         if (faseEl) faseEl.textContent = 'ENSO · ' + (j.fase || '—');
         if (oniEl)  oniEl.textContent  = 'ONI ' + (j.oni != null ? Number(j.oni).toFixed(2) : '--');
 
-        // Notícias priorizadas
+        // A cidade deste ciclo acabou de ser resolvida → marca como feita.
+        prefetchJaFeito.add(chaveJ(cidadeAtual));
+
         const lista = construirLista(j.mundo);
+
+        // Blindagem 2: se o Worker devolveu ok:true mas veio vazio, NÃO sobrescreve
+        // a última edição válida e NÃO escreve "aguardando manchetes" por cima.
+        // Só mostra aviso se realmente não houver nada em memória.
         if (lista.length) {
           manchetes = lista;
           mIdx = 0;
@@ -5642,13 +5733,14 @@ TX.jornal = {
         } else if (!manchetes.length) {
           headEl.textContent = 'ClimaFluxo · aguardando manchetes';
           listaEl.innerHTML = '';
-          mundoBox.innerHTML = '<div class="jn-mundo-item">Sem notícias no momento.</div>';
+          mundoBox.innerHTML = '<div class="jn-mundo-item">Sem notícias no momento. Nova tentativa automática em instantes.</div>';
         }
+        // Se já havia manchetes em memória, mantém a última edição sem piscar.
 
-        // Brasil vem no mesmo payload: evita uma segunda chamada e mantém os dados sincronizados.
         if (j.brasil) renderEstados(j.brasil);
       } else {
-        // Falha parcial: preserva a última edição válida e informa que a atualização está pendente.
+        // ok:false explícito do Worker
+        console.warn('[TX.jornal] Worker devolveu ok=false:', (j && j.error) || '(sem detalhe)');
         if (subEl) subEl.textContent = cidadeAtual + ' · atualização temporariamente indisponível';
         if (!manchetes.length) {
           headEl.textContent = 'ClimaFluxo · aguardando conexão com as fontes';
@@ -5656,9 +5748,11 @@ TX.jornal = {
           mundoBox.innerHTML = '<div class="jn-mundo-item">As fontes estão temporariamente indisponíveis. Nova tentativa automática em instantes.</div>';
         }
       }
-    }, 900000, () => {
+    }, 900000, (err) => {
+      // Diagnóstico: agora o erro real aparece no console (antes era silencioso).
+      console.error('[TX.jornal] falhou:', err && (err.message || err));
       if (!manchetes.length) {
-        headEl.textContent = 'Sem notícias no momento';
+        headEl.textContent = 'Sem notícias no momento (toque para tentar de novo)';
         listaEl.innerHTML = '';
       }
       if (mapaBox && !mapaBr) {
@@ -5667,10 +5761,12 @@ TX.jornal = {
     });
   }
 };
-/* ═════ GRÁFICO DE CLIMA ANIMADO (48 h) · NAVEGAÇÃO POR ESTADO ═════
+/* ═════ GRÁFICO DE CLIMA ANIMADO · NAVEGAÇÃO POR ESTADO ═════
    • Cache em 2 camadas (memória + localStorage) → volta instantânea
+   • Pipeline de PREFETCH em 2 CICLOS: ao exibir o ciclo N, os dados de N+1
+     e N+2 já estão sendo baixados em paralelo; ao terminar N, N+2 dispara
+     automaticamente. Assim o slide nunca fica esperando a rede.
    • Renderização progressiva (clima rápido, notícias depois)
-   • Prefetch da próxima UF em idle
    • Debounce ao trocar de estado (evita requests em cascata)
    • Fallback "última cópia salva" quando a rede falha
    ═══════════════════════════════════════════════════════════════════ */
@@ -5684,19 +5780,14 @@ TX.climagrafico = {
       'PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'
     ];
 
-    // ═══════════════════════════════════════════════════════════════════
-    // CACHE EM DUAS CAMADAS
-    //   TX_C[chave]        → memória do isolate (TTL curto, cobre o slide)
-    //   localStorage[...]  → persistente (TTL longo, cobre voltas do slide)
-    // Elimina o "Carregando…" quando o usuário troca de UF e volta.
-    // ═══════════════════════════════════════════════════════════════════
+    // ── Cache em 2 camadas ────────────────────────────────────────────
     const CK = {
       clima: uf => 'almafluxo_clima_' + uf,
       noticias: uf => 'almafluxo_noticias_' + uf
     };
-    const TTL_MEM = 5 * 60 * 1000;        // 5 min em memória
-    const TTL_LS_CLIMA = 30 * 60 * 1000;  // 30 min no localStorage
-    const TTL_LS_NOT = 15 * 60 * 1000;    // 15 min (notícias mudam mais)
+    const TTL_MEM = 5 * 60 * 1000;
+    const TTL_LS_CLIMA = 30 * 60 * 1000;
+    const TTL_LS_NOT = 15 * 60 * 1000;
 
     const LER_LS = (chave, ttl) => {
       try {
@@ -5711,10 +5802,7 @@ TX.climagrafico = {
       try { localStorage.setItem(chave, JSON.stringify({ t: Date.now(), d: dados })); } catch (e) {}
     };
 
-    // ── Layout HTML ───────────────────────────────────────────────────
-    // Duas colunas: esquerda = clima (hero), direita = notícias (lista).
-    // O painel de clima aparece antes das notícias graças à renderização
-    // progressiva (fetch separado para cada um).
+    // ── HTML ─────────────────────────────────────────────────────────
     s.innerHTML = `
       <div class="tx-t">CLIMA · NOTÍCIAS DO ESTADO</div>
 
@@ -5738,46 +5826,124 @@ TX.climagrafico = {
     const noticiasCol = s.querySelector('.cg-noticias-col');
     const av          = s.querySelector('.tx-av');
 
-    // ── Reset do ciclo do slide (mantido) ─────────────────────────────
-    const reiniciarCicloDoSlide = () => {
-      try {
-        const reg = P._activeReg ? P._activeReg() : null;
-        if (!reg || !reg.duracao) return;
-        clearTimeout(reg.timer);
-        reg.restante = reg.duracao;
-        reg.prazo    = Date.now() + reg.duracao;
-        if (!reg.pausado) reg.timer = setTimeout(reg.proximo, reg.duracao);
-      } catch (e) {}
-    };
-
-    // ── Estado local ──────────────────────────────────────────────────
+    // ── Estado local ─────────────────────────────────────────────────
     let ufAtual = null;
-    let reqSeq = 0;              // descarta respostas antigas (troca rápida)
+    let reqSeq = 0;
     let carregandoClima = false;
     let carregandoNot = false;
 
-    // ═══════════════════════════════════════════════════════════════════
-    // RENDER: clima (rápido, ~200 ms)
-    // ═══════════════════════════════════════════════════════════════════
+    // ─────────────────────────────────────────────────────────────────
+    // PREFETCH — pipeline de 2 ciclos
+    //
+    //   Ao exibir o ciclo N:
+    //     • dispara o download de N+1 (próximo)
+    //     • dispara o download de N+2 (depois do próximo)
+    //
+    //   Ao terminar o ciclo N:
+    //     • N+1 já está em cache (baixado no início de N)
+    //     • N+2 também já está em cache (baixado no início de N)
+    //     • e o N+3 começa a ser baixado (para o próximo fim de ciclo)
+    //
+    //   Cada UF guarda 2 slots de "em andamento" pra não duplicar requests
+    //   e não sobrescrever cache em andamento.
+    // ─────────────────────────────────────────────────────────────────
+    const prefetchEmAndamento = new Map();   // chave UF+TIPO → Promise
+    const prefetchJaFeito = new Set();       // chave UF+TIPO já em cache nesta sessão
+
+    const chavePre = (tipo, uf) => tipo + ':' + uf;
+
+    async function prefetchClima(uf) {
+      const chave = chavePre('clima', uf);
+      if (prefetchJaFeito.has(chave)) return;            // já está em cache (memória)
+      if (prefetchEmAndamento.has(chave)) return prefetchEmAndamento.get(chave);
+      const capital = TOTEM_UFS.find(u => u.uf === uf);
+      if (!capital) return;
+      const memKey = 'clima?lat=' + capital.lat + '&lon=' + capital.lon;
+      const mem = TX_C[memKey];
+      if (mem && Date.now() - mem.t < TTL_MEM) { prefetchJaFeito.add(chave); return; }
+      const p = (async () => {
+        try {
+          const clima = await txDados('clima',
+            `lat=${capital.lat}&lon=${capital.lon}&cidade=${encodeURIComponent(capital.cap)}`,
+            900000);
+          GRAVAR_LS(CK.clima(uf), clima);
+          prefetchJaFeito.add(chave);
+        } catch (e) {
+          // falha silenciosa: o ciclo atual não depende deste prefetch
+        } finally {
+          prefetchEmAndamento.delete(chave);
+        }
+      })();
+      prefetchEmAndamento.set(chave, p);
+      return p;
+    }
+
+    async function prefetchNoticias(uf) {
+      const chave = chavePre('noticias', uf);
+      if (prefetchJaFeito.has(chave)) return;
+      if (prefetchEmAndamento.has(chave)) return prefetchEmAndamento.get(chave);
+      const memKey = 'noticias-mundo?uf=' + uf;
+      const mem = TX_C[memKey];
+      if (mem && Date.now() - mem.t < TTL_MEM) { prefetchJaFeito.add(chave); return; }
+      const p = (async () => {
+        try {
+          const noticias = await txDados('noticias-mundo', `uf=${uf}`, 600000);
+          GRAVAR_LS(CK.noticias(uf), noticias);
+          prefetchJaFeito.add(chave);
+        } catch (e) {
+          // falha silenciosa
+        } finally {
+          prefetchEmAndamento.delete(chave);
+        }
+      })();
+      prefetchEmAndamento.set(chave, p);
+      return p;
+    }
+
+    // Dispara o prefetch de um ciclo completo (clima + notícias em paralelo)
+    function prefetchCiclo(uf) {
+      if (!uf || !UFS.includes(uf)) return;
+      prefetchClima(uf).catch(() => {});
+      prefetchNoticias(uf).catch(() => {});
+    }
+
+    // Índice circular da UF na lista (para saber qual é "a próxima")
+    function proximaUF(uf) {
+      const i = UFS.indexOf(uf);
+      if (i < 0) return UFS[0];
+      return UFS[(i + 1) % UFS.length];
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // RENDER
+    // ─────────────────────────────────────────────────────────────────
     const renderClima = (uf, capital, clima) => {
-      const w = WMO[clima.atual.codigo] || ['🌡️', '—'];
+      const c   = (clima && (clima.atual || clima.current)) || {};
+      const dia = (clima && (clima.dia   || clima.daily))   || {};
+      const codigo = (c.codigo != null) ? c.codigo : c.weather_code;
+      const temp   = (c.temp   != null) ? c.temp   : c.temperature_2m;
+      const umid   = (c.umid   != null) ? c.umid   : c.relative_humidity_2m;
+      const vento  = (c.vento  != null) ? c.vento  : c.wind_speed_10m;
+      const maxDia = (dia.max  != null) ? dia.max  : (Array.isArray(dia.temperature_2m_max) ? dia.temperature_2m_max[0] : undefined);
+      const minDia = (dia.min  != null) ? dia.min  : (Array.isArray(dia.temperature_2m_min) ? dia.temperature_2m_min[0] : undefined);
+      if (temp == null || maxDia == null || minDia == null) {
+        throw new Error('payload de clima inesperado: ' + JSON.stringify(Object.keys(c)));
+      }
+      const w = WMO[codigo] || ['🌡️', '—'];
       climaCol.innerHTML = `
         <div class="cg-a">
           <div class="cg-c">${esc(capital.cap)} <small>${uf}</small></div>
           <div class="cg-i">${w[0]}</div>
-          <div class="cg-t">${Math.round(clima.atual.temp)}<span>°</span></div>
+          <div class="cg-t">${Math.round(temp)}<span>°</span></div>
           <div class="cg-d">${esc(w[1])}</div>
           <div class="cg-p">
-            <div><b>💧</b> ${clima.atual.umid}%</div>
-            <div><b>💨</b> ${Math.round(clima.atual.vento)} km/h</div>
-            <div><b>↑</b> ${Math.round(clima.dia.max)}° <b>↓</b> ${Math.round(clima.dia.min)}°</div>
+            <div><b>💧</b> ${umid != null ? umid : '—'}%</div>
+            <div><b>💨</b> ${vento != null ? Math.round(vento) : '—'} km/h</div>
+            <div><b>↑</b> ${Math.round(maxDia)}° <b>↓</b> ${Math.round(minDia)}°</div>
           </div>
         </div>`;
     };
 
-    // ═══════════════════════════════════════════════════════════════════
-    // RENDER: notícias (lento, 1–3 s)
-    // ═══════════════════════════════════════════════════════════════════
     const renderNoticias = (uf, noticias) => {
       const lista = (noticias && noticias.categorias && noticias.categorias[uf]) || [];
       if (!lista.length) {
@@ -5791,8 +5957,7 @@ TX.climagrafico = {
       }
       const fmtData = t => {
         if (!t) return '';
-        const d = new Date(t);
-        const agora = new Date();
+        const d = new Date(t), agora = new Date();
         const horas = Math.round((agora - d) / 3600000);
         if (horas < 1) return 'agora';
         if (horas < 24) return `há ${horas}h`;
@@ -5815,9 +5980,9 @@ TX.climagrafico = {
         </div>`;
     };
 
-    // ═══════════════════════════════════════════════════════════════════
-    // CARGA: clima + notícias em paralelo, renderização progressiva
-    // ═══════════════════════════════════════════════════════════════════
+    // ─────────────────────────────────────────────────────────────────
+    // CICLO DE EXIBIÇÃO
+    // ─────────────────────────────────────────────────────────────────
     const carregarEstado = async (uf) => {
       if (S.morto) return;
       const minhaSeq = ++reqSeq;
@@ -5829,38 +5994,56 @@ TX.climagrafico = {
         return;
       }
 
-      // ── 1) Clima: memória → localStorage → rede ───────────────────
-      const memClima = TX_C['clima?lat=' + capital.lat + '&lon=' + capital.lon];
-      const lsClima  = LER_LS(CK.clima(uf), TTL_LS_CLIMA);
-
-      if (memClima && Date.now() - memClima.t < TTL_MEM) {
-        renderClima(uf, capital, memClima.d);
-        av.textContent = `Clima de ${capital.cap} (${uf}) · cache em memória`;
-      } else if (lsClima) {
-        renderClima(uf, capital, lsClima);
-        av.textContent = `Clima de ${capital.cap} (${uf}) · cache local`;
-        buscarClima(uf, capital, minhaSeq).catch(() => {});
-      } else {
-        climaCol.innerHTML = '<div class="cg-loading">⛅ Carregando clima…</div>';
-        buscarClima(uf, capital, minhaSeq).catch(() => {});
+      // ── 1) Clima ──
+      try {
+        const memClima = TX_C['clima?lat=' + capital.lat + '&lon=' + capital.lon];
+        const lsClima  = LER_LS(CK.clima(uf), TTL_LS_CLIMA);
+        if (memClima && Date.now() - memClima.t < TTL_MEM) {
+          renderClima(uf, capital, memClima.d);
+          av.textContent = `Clima de ${capital.cap} (${uf}) · cache em memória`;
+        } else if (lsClima) {
+          renderClima(uf, capital, lsClima);
+          av.textContent = `Clima de ${capital.cap} (${uf}) · cache local`;
+          buscarClima(uf, capital, minhaSeq).catch(() => {});
+        } else {
+          climaCol.innerHTML = '<div class="cg-loading">⛅ Carregando clima…</div>';
+          buscarClima(uf, capital, minhaSeq).catch(() => {});
+        }
+      } catch (e) {
+        console.error('[TX.climagrafico] renderClima:', e && (e.message || e));
+        climaCol.innerHTML = '<div class="tx-erro">Falha ao renderizar o clima.</div>';
       }
 
-      // ── 2) Notícias: memória → localStorage → rede ────────────────
-      const memNot = TX_C['noticias-mundo?uf=' + uf];
-      const lsNot  = LER_LS(CK.noticias(uf), TTL_LS_NOT);
-
-      if (memNot && Date.now() - memNot.t < TTL_MEM) {
-        renderNoticias(uf, memNot.d);
-      } else if (lsNot) {
-        renderNoticias(uf, lsNot);
-        buscarNoticias(uf, minhaSeq).catch(() => {});
-      } else {
-        noticiasCol.innerHTML = '<div class="cg-loading">📰 Carregando notícias…</div>';
-        buscarNoticias(uf, minhaSeq).catch(() => {});
+      // ── 2) Notícias ──
+      try {
+        const memNot = TX_C['noticias-mundo?uf=' + uf];
+        const lsNot  = LER_LS(CK.noticias(uf), TTL_LS_NOT);
+        if (memNot && Date.now() - memNot.t < TTL_MEM) {
+          renderNoticias(uf, memNot.d);
+        } else if (lsNot) {
+          renderNoticias(uf, lsNot);
+          buscarNoticias(uf, minhaSeq).catch(() => {});
+        } else {
+          noticiasCol.innerHTML = '<div class="cg-loading">📰 Carregando notícias…</div>';
+          buscarNoticias(uf, minhaSeq).catch(() => {});
+        }
+      } catch (e) {
+        console.error('[TX.climagrafico] renderNoticias:', e && (e.message || e));
+        noticiasCol.innerHTML = '<div class="tx-erro">Falha ao renderizar as notícias.</div>';
       }
+
+      // ── 3) PREFETCH em 2 ciclos (não bloqueia a exibição) ──
+      // Assim que o ciclo atual está exibindo, disparamos o download de:
+      //   • N+1 (próxima UF)
+      //   • N+2 (a seguinte)
+      // Ao terminar o ciclo atual, N+1 e N+2 já estarão em cache.
+      const prox1 = proximaUF(uf);
+      const prox2 = proximaUF(prox1);
+      setTimeout(() => { if (!S.morto) prefetchCiclo(prox1); }, 300);
+      setTimeout(() => { if (!S.morto) prefetchCiclo(prox2); }, 700);
     };
 
-    // ── Funções separadas (não bloqueiam uma à outra) ─────────────────
+    // ── Busca de rede (fallback) ─────────────────────────────────────
     const buscarClima = async (uf, capital, seq) => {
       if (carregandoClima) return;
       carregandoClima = true;
@@ -5870,6 +6053,7 @@ TX.climagrafico = {
           900000);
         if (S.morto || seq !== reqSeq) return;
         GRAVAR_LS(CK.clima(uf), clima);
+        prefetchJaFeito.add(chavePre('clima', uf));
         renderClima(uf, capital, clima);
         av.textContent = `Clima de ${capital.cap} (${uf}) · atualizado ${txHora(clima.atualizado)}`;
       } catch (e) {
@@ -5893,6 +6077,7 @@ TX.climagrafico = {
         const noticias = await txDados('noticias-mundo', `uf=${uf}`, 600000);
         if (S.morto || seq !== reqSeq) return;
         GRAVAR_LS(CK.noticias(uf), noticias);
+        prefetchJaFeito.add(chavePre('noticias', uf));
         renderNoticias(uf, noticias);
       } catch (e) {
         if (S.morto || seq !== reqSeq) return;
@@ -5904,32 +6089,41 @@ TX.climagrafico = {
       }
     };
 
-    // ── Inicializa com a UF padrão ──────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────
+    // INICIALIZAÇÃO — UF inicial e primeiro prefetch
+    // ─────────────────────────────────────────────────────────────────
     const ufInicial = (item.cidade && UFS.includes(item.cidade)) ? item.cidade : 'SP';
     ufSelect.value = ufInicial;
+
+    // Pré-carrega os 2 ciclos antes mesmo de renderizar o primeiro
+    // (o carregarEstado abaixo já cuida do ciclo atual)
+    prefetchCiclo(ufInicial);
+    prefetchCiclo(proximaUF(ufInicial));
+
     carregarEstado(ufInicial);
 
-    // ── Troca de estado com debounce (evita requests em cascata) ────
+    // ── Troca de estado com debounce ─────────────────────────────────
     let debTimer = null;
     ufSelect.addEventListener('change', () => {
       clearTimeout(debTimer);
       debTimer = setTimeout(() => {
         const uf = ufSelect.value;
-        reiniciarCicloDoSlide();
+        // ao trocar manualmente, "esquece" o cache de prefetch de 2 ciclos
+        // para não ficar preso a uma UF que o usuário abandonou
+        prefetchJaFeito.clear();
         carregarEstado(uf);
-        // prefetch da próxima UF (não bloqueia a atual)
-        const i = UFS.indexOf(uf);
-        const prox = UFS[(i + 1) % UFS.length];
-        if (prox) setTimeout(() => {
-          const cap = TOTEM_UFS.find(u => u.uf === prox);
-          if (cap) txDados('clima', `lat=${cap.lat}&lon=${cap.lon}&cidade=${encodeURIComponent(cap.cap)}`, 900000).catch(() => {});
-        }, 1500);
+        // re-dispara o pipeline de prefetch a partir da UF escolhida
+        const prox1 = proximaUF(uf);
+        const prox2 = proximaUF(prox1);
+        setTimeout(() => { if (!S.morto) prefetchCiclo(prox1); }, 300);
+        setTimeout(() => { if (!S.morto) prefetchCiclo(prox2); }, 700);
       }, 120);
     });
 
-    // ── Recarrega em background a cada 15 min (mantém UF selecionada) ─
+    // ── Ao trocar o slide e voltar, tudo já está em cache ───────────
     const iv = setInterval(() => {
       if (!document.hidden && ufSelect.value) {
+        // mantém o pipeline vivo mesmo se o slide ficar 15 min na mesma UF
         carregarEstado(ufSelect.value);
       }
     }, 900000);
