@@ -8204,7 +8204,7 @@ window.build = build;   // ← expõe globalmente para o MiniMotorPlayer
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    //  MOTOR 3D NO CARD 5  ← CORRIGIDO
+    //  MOTOR 3D NO CARD 5
     //  1) Garante que THREE esteja carregado (via txThree)
     //  2) Busca TODOS os motores da lista no Worker (Promise.all)
     //  3) Só então cria o MiniMotorPlayer
@@ -8214,12 +8214,12 @@ window.build = build;   // ← expõe globalmente para o MiniMotorPlayer
       const wrap = s.querySelector('.ed-hero-3d');
       const cv   = s.querySelector('.ed-hero-cv');
       // A órbita decorativa só existe se não for elétrica
-      const orb  = s.querySelector('.ed-hero-orbit'); 
+      const orb  = s.querySelector('.ed-hero-orbit');
       if (item.tipo !== 'mecanica3d' || !wrap || !cv || !window.MiniMotorPlayer) return;
 
-      // A MUDANÇA ESTÁ AQUI: CSS inline para forçar o posicionamento.
+      // CSS inline para forçar o posicionamento.
       wrap.style.cssText = 'position:relative; width:100%; aspect-ratio:16/9; margin-top:2vh; display:block;';
-      
+
       const lista = (window.MiniMotorPlayer.LISTA_POR_TIPO || {})[item.tipo] || window.MiniMotorPlayer.LISTA_PADRAO;
 
       const tentar = () => {
@@ -8268,47 +8268,136 @@ window.build = build;   // ← expõe globalmente para o MiniMotorPlayer
     })();
 
     // ═══════════════════════════════════════════════════════════════════
-    //  NOTÍCIAS (GIRO)
+    //  NOTÍCIAS (GIRO)  ← com cache local persistente por categoria
     // ═══════════════════════════════════════════════════════════════════
     let idx = 0, items = [];
+
+    // ── Cache local (localStorage) por categoria ──
+    // Garante que, se o Worker devolver vazio ou falhar, o slide continua
+    // mostrando o último payload bom em vez de "Sem manchetes disponíveis".
+    const CACHE_KEY = 'almafluxo_editorial_' + cfg.categoria + '_v1';
+    const LER_CACHE = () => {
+      try {
+        const raw = localStorage.getItem(CACHE_KEY);
+        if (!raw) return null;
+        const o = JSON.parse(raw);
+        if (!o || !Array.isArray(o.d) || !o.d.length) return null;
+        return o.d;
+      } catch (e) { return null; }
+    };
+    const GRAVAR_CACHE = (lista) => {
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ t: Date.now(), d: lista })); } catch (e) {}
+    };
+
+    const metaNoticia = x => {
+      const publicada = txDataPublicacao(x.t);
+      const relativa = x.t ? txAgo(Number.isFinite(+x.t) ? +x.t : new Date(x.t).getTime()) : '';
+      return [x.fonte || 'Fonte não informada', publicada ? 'publicado ' + publicada : '', relativa].filter(Boolean).join(' · ');
+    };
+
     const render = () => {
       if (!items.length) {
         list.innerHTML = '<div class="ed-news-empty">Sem manchetes disponíveis agora.<br><small>O conteúdo educativo permanece disponível.</small></div>';
         return;
       }
       const n = items[idx % items.length], others = items.filter((_, i) => i !== idx % items.length).slice(0, 3);
-      const metaNoticia = x => {
-        const publicada = txDataPublicacao(x.t);
-        const relativa = x.t ? txAgo(Number.isFinite(+x.t) ? +x.t : new Date(x.t).getTime()) : '';
-        return [x.fonte || 'Fonte não informada', publicada ? 'publicado ' + publicada : '', relativa].filter(Boolean).join(' · ');
-      };
       list.innerHTML = `<article class="ed-news-feature"><span class="ed-live">DESTAQUE · ${idx + 1} DE ${items.length}</span><h3>${esc(clean(n.titulo, 160))}</h3><small>${esc(metaNoticia(n))}</small></article>` +
         (others.length ? '<div class="ed-news-section-label">MAIS DESTA EDITORIA</div>' : '') +
         others.map((x, i) => `<article class="ed-news-item"><b>0${i + 2}</b><span>${esc(clean(x.titulo, 140))}<small>${esc(metaNoticia(x))}</small></span></article>`).join('');
     };
+
+    const aplicarLista = (lista, motivo, fonteLabel) => {
+      if (!Array.isArray(lista) || !lista.length) return false;
+      items = lista;
+      if (fonteLabel) {
+        source.textContent = fonteLabel;
+        source.title = fonteLabel;
+      }
+      render();
+      return true;
+    };
+
     const carregar = async () => {
       if (item.tipo === 'eletrica') return;   // a coluna de notícias da Energia agora mostra o Rio (montarRioNoticias)
+
       try {
         const d = await txDados('noticias-mundo', '', 600000);
-        items = (d.categorias && Array.isArray(d.categorias[cfg.categoria]) ? d.categorias[cfg.categoria] : []).filter(x => x && x.titulo).slice(0, 6);
-        const fonteEditorial = (d.fontes_por_categoria && d.fontes_por_categoria[cfg.categoria]) || d.fonte || 'Feed público';
-        source.textContent = 'Fonte: ' + fonteEditorial + ' · feed atualizado ' + txHora(d.atualizado) + (d._stale ? ' · última cópia em cache' : '');
+        const lista = (d.categorias && Array.isArray(d.categorias[cfg.categoria]))
+          ? d.categorias[cfg.categoria].filter(x => x && x.titulo).slice(0, 6)
+          : [];
+
+        if (lista.length) {
+          // Worker respondeu com itens: atualiza tela + cache
+          GRAVAR_CACHE(lista);
+          const fonteEditorial = (d.fontes_por_categoria && d.fontes_por_categoria[cfg.categoria]) || d.fonte || 'Feed público';
+          aplicarLista(
+            lista,
+            'fresh',
+            'Fonte: ' + fonteEditorial + ' · atualizado ' + txHora(d.atualizado) + (d._stale ? ' · última cópia em cache' : '')
+          );
+          return;
+        }
+
+        // Worker respondeu mas a categoria veio vazia → tenta cache local
+        const backup = LER_CACHE();
+        if (backup && backup.length) {
+          aplicarLista(
+            backup,
+            'cache',
+            'Fonte: ' + esc(cfg.titulo) + ' · categoria vazia no Worker · exibindo última cópia salva'
+          );
+          return;
+        }
+
+        // Nada em cache → mostra vazio (mas o refresh vai tentar em 2 min)
+        items = [];
+        source.textContent = 'categoria sem manchetes no momento · nova tentativa em instantes';
         source.title = source.textContent;
         render();
       } catch (e) {
-        items = [];
-        source.textContent = 'fonte temporariamente indisponível';
-        render();
+        // Worker falhou (rede, timeout, ok:false) → tenta cache local
+        const backup = LER_CACHE();
+        if (backup && backup.length) {
+          aplicarLista(
+            backup,
+            'cache',
+            'Fonte: ' + esc(cfg.titulo) + ' · conexão indisponível · exibindo última cópia salva'
+          );
+        } else {
+          items = [];
+          source.textContent = 'fonte temporariamente indisponível';
+          source.title = source.textContent;
+          render();
+        }
       }
     };
+
     carregar();
+
     const iv = setInterval(() => {
       const regAtual = P._activeReg ? P._activeReg() : null;
       if (!document.hidden && !(regAtual && regAtual.pausado) && items.length > 1) { idx = (idx + 1) % items.length; render(); }
     }, 8000);
-    // Evita atualizações em segundo plano; os dados voltam a ser consultados no próximo ciclo visível.
-    const refresh = setInterval(() => { if (!document.hidden) carregar(); }, 600000);
-    S.fins.push(() => { clearInterval(iv); clearInterval(refresh); });
+
+    // Retry curto (2 min) quando vazio; longo (10 min) quando tem itens.
+    // Assim o slide sai do "Sem manchetes" em ≤2 min quando o Worker volta.
+    let refreshTimer = null;
+    const agendarRefresh = () => {
+      if (refreshTimer) clearTimeout(refreshTimer);
+      const ms = items.length ? 600000 : 120000;
+      refreshTimer = setTimeout(async () => {
+        if (document.hidden) { agendarRefresh(); return; }
+        await carregar();
+        agendarRefresh();
+      }, ms);
+    };
+    agendarRefresh();
+
+    S.fins.push(() => {
+      clearInterval(iv);
+      if (refreshTimer) clearTimeout(refreshTimer);
+    });
+
     s.dataset.editorialLink = cfg.link;
   }
 
