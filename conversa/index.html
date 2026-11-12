@@ -8,17 +8,37 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <title>ALMAFLUXO · Totem</title>
-<link rel="manifest" id="manifestLink" href="/manifest.webmanifest?id=totem1">
+<!-- O href fica vazio no HTML para impedir que o navegador tente buscar uma rota inexistente antes do JavaScript. -->
+<link rel="manifest" id="manifestLink">
 <script>
-/* Manifest com plano B: se o servidor não responder (404), gera o manifest localmente. */
-(function(){try{
-  var lk=document.getElementById('manifestLink'),o=location.origin,mm=location.pathname.match(/\/conversa\/([^\/?#]+)/),id=mm?mm[1]:'totem1';
-  lk.href='/manifest.webmanifest?id='+encodeURIComponent(id);
-  fetch(lk.href,{cache:'no-store'}).then(function(r){if(!r.ok)throw 0;}).catch(function(){
-    var m={name:'ALMAFLUXO · '+id,short_name:'ALMAFLUXO',start_url:o+'/conversa/'+id,scope:o+'/conversa/',display:'fullscreen',orientation:'any',background_color:'#030508',theme_color:'#030508',icons:[{src:o+'/conversa/icon.svg',sizes:'any',type:'image/svg+xml'}]};
-    lk.href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/manifest+json'}));
-  });
-}catch(e){}})();
+/* Manifest local: não depende de /manifest.webmanifest nem de /conversa/icon.svg. */
+(function(){
+  try {
+    var lk = document.getElementById('manifestLink');
+    if (!lk || !window.Blob || !window.URL || !URL.createObjectURL) return;
+    var path = location.pathname || '/';
+    var match = path.match(/\/conversa\/([^\/?#]+)/);
+    var id = match ? decodeURIComponent(match[1]) : 'totem1';
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#030508"/><circle cx="256" cy="256" r="178" fill="#00e5ff"/><circle cx="256" cy="256" r="112" fill="#030508"/><circle cx="256" cy="256" r="48" fill="#d4a843"/></svg>';
+    var icon = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    var manifest = {
+      id: path,
+      name: 'ALMAFLUXO · ' + id,
+      short_name: 'ALMAFLUXO',
+      start_url: location.href,
+      scope: location.origin + '/',
+      display: 'fullscreen',
+      orientation: 'any',
+      background_color: '#030508',
+      theme_color: '#030508',
+      icons: [{ src: icon, sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' }]
+    };
+    var blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+    lk.href = URL.createObjectURL(blob);
+  } catch (e) {
+    console.warn('Manifest local indisponível:', e);
+  }
+})();
 </script>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%23030508'/%3E%3Ccircle cx='256' cy='256' r='180' fill='%2300e5ff'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -500,23 +520,48 @@ html,body{background:#000}
 /* PUBLICIDADE PADRÃO ALMAFLUXO — duplicada (mais presença) */
 .tx-pub{
   position:absolute;left:0;right:0;bottom:0;z-index:9999;
-  min-height:clamp(48px,7.6vh,108px);    /* ← DOBRO do anterior */
+  min-height:clamp(56px,8vh,92px);
   display:flex;align-items:center;justify-content:center;
-  gap:1.3em;padding:.9em 2em;             /* ← DOBRO */
-  background:linear-gradient(90deg,rgba(2,10,24,.97),rgba(0,67,91,.97),rgba(2,10,24,.97));
-  border-top:2px solid rgba(0,229,255,.85);   /* ← dobro */
+  gap:clamp(8px,1.1vw,18px);
+  padding:clamp(7px,1vh,12px) clamp(12px,2vw,28px);
+  background:linear-gradient(100deg,rgba(2,10,24,.98),rgba(0,52,75,.97),rgba(2,10,24,.98));
+  border-top:1px solid rgba(0,229,255,.65);
   color:#eafaff;text-decoration:none;
   font-family:Roboto,Arial,sans-serif;
-  font-size:clamp(14px,2.4vmin,34px);     /* ← quase dobro */
-  line-height:1.25;text-align:center;
-  box-shadow:0 -6px 32px rgba(0,0,0,.45); /* ← dobro */
+  font-size:clamp(12px,1.35vmin,20px);
+  line-height:1.25;text-align:left;
+  box-shadow:0 -4px 22px rgba(0,0,0,.38);
   box-sizing:border-box;overflow:hidden;
-  transition:filter .2s;
+  transition:filter .2s,opacity .26s;
 }
-.tx-pub strong{color:#00e5ff;letter-spacing:.08em;font-weight:900}
-.tx-pub em{font-style:normal;color:#fff;opacity:.92}
-.tx-pub b{color:#ffe082;white-space:nowrap;font-weight:800}
-.tx-pub:hover,.tx-pub:focus-visible{filter:brightness(1.3);outline:2px solid #00e5ff;outline-offset:-2px}
+.tx-pub strong{color:#55eaff;letter-spacing:.045em;font-weight:800;flex:0 1 auto;min-width:0}
+.tx-pub em{font-style:normal;color:#fff;opacity:.9;flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tx-pub b{color:#ffe082;font-weight:800;flex:0 1 auto;min-width:0;max-width:28%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tx-pub:hover,.tx-pub:focus-visible{filter:brightness(1.2);outline:2px solid #00e5ff;outline-offset:-2px}
+.tx-pub.tx-troca{opacity:0}
+.tx-pub .tx-qr{display:block;width:clamp(42px,6.2vh,70px);height:clamp(42px,6.2vh,70px);aspect-ratio:1;object-fit:contain;border-radius:5px;background:#fff;padding:2px;margin:0;flex:0 0 auto}
+.cards-runtime .tx-pub .tx-qr{display:none}
+@media(max-aspect-ratio:1/1){
+  .tx-pub{min-height:clamp(62px,9vh,86px);gap:7px;padding:7px 10px;font-size:clamp(11px,1.5vmin,16px)}
+  .tx-pub strong{max-width:34%;line-height:1.15}
+  .tx-pub em{display:none}
+  .tx-pub b{max-width:none;flex:1 1 auto}
+  .tx-pub .tx-qr{width:clamp(40px,6vh,58px);height:clamp(40px,6vh,58px)}
+}
+#vit-painel{position:fixed;inset:0;z-index:200000;background:rgba(0,0,0,.82);display:flex;align-items:flex-start;justify-content:center;padding:18px;overflow:auto;font:14px/1.45 system-ui,sans-serif;color:#e7edf5}
+#vit-painel .vp-box{width:min(960px,100%);background:#0a111d;border:1px solid #243246;border-radius:16px;padding:16px}
+#vit-painel .vp-h{display:flex;align-items:center;gap:10px;font-size:17px;color:#00e5ff;margin-bottom:6px}.vp-sp{flex:1}
+#vit-painel .vp-sub{color:#8d9bb0;font-size:12px;margin:6px 0 10px}
+#vit-painel button{border:1px solid #283548;background:#101725;color:#c6d0df;padding:8px 12px;border-radius:9px;cursor:pointer;font-weight:700}
+#vit-painel button:hover{border-color:#00e5ff;color:#00e5ff}
+#vit-painel input:not([type=checkbox]){background:#0b1220;border:1px solid #283548;border-radius:8px;padding:8px;color:#e7edf5;min-width:0}
+#vit-painel .vp-ad{border:1px solid #1d2938;border-radius:12px;padding:10px;margin-bottom:8px}
+#vit-painel .vp-l{display:grid;grid-template-columns:auto 1fr 1fr;gap:8px;align-items:center}
+#vit-painel .vp-l input[data-f=href]{grid-column:2/4}
+#vit-painel .vp-r{grid-column:1/4;display:flex;gap:8px;align-items:center;flex-wrap:wrap}#vit-painel .vp-r input[type=number]{width:84px}
+#vit-painel .vp-m{margin-top:6px;color:#8d9bb0;font-size:12px}
+#vit-painel .vp-f{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+
 
 /* Nos cards livres (mosaico) permanece proporcional, mas também duplicado */
 .cards-runtime .tx-pub{
@@ -863,56 +908,33 @@ html,body{background:#000}
 /* QR do horóscopo — MESMO TAMANHO do QR do Recado do Amor */
 .tx-solar-qr{
   position:absolute;right:2.6%;bottom:7%;z-index:6;
-  width:min(25vw,32vh);                    /* ← igual ao .amor-qr */
-  padding:calc(var(--u)*1.1);              /* ← igual ao .amor-qr */
-  border-radius:calc(var(--u)*1.4);        /* ← igual ao .amor-qr */
-  background:rgba(5,14,28,.9);
+  width:min(19vw,25vh,220px);
+  padding:clamp(7px,1.1vmin,14px);
+  border-radius:calc(var(--u)*1.2);
+  background:rgba(5,14,28,.94);
   border:1px solid rgba(117,218,255,.55);
-  box-shadow:0 0 3vmin rgba(0,229,255,.35), 0 1vmin 3vmin #0008;
-  backdrop-filter:blur(10px);
-  display:flex;flex-direction:column;      /* ← empilha QR em cima, texto embaixo */
+  box-shadow:0 0 2.4vmin rgba(0,229,255,.25),0 1vmin 3vmin #0008;
+  backdrop-filter:blur(8px);
+  display:flex;flex-direction:column;
   align-items:center;justify-content:center;
-  gap:calc(var(--u)*.9);
-  color:#effaff;
-  aspect-ratio:1;                          /* ← quadrado como o .amor-qr */
+  gap:clamp(4px,.65vmin,9px);
+  color:#effaff;aspect-ratio:1;overflow:hidden;
 }
 .tx-solar-qr img{
-  width:100%;                              /* ← ocupa todo o container */
-  height:auto;
-  aspect-ratio:1;
-  object-fit:contain;
-  background:#fff;
-  padding:calc(var(--u)*.5);
-  border-radius:calc(var(--u)*.8);
-  display:block;
+  display:block;width:76%;height:auto;max-height:68%;
+  aspect-ratio:1;object-fit:contain;background:#fff;
+  padding:3px;border-radius:5px;flex:0 1 auto;
 }
-.tx-solar-qr div{                          /* ← bloco de texto abaixo do QR */
-  text-align:center;
-  width:100%;
-}
-.tx-solar-qr b{
-  display:block;
-  font-size:calc(var(--u)*1.55);           /* ← aumenta o título */
-  line-height:1.2;
-  color:#9cecff;
-  letter-spacing:.04em;
-}
-.tx-solar-qr span{
-  display:block;
-  font-size:calc(var(--u)*1.15);           /* ← aumenta o subtítulo */
-  line-height:1.25;
-  color:#d0e7f6;
-  margin-top:calc(var(--u)*.35);
-}
+.tx-solar-qr div{text-align:center;width:100%;min-width:0}
+.tx-solar-qr b{display:block;font-size:clamp(10px,1.15vmin,16px);line-height:1.15;color:#9cecff;letter-spacing:.025em}
+.tx-solar-qr span{display:block;font-size:clamp(9px,.9vmin,13px);line-height:1.2;color:#d0e7f6;margin-top:3px}
 .tx-pensador{grid-column:1/-1;align-self:center;justify-self:center;width:min(88%,1100px);padding:4% 5%;border-radius:2vmin;border:1px solid #9b8cff55;background:radial-gradient(ellipse at 15% 0%,#4d3b8055,transparent 55%),linear-gradient(135deg,#12152eeb,#091a2deb);box-shadow:0 2vmin 6vmin #0008;text-align:left}
 .tp-kicker{font-size:calc(var(--u)*1.55);letter-spacing:.16em;color:#bba9ff;font-weight:800}.tp-tema{font-size:calc(var(--u)*4.3);line-height:1.1;color:#fff;font-weight:800;margin:2.2% 0}.tp-texto{font-size:calc(var(--u)*3);line-height:1.3;color:#e8eaff;max-width:95%;text-wrap:balance}.tp-autor{font-size:calc(var(--u)*1.8);color:#b9c8ed;margin-top:2.5%}.tp-nota{font-size:calc(var(--u)*1.35);color:#8fa7cc;margin-top:2%}
 @media(max-aspect-ratio:1/1){
   .tx-solar-qr{
-    width:min(28vw,24vh);                  /* ← cresce no retrato também */
-    right:2%;bottom:8%;
+    width:min(25vw,21vh,190px);
+    right:2%;bottom:9%;
   }
-  .tx-solar-qr b{font-size:calc(var(--u)*1.4)}
-  .tx-solar-qr span{font-size:calc(var(--u)*1.05)}
   .tp-tema{font-size:calc(var(--u)*3.4)}
   .tp-texto{font-size:calc(var(--u)*2.5)}
 }
@@ -2699,15 +2721,132 @@ const UFS_GEO = {
   SP: { lat: -23.55, lon: -46.63 }, SE: { lat: -10.91, lon: -37.07 }, TO: { lat: -10.18, lon: -48.33 }
 };
 
+/* ═══════════════════════════════════════════════════════════════════
+   📣 VITRINE EDITORIAL — rodapé com anúncios giratórios
+   • O 1º anúncio de cada slide continua sendo o contextual (RODAPE_POR_TIPO).
+   • Depois entram os anúncios ativos da vitrine, repetidos conforme o peso.
+   • Tempo de cada anúncio = f(quantidade de texto) — ver vitrineDuracaoMs().
+   • Métricas (exibições, cliques, tempo exposto) ficam neste navegador.
+   • Gerenciar: Ctrl+Shift+V (ou ?vitrine=1 na URL do totem).
+   ═══════════════════════════════════════════════════════════════════ */
+const VITRINE_KEY = 'alma_vitrine_cfg', VITRINE_MET_KEY = 'alma_vitrine_metrics';
+const VITRINE_PADRAO = [
+  { id: 'livro-fuder', ativo: true, peso: 2, forte: '📖 FUDER OU NÃO FUDER', em: 'Conheça o livro', b: 'tchelojc.github.io/fuder', href: 'https://tchelojc.github.io/fuder/' },
+  { id: 'anuncie',     ativo: true, peso: 1, forte: '📣 ANUNCIE SUA MARCA AQUI', em: 'Seu negócio pode aparecer neste espaço', b: 'almafluxo.uk', href: 'https://almafluxo.uk' },
+  { id: 'totem',       ativo: true, peso: 1, forte: '📊 CONTRATE SEU TOTEM', em: 'Painéis informativos para seu negócio', b: 'almafluxo.uk/solution', href: 'https://almafluxo.uk/solution' }
+];
+function vitrineEsc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function vitrineCarregar() {
+  try { const j = JSON.parse(localStorage.getItem(VITRINE_KEY) || 'null'); if (j && Array.isArray(j.ads)) return j.ads; } catch (e) {}
+  return VITRINE_PADRAO.map(a => Object.assign({}, a));
+}
+function vitrineSalvar(ads) { try { localStorage.setItem(VITRINE_KEY, JSON.stringify({ v: 1, ads: ads })); } catch (e) {} }
+let VITRINE_ADS = vitrineCarregar();
+
+/* tempo para absorver: base + ~0,42 s por palavra (leitura confortável em TV) + 1,2 s se há QR/link.
+   Limites 6–16 s; "duracaoS" no anúncio sobrescreve. */
+function vitrineDuracaoMs(ad) {
+  if (+ad.duracaoS > 0) return Math.min(60, +ad.duracaoS) * 1000;
+  const palavras = (ad.forte + ' ' + ad.em + ' ' + ad.b).trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(6000, Math.min(16000, 4000 + palavras * 420 + (ad.href ? 1200 : 0)));
+}
+function vitrineAgenda(ctxAd) {
+  const ativos = VITRINE_ADS.filter(a => a && a.ativo !== false && a.forte && a.href && a.href !== ctxAd.href);
+  const maxP = Math.max(1, ...ativos.map(a => +a.peso || 1)), lista = [];
+  for (let r = 1; r <= maxP; r++) ativos.forEach(a => { if ((+a.peso || 1) >= r) lista.push(a); });
+  return [ctxAd].concat(lista.slice(0, 5));
+}
+/* métricas */
+let VITRINE_MET = (function () { try { return JSON.parse(localStorage.getItem(VITRINE_MET_KEY) || 'null') || { since: new Date().toISOString(), ads: {} }; } catch (e) { return { since: new Date().toISOString(), ads: {} }; } })();
+let vitrineTimerSalvar = null;
+function vitrineMet(id) { return VITRINE_MET.ads[id] || (VITRINE_MET.ads[id] = { views: 0, clicks: 0, exposureMs: 0 }); }
+function vitrineGravar() { if (vitrineTimerSalvar) return; vitrineTimerSalvar = setTimeout(() => { vitrineTimerSalvar = null; try { localStorage.setItem(VITRINE_MET_KEY, JSON.stringify(VITRINE_MET)); } catch (e) {} }, 15000); }
+function vitrineIdDe(ad) { return ad.id || String(ad.href).replace(/[^a-z0-9]+/gi, '-').slice(0, 40); }
+function vitrineUrlQr(ad) { return ad.href + (ad.href.indexOf('?') < 0 ? '?' : '&') + 'utm_source=totem&utm_medium=qr&utm_campaign=' + encodeURIComponent(vitrineIdDe(ad)); }
+
+function vitrineMostrar(pub, ad, cardsMode) {
+  pub.href = ad.href;
+  pub.dataset.vid = vitrineIdDe(ad);
+  pub.setAttribute('aria-label', ad.forte + '. ' + ad.em + '. ' + ad.b);
+  const qr = (!cardsMode && ad.qr !== false)
+    ? '<img class="tx-qr" alt="QR Code para ' + vitrineEsc(ad.b) + '" referrerpolicy="no-referrer" src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=2&data=' + encodeURIComponent(vitrineUrlQr(ad)) + '">' : '';
+  pub.innerHTML = '<strong>' + vitrineEsc(ad.forte) + '</strong><em>' + vitrineEsc(ad.em) + '</em><b>' + vitrineEsc(ad.b) + '</b>' + qr;
+}
+function vitrineIniciar(slide, cfg) {
+  const pub = slide.querySelector('.tx-pub'); if (!pub) return;
+  const cardsMode = !!slide.closest('.cards-runtime');
+  const ctx = Object.assign({ id: 'ctx-' + String(cfg.b).replace(/[^a-z0-9]+/gi, '-').slice(0, 30) }, cfg);
+  const agenda = vitrineAgenda(ctx);
+  pub.addEventListener('click', () => { const m = vitrineMet(pub.dataset.vid || 'x'); m.clicks++; vitrineGravar(); });
+  let i = 0, tIni = 0, atual = null;
+  const fechar = () => { if (atual && tIni) { vitrineMet(vitrineIdDe(atual)).exposureMs += Date.now() - tIni; vitrineGravar(); } tIni = 0; };
+  const passo = () => {
+    if (!pub.isConnected) { fechar(); return; }            // slide saiu da tela: encerra o ciclo
+    const visivel = !document.hidden && pub.offsetParent !== null;
+    fechar();
+    atual = agenda[i % agenda.length]; i++;
+    pub.classList.add('tx-troca');
+    setTimeout(() => {
+      if (!pub.isConnected) return;
+      vitrineMostrar(pub, atual, cardsMode); pub.classList.remove('tx-troca');
+      if (visivel) { vitrineMet(vitrineIdDe(atual)).views++; tIni = Date.now(); vitrineGravar(); }
+    }, 260);
+    if (agenda.length > 1) setTimeout(passo, vitrineDuracaoMs(atual) + 260);
+  };
+  passo();
+}
+
+/* painel de gerenciamento */
+function vitrineAbrirPainel() {
+  if (document.getElementById('vit-painel')) return;
+  const w = document.createElement('div'); w.id = 'vit-painel';
+  const desenhar = () => {
+    w.innerHTML = '<div class="vp-box"><div class="vp-h"><b>MÍDIA DIGITAL · Vitrine</b><span class="vp-sp"></span><button data-a="fechar">Fechar</button></div>' +
+      '<div class="vp-sub">O anúncio contextual de cada slide sempre abre o ciclo; estes entram em seguida. Tempo automático conforme o texto (ou defina em segundos). Dados guardados neste navegador.</div>' +
+      '<div class="vp-lista">' + VITRINE_ADS.map((a, i) => {
+        const m = vitrineMet(vitrineIdDe(a)), ctr = m.views ? (m.clicks / m.views * 100).toFixed(1) + '%' : '—';
+        return '<div class="vp-ad" data-i="' + i + '"><div class="vp-l"><label><input type="checkbox" data-f="ativo"' + (a.ativo !== false ? ' checked' : '') + '> ativo</label>' +
+          '<input data-f="forte" placeholder="Título" value="' + vitrineEsc(a.forte) + '"><input data-f="em" placeholder="Chamada" value="' + vitrineEsc(a.em) + '"><input data-f="b" placeholder="Texto do link" value="' + vitrineEsc(a.b) + '"><input data-f="href" placeholder="https://…" value="' + vitrineEsc(a.href) + '">' +
+          '<span class="vp-r"><input data-f="peso" type="number" min="1" max="5" value="' + (+a.peso || 1) + '" title="Peso (1–5)"><input data-f="duracaoS" type="number" min="0" max="60" placeholder="auto" value="' + (a.duracaoS || '') + '" title="Duração em segundos (vazio = automático)"><label><input type="checkbox" data-f="qr"' + (a.qr !== false ? ' checked' : '') + '> QR</label><button data-a="del">Excluir</button></span></div>' +
+          '<div class="vp-m">' + m.views + ' exibições · ' + m.clicks + ' cliques · ' + Math.round(m.exposureMs / 1000) + ' s expostos · CTR ' + ctr + ' · ciclo de ' + Math.round(vitrineDuracaoMs(a) / 1000) + ' s</div></div>';
+      }).join('') + '</div>' +
+      '<div class="vp-f"><button data-a="add">+ Novo anúncio</button><button data-a="exp">Exportar métricas</button><button data-a="cfg">Exportar configuração</button><button data-a="imp">Importar configuração</button><button data-a="zero">Zerar métricas</button></div>' +
+      '<div class="vp-sub">Cliques no QR são medidos no destino pelo parâmetro utm_campaign; aqui contam exibições, toques no banner e tempo exposto. Mudanças valem nos próximos slides.</div></div>';
+  };
+  const baixar = (nome, obj) => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' })); a.download = nome; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); };
+  w.addEventListener('input', e => {
+    const f = e.target.dataset.f, row = e.target.closest('.vp-ad'); if (!f || !row) return;
+    const a = VITRINE_ADS[+row.dataset.i]; if (!a) return;
+    a[f] = e.target.type === 'checkbox' ? e.target.checked : (e.target.type === 'number' ? (e.target.value === '' ? '' : +e.target.value) : e.target.value);
+    if (f === 'href' && a.href && !/^https?:\/\//i.test(a.href)) return;   // só grava URLs http(s) completas
+    vitrineSalvar(VITRINE_ADS);
+  });
+  w.addEventListener('click', e => {
+    const act = e.target.dataset.a; if (!act) return;
+    if (act === 'fechar') { w.remove(); return; }
+    if (act === 'add') { VITRINE_ADS.push({ id: 'ad-' + Date.now().toString(36), ativo: true, peso: 1, forte: '🆕 NOVO ANÚNCIO', em: 'Descreva a oferta', b: 'seusite.com', href: 'https://almafluxo.uk' }); vitrineSalvar(VITRINE_ADS); desenhar(); }
+    if (act === 'del') { const i = +e.target.closest('.vp-ad').dataset.i; if (confirm('Excluir este anúncio?')) { VITRINE_ADS.splice(i, 1); vitrineSalvar(VITRINE_ADS); desenhar(); } }
+    if (act === 'exp') baixar('metricas_totem_' + new Date().toISOString().slice(0, 10) + '.json', { exportedAt: new Date().toISOString(), since: VITRINE_MET.since,
+      ads: VITRINE_ADS.map(a => { const m = vitrineMet(vitrineIdDe(a)); return { id: vitrineIdDe(a), title: a.forte, href: a.href, views: m.views, clicks: m.clicks, exposureMs: m.exposureMs }; }) });
+    if (act === 'cfg') baixar('vitrine_config.json', { v: 1, ads: VITRINE_ADS });
+    if (act === 'imp') { const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json'; inp.onchange = () => { const r = new FileReader(); r.onload = () => { try { const j = JSON.parse(r.result); if (!Array.isArray(j.ads)) throw 0; VITRINE_ADS = j.ads.filter(a => a && a.forte && /^https?:\/\//i.test(a.href || '')); vitrineSalvar(VITRINE_ADS); desenhar(); } catch (x) { alert('Arquivo de configuração inválido.'); } }; r.readAsText(inp.files[0]); }; inp.click(); }
+    if (act === 'zero') { if (confirm('Zerar todas as métricas deste totem?')) { VITRINE_MET = { since: new Date().toISOString(), ads: {} }; try { localStorage.setItem(VITRINE_MET_KEY, JSON.stringify(VITRINE_MET)); } catch (x) {} desenhar(); } }
+  });
+  desenhar(); document.body.appendChild(w);
+}
+document.addEventListener('keydown', e => { if (e.ctrlKey && e.shiftKey && (e.key === 'V' || e.key === 'v')) { e.preventDefault(); vitrineAbrirPainel(); } });
+if (/[?&]vitrine=1\b/.test(location.search)) window.addEventListener('load', () => setTimeout(vitrineAbrirPainel, 600));
+document.addEventListener('visibilitychange', () => { if (document.hidden) { try { localStorage.setItem(VITRINE_MET_KEY, JSON.stringify(VITRINE_MET)); } catch (e) {} } });
+
 function personalizarRodape(slide, tipo) {
   if (!slide) return;
   const cfg = RODAPE_POR_TIPO[tipo] || RODAPE_POR_TIPO._padrao;
   const pub = slide.querySelector('.tx-pub');
   if (!pub) return;
-  pub.href = cfg.href;
-  pub.setAttribute('aria-label', cfg.forte + '. ' + cfg.em + '. ' + cfg.b);
-  pub.innerHTML = '<strong>' + cfg.forte + '</strong><em>' + cfg.em + '</em><b>' + cfg.b + '</b>';
+  vitrineMostrar(pub, cfg, !!slide.closest('.cards-runtime'));   // mostra já o contextual (sem piscar)
+  vitrineIniciar(slide, cfg);
 }
+
 
 /* Cria um slide (item de conteúdo). Devolve {el, destroy, fimEvento} ou null */
 function criarSlide(P, item) {
@@ -3207,6 +3346,11 @@ async function iniciarTotem() {
   }
   TOTEM_AMBIENTE.iniciar();
   if (!sessao || !TID) return;
+  // A inicialização do módulo de áudio pode ter ocorrido antes do login.
+  // Faça a leitura da pasta imediatamente após a autenticação, sem esperar
+  // o próximo intervalo automático de 10 minutos.
+  try { await TOTEM_AMBIENTE.atualizar(); }
+  catch (e) { console.warn('[TOTEM_AMBIENTE] leitura após login:', e && e.message || e); }
   reagendar(cache || {});
   await syncConfig();
   enviarHeartbeat();
@@ -5834,18 +5978,36 @@ const TOTEM_AMBIENTE = {
     setTimeout(rodar,2500); setTimeout(rodar,20000); setInterval(rodar,10*60000);
   },
   async atualizar(){
-    if(typeof sessao==='undefined'||!sessao){ this.semSessao=!this.lista.length; return; }
+    // Se o totem abriu antes do login, tenta recuperar uma sessão lembrada.
+    // Se o usuário acabou de entrar manualmente, a sessão atual já será usada.
+    if(typeof sessao==='undefined'||!sessao){
+      const recuperou = (typeof reloginSilencioso==='function') ? await reloginSilencioso() : false;
+      if(!recuperou){ this.semSessao=true; this.atualizarBotao(); return; }
+    }
     this.semSessao=false;
     const arq=await listarPasta();
-    if(!Array.isArray(arq)||!arq.length) return;
+    if(!Array.isArray(arq)) { this.erro='não foi possível ler a pasta CONVERSA'; this.atualizarBotao(); return; }
     this.totalArquivos=arq.length;
-    const nova=this.reconhecer(arq); lsSet(this.K_LISTA,nova); this.aplicarLista(nova);
+    const nova=this.reconhecer(arq);
+    lsSet(this.K_LISTA,nova);
+    this.aplicarLista(nova);
+    // Se a lista já era conhecida, mas o download/reprodução falhou antes,
+    // tenta novamente agora que a sessão está disponível.
+    if(nova.length && (!this.audio || this.estado==='erro') && !this.pausadoUsuario) {
+      if(this.estado!=='baixando') this.tocar();
+    }
   },
   aplicarLista(nova){
     const atual=this.lista[this.pos]; this.lista=nova;
     if(!nova.length){ this.pararAudio(); this.atualizarBotao(); return; }
     const i=atual?nova.findIndex(f=>f.id===atual.id):-1;
-    if(i>=0){ this.pos=i; this.atualizarBotao(); return; }
+    if(i>=0){
+      this.pos=i; this.atualizarBotao();
+      // A lista pode vir do cache local antes da autenticação. Ao confirmar
+      // a sessão, garante que a faixa atual seja efetivamente carregada.
+      if(!this.audio && !this.pausadoUsuario && this.estado!=='baixando') this.tocar();
+      return;
+    }
     const sv=lsGet(this.K_POS,null), j=sv?nova.findIndex(f=>f.id===sv.id):-1;
     this.pos=j>=0?j:0; this.ciclos=j>=0?Math.min(this.CICLOS-1,+sv.ciclos||0):0;
     this.atualizarBotao(); this.tocar();
@@ -7191,7 +7353,6 @@ window.build = build;   // ← expõe globalmente para o MiniMotorPlayer
     { f: 'Bing Notícias',         u: 'https://www.bing.com/news/search?q=Barra+da+Tijuca+Recreio+Rio&format=rss&setmkt=pt-BR' },
     { f: 'O Dia',                 u: 'https://odia.ig.com.br/rss.xml' },
     { f: 'Extra',                 u: 'https://extra.globo.com/rss.xml' },
-    { f: 'Diário do Rio',         u: 'https://diariodorio.com/feed/' },
     { f: 'Prefeitura do Rio',     u: 'https://prefeitura.rio/feed/' }
   ];
   const RIO_BAIRROS = /barra da tijuca|recreio|jacarepagu|zona oeste|grumari|prainha|macumba|s[ãa]o conrado|leblon|ipanema|copacabana|arpoador/i;
@@ -7206,18 +7367,20 @@ window.build = build;   // ← expõe globalmente para o MiniMotorPlayer
     }).filter(x => x.titulo);
   };
   async function rioLerFeed(f) {
-    try {   // 1) conversor JSON público (aceita chamadas do navegador)
-      const r = await fetch('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(f.u), { signal: SURF_TMO(8000) }), j = await r.json();
-      if (j && j.status === 'ok' && j.items && j.items.length) return j.items.map(it => {
-        let titulo = String(it.title || '').trim(), fonte = f.f; const k = titulo.lastIndexOf(' - ');
-        if (k > 20 && /google/i.test(f.f)) { fonte = titulo.slice(k + 3).trim() || fonte; titulo = titulo.slice(0, k).trim(); }
-        return { titulo, t: Date.parse(String(it.pubDate || '').replace(' ', 'T') + 'Z') || 0, fonte };
-      }).filter(x => x.titulo);
-    } catch (e) {}
-    for (const px of ['https://api.allorigins.win/raw?url=', 'https://corsproxy.io/?']) {   // 2) proxies de reserva
-      try { const r = await fetch(px + encodeURIComponent(f.u), { signal: SURF_TMO(8000) }); if (!r.ok) continue; const l = rioXml(await r.text(), f.f); if (l.length) return l; } catch (e) {}
+    /* Evita o conversor rss2json (422 em feeds incompatíveis) e o corsproxy.io (403).
+       O Worker continua sendo a primeira fonte consolidada; este é apenas o fallback. */
+    try {
+      const r = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(f.u), {
+        signal: SURF_TMO(8000),
+        cache: 'no-store'
+      });
+      if (!r.ok) return [];
+      const xml = await r.text();
+      if (!xml || !/<(?:rss|feed|rdf:RDF)\b/i.test(xml)) return [];
+      return rioXml(xml, f.f);
+    } catch (e) {
+      return [];
     }
-    return [];
   }
   let RIO_NEWS = null;
   async function noticiasRio() {
