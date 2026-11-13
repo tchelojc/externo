@@ -2797,8 +2797,7 @@ const TRANSICAO_POR_TIPO = {
   // Emoção → suavidade
   recadoAmor:  { tipo: 'blur',       ms: 1500 },
   terremotos:  { tipo: 'flip',       ms: 1000 },
-  curiosidades:{ tipo: 'fade',       ms: 800 },
-  r5fitVideo:  { tipo: 'fade',       ms: 900 }
+  curiosidades:{ tipo: 'fade',       ms: 800 }
 };
 /* ═══════════════════════════════════════════════════════════════════
    RODAPÉ DINÂMICO — cada tipo de slide aponta para uma plataforma
@@ -2819,7 +2818,6 @@ const RODAPE_POR_TIPO = {
   terremotos:  { href: 'https://almafluxo.uk/solution',   forte: '🌍 DADOS DO MUNDO',         em: 'Informação global para seu totem',           b: 'almafluxo.uk/solution' },
   curiosidades:{ href: 'https://almafluxo.uk/solution',   forte: '✨ CURIOSIDADES',           em: 'Conteúdo que engaja sua audiência',          b: 'almafluxo.uk/solution' },
   // Placeholder padrão
-  r5fit:       { href: 'https://wa.me/5521995491483', forte: '🏋️ ACADEMIA R5FIT', em: 'Informações e atendimento pelo WhatsApp', b: '+55 21 99549-1483 · WhatsApp' },
   _padrao:     { href: 'https://almafluxo.uk',            forte: '📣 ANUNCIE SUA MARCA AQUI', em: 'Seu negócio pode aparecer neste espaço',     b: 'Entre em contato: almafluxo.uk' }
 };
 
@@ -2838,6 +2836,8 @@ RODAPE_POR_TIPO.demoKpg = {
   em:    'KPG Construções · orçamento guiado online',
   b:     'almafluxo.uk/KPG'
 };
+RODAPE_POR_TIPO.r5fit = { href:'https://wa.me/5521995491483', forte:'🏋️ ACADEMIA R5FIT', em:'Conheça a R5Fit e fale com a equipe', b:'+55 21 99549-1483 · WhatsApp' };
+RODAPE_POR_TIPO.demoInfoCell = { href:'https://wa.me/5521964814751', forte:'📱 INFOCELL · CHAME NO WHATSAPP', em:'Produtos, acessórios e assistência técnica em Jacarepaguá', b:'(21) 96481-4751 · WhatsApp' };
 const TX_ANIVERSARIANTES = [
   {nome:'Sócrates',         nasc:'-470-06-04', area:'Filosofia'},
   {nome:'Platão',           nasc:'-428-05-21', area:'Filosofia'},
@@ -3142,9 +3142,10 @@ document.addEventListener('keydown', e => { if (e.ctrlKey && e.shiftKey && (e.ke
 if (/[?&]vitrine=1\b/.test(location.search)) window.addEventListener('load', () => setTimeout(vitrineAbrirPainel, 600));
 document.addEventListener('visibilitychange', () => { if (document.hidden) { try { localStorage.setItem(VITRINE_MET_KEY, JSON.stringify(VITRINE_MET)); } catch (e) {} } });
 
-function personalizarRodape(slide, tipo) {
+function personalizarRodape(slide, tipo, item) {
   if (!slide) return;
-  const cfg = RODAPE_POR_TIPO[tipo] || RODAPE_POR_TIPO._padrao;
+  const perfil = item && item.r5fit === true ? 'r5fit' : tipo;
+  const cfg = RODAPE_POR_TIPO[perfil] || RODAPE_POR_TIPO._padrao;
   const pub = slide.querySelector('.tx-pub');
   if (!pub) return;
   vitrineMostrar(pub, cfg, !!slide.closest('.cards-runtime'));   // mostra já o contextual (sem piscar)
@@ -3161,19 +3162,9 @@ function criarSlide(P, item) {
     im.onerror = () => { s.innerHTML = '<div class="s-carregando" style="position:absolute;inset:0">imagem indisponível · confira o compartilhamento no Drive</div>'; };
     im.src = u; s.appendChild(im); if (item.kenburns) s.classList.add('kb');
   } else if (t === 'video') {
-    const u = vidUrl(item); if (!u) return null; const v = document.createElement('video'); v.muted = item.mudo !== false || P.preview; v.autoplay = true; v.playsInline = true; v.preload = 'auto'; v.style.objectFit = item.fit || 'cover';
-    let pausaFinalTimer = null;
-    v.loop = !!item.loop; v.src = u; S.fimEvento = true;
-    v.addEventListener('ended', () => {
-      // No vídeo institucional da R5Fit, mantém o último quadro por 3 s
-      // para permitir a leitura das informações antes de seguir ao relógio.
-      const concluir = () => { if (S.aoFim) S.aoFim(); };
-      if (+item.pausaFinalS > 0) pausaFinalTimer = setTimeout(concluir, Math.min(15, +item.pausaFinalS) * 1000);
-      else concluir();
-    });
-    v.addEventListener('error', () => { if (S.aoFim) pausaFinalTimer = setTimeout(() => S.aoFim && S.aoFim(), 1500); });
-    s.appendChild(v); const pl = v.play(); if (pl && pl.catch) pl.catch(() => {});
-    S.destroy = () => { clearTimeout(pausaFinalTimer); try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {} };
+    const u = vidUrl(item); if (!u) return null; const v = document.createElement('video'); let fimVideoTimer = null; v.muted = item.mudo !== false || P.preview; v.autoplay = true; v.playsInline = true; v.preload = 'auto'; v.style.objectFit = item.fit || 'cover';
+    v.loop = !!item.loop; v.src = u; S.fimEvento = true; v.addEventListener('ended', () => { clearTimeout(fimVideoTimer); const espera = Math.max(0, Math.min(15, Number(item.pausaFinalS) || 0)); fimVideoTimer = setTimeout(() => { if (S.aoFim) S.aoFim(); }, espera * 1000); }); v.addEventListener('error', () => { if (S.aoFim) setTimeout(S.aoFim, 1500); });
+    s.appendChild(v); const pl = v.play(); if (pl && pl.catch) pl.catch(() => {}); S.destroy = () => { clearTimeout(fimVideoTimer); try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {} };
   } else if (t === 'youtube') {
     const id = ytId(item.url || item.id); if (!id) return null; const f = document.createElement('iframe');
     f.allow = 'autoplay; encrypted-media; picture-in-picture'; f.src = 'https://www.youtube.com/embed/' + id + '?autoplay=1&mute=' + (item.mudo === false ? 0 : 1) + '&controls=0&loop=1&playlist=' + id + '&modestbranding=1&rel=0&playsinline=1'; s.appendChild(f);
@@ -3200,7 +3191,7 @@ function criarSlide(P, item) {
     d.style.fontSize = 'calc(var(--u)*' + (+item.tamanho || 6) + ')'; d.textContent = item.texto || ''; s.appendChild(d);
   } else if (TX[t]) { TX[t].build(P, item, s, S); } else return null;
   txInserirPublicidade(s, item);
-  personalizarRodape(s, item.r5fit === true ? 'r5fit' : t);   // rodapé contextual da R5Fit no vídeo institucional
+  personalizarRodape(s, t, item);   // ← aplica o rodapé específico do tipo
   return S;
 }
 
@@ -3523,21 +3514,18 @@ function iniciarRegiao(P, box, id, cont) {
   }
 
   let itens = (cont.itens || []).filter(i => i && i.ativo !== false); if (!itens.length) itens = [{tipo: 'relogio', duracaoS: 3600}];
-  // Vídeo institucional da Academia R5Fit: entra automaticamente na região principal,
-  // depois da demonstração KPG e imediatamente antes do relógio.
-  if (id === 'r1' && cont.modo !== 'cards' && !itens.some(i => i.r5fit === true)) {
-    itens.push({tipo:'video', url:'./IMG_1929.MOV', nome:'Vídeo institucional R5Fit', duracaoS:0,
-      pausaFinalS:3, mudo:true, fit:'contain', r5fit:true, loop:false, ativo:true});
+  // Fechamento da volta: KPG → comercial R5Fit → demonstração InfoCell → relógio.
+  const pesoFim = i => i.tipo === 'relogio' ? 4 : (i.tipo === 'demoInfoCell' ? 3 : (i.r5fit === true || (i.tipo === 'video' && /IMG_1929\.MOV/i.test(String(i.url||''))) ? 2 : (i.tipo === 'demoKpg' ? 1 : 0)));
+  if (id === 'r1' && !P.preview) {
+    if (!itens.some(i => i.r5fit === true || (i.tipo === 'video' && /IMG_1929\.MOV/i.test(String(i.url||''))))) itens.push({tipo:'video', url:'./IMG_1929.MOV', nome:'Comercial R5Fit', duracaoS:0, pausaFinalS:3, mudo:true, fit:'contain', r5fit:true, loop:false, ativo:true});
+    if (!itens.some(i => i.tipo === 'demoInfoCell')) itens.push({tipo:'demoInfoCell', nome:'InfoCell · vitrine e atendimento', duracaoS:58, ativo:true});
   }
-  // Ordem fixa de encerramento do ciclo: KPG → vídeo R5Fit → relógio.
-  // Os demais slides continuam respeitando a ordem/aleatoriedade configurada.
-  const pesoFim = i => i.tipo === 'relogio' ? 3 : (i.r5fit === true ? 2 : (i.tipo === 'demoKpg' ? 1 : 0));
   itens = itens.map((i, n) => [i, n]).sort((a, b) => pesoFim(a[0]) - pesoFim(b[0]) || a[1] - b[1]).map(x => x[0]);
   const ordemCiclo = () => {
-    const idx = itens.map((_, i) => i), p0 = idx.filter(i => pesoFim(itens[i]) === 0), p1 = idx.filter(i => pesoFim(itens[i]) === 1), p2 = idx.filter(i => pesoFim(itens[i]) === 2);
+    const idx = itens.map((_, i) => i), p0 = idx.filter(i => pesoFim(itens[i]) === 0), p1 = idx.filter(i => pesoFim(itens[i]) === 1), p2 = idx.filter(i => pesoFim(itens[i]) === 2), p3 = idx.filter(i => pesoFim(itens[i]) === 3), p4 = idx.filter(i => pesoFim(itens[i]) === 4);
     for (let i = p0.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const x = p0[i]; p0[i] = p0[j]; p0[j] = x; }
     if (p0.length > 1 && p0[0] === R.idx) p0.push(p0.shift());   // não repete o último slide da volta anterior
-    return p0.concat(p1, p2);
+    return p0.concat(p1, p2, p3, p4);
   };
   // Transição: usa a personalizada do tipo de slide (se existir), senão a global da região
   const trGlobal = Object.assign({tipo: 'fade', ms: 800}, cont.transicao || {});
@@ -4051,7 +4039,7 @@ Object.assign(TIPOS, {
   recadoAmor: '💌 Recado do Amor (QR + mensagens)', bolsa3d: '📊 Bolsa 3D (gráfico + probabilidade)', cotacoes: '💱 Cotações (dólar, ouro, Bitcoin…)', noticias: '📰 Notícias do mercado',
   planetas3d: '🪐 Sistema Solar 3D', terremotos: '🌍 Terremotos (globo 3D)', horoscopo: '🔮 Alinhamento colaborativo', jornal: '🗞️ Jornal Clima Fluxo', climagrafico: '📈 Gráfico de clima animado'
 });
-Object.assign(TIPOS, {demoKpg: '🏗️ Demo: Orçamento guiado (KPG · publicidade)'});
+Object.assign(TIPOS, {demoKpg: '🏗️ Demo: Orçamento guiado (KPG · publicidade)', demoInfoCell: '📱 Demo: Loja + atendimento InfoCell'});
 Object.assign(TIPOS, {
   mecanica3d: '⚙️ Mecânica & Mobilidade',
   eletrica: '⚡ Energia & Eletricidade',
@@ -4561,6 +4549,86 @@ TX.demoKpg = { def: { duracaoS: 62, whats: '(21) 96470-0935', chamada: 'Faça o 
   const ro = new ResizeObserver(() => { const c = s.clientWidth >= s.clientHeight; s.classList.toggle('kd-land', c); s.classList.toggle('kd-port', !c); cam(ultCam[0], ultCam[1]); });
   ro.observe(s); ro.observe(stage);
   S.fins.push(() => { vivo = false; cancelAnimationFrame(raf); cancelAnimationFrame(hAnim); ro.disconnect(); espera = []; });
+}};
+
+/* ══════ TX.demoInfoCell — vitrine de produtos + site + conversa demonstrativa ══════
+   Usa as imagens publicadas em /conversa/imagens no branch alma. A conversa é cenográfica:
+   não envia mensagens, não cria pedidos e não coleta dados. */
+TX.demoInfoCell = { def:{duracaoS:58}, duracaoMin:45, build(P,item,s,S) {
+  txMorre(S); s.className += ' ic-demo';
+  const wpp='5521964814751';
+  const qrUrl='https://wa.me/'+wpp+'?text='+encodeURIComponent('Olá! Vi a apresentação da InfoCell no totem e gostaria de informações.');
+  const api='https://api.github.com/repos/tchelojc/externo/contents/conversa/imagens?ref=alma';
+  const rawBase='https://raw.githubusercontent.com/tchelojc/externo/alma/conversa/imagens/';
+  s.innerHTML=`
+  <style>
+  .ic-demo .tx-pub{display:none!important}.ic-demo{background:radial-gradient(ellipse at 15% 0%,#163b58 0,#08131f 48%,#050a12 100%);color:#f5f8fc;font-family:Inter,Arial,sans-serif;overflow:hidden}
+  .ic-shell{position:absolute;inset:3.2% 3.4% 3.5%;display:grid;grid-template-rows:auto 1fr auto;gap:1.1%;min-height:0}
+  .ic-head{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 18px;border:1px solid #ffffff22;border-radius:16px;background:#071321d9;box-shadow:0 12px 35px #0005}
+  .ic-brand{font-size:clamp(18px,2.3vw,34px);font-weight:900;letter-spacing:.08em}.ic-brand b{color:#28d7ff}.ic-sub{font-size:clamp(9px,1vw,14px);color:#9eb5c9;letter-spacing:.13em}
+  .ic-live{font-size:clamp(9px,1vw,13px);color:#8fffd0;border:1px solid #27d69a66;padding:7px 12px;border-radius:30px;white-space:nowrap}
+  .ic-main{display:grid;grid-template-columns:1.02fr 1.55fr .94fr;gap:1.1%;min-height:0}
+  .ic-pitch,.ic-store,.ic-chat{border:1px solid #ffffff20;border-radius:18px;background:linear-gradient(145deg,#12283bdc,#091522f2);box-shadow:0 16px 45px #0005;min-height:0;overflow:hidden}
+  .ic-pitch{padding:clamp(12px,2vw,28px);display:flex;flex-direction:column;justify-content:center;position:relative}
+  .ic-kicker{color:#27d7ff;font-size:clamp(9px,1vw,13px);font-weight:800;letter-spacing:.2em}.ic-pitch h1{font-size:clamp(23px,3.2vw,48px);line-height:1.03;margin:12px 0}.ic-pitch h1 span{color:#29d8ff}.ic-pitch p{font-size:clamp(11px,1.15vw,16px);line-height:1.55;color:#a9bfd0;margin:0 0 15px}
+  .ic-pill{display:inline-flex;align-items:center;gap:8px;border-radius:40px;background:#0bc4ee1c;border:1px solid #20d7ff55;padding:8px 12px;color:#b9f5ff;font-size:clamp(9px,.95vw,13px);width:max-content}
+  .ic-points{display:grid;gap:9px;margin-top:18px;font-size:clamp(10px,1vw,14px);color:#d9e8f4}.ic-points span{color:#49e5bd;margin-right:7px}
+  .ic-store{display:grid;grid-template-rows:auto 1fr;gap:10px;padding:clamp(10px,1.2vw,17px)}
+  .ic-browser{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#07111d;border-radius:10px;color:#8da5b8;font-size:clamp(9px,.85vw,12px)}.ic-dots{display:flex;gap:4px}.ic-dots i{width:7px;height:7px;border-radius:50%;background:#f36c6c}.ic-dots i:nth-child(2){background:#f4c35d}.ic-dots i:nth-child(3){background:#49d99a}.ic-url{margin-left:8px;background:#13283a;border-radius:6px;padding:5px 9px;flex:1;overflow:hidden;white-space:nowrap}
+  .ic-catalog{display:grid;grid-template-rows:auto 1fr;gap:10px;min-height:0}.ic-catalog-head{display:flex;align-items:center;justify-content:space-between}.ic-catalog-head strong{font-size:clamp(13px,1.35vw,19px)}.ic-catalog-head small{color:#7fa2b9;font-size:clamp(8px,.8vw,11px)}
+  .ic-products{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;min-height:0}
+  .ic-product{position:relative;overflow:hidden;border:1px solid #ffffff20;border-radius:13px;background:#eaf2f8;color:#142235;display:grid;grid-template-rows:1fr auto;min-height:0;transition:transform .35s,border-color .35s,box-shadow .35s}
+  .ic-product.active{transform:translateY(-5px) scale(1.025);border:2px solid #24d9ff;box-shadow:0 0 0 4px #20d8ff22,0 14px 30px #0007}
+  .ic-product img{width:100%;height:100%;min-height:0;object-fit:cover;background:linear-gradient(135deg,#dce8f2,#f9fbff)}.ic-product .ic-fallback{display:grid;place-items:center;font-size:clamp(34px,5vw,72px);background:linear-gradient(135deg,#e7f5fb,#cbdbea);height:100%}
+  .ic-prod-info{padding:8px 9px;background:#fff}.ic-prod-info b{display:block;font-size:clamp(9px,.95vw,13px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ic-prod-info small{display:block;color:#597083;font-size:clamp(8px,.75vw,10px);margin-top:3px}
+  .ic-chat{display:grid;grid-template-rows:auto 1fr auto;padding:0}.ic-chat-head{padding:12px;background:#0c2c42;border-bottom:1px solid #ffffff1c;display:flex;align-items:center;gap:9px}.ic-avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#16c7ec,#1b9c8a);font-weight:900}.ic-chat-head b{font-size:clamp(10px,1vw,14px)}.ic-chat-head small{display:block;color:#87eacb;font-size:clamp(8px,.75vw,10px);margin-top:2px}
+  .ic-messages{padding:10px;display:flex;flex-direction:column;gap:8px;overflow:hidden;justify-content:flex-end}.ic-msg{max-width:94%;padding:8px 10px;border-radius:12px;font-size:clamp(9px,.9vw,12px);line-height:1.35;opacity:0;transform:translateY(8px);transition:all .35s}.ic-msg.on{opacity:1;transform:none}.ic-msg.user{align-self:flex-end;background:#0c9fc1;color:white;border-bottom-right-radius:3px}.ic-msg.staff{align-self:flex-start;background:#1b3447;color:#e8f3fb;border-bottom-left-radius:3px}.ic-chat-input{margin:0 9px 9px;padding:9px 10px;border-radius:10px;background:#07111d;border:1px solid #ffffff1c;color:#6f8799;font-size:clamp(8px,.8vw,11px);display:flex;justify-content:space-between}
+  .ic-footer{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:14px;padding:9px 14px;border-radius:15px;border:1px solid #24d9ff44;background:#061522f2;box-shadow:0 12px 35px #0006}.ic-contact{font-size:clamp(10px,1.05vw,15px);font-weight:800}.ic-contact small{display:block;color:#9bb2c4;font-size:clamp(8px,.75vw,11px);font-weight:500;margin-top:3px}.ic-phone{font-size:clamp(12px,1.25vw,18px);color:#9ff4ff;font-weight:900;white-space:nowrap}.ic-qr{width:clamp(48px,6.2vw,82px);height:clamp(48px,6.2vw,82px);padding:4px;background:#fff;border-radius:8px;object-fit:contain}
+  .ic-cursor{position:absolute;z-index:9;width:34px;height:44px;left:50%;top:50%;opacity:0;filter:drop-shadow(0 2px 3px #0009);transition:all 1s cubic-bezier(.2,.8,.2,1);pointer-events:none}.ic-cursor.on{opacity:1}.ic-cursor:before{content:'➤';font-size:35px;color:white;text-shadow:0 2px 4px #001}.ic-caption{position:absolute;left:50%;bottom:14%;transform:translateX(-50%);z-index:10;background:#04111de8;border:1px solid #24d9ff66;color:#c9f8ff;border-radius:30px;padding:8px 18px;font-size:clamp(10px,1vw,14px);white-space:nowrap;opacity:0;transition:opacity .3s}.ic-caption.on{opacity:1}
+  @media(max-aspect-ratio:1/1){.ic-shell{inset:2% 2% 2%;grid-template-rows:auto 1fr auto}.ic-main{grid-template-columns:1fr 1fr;grid-template-rows:.8fr 1.2fr}.ic-pitch{grid-column:1/-1}.ic-pitch h1{font-size:clamp(20px,4vw,34px);margin:5px 0}.ic-points{display:none}.ic-store{grid-column:1}.ic-chat{grid-column:2}.ic-footer{grid-template-columns:1fr auto;gap:6px}.ic-contact{grid-column:1}.ic-phone{grid-column:1}.ic-qr{grid-column:2;grid-row:1/3}}
+  </style>
+  <div class="ic-shell">
+    <header class="ic-head"><div><div class="ic-brand">INFO<span style="color:#fff">CELL</span> <b>STORE</b></div><div class="ic-sub">TECNOLOGIA · ACESSÓRIOS · ASSISTÊNCIA</div></div><div class="ic-live">● ATENDIMENTO ONLINE</div></header>
+    <main class="ic-main">
+      <section class="ic-pitch"><div class="ic-kicker">SUA LOJA, NA PALMA DA MÃO</div><h1>Conecte-se com a <span>InfoCell.</span></h1><p>Encontre acessórios, veja novidades e fale com nossa equipe em poucos toques.</p><div class="ic-pill">✦ EXPERIÊNCIA DIGITAL INFOCELL</div><div class="ic-points"><div><span>✓</span>Produtos e acessórios</div><div><span>✓</span>Atendimento pelo WhatsApp</div><div><span>✓</span>Assistência técnica</div></div></section>
+      <section class="ic-store"><div class="ic-browser"><span class="ic-dots"><i></i><i></i><i></i></span><span class="ic-url">infocell · vitrine de produtos</span><span>⌕</span></div><div class="ic-catalog"><div class="ic-catalog-head"><strong>Novidades para você</strong><small>VITRINE INFOCELL</small></div><div class="ic-products"><article class="ic-product"><div class="ic-fallback">📱</div><div class="ic-prod-info"><b>Capinhas</b><small>Proteção e estilo</small></div></article><article class="ic-product"><div class="ic-fallback">🛡️</div><div class="ic-prod-info"><b>Películas</b><small>Proteção de tela</small></div></article><article class="ic-product"><div class="ic-fallback">🔊</div><div class="ic-prod-info"><b>Caixas de som</b><small>Som para todo momento</small></div></article></div></div></section>
+      <section class="ic-chat"><div class="ic-chat-head"><div class="ic-avatar">i</div><div><b>InfoCell · Atendimento</b><small>● equipe disponível</small></div></div><div class="ic-messages"><div class="ic-msg staff on">Olá! Bem-vindo à InfoCell. Como podemos ajudar?</div></div><div class="ic-chat-input"><span>Mensagem...</span><b style="color:#20d5f5">➤</b></div></section>
+    </main>
+    <footer class="ic-footer"><div class="ic-contact">📍 Jacarepaguá · Rio de Janeiro/RJ<small>Consulte a equipe para localização e disponibilidade dos serviços</small></div><div class="ic-phone">☎ (21) 96481-4751<small style="font-size:clamp(8px,.75vw,11px);color:#9bb2c4;text-align:right">APONTE A CÂMERA E FALE CONOSCO</small></div><img class="ic-qr" alt="QR Code para WhatsApp InfoCell" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAT4AAAE+AQAAAAA8Q0GdAAADeklEQVR4nO2bTYojSQyFvxgl1FIJc4A+SuTNhjrYgHyUuoFy2RDmzUKRpjYDLuih2zEdeGFwLPKl/p6e5CaeOvc/nrsHvy/+uhfP1lrboO20nY0b5wG3tsN5cB6ttdaOFwHz7FF2SabAwxSSAFwDLIFukrKPVwDzpYutHZyHknH+1fabFJyHZR+uAZxt+/nP+GMvbteXfv8z73sXcB42aJ73rf/tsf30Z/wvL759HG9527i1nfuO5Q1/t/ylnvFHXbziOsFlCiUmVYBbdpNWjGuUAJb93z4ALIe6TvbhRVi6SYBll2L4/H011NkBU1Txgg7ggUuXrW091Ao8pJACuqThIYUlA4aHJWvGtQuPSteWXQk+s1m9h0XjOiQNUHZTSKFk0IdruJR9LIg6qlTNT3ZLZhLLruzDY0lbVyAruyVWRlfUl+EyCV8wm1n2y8r94djTxMvGdQADCrJJld+KrQ0X9CVzuCWVw6vNHGCa9fqK+uU8PDFFcTNdwKts6WLjC3IzRdGzQS8TDzCp4h2XFAtWrmR4DFflMVzD53soukLlt1cA81VGalnwVUR00nL61YwsaGspCmn12hXjllQdB5a09QAqlpNx9VySZv1asnJVq5VAx1V1qvrNmcCLk78CmK/o4YclG1je7OMY3DgP0/vwaK0N2Ohv+Spgnr7ouu+Uk3//9n7fweO+85Yo+/zJ40XAPHsecV0CWulIJk21MIFu68V1UoI/HniMqScwrjAv9Ww11FIltIduNib2S1uoxuQVwHxJLbSLnlUbcinkfXhUUC/Jw0dFrgcwGak0PPA56VuRm3X7xM3weCj/ZWUtOftQzHFPMujl3sOLnPcxe7EFPZzqvACYdk+gILPo7IOKaClMn1pOmD3XgoyUKXdP4KoMVhOBko8Wjesph9pMa70sfinDsSw305SJ5jgg+5gJPMrtV7T1lA7Kn6tgFWmpuKYi/RXAfFFBqnlHLSfMIQgwPKaqth7qxKZs0qteM/XweJSzBbnZzNJYzuJl18rZpwHfYvX62i30+P5NGwx6LZspb9vZNtjAPo4XAfPseewgFf8ETLq2CmPqZqvZuvZS5rpRuTQwtytX1lIu2lnVqiSF7HhU61Hz3EVRFyWLUhJKSKnavaaqcO0MF0MrE2s6fGjx3ULKqx/NSO1cDZ+q2lqo2+9/QPxvLv4DJ/zLI2IwX9kAAAAASUVORK5CYII="></footer>
+  </div><div class="ic-cursor">➤</div><div class="ic-caption">Explore a vitrine InfoCell</div>`;
+  const $=q=>s.querySelector(q), products=$('.ic-products'), chat=$('.ic-messages'), cursor=$('.ic-cursor'), caption=$('.ic-caption');
+  let vivo=true; const waits=[];
+  const wait=ms=>new Promise(resolve=>{const t=setTimeout(()=>{const i=waits.indexOf(t);if(i>=0)waits.splice(i,1);resolve();},ms);waits.push(t);});
+  const legenda=t=>{caption.textContent=t;caption.classList.add('on');};
+  const msg=(who,txt)=>{const d=document.createElement('div');d.className='ic-msg '+who;d.textContent=txt;chat.appendChild(d);requestAnimationFrame(()=>d.classList.add('on'));while(chat.children.length>5)chat.firstElementChild.remove();};
+  const mover=(el)=>{if(!el)return;const a=el.getBoundingClientRect(),b=s.getBoundingClientRect();cursor.style.left=(a.left-b.left+a.width*.65)+'px';cursor.style.top=(a.top-b.top+a.height*.65)+'px';cursor.classList.add('on');};
+  const nomeArquivo=u=>{try{return decodeURIComponent(new URL(u).pathname.split('/').pop()).replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').replace(/\b\w/g,c=>c.toUpperCase()).slice(0,28)||'Acessório InfoCell';}catch(e){return 'Acessório InfoCell';}};
+  async function carregar(){
+    try{
+      const ctrl=new AbortController(); const timer=setTimeout(()=>ctrl.abort(),5000); let r; try{r=await fetch(api,{cache:'force-cache',signal:ctrl.signal});}finally{clearTimeout(timer);} if(!r.ok) throw new Error('GitHub API '+r.status);
+      const a=await r.json(); const imgs=a.filter(x=>x&&x.type==='file'&&/\.(png|jpe?g|webp|gif)$/i.test(x.name)&&x.download_url).slice(0,12);
+      if(!imgs.length) return;
+      const nomes=['Capinhas e proteção','Películas para celular','Áudio e caixas de som','Acessórios para celular','Carregadores e cabos','Suportes e tripés'];
+      products.innerHTML=''; imgs.slice(0,6).forEach((x,i)=>{const card=document.createElement('article');card.className='ic-product';const im=document.createElement('img');im.src=x.download_url||rawBase+encodeURIComponent(x.name);im.alt=nomeArquivo(im.src);im.loading='eager';im.onerror=()=>{card.querySelector('.ic-product-img').innerHTML='<div class="ic-fallback">📱</div>';};const box=document.createElement('div');box.className='ic-product-img';box.appendChild(im);const info=document.createElement('div');info.className='ic-prod-info';const b=document.createElement('b');b.textContent=nomeArquivo(im.src);const sm=document.createElement('small');sm.textContent=nomes[i%nomes.length];info.append(b,sm);card.append(box,info);products.appendChild(card);});
+    }catch(e){console.warn('[InfoCell demo] imagens do repositório indisponíveis:',e.message);}
+  }
+  async function roteiro(){
+    await carregar(); if(!vivo)return;
+    const cards=()=>Array.from(products.querySelectorAll('.ic-product'));
+    legenda('A vitrine digital da InfoCell'); await wait(2400); if(!vivo)return;
+    const c=cards(); if(c[0]){c[0].classList.add('active');mover(c[0]);} legenda('Navegue pelos produtos e descubra as opções'); await wait(3000); if(!vivo)return;
+    if(c[0]){c[0].classList.remove('active');c[0].classList.add('active');}
+    msg('user','Oi! Vocês têm película para iPhone 13?'); await wait(1800); if(!vivo)return;
+    msg('staff','Temos opções de película compatíveis! A equipe pode confirmar o modelo e apresentar as opções disponíveis.'); await wait(3000); if(!vivo)return;
+    if(c[1]){c[1].classList.add('active');mover(c[1]);} legenda('Escolha um produto e peça informações'); await wait(2300); if(!vivo)return;
+    msg('user','Também queria ver capinhas e acessórios.'); await wait(1800); if(!vivo)return;
+    msg('staff','Claro! Temos acessórios e opções para diferentes modelos. Chame a equipe pelo WhatsApp para consultar valores e disponibilidade.'); await wait(3200); if(!vivo)return;
+    const bot=$('.ic-phone');mover(bot);legenda('Atendimento direto pelo WhatsApp');await wait(2800);if(!vivo)return;
+    cursor.classList.remove('on');legenda('Aponte a câmera para o QR Code e fale com a InfoCell');await wait(6500);
+    caption.classList.remove('on');
+  }
+  (async()=>{while(vivo){try{await roteiro();}catch(e){if(!vivo)return;console.warn('[demoInfoCell]',e);await wait(1200);}}})();
+  S.fins.push(()=>{vivo=false;waits.forEach(clearTimeout);waits.length=0;});
 }};
 
 TX.curiosidades = {def: {categoria: 'astronomia'}, build(P, item, s, S) {
@@ -6466,6 +6534,7 @@ function txEditor(it, k, i) {
   else if (t === 'planetas3d') h = '<div class="hintx" style="grid-column:1/-1">A câmera fica fixa no alinhamento do pensador/participante. A rotação automática foi removida.</div>';
   else if (t === 'terremotos') h = fld('Magnitude mínima', k + 'magMin', it.magMin == null ? 4.5 : it.magMin, 'number', 'min="4.5" max="9" step="0.1"') + sel('Visualização', k + 'mapa', it.mapa || 'globo', [['globo','🌍 Globo 3D'],['plano','🗺️ Mapa-múndi plano']]);
   else if (t === 'demoKpg') h = fld('WhatsApp exibido no final', k + 'whats', it.whats || '(21) 96470-0935') + fld('Chamada final', k + 'chamada', it.chamada || 'Faça o seu orçamento agora') + '<div class="hintx" style="grid-column:1/-1">Demonstração automática do Orçamento Guiado da KPG: cursor, zoom e legendas explicando cada interação. Usa o mesmo cálculo do site, mas não grava nada. Duração mínima de 45 s (ideal: 60 s).</div>';
+  else if (t === 'demoInfoCell') h = '<div class="hintx" style="grid-column:1/-1">Vitrine animada da InfoCell com imagens carregadas do repositório externo/conversa/imagens, simulação de navegação, conversa cenográfica, telefone e QR Code para WhatsApp. Não envia mensagens nem registra pedidos. Duração recomendada: 55–60 s.</div>'; 
   else if (t === 'jornal') h = fld('Cidade do jornal', k + 'cidade', it.cidade || 'São Paulo');
   else if (t === 'climagrafico') h = sel('Cidade inicial', k + 'cidade', it.cidade || 'auto',
     [['auto', '🎲 Sortear ao abrir'], ...TX_CIDADES.map(c => [c.nome, c.nome + ' (' + c.uf + ')'])])
@@ -6538,7 +6607,9 @@ const TX_PADRAO = () => ({id: '-', status: 'liberado', tela: {}, layout: {modelo
   {tipo: 'recadoAmor',   duracaoS: 24},
   {tipo: 'terremotos',   duracaoS: 18},
   {tipo: 'curiosidades', duracaoS: 22, categoria: 'astronomia'},
-  {tipo: 'demoKpg',      duracaoS: 62},                                                          // ← publicidade KPG (sempre antes do relógio)
+  {tipo: 'demoKpg',      duracaoS: 62},                                                          // ← publicidade KPG
+  {tipo: 'video',        url: './IMG_1929.MOV', nome: 'Comercial R5Fit', duracaoS: 0, pausaFinalS: 3, mudo: true, fit: 'contain', r5fit: true, loop: false}, // ← comercial R5Fit
+  {tipo: 'demoInfoCell', duracaoS: 58},                                                          // ← vitrine e atendimento InfoCell
   {tipo: 'relogio',      duracaoS: 8}
 ], transicao: {tipo: 'fade', ms: 900}, aleatorio: false}}});
 
@@ -6620,7 +6691,7 @@ function txAviso(txt, ms) {
   if (ms) d._t = setTimeout(() => d.classList.remove('on'), ms);
 }
 const TOTEM_AMBIENTE = {
-  CICLOS: 10, VOLUME: .35,
+  CICLOS: 10, VOLUME: .35, ARQUIVO_FIXO:'https://raw.githubusercontent.com/tchelojc/externo/alma/conversa/ambiente1.mp3',
   EXT: /\.(mp3|m4a|aac|ogg|oga|opus|wav|flac)$/i,
   MIME: {mp3:'audio/mpeg',m4a:'audio/mp4',aac:'audio/aac',ogg:'audio/ogg',oga:'audio/ogg',opus:'audio/ogg',wav:'audio/wav',flac:'audio/flac'},
   K_MUDO:'almafluxo_totem_mudo', K_LISTA:'almafluxo_totem_ambiente', K_POS:'almafluxo_totem_ambiente_pos',
@@ -6656,12 +6727,18 @@ const TOTEM_AMBIENTE = {
     if(this.iniciado) return;
     if(!/\/totem[\w-]*\/?$/i.test(location.pathname) && !/[?&]t=/.test(location.search) && !/\/conversa\/?$/i.test(location.pathname)) return;
     this.iniciado=true; this.mudo=!!lsGet(this.K_MUDO,false); this.botao();
+    if (this.ARQUIVO_FIXO) {
+      this.lista=[{n:1,id:'github-ambiente1',nome:'ambiente1.mp3',mime:'audio/mpeg',url:this.ARQUIVO_FIXO}];
+      this.pos=0; this.ciclos=0; this.semSessao=false; this.aplicarLista(this.lista);
+      return; // áudio público: não depende de login, Drive ou leitura da pasta
+    }
     const cache=lsGet(this.K_LISTA,null);
     if(Array.isArray(cache)&&cache.length) this.aplicarLista(cache);
     const rodar=()=>this.atualizar().catch(e=>{ this.erro=String(e&&e.message||e).slice(0,80); });
     setTimeout(rodar,2500); setTimeout(rodar,20000); setInterval(rodar,10*60000);
   },
   async atualizar(){
+    if (this.ARQUIVO_FIXO) return; // ambiente1.mp3 é público e estático no GitHub
     // Se o totem abriu antes do login, tenta recuperar uma sessão lembrada.
     // Se o usuário acabou de entrar manualmente, a sessão atual já será usada.
     if(typeof sessao==='undefined'||!sessao){
@@ -6698,6 +6775,7 @@ const TOTEM_AMBIENTE = {
   },
 
   async baixar(f){
+    if (f && f.url) { const u=assetUrl(f.url); if(!u) throw new Error('URL pública do áudio inválida'); return u; }
     const c=this.cache.get(f.id); if(c) return c.url;
     const r=await fetch(totemMediaUrl(f.id,true,f.mime),{cache:'force-cache'});
     if(!r.ok){ const e=await r.json().catch(()=>({})); throw new Error((e.error||('HTTP '+r.status))+(e.dica?' — '+e.dica:'')); }
@@ -6711,7 +6789,7 @@ const TOTEM_AMBIENTE = {
   },
   montar(){
     if(this.audio) return;
-    const a=new Audio(); a.preload='auto'; a.loop=true; a.setAttribute('playsinline',''); this.audio=a;
+    const a=new Audio(); a.preload='auto'; a.loop=true; a.setAttribute('playsinline',''); a.crossOrigin='anonymous'; this.audio=a;
     a.addEventListener('error',()=>{ this.estado='erro'; this.erro='o navegador não conseguiu tocar este arquivo'; clearTimeout(this._tl); this._tl=setTimeout(()=>this.proximaFaixa(),5000); });
     if(this.gesto) this.montarGrafo();
   },
