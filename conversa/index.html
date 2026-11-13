@@ -2797,7 +2797,8 @@ const TRANSICAO_POR_TIPO = {
   // Emoção → suavidade
   recadoAmor:  { tipo: 'blur',       ms: 1500 },
   terremotos:  { tipo: 'flip',       ms: 1000 },
-  curiosidades:{ tipo: 'fade',       ms: 800 }
+  curiosidades:{ tipo: 'fade',       ms: 800 },
+  r5fitVideo:  { tipo: 'fade',       ms: 900 }
 };
 /* ═══════════════════════════════════════════════════════════════════
    RODAPÉ DINÂMICO — cada tipo de slide aponta para uma plataforma
@@ -2818,6 +2819,7 @@ const RODAPE_POR_TIPO = {
   terremotos:  { href: 'https://almafluxo.uk/solution',   forte: '🌍 DADOS DO MUNDO',         em: 'Informação global para seu totem',           b: 'almafluxo.uk/solution' },
   curiosidades:{ href: 'https://almafluxo.uk/solution',   forte: '✨ CURIOSIDADES',           em: 'Conteúdo que engaja sua audiência',          b: 'almafluxo.uk/solution' },
   // Placeholder padrão
+  r5fit:       { href: 'https://wa.me/5521995491483', forte: '🏋️ ACADEMIA R5FIT', em: 'Informações e atendimento pelo WhatsApp', b: '+55 21 99549-1483 · WhatsApp' },
   _padrao:     { href: 'https://almafluxo.uk',            forte: '📣 ANUNCIE SUA MARCA AQUI', em: 'Seu negócio pode aparecer neste espaço',     b: 'Entre em contato: almafluxo.uk' }
 };
 
@@ -3160,8 +3162,18 @@ function criarSlide(P, item) {
     im.src = u; s.appendChild(im); if (item.kenburns) s.classList.add('kb');
   } else if (t === 'video') {
     const u = vidUrl(item); if (!u) return null; const v = document.createElement('video'); v.muted = item.mudo !== false || P.preview; v.autoplay = true; v.playsInline = true; v.preload = 'auto'; v.style.objectFit = item.fit || 'cover';
-    v.loop = !!item.loop; v.src = u; S.fimEvento = true; v.addEventListener('ended', () => { if (S.aoFim) S.aoFim(); }); v.addEventListener('error', () => { if (S.aoFim) setTimeout(S.aoFim, 1500); });
-    s.appendChild(v); const pl = v.play(); if (pl && pl.catch) pl.catch(() => {}); S.destroy = () => { try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {} };
+    let pausaFinalTimer = null;
+    v.loop = !!item.loop; v.src = u; S.fimEvento = true;
+    v.addEventListener('ended', () => {
+      // No vídeo institucional da R5Fit, mantém o último quadro por 3 s
+      // para permitir a leitura das informações antes de seguir ao relógio.
+      const concluir = () => { if (S.aoFim) S.aoFim(); };
+      if (+item.pausaFinalS > 0) pausaFinalTimer = setTimeout(concluir, Math.min(15, +item.pausaFinalS) * 1000);
+      else concluir();
+    });
+    v.addEventListener('error', () => { if (S.aoFim) pausaFinalTimer = setTimeout(() => S.aoFim && S.aoFim(), 1500); });
+    s.appendChild(v); const pl = v.play(); if (pl && pl.catch) pl.catch(() => {});
+    S.destroy = () => { clearTimeout(pausaFinalTimer); try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {} };
   } else if (t === 'youtube') {
     const id = ytId(item.url || item.id); if (!id) return null; const f = document.createElement('iframe');
     f.allow = 'autoplay; encrypted-media; picture-in-picture'; f.src = 'https://www.youtube.com/embed/' + id + '?autoplay=1&mute=' + (item.mudo === false ? 0 : 1) + '&controls=0&loop=1&playlist=' + id + '&modestbranding=1&rel=0&playsinline=1'; s.appendChild(f);
@@ -3188,7 +3200,7 @@ function criarSlide(P, item) {
     d.style.fontSize = 'calc(var(--u)*' + (+item.tamanho || 6) + ')'; d.textContent = item.texto || ''; s.appendChild(d);
   } else if (TX[t]) { TX[t].build(P, item, s, S); } else return null;
   txInserirPublicidade(s, item);
-  personalizarRodape(s, t);   // ← aplica o rodapé específico do tipo
+  personalizarRodape(s, item.r5fit === true ? 'r5fit' : t);   // rodapé contextual da R5Fit no vídeo institucional
   return S;
 }
 
@@ -3511,9 +3523,15 @@ function iniciarRegiao(P, box, id, cont) {
   }
 
   let itens = (cont.itens || []).filter(i => i && i.ativo !== false); if (!itens.length) itens = [{tipo: 'relogio', duracaoS: 3600}];
-  // O relógio é a referência de ciclo: sempre o ÚLTIMO slide da volta (também no modo aleatório).
-  // Fim da volta: … demais slides → DEMO da KPG (publicidade) → RELÓGIO. Vale também no modo aleatório.
-  const pesoFim = i => i.tipo === 'relogio' ? 2 : (i.tipo === 'demoKpg' ? 1 : 0);
+  // Vídeo institucional da Academia R5Fit: entra automaticamente na região principal,
+  // depois da demonstração KPG e imediatamente antes do relógio.
+  if (id === 'r1' && cont.modo !== 'cards' && !itens.some(i => i.r5fit === true)) {
+    itens.push({tipo:'video', url:'./IMG_1929.MOV', nome:'Vídeo institucional R5Fit', duracaoS:0,
+      pausaFinalS:3, mudo:true, fit:'contain', r5fit:true, loop:false, ativo:true});
+  }
+  // Ordem fixa de encerramento do ciclo: KPG → vídeo R5Fit → relógio.
+  // Os demais slides continuam respeitando a ordem/aleatoriedade configurada.
+  const pesoFim = i => i.tipo === 'relogio' ? 3 : (i.r5fit === true ? 2 : (i.tipo === 'demoKpg' ? 1 : 0));
   itens = itens.map((i, n) => [i, n]).sort((a, b) => pesoFim(a[0]) - pesoFim(b[0]) || a[1] - b[1]).map(x => x[0]);
   const ordemCiclo = () => {
     const idx = itens.map((_, i) => i), p0 = idx.filter(i => pesoFim(itens[i]) === 0), p1 = idx.filter(i => pesoFim(itens[i]) === 1), p2 = idx.filter(i => pesoFim(itens[i]) === 2);
