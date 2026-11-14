@@ -2791,17 +2791,29 @@ const imgUrl = i => { const id=driveIdFrom(i.driveId||i.url); return id ? totemM
    (o Worker só responde às rotas dele e devolve 404 "Rota não encontrada" para o resto). Caminho relativo ou
    almafluxo.uk/conversar/... é reescrito para a origem do Pages; se ela falhar, o slide tenta o raw do GitHub. */
 const GH_PAGES_BASE = 'https://tchelojc.github.io/externo/';
+/* Arquivos do repositório (ex.: conversar/IMG_1929.MOV) são servidos pelo GitHub Pages, NÃO pelo Worker de almafluxo.uk.
+   ATENÇÃO: arquivos grandes (.MOV, .MP4) normalmente vão para o Git LFS, e o raw.githubusercontent.com
+   devolve 404 para eles. O GitHub Pages entrega o binário do LFS já resolvido.
+   Por isso a ordem agora é: Pages PRIMEIRO, raw como alternativa. */
 const vidUrl = i => {
   const id = driveIdFrom(i.driveId || i.url);
   if (id) return totemMediaUrl(id);
 
-  // Repositório: PREFERE raw (que envia CORS) em vez de github.io (que não envia)
   const s = String(i.url || '').trim();
-  const m = s.match(/^https:\/\/tchelojc\.github\.io\/externo\/(.+)$/i);
-  if (m) {
-    // raw envia Access-Control-Allow-Origin: * → funciona cross-origin
-    return 'https://raw.githubusercontent.com/tchelojc/externo/alma/' + m[1];
+
+  // 1) Já é URL do GitHub Pages → usa direto (resolve LFS)
+  if (/^https:\/\/tchelojc\.github\.io\/externo\//i.test(s)) return s;
+
+  // 2) Caminho relativo/absoluto de /conversar/ → reconstrói como Pages
+  if (/^\/conversar\//i.test(s)) return GH_PAGES_BASE + s.slice(1);
+  if (/^https?:\/\/[^/]*almafluxo\.uk\/conversar\//i.test(s)) {
+    try {
+      const u = new URL(s);
+      return GH_PAGES_BASE + u.pathname.slice(1) + u.search;
+    } catch (e) {}
   }
+
+  // 3) Qualquer outra URL http(s) → mantém
   return assetUrl(i.url);
 };
 
@@ -2821,8 +2833,9 @@ const repoUrl = v => {
 
 const repoAlternativas = u => {
   const s = String(u || '');
-  // Aceita URL do Pages E já do raw, e gera a fila de tentativas (sem repetir a atual)
   let rel = null;
+
+  // Extrai o caminho relativo de QUALQUER variante (Pages, raw, etc.)
   let m = /^https:\/\/tchelojc\.github\.io\/externo\/(.+)$/i.exec(s);
   if (m) rel = m[1];
   else {
@@ -2830,8 +2843,11 @@ const repoAlternativas = u => {
     if (m) rel = m[2];
   }
   if (!rel) return [];
-  return ['alma'].map(b => 'https://raw.githubusercontent.com/tchelojc/externo/' + b + '/' + rel)
-    .filter(x => x !== s);
+
+  // Prefere o Pages (LFS resolvido); raw fica como segunda tentativa.
+  const paginas = 'https://tchelojc.github.io/externo/' + rel;
+  const raw     = 'https://raw.githubusercontent.com/tchelojc/externo/alma/' + rel;
+  return [paginas, raw].filter(x => x !== s);
 };
 const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
 
