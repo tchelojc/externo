@@ -2835,7 +2835,6 @@ const repoAlternativas = u => {
   const s = String(u || '');
   let rel = null;
 
-  // Extrai o caminho relativo de QUALQUER variante (Pages, raw, etc.)
   let m = /^https:\/\/tchelojc\.github\.io\/externo\/(.+)$/i.exec(s);
   if (m) rel = m[1];
   else {
@@ -2844,10 +2843,15 @@ const repoAlternativas = u => {
   }
   if (!rel) return [];
 
-  // Prefere o Pages (LFS resolvido); raw fica como segunda tentativa.
-  const paginas = 'https://tchelojc.github.io/externo/' + rel;
-  const raw     = 'https://raw.githubusercontent.com/tchelojc/externo/alma/' + rel;
-  return [paginas, raw].filter(x => x !== s);
+  // Tenta os 2 branches em ordem — main primeiro (é onde o arquivo está),
+  // depois alma. O Pages fica como primeira tentativa só se a URL original já era Pages.
+  const cand = [
+    'https://tchelojc.github.io/externo/' + rel,
+    'https://raw.githubusercontent.com/tchelojc/externo/main/' + rel,
+    'https://raw.githubusercontent.com/tchelojc/externo/alma/' + rel
+  ];
+  // Remove duplicatas e a própria URL de origem
+  return [...new Set(cand)].filter(x => x !== s);
 };
 const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
 
@@ -3252,13 +3256,15 @@ function criarSlide(P, item) {
     v.autoplay    = true;
     v.playsInline = true;
     v.preload     = 'auto';
-    v.crossOrigin = 'anonymous';              // ← necessário p/ raw.githubusercontent.com
+    // NÃO usar crossOrigin: o GitHub Pages não envia CORS para .MOV/.MP4
+    // e o navegador bloquearia o vídeo. Sem crossOrigin o <video> funciona
+    // como <img> — carrega normalmente, sem exigir cabeçalho CORS.
+    // v.crossOrigin = 'anonymous';   // ← REMOVIDO
     v.style.objectFit = item.fit || 'cover';
     v.loop        = !!item.loop;
     v.src         = u;
     S.fimEvento   = true;
 
-    // fim natural → respeita pausaFinalS antes de avançar
     v.addEventListener('ended', () => {
       clearTimeout(fimVideoTimer);
       const espera = Math.max(0, Math.min(15, Number(item.pausaFinalS) || 0));
@@ -4915,39 +4921,44 @@ TX.demoInfoCell = { def:{duracaoS:58}, duracaoMin:45, build(P,item,s,S) {
         if (vistos.has(k)) return false; vistos.add(k); return true;
       });
     };
-    const amostra = arquivosProdutos.slice(0, 3);
-    const BASES = [RAW_BASE, PAGES_BASE];
-    const sond = await Promise.all(BASES.map(async base => ({
-      base,
-      ok: (await Promise.all(amostra.map(n => testaImg(base + n)))).some(Boolean)
-    })));
-    if (!vivo) return;
-    const boa = sond.find(x => x.ok);
 
+    // Fonte primária: API do GitHub (lista os nomes REAIS que estão no repo, sem 404).
+    // Fallback: as 2 bases raw/Pages para o caso de a API estourar rate-limit.
     let achados = [], origem = '';
-    if (boa) {
-      const cand = arquivosProdutos.map(name => ({ name, url: boa.base + name }));
-      const r = await Promise.all(cand.map(c => testaImg(c.url)));
-      if (!vivo) return;
-      achados = unicos(cand.filter((c, i) => r[i]));
-      origem = boa.base;
+    for (const api of APIS) {
+      try {
+        const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), 7000);
+        let r; try { r = await fetch(api, { cache: 'force-cache', signal: ctrl.signal }); } finally { clearTimeout(t); }
+        if (!r.ok) continue;
+        const lista = await r.json(); if (!Array.isArray(lista)) continue;
+        const cand = lista.filter(x => x && x.type === 'file' && /\.(jpe?g|png|webp)$/i.test(x.name) && x.download_url)
+                          .map(x => ({ name: x.name, url: x.download_url }));
+        const ok = await Promise.all(cand.map(c => testaImg(c.url)));
+        if (!vivo) return;
+        achados = unicos(cand.filter((c, i) => ok[i]));
+        if (achados.length) { origem = 'API · ' + api.split('?')[1] || 'branch padrão'; break; }
+      } catch (e) {}
     }
+
+    // Fallback final: tenta as 2 bases diretas com 3 amostras, depois confirma cada uma
     if (!achados.length) {
-      for (const api of APIS) {
-        try {
-          const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), 7000);
-          let r; try { r = await fetch(api, { cache: 'force-cache', signal: ctrl.signal }); } finally { clearTimeout(t); }
-          if (!r.ok) continue;
-          const lista = await r.json(); if (!Array.isArray(lista)) continue;
-          const cand = lista.filter(x => x && x.type === 'file' && /\.(jpe?g|png|webp)$/i.test(x.name) && x.download_url)
-                            .map(x => ({ name: x.name, url: x.download_url }));
-          const ok = await Promise.all(cand.map(c => testaImg(c.url)));
-          if (!vivo) return;
-          achados = unicos(cand.filter((c, i) => ok[i]));
-          if (achados.length) { origem = 'API · ' + api.split('?')[1] || 'branch padrão'; break; }
-        } catch (e) {}
+      const amostra = arquivosProdutos.slice(0, 3);
+      const BASES = [RAW_BASE, PAGES_BASE];
+      const sond = await Promise.all(BASES.map(async base => ({
+        base,
+        ok: (await Promise.all(amostra.map(n => testaImg(base + n)))).some(Boolean)
+      })));
+      if (!vivo) return;
+      const boa = sond.find(x => x.ok);
+      if (boa) {
+        const cand = arquivosProdutos.map(name => ({ name, url: boa.base + name }));
+        const r = await Promise.all(cand.map(c => testaImg(c.url)));
+        if (!vivo) return;
+        achados = unicos(cand.filter((c, i) => r[i]));
+        origem = boa.base;
       }
     }
+
     if (!vivo) return;
     imagensProdutos = achados;
     if (achados.length) console.info('[InfoCellTec demo] ' + achados.length + ' imagens carregadas de ' + origem);
