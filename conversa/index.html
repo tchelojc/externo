@@ -2793,8 +2793,16 @@ const imgUrl = i => { const id=driveIdFrom(i.driveId||i.url); return id ? totemM
 const GH_PAGES_BASE = 'https://tchelojc.github.io/externo/';
 const vidUrl = i => {
   const id = driveIdFrom(i.driveId || i.url);
-  if (id) return totemMediaUrl(id);                  // ← Drive → Worker
-  return repoUrl(i.url) || assetUrl(i.url);          // ← repositório
+  if (id) return totemMediaUrl(id);
+
+  // Repositório: PREFERE raw (que envia CORS) em vez de github.io (que não envia)
+  const s = String(i.url || '').trim();
+  const m = s.match(/^https:\/\/tchelojc\.github\.io\/externo\/(.+)$/i);
+  if (m) {
+    // raw envia Access-Control-Allow-Origin: * → funciona cross-origin
+    return 'https://raw.githubusercontent.com/tchelojc/externo/alma/' + m[1];
+  }
+  return assetUrl(i.url);
 };
 
 const repoUrl = v => {
@@ -2812,10 +2820,18 @@ const repoUrl = v => {
 };
 
 const repoAlternativas = u => {
-  const m = /^https:\/\/tchelojc\.github\.io\/externo\/(.+)$/i.exec(String(u || ''));
-  return m ? ['main', 'alma', 'master'].map(b =>
-    'https://raw.githubusercontent.com/tchelojc/externo/' + b + '/' + m[1]
-  ) : [];
+  const s = String(u || '');
+  // Aceita URL do Pages E já do raw, e gera a fila de tentativas (sem repetir a atual)
+  let rel = null;
+  let m = /^https:\/\/tchelojc\.github\.io\/externo\/(.+)$/i.exec(s);
+  if (m) rel = m[1];
+  else {
+    m = /^https:\/\/raw\.githubusercontent\.com\/tchelojc\/externo\/([^/]+)\/(.+)$/i.exec(s);
+    if (m) rel = m[2];
+  }
+  if (!rel) return [];
+  return ['alma'].map(b => 'https://raw.githubusercontent.com/tchelojc/externo/' + b + '/' + rel)
+    .filter(x => x !== s);
 };
 const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
 
