@@ -3041,15 +3041,16 @@
 
     try {
       // 🔥 A MUDANÇA PRINCIPAL: chama a API do KPG, não a do sistema ALMA
-      var r = await fetch(KPG_API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'validarLoginKpg',
-          email: email,
-          senha: senha
-        })
-      });
+        var r = await fetch(KPG_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'servirHTML',
+            plataforma: 'kpg',
+            email: s.email,
+            senha: s.senha  // ← manda a senha
+          })
+        });
       var d = await r.json();
 
       if (!r.ok || !d.ok) {
