@@ -3208,7 +3208,12 @@ function criarSlide(P, item) {
   } else if (t === 'texto') {
     s.className += ' s-texto'; s.style.background = item.fundo || '#0b1830'; s.style.color = item.cor || '#ffffff'; const d = el('div', item.anim === 'marquee' ? 'mq' : (item.anim === 'pulso' ? 'pu' : ''));
     d.style.fontSize = 'calc(var(--u)*' + (+item.tamanho || 6) + ')'; d.textContent = item.texto || ''; s.appendChild(d);
-  } else if (TX[t]) { TX[t].build(P, item, s, S); } else return null;
+  } else if (TX[t] && typeof TX[t].build === 'function') {
+    TX[t].build(P, item, s, S);
+  } else {
+    console.error('[ALMAFLUXO] Slide "' + t + '" sem build registrado. TX[t] =', typeof TX[t]);
+    return null;
+  }
   txInserirPublicidade(s, item);
   personalizarRodape(s, t, item);   // ← aplica o rodapé específico do tipo
   return S;
@@ -3563,14 +3568,20 @@ function iniciarRegiao(P, box, id, cont) {
     else if(cont.aleatorio&&itens.length>1){ if(!R._ordem||R._op>=R._ordem.length){R._ordem=ordemCiclo();R._op=0;} ni=R._ordem[R._op++]; }
     else ni=(R.idx+1)%itens.length;
     let item = itens[ni], s = null;
-    // Ao chegar ao encerramento, reserva exatamente o restante até completar 09:00.
-    // A duração do vídeo R5Fit é obtida do próprio arquivo (metadata/ended), não estimada.
-    if (item.tipo === 'ecossistema') {
+    // Ao chegar ao encerramento, reserva o restante até completar 540 s.
+    // A duração do vídeo R5Fit é obtida do próprio arquivo (metadata/ended);
+    // se o vídeo ainda não carregou, usa-se uma estimativa conservadora para
+    // não inflar o slide do ecossistema (que ficaria "travado" na tela).
+    if (item.tipo === 'ecossistema') { 
       const totalAntesDoNucleo = itens.reduce((acc, it, ix) => {
         if (!it || it.tipo === 'ecossistema') return acc;
+        // Vídeo de duração 0 = toca até terminar; sua duração real é medida.
         if (it.tipo === 'video' && Number(it.duracaoS) === 0) {
           const videoS = Math.max(0, Number(R._videoDurations[ix]) || 0);
           const espera = R._videoFailed[ix] ? 0 : Math.max(0, Math.min(15, Number(it.pausaFinalS) || 0));
+          // ── FIX 2: se o vídeo ainda NÃO foi medido e NÃO falhou, assume 30 s
+          //    para o cálculo não ficar em 0 e inflar o ecossistema.
+          if (!R._videoDurations[ix] && !R._videoFailed[ix]) return acc + 30 + espera;
           return acc + videoS + espera;
         }
         let d = Math.max(2, Number(it.duracaoS) || 10);
@@ -3578,7 +3589,10 @@ function iniciarRegiao(P, box, id, cont) {
         if (minimo && d < minimo) d = minimo;
         return acc + d;
       }, 0);
-      item = Object.assign({}, item, {_duracaoCalculadaS: Math.max(2, 540 - totalAntesDoNucleo)});
+      // ── FIX 2b: limita o resultado entre 20 s e 180 s para nunca
+      //    "travar" o slide em caso de soma negativa ou muito pequena.
+      const durCalc = Math.max(20, Math.min(180, 540 - totalAntesDoNucleo));
+      item = Object.assign({}, item, {_duracaoCalculadaS: durCalc});
     }
     try {
       s = criarSlide(P, item);
@@ -4683,16 +4697,26 @@ TX.demoInfoCell = { def:{duracaoS:58}, duracaoMin:45, build(P,item,s,S) {
   const legenda=t=>{caption.textContent=t;caption.classList.add('on');};
   const msg=(who,txt)=>{const d=document.createElement('div');d.className='ic-msg '+who;d.textContent=txt;chat.appendChild(d);requestAnimationFrame(()=>d.classList.add('on'));while(chat.children.length>5)chat.firstElementChild.remove();};
   const mover=el=>{if(!el)return;const a=el.getBoundingClientRect(),b=s.getBoundingClientRect();cursor.style.left=(a.left-b.left+a.width*.65)+'px';cursor.style.top=(a.top-b.top+a.height*.65)+'px';cursor.classList.add('on');};
+  // ── FIX 6: `'cabo-carregamento-tipoC- turbo.jpeg'` tinha um ESPAÇO antes de
+  //    "turbo". O encodeURIComponent transforma em "%20", mas o arquivo no
+  //    GitHub provavelmente é "cabo-carregamento-tipoC-turbo.jpeg" (sem espaço).
+  //    Mantivemos as duas variantes e filtramos por existência — as que não
+  //    carregarem caem nos cartões de reserva (📱 🔌 🔊), sem quebrar o slide.
   const arquivosProdutos=[
-    'cabo-P2-P2.jpeg','cabo-V8.jpeg','cabo-carregador-micro-USB.jpeg','cabo-carregamento-tipoC- turbo.jpeg',
-    'cabo-dados-iphone.jpeg','cabo-de-forca.jpeg','cabo-de-rede.jpeg','cabo-entrada-2saidas-P2.jpeg',
-    'cabo-hdtv.jpeg','cabo-iphone.jpeg','cabo-micro-USB-dados.jpeg','cabo-tipoC-Iphone.jpeg',
-    'cabo-tipoC-Turbo.jpeg','cabo-tipoC-para-tipoC.jpeg','cabo-tipoC-preto.jpeg','cabo-tipoC-tipoC.jpeg',
-    'cabo-turbo-iphone.jpeg','carregador-completo-turbo.jpeg','carregador-completo-micro-USB.jpeg',
+    'cabo-P2-P2.jpeg','cabo-V8.jpeg','cabo-carregador-micro-USB.jpeg',
+    'cabo-carregamento-tipoC-turbo.jpeg','cabo-carregamento-tipoC- turbo.jpeg',
+    'cabo-dados-iphone.jpeg','cabo-de-forca.jpeg','cabo-de-rede.jpeg',
+    'cabo-entrada-2saidas-P2.jpeg',
+    'cabo-hdtv.jpeg','cabo-iphone.jpeg','cabo-micro-USB-dados.jpeg',
+    'cabo-tipoC-Iphone.jpeg','cabo-tipoC-Turbo.jpeg','cabo-tipoC-para-tipoC.jpeg',
+    'cabo-tipoC-preto.jpeg','cabo-tipoC-tipoC.jpeg','cabo-turbo-iphone.jpeg',
+    'carregador-completo-turbo.jpeg','carregador-completo-micro-USB.jpeg',
     'carregador-completo-turbo-Iphone.jpeg','carregador-completo-turbo-TipoC.jpeg',
     'carregador-completo-turbo-micro-USB-preto.jpeg','carregador-completo-turbo-micro-USB.jpeg',
-    'carregador-completo.jpeg','carregador-lcd-universal.jpeg','carregador-veicular-preto-Iphone.jpeg',
-    'carregador-veicular-preto.jpeg','carregador-veículo.jpeg','-boom.jpeg'
+    'carregador-completo.jpeg','carregador-lcd-universal.jpeg',
+    'carregador-veicular-preto-Iphone.jpeg','carregador-veicular-preto.jpeg',
+    'carregador-veículo.jpeg','carregador-veiculo.jpeg',
+    'boom.jpeg'
   ];
   const TOK={tipoc:'Tipo-C',usb:'USB',p2:'P2',v8:'V8',iphone:'iPhone',hdtv:'HDTV',lcd:'LCD',micro:'Micro',de:'de',para:'para',turbo:'Turbo'};
   const nomeProduto=nome=>{const base=String(nome||'').replace(/\.[^.]+$/,'').replace(/\s+/g,'-').replace(/^-+/,'');
@@ -4704,7 +4728,18 @@ TX.demoInfoCell = { def:{duracaoS:58}, duracaoMin:45, build(P,item,s,S) {
   const carregando=(async()=>{
     const cand=arquivosProdutos.map(name=>({name,url:rawBase+encodeURIComponent(name)}));
     const r=await Promise.all(cand.map(c=>testaImg(c.url)));
-    if(!vivo)return; imagensProdutos=cand.filter((c,i)=>r[i]);
+    if(!vivo)return;
+    // ── FIX 6b: mantém apenas as que carregaram E remove duplicatas pelo
+    //    nome normalizado (sem espaços, sem acentos), para que "tipoC-turbo"
+    //    e "tipoC- turbo" não apareçam duas vezes na vitrine.
+    const vistos = new Set();
+    imagensProdutos = cand.filter((c, i) => {
+      if (!r[i]) return false;
+      const chave = c.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '');
+      if (vistos.has(chave)) return false;
+      vistos.add(chave);
+      return true;
+    });
     if(!imagensProdutos.length)console.warn('[InfoCellTec demo] nenhuma imagem carregou de '+rawBase+'; mantendo cartões de reserva.');
   })();
   const paginasTotal=()=>Math.max(1,Math.ceil(imagensProdutos.length/6));
@@ -6727,6 +6762,8 @@ function txProximaCidade(nomeAtual, passo) {
 Object.assign(TIPOS, {ecossistema: '✦ ALMAFLUXO · Nascimento do ecossistema'});
 TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
   txMorre(S); s.className += ' tx-eco3d';
+  s.setAttribute('data-render', 'fallback');
+
   const GRUPOS = [
     {nome:'PENSAMENTO & CIÊNCIA', cor:0x65dfff, itens:['Portal ALMAFLUXO','Fluxo Matemático','Universo Áureo','Trajeto do Nada ao Tudo','Matrix ALMA','Ciclos Energéticos','Laboratório Quântico','Orientador Quântico','7 livros · O FLUXO','Linha do Tempo','ALMAFLUXO · O Fluxo Vivo']},
     {nome:'AUTOCONHECIMENTO', cor:0xc5a0ff, itens:['Sintesia Humana','Mapa do Próprio Destino']},
@@ -6737,7 +6774,6 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
     {nome:'CLIMA & UNIVERSO', cor:0x72d6d0, itens:['ClimaFluxo','Ciclos e alinhamentos','Astronomia e curiosidades','Sismos e índice Kp','Notícias e dados do mundo']},
     {nome:'PRESENÇA & MÍDIA', cor:0xffffff, itens:['Canal YouTube','Canal TikTok','Conversa · Totem','Nossa Conversa Diária']}
   ];
-  /* as 8 plataformas em destaque (ganham ícone, rótulo e chip) */
   const PLAT = {
     'CHAT ALMAFLUXO':{ic:'💬',rot:'CHAT'}, 'SOMA · Quantum Sound':{ic:'🎵',rot:'SOMA'}, 'ALMAFLUXO Solution':{ic:'💼',rot:'SOLUTION'},
     'Olho de Deus':{ic:'👁️',rot:'OLHO DE DEUS'}, 'ClimaFluxo':{ic:'🌦️',rot:'CLIMAFLUXO'}, 'Mecânica':{ic:'⚙️',rot:'MECÂNICA'},
@@ -6753,7 +6789,7 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
     {id:'singular',  leg:'ALMAFLUXO · um ecossistema vivo',  tit:'ALMAFLUXO',     txt:'Um ecossistema vivo.',                                             base:0, cam:{r:18.5,az:3.15,y:21,  ly:-4.3}}
   ];
   const QR_URL='https://almafluxo.uk', QR_TXT='almafluxo.uk';
-  const QR_M=["1111111001100010101111111", "1000001001011110101000001", "1011101001111110001011101", "1011101011100111001011101", "1011101000010100001011101", "1000001010010010001000001", "1111111010101010101111111", "0000000010001010000000000", "0110001000110000001101000", "1000000110101101101101011", "0111001011100011000011101", "0111110000110010100001000", "0101011110001111001100001", "0000110101110101101100011", "1110111100101101100001101", "0011000000100100110111000", "1101011110010000111110010", "0000000011111100100010001", "1111111001011110101010001", "1000001001010001100010000", "1011101000101001111110001", "1011101001111010110010110", "1011101011111110110111011", "1000001011000100100110000", "1111111001001110101001001"];   // matriz do QR (segno, correção Q) — endereço do ecossistema
+  const QR_M=["1111111001100010101111111", "1000001001011110101000001", "1011101001111110001011101", "1011101011100111001011101", "1011101000010100001011101", "1000001010010010001000001", "1111111010101010101111111", "0000000010001010000000000", "0110001000110000001101000", "1000000110101101101101011", "0111001011100011000011101", "0111110000110010100001000", "0101011110001111001100001", "0000110101110101101100011", "1110111100101101100001101", "0011000000100100110111000", "1101011110010000111110010", "0000000011111100100010001", "1111111001011110101010001", "1000001001010001100010000", "1011101000101001111110001", "1011101001111010110010110", "1011101011111110110111011", "1000001011000100100110000", "1111111001001110101001001"];
   const nModulos = GRUPOS.reduce((a,g)=>a+g.itens.length,0);
   const esc2 = v => String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const chips = PLAT_ORDEM.map(n=>`<span class="eco3-chip" data-n="${esc2(n)}"><i>${PLAT[n].ic}</i>${esc2(PLAT[n].rot)}</span>`).join('');
@@ -6836,9 +6872,21 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
   const capIdxO=t=>{let i=0;while(i<5&&t>=T[i+1])i++;return i;};
   function modoAlt(motivo){
     if(fallbackAtivo||S.morto)return; fallbackAtivo=true;
-    s.setAttribute('data-render','fallback'); const dg=s.querySelector('.eco3-diag'); if(dg)dg.textContent='MODO ALTERNATIVO · '+motivo;
-    try{const cv=s.querySelector('canvas.tx-cv');if(cv)cv.style.display='none';}catch(e){}
+    s.setAttribute('data-render','fallback');
+    const dg=s.querySelector('.eco3-diag'); if(dg)dg.textContent='MODO ALTERNATIVO · '+motivo;
+    // ── FIX 4: NÃO esconder o canvas nem o fallback. Deixa ambos visíveis;
+    //    o fallback tem opacity .9 e o canvas fica por cima com opacity 0
+    //    se o WebGL não renderizou (canvas transparente por padrão).
+    try{const cv=s.querySelector('canvas.tx-cv');if(cv){cv.style.display='block';cv.style.opacity='0';}}catch(e){}
     console.warn('[TOTEM][ECO3D] modo alternativo:',motivo);
+
+    // ── FIX 4b: renderiza o primeiro capítulo IMEDIATAMENTE, sem esperar
+    //    o primeiro tick do setInterval (400 ms). Sem isso, o card aparece
+    //    vazio por alguns instantes quando o fallback assume.
+    if (capAtual < 0) {
+      try { mostraCap(0); } catch (e) { console.warn('[ECO3D] mostraCap(0):', e && e.message); }
+    }
+
     let fc=Math.max(0,0),ult=Date.now();
     const iv=setInterval(()=>{const now=Date.now(),d=Math.min(1,(now-ult)/1000);ult=now;if(S.morto)return;if(!pausado())fc+=d;
       const ci=reduzido?5:capIdxO(fc);if(ci!==capAtual)mostraCap(ci);
@@ -6853,6 +6901,22 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
         s.setAttribute('data-render','3d');
         const {sc:scene,cam:camera,R}=C;
         R.setClearColor(0x030812,1);   // canvas opaco
+        /* ── FIX 1: registra o handler de perda de contexto WebGL no renderer real.
+           Sem isso, se o driver/GPU perder o contexto, o loop continua tentando
+           renderizar num contexto morto e a cena nunca atualiza → tela preta.
+           O handler agora delega para modoAlt(), que mostra o fallback de órbita
+           e mantém os capítulos rodando. */
+        try {
+          R.domElement.addEventListener('webglcontextlost', (ev) => {
+            ev.preventDefault();
+            modoAlt('contexto gráfico perdido (evento do renderer)');
+          }, { once: true });
+          R.domElement.addEventListener('webglcontextrestored', () => {
+            console.warn('[TOTEM][ECO3D] contexto restaurado — recarregue o slide para voltar ao 3D');
+          }, { once: true });
+        } catch (e) {
+          console.warn('[TOTEM][ECO3D] não foi possível registrar webglcontextlost:', e && e.message);
+        }
         const V3=THREE.Vector3, ease=x=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x);}, clamp01=x=>Math.max(0,Math.min(1,x));
         const easeOutBack=x=>{x=clamp01(x);const c1=1.9,c3=c1+1;return 1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2);};
         const rnd=(()=>{let a=1234567;return()=>{a=(a*1664525+1013904223)>>>0;return a/4294967296;};})();   // determinístico: mesma cena em toda exibição
@@ -6967,8 +7031,10 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
         const flashes=Array.from({length:12},()=>{const sp=spr(texGlow,0xffffff,0);scene.add(sp);return {sp,t0:-99,k:0};});let fi=0;
         const flash=(pos,cor,clock)=>{const f=flashes[fi++%flashes.length];f.t0=clock;f.sp.position.copy(pos);f.sp.material.color.copy(cor);};
 
-        /* ── relógio próprio + câmera amortecida ── */
-        const wd={ran:false};R.domElement.addEventListener('webglcontextlost',ev=>{ev.preventDefault();modoAlt('contexto gráfico perdido');});
+        /* ── FIX 1b: o listener webglcontextlost já foi registrado acima, no momento
+           em que o renderer é criado. Aqui só mantemos o estado wd.ran usado
+           pelo vigilante de cena escura. */
+        const wd={ran:false};
         let clock=reduzido?T[5]+3:0,lastT=0,ringPhase=0,swirl=0,beatT=0,prevBc=0,waveI=0,fpsAcc=0,fpsN=0,primeira=true;
         const cPos=new V3(),cLook=new V3(),aPos=new V3(),aLook=new V3(),tmp=new V3();
         const camAlvo=(c,out,look)=>{const m=txDist(camera),az=c.az+clock*.018;const mm=m>1?m*.8:1;out.set(Math.sin(az)*c.r*mm,c.y*mm,Math.cos(az)*c.r*mm);look.set(0,m>1?0:c.ly,0);};
@@ -7123,7 +7189,7 @@ const TX_PADRAO = () => ({id: '-', status: 'liberado', tela: {}, layout: {modelo
   {tipo: 'terremotos',   duracaoS: 18},
   {tipo: 'curiosidades', duracaoS: 22, categoria: 'astronomia'},
   {tipo: 'demoKpg',      duracaoS: 62},                                                          // ← publicidade KPG
-  {tipo: 'video',        url: './IMG_1929.MOV', nome: 'Comercial R5Fit', duracaoS: 0, pausaFinalS: 3, mudo: true, fit: 'contain', r5fit: true, loop: false}, // ← comercial R5Fit
+  {tipo: 'video', url: 'https://tchelojc.github.io/externo/conversar/IMG_1929.MOV', nome: 'Comercial R5Fit', duracaoS: 0, pausaFinalS: 3, mudo: true, fit: 'contain', r5fit: true, loop: false},
   {tipo: 'demoInfoCell', duracaoS: 58},                                                          // ← vitrine e atendimento InfoCellTec
   {tipo: 'relogio',      duracaoS: 8},
   {tipo: 'ecossistema',  duracaoS: 42}                                                           // ← encerramento: nascimento 3D do ecossistema ALMAFLUXO
@@ -8683,8 +8749,28 @@ window.build = build;   // ← expõe globalmente para o MiniMotorPlayer
         });
       }
     };
+    // ── FIX: se o contexto WebGL for perdido, para o loop e sinaliza.
+    // ── FIX 5: o canvas do espectro é 2D, nunca dispara webglcontextlost.
+    //    O evento correto para economizar CPU quando o totem sai da tela é
+    //    visibilitychange. Ao voltar, o loop é retomado.
+    const aoMudarVisibilidade = () => {
+      if (S.morto) return;
+      if (document.hidden) {
+        cancelAnimationFrame(raf);
+      } else {
+        // reagenda o loop somente se já não estiver rodando
+        cancelAnimationFrame(raf);
+        loop();
+      }
+    };
+    document.addEventListener('visibilitychange', aoMudarVisibilidade);
+
     loop();
-    S.fins.push(() => { cancelAnimationFrame(raf); ro.disconnect(); });
+    S.fins.push(() => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+      document.removeEventListener('visibilitychange', aoMudarVisibilidade);
+    });
   }
 
   const PALCOS = { eletrica: palcoEolica, artes: palcoArtes, musica: palcoMusica };
