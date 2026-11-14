@@ -570,7 +570,11 @@ html,body{background:#000}
   gap:.6em;padding:.4em .8em;flex-wrap:wrap
 }
 .cards-runtime .tx-pub em{display:none}
-.sl img,.sl video{width:100%;height:100%;display:block}
+.sl img,.sl video{width:100%;height:100%;display:block;background:#000}
+/* Vídeo em modo "contain": o fundo do slide continua sendo o radial azul do tema,
+   não o preto puro. Assim as bordas do vídeo não parecem "escuras". */
+.sl video.fit-contain{object-fit:contain;background:radial-gradient(ellipse at 30% 15%,#0b1a33,#02040a 70%)}
+.sl video.fit-cover{object-fit:cover}
 .sl iframe{width:100%;height:100%;border:0;background:#fff}
 .sl.kb img{animation:kenb 14s ease-in-out infinite alternate}
 @keyframes kenb{from{transform:scale(1) translate(0,0)}to{transform:scale(1.12) translate(-2%,-1.5%)}}
@@ -3256,11 +3260,9 @@ function criarSlide(P, item) {
     v.autoplay    = true;
     v.playsInline = true;
     v.preload     = 'auto';
-    // NÃO usar crossOrigin: o GitHub Pages não envia CORS para .MOV/.MP4
-    // e o navegador bloquearia o vídeo. Sem crossOrigin o <video> funciona
-    // como <img> — carrega normalmente, sem exigir cabeçalho CORS.
-    // v.crossOrigin = 'anonymous';   // ← REMOVIDO
-    v.style.objectFit = item.fit || 'cover';
+    // Em vez de object-fit via style (que deixa faixa preta ao redor quando "contain"),
+    // usamos uma classe que pinta o fundo com o gradiente do tema.
+    v.classList.add(item.fit === 'contain' ? 'fit-contain' : 'fit-cover');
     v.loop        = !!item.loop;
     v.src         = u;
     S.fimEvento   = true;
