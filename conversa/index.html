@@ -4636,6 +4636,23 @@ TX.demoInfoCell = { def:{duracaoS:58}, duracaoMin:45, build(P,item,s,S) {
   .ic-footer{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:14px;padding:9px 14px;border-radius:15px;border:1px solid #24d9ff44;background:#061522f2;box-shadow:0 12px 35px #0006}.ic-contact{font-size:clamp(10px,1.05vw,15px);font-weight:800}.ic-contact small{display:block;color:#9bb2c4;font-size:clamp(8px,.75vw,11px);font-weight:500;margin-top:3px}.ic-phone{font-size:clamp(12px,1.25vw,18px);color:#9ff4ff;font-weight:900;white-space:nowrap}.ic-qr{width:clamp(48px,6.2vw,82px);height:clamp(48px,6.2vw,82px);padding:4px;background:#fff;border-radius:8px;object-fit:contain}
   .ic-cursor{position:absolute;z-index:9;width:34px;height:44px;left:50%;top:50%;opacity:0;filter:drop-shadow(0 2px 3px #0009);transition:all 1s cubic-bezier(.2,.8,.2,1);pointer-events:none}.ic-cursor.on{opacity:1}.ic-cursor:before{content:'➤';font-size:35px;color:white;text-shadow:0 2px 4px #001}.ic-caption{position:absolute;left:50%;bottom:14%;transform:translateX(-50%);z-index:10;background:#04111de8;border:1px solid #24d9ff66;color:#c9f8ff;border-radius:30px;padding:8px 18px;font-size:clamp(10px,1vw,14px);white-space:nowrap;opacity:0;transition:opacity .3s}.ic-caption.on{opacity:1}
   @media(max-aspect-ratio:1/1){.ic-shell{inset:2% 2% 2%;grid-template-rows:auto 1fr auto}.ic-main{grid-template-columns:1fr 1fr;grid-template-rows:.8fr 1.2fr}.ic-pitch{grid-column:1/-1}.ic-pitch h1{font-size:clamp(20px,4vw,34px);margin:5px 0}.ic-points{display:none}.ic-store{grid-column:1}.ic-chat{grid-column:2}.ic-footer{grid-template-columns:1fr auto;gap:6px}.ic-contact{grid-column:1}.ic-phone{grid-column:1}.ic-qr{grid-column:2;grid-row:1/3}}
+  /* Identidade InfoCell: vermelho + cinza, sem azul/ciano */
+  .ic-shell{--ic-red:#c62828;--ic-red2:#e53935;--ic-gray:#555b63;--ic-light:#e7e7e7}
+  .ic-brand b,.ic-kicker,.ic-pitch h1 span,.ic-phone{color:var(--ic-red)!important}
+  .ic-live{color:#f0f0f0!important;border-color:#c6282866!important;background:#c6282820!important}
+  .ic-pill{background:#c6282818!important;border-color:#c6282866!important;color:#f0dada!important}
+  .ic-points span{color:#c62828!important}
+  .ic-pitch,.ic-store,.ic-chat{background:linear-gradient(145deg,#30343aee,#171a1eee)!important;border-color:#85898f!important}
+  .ic-browser,.ic-url,.ic-chat-input{background:#24282d!important;color:#d5d7da!important}
+  .ic-catalog-head small,.ic-contact small,.ic-phone small{color:#b8bdc3!important}
+  .ic-product.active{border-color:#c62828!important;box-shadow:0 0 0 4px #c6282822,0 14px 30px #0007!important}
+  .ic-chat-head{background:#3a3d42!important;border-bottom-color:#c6282866!important}
+  .ic-avatar{background:linear-gradient(135deg,#c62828,#777)!important}
+  .ic-msg.user{background:#b3262d!important}
+  .ic-msg.staff{background:#555b63!important}
+  .ic-chat-input b{color:#e53935!important}
+  .ic-footer{border-color:#c6282888!important;background:#25282df2!important}
+  .ic-qr{border:2px solid #c62828!important}
   </style>
   <div class="ic-shell">
     <header class="ic-head"><div><div class="ic-brand">INFO<span style="color:#fff">CELL</span> <b>STORE</b></div><div class="ic-sub">TECNOLOGIA · ACESSÓRIOS · ASSISTÊNCIA</div></div><div class="ic-live">● ATENDIMENTO ONLINE</div></header>
@@ -6705,6 +6722,17 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
   .eco3-head strong{color:#e4f8ff}.eco3-phase{border:1px solid #5bcfff66;border-radius:30px;padding:7px 12px;background:#06172dcc;color:#9de7ff;white-space:nowrap}
   .eco3-title{position:absolute;z-index:5;top:10%;left:4%;right:4%;text-align:center;pointer-events:none}.eco3-title small{display:block;color:#88b8d7;letter-spacing:.34em;font-size:clamp(8px,.8vw,12px)}.eco3-title b{display:block;margin-top:7px;font-size:clamp(19px,2.8vw,39px);letter-spacing:.12em;background:linear-gradient(90deg,#fff,#77dcff,#c5a5ff,#fff);color:transparent;background-clip:text;-webkit-background-clip:text}
   .eco3-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .eco3-fallback{position:absolute;z-index:1;inset:20% 8% 18%;display:grid;place-items:center;pointer-events:none;opacity:.96}
+  .eco3-fallback-orbit{position:relative;width:min(52vw,48vh);height:min(52vw,48vh);max-width:360px;max-height:360px;border:1px solid #9ca3af88;border-radius:50%;box-shadow:0 0 35px #9ca3af22,inset 0 0 35px #9ca3af18;animation:ecoFallbackSpin 28s linear infinite}
+  .eco3-fallback-orbit:before,.eco3-fallback-orbit:after{content:'';position:absolute;inset:13%;border:1px solid #c6282877;border-radius:50%;transform:rotate(55deg) scaleX(.55)}
+  .eco3-fallback-orbit:after{inset:25%;border-color:#d1d5db88;transform:rotate(-48deg) scaleX(.5)}
+  .eco3-fallback-core{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:31%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;text-align:center;background:radial-gradient(circle at 35% 30%,#f4f4f4,#9ca3af 36%,#5b2025 70%,#17191d);box-shadow:0 0 30px #c6282866,0 0 70px #9ca3af33;color:white;font-size:clamp(8px,1vw,13px);font-weight:900;letter-spacing:.12em;animation:ecoFallbackPulse 7.2s ease-in-out infinite}
+  .eco3-fallback-node{position:absolute;width:clamp(7px,1.1vw,13px);height:clamp(7px,1.1vw,13px);border-radius:50%;background:#c62828;box-shadow:0 0 16px #c62828aa}
+  .eco3-fallback-node:nth-child(2){left:48%;top:-2%}.eco3-fallback-node:nth-child(3){right:-1%;top:43%;background:#d1d5db}.eco3-fallback-node:nth-child(4){left:48%;bottom:-2%;background:#9ca3af}.eco3-fallback-node:nth-child(5){left:-1%;top:43%}
+  @keyframes ecoFallbackSpin{to{transform:rotate(360deg)}}@keyframes ecoFallbackPulse{0%,100%{scale:.94;box-shadow:0 0 24px #c6282855,0 0 55px #9ca3af22}50%{scale:1.08;box-shadow:0 0 42px #c62828aa,0 0 85px #9ca3af55}}
+  .tx-eco3d[data-render="3d"] .eco3-fallback{opacity:0;transition:opacity .8s}
+  .tx-eco3d[data-render="fallback"] .eco3-fallback{opacity:1}
+  @media(max-width:700px){.eco3-fallback{inset:23% 8% 27%}.eco3-fallback-orbit{width:min(62vw,34vh);height:min(62vw,34vh)}.eco3-title b{font-size:clamp(15px,4.2vw,25px);letter-spacing:.06em}.eco3-head{font-size:7px;letter-spacing:.08em}.eco3-phase{padding:5px 7px}.eco3-info{bottom:8%;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}.eco3-group{padding:4px 5px}.eco3-group b{font-size:6px}.eco3-group span{font-size:5.5px}.eco3-foot{font-size:6px;letter-spacing:.04em}}
   .eco3-info{position:absolute;z-index:5;left:3%;right:3%;bottom:9%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;opacity:0;transform:translateY(12px);transition:opacity 1.4s,transform 1.4s;pointer-events:none}
   .eco3-group{min-width:0;padding:7px 9px;border:1px solid color-mix(in srgb,var(--gc),transparent 68%);border-radius:8px;background:linear-gradient(130deg,#08192bdc,#07101dcc);box-shadow:0 0 18px color-mix(in srgb,var(--gc),transparent 90%)}
   .eco3-group b{display:block;color:var(--gc);font-size:clamp(7px,.7vw,10px);letter-spacing:.1em;margin-bottom:3px}.eco3-group span{display:block;color:#b4c9da;font-size:clamp(6px,.62vw,9px);line-height:1.35}
@@ -6717,6 +6745,7 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
   @media(prefers-reduced-motion:reduce){.eco3-info,.eco3-corelabel{transition:none}}
   </style>
   <div class="eco3-bg"></div>
+  <div class="eco3-fallback" aria-hidden="true"><div class="eco3-fallback-orbit"><i class="eco3-fallback-node"></i><i class="eco3-fallback-node"></i><i class="eco3-fallback-node"></i><i class="eco3-fallback-node"></i><div class="eco3-fallback-core">ALMA<br>FLUXO</div></div></div>
   <div class="eco3-head"><strong>ALMAFLUXO · ARQUITETURA DE UM UNIVERSO</strong><span class="eco3-phase">ENTROPIA · ORGANIZAÇÃO</span></div>
   <div class="eco3-title"><small>DO PENSAMENTO À MATERIALIZAÇÃO</small><b>IDEIAS QUE SE TORNAM CONEXÕES</b></div>
   <div class="eco3-corelabel"><b>ALMAFLUXO</b><span>UM NÚCLEO · MÚLTIPLAS PLATAFORMAS</span></div>
@@ -6729,6 +6758,7 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
     if(S.morto)return;
     try{
       tx3d(s,S,THREE,C=>{
+        s.setAttribute('data-render','3d');
         const {sc:scene,cam:camera}=C;
         camera.position.set(0,2,30);camera.lookAt(0,0,0);
         scene.fog=new THREE.FogExp2(0x020711,.012);
@@ -6797,8 +6827,8 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
           s.setAttribute('data-phase',u<.48?'1':u<.62?'2':u<.82?'3':u<.94?'4':'5');
         };
       });
-    }catch(err){console.warn('[TOTEM][ECO3D] Falha na cena:',err);const aviso=document.createElement('div');aviso.style.cssText='position:absolute;inset:38% 8%;text-align:center;color:#dff7ff;font-size:18px';aviso.textContent='ALMAFLUXO · Pensamento, criação e plataformas conectadas.';s.appendChild(aviso);}
-  }).catch(err=>{console.warn('[TOTEM][ECO3D] Three.js indisponível:',err);if(!S.morto){const aviso=document.createElement('div');aviso.style.cssText='position:absolute;inset:38% 8%;text-align:center;color:#dff7ff;font-size:18px';aviso.textContent='ALMAFLUXO · Pensamento, criação e plataformas conectadas.';s.appendChild(aviso);}});
+    }catch(err){console.warn('[TOTEM][ECO3D] Falha na cena; usando visual alternativo:',err);s.setAttribute('data-render','fallback');}
+  }).catch(err=>{console.warn('[TOTEM][ECO3D] Three.js indisponível; usando visual alternativo:',err);if(!S.morto)s.setAttribute('data-render','fallback');});
 }};
 
 const TX_PADRAO = () => ({id: '-', status: 'liberado', tela: {}, layout: {modelo: 'full', gap: 0, raio: 0}, paineis: {r1: {itens: [
