@@ -4638,9 +4638,11 @@ TX.demoKpg = { def: { duracaoS: 62, whats: '(21) 96470-0935', chamada: 'Faça o 
 TX.demoInfoCell = { def:{duracaoS:58}, duracaoMin:45, build(P,item,s,S) {
   txMorre(S); s.className += ' ic-demo';  /* o rodapé do totem (.tx-pub) fica visível, como nos demais slides */
   const atendimento='https://almafluxo.uk/infocell', enderecoTxt='almafluxo.uk/infocell';
-  const pastaEnc=encodeURIComponent('célula de informação')+'/imagens/';
-  /* o Worker de almafluxo.uk não serve arquivos do repositório: usa GitHub Pages e, se falhar, o raw de cada branch */
-  const BASES=['https://tchelojc.github.io/externo/'+pastaEnc,'https://raw.githubusercontent.com/tchelojc/externo/main/'+pastaEnc,'https://raw.githubusercontent.com/tchelojc/externo/alma/'+pastaEnc,'https://raw.githubusercontent.com/tchelojc/externo/master/'+pastaEnc];
+  const pastaEnc = 'conversar/' + encodeURIComponent('imagens') + '/';
+  // Branches do repo: main e alma (não existe 'master')
+  const BRANCHES = ['main', 'alma'];
+  const BASES = ['https://tchelojc.github.io/externo/' + pastaEnc]
+    .concat(BRANCHES.map(b => 'https://raw.githubusercontent.com/tchelojc/externo/' + b + '/' + pastaEnc));
   const rawBase=BASES[0];
   const QR_SVG='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 35 35" class="segno"><path shape-rendering="crispEdges" stroke="#111" d="M3 3.5h7m1 0h3m1 0h3m1 0h4m2 0h7m-29 1h1m5 0h1m5 0h1m3 0h3m1 0h1m1 0h1m5 0h1m-29 1h1m1 0h3m1 0h1m1 0h1m1 0h3m3 0h2m2 0h1m1 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m1 0h2m3 0h4m1 0h2m2 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m2 0h1m1 0h3m1 0h4m3 0h1m1 0h3m1 0h1m-29 1h1m5 0h1m1 0h1m1 0h2m2 0h1m1 0h1m1 0h3m1 0h1m5 0h1m-29 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-21 1h3m1 0h1m4 0h1m2 0h1m-20 1h1m1 0h1m1 0h6m1 0h2m1 0h1m3 0h1m1 0h3m1 0h2m1 0h1m-29 1h1m1 0h3m3 0h1m1 0h4m1 0h1m1 0h1m2 0h3m3 0h1m1 0h1m-23 1h1m3 0h1m3 0h2m2 0h2m2 0h4m1 0h1m-28 1h4m3 0h1m1 0h1m1 0h2m2 0h2m1 0h1m1 0h3m1 0h1m1 0h2m-28 1h2m2 0h3m2 0h1m4 0h1m1 0h2m2 0h1m1 0h2m1 0h1m-25 1h1m5 0h2m1 0h2m1 0h1m1 0h1m3 0h3m1 0h1m1 0h1m1 0h1m-27 1h3m1 0h3m2 0h2m5 0h1m2 0h2m6 0h1m-26 1h1m1 0h1m1 0h2m2 0h1m1 0h3m1 0h1m1 0h1m1 0h3m4 0h1m-28 1h2m3 0h2m3 0h1m1 0h1m2 0h1m1 0h4m5 0h2m-28 1h1m1 0h3m2 0h1m1 0h6m5 0h3m2 0h3m-29 1h1m5 0h1m5 0h1m4 0h1m3 0h1m1 0h1m1 0h4m-27 1h1m2 0h1m8 0h4m1 0h2m3 0h2m2 0h1m-29 1h1m3 0h1m1 0h1m2 0h1m1 0h1m1 0h2m4 0h6m1 0h2m-20 1h4m1 0h1m2 0h2m1 0h2m3 0h1m2 0h2m-29 1h7m1 0h1m2 0h1m2 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h4m-28 1h1m5 0h1m1 0h1m1 0h1m2 0h1m1 0h2m3 0h1m3 0h1m1 0h2m-28 1h1m1 0h3m1 0h1m6 0h1m2 0h1m1 0h1m1 0h6m-26 1h1m1 0h3m1 0h1m1 0h4m2 0h2m3 0h4m1 0h1m1 0h1m1 0h1m-29 1h1m1 0h3m1 0h1m2 0h2m3 0h4m1 0h2m3 0h3m1 0h1m-29 1h1m5 0h1m1 0h1m1 0h1m1 0h3m1 0h2m1 0h2m2 0h1m1 0h1m1 0h1m-28 1h7m2 0h4m2 0h3m2 0h1m1 0h1m1 0h2m1 0h1"/></svg>';
   s.innerHTML=`
@@ -4757,8 +4759,8 @@ TX.demoInfoCell = { def:{duracaoS:58}, duracaoMin:45, build(P,item,s,S) {
     }
     /* 2) plano B: pergunta à API do GitHub os nomes REAIS dos arquivos (cobre nome diferente de branch/pasta/arquivo) */
     if(!achados.length){
-      const api='https://api.github.com/repos/tchelojc/externo/contents/'+encodeURIComponent('célula de informação')+'/imagens';
-      for(const ref of ['','?ref=main','?ref=alma','?ref=master']){
+      const api='https://api.github.com/repos/tchelojc/externo/contents/' + 'conversar/imagens';
+      for(const ref of ['?ref=main', '?ref=alma', '']){
         try{
           const ctrl=new AbortController(),t=setTimeout(()=>ctrl.abort(),7000);let r;
           try{r=await fetch(api+ref,{cache:'force-cache',signal:ctrl.signal});}finally{clearTimeout(t);}
