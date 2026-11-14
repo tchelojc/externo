@@ -3580,7 +3580,6 @@ function iniciarRegiao(P, box, id, cont) {
           const videoS = Math.max(0, Number(R._videoDurations[ix]) || 0);
           const espera = R._videoFailed[ix] ? 0 : Math.max(0, Math.min(15, Number(it.pausaFinalS) || 0));
           // ── FIX 2: se o vídeo ainda NÃO foi medido e NÃO falhou, assume 30 s
-          //    para o cálculo não ficar em 0 e inflar o ecossistema.
           if (!R._videoDurations[ix] && !R._videoFailed[ix]) return acc + 30 + espera;
           return acc + videoS + espera;
         }
@@ -4704,7 +4703,7 @@ TX.demoInfoCell = { def:{duracaoS:58}, duracaoMin:45, build(P,item,s,S) {
   //    carregarem caem nos cartões de reserva (📱 🔌 🔊), sem quebrar o slide.
   const arquivosProdutos=[
     'cabo-P2-P2.jpeg','cabo-V8.jpeg','cabo-carregador-micro-USB.jpeg',
-    'cabo-carregamento-tipoC-turbo.jpeg','cabo-carregamento-tipoC- turbo.jpeg',
+    'cabo-carregamento-tipoC-turbo.jpeg',
     'cabo-dados-iphone.jpeg','cabo-de-forca.jpeg','cabo-de-rede.jpeg',
     'cabo-entrada-2saidas-P2.jpeg',
     'cabo-hdtv.jpeg','cabo-iphone.jpeg','cabo-micro-USB-dados.jpeg',
@@ -4715,8 +4714,7 @@ TX.demoInfoCell = { def:{duracaoS:58}, duracaoMin:45, build(P,item,s,S) {
     'carregador-completo-turbo-micro-USB-preto.jpeg','carregador-completo-turbo-micro-USB.jpeg',
     'carregador-completo.jpeg','carregador-lcd-universal.jpeg',
     'carregador-veicular-preto-Iphone.jpeg','carregador-veicular-preto.jpeg',
-    'carregador-veículo.jpeg','carregador-veiculo.jpeg',
-    'boom.jpeg'
+    'carregador-veiculo.jpeg','boom.jpeg'
   ];
   const TOK={tipoc:'Tipo-C',usb:'USB',p2:'P2',v8:'V8',iphone:'iPhone',hdtv:'HDTV',lcd:'LCD',micro:'Micro',de:'de',para:'para',turbo:'Turbo'};
   const nomeProduto=nome=>{const base=String(nome||'').replace(/\.[^.]+$/,'').replace(/\s+/g,'-').replace(/^-+/,'');
@@ -7154,12 +7152,6 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
           qrMesh.visible=uQR>.01;qrMesh.quaternion.copy(camera.quaternion);qrMesh.scale.setScalar(Qs*(1+.012*beat*uQR));qrMesh.material.opacity=uQR;
           qrGlow.position.set(0,0,0);qrGlow.scale.setScalar(Qs*(1.9+.25*beat));qrGlow.material.opacity=uMorph*(.45+.35*beat)*(1-.2*uQR);
 
-          /* vigilante: se a cena sair escura (GPU/driver do aparelho), cai no modo alternativo em vez de ficar preta */
-          if(!wd.ran&&t>3.5){wd.ran=true;try{R.render(scene,camera);const gl=R.getContext(),w=gl.drawingBufferWidth,h=gl.drawingBufferHeight;
-            if(gl.isContextLost()){modoAlt('contexto gráfico perdido');return;}
-            const buf=new Uint8Array(w*h*4);gl.readPixels(0,0,w,h,gl.RGBA,gl.UNSIGNED_BYTE,buf);let n=0;for(let i=0;i<buf.length;i+=16){if(buf[i]>70||buf[i+1]>70||buf[i+2]>90)n++;}
-            if(n<12){modoAlt('cena escura ('+n+')');return;}}catch(e){modoAlt('leitura de vídeo: '+(e&&e.message||e));return;}}
-
           /* adaptativo: se o aparelho não acompanha, reduz partículas e resolução (nunca o roteiro) */
           if(clock>1.5&&dt>0){fpsAcc+=dt;fpsN++;if(fpsAcc>2){const m=fpsAcc/fpsN;
             if(m>.036&&pAtivo>PMAX*.3){pAtivo=Math.floor(pAtivo*.75);pGeo.setDrawRange(0,pAtivo);}
@@ -7173,6 +7165,7 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
 }};
 
 const TX_PADRAO = () => ({id: '-', status: 'liberado', tela: {}, layout: {modelo: 'full', gap: 0, raio: 0}, paineis: {r1: {itens: [
+  {tipo: 'relogio',      duracaoS: 9},
   {tipo: 'bolsa3d',      duracaoS: 20},
   {tipo: 'cotacoes',     duracaoS: 14},
   {tipo: 'linear',       duracaoS: 18},
@@ -7190,8 +7183,7 @@ const TX_PADRAO = () => ({id: '-', status: 'liberado', tela: {}, layout: {modelo
   {tipo: 'curiosidades', duracaoS: 22, categoria: 'astronomia'},
   {tipo: 'demoKpg',      duracaoS: 62},                                                          // ← publicidade KPG
   {tipo: 'video', url: 'https://tchelojc.github.io/externo/conversar/IMG_1929.MOV', nome: 'Comercial R5Fit', duracaoS: 0, pausaFinalS: 3, mudo: true, fit: 'contain', r5fit: true, loop: false},
-  {tipo: 'demoInfoCell', duracaoS: 58},                                                          // ← vitrine e atendimento InfoCellTec
-  {tipo: 'relogio',      duracaoS: 8},
+  {tipo: 'demoInfoCell', duracaoS: 35},                                                          // ← vitrine e atendimento InfoCellTec
   {tipo: 'ecossistema',  duracaoS: 42}                                                           // ← encerramento: nascimento 3D do ecossistema ALMAFLUXO
 ], transicao: {tipo: 'fade', ms: 900}, aleatorio: false}}});
 
@@ -8749,7 +8741,7 @@ window.build = build;   // ← expõe globalmente para o MiniMotorPlayer
         });
       }
     };
-    // ── FIX: se o contexto WebGL for perdido, para o loop e sinaliza.
+
     // ── FIX 5: o canvas do espectro é 2D, nunca dispara webglcontextlost.
     //    O evento correto para economizar CPU quando o totem sai da tela é
     //    visibilitychange. Ao voltar, o loop é retomado.
@@ -8758,19 +8750,18 @@ window.build = build;   // ← expõe globalmente para o MiniMotorPlayer
       if (document.hidden) {
         cancelAnimationFrame(raf);
       } else {
-        // reagenda o loop somente se já não estiver rodando
         cancelAnimationFrame(raf);
         loop();
       }
     };
     document.addEventListener('visibilitychange', aoMudarVisibilidade);
-
     loop();
     S.fins.push(() => {
       cancelAnimationFrame(raf);
       ro.disconnect();
       document.removeEventListener('visibilitychange', aoMudarVisibilidade);
     });
+
   }
 
   const PALCOS = { eletrica: palcoEolica, artes: palcoArtes, musica: palcoMusica };
