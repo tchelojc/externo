@@ -3537,7 +3537,7 @@ function iniciarRegiao(P, box, id, cont) {
   if (id === 'r1' && !P.preview) {
     if (!itens.some(i => i.r5fit === true || (i.tipo === 'video' && /IMG_1929\.MOV/i.test(String(i.url||''))))) itens.push({tipo:'video', url:'./IMG_1929.MOV', nome:'Comercial R5Fit', duracaoS:0, pausaFinalS:3, mudo:true, fit:'contain', r5fit:true, loop:false, ativo:true});
     if (!itens.some(i => i.tipo === 'demoInfoCell')) itens.push({tipo:'demoInfoCell', nome:'InfoCellTec · vitrine e atendimento', duracaoS:58, ativo:true});
-    if (!itens.some(i => i.tipo === 'ecossistema')) itens.push({tipo:'ecossistema', nome:'ALMAFLUXO · linhas do universo', duracaoS:58, ativo:true});
+    if (!itens.some(i => i.tipo === 'ecossistema')) itens.push({tipo:'ecossistema', nome:'ALMAFLUXO · linhas do universo', duracaoS:42, ativo:true});
   }
   itens = itens.map((i, n) => [i, n]).sort((a, b) => pesoFim(a[0]) - pesoFim(b[0]) || a[1] - b[1]).map(x => x[0]);
   const ordemCiclo = () => {
@@ -3563,23 +3563,7 @@ function iniciarRegiao(P, box, id, cont) {
     else if(cont.aleatorio&&itens.length>1){ if(!R._ordem||R._op>=R._ordem.length){R._ordem=ordemCiclo();R._op=0;} ni=R._ordem[R._op++]; }
     else ni=(R.idx+1)%itens.length;
     let item = itens[ni], s = null;
-    // Ao chegar ao encerramento, reserva exatamente o restante até completar 09:00.
-    // A duração do vídeo R5Fit é obtida do próprio arquivo (metadata/ended), não estimada.
-    if (item.tipo === 'ecossistema') {
-      const totalAntesDoNucleo = itens.reduce((acc, it, ix) => {
-        if (!it || it.tipo === 'ecossistema') return acc;
-        if (it.tipo === 'video' && Number(it.duracaoS) === 0) {
-          const videoS = Math.max(0, Number(R._videoDurations[ix]) || 0);
-          const espera = R._videoFailed[ix] ? 0 : Math.max(0, Math.min(15, Number(it.pausaFinalS) || 0));
-          return acc + videoS + espera;
-        }
-        let d = Math.max(2, Number(it.duracaoS) || 10);
-        const minimo = TX[it.tipo] && TX[it.tipo].duracaoMin;
-        if (minimo && d < minimo) d = minimo;
-        return acc + d;
-      }, 0);
-      item = Object.assign({}, item, {_duracaoCalculadaS: Math.max(2, 540 - totalAntesDoNucleo)});
-    }
+    // Cada slide usa somente sua duração individual configurada; sem ciclo global de 09:00.
     try {
       s = criarSlide(P, item);
     } catch (err) {
@@ -3611,7 +3595,6 @@ function iniciarRegiao(P, box, id, cont) {
     if (!P.preview && id === 'r1' && itens.length > 1 && R._vis > 1 && (R._vis - 1) % itens.length === 0) { try { TOTEM_AMBIENTE.cicloCompleto(); } catch (e) {} }
     let dur = item.duracaoS === 0 && s.fimEvento ? 0 : Math.max(2, +item.duracaoS || 10);
     const dMin = TX[item.tipo] && TX[item.tipo].duracaoMin; if (dMin && dur > 0 && dur < dMin) dur = dMin;   // slides que precisam de tempo mínimo (ex.: demo da KPG)
-    if (item.tipo === 'ecossistema' && Number(item._duracaoCalculadaS) > 0) dur = Number(item._duracaoCalculadaS); // fecha o ciclo em 540 s
     R.duracao=dur>0?dur*1000:0;R.restante=R.duracao;R.prazo=R.duracao?Date.now()+R.duracao:0;
     if (manteraPausa) { R.pausado = true; R.restante = R.duracao; return; }
     if (itens.length === 1) { if (item.tipo === 'video') { const v = s.el.querySelector('video'); if (v) v.loop = true; } return; }
@@ -4731,14 +4714,16 @@ TX.demoInfoCell = { def:{duracaoS:58}, duracaoMin:45, build(P,item,s,S) {
     /* 1) vitrine */
     legenda('Vitrine InfoCellTec · cabos e carregadores'); destaca(0); await wait(2600); if(!vivo)return;
     await Promise.race([carregando,wait(3000)]); if(!vivo)return;
-    const tp=paginasTotal(), reservaChat=13000, reservaQR=11000;
-    const dwell=Math.max(2300,Math.min(4300,Math.floor((durS*1000-ativoMs-reservaChat-reservaQR)/tp)));
+    const tp=paginasTotal(), reservaChat=13000, reservaQR=4500;
+    /* Cada página recebe sua fatia real do tempo disponível; as transições
+       (260 + 300 + 800 ms) entram na conta para o QR ficar só no fechamento. */
+    const tempoPagina=Math.max(2260,Math.floor((durS*1000-ativoMs-reservaChat-reservaQR)/tp));
     for(let pg=0;pg<tp;pg++){
       products.classList.add('sw'); await wait(260); if(!vivo)return;
       renderPagina(pg); products.classList.remove('sw');
       legenda('Produtos InfoCellTec · grupo '+(pg+1)+' de '+tp);
       await wait(300); if(!vivo)return; destaca(pg);
-      await wait(Math.max(900,dwell-1100)); if(!vivo)return; destaca(pg+2);
+      await wait(Math.max(900,tempoPagina-1360)); if(!vivo)return; destaca(pg+2);
       await wait(800); if(!vivo)return;
     }
     /* 2) conversa cenográfica */
@@ -6846,6 +6831,12 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
     S.fins.push(()=>clearInterval(iv));
   }
   const clamp01b=x=>Math.max(0,Math.min(1,x));
+  /* Em telefones, usa a animação orbital leve em CSS e o QR 2D já preparado.
+     * Isso evita tela preta em GPUs móveis/ WebGL instável sem remover o slide final.
+     * Em telas maiores, mantém a cena 3D completa. */
+  const telaMovel = !!(window.matchMedia && matchMedia('(max-width:700px), (max-aspect-ratio:1/1)').matches);
+  if (telaMovel) { modoAlt('animação móvel compatível'); return; }
+
   txThree().then(THREE=>{
     if(S.morto)return;
     try{
