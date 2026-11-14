@@ -1572,10 +1572,10 @@ html, body { overscroll-behavior: none; }
 .pl-lupa-mira { position: absolute; left: 50%; top: 50%; width: 26px; height: 26px; margin: -13px 0 0 -13px; border: 2px solid rgba(255,255,255,.8); border-radius: 50%; box-shadow: 0 0 0 1px rgba(0,0,0,.6); }
 .pl-lupa-rot { position: absolute; right: 10px; top: 8px; font: 700 11px system-ui, sans-serif; color: #00e5ff; background: rgba(0,0,0,.65); padding: 3px 8px; border-radius: 8px; }
 
-/* Seletor discreto de rádios ao vivo — ocupa o antigo botão de silenciar flutuante */
-.tx-radio-tab{position:fixed;right:12px;top:66px;z-index:100004;width:46px;height:46px;border-radius:50%;border:1px solid #00e5ff;background:rgba(3,8,18,.94);color:#8edcff;font-size:21px;cursor:pointer;box-shadow:0 0 18px rgba(0,229,255,.22);opacity:.88;display:none}
-.tx-radio-tab.on{border-color:#72e5a5;color:#72e5a5;box-shadow:0 0 20px rgba(70,230,150,.3)}
-.tx-radio-panel{position:fixed;right:12px;top:120px;z-index:100005;width:min(390px,calc(100vw - 24px));max-height:min(72vh,620px);display:none;overflow:hidden;border:1px solid rgba(0,229,255,.55);border-radius:18px;background:rgba(4,12,25,.97);color:#eaf7ff;box-shadow:0 18px 55px rgba(0,0,0,.65),0 0 28px rgba(0,229,255,.14);backdrop-filter:blur(16px);font:500 13px/1.4 system-ui,sans-serif}
+/* Rádio recolhida no menu técnico: nenhum controle extra na tela do totem. */
+.tx-radio-launch{display:flex;align-items:center;gap:10px;width:100%;margin:12px 0 8px;padding:12px 14px;border:1px solid rgba(0,229,255,.4);border-radius:12px;background:rgba(0,229,255,.07);color:#dff8ff;font:700 13px system-ui;cursor:pointer;text-align:left}
+.tx-radio-launch small{display:block;color:#9db7ca;font-weight:500;margin-top:3px}
+.tx-radio-panel{position:relative;width:100%;max-height: min(62vh,560px);display:none;overflow:hidden;border:1px solid rgba(0,229,255,.4);border-radius:14px;background:rgba(4,12,25,.98);color:#eaf7ff;box-shadow:0 8px 28px rgba(0,0,0,.28);font:500 13px/1.4 system-ui,sans-serif;margin:8px 0 4px}
 .tx-radio-panel.open{display:flex;flex-direction:column}
 .tx-radio-head{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.1)}
 .tx-radio-head strong{font-size:14px;letter-spacing:.04em;flex:1}
@@ -1589,7 +1589,7 @@ html, body { overscroll-behavior: none; }
 .tx-radio-status{padding:8px 12px;color:#a9c6d9;font-size:11px;min-height:30px}
 .tx-radio-actions{display:flex;gap:8px;padding:0 10px 10px}
 .tx-radio-actions a{color:#8edcff;text-decoration:none;border:1px solid rgba(142,220,255,.35);border-radius:9px;padding:7px 10px;font-size:11px}
-@media(max-width:480px){.tx-radio-panel{right:8px;top:116px;width:calc(100vw - 16px)}.tx-radio-player{height:170px}.tx-radio-list{max-height:170px}}
+@media(max-width:480px){.tx-radio-player{height:150px}.tx-radio-list{max-height:150px}}
 
 .tx-audio-dica { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 100003; max-width: 92vw; padding: 10px 16px; border-radius: 14px;
   background: rgba(5,13,24,.94); border: 1px solid #00e5ff; color: #e9f5ff; font: 600 14px/1.35 system-ui, sans-serif; text-align: center; display: none; box-shadow: 0 0 24px rgba(0,229,255,.25); }
@@ -3521,7 +3521,7 @@ function criarPlayer(root, opts) {
   return P;
 }
 function iniciarRegiao(P, box, id, cont) {
-  const R = {idx:-1,atual:null,timer:null,morto:false,pausado:false,duracao:0,restante:0,prazo:0,_forcedIndex:null}; cont = cont || {};
+  const R = {idx:-1,atual:null,timer:null,morto:false,pausado:false,duracao:0,restante:0,prazo:0,_forcedIndex:null,_videoDurations:{},_videoStartedAt:{},_videoFailed:{}}; cont = cont || {};
   if (cont.modo === 'cards' && Array.isArray(cont.cards) && cont.cards.length) {
     const camada = el('div','cards-runtime'); camada.style.cssText='position:absolute;inset:0;overflow:hidden'; box.appendChild(camada);
     const ativos=[];
@@ -3565,6 +3565,23 @@ function iniciarRegiao(P, box, id, cont) {
     else if(cont.aleatorio&&itens.length>1){ if(!R._ordem||R._op>=R._ordem.length){R._ordem=ordemCiclo();R._op=0;} ni=R._ordem[R._op++]; }
     else ni=(R.idx+1)%itens.length;
     let item = itens[ni], s = null;
+    // Ao chegar ao encerramento, reserva exatamente o restante até completar 09:00.
+    // A duração do vídeo R5Fit é obtida do próprio arquivo (metadata/ended), não estimada.
+    if (item.tipo === 'ecossistema') {
+      const totalAntesDoNucleo = itens.reduce((acc, it, ix) => {
+        if (!it || it.tipo === 'ecossistema') return acc;
+        if (it.tipo === 'video' && Number(it.duracaoS) === 0) {
+          const videoS = Math.max(0, Number(R._videoDurations[ix]) || 0);
+          const espera = R._videoFailed[ix] ? 0 : Math.max(0, Math.min(15, Number(it.pausaFinalS) || 0));
+          return acc + videoS + espera;
+        }
+        let d = Math.max(2, Number(it.duracaoS) || 10);
+        const minimo = TX[it.tipo] && TX[it.tipo].duracaoMin;
+        if (minimo && d < minimo) d = minimo;
+        return acc + d;
+      }, 0);
+      item = Object.assign({}, item, {_duracaoCalculadaS: Math.max(2, 540 - totalAntesDoNucleo)});
+    }
     try {
       s = criarSlide(P, item);
     } catch (err) {
@@ -3572,6 +3589,18 @@ function iniciarRegiao(P, box, id, cont) {
     }
     R.idx = ni;
     if (!s) { R.timer = setTimeout(R.proximo, 1500); return; }
+    if (item.tipo === 'video' && s.fimEvento) {
+      const v = s.el.querySelector('video');
+      if (v) {
+        const inicioVideo = performance.now(); R._videoStartedAt[ni] = inicioVideo;
+        const registrarDuracao = () => { const d = Number(v.duration); if (Number.isFinite(d) && d > 0) R._videoDurations[ni] = d; };
+        v.addEventListener('loadedmetadata', registrarDuracao);
+        v.addEventListener('durationchange', registrarDuracao);
+        v.addEventListener('ended', registrarDuracao);
+        v.addEventListener('error', () => { R._videoFailed[ni] = true; R._videoDurations[ni] = Math.max(0, (performance.now() - inicioVideo) / 1000); }, {once:true});
+        registrarDuracao();
+      }
+    }
     // Transição personalizada por tipo (fallback para a global da região)
     const trTipo = TRANSICAO_POR_TIPO[item.tipo] || tr;
     const msTipo = Math.max(0, Math.min(3000, +trTipo.ms || ms));
@@ -3584,6 +3613,7 @@ function iniciarRegiao(P, box, id, cont) {
     if (!P.preview && id === 'r1' && itens.length > 1 && R._vis > 1 && (R._vis - 1) % itens.length === 0) { try { TOTEM_AMBIENTE.cicloCompleto(); } catch (e) {} }
     let dur = item.duracaoS === 0 && s.fimEvento ? 0 : Math.max(2, +item.duracaoS || 10);
     const dMin = TX[item.tipo] && TX[item.tipo].duracaoMin; if (dMin && dur > 0 && dur < dMin) dur = dMin;   // slides que precisam de tempo mínimo (ex.: demo da KPG)
+    if (item.tipo === 'ecossistema' && Number(item._duracaoCalculadaS) > 0) dur = Number(item._duracaoCalculadaS); // fecha o ciclo em 540 s
     R.duracao=dur>0?dur*1000:0;R.restante=R.duracao;R.prazo=R.duracao?Date.now()+R.duracao:0;
     if (manteraPausa) { R.pausado = true; R.restante = R.duracao; return; }
     if (itens.length === 1) { if (item.tipo === 'video') { const v = s.el.querySelector('video'); if (v) v.loop = true; } return; }
@@ -3793,7 +3823,9 @@ function abrirMenuLocal() {
   <div class="fm"><label>Rotação do conteúdo (neste aparelho)<select id="mlRot">${[0,90,180,270].map(g => `<option value="${g}"${+aj.rotacao === g ? ' selected' : ''}>${g}°</option>`).join('')}</select></label>
   <label>Escala (zoom)<input type="number" id="mlEsc" min="0.5" max="1.5" step="0.01" value="${aj.escala}"></label>
   <label>Margem de segurança (%)<input type="number" id="mlMar" min="0" max="15" step="0.5" value="${aj.margem}"></label></div>
-  <div class="hintx">Estes ajustes valem só neste aparelho (ex.: TV girada ou com bordas cortadas). Layout, conteúdo e senha são definidos no painel.</div>`;
+  <div class="hintx">Estes ajustes valem só neste aparelho (ex.: TV girada ou com bordas cortadas). Layout, conteúdo e senha são definidos no painel.</div>
+  <button type="button" class="tx-radio-launch" id="abrirRadioOculta">📻 <span>Rádio ao vivo<small>Abrir estações sem ocupar a apresentação do totem</small></span></button>`;
+  if (window.TX_RADIO) { TX_RADIO.montar(); const rb=$id('abrirRadioOculta'); if(rb) rb.addEventListener('click',()=>TX_RADIO.toggle()); }
   $id('menuLocal').classList.add('ativo');
 }
 function aplicarAjusteLocal() { const aj = {rotacao: +$id('mlRot').value, escala: +$id('mlEsc').value || 1, margem: +$id('mlMar').value || 0, ajuste: 'manual'}; lsSet(LSK.aj, aj); if (MAIN && MAIN.t) MAIN.aplicar(MAIN.t, aj); mostrarToast('✅ Ajuste aplicado.'); }
@@ -4573,14 +4605,15 @@ TX.demoKpg = { def: { duracaoS: 62, whats: '(21) 96470-0935', chamada: 'Faça o 
 }};
 
 /* ══════ TX.demoInfoCell — vitrine de produtos + site + conversa demonstrativa ══════
-   Usa as imagens publicadas em /conversa/imagens no branch alma. A conversa é cenográfica:
+   Usa as imagens publicadas em /célula de informação/imagens no branch alma. A conversa é cenográfica:
    não envia mensagens, não cria pedidos e não coleta dados. */
 TX.demoInfoCell = { def:{duracaoS:58}, duracaoMin:45, build(P,item,s,S) {
   txMorre(S); s.className += ' ic-demo';
   const wpp='5521964814751';
   const qrUrl='https://wa.me/'+wpp+'?text='+encodeURIComponent('Olá! Vi a apresentação da InfoCell no totem e gostaria de informações.');
-  const api='https://api.github.com/repos/tchelojc/externo/contents/conversa/imagens?ref=alma';
-  const rawBase='https://raw.githubusercontent.com/tchelojc/externo/alma/conversa/imagens/';
+  const pasta='célula de informação/imagens';
+  const api='https://api.github.com/repos/tchelojc/externo/contents/'+encodeURIComponent('célula de informação')+'/imagens?ref=alma';
+  const rawBase='https://raw.githubusercontent.com/tchelojc/externo/alma/'+encodeURIComponent('célula de informação')+'/imagens/';
   s.innerHTML=`
   <style>
   .ic-demo .tx-pub{display:none!important}.ic-demo{background:radial-gradient(ellipse at 15% 0%,#163b58 0,#08131f 48%,#050a12 100%);color:#f5f8fc;font-family:Inter,Arial,sans-serif;overflow:hidden}
@@ -4600,7 +4633,7 @@ TX.demoInfoCell = { def:{duracaoS:58}, duracaoMin:45, build(P,item,s,S) {
   .ic-products{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;min-height:0}
   .ic-product{position:relative;overflow:hidden;border:1px solid #ffffff20;border-radius:13px;background:#eaf2f8;color:#142235;display:grid;grid-template-rows:1fr auto;min-height:0;transition:transform .35s,border-color .35s,box-shadow .35s}
   .ic-product.active{transform:translateY(-5px) scale(1.025);border:2px solid #24d9ff;box-shadow:0 0 0 4px #20d8ff22,0 14px 30px #0007}
-  .ic-product img{width:100%;height:100%;min-height:0;object-fit:cover;background:linear-gradient(135deg,#dce8f2,#f9fbff)}.ic-product .ic-fallback{display:grid;place-items:center;font-size:clamp(34px,5vw,72px);background:linear-gradient(135deg,#e7f5fb,#cbdbea);height:100%}
+  .ic-product-img{min-height:0;overflow:hidden;display:grid;place-items:center}.ic-product-img img{display:block;width:100%;height:100%;min-height:0;object-fit:contain;background:linear-gradient(135deg,#dce8f2,#f9fbff)}.ic-product .ic-fallback{display:grid;place-items:center;font-size:clamp(34px,5vw,72px);background:linear-gradient(135deg,#e7f5fb,#cbdbea);height:100%}
   .ic-prod-info{padding:8px 9px;background:#fff}.ic-prod-info b{display:block;font-size:clamp(9px,.95vw,13px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ic-prod-info small{display:block;color:#597083;font-size:clamp(8px,.75vw,10px);margin-top:3px}
   .ic-chat{display:grid;grid-template-rows:auto 1fr auto;padding:0}.ic-chat-head{padding:12px;background:#0c2c42;border-bottom:1px solid #ffffff1c;display:flex;align-items:center;gap:9px}.ic-avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#16c7ec,#1b9c8a);font-weight:900}.ic-chat-head b{font-size:clamp(10px,1vw,14px)}.ic-chat-head small{display:block;color:#87eacb;font-size:clamp(8px,.75vw,10px);margin-top:2px}
   .ic-messages{padding:10px;display:flex;flex-direction:column;gap:8px;overflow:hidden;justify-content:flex-end}.ic-msg{max-width:94%;padding:8px 10px;border-radius:12px;font-size:clamp(9px,.9vw,12px);line-height:1.35;opacity:0;transform:translateY(8px);transition:all .35s}.ic-msg.on{opacity:1;transform:none}.ic-msg.user{align-self:flex-end;background:#0c9fc1;color:white;border-bottom-right-radius:3px}.ic-msg.staff{align-self:flex-start;background:#1b3447;color:#e8f3fb;border-bottom-left-radius:3px}.ic-chat-input{margin:0 9px 9px;padding:9px 10px;border-radius:10px;background:#07111d;border:1px solid #ffffff1c;color:#6f8799;font-size:clamp(8px,.8vw,11px);display:flex;justify-content:space-between}
@@ -4624,28 +4657,67 @@ TX.demoInfoCell = { def:{duracaoS:58}, duracaoMin:45, build(P,item,s,S) {
   const msg=(who,txt)=>{const d=document.createElement('div');d.className='ic-msg '+who;d.textContent=txt;chat.appendChild(d);requestAnimationFrame(()=>d.classList.add('on'));while(chat.children.length>5)chat.firstElementChild.remove();};
   const mover=(el)=>{if(!el)return;const a=el.getBoundingClientRect(),b=s.getBoundingClientRect();cursor.style.left=(a.left-b.left+a.width*.65)+'px';cursor.style.top=(a.top-b.top+a.height*.65)+'px';cursor.classList.add('on');};
   const nomeArquivo=u=>{try{return decodeURIComponent(new URL(u).pathname.split('/').pop()).replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').replace(/\b\w/g,c=>c.toUpperCase()).slice(0,28)||'Acessório InfoCell';}catch(e){return 'Acessório InfoCell';}};
+  const arquivosProdutos=[
+    'cabo-P2-P2.jpeg','cabo-V8.jpeg','cabo-carregador-micro-USB.jpeg','cabo-carregamento-tipoC- turbo.jpeg',
+    'cabo-dados-iphone.jpeg','cabo-de-forca.jpeg','cabo-de-rede.jpeg','cabo-entrada-2saidas-P2.jpeg',
+    'cabo-hdtv.jpeg','cabo-iphone.jpeg','cabo-micro-USB-dados.jpeg','cabo-tipoC-Iphone.jpeg',
+    'cabo-tipoC-Turbo.jpeg','cabo-tipoC-para-tipoC.jpeg','cabo-tipoC-preto.jpeg','cabo-tipoC-tipoC.jpeg',
+    'cabo-turbo-iphone.jpeg','carregador-completo-turbo.jpeg','carregador-completo-micro-USB.jpeg',
+    'carregador-completo-turbo-Iphone.jpeg','carregador-completo-turbo-TipoC.jpeg',
+    'carregador-completo-turbo-micro-USB-preto.jpeg','carregador-completo-turbo-micro-USB.jpeg',
+    'carregador-completo.jpeg','carregador-lcd-universal.jpeg','carregador-veicular-preto-Iphone.jpeg',
+    'carregador-veicular-preto.jpeg','carregador-veículo.jpeg','-boom.jpeg'
+  ];
+  let imagensProdutos=[], paginaProdutos=0;
+  const nomeProduto=nome=>String(nome||'Produto InfoCell').replace(/\.[^.]+$/,'').replace(/^cabo-/i,'').replace(/^carregador-/i,'Carregador ').replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim().replace(/\b\w/g,c=>c.toUpperCase()).slice(0,34)||'Produto InfoCell';
+  function renderPaginaProdutos(pagina=0){
+    if(!imagensProdutos.length)return;
+    const totalPaginas=Math.ceil(imagensProdutos.length/6); paginaProdutos=((pagina%totalPaginas)+totalPaginas)%totalPaginas;
+    const lote=imagensProdutos.slice(paginaProdutos*6,paginaProdutos*6+6); products.innerHTML='';
+    lote.forEach((x,i)=>{
+      const card=document.createElement('article');card.className='ic-product';
+      const box=document.createElement('div');box.className='ic-product-img';
+      const im=document.createElement('img');im.src=x.download_url||rawBase+encodeURIComponent(x.name);im.alt=nomeProduto(x.name);im.loading='eager';
+      im.onerror=()=>{box.innerHTML='<div class="ic-fallback">📱</div>';}; box.appendChild(im);
+      const info=document.createElement('div');info.className='ic-prod-info';
+      const b=document.createElement('b');b.textContent=nomeProduto(x.name);
+      const sm=document.createElement('small');sm.textContent=/^carregador/i.test(x.name)?'CARREGADORES':'CABOS E CONEXÕES';
+      info.append(b,sm);card.append(box,info);products.appendChild(card);
+    });
+  }
   async function carregar(){
+    if(imagensProdutos.length){renderPaginaProdutos(paginaProdutos);return;}
     try{
-      const ctrl=new AbortController(); const timer=setTimeout(()=>ctrl.abort(),5000); let r; try{r=await fetch(api,{cache:'force-cache',signal:ctrl.signal});}finally{clearTimeout(timer);} if(!r.ok) throw new Error('GitHub API '+r.status);
-      const a=await r.json(); const imgs=a.filter(x=>x&&x.type==='file'&&/\.(png|jpe?g|webp|gif)$/i.test(x.name)&&x.download_url).slice(0,12);
-      if(!imgs.length) return;
-      const nomes=['Capinhas e proteção','Películas para celular','Áudio e caixas de som','Acessórios para celular','Carregadores e cabos','Suportes e tripés'];
-      products.innerHTML=''; imgs.slice(0,6).forEach((x,i)=>{const card=document.createElement('article');card.className='ic-product';const im=document.createElement('img');im.src=x.download_url||rawBase+encodeURIComponent(x.name);im.alt=nomeArquivo(im.src);im.loading='eager';im.onerror=()=>{card.querySelector('.ic-product-img').innerHTML='<div class="ic-fallback">📱</div>';};const box=document.createElement('div');box.className='ic-product-img';box.appendChild(im);const info=document.createElement('div');info.className='ic-prod-info';const b=document.createElement('b');b.textContent=nomeArquivo(im.src);const sm=document.createElement('small');sm.textContent=nomes[i%nomes.length];info.append(b,sm);card.append(box,info);products.appendChild(card);});
+      const ctrl=new AbortController(); const timer=setTimeout(()=>ctrl.abort(),6500); let r;
+      try{r=await fetch(api,{cache:'force-cache',signal:ctrl.signal});}finally{clearTimeout(timer);}
+      if(!r.ok) throw new Error('GitHub API '+r.status);
+      const lista=await r.json();
+      const porNome=new Map(lista.filter(x=>x&&x.type==='file').map(x=>[x.name,x]));
+      imagensProdutos=arquivosProdutos.map(name=>porNome.get(name)).filter(x=>x&&x.download_url);
+      if(!imagensProdutos.length)throw new Error('Nenhuma das imagens cadastradas foi encontrada em '+pasta);
+      renderPaginaProdutos(0);
+      console.info('[InfoCell demo] imagens encontradas:',imagensProdutos.length,'de',arquivosProdutos.length);
     }catch(e){console.warn('[InfoCell demo] imagens do repositório indisponíveis:',e.message);}
   }
   async function roteiro(){
     await carregar(); if(!vivo)return;
     const cards=()=>Array.from(products.querySelectorAll('.ic-product'));
-    legenda('A vitrine digital da InfoCell'); await wait(2400); if(!vivo)return;
-    const c=cards(); if(c[0]){c[0].classList.add('active');mover(c[0]);} legenda('Navegue pelos produtos e descubra as opções'); await wait(3000); if(!vivo)return;
-    if(c[0]){c[0].classList.remove('active');c[0].classList.add('active');}
-    msg('user','Oi! Vocês têm película para iPhone 13?'); await wait(1800); if(!vivo)return;
-    msg('staff','Temos opções de película compatíveis! A equipe pode confirmar o modelo e apresentar as opções disponíveis.'); await wait(3000); if(!vivo)return;
-    if(c[1]){c[1].classList.add('active');mover(c[1]);} legenda('Escolha um produto e peça informações'); await wait(2300); if(!vivo)return;
-    msg('user','Também queria ver capinhas e acessórios.'); await wait(1800); if(!vivo)return;
-    msg('staff','Claro! Temos acessórios e opções para diferentes modelos. Chame a equipe pelo WhatsApp para consultar valores e disponibilidade.'); await wait(3200); if(!vivo)return;
-    const bot=$('.ic-phone');mover(bot);legenda('Atendimento direto pelo WhatsApp');await wait(2800);if(!vivo)return;
-    cursor.classList.remove('on');legenda('Aponte a câmera para o QR Code e fale com a InfoCell');await wait(6500);
+    legenda('Vitrine InfoCell · cabos e carregadores'); await wait(2200); if(!vivo)return;
+    const paginas=Math.max(1,Math.ceil(imagensProdutos.length/6));
+    for(let pg=0;pg<paginas;pg++){
+      renderPaginaProdutos(pg); const c=cards();
+      if(c[0]){c[0].classList.add('active');mover(c[0]);}
+      legenda('Produtos InfoCell · grupo '+(pg+1)+' de '+paginas);
+      await wait(2100); if(!vivo)return;
+    }
+    const c=cards(); if(c[0]){c[0].classList.add('active');mover(c[0]);}
+    msg('user','Oi! Vocês têm cabo e carregador para meu celular?'); await wait(1800); if(!vivo)return;
+    msg('staff','Temos diferentes conexões e modelos. A equipe confirma a compatibilidade e a disponibilidade pelo WhatsApp.'); await wait(2800); if(!vivo)return;
+    if(c[1]){c[1].classList.add('active');mover(c[1]);} legenda('Escolha o acessório e consulte a equipe'); await wait(2200); if(!vivo)return;
+    msg('user','Quero consultar os modelos e valores.'); await wait(1600); if(!vivo)return;
+    msg('staff','Claro! Fale conosco para consultar os produtos disponíveis.'); await wait(2200); if(!vivo)return;
+    const bot=$('.ic-phone');mover(bot);legenda('Atendimento direto pelo WhatsApp');await wait(2600);if(!vivo)return;
+    cursor.classList.remove('on');legenda('Aponte a câmera para o QR Code e fale com a InfoCell');await wait(5200);
     caption.classList.remove('on');
   }
   (async()=>{while(vivo){try{await roteiro();}catch(e){if(!vivo)return;console.warn('[demoInfoCell]',e);await wait(1200);}}})();
@@ -6555,7 +6627,7 @@ function txEditor(it, k, i) {
   else if (t === 'planetas3d') h = '<div class="hintx" style="grid-column:1/-1">A câmera fica fixa no alinhamento do pensador/participante. A rotação automática foi removida.</div>';
   else if (t === 'terremotos') h = fld('Magnitude mínima', k + 'magMin', it.magMin == null ? 4.5 : it.magMin, 'number', 'min="4.5" max="9" step="0.1"') + sel('Visualização', k + 'mapa', it.mapa || 'globo', [['globo','🌍 Globo 3D'],['plano','🗺️ Mapa-múndi plano']]);
   else if (t === 'demoKpg') h = fld('WhatsApp exibido no final', k + 'whats', it.whats || '(21) 96470-0935') + fld('Chamada final', k + 'chamada', it.chamada || 'Faça o seu orçamento agora') + '<div class="hintx" style="grid-column:1/-1">Demonstração automática do Orçamento Guiado da KPG: cursor, zoom e legendas explicando cada interação. Usa o mesmo cálculo do site, mas não grava nada. Duração mínima de 45 s (ideal: 60 s).</div>';
-  else if (t === 'demoInfoCell') h = '<div class="hintx" style="grid-column:1/-1">Vitrine animada da InfoCell com imagens carregadas do repositório externo/conversa/imagens, simulação de navegação, conversa cenográfica, telefone e QR Code para WhatsApp. Não envia mensagens nem registra pedidos. Duração recomendada: 55–60 s.</div>'; 
+  else if (t === 'demoInfoCell') h = '<div class="hintx" style="grid-column:1/-1">Vitrine animada da InfoCell com imagens carregadas do repositório externo/célula de informação/imagens, simulação de navegação, conversa cenográfica, telefone e QR Code para WhatsApp. Não envia mensagens nem registra pedidos. Duração recomendada: 55–60 s.</div>'; 
   else if (t === 'jornal') h = fld('Cidade do jornal', k + 'cidade', it.cidade || 'São Paulo');
   else if (t === 'climagrafico') h = sel('Cidade inicial', k + 'cidade', it.cidade || 'auto',
     [['auto', '🎲 Sortear ao abrir'], ...TX_CIDADES.map(c => [c.nome, c.nome + ' (' + c.uf + ')'])])
@@ -6612,88 +6684,125 @@ function txProximaCidade(nomeAtual, passo) {
   return TX_CIDADES[j];
 }
 
-/* ══════ TX.ecossistema — encerramento cinematográfico ALMAFLUXO ══════
-   Cada plataforma apresenta seu próprio universo/linha de trabalho; as rotas
-   convergem num eixo temporal comum. Animação autônoma, sem dependências externas. */
-Object.assign(TIPOS, {ecossistema: '✦ ALMAFLUXO · Universo conectado (encerramento)'});
-TX.ecossistema = {def:{duracaoS:58}, duracaoMin:42, build(P,item,s,S) {
-  txMorre(S); s.className += ' tx-eco';
-  const cards = [
-    ['◉','SOLUTION','Mercado · dados · decisões','#54d7ff'],
-    ['◎','OLHO DE DEUS','Padrões · leitura · análise','#a78bfa'],
-    ['☼','CLIMAFLUXO','Clima · ciclos · território','#72d7b2'],
-    ['⚙','MECÂNICA','Engenharia · mobilidade','#f4b86a'],
-    ['ϟ','ELÉTRICA','Energia · eficiência','#f7dc76'],
-    ['✧','ALMADITOR','Arte · criação · expressão','#ff8db8'],
-    ['♫','SOMA','Música · cultura · experiência','#c49bff'],
-    ['⌁','R5FIT','Movimento · saúde · evolução','#79e5a7'],
-    ['▣','INFOCELL','Tecnologia · soluções · atendimento','#61d7ef'],
-    ['✉','ALMAFLUXO CHAT','Comunicação · conexão · pessoas','#f4c66d'],
-    ['◌','TOTENS','Presença · conteúdo · experiência','#7fc8ff'],
-    ['✦','UNIVERSO ALMAFLUXO','Todas as rotas · um ecossistema','#ffffff']
+/* ══════ TX.ecossistema — nascimento 3D do ecossistema ALMAFLUXO ══════
+   Reutiliza a infraestrutura Three.js já usada pelo MiniMotorPlayer.
+   A cena transforma temas em núcleos, plataformas em nós e relações em conexões. */
+Object.assign(TIPOS, {ecossistema: '✦ ALMAFLUXO · Nascimento do ecossistema'});
+TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
+  txMorre(S); s.className += ' tx-eco3d';
+  const grupos = [
+    {nome:'PENSAMENTO & CIÊNCIA', cor:0x65dfff, itens:['Portal ALMAFLUXO','Fluxo Matemático','Universo Áureo','Trajeto do Nada ao Tudo','Matrix ALMA','Ciclos Energéticos','Laboratório Quântico','Orientador Quântico','7 livros · O FLUXO','Linha do Tempo','ALMAFLUXO · O Fluxo Vivo']},
+    {nome:'AUTOCONHECIMENTO', cor:0xc5a0ff, itens:['Sintesia Humana','Mapa do Próprio Destino']},
+    {nome:'TRADING & ANÁLISE', cor:0x8da8ff, itens:['Interface OPERADOR','Hedge Dinâmico · Basquete','Hedge Dinâmico · Futebol','Hedge Multiesportes','Olho de Deus','Motor de Entropia','Oráculo & Constantes','Mesa GPS','Análise de Partidas']},
+    {nome:'CRIAÇÃO & FERRAMENTAS', cor:0xff9bc8, itens:['Gerador QRcode','GÊNESIS Builder Pro','STUDIO PRO EDITOR AI','CorteFluxo','ALMADITOR','SOMA · Quantum Sound']},
+    {nome:'SERVIÇOS & MERCADO', cor:0x7ce0b5, itens:['Marido de Aluguel','Preço Justo','Sôlombo','Mecânica','Elétrica','OSFluxo','FluxoWhatsApp','CarFluxo']},
+    {nome:'COMUNICAÇÃO & ATENDIMENTO', cor:0xffcf7b, itens:['CHAT ALMAFLUXO','27 Salas de bate-papo','Células IA','ALMAFLUXO Solution','Atendimento AlmaFluxo']},
+    {nome:'CLIMA & UNIVERSO', cor:0x72d6d0, itens:['ClimaFluxo','Ciclos e alinhamentos','Astronomia e curiosidades','Sismos e índice Kp','Notícias e dados do mundo']},
+    {nome:'PRESENÇA & MÍDIA', cor:0xffffff, itens:['Canal YouTube','Canal TikTok','Conversa · Totem','Nossa Conversa Diária']}
   ];
   const esc = v => String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const cardHtml = cards.map((c,i)=>`<div class="eco-card" data-i="${i}" style="--cc:${c[3]};--i:${i}"><div class="eco-card-top"><span>${c[0]}</span><small>ROTA ${(i+1).toString().padStart(2,'0')}</small></div><b>${esc(c[1])}</b><p>${esc(c[2])}</p><div class="eco-card-foot"><i></i><span>LINHA ATIVA</span></div></div>`).join('');
-  s.innerHTML = `
-  <style>
-  .tx-eco{background:#030711;color:#eef7ff;overflow:hidden;font-family:Inter,Roboto,Arial,sans-serif;isolation:isolate}
-  .eco-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 48%,#12365a 0,#091a31 33%,#030711 75%);overflow:hidden}
-  .eco-stars{position:absolute;inset:-20%;opacity:.55;background-image:radial-gradient(1px 1px at 12% 18%,#fff 99%,transparent),radial-gradient(2px 2px at 72% 23%,#7adfff 99%,transparent),radial-gradient(1px 1px at 44% 71%,#fff 99%,transparent),radial-gradient(1px 1px at 83% 82%,#bda7ff 99%,transparent),radial-gradient(1px 1px at 24% 86%,#fff 99%,transparent);background-size:280px 220px;animation:ecoStars 28s linear infinite}
-  .eco-head{position:absolute;top:5%;left:5%;right:5%;display:flex;justify-content:space-between;align-items:center;z-index:8;letter-spacing:.22em;font-size:clamp(9px,.9vw,14px);color:#8fb5d4}
-  .eco-head strong{color:#c6efff;font-weight:700}.eco-phase{border:1px solid #6ddfff55;border-radius:30px;padding:8px 14px;background:#06172dbb;color:#aeeaff;letter-spacing:.13em}
-  .eco-title{position:absolute;top:13%;left:0;right:0;text-align:center;z-index:8;pointer-events:none}.eco-title small{display:block;color:#8abbd8;letter-spacing:.35em;font-size:clamp(8px,.85vw,13px);margin-bottom:8px}.eco-title h2{font-size:clamp(20px,3vw,46px);letter-spacing:.12em;font-weight:800;background:linear-gradient(90deg,#fff,#78dfff,#c5a7ff,#fff);color:transparent;background-clip:text;-webkit-background-clip:text;text-shadow:0 0 32px #48bfff44}
-  .eco-space{position:absolute;inset:20% 4% 14%;perspective:1100px;transform-style:preserve-3d}
-  .eco-orbit{position:absolute;left:50%;top:50%;width:min(72vw,1000px);height:min(72vw,560px);transform:translate(-50%,-50%) rotateX(66deg);border:1px solid #55cfff3a;border-radius:50%;box-shadow:0 0 35px #28a9ff13,inset 0 0 35px #28a9ff10;transition:all 2s ease}
-  .eco-orbit:before,.eco-orbit:after{content:'';position:absolute;inset:12%;border:1px solid #b49bff36;border-radius:50%;transform:rotate(38deg)}.eco-orbit:after{inset:27%;transform:rotate(-42deg);border-color:#6ee7c344}
-  .eco-cards{position:absolute;inset:0;transform-style:preserve-3d}
-  .eco-card{position:absolute;left:50%;top:50%;width:clamp(126px,14vw,205px);min-height:clamp(82px,9vw,126px);padding:clamp(9px,1vw,15px);border:1px solid color-mix(in srgb,var(--cc),transparent 38%);border-radius:13px;background:linear-gradient(145deg,#142c48ed,#081525f2);box-shadow:0 12px 35px #0008,0 0 22px color-mix(in srgb,var(--cc),transparent 82%);backdrop-filter:blur(12px);transform:translate(-50%,-50%) rotateY(calc(var(--i)*29deg)) translateZ(320px) rotateX(-5deg);opacity:0;transition:opacity 1.4s,filter 1.5s,transform 2s cubic-bezier(.2,.7,.15,1);}
-  .eco-card-top{display:flex;justify-content:space-between;align-items:center;color:var(--cc);font-size:clamp(15px,1.5vw,23px)}.eco-card-top small{font-size:8px;letter-spacing:.16em;opacity:.75}.eco-card b{display:block;font-size:clamp(10px,1.05vw,15px);letter-spacing:.08em;margin:8px 0 4px;color:#f2f8ff}.eco-card p{font-size:clamp(8px,.75vw,11px);color:#9fb5cb;line-height:1.35}.eco-card-foot{display:flex;gap:6px;align-items:center;margin-top:8px;font-size:7px;letter-spacing:.16em;color:#83a9c7}.eco-card-foot i{width:5px;height:5px;border-radius:50%;background:var(--cc);box-shadow:0 0 9px var(--cc)}
-  .eco-lines{position:absolute;inset:0;width:100%;height:100%;overflow:visible;opacity:0;transition:opacity 2s}.eco-lines path{fill:none;stroke-width:1.5;stroke-dasharray:8 10;stroke-linecap:round;animation:ecoDash 8s linear infinite}.eco-lines .l1{stroke:#58d9ff99}.eco-lines .l2{stroke:#b99bff99;animation-direction:reverse}.eco-lines .l3{stroke:#7ce4bf88;animation-duration:11s}
-  .eco-core{position:absolute;left:50%;top:50%;width:clamp(110px,15vw,205px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;text-align:center;transform:translate(-50%,-50%) scale(.15);opacity:0;background:radial-gradient(circle,#163f65 0,#07182d 57%,#030711 72%);border:1px solid #8be8ff99;box-shadow:0 0 0 12px #38caff0b,0 0 45px #31baff55,0 0 100px #7c70ff33;transition:all 2.4s cubic-bezier(.15,.8,.2,1);z-index:5}.eco-core b{font-size:clamp(13px,1.7vw,25px);letter-spacing:.12em;background:linear-gradient(90deg,#fff,#7fe4ff,#d3b8ff);color:transparent;background-clip:text;-webkit-background-clip:text}.eco-core small{display:block;color:#a9d6ed;font-size:clamp(7px,.65vw,10px);letter-spacing:.2em;margin-top:7px}
-  .eco-timelines{position:absolute;inset:0;opacity:0;transition:opacity 1.5s}.eco-track{position:absolute;left:50%;top:50%;width:34%;height:2px;transform-origin:left center;background:linear-gradient(90deg,var(--tc),transparent);filter:drop-shadow(0 0 5px var(--tc));opacity:.0;transition:opacity 1.2s}.eco-track:after{content:attr(data-label);position:absolute;right:4%;top:-19px;font-size:clamp(7px,.65vw,10px);letter-spacing:.12em;color:var(--tc);white-space:nowrap}
-  .eco-bottom{position:absolute;bottom:5%;left:5%;right:5%;display:flex;justify-content:space-between;align-items:end;z-index:8;color:#789bb9;font-size:clamp(8px,.75vw,11px);letter-spacing:.16em}.eco-bottom strong{color:#b9eaff}.eco-final{position:absolute;left:0;right:0;bottom:13%;text-align:center;z-index:9;opacity:0;transform:translateY(18px);transition:all 2s}.eco-final b{display:block;font-size:clamp(15px,2.1vw,31px);letter-spacing:.16em;color:#f5fbff;text-shadow:0 0 24px #50cfff88}.eco-final span{display:block;margin-top:10px;color:#9cc8e5;font-size:clamp(9px,1vw,14px);letter-spacing:.2em}
-  .tx-eco[data-phase="0"] .eco-card{opacity:.92;animation:ecoFloat 7s ease-in-out infinite;animation-delay:calc(var(--i)*-.31s)}
-  .tx-eco[data-phase="1"] .eco-card{opacity:.92;transform:translate(-50%,-50%) rotateY(calc(var(--i)*30deg)) translateZ(250px) rotateX(0deg);filter:saturate(1.15)}
-  .tx-eco[data-phase="1"] .eco-lines,.tx-eco[data-phase="2"] .eco-lines,.tx-eco[data-phase="3"] .eco-lines{opacity:1}
-  .tx-eco[data-phase="1"] .eco-timelines,.tx-eco[data-phase="2"] .eco-timelines,.tx-eco[data-phase="3"] .eco-timelines{opacity:1}
-  .tx-eco[data-phase="1"] .eco-track{opacity:.7}
-  .tx-eco[data-phase="2"] .eco-card{opacity:.22;filter:blur(.4px);transform:translate(-50%,-50%) rotateY(calc(var(--i)*30deg)) translateZ(80px) scale(.72)}
-  .tx-eco[data-phase="2"] .eco-core,.tx-eco[data-phase="3"] .eco-core{opacity:1;transform:translate(-50%,-50%) scale(1)}
-  .tx-eco[data-phase="2"] .eco-track,.tx-eco[data-phase="3"] .eco-track{opacity:1;width:18%}
-  .tx-eco[data-phase="3"] .eco-card{opacity:.34;transform:translate(-50%,-50%) rotateY(calc(var(--i)*30deg)) translateZ(150px) scale(.82)}
-  .tx-eco[data-phase="3"] .eco-final{opacity:1;transform:none}
-  .tx-eco[data-phase="3"] .eco-title{opacity:.38}
-  @keyframes ecoFloat{0%,100%{margin-top:-9px}50%{margin-top:9px}}
-  @keyframes ecoDash{to{stroke-dashoffset:-180}}
-  @keyframes ecoStars{to{transform:translate3d(5%,3%,0) rotate(5deg)}}
-  @media(max-width:700px){.eco-space{inset:22% 1% 16%}.eco-card{width:clamp(104px,26vw,145px);min-height:76px;padding:8px}.eco-card p{font-size:8px}.eco-orbit{width:95vw;height:70vw}.eco-head{top:3%}.eco-bottom{bottom:3%}.eco-final{bottom:12%}}
-  @media(prefers-reduced-motion:reduce){.eco-stars,.eco-card,.eco-lines path{animation:none!important;transition:none!important}}
+  const painel = grupos.map((g,i)=>`<div class="eco3-group" style="--gc:#${g.cor.toString(16).padStart(6,'0')}"><b>${esc(g.nome)}</b><span>${g.itens.map(esc).join(' · ')}</span></div>`).join('');
+  s.innerHTML = `<style>
+  .tx-eco3d{position:relative!important;overflow:hidden!important;background:#020711!important;color:#eaf8ff!important;font-family:Inter,Roboto,Arial,sans-serif!important;isolation:isolate}
+  .eco3-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 43%,#102e50 0,#07172a 38%,#020711 78%)}
+  .eco3-head{position:absolute;z-index:5;top:3.5%;left:4%;right:4%;display:flex;justify-content:space-between;gap:12px;align-items:center;color:#9bc6df;font-size:clamp(9px,.9vw,13px);letter-spacing:.2em}
+  .eco3-head strong{color:#e4f8ff}.eco3-phase{border:1px solid #5bcfff66;border-radius:30px;padding:7px 12px;background:#06172dcc;color:#9de7ff;white-space:nowrap}
+  .eco3-title{position:absolute;z-index:5;top:10%;left:4%;right:4%;text-align:center;pointer-events:none}.eco3-title small{display:block;color:#88b8d7;letter-spacing:.34em;font-size:clamp(8px,.8vw,12px)}.eco3-title b{display:block;margin-top:7px;font-size:clamp(19px,2.8vw,39px);letter-spacing:.12em;background:linear-gradient(90deg,#fff,#77dcff,#c5a5ff,#fff);color:transparent;background-clip:text;-webkit-background-clip:text}
+  .eco3-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .eco3-info{position:absolute;z-index:5;left:3%;right:3%;bottom:9%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;opacity:0;transform:translateY(12px);transition:opacity 1.4s,transform 1.4s;pointer-events:none}
+  .eco3-group{min-width:0;padding:7px 9px;border:1px solid color-mix(in srgb,var(--gc),transparent 68%);border-radius:8px;background:linear-gradient(130deg,#08192bdc,#07101dcc);box-shadow:0 0 18px color-mix(in srgb,var(--gc),transparent 90%)}
+  .eco3-group b{display:block;color:var(--gc);font-size:clamp(7px,.7vw,10px);letter-spacing:.1em;margin-bottom:3px}.eco3-group span{display:block;color:#b4c9da;font-size:clamp(6px,.62vw,9px);line-height:1.35}
+  .eco3-foot{position:absolute;z-index:5;bottom:3%;left:4%;right:4%;display:flex;justify-content:space-between;gap:10px;color:#779bb8;font-size:clamp(7px,.7vw,10px);letter-spacing:.13em}.eco3-foot strong{color:#c4edff;text-align:right}
+  .eco3-corelabel{position:absolute;z-index:4;left:50%;top:48%;transform:translate(-50%,-50%);text-align:center;opacity:0;transition:opacity 1.5s;pointer-events:none;text-shadow:0 0 18px #42cfff}
+  .eco3-corelabel b{display:block;font-size:clamp(15px,2vw,28px);letter-spacing:.16em;color:#fff}.eco3-corelabel span{font-size:clamp(7px,.65vw,10px);letter-spacing:.2em;color:#a9eaff}
+  .tx-eco3d[data-phase="4"] .eco3-info,.tx-eco3d[data-phase="5"] .eco3-info{opacity:1;transform:none}
+  .tx-eco3d[data-phase="3"] .eco3-corelabel,.tx-eco3d[data-phase="4"] .eco3-corelabel,.tx-eco3d[data-phase="5"] .eco3-corelabel{opacity:1}
+  @media(max-width:700px){.eco3-title{top:9%}.eco3-info{grid-template-columns:repeat(2,minmax(0,1fr));bottom:8%;gap:4px}.eco3-group{padding:4px 5px}.eco3-group span{font-size:6px}.eco3-foot{bottom:2%}}
+  @media(prefers-reduced-motion:reduce){.eco3-info,.eco3-corelabel{transition:none}}
   </style>
-  <div class="eco-bg"><div class="eco-stars"></div></div>
-  <div class="eco-head"><strong>ALMAFLUXO · SISTEMA CONECTADO</strong><span class="eco-phase">LINHAS DE UM UNIVERSO</span></div>
-  <div class="eco-title"><small>DO TRABALHO À CONEXÃO</small><h2>UM UNIVERSO EM MOVIMENTO</h2></div>
-  <div class="eco-space"><div class="eco-orbit"></div>
-    <svg class="eco-lines" viewBox="0 0 1000 600" preserveAspectRatio="none" aria-hidden="true">
-      <path class="l1" d="M40 130 C240 10 310 300 500 300 S760 80 960 150"/><path class="l2" d="M70 480 C260 590 330 280 500 300 S760 570 930 430"/><path class="l3" d="M180 40 C360 180 330 450 500 300 S690 100 830 550"/>
-      <path class="l1" d="M500 20 C430 180 590 220 500 300 S420 470 510 580"/><path class="l2" d="M20 300 C240 220 330 380 500 300 S770 230 980 320"/>
-    </svg>
-    <div class="eco-cards">${cardHtml}</div>
-    <div class="eco-timelines">${cards.map((c,i)=>`<div class="eco-track" style="--tc:${c[3]};transform:rotate(${i*30}deg)" data-label="${esc(c[1])}"></div>`).join('')}</div>
-    <div class="eco-core"><div><b>ALMAFLUXO</b><small>TODAS AS ROTAS · UM SÓ UNIVERSO</small></div></div>
-  </div>
-  <div class="eco-final"><b>TODO O UNIVERSO EM UMA CONVERSA.</b><span>NOSSA CONVERSA DIÁRIA · ALMAFLUXO.UK</span></div>
-  <div class="eco-bottom"><span>IDEIA → TESTE → ERRO → AJUSTE → CONEXÃO</span><strong>ROTAS ENTRELAÇADAS · FUTURO COMPARTILHADO</strong></div>`;
-  const start = Date.now();
-  const update = () => {
-    if (S.morto) return;
-    const t = (Date.now()-start)/1000;
-    const phase = t < 13 ? 0 : t < 29 ? 1 : t < 44 ? 2 : 3;
-    s.setAttribute('data-phase',String(phase));
-    const labels=['UNIVERSOS INDIVIDUAIS','LINHAS DE TRABALHO','ROTAS EM CONVERGÊNCIA','UM ECOSSISTEMA'];
-    const badge=s.querySelector('.eco-phase'); if(badge) badge.textContent=labels[phase];
-  };
-  update(); const iv=setInterval(update,250);
-  S.fins.push(()=>clearInterval(iv));
+  <div class="eco3-bg"></div>
+  <div class="eco3-head"><strong>ALMAFLUXO · ARQUITETURA DE UM UNIVERSO</strong><span class="eco3-phase">ENTROPIA · ORGANIZAÇÃO</span></div>
+  <div class="eco3-title"><small>DO PENSAMENTO À MATERIALIZAÇÃO</small><b>IDEIAS QUE SE TORNAM CONEXÕES</b></div>
+  <div class="eco3-corelabel"><b>ALMAFLUXO</b><span>UM NÚCLEO · MÚLTIPLAS PLATAFORMAS</span></div>
+  <div class="eco3-info">${painel}</div>
+  <div class="eco3-foot"><span>IDEIA → CONCEITO → CRIAÇÃO → PLATAFORMA</span><strong>CICLO 09:00 · NOSSA CONVERSA DIÁRIA</strong></div>`;
+
+  const phaseEl=s.querySelector('.eco3-phase');
+  // Usa o mesmo carregador e o mesmo ciclo de renderização Three.js dos gráficos 3D do totem.
+  txThree().then(THREE=>{
+    if(S.morto)return;
+    try{
+      tx3d(s,S,THREE,C=>{
+        const {sc:scene,cam:camera}=C;
+        camera.position.set(0,2,30);camera.lookAt(0,0,0);
+        scene.fog=new THREE.FogExp2(0x020711,.012);
+        scene.add(new THREE.AmbientLight(0x9fcfff,.8));
+        const key=new THREE.PointLight(0x55cfff,2.1,70);key.position.set(-8,8,12);scene.add(key);
+        const fill=new THREE.PointLight(0x9d7cff,1.5,65);fill.position.set(10,-6,-8);scene.add(fill);
+        const mat=(color,opts={})=>new THREE.MeshStandardMaterial(Object.assign({color,metalness:.45,roughness:.28,emissive:color,emissiveIntensity:.35},opts));
+        const coreMat=mat(0x49cfff,{metalness:.25,roughness:.16,emissive:0x1678b5,emissiveIntensity:1.2});
+        const core=new THREE.Mesh(new THREE.SphereGeometry(1.65,40,32),coreMat);scene.add(core);
+        const inner=new THREE.Mesh(new THREE.SphereGeometry(1.22,32,24),mat(0x142c62,{transparent:true,opacity:.65,emissive:0x4532a0,emissiveIntensity:.7}));scene.add(inner);
+        const ringMats=[mat(0x54dfff,{wireframe:true,transparent:true,opacity:.55}),mat(0xa58cff,{wireframe:true,transparent:true,opacity:.42}),mat(0x78e4c1,{wireframe:true,transparent:true,opacity:.38})];
+        const ringGeo=new THREE.TorusGeometry(3.0,.035,8,150),ringMeshes=[];
+        for(let i=0;i<3;i++){const r=new THREE.Mesh(ringGeo,ringMats[i]);r.rotation.set(.45+i*.48,.2+i*.7,.1+i*.3);scene.add(r);ringMeshes.push(r);}
+        // Acelerador de partículas: fluxo orbital ao redor do núcleo.
+        const pCount=180,pPos=new Float32Array(pCount*3),pMeta=[];
+        for(let i=0;i<pCount;i++){const a=Math.random()*Math.PI*2,rad=3.4+Math.random()*2.2,y=(Math.random()-.5)*2.2;pPos[i*3]=Math.cos(a)*rad;pPos[i*3+1]=y;pPos[i*3+2]=Math.sin(a)*rad;pMeta.push({a,rad,y,speed:.25+Math.random()*.75});}
+        const pGeo=new THREE.BufferGeometry();pGeo.setAttribute('position',new THREE.BufferAttribute(pPos,3));const particleField=new THREE.Points(pGeo,new THREE.PointsMaterial({color:0x9beaff,size:.075,transparent:true,opacity:.9,sizeAttenuation:true}));scene.add(particleField);
+        const nodeData=[],hubData=[];
+        grupos.forEach((g,gi)=>{
+          const angle=(gi/grupos.length)*Math.PI*2-Math.PI/2;
+          const hubTarget=new THREE.Vector3(Math.cos(angle)*9,Math.sin(angle*2)*2.1,Math.sin(angle)*7.3);
+          const hub=new THREE.Mesh(new THREE.IcosahedronGeometry(.55,1),mat(g.cor,{metalness:.35,roughness:.2,emissiveIntensity:.8}));
+          hub.position.set(hubTarget.x*1.8,hubTarget.y+8,hubTarget.z*1.8);scene.add(hub);
+          hubData.push({mesh:hub,target:hubTarget,group:g,index:gi});
+          const childCount=g.itens.length;
+          g.itens.forEach((name,ni)=>{
+            const a=(ni/Math.max(1,childCount))*Math.PI*2+gi*.43,rad=1.45+(ni%3)*.42;
+            const target=new THREE.Vector3(hubTarget.x+Math.cos(a)*rad,hubTarget.y+Math.sin(a*2)*.75,hubTarget.z+Math.sin(a)*rad);
+            const mesh=new THREE.Mesh(new THREE.SphereGeometry(.16+(ni%3)*.025,12,10),mat(g.cor,{metalness:.25,roughness:.3,emissiveIntensity:.48}));
+            mesh.position.set((Math.random()-.5)*32,(Math.random()-.5)*22,(Math.random()-.5)*24);scene.add(mesh);
+            nodeData.push({mesh,target,hub:hubTarget,group:gi,index:ni});
+          });
+        });
+        // Linhas de relacionamento: núcleo -> tema -> plataformas.
+        const linhas=[];
+        function addLine(a,b,color){const g=new THREE.BufferGeometry().setFromPoints([a,b]);const m=new THREE.LineBasicMaterial({color,transparent:true,opacity:0});const l=new THREE.Line(g,m);scene.add(l);linhas.push(l);}
+        hubData.forEach(h=>addLine(new THREE.Vector3(0,0,0),h.target,h.group.cor));
+        nodeData.forEach(n=>addLine(n.hub,n.target,grupos[n.group].cor));
+        const starPos=new Float32Array(240*3);for(let i=0;i<240;i++){starPos[i*3]=(Math.random()-.5)*48;starPos[i*3+1]=(Math.random()-.5)*28;starPos[i*3+2]=(Math.random()-.5)*35;}
+        const starGeo=new THREE.BufferGeometry();starGeo.setAttribute('position',new THREE.BufferAttribute(starPos,3));scene.add(new THREE.Points(starGeo,new THREE.PointsMaterial({color:0x8bbbdc,size:.035,transparent:true,opacity:.55})));
+        const ease=x=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x);};
+        const durCena=Math.max(20,Number(item._duracaoCalculadaS||item.duracaoS||60));
+        C.cb=t=>{
+          if(S.morto)return;
+          const u=Math.min(1,t/durCena);
+          // A montagem ocupa o começo; a respiração ganha protagonismo na metade final.
+          const p1=ease((u-.06)/.18),p2=ease((u-.20)/.25),p3=ease((u-.43)/.18);
+          const breathStart=ease((u-.42)/.20);
+          // Ciclo respiratório suave: inspira, breve sustentação e expira (7,2 s).
+          const bc=(t%7.2)/7.2;
+          const breath=bc<.36?ease(bc/.36):(bc<.47?1:1-ease((bc-.47)/.53));
+          const breathAmp=.035+.145*breathStart;
+          const pulse=1+breathAmp*(breath-.5)*2;
+          hubData.forEach(h=>{const scatter=new THREE.Vector3(h.target.x*1.8,h.target.y+8,h.target.z*1.8);h.mesh.position.lerpVectors(scatter,h.target,p1);h.mesh.rotation.x+=.004;h.mesh.rotation.y+=.006;h.mesh.scale.setScalar((.25+.75*p1)*(1+.025*breath*breathStart));});
+          nodeData.forEach(n=>{const start=new THREE.Vector3(n.target.x*1.4+(n.index%2?5:-5),n.target.y+((n.index%3)-1)*5,n.target.z*1.4);n.mesh.position.lerpVectors(start,n.target,p2);const shimmer=1+.035*Math.sin(t*1.4+n.index+n.group);n.mesh.scale.setScalar((.35+.65*p2)*shimmer*(1+.035*breath*breathStart));});
+          linhas.forEach((l,i)=>{l.material.opacity=(i<hubData.length?p1:p2)*(.48+.42*breath*breathStart);});
+          core.scale.setScalar((.12+.88*p3)*(.91+.18*breath*breathStart));
+          inner.scale.setScalar((.1+.9*p3)*(.96+.08*breath*breathStart));
+          coreMat.emissiveIntensity=.85+1.05*breath*breathStart;
+          core.rotation.y+=.0025;
+          particleField.rotation.y=t*.055;particleField.rotation.x=Math.sin(t*.12)*.08;const arr=pGeo.attributes.position.array;for(let i=0;i<pCount;i++){const q=pMeta[i],a=q.a+t*q.speed*.55,rad=q.rad+.24*breath*breathStart;arr[i*3]=Math.cos(a)*rad;arr[i*3+1]=q.y+Math.sin(a*2)*(.12+.12*breath*breathStart);arr[i*3+2]=Math.sin(a)*rad;}pGeo.attributes.position.needsUpdate=true;
+          ringMeshes.forEach((r,i)=>{r.scale.setScalar(1+(.025+.035*breathStart)*breath);r.rotation.z+=.0008*(i+1);});
+          ringMats.forEach((m,i)=>{m.opacity=(.12+.5*p3)*(0.72+.28*breath*breathStart);});
+          camera.position.x=Math.sin(t*.055)*.7;camera.position.y=1.2+Math.sin(t*.08)*.35;camera.position.z=30-5*ease((u-.35)/.3);camera.lookAt(0,0,0);
+          if(phaseEl){const labels=['ENTROPIA · IDEIAS EM MOVIMENTO','ACELERADOR · ORGANIZAÇÃO DOS TEMAS','CRIAÇÃO · PLATAFORMAS SE ENCAIXAM','CONEXÃO · ROTAS ENTRELAÇADAS','INSPIRA · A ESFERA SE EXPANDE','EXPIRA · O FLUXO PERCORRE A REDE'];const ix=u<.12?0:u<.28?1:u<.48?2:u<.62?3:u<.82?4:5;phaseEl.textContent=labels[ix];}
+          s.setAttribute('data-phase',u<.48?'1':u<.62?'2':u<.82?'3':u<.94?'4':'5');
+        };
+      });
+    }catch(err){console.warn('[TOTEM][ECO3D] Falha na cena:',err);const aviso=document.createElement('div');aviso.style.cssText='position:absolute;inset:38% 8%;text-align:center;color:#dff7ff;font-size:18px';aviso.textContent='ALMAFLUXO · Pensamento, criação e plataformas conectadas.';s.appendChild(aviso);}
+  }).catch(err=>{console.warn('[TOTEM][ECO3D] Three.js indisponível:',err);if(!S.morto){const aviso=document.createElement('div');aviso.style.cssText='position:absolute;inset:38% 8%;text-align:center;color:#dff7ff;font-size:18px';aviso.textContent='ALMAFLUXO · Pensamento, criação e plataformas conectadas.';s.appendChild(aviso);}});
 }};
 
 const TX_PADRAO = () => ({id: '-', status: 'liberado', tela: {}, layout: {modelo: 'full', gap: 0, raio: 0}, paineis: {r1: {itens: [
@@ -6716,7 +6825,7 @@ const TX_PADRAO = () => ({id: '-', status: 'liberado', tela: {}, layout: {modelo
   {tipo: 'video',        url: './IMG_1929.MOV', nome: 'Comercial R5Fit', duracaoS: 0, pausaFinalS: 3, mudo: true, fit: 'contain', r5fit: true, loop: false}, // ← comercial R5Fit
   {tipo: 'demoInfoCell', duracaoS: 58},                                                          // ← vitrine e atendimento InfoCell
   {tipo: 'relogio',      duracaoS: 8},
-  {tipo: 'ecossistema',  duracaoS: 58}                                                           // ← encerramento: rotas e linhas do universo ALMAFLUXO
+  {tipo: 'ecossistema',  duracaoS: 42}                                                           // ← encerramento: nascimento 3D do ecossistema ALMAFLUXO
 ], transicao: {tipo: 'fade', ms: 900}, aleatorio: false}}});
 
 /* ══════ ENDEREÇO → TOTEM, INSTALAÇÃO E TELA CHEIA ══════
@@ -6966,18 +7075,10 @@ const TOTEM_AMBIENTE = {
     this.salvar();
   },
   botao(){
-    if(document.querySelector('.tx-radio-tab')) return;
-    const b=document.createElement('button'); b.type='button'; b.className='tx-radio-tab';
-    b.textContent='📻'; b.title='Estações de rádio ao vivo'; b.setAttribute('aria-label',b.title);
-    b.addEventListener('click',e=>{e.stopPropagation(); TX_RADIO.toggle();});
-    document.body.appendChild(b); this.btn=b;
-    TX_RADIO.montar(); this.atualizarBotao();
+    // Não cria ícone flutuante: o acesso fica exclusivamente no menu técnico.
+    this.btn=null;
   },
-  atualizarBotao(){
-    const b=this.btn; if(!b) return;
-    b.style.display='';
-    b.classList.toggle('on',!!(window.TX_RADIO&&TX_RADIO.station));
-  },
+  atualizarBotao(){ /* sem indicador na tela principal */ },
   alternarMudo(){
     this.mudo=!this.mudo; lsSet(this.K_MUDO,this.mudo); this.aplicarGain(); this.destravar();
     if(!this.mudo&&this.VOLUME<=0) this.setVolume(.35);
@@ -6999,16 +7100,17 @@ const TX_RADIO = {
     {id:'cbn',name:'CBN Rio',freq:'92,5 FM · Jornalismo',url:'https://cbn.globo.com/',page:'https://cbn.globo.com/'}
   ],
   montar(){
-    if(this.panel) return;
+    const destino=document.getElementById('menuLocalBody');
+    if(this.panel){ if(destino && this.panel.parentElement!==destino) destino.appendChild(this.panel); return; }
     const p=document.createElement('section'); p.className='tx-radio-panel'; p.setAttribute('aria-label','Estações de rádio ao vivo');
     p.innerHTML='<div class="tx-radio-head"><strong>📻 ESTAÇÕES AO VIVO</strong><span style="color:#8edcff;font-size:10px">ALMAFLUXO</span><button type="button" data-radio-close aria-label="Fechar">✕</button></div><div class="tx-radio-list"></div><iframe class="tx-radio-player" title="Player da estação selecionada" allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe><div class="tx-radio-status">Escolha uma estação. A música ambiente ALMAFLUXO será pausada enquanto o rádio estiver ativo.</div><div class="tx-radio-actions"><button type="button" data-radio-stop>■ Parar rádio</button><a data-radio-open href="#" target="_blank" rel="noopener">Abrir player oficial ↗</a></div>';
-    document.body.appendChild(p); this.panel=p; this.frame=p.querySelector('iframe'); this.status=p.querySelector('.tx-radio-status'); this.link=p.querySelector('[data-radio-open]');
+    (destino || document.getElementById('menuLocalBody') || document.body).appendChild(p); this.panel=p; this.frame=p.querySelector('iframe'); this.status=p.querySelector('.tx-radio-status'); this.link=p.querySelector('[data-radio-open]');
     const list=p.querySelector('.tx-radio-list');
     this.stations.forEach(st=>{const b=document.createElement('button');b.type='button';b.className='tx-radio-station';b.dataset.station=st.id;b.innerHTML='<span aria-hidden="true">📡</span><span style="min-width:0"><b></b><small></small></span>';b.querySelector('b').textContent=st.name;b.querySelector('small').textContent=st.freq;b.addEventListener('click',()=>this.select(st.id));list.appendChild(b);});
     p.querySelector('[data-radio-close]').addEventListener('click',()=>this.close());
     p.querySelector('[data-radio-stop]').addEventListener('click',()=>this.stop());
   },
-  toggle(){this.montar();if(this.panel.classList.contains('open'))this.close();else{this.panel.classList.add('open');this.status.textContent=this.station?'No ar: '+this.station.name:'Escolha uma estação. A música ALMAFLUXO permanece disponível e será retomada ao parar o rádio.';}},
+  toggle(){this.montar();if(this.panel.classList.contains('open'))this.close();else{this.panel.classList.add('open');this.status.textContent=this.station?'No ar: '+this.station.name:'Escolha uma estação para iniciar. O navegador pode solicitar um toque para liberar o áudio.';}},
   pausarMusica(){
     try{const a=window.TOTEM_AMBIENTE;if(a&&a.audio&&!a.audio.paused){a.audio.pause();a._radioPausou=true;}}
     catch(e){}
