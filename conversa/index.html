@@ -4606,85 +4606,75 @@ TX.demoKpg = { def: { duracaoS: 62, whats: '(21) 96470-0935', chamada: 'Faça o 
    e validadas uma a uma; as que falharem são descartadas. A conversa é cenográfica: não envia mensagens,
    não cria pedidos e não coleta dados. Roteiro por tempo ativo (respeita a pausa do totem) e fecha sempre no QR. */
 TX.demoInfoCell = { def:{duracaoS:58}, duracaoMin:45, build(P,item,s,S) {
-  txMorre(S); s.className += ' ic-demo';
+  txMorre(S); s.className += ' ic-demo';  /* o rodapé do totem (.tx-pub) fica visível, como nos demais slides */
   const atendimento='https://almafluxo.uk/infocell', enderecoTxt='almafluxo.uk/infocell';
   const rawBase='https://raw.githubusercontent.com/tchelojc/externo/alma/'+encodeURIComponent('célula de informação')+'/imagens/';
   const QR_SVG='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 35 35" class="segno"><path shape-rendering="crispEdges" stroke="#111" d="M3 3.5h7m1 0h3m1 0h3m1 0h4m2 0h7m-29 1h1m5 0h1m5 0h1m3 0h3m1 0h1m1 0h1m5 0h1m-29 1h1m1 0h3m1 0h1m1 0h1m1 0h3m3 0h2m2 0h1m1 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m1 0h2m3 0h4m1 0h2m2 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m2 0h1m1 0h3m1 0h4m3 0h1m1 0h3m1 0h1m-29 1h1m5 0h1m1 0h1m1 0h2m2 0h1m1 0h1m1 0h3m1 0h1m5 0h1m-29 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-21 1h3m1 0h1m4 0h1m2 0h1m-20 1h1m1 0h1m1 0h6m1 0h2m1 0h1m3 0h1m1 0h3m1 0h2m1 0h1m-29 1h1m1 0h3m3 0h1m1 0h4m1 0h1m1 0h1m2 0h3m3 0h1m1 0h1m-23 1h1m3 0h1m3 0h2m2 0h2m2 0h4m1 0h1m-28 1h4m3 0h1m1 0h1m1 0h2m2 0h2m1 0h1m1 0h3m1 0h1m1 0h2m-28 1h2m2 0h3m2 0h1m4 0h1m1 0h2m2 0h1m1 0h2m1 0h1m-25 1h1m5 0h2m1 0h2m1 0h1m1 0h1m3 0h3m1 0h1m1 0h1m1 0h1m-27 1h3m1 0h3m2 0h2m5 0h1m2 0h2m6 0h1m-26 1h1m1 0h1m1 0h2m2 0h1m1 0h3m1 0h1m1 0h1m1 0h3m4 0h1m-28 1h2m3 0h2m3 0h1m1 0h1m2 0h1m1 0h4m5 0h2m-28 1h1m1 0h3m2 0h1m1 0h6m5 0h3m2 0h3m-29 1h1m5 0h1m5 0h1m4 0h1m3 0h1m1 0h1m1 0h4m-27 1h1m2 0h1m8 0h4m1 0h2m3 0h2m2 0h1m-29 1h1m3 0h1m1 0h1m2 0h1m1 0h1m1 0h2m4 0h6m1 0h2m-20 1h4m1 0h1m2 0h2m1 0h2m3 0h1m2 0h2m-29 1h7m1 0h1m2 0h1m2 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h4m-28 1h1m5 0h1m1 0h1m1 0h1m2 0h1m1 0h2m3 0h1m3 0h1m1 0h2m-28 1h1m1 0h3m1 0h1m6 0h1m2 0h1m1 0h1m1 0h6m-26 1h1m1 0h3m1 0h1m1 0h4m2 0h2m3 0h4m1 0h1m1 0h1m1 0h1m-29 1h1m1 0h3m1 0h1m2 0h2m3 0h4m1 0h2m3 0h3m1 0h1m-29 1h1m5 0h1m1 0h1m1 0h1m1 0h3m1 0h2m1 0h2m2 0h1m1 0h1m1 0h1m-28 1h7m2 0h4m2 0h3m2 0h1m1 0h1m1 0h2m1 0h1"/></svg>';
   s.innerHTML=`
   <style>
-  .ic-demo{--ic-red:#d32f2f;--ic-red2:#ef5350;--ic-bg:#17191d;--ic-panel:#24282d;--ic-line:#6f757c;--ic-txt:#f4f5f6;--ic-mut:#b8bdc3;
+  .ic-demo{--ic-red:#d32f2f;--ic-red2:#ef5350;--ic-line:#6f757c;--ic-txt:#f4f5f6;--ic-mut:#b8bdc3;--banner-h:clamp(48px,7.6vh,108px);--k:max(var(--u,10px),6.5px);
     background:radial-gradient(ellipse at 15% 0%,#4a5058 0,#292d32 48%,#14161a 100%)!important;color:var(--ic-txt);font-family:Inter,Arial,sans-serif;overflow:hidden}
-  .ic-demo .tx-pub{display:none!important}
-  .ic-shell{position:absolute;inset:3.2% 3.4% 3.5%;display:grid;grid-template-rows:auto 1fr auto;gap:1.1%;min-height:0}
-  .ic-head{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 18px;border:1px solid var(--ic-line);border-radius:16px;background:#25282df0;box-shadow:0 12px 35px #0005}
-  .ic-brand{font-size:clamp(18px,2.3vw,34px);font-weight:900;letter-spacing:.08em;color:#fff}.ic-brand b{color:var(--ic-red2)}
-  .ic-sub{font-size:clamp(9px,1vw,14px);color:var(--ic-mut);letter-spacing:.13em}
-  .ic-live{font-size:clamp(9px,1vw,13px);color:#f0f0f0;border:1px solid #d32f2f88;background:#d32f2f22;padding:7px 12px;border-radius:30px;white-space:nowrap}
-  .ic-live i{display:inline-block;width:.65em;height:.65em;border-radius:50%;background:#ef5350;margin-right:.5em;animation:icBlink 1.6s infinite}
-  @keyframes icBlink{50%{opacity:.25}}
-  .ic-main{display:grid;grid-template-columns:1.02fr 1.55fr .94fr;gap:1.1%;min-height:0}
-  .ic-pitch,.ic-store,.ic-chat{border:1px solid var(--ic-line);border-radius:18px;background:linear-gradient(145deg,#30343aee,#171a1eee);box-shadow:0 16px 45px #0005;min-height:0;overflow:hidden}
-  .ic-pitch{padding:clamp(12px,2vw,28px);display:flex;flex-direction:column;justify-content:center}
-  .ic-kicker{color:var(--ic-red2);font-size:clamp(9px,1vw,13px);font-weight:800;letter-spacing:.2em}
-  .ic-pitch h1{font-size:clamp(23px,3.2vw,48px);line-height:1.03;margin:12px 0}.ic-pitch h1 span{color:var(--ic-red2)}
-  .ic-pitch p{font-size:clamp(11px,1.15vw,16px);line-height:1.55;color:var(--ic-mut);margin:0 0 15px}
-  .ic-pill{display:inline-flex;align-items:center;gap:8px;border-radius:40px;background:#d32f2f1c;border:1px solid #d32f2f77;padding:8px 12px;color:#fbe3e3;font-size:clamp(9px,.95vw,13px);width:max-content;max-width:100%}
-  .ic-points{display:grid;gap:9px;margin-top:18px;font-size:clamp(10px,1vw,14px);color:#e6e8ea}.ic-points span{color:var(--ic-red2);margin-right:7px}
-  .ic-store{display:grid;grid-template-rows:auto 1fr;gap:10px;padding:clamp(10px,1.2vw,17px)}
-  .ic-browser{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#1b1e22;border-radius:10px;color:#d5d7da;font-size:clamp(9px,.85vw,12px)}
-  .ic-dots{display:flex;gap:4px}.ic-dots i{width:7px;height:7px;border-radius:50%;background:#f36c6c}.ic-dots i:nth-child(2){background:#f4c35d}.ic-dots i:nth-child(3){background:#9ca3af}
-  .ic-url{margin-left:8px;background:#3a3d42;border-radius:6px;padding:5px 9px;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:#f0f0f0}
-  .ic-catalog{display:grid;grid-template-rows:auto 1fr;gap:10px;min-height:0}
-  .ic-catalog-head{display:flex;align-items:center;justify-content:space-between}.ic-catalog-head strong{font-size:clamp(13px,1.35vw,19px)}.ic-catalog-head small{color:var(--ic-mut);font-size:clamp(8px,.8vw,11px)}
-  .ic-products{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:minmax(0,1fr);gap:9px;min-height:0;transition:opacity .28s}
-  .ic-products.sw{opacity:0}
-  .ic-product{position:relative;overflow:hidden;border:1px solid #ffffff26;border-radius:13px;background:#eceef0;color:#1c2026;display:grid;grid-template-rows:1fr auto;min-height:0;transition:transform .35s,border-color .35s,box-shadow .35s}
-  .ic-product.active{transform:translateY(-5px) scale(1.025);border:2px solid var(--ic-red);box-shadow:0 0 0 4px #d32f2f2a,0 14px 30px #0007;z-index:2}
-  .ic-product-img{min-height:0;overflow:hidden;display:grid;place-items:center}
-  .ic-product-img img{display:block;width:100%;height:100%;object-fit:contain;background:linear-gradient(135deg,#d1d5db,#f7f7f7)}
-  .ic-product .ic-fallback{display:grid;place-items:center;font-size:clamp(34px,5vw,72px);background:linear-gradient(135deg,#e5e7eb,#b8bdc3);width:100%;height:100%}
-  .ic-prod-info{padding:8px 9px;background:#fff}.ic-prod-info b{display:block;font-size:clamp(9px,.95vw,13px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .ic-prod-info small{display:block;color:#5d646c;font-size:clamp(8px,.75vw,10px);margin-top:3px}
-  .ic-chat{display:grid;grid-template-rows:auto 1fr auto;padding:0}
-  .ic-chat-head{padding:12px;background:#3a3d42;border-bottom:1px solid #d32f2f66;display:flex;align-items:center;gap:9px}
-  .ic-avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#d32f2f,#777);font-weight:900}
-  .ic-chat-head b{font-size:clamp(10px,1vw,14px)}.ic-chat-head small{display:block;color:#ffb3b3;font-size:clamp(8px,.75vw,10px);margin-top:2px}
-  .ic-messages{padding:10px;display:flex;flex-direction:column;gap:8px;overflow:hidden;justify-content:flex-end}
-  .ic-msg{max-width:94%;padding:8px 10px;border-radius:12px;font-size:clamp(9px,.9vw,12px);line-height:1.35;opacity:0;transform:translateY(8px);transition:all .35s}.ic-msg.on{opacity:1;transform:none}
+  .ic-shell{position:absolute;left:4%;right:4%;top:2.4%;bottom:calc(6.5% + var(--banner-h));display:grid;grid-template-rows:auto 1fr;gap:calc(var(--k)*1);min-height:0}
+  .ic-head{display:flex;align-items:center;justify-content:space-between;gap:calc(var(--k)*1.2);padding:calc(var(--k)*.8) calc(var(--k)*1.5);border:1px solid var(--ic-line);border-radius:calc(var(--k)*1.4);background:#25282df0}
+  .ic-brand{font-size:calc(var(--k)*2.4);font-weight:900;letter-spacing:.08em;color:#fff;line-height:1}.ic-brand b{color:var(--ic-red2)}
+  .ic-sub{font-size:calc(var(--k)*.95);color:var(--ic-mut);letter-spacing:.13em;margin-top:calc(var(--k)*.4)}
+  .ic-live{font-size:calc(var(--k)*1);color:#f0f0f0;border:1px solid #d32f2f88;background:#d32f2f22;padding:calc(var(--k)*.55) calc(var(--k)*1);border-radius:30px;white-space:nowrap}
+  .ic-live i{display:inline-block;width:.65em;height:.65em;border-radius:50%;background:#ef5350;margin-right:.5em;animation:icBlink 1.6s infinite}@keyframes icBlink{50%{opacity:.25}}
+  .ic-main{display:grid;grid-template-columns:1fr 1.5fr .95fr;gap:calc(var(--k)*1);min-height:0}
+  .ic-pitch,.ic-store,.ic-chat{border:1px solid var(--ic-line);border-radius:calc(var(--k)*1.5);background:linear-gradient(145deg,#30343aee,#171a1eee);min-height:0;overflow:hidden}
+  .ic-pitch{padding:calc(var(--k)*1.8);display:flex;flex-direction:column;justify-content:center}
+  .ic-kicker{color:var(--ic-red2);font-size:calc(var(--k)*1);font-weight:800;letter-spacing:.2em}
+  .ic-pitch h1{font-size:calc(var(--k)*3.6);line-height:1.05;margin:calc(var(--k)*.9) 0}.ic-pitch h1 span{color:var(--ic-red2)}
+  .ic-pitch p{font-size:calc(var(--k)*1.3);line-height:1.5;color:var(--ic-mut);margin:0 0 calc(var(--k)*1.2)}
+  .ic-addr{display:block;font-size:calc(var(--k)*2.1);font-weight:900;color:var(--ic-red2);text-transform:lowercase;border:1px solid #d32f2f88;background:#d32f2f1c;border-radius:calc(var(--k)*1);padding:calc(var(--k)*.7) calc(var(--k)*1);width:max-content;max-width:100%;transition:box-shadow .3s,background .3s}
+  .ic-addr small{display:block;font-size:calc(var(--k)*.85);font-weight:700;letter-spacing:.16em;color:#fbe3e3;text-transform:uppercase;margin-bottom:calc(var(--k)*.3)}
+  .ic-addr.hot{background:#d32f2f38;box-shadow:0 0 0 3px #d32f2f99}
+  .ic-points{display:grid;gap:calc(var(--k)*.7);margin-top:calc(var(--k)*1.4);font-size:calc(var(--k)*1.1);color:#e6e8ea}.ic-points span{color:var(--ic-red2);margin-right:.5em}
+  .ic-store{display:grid;grid-template-rows:auto 1fr;gap:calc(var(--k)*.8);padding:calc(var(--k)*1)}
+  .ic-browser{display:flex;align-items:center;gap:calc(var(--k)*.7);padding:calc(var(--k)*.6) calc(var(--k)*.8);background:#1b1e22;border-radius:calc(var(--k)*.8);color:#d5d7da;font-size:calc(var(--k)*.9)}
+  .ic-dots{display:flex;gap:4px}.ic-dots i{width:.7em;height:.7em;border-radius:50%;background:#f36c6c}.ic-dots i:nth-child(2){background:#f4c35d}.ic-dots i:nth-child(3){background:#9ca3af}
+  .ic-url{background:#3a3d42;border-radius:6px;padding:.3em .7em;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:#f0f0f0}
+  .ic-catalog{display:grid;grid-template-rows:auto 1fr;gap:calc(var(--k)*.8);min-height:0}
+  .ic-catalog-head{display:flex;align-items:center;justify-content:space-between}.ic-catalog-head strong{font-size:calc(var(--k)*1.5)}.ic-catalog-head small{color:var(--ic-mut);font-size:calc(var(--k)*.85)}
+  .ic-products{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:minmax(0,1fr);gap:calc(var(--k)*.8);min-height:0;transition:opacity .28s}.ic-products.sw{opacity:0}
+  .ic-product{position:relative;overflow:hidden;border:1px solid #ffffff26;border-radius:calc(var(--k)*1);background:#eceef0;color:#1c2026;display:grid;grid-template-rows:1fr auto;min-height:0;transition:transform .35s,border-color .35s,box-shadow .35s}
+  .ic-product.active{transform:scale(1.03);border:2px solid var(--ic-red);box-shadow:0 0 0 3px #d32f2f2a,0 10px 24px #0007;z-index:2}
+  .ic-product-img{min-height:0;overflow:hidden;display:grid;place-items:center}.ic-product-img img{display:block;width:100%;height:100%;object-fit:contain;background:linear-gradient(135deg,#d1d5db,#f7f7f7)}
+  .ic-product .ic-fallback{display:grid;place-items:center;font-size:calc(var(--k)*5);background:linear-gradient(135deg,#e5e7eb,#b8bdc3);width:100%;height:100%}
+  .ic-prod-info{padding:calc(var(--k)*.6) calc(var(--k)*.7);background:#fff}.ic-prod-info b{display:block;font-size:calc(var(--k)*1.05);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ic-prod-info small{display:block;color:#5d646c;font-size:calc(var(--k)*.75);margin-top:2px}
+  .ic-chat{display:grid;grid-template-rows:auto 1fr auto}
+  .ic-chat-head{padding:calc(var(--k)*.9);background:#3a3d42;border-bottom:1px solid #d32f2f66;display:flex;align-items:center;gap:calc(var(--k)*.7)}
+  .ic-avatar{width:calc(var(--k)*3);height:calc(var(--k)*3);border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#d32f2f,#777);font-weight:900;font-size:calc(var(--k)*1.3)}
+  .ic-chat-head b{font-size:calc(var(--k)*1.1)}.ic-chat-head small{display:block;color:#ffb3b3;font-size:calc(var(--k)*.85);margin-top:2px}
+  .ic-messages{padding:calc(var(--k)*.8);display:flex;flex-direction:column;gap:calc(var(--k)*.7);overflow:hidden;justify-content:flex-end}
+  .ic-msg{max-width:94%;padding:calc(var(--k)*.7) calc(var(--k)*.9);border-radius:calc(var(--k)*1);font-size:calc(var(--k)*1);line-height:1.35;opacity:0;transform:translateY(8px);transition:all .35s}.ic-msg.on{opacity:1;transform:none}
   .ic-msg.user{align-self:flex-end;background:#b3262d;color:#fff;border-bottom-right-radius:3px}.ic-msg.staff{align-self:flex-start;background:#555b63;color:#f1f4f6;border-bottom-left-radius:3px}
-  .ic-chat-input{margin:0 9px 9px;padding:9px 10px;border-radius:10px;background:#24282d;border:1px solid #ffffff1c;color:#c7cbd0;font-size:clamp(8px,.8vw,11px);display:flex;justify-content:space-between}.ic-chat-input b{color:var(--ic-red2)}
-  .ic-footer{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:clamp(10px,1.6vw,26px);padding:9px 14px;border-radius:15px;border:1px solid #d32f2f99;background:#25282df2;box-shadow:0 12px 35px #0006}
-  .ic-contact{font-size:clamp(10px,1.05vw,15px);font-weight:800;color:#f2f2f2;text-decoration:none}.ic-contact small{display:block;color:var(--ic-mut);font-size:clamp(8px,.75vw,11px);font-weight:500;margin-top:3px}
-  .ic-phone{text-decoration:none;text-align:right;color:#fff;font-size:clamp(9px,.9vw,13px);font-weight:800;letter-spacing:.12em;white-space:nowrap;padding:4px 10px;border-radius:10px;transition:background .3s,box-shadow .3s}
-  .ic-phone strong{display:block;font-size:clamp(15px,2vw,32px);letter-spacing:.02em;color:var(--ic-red2);margin-top:2px;text-transform:lowercase}
-  .ic-phone.hot{background:#d32f2f22;box-shadow:0 0 0 2px #d32f2f99}
-  .ic-qr{width:clamp(50px,6.4vw,86px);height:clamp(50px,6.4vw,86px);padding:4px;background:#fff;border-radius:8px;border:2px solid var(--ic-red);box-sizing:border-box}.ic-qr svg{display:block;width:100%;height:100%}
+  .ic-chat-input{margin:0 calc(var(--k)*.8) calc(var(--k)*.8);padding:calc(var(--k)*.7) calc(var(--k)*.9);border-radius:calc(var(--k)*.9);background:#24282d;border:1px solid #ffffff1c;color:#c7cbd0;font-size:calc(var(--k)*.9);display:flex;justify-content:space-between}.ic-chat-input b{color:var(--ic-red2)}
   .ic-cursor{position:absolute;z-index:9;width:34px;height:44px;left:50%;top:50%;opacity:0;filter:drop-shadow(0 2px 3px #0009);transition:all 1s cubic-bezier(.2,.8,.2,1);pointer-events:none}.ic-cursor.on{opacity:1}
-  .ic-cursor:before{content:'➤';font-size:35px;color:var(--ic-red2);text-shadow:0 2px 5px #000}
-  .ic-caption{position:absolute;left:50%;bottom:17%;transform:translateX(-50%);z-index:10;background:#25282df5;border:1px solid #d32f2faa;color:#f2f2f2;border-radius:30px;padding:8px 18px;font-size:clamp(10px,1vw,14px);white-space:nowrap;max-width:92%;overflow:hidden;text-overflow:ellipsis;opacity:0;transition:opacity .3s}.ic-caption.on{opacity:1}
-  .ic-focus{position:absolute;inset:0;z-index:20;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 45%,#2b2f35f2,#101215f7);opacity:0;pointer-events:none;transition:opacity .6s}.ic-focus.on{opacity:1}
-  .ic-focus-card{display:grid;justify-items:center;gap:clamp(8px,1.6vh,18px);text-align:center;padding:0 5%;transform:scale(.94);transition:transform .7s cubic-bezier(.2,.8,.2,1)}.ic-focus.on .ic-focus-card{transform:none}
-  .ic-focus-k{color:var(--ic-red2);font-size:clamp(10px,1.2vw,18px);font-weight:800;letter-spacing:.3em}
-  .ic-focus-qr{width:min(34vh,36vw);height:min(34vh,36vw);padding:clamp(8px,1.4vh,16px);background:#fff;border-radius:16px;border:4px solid var(--ic-red);box-sizing:border-box;box-shadow:0 0 0 8px #d32f2f22,0 20px 60px #000a}.ic-focus-qr svg{display:block;width:100%;height:100%}
-  .ic-focus-nome{font-size:clamp(18px,3vw,46px);font-weight:900;letter-spacing:.06em;color:#fff}.ic-focus-nome b{color:var(--ic-red2)}
-  .ic-focus-end{font-size:clamp(20px,3.6vw,56px);font-weight:900;color:var(--ic-red2);text-transform:lowercase;letter-spacing:.01em;text-shadow:0 0 28px #d32f2f66}
-  .ic-focus-sub{font-size:clamp(10px,1.2vw,18px);color:var(--ic-mut);letter-spacing:.08em}
-  @media(max-aspect-ratio:1/1){.ic-shell{inset:2%}.ic-main{grid-template-columns:1fr 1fr;grid-template-rows:.8fr 1.2fr}.ic-pitch{grid-column:1/-1}.ic-pitch h1{font-size:clamp(20px,4vw,34px);margin:5px 0}.ic-points{display:none}.ic-pitch p{margin-bottom:8px}
-    .ic-footer{grid-template-columns:1fr auto;gap:6px}.ic-contact{grid-column:1}.ic-phone{grid-column:1;text-align:left}.ic-qr{grid-column:2;grid-row:1/3}.ic-focus-qr{width:min(46vw,34vh);height:min(46vw,34vh)}}
+  .ic-cursor:before{content:'➤';font-size:calc(var(--k)*3);color:var(--ic-red2);text-shadow:0 2px 5px #000}
+  .ic-caption{position:absolute;left:50%;bottom:calc(var(--banner-h) + 1.4%);transform:translateX(-50%);z-index:10;background:#25282df5;border:1px solid #d32f2faa;color:#f2f2f2;border-radius:30px;padding:calc(var(--k)*.6) calc(var(--k)*1.5);font-size:calc(var(--k)*1.1);white-space:nowrap;max-width:92%;overflow:hidden;text-overflow:ellipsis;opacity:0;transition:opacity .3s}.ic-caption.on{opacity:1}
+  .ic-focus{position:absolute;inset:0;z-index:20;display:grid;place-items:center;padding-bottom:var(--banner-h);background:radial-gradient(ellipse at 50% 45%,#2b2f35f6,#101215fa);opacity:0;pointer-events:none;transition:opacity .6s}.ic-focus.on{opacity:1}
+  .ic-focus-card{display:grid;justify-items:center;gap:calc(var(--k)*1);text-align:center;padding:0 5%;transform:scale(.94);transition:transform .7s cubic-bezier(.2,.8,.2,1)}.ic-focus.on .ic-focus-card{transform:none}
+  .ic-focus-k{color:var(--ic-red2);font-size:calc(var(--k)*1.2);font-weight:800;letter-spacing:.3em}
+  .ic-focus-qr{width:min(30vh,40vw);height:min(30vh,40vw);padding:calc(var(--k)*.9);background:#fff;border-radius:calc(var(--k)*1.2);border:3px solid var(--ic-red);box-sizing:border-box;box-shadow:0 0 0 6px #d32f2f22,0 16px 50px #000a}.ic-focus-qr svg{display:block;width:100%;height:100%}
+  .ic-focus-nome{font-size:calc(var(--k)*3);font-weight:900;letter-spacing:.06em;color:#fff;line-height:1}.ic-focus-nome b{color:var(--ic-red2)}
+  .ic-focus-end{font-size:calc(var(--k)*3.6);font-weight:900;color:var(--ic-red2);text-transform:lowercase;text-shadow:0 0 28px #d32f2f66;line-height:1.05}
+  .ic-focus-sub{font-size:calc(var(--k)*1.15);color:var(--ic-mut);letter-spacing:.08em}
+  @media(max-aspect-ratio:1/1){.ic-main{grid-template-columns:1fr 1fr;grid-template-rows:auto 1fr}.ic-pitch{grid-column:1/-1;padding:calc(var(--k)*1.2)}.ic-pitch h1{font-size:calc(var(--k)*2.6);margin:calc(var(--k)*.5) 0}.ic-pitch p,.ic-points{display:none}.ic-addr{font-size:calc(var(--k)*1.7)}
+    .ic-products{grid-template-columns:repeat(2,minmax(0,1fr))}.ic-live{display:none}.ic-sub{display:none}.ic-brand{font-size:calc(var(--k)*2)}.ic-focus-qr{width:min(48vw,30vh)!important;height:min(48vw,30vh)!important}}
   @media(prefers-reduced-motion:reduce){.ic-live i{animation:none}.ic-product,.ic-msg,.ic-focus,.ic-focus-card,.ic-products{transition:none}}
   </style>
   <div class="ic-shell">
     <header class="ic-head"><div><div class="ic-brand">INFOCELL<b>TEC</b></div><div class="ic-sub">TECNOLOGIA · ACESSÓRIOS · ASSISTÊNCIA</div></div><div class="ic-live"><i></i>ATENDIMENTO ONLINE</div></header>
     <main class="ic-main">
-      <section class="ic-pitch"><div class="ic-kicker">SUA LOJA, NA PALMA DA MÃO</div><h1>Conecte-se com a <span>InfoCellTec.</span></h1><p>Encontre acessórios, veja novidades e fale com nossa equipe em poucos toques.</p><div class="ic-pill">✦ ATENDIMENTO ONLINE · ${enderecoTxt}</div><div class="ic-points"><div><span>✓</span>Produtos e acessórios</div><div><span>✓</span>Atendimento online</div><div><span>✓</span>Assistência técnica em Jacarepaguá</div></div></section>
+      <section class="ic-pitch"><div class="ic-kicker">SUA LOJA, NA PALMA DA MÃO</div><h1>Conecte-se com a <span>InfoCellTec.</span></h1><p>Encontre acessórios, veja novidades e fale com nossa equipe em poucos toques.</p><a class="ic-addr" href="${atendimento}" target="_blank" rel="noopener"><small>Atendimento online</small>${enderecoTxt}</a><div class="ic-points"><div><span>✓</span>Produtos e acessórios</div><div><span>✓</span>Atendimento online</div><div><span>✓</span>Assistência técnica em Jacarepaguá</div></div></section>
       <section class="ic-store"><div class="ic-browser"><span class="ic-dots"><i></i><i></i><i></i></span><span class="ic-url">infocelltec · vitrine de produtos</span><span>⌕</span></div><div class="ic-catalog"><div class="ic-catalog-head"><strong>Novidades para você</strong><small>VITRINE INFOCELLTEC</small></div><div class="ic-products"><article class="ic-product"><div class="ic-fallback">📱</div><div class="ic-prod-info"><b>Capinhas</b><small>Proteção e estilo</small></div></article><article class="ic-product"><div class="ic-fallback">🔌</div><div class="ic-prod-info"><b>Cabos e carregadores</b><small>Conexões para todo celular</small></div></article><article class="ic-product"><div class="ic-fallback">🔊</div><div class="ic-prod-info"><b>Caixas de som</b><small>Som para todo momento</small></div></article></div></div></section>
       <section class="ic-chat"><div class="ic-chat-head"><div class="ic-avatar">i</div><div><b>InfoCellTec · Atendimento</b><small>● equipe disponível</small></div></div><div class="ic-messages"></div><div class="ic-chat-input"><span>Mensagem...</span><b>➤</b></div></section>
     </main>
-    <footer class="ic-footer"><a class="ic-contact" href="${atendimento}" target="_blank" rel="noopener">📍 INFOCELLTEC · JACAREPAGUÁ<small>Produtos, acessórios e assistência técnica</small></a><a class="ic-phone" href="${atendimento}" target="_blank" rel="noopener">ATENDIMENTO ONLINE<strong>${enderecoTxt}</strong></a><div class="ic-qr" role="img" aria-label="QR Code para ${enderecoTxt}">${QR_SVG}</div></footer>
   </div>
   <div class="ic-cursor">➤</div><div class="ic-caption"></div>
   <div class="ic-focus" aria-hidden="true"><div class="ic-focus-card"><div class="ic-focus-k">ATENDIMENTO ONLINE</div><div class="ic-focus-qr">${QR_SVG}</div><div class="ic-focus-nome">INFOCELL<b>TEC</b></div><div class="ic-focus-end">${enderecoTxt}</div><div class="ic-focus-sub">Aponte a câmera do celular para o QR Code</div></div></div>`;
-  const $=q=>s.querySelector(q), products=$('.ic-products'), chat=$('.ic-messages'), cursor=$('.ic-cursor'), caption=$('.ic-caption'), focus=$('.ic-focus'), phone=$('.ic-phone');
+  const $=q=>s.querySelector(q), products=$('.ic-products'), chat=$('.ic-messages'), cursor=$('.ic-cursor'), caption=$('.ic-caption'), focus=$('.ic-focus'), phone=$('.ic-addr');
   const durS=Math.max(45,Number(item.duracaoS)||58);
   let vivo=true, ativoMs=0; const ivs=[];
   const pausado=()=>{try{const r=P._activeReg?P._activeReg():(P.regs&&(P.regs.r1||Object.values(P.regs)[0]));return !!(r&&r.pausado)||document.hidden;}catch(e){return false;}};
@@ -4740,7 +4730,7 @@ TX.demoInfoCell = { def:{duracaoS:58}, duracaoMin:45, build(P,item,s,S) {
     ativoMs=0;
     /* 1) vitrine */
     legenda('Vitrine InfoCellTec · cabos e carregadores'); destaca(0); await wait(2600); if(!vivo)return;
-    await Promise.race([carregando,new Promise(r=>setTimeout(r,3000))]); if(!vivo)return;
+    await Promise.race([carregando,wait(3000)]); if(!vivo)return;
     const tp=paginasTotal(), reservaChat=13000, reservaQR=11000;
     const dwell=Math.max(2300,Math.min(4300,Math.floor((durS*1000-ativoMs-reservaChat-reservaQR)/tp)));
     for(let pg=0;pg<tp;pg++){
@@ -4761,7 +4751,7 @@ TX.demoInfoCell = { def:{duracaoS:58}, duracaoMin:45, build(P,item,s,S) {
     /* 3) endereço do atendimento + QR em tela cheia até o fim do slide */
     mover(phone);phone.classList.add('hot');legenda('Atendimento online: '+enderecoTxt);await wait(2400);if(!vivo)return;
     cursor.classList.remove('on');caption.classList.remove('on');focus.classList.add('on');
-    await wait(Math.max(5500,durS*1000-ativoMs+3000)); if(!vivo)return;
+    await wait(Math.max(5500,durS*1000-ativoMs-500)); if(!vivo)return;
   }
   (async()=>{while(vivo){try{await roteiro();}catch(e){if(!vivo)return;console.warn('[demoInfoCell]',e);await wait(1200);}}})();
   S.fins.push(()=>{vivo=false;ivs.forEach(clearInterval);ivs.length=0;});
@@ -6805,10 +6795,14 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
   .eco3-fb-core{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:31%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;text-align:center;background:radial-gradient(circle at 35% 30%,#fff,#6fe0ff 38%,#1a4a8a 72%,#06172d);box-shadow:0 0 30px #38c9ff77,0 0 70px #38c9ff33;color:#031225;font-size:clamp(8px,1vw,13px);font-weight:900;letter-spacing:.12em;animation:ecoFbBeat 1.6s ease-in-out infinite}
   .eco3-fb-n{position:absolute;width:clamp(7px,1.1vw,13px);height:clamp(7px,1.1vw,13px);border-radius:50%;background:#6fe0ff;box-shadow:0 0 16px #6fe0ffaa}.eco3-fb-n:nth-child(1){left:48%;top:-2%}.eco3-fb-n:nth-child(2){right:-1%;top:43%;background:#b9a4ff}.eco3-fb-n:nth-child(3){left:48%;bottom:-2%;background:#7ce0b5}.eco3-fb-n:nth-child(4){left:-1%;top:43%;background:#ffcf7b}
   @keyframes ecoFbSpin{to{transform:rotate(360deg)}}@keyframes ecoFbBeat{0%,100%{scale:.95}18%{scale:1.1}30%{scale:1}42%{scale:1.06}}
+  .eco3-fbqr{position:absolute;z-index:1;left:50%;top:40%;width:min(46vw,34vh);height:min(46vw,34vh);transform:translate(-50%,-50%);display:none;image-rendering:pixelated;border-radius:10px;box-shadow:0 0 40px #38c9ff55}
+  .tx-eco3d[data-render="fallback"][data-cap="5"] .eco3-fbqr{display:block}.tx-eco3d[data-render="fallback"][data-cap="5"] .eco3-fallback{display:none}
+  .eco3-diag{position:absolute;z-index:6;right:4%;top:calc(3.2% + 40px);font-size:9px;letter-spacing:.1em;color:#587a92;pointer-events:none}
   @media(max-width:700px),(max-aspect-ratio:1/1){.eco3-card{left:3%;right:3%;width:auto;bottom:10%}.eco3-groups{display:none!important}.eco3-chips{display:none!important}.eco3-head{font-size:7px;letter-spacing:.08em}.eco3-phase{padding:5px 7px}.eco3-seg span{display:none}.eco3-final{top:64%}}
   @media(prefers-reduced-motion:reduce){.eco3-card,.eco3-final,.eco3-chip,.eco3-chip i{transition:none}.eco3-fb-orbit,.eco3-fb-core{animation:none}}
   </style>
   <div class="eco3-fallback" aria-hidden="true"><div class="eco3-fb-orbit"><i class="eco3-fb-n"></i><i class="eco3-fb-n"></i><i class="eco3-fb-n"></i><i class="eco3-fb-n"></i><div class="eco3-fb-core">ALMA<br>FLUXO</div></div></div>
+  <canvas class="eco3-fbqr" width="1" height="1"></canvas><div class="eco3-diag"></div>
   <div class="eco3-vig"></div>
   <div class="eco3-head"><strong>ALMAFLUXO · NASCIMENTO DO ECOSSISTEMA</strong><span class="eco3-phase">${esc2(CAPS[0].leg)}</span></div>
   <div class="eco3-card"><small class="eco3-ck"></small><b class="eco3-ct"></b><p class="eco3-cp"></p><div class="eco3-chips">${chips}</div></div>
@@ -6835,6 +6829,23 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
   }
   if(reduzido){ckEl.textContent='CAPÍTULO 6/6 · ALMAFLUXO';ctEl.textContent=CAPS[5].tit;cpEl.textContent=CAPS[5].txt;}
 
+  /* QR 2D (usado só no modo alternativo) */
+  try{const fq=s.querySelector('.eco3-fbqr'),n=QR_M.length,tot=n+8,cell=8;fq.width=fq.height=tot*cell;const g=fq.getContext('2d');g.fillStyle='#eef9ff';g.fillRect(0,0,fq.width,fq.height);g.fillStyle='#04101c';QR_M.forEach((r,y)=>{for(let x=0;x<n;x++)if(r[x]==='1')g.fillRect((x+4)*cell,(y+4)*cell,cell,cell);});}catch(e){}
+  /* modo alternativo: 3D indisponível / escuro / sem WebGL → capítulos, texto e QR continuam (nunca tela preta) */
+  let fallbackAtivo=false;
+  const capIdxO=t=>{let i=0;while(i<5&&t>=T[i+1])i++;return i;};
+  function modoAlt(motivo){
+    if(fallbackAtivo||S.morto)return; fallbackAtivo=true;
+    s.setAttribute('data-render','fallback'); const dg=s.querySelector('.eco3-diag'); if(dg)dg.textContent='MODO ALTERNATIVO · '+motivo;
+    try{const cv=s.querySelector('canvas.tx-cv');if(cv)cv.style.display='none';}catch(e){}
+    console.warn('[TOTEM][ECO3D] modo alternativo:',motivo);
+    let fc=Math.max(0,0),ult=Date.now();
+    const iv=setInterval(()=>{const now=Date.now(),d=Math.min(1,(now-ult)/1000);ult=now;if(S.morto)return;if(!pausado())fc+=d;
+      const ci=reduzido?5:capIdxO(fc);if(ci!==capAtual)mostraCap(ci);
+      segs.forEach((e,i)=>{const pr=i<ci?1:i>ci?0:clamp01b((fc-T[i])/D[i]);e.firstChild.style.setProperty('--p',pr.toFixed(3));});},400);
+    S.fins.push(()=>clearInterval(iv));
+  }
+  const clamp01b=x=>Math.max(0,Math.min(1,x));
   txThree().then(THREE=>{
     if(S.morto)return;
     try{
@@ -6957,6 +6968,7 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
         const flash=(pos,cor,clock)=>{const f=flashes[fi++%flashes.length];f.t0=clock;f.sp.position.copy(pos);f.sp.material.color.copy(cor);};
 
         /* ── relógio próprio + câmera amortecida ── */
+        const wd={ran:false};R.domElement.addEventListener('webglcontextlost',ev=>{ev.preventDefault();modoAlt('contexto gráfico perdido');});
         let clock=reduzido?T[5]+3:0,lastT=0,ringPhase=0,swirl=0,beatT=0,prevBc=0,waveI=0,fpsAcc=0,fpsN=0,primeira=true;
         const cPos=new V3(),cLook=new V3(),aPos=new V3(),aLook=new V3(),tmp=new V3();
         const camAlvo=(c,out,look)=>{const m=txDist(camera),az=c.az+clock*.018;const mm=m>1?m*.8:1;out.set(Math.sin(az)*c.r*mm,c.y*mm,Math.cos(az)*c.r*mm);look.set(0,m>1?0:c.ly,0);};
@@ -6964,7 +6976,7 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
         const matriz=new THREE.Matrix4();
 
         C.cb=t=>{
-          if(S.morto)return;
+          if(S.morto||fallbackAtivo)return;
           let dt=Math.min(.1,Math.max(0,t-lastT));lastT=t;
           if(pausado()||reduzido)dt=0;
           clock+=dt;
@@ -7076,6 +7088,12 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
           qrMesh.visible=uQR>.01;qrMesh.quaternion.copy(camera.quaternion);qrMesh.scale.setScalar(Qs*(1+.012*beat*uQR));qrMesh.material.opacity=uQR;
           qrGlow.position.set(0,0,0);qrGlow.scale.setScalar(Qs*(1.9+.25*beat));qrGlow.material.opacity=uMorph*(.45+.35*beat)*(1-.2*uQR);
 
+          /* vigilante: se a cena sair escura (GPU/driver do aparelho), cai no modo alternativo em vez de ficar preta */
+          if(!wd.ran&&t>3.5){wd.ran=true;try{R.render(scene,camera);const gl=R.getContext(),w=gl.drawingBufferWidth,h=gl.drawingBufferHeight;
+            if(gl.isContextLost()){modoAlt('contexto gráfico perdido');return;}
+            const buf=new Uint8Array(w*h*4);gl.readPixels(0,0,w,h,gl.RGBA,gl.UNSIGNED_BYTE,buf);let n=0;for(let i=0;i<buf.length;i+=16){if(buf[i]>70||buf[i+1]>70||buf[i+2]>90)n++;}
+            if(n<12){modoAlt('cena escura ('+n+')');return;}}catch(e){modoAlt('leitura de vídeo: '+(e&&e.message||e));return;}}
+
           /* adaptativo: se o aparelho não acompanha, reduz partículas e resolução (nunca o roteiro) */
           if(clock>1.5&&dt>0){fpsAcc+=dt;fpsN++;if(fpsAcc>2){const m=fpsAcc/fpsN;
             if(m>.036&&pAtivo>PMAX*.3){pAtivo=Math.floor(pAtivo*.75);pGeo.setDrawRange(0,pAtivo);}
@@ -7084,8 +7102,8 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
         };
         mostraCap(capIdx(clock));
       });
-    }catch(err){console.warn('[TOTEM][ECO3D] Falha na cena; usando visual alternativo:',err);s.setAttribute('data-render','fallback');}
-  }).catch(err=>{console.warn('[TOTEM][ECO3D] Three.js indisponível; usando visual alternativo:',err);if(!S.morto)s.setAttribute('data-render','fallback');});
+    }catch(err){modoAlt('falha ao montar: '+(err&&err.message||err));}
+  }).catch(err=>{modoAlt('Three.js indisponível');});
 }};
 
 const TX_PADRAO = () => ({id: '-', status: 'liberado', tela: {}, layout: {modelo: 'full', gap: 0, raio: 0}, paineis: {r1: {itens: [
