@@ -1572,14 +1572,13 @@ html, body { overscroll-behavior: none; }
 .pl-lupa-mira { position: absolute; left: 50%; top: 50%; width: 26px; height: 26px; margin: -13px 0 0 -13px; border: 2px solid rgba(255,255,255,.8); border-radius: 50%; box-shadow: 0 0 0 1px rgba(0,0,0,.6); }
 .pl-lupa-rot { position: absolute; right: 10px; top: 8px; font: 700 11px system-ui, sans-serif; color: #00e5ff; background: rgba(0,0,0,.65); padding: 3px 8px; border-radius: 8px; }
 
-/* Rádio recolhida no menu técnico: nenhum controle extra na tela do totem. */
-.tx-radio-launch{display:flex;align-items:center;gap:10px;width:100%;margin:12px 0 8px;padding:12px 14px;border:1px solid rgba(0,229,255,.4);border-radius:12px;background:rgba(0,229,255,.07);color:#dff8ff;font:700 13px system-ui;cursor:pointer;text-align:left}
-.tx-radio-launch small{display:block;color:#9db7ca;font-weight:500;margin-top:3px}
-.tx-radio-panel{position:relative;width:100%;max-height: min(62vh,560px);display:none;overflow:hidden;border:1px solid rgba(0,229,255,.4);border-radius:14px;background:rgba(4,12,25,.98);color:#eaf7ff;box-shadow:0 8px 28px rgba(0,0,0,.28);font:500 13px/1.4 system-ui,sans-serif;margin:8px 0 4px}
+/* Painel de rádios integrado ao controle de áudio do player */
+.tx-radio-panel{position:fixed;right:12px;top:auto;bottom:82px;z-index:100005;width:min(390px,calc(100vw - 24px));max-height:min(72vh,620px);display:none;overflow:hidden;border:1px solid rgba(0,229,255,.55);border-radius:18px;background:rgba(4,12,25,.97);color:#eaf7ff;box-shadow:0 18px 55px rgba(0,0,0,.65),0 0 28px rgba(0,229,255,.14);backdrop-filter:blur(16px);font:500 13px/1.4 system-ui,sans-serif}
 .tx-radio-panel.open{display:flex;flex-direction:column}
 .tx-radio-head{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.1)}
 .tx-radio-head strong{font-size:14px;letter-spacing:.04em;flex:1}
 .tx-radio-head button,.tx-radio-actions button{border:1px solid rgba(142,220,255,.35);border-radius:9px;background:rgba(255,255,255,.07);color:#eaf7ff;padding:7px 10px;font:600 12px system-ui;cursor:pointer}
+.tx-radio-audio{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.1)}.tx-radio-audio button{border:1px solid rgba(142,220,255,.35);border-radius:9px;background:rgba(255,255,255,.07);color:#eaf7ff;padding:7px 9px;font:600 11px system-ui;cursor:pointer}.tx-radio-audio label{display:flex;align-items:center;gap:6px;color:#a9c6d9;font-size:11px;flex:1;min-width:130px}.tx-radio-audio input{width:100%;min-width:65px;accent-color:#00e5ff}
 .tx-radio-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:10px;overflow:auto;max-height:190px}
 .tx-radio-station{display:flex;align-items:center;gap:8px;text-align:left;border:1px solid rgba(255,255,255,.12);border-radius:11px;padding:9px;background:rgba(255,255,255,.045);color:#eaf7ff;cursor:pointer;min-width:0}
 .tx-radio-station b{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1589,7 +1588,7 @@ html, body { overscroll-behavior: none; }
 .tx-radio-status{padding:8px 12px;color:#a9c6d9;font-size:11px;min-height:30px}
 .tx-radio-actions{display:flex;gap:8px;padding:0 10px 10px}
 .tx-radio-actions a{color:#8edcff;text-decoration:none;border:1px solid rgba(142,220,255,.35);border-radius:9px;padding:7px 10px;font-size:11px}
-@media(max-width:480px){.tx-radio-player{height:150px}.tx-radio-list{max-height:150px}}
+@media(max-width:480px){.tx-radio-panel{right:8px;top:auto;bottom:max(82px,calc(env(safe-area-inset-bottom) + 72px));width:calc(100vw - 16px)}.tx-radio-player{height:170px}.tx-radio-list{max-height:170px}}
 
 .tx-audio-dica { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 100003; max-width: 92vw; padding: 10px 16px; border-radius: 14px;
   background: rgba(5,13,24,.94); border: 1px solid #00e5ff; color: #e9f5ff; font: 600 14px/1.35 system-ui, sans-serif; text-align: center; display: none; box-shadow: 0 0 24px rgba(0,229,255,.25); }
@@ -3238,7 +3237,7 @@ function criarPlayer(root, opts) {
         <button type="button" data-ctl="audio-toggle" aria-label="Pausar música" title="Pausar música">⏸</button>
         <button type="button" data-ctl="vol-down" aria-label="Diminuir volume" title="Diminuir volume">🔉</button>
         <button type="button" data-ctl="vol-up" aria-label="Aumentar volume" title="Aumentar volume">🔊</button>
-        <button type="button" data-ctl="audio-mute" aria-label="Silenciar" title="Silenciar">🔇</button>
+        <button type="button" data-ctl="audio-menu" aria-label="Rádios e opções de áudio" title="Rádios e opções de áudio">📻</button>
       </div>
       <div class="pl-progresso"><div class="pl-progresso-fill"></div></div>
     `;
@@ -3286,7 +3285,7 @@ function criarPlayer(root, opts) {
 
     // ── Áudio, pausa e lupa ──
     const AMBX = () => (typeof TOTEM_AMBIENTE !== 'undefined' ? TOTEM_AMBIENTE : null);
-    const audioBtn = ui.querySelector('[data-ctl="audio-toggle"]'), muteBtn = ui.querySelector('[data-ctl="audio-mute"]');
+    const audioBtn = ui.querySelector('[data-ctl="audio-toggle"]'), radioBtn = ui.querySelector('[data-ctl="audio-menu"]');
     const lupaBtn = ui.querySelector('[data-ctl="lupa"]'), pauseBtn = ui.querySelector('[data-ctl="pause"]');
     const pill = document.createElement('div'); pill.className = 'pl-pausado'; pill.textContent = '⏸ PAUSADO'; root.appendChild(pill); P._pill = pill;
 
@@ -3297,23 +3296,22 @@ function criarPlayer(root, opts) {
     };
     const atualizarBotaoAudio = () => {
       const A = AMBX(), tem = !!(A && A.temFaixas && A.temFaixas());
-      audioBtn.disabled = false; muteBtn.disabled = !tem;
+      audioBtn.disabled = false; radioBtn.disabled = false;
+      radioBtn.textContent = (window.TX_RADIO && TX_RADIO.station) ? '📻•' : '📻';
+      radioBtn.title = 'Abrir rádios e opções de áudio'; radioBtn.setAttribute('aria-label', radioBtn.title);
       if (!tem) { audioBtn.textContent = '🎵'; audioBtn.title = A ? A.diagnostico() : 'Áudio indisponível'; audioBtn.dataset.ativo = '0'; return; }
       const parado = !A.audio || A.audio.paused;
       audioBtn.textContent = parado ? '▶' : '⏸'; audioBtn.title = parado ? 'Reproduzir música' : 'Pausar música'; audioBtn.setAttribute('aria-label', audioBtn.title);
       audioBtn.dataset.ativo = parado ? '0' : '1';
-      const mv = A.mudo || A.bloqueado;
-      muteBtn.textContent = mv ? '🔇' : '🔊'; muteBtn.title = A.mudo ? 'Ativar som' : (A.bloqueado ? 'Toque para ativar o som' : 'Silenciar'); muteBtn.setAttribute('aria-label', muteBtn.title); muteBtn.dataset.ativo = mv ? '1' : '0';
     };
     audioBtn.addEventListener('click', () => {
       const A = AMBX(); if (!A) return;
       if (!A.temFaixas()) { A.avisar(A.diagnostico(), 7000); } else { A.alternarPausa(); }
       atualizarBotaoAudio(); P._showControls();
     });
-    muteBtn.addEventListener('click', () => {
-      const A = AMBX(); if (!A) return;
-      if (A.bloqueado) A.destravar(); else A.alternarMudo();
-      atualizarBotaoAudio(); P._showControls();
+    radioBtn.addEventListener('click', () => {
+      if (window.TX_RADIO) TX_RADIO.toggle();
+      P._showControls();
     });
     ui.querySelector('[data-ctl="vol-down"]').addEventListener('click', () => { const A = AMBX(); if (!A) return; A.setVolume((A.VOLUME || 0) - 0.08); atualizarBotaoAudio(); P._showControls(); });
     ui.querySelector('[data-ctl="vol-up"]').addEventListener('click', () => { const A = AMBX(); if (!A) return; A.destravar(); A.setVolume((A.VOLUME || 0) + 0.08); atualizarBotaoAudio(); P._showControls(); });
@@ -3367,7 +3365,7 @@ function criarPlayer(root, opts) {
       P._showControls();
     };
     // ── Toque: com lupa ligada abre a lente; sem lupa, SEGURAR o dedo ~0,5 s pausa/retoma (toque curto só mostra os controles) ──
-    const dentroUI = e => e.target && e.target.closest && e.target.closest('.pl-controls,.pl-lupa,.tx-mudo,.tx-radio-tab,.tx-radio-panel,.tx-audio-dica');
+    const dentroUI = e => e.target && e.target.closest && e.target.closest('.pl-controls,.pl-lupa,.tx-radio-panel,.tx-audio-dica');
     root.addEventListener('pointerdown', P._pDown = e => {
       if (dentroUI(e)) return;
       if (zi > 0) { try { root.setPointerCapture(e.pointerId); } catch (x) {} lenteLigar(e); return; }
@@ -3823,9 +3821,7 @@ function abrirMenuLocal() {
   <div class="fm"><label>Rotação do conteúdo (neste aparelho)<select id="mlRot">${[0,90,180,270].map(g => `<option value="${g}"${+aj.rotacao === g ? ' selected' : ''}>${g}°</option>`).join('')}</select></label>
   <label>Escala (zoom)<input type="number" id="mlEsc" min="0.5" max="1.5" step="0.01" value="${aj.escala}"></label>
   <label>Margem de segurança (%)<input type="number" id="mlMar" min="0" max="15" step="0.5" value="${aj.margem}"></label></div>
-  <div class="hintx">Estes ajustes valem só neste aparelho (ex.: TV girada ou com bordas cortadas). Layout, conteúdo e senha são definidos no painel.</div>
-  <button type="button" class="tx-radio-launch" id="abrirRadioOculta">📻 <span>Rádio ao vivo<small>Abrir estações sem ocupar a apresentação do totem</small></span></button>`;
-  if (window.TX_RADIO) { TX_RADIO.montar(); const rb=$id('abrirRadioOculta'); if(rb) rb.addEventListener('click',()=>TX_RADIO.toggle()); }
+  <div class="hintx">Estes ajustes valem só neste aparelho (ex.: TV girada ou com bordas cortadas). Layout, conteúdo e senha são definidos no painel.</div>`;
   $id('menuLocal').classList.add('ativo');
 }
 function aplicarAjusteLocal() { const aj = {rotacao: +$id('mlRot').value, escala: +$id('mlEsc').value || 1, margem: +$id('mlMar').value || 0, ajuste: 'manual'}; lsSet(LSK.aj, aj); if (MAIN && MAIN.t) MAIN.aplicar(MAIN.t, aj); mostrarToast('✅ Ajuste aplicado.'); }
@@ -6941,7 +6937,7 @@ const TOTEM_AMBIENTE = {
   iniciar(){
     if(this.iniciado) return;
     if(!/\/totem[\w-]*\/?$/i.test(location.pathname) && !/[?&]t=/.test(location.search) && !/\/conversa\/?$/i.test(location.pathname)) return;
-    this.iniciado=true; this.mudo=!!lsGet(this.K_MUDO,false); this.botao();
+    this.iniciado=true; this.mudo=!!lsGet(this.K_MUDO,false);
     if (this.ARQUIVO_FIXO) {
       this.lista=[{n:1,id:'github-ambiente1',nome:'ambiente1.mp3',mime:'audio/mpeg',url:this.ARQUIVO_FIXO}];
       this.pos=0; this.ciclos=0; this.semSessao=false; this.aplicarLista(this.lista);
@@ -7074,11 +7070,8 @@ const TOTEM_AMBIENTE = {
     } else if(this.ciclos>=this.CICLOS) this.ciclos=0;
     this.salvar();
   },
-  botao(){
-    // Não cria ícone flutuante: o acesso fica exclusivamente no menu técnico.
-    this.btn=null;
-  },
-  atualizarBotao(){ /* sem indicador na tela principal */ },
+  botao(){ /* acesso centralizado no controle expansível de áudio do player */ },
+  atualizarBotao(){ /* compatibilidade com chamadas antigas */ },
   alternarMudo(){
     this.mudo=!this.mudo; lsSet(this.K_MUDO,this.mudo); this.aplicarGain(); this.destravar();
     if(!this.mudo&&this.VOLUME<=0) this.setVolume(.35);
@@ -7100,17 +7093,22 @@ const TX_RADIO = {
     {id:'cbn',name:'CBN Rio',freq:'92,5 FM · Jornalismo',url:'https://cbn.globo.com/',page:'https://cbn.globo.com/'}
   ],
   montar(){
-    const destino=document.getElementById('menuLocalBody');
-    if(this.panel){ if(destino && this.panel.parentElement!==destino) destino.appendChild(this.panel); return; }
+    if(this.panel) return;
     const p=document.createElement('section'); p.className='tx-radio-panel'; p.setAttribute('aria-label','Estações de rádio ao vivo');
-    p.innerHTML='<div class="tx-radio-head"><strong>📻 ESTAÇÕES AO VIVO</strong><span style="color:#8edcff;font-size:10px">ALMAFLUXO</span><button type="button" data-radio-close aria-label="Fechar">✕</button></div><div class="tx-radio-list"></div><iframe class="tx-radio-player" title="Player da estação selecionada" allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe><div class="tx-radio-status">Escolha uma estação. A música ambiente ALMAFLUXO será pausada enquanto o rádio estiver ativo.</div><div class="tx-radio-actions"><button type="button" data-radio-stop>■ Parar rádio</button><a data-radio-open href="#" target="_blank" rel="noopener">Abrir player oficial ↗</a></div>';
-    (destino || document.getElementById('menuLocalBody') || document.body).appendChild(p); this.panel=p; this.frame=p.querySelector('iframe'); this.status=p.querySelector('.tx-radio-status'); this.link=p.querySelector('[data-radio-open]');
+    p.innerHTML='<div class="tx-radio-head"><strong>📻 RÁDIOS E ÁUDIO</strong><span style="color:#8edcff;font-size:10px">ALMAFLUXO</span><button type="button" data-radio-close aria-label="Fechar">✕</button></div><div class="tx-radio-audio"><button type="button" data-radio-music>Ⅱ Música ambiente</button><label>Volume ambiente <input data-radio-volume type="range" min="0" max="100" step="1" value="35"></label><button type="button" data-radio-mute>🔊 Som ligado</button></div><div class="tx-radio-list"></div><iframe class="tx-radio-player" title="Player da estação selecionada" allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe><div class="tx-radio-status">Escolha uma estação. Ao iniciar uma rádio, a música ambiente será pausada.</div><div class="tx-radio-actions"><button type="button" data-radio-stop>■ Parar rádio</button><a data-radio-open href="#" target="_blank" rel="noopener">Abrir player oficial ↗</a></div>';
+    document.body.appendChild(p); this.panel=p; this.frame=p.querySelector('iframe'); this.status=p.querySelector('.tx-radio-status'); this.link=p.querySelector('[data-radio-open]');
     const list=p.querySelector('.tx-radio-list');
     this.stations.forEach(st=>{const b=document.createElement('button');b.type='button';b.className='tx-radio-station';b.dataset.station=st.id;b.innerHTML='<span aria-hidden="true">📡</span><span style="min-width:0"><b></b><small></small></span>';b.querySelector('b').textContent=st.name;b.querySelector('small').textContent=st.freq;b.addEventListener('click',()=>this.select(st.id));list.appendChild(b);});
     p.querySelector('[data-radio-close]').addEventListener('click',()=>this.close());
     p.querySelector('[data-radio-stop]').addEventListener('click',()=>this.stop());
+    const music=p.querySelector('[data-radio-music]'), mute=p.querySelector('[data-radio-mute]'), volume=p.querySelector('[data-radio-volume]');
+    const syncAudio=()=>{const a=window.TOTEM_AMBIENTE;if(!a)return;music.textContent=(a.audio&&!a.audio.paused)?'Ⅱ Pausar música':'▶ Retomar música';mute.textContent=(a.mudo||a.bloqueado)?'🔇 Som ambiente desligado':'🔊 Som ambiente ligado';volume.value=String(Math.round((Number(a.VOLUME)||0)*100));};
+    music.addEventListener('click',()=>{const a=window.TOTEM_AMBIENTE;if(a){if(window.TX_RADIO&&TX_RADIO.station){this.status.textContent='Para retomar a música ambiente, primeiro pare a rádio ao vivo.';return;}a.alternarPausa();syncAudio();}});
+    mute.addEventListener('click',()=>{const a=window.TOTEM_AMBIENTE;if(a){if(a.bloqueado)a.destravar();else a.alternarMudo();syncAudio();}});
+    volume.addEventListener('input',()=>{const a=window.TOTEM_AMBIENTE;if(a){a.destravar();a.setVolume(Number(volume.value)/100);}});
+    this.syncAudio=syncAudio;
   },
-  toggle(){this.montar();if(this.panel.classList.contains('open'))this.close();else{this.panel.classList.add('open');this.status.textContent=this.station?'No ar: '+this.station.name:'Escolha uma estação para iniciar. O navegador pode solicitar um toque para liberar o áudio.';}},
+  toggle(){this.montar();if(this.panel.classList.contains('open'))this.close();else{this.panel.classList.add('open');this.status.textContent=this.station?'No ar: '+this.station.name:'Escolha uma estação. A música ambiente será pausada quando uma rádio iniciar.';if(this.syncAudio)this.syncAudio();}},
   pausarMusica(){
     try{const a=window.TOTEM_AMBIENTE;if(a&&a.audio&&!a.audio.paused){a.audio.pause();a._radioPausou=true;}}
     catch(e){}
@@ -7136,7 +7134,7 @@ const TX_RADIO = {
     if(this.panel){this.panel.querySelectorAll('.tx-radio-station').forEach(b=>b.classList.remove('sel'));this.status.textContent='Rádio parado. Música ambiente ALMAFLUXO retomada.';}
     this.retomarMusica();const m=window.TOTEM_AMBIENTE;if(m&&m.btn)m.atualizarBotao();
   },
-  close(){if(this.panel)this.panel.classList.remove('open');this.stop();}
+  close(){if(this.panel)this.panel.classList.remove('open');}
 };
 window.TX_RADIO=TX_RADIO;
 
