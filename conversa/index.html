@@ -7009,6 +7009,7 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
   const QR_URL='https://almafluxo.uk', QR_TXT='almafluxo.uk';
   const QR_M=["1111111001100010101111111", "1000001001011110101000001", "1011101001111110001011101", "1011101011100111001011101", "1011101000010100001011101", "1000001010010010001000001", "1111111010101010101111111", "0000000010001010000000000", "0110001000110000001101000", "1000000110101101101101011", "0111001011100011000011101", "0111110000110010100001000", "0101011110001111001100001", "0000110101110101101100011", "1110111100101101100001101", "0011000000100100110111000", "1101011110010000111110010", "0000000011111100100010001", "1111111001011110101010001", "1000001001010001100010000", "1011101000101001111110001", "1011101001111010110010110", "1011101011111110110111011", "1000001011000100100110000", "1111111001001110101001001"];
   const nModulos = GRUPOS.reduce((a,g)=>a+g.itens.length,0);
+  /* estas três declarações estavam faltando desde a remoção do qTex antigo */
   const esc2 = v => String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const chips = PLAT_ORDEM.map(n=>`<span class="eco3-chip" data-n="${esc2(n)}"><i>${PLAT[n].ic}</i>${esc2(PLAT[n].rot)}</span>`).join('');
   const legenda = GRUPOS.map(g=>`<span style="--gc:#${g.cor.toString(16).padStart(6,'0')}">${esc2(g.nome)}</span>`).join('');
@@ -7037,6 +7038,20 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
   .eco3-final b{display:block;font-size:clamp(24px,4.2vw,64px);letter-spacing:.2em;color:#fff;font-weight:800;padding-left:.2em}
   .eco3-final em{display:block;margin-top:6px;font-style:normal;font-size:clamp(12px,1.7vw,26px);letter-spacing:.14em;color:#bdeeff}
   .eco3-final small{display:block;margin-top:8px;font-size:clamp(7px,.75vw,11px);letter-spacing:.24em;color:#7fb6d4}
+  /* Texto instrucional sob a esfera QR — orienta o visitante a apontar a câmera */
+.eco3-qr-hint{
+  position:absolute;z-index:6;left:0;right:0;
+  top:calc(67% + clamp(22px,4.2vw,64px) + 18px);
+  text-align:center;
+  font:600 clamp(11px,1.4vw,20px)/1.3 Inter,system-ui,sans-serif;
+  color:#bdeeff;
+  letter-spacing:.06em;
+  opacity:0;transition:opacity 1.2s;
+  pointer-events:none;
+  text-shadow:0 0 12px #3cc8ff88;
+}
+.tx-eco3d[data-cap="5"] .eco3-qr-hint{opacity:1}
+.eco3-qr-hint b{color:#fff;font-weight:800}
   .tx-eco3d[data-cap="5"] .eco3-card{opacity:0}
   .eco3-url{display:block;margin-top:10px;font-size:clamp(10px,1.2vw,18px);letter-spacing:.2em;color:#fff;opacity:0;transition:opacity 1s}.tx-eco3d[data-qr="1"] .eco3-url{opacity:1}
   .eco3-tl{position:absolute;z-index:5;left:4%;right:4%;bottom:3%;display:grid;grid-template-columns:repeat(6,1fr);gap:6px;pointer-events:none}
@@ -7062,6 +7077,7 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
   <div class="eco3-head"><strong>ALMAFLUXO · NASCIMENTO DO ECOSSISTEMA</strong><span class="eco3-phase">${esc2(CAPS[0].leg)}</span></div>
   <div class="eco3-card"><small class="eco3-ck"></small><b class="eco3-ct"></b><p class="eco3-cp"></p><div class="eco3-chips">${chips}</div></div>
   <div class="eco3-final"><b>ALMAFLUXO</b><em>Nossa conversa diária.</em><small>${nModulos} MÓDULOS · ${GRUPOS.length} FRENTES · UMA ÚNICA TEIA</small><span class="eco3-url">ESCANEIE · ${QR_TXT}</span></div>
+  <div class="eco3-qr-hint">📱 <b>Aponte a câmera para a esfera</b> · almafluxo.uk</div>
   <div class="eco3-groups">${legenda}</div>
   <div class="eco3-tl">${tl}</div>`;
 
@@ -7088,43 +7104,30 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
   try{const fq=s.querySelector('.eco3-fbqr'),n=QR_M.length,tot=n+8,cell=8;fq.width=fq.height=tot*cell;const g=fq.getContext('2d');g.fillStyle='#eef9ff';g.fillRect(0,0,fq.width,fq.height);g.fillStyle='#04101c';QR_M.forEach((r,y)=>{for(let x=0;x<n;x++)if(r[x]==='1')g.fillRect((x+4)*cell,(y+4)*cell,cell,cell);});}catch(e){}
   /* modo alternativo: 3D indisponível / escuro / sem WebGL → capítulos, texto e QR continuam (nunca tela preta) */
   let fallbackAtivo=false;
+  const clamp01b=x=>Math.max(0,Math.min(1,x));
   const capIdxO=t=>{let i=0;while(i<5&&t>=T[i+1])i++;return i;};
   function modoAlt(motivo){
     if(fallbackAtivo||S.morto)return; fallbackAtivo=true;
     s.setAttribute('data-render','fallback');
     const dg=s.querySelector('.eco3-diag'); if(dg)dg.textContent='MODO ALTERNATIVO · '+motivo;
-    // ── FIX 4: NÃO esconder o canvas nem o fallback. Deixa ambos visíveis;
-    //    o fallback tem opacity .9 e o canvas fica por cima com opacity 0
-    //    se o WebGL não renderizou (canvas transparente por padrão).
     try{const cv=s.querySelector('canvas.tx-cv');if(cv){cv.style.display='block';cv.style.opacity='0';}}catch(e){}
     console.warn('[TOTEM][ECO3D] modo alternativo:',motivo);
-
-    // ── FIX 4b: renderiza o primeiro capítulo IMEDIATAMENTE, sem esperar
-    //    o primeiro tick do setInterval (400 ms). Sem isso, o card aparece
-    //    vazio por alguns instantes quando o fallback assume.
     if (capAtual < 0) {
       try { mostraCap(0); } catch (e) { console.warn('[ECO3D] mostraCap(0):', e && e.message); }
     }
-
     let fc=Math.max(0,0),ult=Date.now();
     const iv=setInterval(()=>{const now=Date.now(),d=Math.min(1,(now-ult)/1000);ult=now;if(S.morto)return;if(!pausado())fc+=d;
       const ci=reduzido?5:capIdxO(fc);if(ci!==capAtual)mostraCap(ci);
       segs.forEach((e,i)=>{const pr=i<ci?1:i>ci?0:clamp01b((fc-T[i])/D[i]);e.firstChild.style.setProperty('--p',pr.toFixed(3));});},400);
     S.fins.push(()=>clearInterval(iv));
   }
-  const clamp01b=x=>Math.max(0,Math.min(1,x));
   txThree().then(THREE=>{
     if(S.morto)return;
     try{
       tx3d(s,S,THREE,C=>{
         s.setAttribute('data-render','3d');
         const {sc:scene,cam:camera,R}=C;
-        R.setClearColor(0x030812,1);   // canvas opaco
-        /* ── FIX 1: registra o handler de perda de contexto WebGL no renderer real.
-           Sem isso, se o driver/GPU perder o contexto, o loop continua tentando
-           renderizar num contexto morto e a cena nunca atualiza → tela preta.
-           O handler agora delega para modoAlt(), que mostra o fallback de órbita
-           e mantém os capítulos rodando. */
+        R.setClearColor(0x030812,1);
         try {
           R.domElement.addEventListener('webglcontextlost', (ev) => {
             ev.preventDefault();
@@ -7138,9 +7141,8 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
         }
         const V3=THREE.Vector3, ease=x=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x);}, clamp01=x=>Math.max(0,Math.min(1,x));
         const easeOutBack=x=>{x=clamp01(x);const c1=1.9,c3=c1+1;return 1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2);};
-        const rnd=(()=>{let a=1234567;return()=>{a=(a*1664525+1013904223)>>>0;return a/4294967296;};})();   // determinístico: mesma cena em toda exibição
+        const rnd=(()=>{let a=1234567;return()=>{a=(a*1664525+1013904223)>>>0;return a/4294967296;};})();
 
-        /* texturas procedurais (sem arquivos externos) */
         const tex=(w,fn)=>{const c=document.createElement('canvas');c.width=c.height=w;fn(c.getContext('2d'),w);return new THREE.CanvasTexture(c);};
         const texGlow=tex(128,(g,w)=>{const r=g.createRadialGradient(w/2,w/2,0,w/2,w/2,w/2);r.addColorStop(0,'rgba(255,255,255,1)');r.addColorStop(.25,'rgba(160,230,255,.55)');r.addColorStop(.6,'rgba(60,160,255,.14)');r.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=r;g.fillRect(0,0,w,w);});
         const texDot=tex(64,(g,w)=>{const r=g.createRadialGradient(w/2,w/2,0,w/2,w/2,w/2);r.addColorStop(0,'rgba(255,255,255,1)');r.addColorStop(.35,'rgba(255,255,255,.7)');r.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=r;g.fillRect(0,0,w,w);});
@@ -7152,26 +7154,82 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
         const fill=new THREE.PointLight(0xb8a0ff,1.0,80);fill.position.set(11,-6,-9);scene.add(fill);
         const mat=(color,o={})=>new THREE.MeshStandardMaterial(Object.assign({color,metalness:.35,roughness:.3,emissive:color,emissiveIntensity:.42,metalness:.2,roughness:.45},o));
 
-        /* fundo: estrelas e névoas (dá profundidade ao fundo escuro) */
         {const n=650,p=new Float32Array(n*3);for(let i=0;i<n;i++){const r=60+rnd()*60,a=rnd()*6.283,b=Math.acos(2*rnd()-1);p[i*3]=r*Math.sin(b)*Math.cos(a);p[i*3+1]=r*Math.cos(b)*.7;p[i*3+2]=r*Math.sin(b)*Math.sin(a);}
          const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(p,3));scene.add(new THREE.Points(g,new THREE.PointsMaterial({color:0x9cc8e8,size:.5,map:texDot,transparent:true,opacity:.7,depthWrite:false,fog:false})));}
         [[-26,10,-40,0x1c5fa8,.34,90],[30,-8,-46,0x5a3aa8,.30,100],[0,14,-55,0x123e70,.26,120]].forEach(n=>{const sp=spr(texGlow,n[3],n[4]);sp.position.set(n[0],n[1],n[2]);sp.scale.setScalar(n[5]);scene.add(sp);});
 
-        /* ── núcleo: semente → esfera → coração que bate ── */
         const coreG=new THREE.Group();scene.add(coreG);
         const coreMat=mat(0x49cfff,{metalness:.2,roughness:.18,emissive:0x1d86d0,emissiveIntensity:1.1});
         const core=new THREE.Mesh(new THREE.IcosahedronGeometry(1.35,3),coreMat);coreG.add(core);
         const coreWire=new THREE.Mesh(new THREE.IcosahedronGeometry(1.9,1),new THREE.MeshBasicMaterial({color:0x8ee8ff,wireframe:true,transparent:true,opacity:0,depthWrite:false}));coreG.add(coreWire);
         const halo=spr(texGlow,0x6fd8ff,.0);scene.add(halo);const halo2=spr(texGlow,0xffffff,0);scene.add(halo2);
-        /* esfera → QR Code: módulos escuros alvo das partículas da casca; textura nítida (escuro sobre claro + margem de 4 módulos) */
         const nq=QR_M.length,tot=nq+8,escuros=[];QR_M.forEach((r,y)=>{for(let x=0;x<nq;x++)if(r[x]==='1')escuros.push([(x+4.5)/tot-.5,.5-(y+4.5)/tot]);});
-        const qTex=tex(tot*14,(g,w)=>{g.fillStyle='#eef9ff';g.fillRect(0,0,w,w);g.fillStyle='#04101c';const c=w/tot;QR_M.forEach((r,y)=>{for(let x=0;x<nq;x++)if(r[x]==='1')g.fillRect(Math.floor((x+4)*c),Math.floor((y+4)*c),Math.ceil(c),Math.ceil(c));});});
-        qTex.generateMipmaps=false;qTex.minFilter=THREE.LinearFilter;qTex.magFilter=THREE.NearestFilter;
-        const qrMesh=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:qTex,transparent:true,opacity:0,depthTest:false,depthWrite:false}));qrMesh.renderOrder=15;qrMesh.visible=false;scene.add(qrMesh);
-        const qrGlow=spr(texGlow,0x6fd8ff,0);qrGlow.renderOrder=14;qrGlow.material.depthTest=false;scene.add(qrGlow);
+        const QR_DIM = tot;
+        const QR_PX  = 1024;
+        const qTex = tex(QR_PX, (g, w) => {
+          g.fillStyle = '#eaf6ff';
+          g.fillRect(0, 0, w, w);
+          const m = w / QR_DIM;
+          g.fillStyle = '#04101c';
+          QR_M.forEach((linha, y) => {
+            for (let x = 0; x < QR_DIM; x++) {
+              if (linha[x] === '1') {
+                g.fillRect(x * m, y * m, Math.ceil(m), Math.ceil(m));
+              }
+            }
+          });
+        });
+        qTex.generateMipmaps = false;
+        qTex.minFilter = THREE.LinearFilter;
+        qTex.magFilter = THREE.LinearFilter;
+        qTex.anisotropy = Math.min(8, R.capabilities.getMaxAnisotropy());
+        const qrSphere = new THREE.Mesh(
+          new THREE.SphereGeometry(1, 96, 64),
+          new THREE.MeshBasicMaterial({
+            map: qTex,
+            transparent: true,
+            opacity: 0,
+            depthTest: false,
+            depthWrite: false,
+            side: THREE.FrontSide
+          })
+        );
+        qrSphere.renderOrder = 15;
+        qrSphere.visible = false;
+        scene.add(qrSphere);
+        const qrShell = new THREE.Mesh(
+          new THREE.SphereGeometry(1.02, 64, 48),
+          new THREE.MeshBasicMaterial({
+            color: 0x030812,
+            transparent: true,
+            opacity: 0,
+            depthTest: false,
+            depthWrite: false,
+            side: THREE.BackSide
+          })
+        );
+        qrShell.renderOrder = 14;
+        qrShell.visible = false;
+        scene.add(qrShell);
+        const qrRing = new THREE.Mesh(
+          new THREE.TorusGeometry(1.02, 0.018, 12, 96),
+          new THREE.MeshBasicMaterial({
+            color: 0x6fd8ff,
+            transparent: true,
+            opacity: 0,
+            depthTest: false,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending
+          })
+        );
+        qrRing.renderOrder = 16;
+        qrRing.visible = false;
+        scene.add(qrRing);
+        const qrGlow = spr(texGlow, 0x6fd8ff, 0);
+        qrGlow.renderOrder = 14;
+        qrGlow.material.depthTest = false;
+        scene.add(qrGlow);
 
-
-        /* ── acelerador: três trilhos orbitais + partículas ── */
         const ringDefs=[{R0:7.2,R1:3.5,tilt:[1.15,0,.1],cor:0x54dfff},{R0:9.6,R1:4.3,tilt:[.45,.2,1.0],cor:0xa58cff},{R0:12.2,R1:5.1,tilt:[-.7,.8,.3],cor:0x78e4c1}];
         const ringG=ringDefs.map(d=>{const g=new THREE.Group();g.rotation.set(d.tilt[0],d.tilt[1],d.tilt[2]);scene.add(g);
           const pts=[];for(let i=0;i<=180;i++){const a=i/180*6.2832;pts.push(new V3(Math.cos(a),0,Math.sin(a)));}
@@ -7192,7 +7250,6 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
         const pGeo=new THREE.BufferGeometry();pGeo.setAttribute('position',new THREE.BufferAttribute(pPos,3));pGeo.setAttribute('color',new THREE.BufferAttribute(pCol,3));pGeo.setDrawRange(0,pAtivo);
         const pts=new THREE.Points(pGeo,new THREE.PointsMaterial({size:.42,map:texDot,vertexColors:true,transparent:true,opacity:.95,depthWrite:false,blending:THREE.AdditiveBlending}));pts.frustumCulled=false;scene.add(pts);
 
-        /* ── nós: grupos (hubs) e módulos (peças que se encaixam) ── */
         const hubs=[],mods=[],gm=GRUPOS.map(g=>mat(g.cor,{emissiveIntensity:.5}));
         const gHub=new THREE.IcosahedronGeometry(.5,1),gTor=new THREE.TorusGeometry(.85,.03,6,48),gOct=new THREE.OctahedronGeometry(.36),gTet=new THREE.TetrahedronGeometry(.2),gSph=new THREE.SphereGeometry(.13,10,8);
         const FD=Math.max(1.5,2.6*K);
@@ -7211,13 +7268,11 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
           const ang=rnd()*PI2,rad0=5.5+rnd()*5.5;
           mods.push({nome,gi,tg,mesh,key:!!key,sp:{r:rad0,a:ang,y:(rnd()-.5)*9,w:(.06+rnd()*.08)*(rnd()<.5?-1:1)},rot:new V3(rnd()*3,rnd()*3,rnd()*3),spin:.8+rnd()*1.4,t0:0,snap:false,tSnap:0,lab:null,labY:0});
         }));
-        /* ordem de encaixe: as 8 plataformas em destaque primeiro, depois os demais intercalados entre os grupos */
         {const dest=PLAT_ORDEM.map(n=>mods.find(m=>m.nome===n)).filter(Boolean);
          const resto=mods.filter(m=>!m.key).sort((a,b)=>(a.tg.x*7+a.tg.z*3)-(b.tg.x*7+b.tg.z*3));
          const t00=T[2]+D[2]*.16, tF=T[2]+D[2]*.88;
          dest.forEach((m,i)=>{m.t0=t00+i*(D[2]*.34/dest.length);});
          const t1=t00+D[2]*.12;resto.forEach((m,i)=>{m.t0=t1+i*((tF-t1)/Math.max(1,resto.length));});}
-        /* rótulos das 8 plataformas */
         const rotulo=(ic,txt,cor)=>{const c=document.createElement('canvas');c.width=512;c.height=128;const g=c.getContext('2d');
           g.font='bold 44px Orbitron,Inter,Arial,sans-serif';const w=Math.min(484,g.measureText(txt).width+120),x0=(512-w)/2;
           g.fillStyle='rgba(4,14,28,.78)';g.strokeStyle=cor;g.lineWidth=4;g.beginPath();const r=34;g.moveTo(x0+r,16);g.arcTo(x0+w,16,x0+w,112,r);g.arcTo(x0+w,112,x0,112,r);g.arcTo(x0,112,x0,16,r);g.arcTo(x0,16,x0+w,16,r);g.closePath();g.fill();g.stroke();
@@ -7226,33 +7281,27 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
           const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,opacity:0,depthTest:false}));sp.scale.set(4.4,1.1,1);sp.renderOrder=20;scene.add(sp);return sp;};
         const cntG={};mods.forEach(m=>{if(!m.key)return;const p=PLAT[m.nome];m.lab=rotulo(p.ic,p.rot,'#'+GRUPOS[m.gi].cor.toString(16).padStart(6,'0'));cntG[m.gi]=(cntG[m.gi]||0)+1;m.labY=cntG[m.gi]%2?1:-1;});
 
-        /* ── conexões (teia): núcleo→grupo, grupo→módulo, malhas concêntricas entre os grupos ── */
         const E=[],O=new V3(0,0,0);
         const addE=(a,b,cor,kind,i,j)=>E.push({a,b,col:new THREE.Color(cor),kind,i,j,da:a.length(),db:b.length()});
-        hubs.forEach((h,i)=>addE(O,h.tg,h.cor.clone().lerp(new THREE.Color(0xffffff),.35),0,i,0));                 // 0 raios
-        mods.forEach((m,j)=>addE(hubs[m.gi].tg,m.tg,hubs[m.gi].cor,1,m.gi,j));                                       // 1 grupo→módulo
+        hubs.forEach((h,i)=>addE(O,h.tg,h.cor.clone().lerp(new THREE.Color(0xffffff),.35),0,i,0));
+        mods.forEach((m,j)=>addE(hubs[m.gi].tg,m.tg,hubs[m.gi].cor,1,m.gi,j));
         hubs.forEach((h,i)=>{const n=hubs[(i+1)%hubs.length];
-          addE(h.tg.clone().multiplyScalar(.42),n.tg.clone().multiplyScalar(.42),0x9fe8ff,2,i,0);                    // 2 malha interna
-          addE(h.tg.clone().multiplyScalar(.72),n.tg.clone().multiplyScalar(.72),0x8edfff,3,i,0);                    // 3 malha média
-          addE(h.tg,n.tg,h.cor,4,i,0); addE(h.tg,hubs[(i+3)%hubs.length].tg,0xa8a0e8,5,i,0);});                      // 4 anel externo · 5 diagonais
+          addE(h.tg.clone().multiplyScalar(.42),n.tg.clone().multiplyScalar(.42),0x9fe8ff,2,i,0);
+          addE(h.tg.clone().multiplyScalar(.72),n.tg.clone().multiplyScalar(.72),0x8edfff,3,i,0);
+          addE(h.tg,n.tg,h.cor,4,i,0); addE(h.tg,hubs[(i+3)%hubs.length].tg,0xa8a0e8,5,i,0);});
         const lp=new Float32Array(E.length*6),lc=new Float32Array(E.length*6);
         E.forEach((e,k)=>{lp.set([e.a.x,e.a.y,e.a.z,e.b.x,e.b.y,e.b.z],k*6);});
         const lg=new THREE.BufferGeometry();lg.setAttribute('position',new THREE.BufferAttribute(lp,3));lg.setAttribute('color',new THREE.BufferAttribute(lc,3));
         const lines=new THREE.LineSegments(lg,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));lines.frustumCulled=false;scene.add(lines);
-        /* pacotes de dados correndo pelas rotas */
         const NPK=baixo?40:90,kPk=[];E.forEach((e,k)=>{if(e.kind<2)kPk.push(k);});
         const pkPos=new Float32Array(NPK*3),pkCol=new Float32Array(NPK*3),pk=[];
         for(let i=0;i<NPK;i++){const k=kPk[(rnd()*kPk.length)|0];pk.push({k,o:rnd(),v:.18+rnd()*.3,dir:rnd()<.5?1:-1});const c=E[k].col;pkCol[i*3]=c.r;pkCol[i*3+1]=c.g;pkCol[i*3+2]=c.b;}
         const pkG=new THREE.BufferGeometry();pkG.setAttribute('position',new THREE.BufferAttribute(pkPos,3));pkG.setAttribute('color',new THREE.BufferAttribute(pkCol,3));
         const pkPts=new THREE.Points(pkG,new THREE.PointsMaterial({size:.42,map:texDot,vertexColors:true,transparent:true,opacity:1,depthWrite:false,blending:THREE.AdditiveBlending}));pkPts.frustumCulled=false;scene.add(pkPts);
-        /* ondas do batimento + clarões de encaixe (pools reutilizados: sem alocação por quadro) */
         const waves=[{t0:-99},{t0:-99},{t0:-99}],wSp=[0,1,2].map(()=>{const sp=spr(texRing,0x7fdcff,0);scene.add(sp);return sp;});
         const flashes=Array.from({length:12},()=>{const sp=spr(texGlow,0xffffff,0);scene.add(sp);return {sp,t0:-99,k:0};});let fi=0;
         const flash=(pos,cor,clock)=>{const f=flashes[fi++%flashes.length];f.t0=clock;f.sp.position.copy(pos);f.sp.material.color.copy(cor);};
 
-        /* ── FIX 1b: o listener webglcontextlost já foi registrado acima, no momento
-           em que o renderer é criado. Aqui só mantemos o estado wd.ran usado
-           pelo vigilante de cena escura. */
         const wd={ran:false};
         let clock=reduzido?T[5]+3:0,lastT=0,ringPhase=0,swirl=0,beatT=0,prevBc=0,waveI=0,fpsAcc=0,fpsN=0,primeira=true;
         const cPos=new V3(),cLook=new V3(),aPos=new V3(),aLook=new V3(),tmp=new V3();
@@ -7261,128 +7310,149 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
         const matriz=new THREE.Matrix4();
 
         C.cb=t=>{
-          if(S.morto||fallbackAtivo)return;
-          let dt=Math.min(.1,Math.max(0,t-lastT));lastT=t;
-          if(pausado()||reduzido)dt=0;
-          clock+=dt;
-          const ci=capIdx(clock);
-          if(ci!==capAtual){mostraCap(ci);}
-          segs.forEach((e,i)=>{const p=i<ci?1:i>ci?0:clamp01((clock-T[i])/D[i]);e.firstChild.style.setProperty('--p',p.toFixed(3));});
+          try {
+            if(S.morto||fallbackAtivo)return;
+            let dt=Math.min(.1,Math.max(0,t-lastT));lastT=t;
+            if(pausado()||reduzido)dt=0;
+            clock+=dt;
+            const ci=capIdx(clock);
+            if(ci!==capAtual){mostraCap(ci);}
+            segs.forEach((e,i)=>{const p=i<ci?1:i>ci?0:clamp01((clock-T[i])/D[i]);e.firstChild.style.setProperty('--p',p.toFixed(3));});
 
-          /* fases (0→1) */
-          const uAcc=ease((clock-T[1]+.3)/(D[1]*.9)), uSet=ease((clock-T[2])/D[2]), uShell=ease((clock-(T[2]+D[2]*.25))/(D[2]*.7));
-          const uCore=ease((clock-(T[2]+D[2]*.55))/(D[2]*.45+D[3]*.2)), uPulso=ease((clock-T[4])/(D[4]*.5)), uSing=ease((clock-T[5])/3);
-          const uWeb=T[3];
-          const tQ=T[5]+Math.min(4,D[5]*.3),uMorph=reduzido?1:ease((clock-tQ)/2.2),uQR=reduzido?1:ease((clock-tQ-1.2)/1.6);
-          if(uQR>.5&&s.getAttribute('data-qr')!=='1')s.setAttribute('data-qr','1');
+            const uAcc=ease((clock-T[1]+.3)/(D[1]*.9)), uSet=ease((clock-T[2])/D[2]), uShell=ease((clock-(T[2]+D[2]*.25))/(D[2]*.7));
+            const uCore=ease((clock-(T[2]+D[2]*.55))/(D[2]*.45+D[3]*.2)), uPulso=ease((clock-T[4])/(D[4]*.5)), uSing=ease((clock-T[5])/3);
+            const uWeb=T[3];
+            const tQ=T[5]+Math.min(4,D[5]*.3),uMorph=reduzido?1:ease((clock-tQ)/2.2),uQR=reduzido?1:ease((clock-tQ-1.2)/1.6);
+            if(uQR>.5&&s.getAttribute('data-qr')!=='1')s.setAttribute('data-qr','1');
 
-          /* câmera: alvo do capítulo + amortecimento exponencial */
-          camAlvo(CAPS[ci].cam,aPos,aLook);
-          if(primeira||reduzido){cPos.copy(aPos);cLook.copy(aLook);primeira=false;}
-          else{const kp=1-Math.exp(-dt*1.35),kl=1-Math.exp(-dt*2.2);cPos.lerp(aPos,kp);cLook.lerp(aLook,kl);}
-          camera.position.copy(cPos);camera.lookAt(cLook);camera.updateMatrixWorld();const ce=camera.matrixWorld.elements,Qs=camera.position.length()*Math.min(.30,camera.aspect*.5);
+            camAlvo(CAPS[ci].cam,aPos,aLook);
+            if(primeira||reduzido){cPos.copy(aPos);cLook.copy(aLook);primeira=false;}
+            else{const kp=1-Math.exp(-dt*1.35),kl=1-Math.exp(-dt*2.2);cPos.lerp(aPos,kp);cLook.lerp(aLook,kl);}
+            camera.position.copy(cPos);camera.lookAt(cLook);camera.updateMatrixWorld();const ce=camera.matrixWorld.elements,Qs=camera.position.length()*Math.min(.30,camera.aspect*.5);
 
-          /* batimento (lub-dub) — ritmo constante em tempo real */
-          beatT+=dt;const bc=(beatT%1.6)/1.6;
-          const b1=Math.exp(-Math.pow((bc-.12)/.06,2)),b2=.62*Math.exp(-Math.pow((bc-.30)/.05,2)),beat=clamp01(b1+b2);
-          if(prevBc<.12&&bc>=.12&&uCore>.55&&!reduzido){waves[waveI%3].t0=clock;waveI++;}
-          prevBc=bc;
-          const amp=(.03+.13*uPulso)*(1-.35*uSing)*(reduzido?0:1);
+            beatT+=dt;const bc=(beatT%1.6)/1.6;
+            const b1=Math.exp(-Math.pow((bc-.12)/.06,2)),b2=.62*Math.exp(-Math.pow((bc-.30)/.05,2)),beat=clamp01(b1+b2);
+            if(prevBc<.12&&bc>=.12&&uCore>.55&&!reduzido){waves[waveI%3].t0=clock;waveI++;}
+            prevBc=bc;
+            const amp=(.03+.13*uPulso)*(1-.35*uSing)*(reduzido?0:1);
 
-          /* núcleo */
-          const seed=(.25+1.1*uAcc)*(1-uCore);
-          const cs=(.04+.96*uCore)*(1+amp*beat);
-          core.scale.setScalar(Math.max(.001,cs*(1-uMorph)));core.visible=uMorph<.99;core.rotation.y+=dt*.25;
-          coreWire.scale.setScalar(.2+.8*uCore+amp*beat*.5);coreWire.rotation.y-=dt*.12;coreWire.material.opacity=.5*uCore*(1-uMorph);
-          coreMat.emissiveIntensity=.7+.8*uCore+1.7*beat*uPulso;
-          halo.material.opacity=Math.min(.95,(.12+.55*uAcc*(1-uCore*.4)+.35*beat*uCore));halo.scale.setScalar(2.4+seed*3.5+uCore*3.5+beat*uCore*1.6);
-          halo2.material.opacity=.5*uAcc*(1-uCore*.7)+.35*beat*uCore;halo2.scale.setScalar(1+seed*1.8+beat*uCore*.9);
+            const seed=(.25+1.1*uAcc)*(1-uCore);
+            const cs=(.04+.96*uCore)*(1+amp*beat);
+            core.scale.setScalar(Math.max(.001,cs*(1-uMorph)));core.visible=uMorph<.99;core.rotation.y+=dt*.25;
+            coreWire.scale.setScalar(.2+.8*uCore+amp*beat*.5);coreWire.rotation.y-=dt*.12;coreWire.material.opacity=.5*uCore*(1-uMorph);
+            coreMat.emissiveIntensity=.7+.8*uCore+1.7*beat*uPulso;
+            halo.material.opacity=Math.min(.95,(.12+.55*uAcc*(1-uCore*.4)+.35*beat*uCore));halo.scale.setScalar(2.4+seed*3.5+uCore*3.5+beat*uCore*1.6);
+            halo2.material.opacity=.5*uAcc*(1-uCore*.7)+.35*beat*uCore;halo2.scale.setScalar(1+seed*1.8+beat*uCore*.9);
 
-          /* trilhos do acelerador: surgem, giram, encolhem para o núcleo */
-          const uComp=ease((clock-T[2])/(D[2]+D[3]*.5));
-          ringG.forEach((g,i)=>{const d=ringDefs[i],Rr=d.R0+(d.R1-d.R0)*uComp+beat*uCore*.08;g.userData.line.scale.setScalar(Rr);g.rotation.y+=dt*.05*(i+1);
-            g.userData.line.material.opacity=(.1+.55*uAcc)*(1-.55*uComp)+.22*uComp*(1+beat*uPulso);});
-          const spd=(.25+3.4*uAcc*uAcc)*(1-.7*uSet);ringPhase+=dt*spd;swirl+=dt*.3*uShell;
-          scene.updateMatrixWorld(true);
+            const uComp=ease((clock-T[2])/(D[2]+D[3]*.5));
+            ringG.forEach((g,i)=>{const d=ringDefs[i],Rr=d.R0+(d.R1-d.R0)*uComp+beat*uCore*.08;g.userData.line.scale.setScalar(Rr);g.rotation.y+=dt*.05*(i+1);
+              g.userData.line.material.opacity=(.1+.55*uAcc)*(1-.55*uComp)+.22*uComp*(1+beat*uPulso);});
+            const spd=(.25+3.4*uAcc*uAcc)*(1-.7*uSet);ringPhase+=dt*spd;swirl+=dt*.3*uShell;
+            scene.updateMatrixWorld(true);
 
-          /* partículas: caos → trilhos → casca em torno do núcleo */
-          const ampC=1.6-.9*uAcc,cw=Math.cos(swirl),sw=Math.sin(swirl);
-          for(let i=0;i<pAtivo;i++){
-            const q=P_[i];
-            let x=q.cx+Math.sin(q.ph[0]+clock*q.f[0])*ampC,y=q.cy+Math.sin(q.ph[1]+clock*q.f[1])*ampC,z=q.cz+Math.sin(q.ph[2]+clock*q.f[2])*ampC;
-            if(q.tipo===1&&uAcc>0){
-              const d=ringDefs[q.ring],Rr=(d.R0+(d.R1-d.R0)*uComp)+q.jr,a=q.a0+ringPhase*q.sp;
-              tmp.set(Math.cos(a)*Rr,q.jy,Math.sin(a)*Rr).applyMatrix4(ringG[q.ring].matrixWorld);
-              x+=(tmp.x-x)*uAcc;y+=(tmp.y-y)*uAcc;z+=(tmp.z-z)*uAcc;
-            }else if(q.tipo===2&&uShell>0){
-              const Rs=q.sr*(1+amp*beat*1.2),tx=(q.sx*cw-q.sz*sw)*Rs,tz=(q.sx*sw+q.sz*cw)*Rs,ty=q.sy*Rs;
-              x+=(tx-x)*uShell;y+=(ty-y)*uShell;z+=(tz-z)*uShell;
-              if(uMorph>0){const lx=q.qm[0]*Qs,ly=q.qm[1]*Qs;x+=(ce[0]*lx+ce[4]*ly-x)*uMorph;y+=(ce[1]*lx+ce[5]*ly-y)*uMorph;z+=(ce[2]*lx+ce[6]*ly-z)*uMorph;}
+            const ampC=1.6-.9*uAcc,cw=Math.cos(swirl),sw=Math.sin(swirl);
+            for(let i=0;i<pAtivo;i++){
+              const q=P_[i];
+              let x=q.cx+Math.sin(q.ph[0]+clock*q.f[0])*ampC,y=q.cy+Math.sin(q.ph[1]+clock*q.f[1])*ampC,z=q.cz+Math.sin(q.ph[2]+clock*q.f[2])*ampC;
+              if(q.tipo===1&&uAcc>0){
+                const d=ringDefs[q.ring],Rr=(d.R0+(d.R1-d.R0)*uComp)+q.jr,a=q.a0+ringPhase*q.sp;
+                tmp.set(Math.cos(a)*Rr,q.jy,Math.sin(a)*Rr).applyMatrix4(ringG[q.ring].matrixWorld);
+                x+=(tmp.x-x)*uAcc;y+=(tmp.y-y)*uAcc;z+=(tmp.z-z)*uAcc;
+              }else if(q.tipo===2&&uShell>0){
+                const Rs=q.sr*(1+amp*beat*1.2),tx=(q.sx*cw-q.sz*sw)*Rs,tz=(q.sx*sw+q.sz*cw)*Rs,ty=q.sy*Rs;
+                x+=(tx-x)*uShell;y+=(ty-y)*uShell;z+=(tz-z)*uShell;
+                if(uMorph>0){const lx=q.qm[0]*Qs,ly=q.qm[1]*Qs;x+=(ce[0]*lx+ce[4]*ly-x)*uMorph;y+=(ce[1]*lx+ce[5]*ly-y)*uMorph;z+=(ce[2]*lx+ce[6]*ly-z)*uMorph;}
+              }
+              pPos[i*3]=x;pPos[i*3+1]=y;pPos[i*3+2]=z;
             }
-            pPos[i*3]=x;pPos[i*3+1]=y;pPos[i*3+2]=z;
+            pGeo.attributes.position.needsUpdate=true;pts.material.opacity=.85+.1*beat*uCore;
+
+            hubs.forEach((h,i)=>{
+              const f=clamp01((clock-h.t0)/FD),e=easeOutBack(f),a=clock*.1+i;
+              tmp.set(h.far.x+Math.sin(a)*1.5,h.far.y+Math.cos(a*1.3)*1.2,h.far.z);
+              h.grp.position.lerpVectors(tmp,h.tg,ease(f));
+              if(f>=1&&!h.snap){h.snap=true;flash(h.tg,h.cor,clock);}
+              const pop=f>=1?1+.35*Math.exp(-(clock-h.t0-FD)*6):1;
+              h.grp.scale.setScalar((.35+.65*e)*pop*(1+.03*beat*uPulso));h.grp.rotation.y+=dt*(.4+h.w*(1-f*.7));h.tor.rotation.z+=dt*.6;
+            });
+            mods.forEach(m=>{
+              const f=clamp01((clock-m.t0)/FD),e=easeOutBack(f),a=m.sp.a+clock*m.sp.w;
+              tmp.set(Math.cos(a)*m.sp.r,m.sp.y,Math.sin(a)*m.sp.r);
+              m.mesh.position.lerpVectors(tmp,m.tg,ease(f));
+              if(f>=1&&!m.snap){m.snap=true;m.tSnap=clock;flash(m.tg,hubs[m.gi].cor,clock);if(m.key){const el=chipEls.find(c=>c.getAttribute('data-n')===m.nome);if(el)el.classList.add('on');}}
+              const sn=f>=1?clock-m.t0-FD:-1,pop=sn>=0?1+.5*Math.exp(-sn*6):1;
+              m.mesh.scale.setScalar((.5+.5*e)*pop*(m.key?1:1)*(1+.04*beat*uPulso));
+              const sp=m.spin*(1-f)*dt;m.mesh.rotation.x+=sp*m.rot.x;m.mesh.rotation.y+=sp*m.rot.y+dt*.15*f;
+              if(m.lab){const dl=camera.position.distanceTo(m.mesh.position),wl=dl*.19*Math.min(1,camera.aspect/1.5),me=camera.matrixWorld.elements;m.lab.position.set(m.mesh.position.x+me[0]*m.labY*wl*.62+me[4]*wl*.3,m.mesh.position.y+me[1]*m.labY*wl*.62+me[5]*wl*.3,m.mesh.position.z+me[2]*m.labY*wl*.62+me[6]*wl*.3);m.lab.scale.set(wl,wl/4,1);m.lab.material.opacity=f>=1?Math.min(.95,sn/.7)*(1-.45*uPulso)*(1-.9*uQR):0;}
+            });
+            flashes.forEach(f=>{const u=(clock-f.t0)/.7;if(u<0||u>1){f.sp.material.opacity=0;return;}f.sp.material.opacity=.9*(1-u);f.sp.scale.setScalar(.6+3.4*ease(u));});
+
+            const wv=waves.map(w=>({r:(clock-w.t0)*7.5,a:(clock-w.t0)>=0&&(clock-w.t0)*7.5<20?1:0}));
+            const waveGain=1-.45*uSing, baseL=.26+.1*uPulso;
+            const gate=(e,vk)=>{
+              switch(e.kind){
+                case 0:return ease((clock-(uWeb+e.i*.14*K))/1.3);
+                case 1:{const m=mods[e.j];return m.snap?clamp01((clock-m.tSnap)/.7):0;}
+                case 2:return ease((clock-(uWeb+.4*K+e.i*.1*K))/1.4);
+                case 3:return ease((clock-(uWeb+.9*K+e.i*.1*K))/1.4);
+                default:return ease((clock-(uWeb+1.6*K+e.i*.12*K))/1.6);
+              }};
+            for(let k=0;k<E.length;k++){
+              const e=E[k],g=gate(e);let ba=baseL,bb=baseL;
+              if(g>0){for(let w=0;w<3;w++){const W=wv[w];if(!W.a)continue;const fade=(1-W.r/20)*1.5*waveGain;ba+=Math.exp(-Math.pow((e.da-W.r)/1.8,2))*fade;bb+=Math.exp(-Math.pow((e.db-W.r)/1.8,2))*fade;}}
+              const ld=1-.55*uQR,ia=g*Math.min(1.7,ba)*ld,ib=g*Math.min(1.7,bb)*ld;
+              lc[k*6]=e.col.r*ia;lc[k*6+1]=e.col.g*ia;lc[k*6+2]=e.col.b*ia;lc[k*6+3]=e.col.r*ib;lc[k*6+4]=e.col.g*ib;lc[k*6+5]=e.col.b*ib;
+            }
+            lg.attributes.color.needsUpdate=true;
+            for(let i=0;i<NPK;i++){const q=pk[i],e=E[q.k],g=gate(e);
+              if(g<.95){pkPos[i*3+1]=9999;continue;}
+              let f=(q.o+clock*q.v*q.dir)%1;if(f<0)f+=1;
+              pkPos[i*3]=e.a.x+(e.b.x-e.a.x)*f;pkPos[i*3+1]=e.a.y+(e.b.y-e.a.y)*f;pkPos[i*3+2]=e.a.z+(e.b.z-e.a.z)*f;}
+            pkG.attributes.position.needsUpdate=true;
+            wSp.forEach((sp,i)=>{const w=waves[i],r=(clock-w.t0)*7.5;if(r<0||r>20){sp.material.opacity=0;return;}sp.position.set(0,0,0);sp.scale.setScalar(Math.max(.1,r*2));sp.material.opacity=.55*(1-r/20)*waveGain;});
+
+            const visivelQR = uQR > 0.01;
+            qrSphere.visible = qrShell.visible = qrRing.visible = visivelQR;
+
+            if (visivelQR) {
+              qrSphere.position.set(0, 0, 0);
+              qrShell.position.set(0, 0, 0);
+              qrRing.position.set(0, 0, 0);
+              const escalaQR = Qs * (1 + 0.012 * beat * uQR);
+              qrSphere.scale.setScalar(escalaQR);
+              qrShell.scale.setScalar(escalaQR * 1.04);
+              qrRing.scale.setScalar(escalaQR * 1.06);
+              const rotY = clock * 0.18;
+              const rotX = Math.sin(clock * 0.35) * 0.08;
+              qrSphere.rotation.set(rotX, rotY, 0);
+              qrShell.rotation.set(rotX, rotY, 0);
+              qrRing.rotation.set(Math.PI / 2 + rotX * 0.5, 0, rotY * 0.3);
+              qrSphere.material.opacity = uQR;
+              qrShell.material.opacity = uQR * 0.85;
+              qrRing.material.opacity = uQR * (0.55 + 0.25 * beat);
+              qrRing.material.color.setHSL(0.52, 1, 0.6 + 0.25 * beat);
+              qrGlow.visible = true;
+              qrGlow.position.set(0, 0, -escalaQR * 0.35);
+              qrGlow.scale.setScalar(escalaQR * (2.2 + 0.35 * beat));
+              qrGlow.material.opacity = uQR * (0.35 + 0.25 * beat);
+            } else {
+              qrGlow.visible = false;
+            }
+
+            if(clock>1.5&&dt>0){fpsAcc+=dt;fpsN++;if(fpsAcc>2){const m=fpsAcc/fpsN;
+              if(m>.036&&pAtivo>PMAX*.3){pAtivo=Math.floor(pAtivo*.75);pGeo.setDrawRange(0,pAtivo);}
+              if(m>.05&&R.getPixelRatio()>1)R.setPixelRatio(1);
+              fpsAcc=0;fpsN=0;}}
+          } catch (err) {
+            modoAlt('erro no laço 3D: ' + (err && err.message || err));
           }
-          pGeo.attributes.position.needsUpdate=true;pts.material.opacity=.85+.1*beat*uCore;
-
-          /* peças: voam da nuvem, encaixam (com estalo e clarão) e ganham ícone */
-          hubs.forEach((h,i)=>{
-            const f=clamp01((clock-h.t0)/FD),e=easeOutBack(f),a=clock*.1+i;
-            tmp.set(h.far.x+Math.sin(a)*1.5,h.far.y+Math.cos(a*1.3)*1.2,h.far.z);
-            h.grp.position.lerpVectors(tmp,h.tg,ease(f));
-            if(f>=1&&!h.snap){h.snap=true;flash(h.tg,h.cor,clock);}
-            const pop=f>=1?1+.35*Math.exp(-(clock-h.t0-FD)*6):1;
-            h.grp.scale.setScalar((.35+.65*e)*pop*(1+.03*beat*uPulso));h.grp.rotation.y+=dt*(.4+h.w*(1-f*.7));h.tor.rotation.z+=dt*.6;
-          });
-          mods.forEach(m=>{
-            const f=clamp01((clock-m.t0)/FD),e=easeOutBack(f),a=m.sp.a+clock*m.sp.w;
-            tmp.set(Math.cos(a)*m.sp.r,m.sp.y,Math.sin(a)*m.sp.r);
-            m.mesh.position.lerpVectors(tmp,m.tg,ease(f));
-            if(f>=1&&!m.snap){m.snap=true;m.tSnap=clock;flash(m.tg,hubs[m.gi].cor,clock);if(m.key){const el=chipEls.find(c=>c.getAttribute('data-n')===m.nome);if(el)el.classList.add('on');}}
-            const sn=f>=1?clock-m.t0-FD:-1,pop=sn>=0?1+.5*Math.exp(-sn*6):1;
-            m.mesh.scale.setScalar((.5+.5*e)*pop*(m.key?1:1)*(1+.04*beat*uPulso));
-            const sp=m.spin*(1-f)*dt;m.mesh.rotation.x+=sp*m.rot.x;m.mesh.rotation.y+=sp*m.rot.y+dt*.15*f;
-            if(m.lab){const dl=camera.position.distanceTo(m.mesh.position),wl=dl*.19*Math.min(1,camera.aspect/1.5),me=camera.matrixWorld.elements;m.lab.position.set(m.mesh.position.x+me[0]*m.labY*wl*.62+me[4]*wl*.3,m.mesh.position.y+me[1]*m.labY*wl*.62+me[5]*wl*.3,m.mesh.position.z+me[2]*m.labY*wl*.62+me[6]*wl*.3);m.lab.scale.set(wl,wl/4,1);m.lab.material.opacity=f>=1?Math.min(.95,sn/.7)*(1-.45*uPulso)*(1-.9*uQR):0;}
-          });
-          flashes.forEach(f=>{const u=(clock-f.t0)/.7;if(u<0||u>1){f.sp.material.opacity=0;return;}f.sp.material.opacity=.9*(1-u);f.sp.scale.setScalar(.6+3.4*ease(u));});
-
-          /* teia: brilho por rota (aparece com o encaixe/teia, onda do batimento percorre as conexões) */
-          const wv=waves.map(w=>({r:(clock-w.t0)*7.5,a:(clock-w.t0)>=0&&(clock-w.t0)*7.5<20?1:0}));
-          const waveGain=1-.45*uSing, baseL=.26+.1*uPulso;
-          const gate=(e,vk)=>{
-            switch(e.kind){
-              case 0:return ease((clock-(uWeb+e.i*.14*K))/1.3);
-              case 1:{const m=mods[e.j];return m.snap?clamp01((clock-m.tSnap)/.7):0;}
-              case 2:return ease((clock-(uWeb+.4*K+e.i*.1*K))/1.4);
-              case 3:return ease((clock-(uWeb+.9*K+e.i*.1*K))/1.4);
-              default:return ease((clock-(uWeb+1.6*K+e.i*.12*K))/1.6);
-            }};
-          for(let k=0;k<E.length;k++){
-            const e=E[k],g=gate(e);let ba=baseL,bb=baseL;
-            if(g>0){for(let w=0;w<3;w++){const W=wv[w];if(!W.a)continue;const fade=(1-W.r/20)*1.5*waveGain;ba+=Math.exp(-Math.pow((e.da-W.r)/1.8,2))*fade;bb+=Math.exp(-Math.pow((e.db-W.r)/1.8,2))*fade;}}
-            const ld=1-.55*uQR,ia=g*Math.min(1.7,ba)*ld,ib=g*Math.min(1.7,bb)*ld;
-            lc[k*6]=e.col.r*ia;lc[k*6+1]=e.col.g*ia;lc[k*6+2]=e.col.b*ia;lc[k*6+3]=e.col.r*ib;lc[k*6+4]=e.col.g*ib;lc[k*6+5]=e.col.b*ib;
-          }
-          lg.attributes.color.needsUpdate=true;
-          for(let i=0;i<NPK;i++){const q=pk[i],e=E[q.k],g=gate(e);
-            if(g<.95){pkPos[i*3+1]=9999;continue;}
-            let f=(q.o+clock*q.v*q.dir)%1;if(f<0)f+=1;
-            pkPos[i*3]=e.a.x+(e.b.x-e.a.x)*f;pkPos[i*3+1]=e.a.y+(e.b.y-e.a.y)*f;pkPos[i*3+2]=e.a.z+(e.b.z-e.a.z)*f;}
-          pkG.attributes.position.needsUpdate=true;
-          wSp.forEach((sp,i)=>{const w=waves[i],r=(clock-w.t0)*7.5;if(r<0||r>20){sp.material.opacity=0;return;}sp.position.set(0,0,0);sp.scale.setScalar(Math.max(.1,r*2));sp.material.opacity=.55*(1-r/20)*waveGain;});
-
-          /* QR: plano voltado à câmera (escaneável), com brilho que pulsa no ritmo do coração */
-          qrMesh.visible=uQR>.01;qrMesh.quaternion.copy(camera.quaternion);qrMesh.scale.setScalar(Qs*(1+.012*beat*uQR));qrMesh.material.opacity=uQR;
-          qrGlow.position.set(0,0,0);qrGlow.scale.setScalar(Qs*(1.9+.25*beat));qrGlow.material.opacity=uMorph*(.45+.35*beat)*(1-.2*uQR);
-
-          /* adaptativo: se o aparelho não acompanha, reduz partículas e resolução (nunca o roteiro) */
-          if(clock>1.5&&dt>0){fpsAcc+=dt;fpsN++;if(fpsAcc>2){const m=fpsAcc/fpsN;
-            if(m>.036&&pAtivo>PMAX*.3){pAtivo=Math.floor(pAtivo*.75);pGeo.setDrawRange(0,pAtivo);}
-            if(m>.05&&R.getPixelRatio()>1)R.setPixelRatio(1);
-            fpsAcc=0;fpsN=0;}}
         };
         mostraCap(capIdx(clock));
       });
-    }catch(err){modoAlt('falha ao montar: '+(err&&err.message||err));}
-  }).catch(err=>{modoAlt('Three.js indisponível');});
+    } catch (err) {
+      modoAlt('falha ao montar: ' + (err && err.message || err));
+    }
+  }).catch(err => { modoAlt('Three.js indisponível'); });
 }};
 
 const TX_PADRAO = () => ({id: '-', status: 'liberado', tela: {}, layout: {modelo: 'full', gap: 0, raio: 0}, paineis: {r1: {itens: [
