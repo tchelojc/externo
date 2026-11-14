@@ -1571,6 +1571,26 @@ html, body { overscroll-behavior: none; }
 .pl-lupa-vp * { animation-delay: -100s !important; animation-iteration-count: 1 !important; transition: none !important; }
 .pl-lupa-mira { position: absolute; left: 50%; top: 50%; width: 26px; height: 26px; margin: -13px 0 0 -13px; border: 2px solid rgba(255,255,255,.8); border-radius: 50%; box-shadow: 0 0 0 1px rgba(0,0,0,.6); }
 .pl-lupa-rot { position: absolute; right: 10px; top: 8px; font: 700 11px system-ui, sans-serif; color: #00e5ff; background: rgba(0,0,0,.65); padding: 3px 8px; border-radius: 8px; }
+
+/* Seletor discreto de rádios ao vivo — ocupa o antigo botão de silenciar flutuante */
+.tx-radio-tab{position:fixed;right:12px;top:66px;z-index:100004;width:46px;height:46px;border-radius:50%;border:1px solid #00e5ff;background:rgba(3,8,18,.94);color:#8edcff;font-size:21px;cursor:pointer;box-shadow:0 0 18px rgba(0,229,255,.22);opacity:.88;display:none}
+.tx-radio-tab.on{border-color:#72e5a5;color:#72e5a5;box-shadow:0 0 20px rgba(70,230,150,.3)}
+.tx-radio-panel{position:fixed;right:12px;top:120px;z-index:100005;width:min(390px,calc(100vw - 24px));max-height:min(72vh,620px);display:none;overflow:hidden;border:1px solid rgba(0,229,255,.55);border-radius:18px;background:rgba(4,12,25,.97);color:#eaf7ff;box-shadow:0 18px 55px rgba(0,0,0,.65),0 0 28px rgba(0,229,255,.14);backdrop-filter:blur(16px);font:500 13px/1.4 system-ui,sans-serif}
+.tx-radio-panel.open{display:flex;flex-direction:column}
+.tx-radio-head{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.1)}
+.tx-radio-head strong{font-size:14px;letter-spacing:.04em;flex:1}
+.tx-radio-head button,.tx-radio-actions button{border:1px solid rgba(142,220,255,.35);border-radius:9px;background:rgba(255,255,255,.07);color:#eaf7ff;padding:7px 10px;font:600 12px system-ui;cursor:pointer}
+.tx-radio-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:10px;overflow:auto;max-height:190px}
+.tx-radio-station{display:flex;align-items:center;gap:8px;text-align:left;border:1px solid rgba(255,255,255,.12);border-radius:11px;padding:9px;background:rgba(255,255,255,.045);color:#eaf7ff;cursor:pointer;min-width:0}
+.tx-radio-station b{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx-radio-station small{display:block;color:#9db7ca;font-size:10px}
+.tx-radio-station.sel{border-color:#00e5ff;background:rgba(0,229,255,.12)}
+.tx-radio-player{width:100%;height:190px;border:0;background:#000;display:block}
+.tx-radio-status{padding:8px 12px;color:#a9c6d9;font-size:11px;min-height:30px}
+.tx-radio-actions{display:flex;gap:8px;padding:0 10px 10px}
+.tx-radio-actions a{color:#8edcff;text-decoration:none;border:1px solid rgba(142,220,255,.35);border-radius:9px;padding:7px 10px;font-size:11px}
+@media(max-width:480px){.tx-radio-panel{right:8px;top:116px;width:calc(100vw - 16px)}.tx-radio-player{height:170px}.tx-radio-list{max-height:170px}}
+
 .tx-audio-dica { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 100003; max-width: 92vw; padding: 10px 16px; border-radius: 14px;
   background: rgba(5,13,24,.94); border: 1px solid #00e5ff; color: #e9f5ff; font: 600 14px/1.35 system-ui, sans-serif; text-align: center; display: none; box-shadow: 0 0 24px rgba(0,229,255,.25); }
 .tx-audio-dica.on { display: block; }
@@ -3347,7 +3367,7 @@ function criarPlayer(root, opts) {
       P._showControls();
     };
     // ── Toque: com lupa ligada abre a lente; sem lupa, SEGURAR o dedo ~0,5 s pausa/retoma (toque curto só mostra os controles) ──
-    const dentroUI = e => e.target && e.target.closest && e.target.closest('.pl-controls,.pl-lupa,.tx-mudo,.tx-audio-dica');
+    const dentroUI = e => e.target && e.target.closest && e.target.closest('.pl-controls,.pl-lupa,.tx-mudo,.tx-radio-tab,.tx-radio-panel,.tx-audio-dica');
     root.addEventListener('pointerdown', P._pDown = e => {
       if (dentroUI(e)) return;
       if (zi > 0) { try { root.setPointerCapture(e.pointerId); } catch (x) {} lenteLigar(e); return; }
@@ -3515,17 +3535,18 @@ function iniciarRegiao(P, box, id, cont) {
 
   let itens = (cont.itens || []).filter(i => i && i.ativo !== false); if (!itens.length) itens = [{tipo: 'relogio', duracaoS: 3600}];
   // Fechamento da volta: KPG → comercial R5Fit → demonstração InfoCell → relógio.
-  const pesoFim = i => i.tipo === 'relogio' ? 4 : (i.tipo === 'demoInfoCell' ? 3 : (i.r5fit === true || (i.tipo === 'video' && /IMG_1929\.MOV/i.test(String(i.url||''))) ? 2 : (i.tipo === 'demoKpg' ? 1 : 0)));
+  const pesoFim = i => i.tipo === 'ecossistema' ? 5 : (i.tipo === 'relogio' ? 4 : (i.tipo === 'demoInfoCell' ? 3 : (i.r5fit === true || (i.tipo === 'video' && /IMG_1929\.MOV/i.test(String(i.url||''))) ? 2 : (i.tipo === 'demoKpg' ? 1 : 0))));
   if (id === 'r1' && !P.preview) {
     if (!itens.some(i => i.r5fit === true || (i.tipo === 'video' && /IMG_1929\.MOV/i.test(String(i.url||''))))) itens.push({tipo:'video', url:'./IMG_1929.MOV', nome:'Comercial R5Fit', duracaoS:0, pausaFinalS:3, mudo:true, fit:'contain', r5fit:true, loop:false, ativo:true});
     if (!itens.some(i => i.tipo === 'demoInfoCell')) itens.push({tipo:'demoInfoCell', nome:'InfoCell · vitrine e atendimento', duracaoS:58, ativo:true});
+    if (!itens.some(i => i.tipo === 'ecossistema')) itens.push({tipo:'ecossistema', nome:'ALMAFLUXO · linhas do universo', duracaoS:58, ativo:true});
   }
   itens = itens.map((i, n) => [i, n]).sort((a, b) => pesoFim(a[0]) - pesoFim(b[0]) || a[1] - b[1]).map(x => x[0]);
   const ordemCiclo = () => {
-    const idx = itens.map((_, i) => i), p0 = idx.filter(i => pesoFim(itens[i]) === 0), p1 = idx.filter(i => pesoFim(itens[i]) === 1), p2 = idx.filter(i => pesoFim(itens[i]) === 2), p3 = idx.filter(i => pesoFim(itens[i]) === 3), p4 = idx.filter(i => pesoFim(itens[i]) === 4);
+    const idx = itens.map((_, i) => i), p0 = idx.filter(i => pesoFim(itens[i]) === 0), p1 = idx.filter(i => pesoFim(itens[i]) === 1), p2 = idx.filter(i => pesoFim(itens[i]) === 2), p3 = idx.filter(i => pesoFim(itens[i]) === 3), p4 = idx.filter(i => pesoFim(itens[i]) === 4), p5 = idx.filter(i => pesoFim(itens[i]) === 5);
     for (let i = p0.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const x = p0[i]; p0[i] = p0[j]; p0[j] = x; }
     if (p0.length > 1 && p0[0] === R.idx) p0.push(p0.shift());   // não repete o último slide da volta anterior
-    return p0.concat(p1, p2, p3, p4);
+    return p0.concat(p1, p2, p3, p4, p5);
   };
   // Transição: usa a personalizada do tipo de slide (se existir), senão a global da região
   const trGlobal = Object.assign({tipo: 'fade', ms: 800}, cont.transicao || {});
@@ -6591,6 +6612,90 @@ function txProximaCidade(nomeAtual, passo) {
   return TX_CIDADES[j];
 }
 
+/* ══════ TX.ecossistema — encerramento cinematográfico ALMAFLUXO ══════
+   Cada plataforma apresenta seu próprio universo/linha de trabalho; as rotas
+   convergem num eixo temporal comum. Animação autônoma, sem dependências externas. */
+Object.assign(TIPOS, {ecossistema: '✦ ALMAFLUXO · Universo conectado (encerramento)'});
+TX.ecossistema = {def:{duracaoS:58}, duracaoMin:42, build(P,item,s,S) {
+  txMorre(S); s.className += ' tx-eco';
+  const cards = [
+    ['◉','SOLUTION','Mercado · dados · decisões','#54d7ff'],
+    ['◎','OLHO DE DEUS','Padrões · leitura · análise','#a78bfa'],
+    ['☼','CLIMAFLUXO','Clima · ciclos · território','#72d7b2'],
+    ['⚙','MECÂNICA','Engenharia · mobilidade','#f4b86a'],
+    ['ϟ','ELÉTRICA','Energia · eficiência','#f7dc76'],
+    ['✧','ALMADITOR','Arte · criação · expressão','#ff8db8'],
+    ['♫','SOMA','Música · cultura · experiência','#c49bff'],
+    ['⌁','R5FIT','Movimento · saúde · evolução','#79e5a7'],
+    ['▣','INFOCELL','Tecnologia · soluções · atendimento','#61d7ef'],
+    ['✉','ALMAFLUXO CHAT','Comunicação · conexão · pessoas','#f4c66d'],
+    ['◌','TOTENS','Presença · conteúdo · experiência','#7fc8ff'],
+    ['✦','UNIVERSO ALMAFLUXO','Todas as rotas · um ecossistema','#ffffff']
+  ];
+  const esc = v => String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const cardHtml = cards.map((c,i)=>`<div class="eco-card" data-i="${i}" style="--cc:${c[3]};--i:${i}"><div class="eco-card-top"><span>${c[0]}</span><small>ROTA ${(i+1).toString().padStart(2,'0')}</small></div><b>${esc(c[1])}</b><p>${esc(c[2])}</p><div class="eco-card-foot"><i></i><span>LINHA ATIVA</span></div></div>`).join('');
+  s.innerHTML = `
+  <style>
+  .tx-eco{background:#030711;color:#eef7ff;overflow:hidden;font-family:Inter,Roboto,Arial,sans-serif;isolation:isolate}
+  .eco-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 48%,#12365a 0,#091a31 33%,#030711 75%);overflow:hidden}
+  .eco-stars{position:absolute;inset:-20%;opacity:.55;background-image:radial-gradient(1px 1px at 12% 18%,#fff 99%,transparent),radial-gradient(2px 2px at 72% 23%,#7adfff 99%,transparent),radial-gradient(1px 1px at 44% 71%,#fff 99%,transparent),radial-gradient(1px 1px at 83% 82%,#bda7ff 99%,transparent),radial-gradient(1px 1px at 24% 86%,#fff 99%,transparent);background-size:280px 220px;animation:ecoStars 28s linear infinite}
+  .eco-head{position:absolute;top:5%;left:5%;right:5%;display:flex;justify-content:space-between;align-items:center;z-index:8;letter-spacing:.22em;font-size:clamp(9px,.9vw,14px);color:#8fb5d4}
+  .eco-head strong{color:#c6efff;font-weight:700}.eco-phase{border:1px solid #6ddfff55;border-radius:30px;padding:8px 14px;background:#06172dbb;color:#aeeaff;letter-spacing:.13em}
+  .eco-title{position:absolute;top:13%;left:0;right:0;text-align:center;z-index:8;pointer-events:none}.eco-title small{display:block;color:#8abbd8;letter-spacing:.35em;font-size:clamp(8px,.85vw,13px);margin-bottom:8px}.eco-title h2{font-size:clamp(20px,3vw,46px);letter-spacing:.12em;font-weight:800;background:linear-gradient(90deg,#fff,#78dfff,#c5a7ff,#fff);color:transparent;background-clip:text;-webkit-background-clip:text;text-shadow:0 0 32px #48bfff44}
+  .eco-space{position:absolute;inset:20% 4% 14%;perspective:1100px;transform-style:preserve-3d}
+  .eco-orbit{position:absolute;left:50%;top:50%;width:min(72vw,1000px);height:min(72vw,560px);transform:translate(-50%,-50%) rotateX(66deg);border:1px solid #55cfff3a;border-radius:50%;box-shadow:0 0 35px #28a9ff13,inset 0 0 35px #28a9ff10;transition:all 2s ease}
+  .eco-orbit:before,.eco-orbit:after{content:'';position:absolute;inset:12%;border:1px solid #b49bff36;border-radius:50%;transform:rotate(38deg)}.eco-orbit:after{inset:27%;transform:rotate(-42deg);border-color:#6ee7c344}
+  .eco-cards{position:absolute;inset:0;transform-style:preserve-3d}
+  .eco-card{position:absolute;left:50%;top:50%;width:clamp(126px,14vw,205px);min-height:clamp(82px,9vw,126px);padding:clamp(9px,1vw,15px);border:1px solid color-mix(in srgb,var(--cc),transparent 38%);border-radius:13px;background:linear-gradient(145deg,#142c48ed,#081525f2);box-shadow:0 12px 35px #0008,0 0 22px color-mix(in srgb,var(--cc),transparent 82%);backdrop-filter:blur(12px);transform:translate(-50%,-50%) rotateY(calc(var(--i)*29deg)) translateZ(320px) rotateX(-5deg);opacity:0;transition:opacity 1.4s,filter 1.5s,transform 2s cubic-bezier(.2,.7,.15,1);}
+  .eco-card-top{display:flex;justify-content:space-between;align-items:center;color:var(--cc);font-size:clamp(15px,1.5vw,23px)}.eco-card-top small{font-size:8px;letter-spacing:.16em;opacity:.75}.eco-card b{display:block;font-size:clamp(10px,1.05vw,15px);letter-spacing:.08em;margin:8px 0 4px;color:#f2f8ff}.eco-card p{font-size:clamp(8px,.75vw,11px);color:#9fb5cb;line-height:1.35}.eco-card-foot{display:flex;gap:6px;align-items:center;margin-top:8px;font-size:7px;letter-spacing:.16em;color:#83a9c7}.eco-card-foot i{width:5px;height:5px;border-radius:50%;background:var(--cc);box-shadow:0 0 9px var(--cc)}
+  .eco-lines{position:absolute;inset:0;width:100%;height:100%;overflow:visible;opacity:0;transition:opacity 2s}.eco-lines path{fill:none;stroke-width:1.5;stroke-dasharray:8 10;stroke-linecap:round;animation:ecoDash 8s linear infinite}.eco-lines .l1{stroke:#58d9ff99}.eco-lines .l2{stroke:#b99bff99;animation-direction:reverse}.eco-lines .l3{stroke:#7ce4bf88;animation-duration:11s}
+  .eco-core{position:absolute;left:50%;top:50%;width:clamp(110px,15vw,205px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;text-align:center;transform:translate(-50%,-50%) scale(.15);opacity:0;background:radial-gradient(circle,#163f65 0,#07182d 57%,#030711 72%);border:1px solid #8be8ff99;box-shadow:0 0 0 12px #38caff0b,0 0 45px #31baff55,0 0 100px #7c70ff33;transition:all 2.4s cubic-bezier(.15,.8,.2,1);z-index:5}.eco-core b{font-size:clamp(13px,1.7vw,25px);letter-spacing:.12em;background:linear-gradient(90deg,#fff,#7fe4ff,#d3b8ff);color:transparent;background-clip:text;-webkit-background-clip:text}.eco-core small{display:block;color:#a9d6ed;font-size:clamp(7px,.65vw,10px);letter-spacing:.2em;margin-top:7px}
+  .eco-timelines{position:absolute;inset:0;opacity:0;transition:opacity 1.5s}.eco-track{position:absolute;left:50%;top:50%;width:34%;height:2px;transform-origin:left center;background:linear-gradient(90deg,var(--tc),transparent);filter:drop-shadow(0 0 5px var(--tc));opacity:.0;transition:opacity 1.2s}.eco-track:after{content:attr(data-label);position:absolute;right:4%;top:-19px;font-size:clamp(7px,.65vw,10px);letter-spacing:.12em;color:var(--tc);white-space:nowrap}
+  .eco-bottom{position:absolute;bottom:5%;left:5%;right:5%;display:flex;justify-content:space-between;align-items:end;z-index:8;color:#789bb9;font-size:clamp(8px,.75vw,11px);letter-spacing:.16em}.eco-bottom strong{color:#b9eaff}.eco-final{position:absolute;left:0;right:0;bottom:13%;text-align:center;z-index:9;opacity:0;transform:translateY(18px);transition:all 2s}.eco-final b{display:block;font-size:clamp(15px,2.1vw,31px);letter-spacing:.16em;color:#f5fbff;text-shadow:0 0 24px #50cfff88}.eco-final span{display:block;margin-top:10px;color:#9cc8e5;font-size:clamp(9px,1vw,14px);letter-spacing:.2em}
+  .tx-eco[data-phase="0"] .eco-card{opacity:.92;animation:ecoFloat 7s ease-in-out infinite;animation-delay:calc(var(--i)*-.31s)}
+  .tx-eco[data-phase="1"] .eco-card{opacity:.92;transform:translate(-50%,-50%) rotateY(calc(var(--i)*30deg)) translateZ(250px) rotateX(0deg);filter:saturate(1.15)}
+  .tx-eco[data-phase="1"] .eco-lines,.tx-eco[data-phase="2"] .eco-lines,.tx-eco[data-phase="3"] .eco-lines{opacity:1}
+  .tx-eco[data-phase="1"] .eco-timelines,.tx-eco[data-phase="2"] .eco-timelines,.tx-eco[data-phase="3"] .eco-timelines{opacity:1}
+  .tx-eco[data-phase="1"] .eco-track{opacity:.7}
+  .tx-eco[data-phase="2"] .eco-card{opacity:.22;filter:blur(.4px);transform:translate(-50%,-50%) rotateY(calc(var(--i)*30deg)) translateZ(80px) scale(.72)}
+  .tx-eco[data-phase="2"] .eco-core,.tx-eco[data-phase="3"] .eco-core{opacity:1;transform:translate(-50%,-50%) scale(1)}
+  .tx-eco[data-phase="2"] .eco-track,.tx-eco[data-phase="3"] .eco-track{opacity:1;width:18%}
+  .tx-eco[data-phase="3"] .eco-card{opacity:.34;transform:translate(-50%,-50%) rotateY(calc(var(--i)*30deg)) translateZ(150px) scale(.82)}
+  .tx-eco[data-phase="3"] .eco-final{opacity:1;transform:none}
+  .tx-eco[data-phase="3"] .eco-title{opacity:.38}
+  @keyframes ecoFloat{0%,100%{margin-top:-9px}50%{margin-top:9px}}
+  @keyframes ecoDash{to{stroke-dashoffset:-180}}
+  @keyframes ecoStars{to{transform:translate3d(5%,3%,0) rotate(5deg)}}
+  @media(max-width:700px){.eco-space{inset:22% 1% 16%}.eco-card{width:clamp(104px,26vw,145px);min-height:76px;padding:8px}.eco-card p{font-size:8px}.eco-orbit{width:95vw;height:70vw}.eco-head{top:3%}.eco-bottom{bottom:3%}.eco-final{bottom:12%}}
+  @media(prefers-reduced-motion:reduce){.eco-stars,.eco-card,.eco-lines path{animation:none!important;transition:none!important}}
+  </style>
+  <div class="eco-bg"><div class="eco-stars"></div></div>
+  <div class="eco-head"><strong>ALMAFLUXO · SISTEMA CONECTADO</strong><span class="eco-phase">LINHAS DE UM UNIVERSO</span></div>
+  <div class="eco-title"><small>DO TRABALHO À CONEXÃO</small><h2>UM UNIVERSO EM MOVIMENTO</h2></div>
+  <div class="eco-space"><div class="eco-orbit"></div>
+    <svg class="eco-lines" viewBox="0 0 1000 600" preserveAspectRatio="none" aria-hidden="true">
+      <path class="l1" d="M40 130 C240 10 310 300 500 300 S760 80 960 150"/><path class="l2" d="M70 480 C260 590 330 280 500 300 S760 570 930 430"/><path class="l3" d="M180 40 C360 180 330 450 500 300 S690 100 830 550"/>
+      <path class="l1" d="M500 20 C430 180 590 220 500 300 S420 470 510 580"/><path class="l2" d="M20 300 C240 220 330 380 500 300 S770 230 980 320"/>
+    </svg>
+    <div class="eco-cards">${cardHtml}</div>
+    <div class="eco-timelines">${cards.map((c,i)=>`<div class="eco-track" style="--tc:${c[3]};transform:rotate(${i*30}deg)" data-label="${esc(c[1])}"></div>`).join('')}</div>
+    <div class="eco-core"><div><b>ALMAFLUXO</b><small>TODAS AS ROTAS · UM SÓ UNIVERSO</small></div></div>
+  </div>
+  <div class="eco-final"><b>TODO O UNIVERSO EM UMA CONVERSA.</b><span>NOSSA CONVERSA DIÁRIA · ALMAFLUXO.UK</span></div>
+  <div class="eco-bottom"><span>IDEIA → TESTE → ERRO → AJUSTE → CONEXÃO</span><strong>ROTAS ENTRELAÇADAS · FUTURO COMPARTILHADO</strong></div>`;
+  const start = Date.now();
+  const update = () => {
+    if (S.morto) return;
+    const t = (Date.now()-start)/1000;
+    const phase = t < 13 ? 0 : t < 29 ? 1 : t < 44 ? 2 : 3;
+    s.setAttribute('data-phase',String(phase));
+    const labels=['UNIVERSOS INDIVIDUAIS','LINHAS DE TRABALHO','ROTAS EM CONVERGÊNCIA','UM ECOSSISTEMA'];
+    const badge=s.querySelector('.eco-phase'); if(badge) badge.textContent=labels[phase];
+  };
+  update(); const iv=setInterval(update,250);
+  S.fins.push(()=>clearInterval(iv));
+}};
+
 const TX_PADRAO = () => ({id: '-', status: 'liberado', tela: {}, layout: {modelo: 'full', gap: 0, raio: 0}, paineis: {r1: {itens: [
   {tipo: 'bolsa3d',      duracaoS: 20},
   {tipo: 'cotacoes',     duracaoS: 14},
@@ -6610,7 +6715,8 @@ const TX_PADRAO = () => ({id: '-', status: 'liberado', tela: {}, layout: {modelo
   {tipo: 'demoKpg',      duracaoS: 62},                                                          // ← publicidade KPG
   {tipo: 'video',        url: './IMG_1929.MOV', nome: 'Comercial R5Fit', duracaoS: 0, pausaFinalS: 3, mudo: true, fit: 'contain', r5fit: true, loop: false}, // ← comercial R5Fit
   {tipo: 'demoInfoCell', duracaoS: 58},                                                          // ← vitrine e atendimento InfoCell
-  {tipo: 'relogio',      duracaoS: 8}
+  {tipo: 'relogio',      duracaoS: 8},
+  {tipo: 'ecossistema',  duracaoS: 58}                                                           // ← encerramento: rotas e linhas do universo ALMAFLUXO
 ], transicao: {tipo: 'fade', ms: 900}, aleatorio: false}}});
 
 /* ══════ ENDEREÇO → TOTEM, INSTALAÇÃO E TELA CHEIA ══════
@@ -6860,16 +6966,17 @@ const TOTEM_AMBIENTE = {
     this.salvar();
   },
   botao(){
-    if(document.querySelector('.tx-mudo')) return;
-    const b=document.createElement('button'); b.type='button'; b.className='tx-mudo';
-    b.style.cssText='position:fixed;right:12px;top:66px;z-index:100001;width:46px;height:46px;border-radius:50%;border:1px solid #00e5ff;background:rgba(3,8,18,.9);color:#00e5ff;font-size:22px;cursor:pointer;box-shadow:0 0 18px rgba(0,229,255,.25);opacity:.6;display:none';
-    b.addEventListener('click',e=>{ e.stopPropagation(); this.alternarMudo(); });
-    document.body.appendChild(b); this.btn=b; this.atualizarBotao();
+    if(document.querySelector('.tx-radio-tab')) return;
+    const b=document.createElement('button'); b.type='button'; b.className='tx-radio-tab';
+    b.textContent='📻'; b.title='Estações de rádio ao vivo'; b.setAttribute('aria-label',b.title);
+    b.addEventListener('click',e=>{e.stopPropagation(); TX_RADIO.toggle();});
+    document.body.appendChild(b); this.btn=b;
+    TX_RADIO.montar(); this.atualizarBotao();
   },
   atualizarBotao(){
     const b=this.btn; if(!b) return;
-    b.textContent=(this.mudo||this.bloqueado)?'🔇':'🔊'; b.title=this.mudo?'Ativar som':'Silenciar'; b.setAttribute('aria-label',b.title);
-    b.style.display=this.lista.length?'':'none';
+    b.style.display='';
+    b.classList.toggle('on',!!(window.TX_RADIO&&TX_RADIO.station));
   },
   alternarMudo(){
     this.mudo=!this.mudo; lsSet(this.K_MUDO,this.mudo); this.aplicarGain(); this.destravar();
@@ -6877,6 +6984,60 @@ const TOTEM_AMBIENTE = {
   }
 };
 window.TOTEM_AMBIENTE = TOTEM_AMBIENTE;
+
+/* ══════ ESTAÇÕES AO VIVO — a música ALMAFLUXO continua sendo a trilha padrão ══════ */
+const TX_RADIO = {
+  station:null, panel:null, frame:null, status:null, link:null,
+  stations:[
+    {id:'tupi',name:'Super Rádio Tupi',freq:'96,5 FM · Notícias',url:'https://www.youtube.com/embed/UYz7pDwr6dE?autoplay=1',page:'https://www.tupi.fm/ao-vivo/'},
+    {id:'98',name:'98 FM Rio',freq:'Online · Flashbacks',url:'https://98fmrio.com/ouvir-98-fm-ao-vivo/',page:'https://98fmrio.com/ouvir-98-fm-ao-vivo/'},
+    {id:'fmodia',name:'FM O Dia',freq:'100,5 FM · Música',url:'https://www.fmodia.com.br/player/',page:'https://www.fmodia.com.br/player/'},
+    {id:'mix',name:'Mix Rio',freq:'102,1 FM · Pop',url:'https://mixriofm.com.br/player/',page:'https://mixriofm.com.br/player/'},
+    {id:'jp',name:'Jovem Pan',freq:'Rádio ao vivo',url:'https://jovempan.com.br/ao-vivo/',page:'https://jovempan.com.br/ao-vivo/'},
+    {id:'transamerica',name:'Transamérica / TMC',freq:'101,3 FM Rio · Notícias e música',url:'https://tmc.com.br/',page:'https://tmc.com.br/'},
+    {id:'jb',name:'JB FM',freq:'99,9 FM · Adulto contemporâneo',url:'https://jbfm.com.br/',page:'https://jbfm.com.br/'},
+    {id:'cbn',name:'CBN Rio',freq:'92,5 FM · Jornalismo',url:'https://cbn.globo.com/',page:'https://cbn.globo.com/'}
+  ],
+  montar(){
+    if(this.panel) return;
+    const p=document.createElement('section'); p.className='tx-radio-panel'; p.setAttribute('aria-label','Estações de rádio ao vivo');
+    p.innerHTML='<div class="tx-radio-head"><strong>📻 ESTAÇÕES AO VIVO</strong><span style="color:#8edcff;font-size:10px">ALMAFLUXO</span><button type="button" data-radio-close aria-label="Fechar">✕</button></div><div class="tx-radio-list"></div><iframe class="tx-radio-player" title="Player da estação selecionada" allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe><div class="tx-radio-status">Escolha uma estação. A música ambiente ALMAFLUXO será pausada enquanto o rádio estiver ativo.</div><div class="tx-radio-actions"><button type="button" data-radio-stop>■ Parar rádio</button><a data-radio-open href="#" target="_blank" rel="noopener">Abrir player oficial ↗</a></div>';
+    document.body.appendChild(p); this.panel=p; this.frame=p.querySelector('iframe'); this.status=p.querySelector('.tx-radio-status'); this.link=p.querySelector('[data-radio-open]');
+    const list=p.querySelector('.tx-radio-list');
+    this.stations.forEach(st=>{const b=document.createElement('button');b.type='button';b.className='tx-radio-station';b.dataset.station=st.id;b.innerHTML='<span aria-hidden="true">📡</span><span style="min-width:0"><b></b><small></small></span>';b.querySelector('b').textContent=st.name;b.querySelector('small').textContent=st.freq;b.addEventListener('click',()=>this.select(st.id));list.appendChild(b);});
+    p.querySelector('[data-radio-close]').addEventListener('click',()=>this.close());
+    p.querySelector('[data-radio-stop]').addEventListener('click',()=>this.stop());
+  },
+  toggle(){this.montar();if(this.panel.classList.contains('open'))this.close();else{this.panel.classList.add('open');this.status.textContent=this.station?'No ar: '+this.station.name:'Escolha uma estação. A música ALMAFLUXO permanece disponível e será retomada ao parar o rádio.';}},
+  pausarMusica(){
+    try{const a=window.TOTEM_AMBIENTE;if(a&&a.audio&&!a.audio.paused){a.audio.pause();a._radioPausou=true;}}
+    catch(e){}
+    try{const a=window.TOTEM_AUDIO;if(a&&a.audio&&!a.audio.paused){a.audio.pause();a._radioPausou=true;}}
+    catch(e){}
+  },
+  retomarMusica(){
+    try{const a=window.TOTEM_AMBIENTE;if(a&&a.audio&&a._radioPausou){a._radioPausou=false;if(!a.pausadoUsuario&&!a.mudo)a.audio.play().catch(()=>{});}}
+    catch(e){}
+    try{const a=window.TOTEM_AUDIO;if(a&&a.audio&&a._radioPausou){a._radioPausou=false;a.audio.play().catch(()=>{});}}
+    catch(e){}
+  },
+  select(id){
+    const st=this.stations.find(x=>x.id===id);if(!st)return;
+    this.montar();this.pausarMusica();this.station=st;
+    this.frame.src=st.url;this.link.href=st.page;
+    this.status.textContent='Carregando '+st.name+'… Se o player incorporado não abrir, use “Abrir player oficial”.';
+    this.panel.querySelectorAll('.tx-radio-station').forEach(b=>b.classList.toggle('sel',b.dataset.station===id));
+    const m=window.TOTEM_AMBIENTE;if(m&&m.btn)m.atualizarBotao();
+  },
+  stop(){
+    if(this.frame)this.frame.src='about:blank';this.station=null;
+    if(this.panel){this.panel.querySelectorAll('.tx-radio-station').forEach(b=>b.classList.remove('sel'));this.status.textContent='Rádio parado. Música ambiente ALMAFLUXO retomada.';}
+    this.retomarMusica();const m=window.TOTEM_AMBIENTE;if(m&&m.btn)m.atualizarBotao();
+  },
+  close(){if(this.panel)this.panel.classList.remove('open');this.stop();}
+};
+window.TX_RADIO=TX_RADIO;
+
 ['pointerup','touchend','click','keydown','mousedown'].forEach(ev=>document.addEventListener(ev,()=>TOTEM_AMBIENTE.destravar(),{passive:true,capture:true}));
 
 document.addEventListener('pointerdown',()=>TOTEM_AUDIO.retomar(),{passive:true});
