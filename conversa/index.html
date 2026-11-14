@@ -9709,7 +9709,6 @@ TX.esporte = { def: { duracaoS: 30 }, build(P, item, s, S) {
     <header class="ed-head"><div class="ed-kicker">🏆 ALMAFLUXO · CANAL DIÁRIO</div><div class="ed-title">ESPORTE</div><div class="ed-sub">Competições, clubes, notícias e resultados</div></header>
     <main class="ed-layout">
       <section class="ed-hero">
-        <div class="ed-hero-orbit"><span>⚽</span><i></i><b></b></div>
         <div class="ed-eyebrow">CLASSIFICAÇÃO · COMPETIÇÃO PRINCIPAL</div>
         <div class="sp-controls">
           <label>Esporte <select class="sp-sport" aria-label="Escolher esporte">${esportes.map(x=>`<option value="${x[0]}">${x[1]}</option>`).join('')}</select></label>
@@ -9762,25 +9761,38 @@ TX.esporte = { def: { duracaoS: 30 }, build(P, item, s, S) {
     const r = resultados[tickerIdx % resultados.length];
     ticker.textContent = `${r.competicao || 'Resultado'} · ${r.casa || ''} ${fmtScore(r.golsCasa)} × ${fmtScore(r.golsFora)} ${r.fora || ''} · ${r.status || ''}`;
   };
+  const aplicarDados = (d, deCache) => {
+    if (!d || S.morto) return;
+    dados = d; noticias = Array.isArray(d.noticias) ? d.noticias : [];
+    resultados = Array.isArray(d.resultados) ? d.resultados : [];
+    renderBoard(d); idx = 0; renderNews(); tickerIdx = 0; renderTicker();
+    source.textContent = (d.competicao || 'Dados esportivos') + ' · ' + (deCache ? 'última renderização válida · cache local' : (d.atualizado ? txHora(d.atualizado) : 'atualização recente')) + (d.fonte ? ' · ' + d.fonte : '');
+    const times = Array.isArray(d.times) ? d.times : [];
+    const atual = time;
+    selTeam.innerHTML = '<option value="">Todos os times</option>' + times.map(t=>`<option value="${escA(t)}">${escA(t)}</option>`).join('');
+    if (times.includes(atual)) selTeam.value = atual;
+  };
   const carregar = async () => {
     const seqSport = esporte, seqTeam = time;
-    board.innerHTML = '<div class="sp-empty">Atualizando classificação…</div>';
+    const qs = 'esporte=' + encodeURIComponent(esporte) + (time ? '&time=' + encodeURIComponent(time) : '');
+    // A última edição é desenhada imediatamente; a rede apenas tenta atualizá-la.
+    const chaveLocal = ('esporte?' + qs).replace(/[^\w]/g, '_');
+    const salvo = txCacheLer(chaveLocal);
+    if (salvo && (!dados || !noticias.length && !resultados.length)) aplicarDados(salvo, true);
+    else if (!dados) board.innerHTML = '<div class="sp-empty">Buscando a primeira edição esportiva…</div>';
     try {
-      const qs = 'esporte=' + encodeURIComponent(esporte) + (time ? '&time=' + encodeURIComponent(time) : '');
       const d = await txDados('esporte', qs, 180000);
       if (S.morto || seqSport !== esporte || seqTeam !== time) return;
-      dados = d; noticias = Array.isArray(d.noticias) ? d.noticias : [];
-      resultados = Array.isArray(d.resultados) ? d.resultados : [];
-      renderBoard(d); idx = 0; renderNews(); tickerIdx = 0; renderTicker();
-      source.textContent = (d.competicao || 'Dados esportivos') + ' · ' + (d.atualizado ? txHora(d.atualizado) : 'atualização recente') + (d.fonte ? ' · ' + d.fonte : '');
-      const times = Array.isArray(d.times) ? d.times : [];
-      const atual = time;
-      selTeam.innerHTML = '<option value="">Todos os times</option>' + times.map(t=>`<option value="${escA(t)}">${escA(t)}</option>`).join('');
-      if (times.includes(atual)) selTeam.value = atual; else { time = ''; selTeam.value = ''; }
+      aplicarDados(d, !!d._stale);
     } catch(e) {
-      if (S.morto) return;
-      board.innerHTML = '<div class="sp-empty">Não foi possível consultar os dados esportivos agora. Tentaremos novamente automaticamente.</div>';
-      source.textContent = 'Fonte temporariamente indisponível';
+      if (S.morto || seqSport !== esporte || seqTeam !== time) return;
+      // Não apaga o conteúdo válido anterior. Se nunca houve cache, informa a indisponibilidade.
+      if (!salvo && !dados) {
+        board.innerHTML = '<div class="sp-empty">Aguardando a primeira conexão para criar a edição esportiva. Assim que houver uma renderização válida, ela ficará salva para uso offline.</div>';
+        newsList.innerHTML = '<div class="ed-news-empty">Notícias ainda não disponíveis neste dispositivo.</div>';
+        ticker.textContent = 'Aguardando primeira atualização válida.';
+      }
+      source.textContent = 'Conexão indisponível · mantendo última edição válida';
     }
   };
   selSport.addEventListener('change', () => { esporte = selSport.value; time = ''; try { localStorage.setItem('almafluxo_esporte', esporte); localStorage.removeItem('almafluxo_esporte_time'); } catch(e) {} carregar(); });
