@@ -3028,19 +3028,67 @@
     setTimeout(function(){ $('kpgEmail').focus(); }, 50);
   };
 
-  window.kpgEntrar = async function() {
-    var email = $('kpgEmail').value.trim().toLowerCase();
-    var senha = $('kpgSenha').value;
-    var b = $('kpgOk');
-    erro('');
+    window.kpgEntrar = async function() {
+      var email = $('kpgEmail').value.trim().toLowerCase();
+      var senha = $('kpgSenha').value;
+      var b = $('kpgOk');
+      erro('');
+    
+      if (!email || !senha) { erro('Informe e-mail e senha.'); return; }
+    
+      b.disabled = true;
+      b.textContent = 'Entrando...';
+    
+      try {
+        // 1️⃣ Valida e-mail + senha no kpg.gs
+        var r = await fetch(KPG_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'validarLoginKpg',
+            email: email,
+            senha: senha
+          })
+        });
+        var d = await r.json();
+    
+        if (!r.ok || !d.ok) {
+          throw new Error(d.error || 'Falha no login.');
+        }
+    
+        // 2️⃣ Guarda o usuário na sessão do KPG (localStorage)
+        var usuario = d.usuario || {};
+        usuario.email = email;
+        localStorage.setItem(CHAVE_SESSAO_KPG, JSON.stringify(usuario));
+        $('kpgSenha').value = '';
+        kpgFechar();
+    
+        // 3️⃣ Abre o painel já com o usuário
+        carregar(usuario);
+    
+      } catch(e) {
+        erro('❌ ' + e.message);
+      } finally {
+        b.disabled = false;
+        b.textContent = 'Entrar';
+      }
+    };
 
-    if (!email || !senha) { erro('Informe e-mail e senha.'); return; }
-
-    b.disabled = true;
-    b.textContent = 'Entrando...';
-
-    try {
-      // 🔥 A MUDANÇA PRINCIPAL: chama a API do KPG, não a do sistema ALMA
+    async function carregar(s) {
+      if (!s || !s.email) s = sess();
+      if (!s || !s.email) {
+        $('kpgLogin').classList.add('on');
+        return;
+      }
+    
+      $('kpgApp').classList.add('on');
+      document.body.style.overflow = 'hidden';
+    
+      var frame = $('kpgFrame');
+      frame.srcdoc = '<p style="font:16px system-ui;padding:2rem;color:#5d6d7e">Carregando painel…</p>';
+      window.__kpgS = s;
+    
+      try {
         var r = await fetch(KPG_API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -3048,73 +3096,26 @@
             action: 'servirHTML',
             plataforma: 'kpg',
             email: s.email,
-            senha: s.senha  // ← manda a senha
+            sessionToken: s.sessionToken || ''
           })
         });
-      var d = await r.json();
-
-      if (!r.ok || !d.ok) {
-        throw new Error(d.error || 'Falha no login.');
-      }
-
-      // A sessão do KPG não usa sessionToken, mas guardamos os dados do usuário
-      var usuario = d.usuario;
-      localStorage.setItem(CHAVE_SESSAO_KPG, JSON.stringify(usuario));
-      $('kpgSenha').value = '';
-      kpgFechar();
-      carregar(usuario);
-
-    } catch(e) {
-      erro('❌ ' + e.message);
-    } finally {
-      b.disabled = false;
-      b.textContent = 'Entrar';
-    }
-  };
-
-    async function carregar(s) {
-        $('kpgApp').classList.add('on');
-        document.body.style.overflow = 'hidden';
-
-        var frame = $('kpgFrame');
-        frame.srcdoc = '<p style="font:16px system-ui;padding:2rem;color:#5d6d7e">Carregando painel…</p>';
-
-        // Guarda a sessão pra quando o painel pedir via postMessage
-        window.__kpgS = s;
-
-        try {
-            // 1. Pede ao Worker o HTML do painel (que vem do Drive)
-            var r = await fetch(KPG_API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'servirHTML',
-                    plataforma: 'kpg',
-                    email: s.email,
-                    sessionToken: s.sessionToken || ''  // kpg.gs não usa, mas o Worker exige o campo
-                })
-            });
-
-            if (!r.ok) {
-                var errTxt = await r.text();
-                throw new Error('Worker ' + r.status + ': ' + errTxt.slice(0, 200));
-            }
-
-            var html = await r.text();
-
-            // Sanidade: precisa começar com <!doctype ou <html
-            if (!html || (!/^\s*<!doctype/i.test(html) && !/<html/i.test(html))) {
-                throw new Error('Worker não retornou HTML válido.');
-            }
-
-            // 2. Injeta no iframe — sem sair do domínio almafluxo.uk
-            frame.srcdoc = html;
-
-        } catch (e) {
-            frame.srcdoc = '<div style="font:15px system-ui;padding:2rem;color:#c0392b">'
-                + '❌ ' + String(e.message).replace(/</g, '&lt;')
-                + '</div>';
+    
+        if (!r.ok) {
+          var errTxt = await r.text();
+          throw new Error('Worker ' + r.status + ': ' + errTxt.slice(0, 200));
         }
+    
+        var html = await r.text();
+        if (!html || (!/^\s*<!doctype/i.test(html) && !/<html/i.test(html))) {
+          throw new Error('Worker não retornou HTML válido.');
+        }
+        frame.srcdoc = html;
+    
+      } catch (e) {
+        frame.srcdoc = '<div style="font:15px system-ui;padding:2rem;color:#c0392b">'
+          + '❌ ' + String(e.message).replace(/</g, '&lt;')
+          + '</div>';
+      }
     }
 
     // O painel KPG (index.html dentro do iframe) avisa que carregou e pede a sessão.
