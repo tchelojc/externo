@@ -1348,7 +1348,7 @@ html,body{background:#000}
 @media(max-aspect-ratio:1/1){.ed-news-list{gap:3%;padding-right:2%}.ed-news-top{align-items:flex-start}.ed-source{max-width:100%;text-align:left}.ed-news-foot{font-size:calc(var(--u)*.9)}}
 @media(max-width:520px){.ed-news-feature h3{font-size:calc(var(--u)*1.75)}.ed-news-item{font-size:calc(var(--u)*1.15)}.ed-news-feature small,.ed-news-item small{font-size:calc(var(--u)*.95)}}
 .ed-bottom{position:absolute;left:4.2%;right:4.2%;bottom:2.2%;display:flex;justify-content:space-between;gap:1em;color:#8499ae;font-size:calc(var(--u)*1.05);letter-spacing:.04em}
-.tx-editorial-mecanica3d{--ed-accent:#64c8ff}.tx-editorial-eletrica{--ed-accent:#ffd36a}.tx-editorial-artes{--ed-accent:#e8a7ff}.tx-editorial-musica{--ed-accent:#8fe2c2}
+.tx-editorial-mecanica3d{--ed-accent:#64c8ff}.tx-editorial-eletrica{--ed-accent:#ffd36a}.tx-editorial-artes{--ed-accent:#e8a7ff}.tx-editorial-musica{--ed-accent:#8fe2c2}.tx-editorial-esporte{--ed-accent:#68e0a3}
 .tx-editorial .ed-title,.tx-editorial .ed-news-top,.tx-editorial .ed-live{color:var(--ed-accent)}
 .tx-editorial .ed-hero-orbit{color:var(--ed-accent)}.tx-editorial .ed-news-feature{border-left-color:var(--ed-accent)}
 @media(max-aspect-ratio:1/1){
@@ -1593,6 +1593,30 @@ html, body { overscroll-behavior: none; }
 .tx-radio-actions{display:flex;gap:8px;padding:0 10px 10px}
 .tx-radio-actions a{color:#8edcff;text-decoration:none;border:1px solid rgba(142,220,255,.35);border-radius:9px;padding:7px 10px;font-size:11px}
 @media(max-width:480px){.tx-radio-panel{right:8px;top:auto;bottom:max(82px,calc(env(safe-area-inset-bottom) + 72px));width:calc(100vw - 16px)}.tx-radio-player{height:170px}.tx-radio-list{max-height:170px}}
+
+/* Central de fontes esportivas — janela independente, móvel e redimensionável */
+.tx-sport-panel{position:fixed;right:16px;top:9vh;z-index:100006;width:min(560px,calc(100vw - 28px));height:min(680px,78vh);min-width:min(300px,calc(100vw - 20px));min-height:300px;max-width:calc(100vw - 12px);max-height:calc(100vh - 24px);display:none;overflow:hidden;resize:both;border:1px solid rgba(104,224,163,.6);border-radius:17px;background:rgba(4,12,25,.98);color:#eaf7ff;box-shadow:0 18px 55px rgba(0,0,0,.68),0 0 28px rgba(104,224,163,.14);backdrop-filter:blur(16px);font:500 13px/1.4 system-ui,sans-serif}
+.tx-sport-panel.open{display:flex;flex-direction:column}
+.tx-sport-head{display:flex;align-items:center;gap:7px;padding:10px 12px;background:rgba(104,224,163,.09);border-bottom:1px solid rgba(255,255,255,.12);cursor:move;touch-action:none;user-select:none}
+.tx-sport-head strong{flex:1;font-size:13px;letter-spacing:.035em}
+.tx-sport-head button,.tx-sport-size button{border:1px solid rgba(142,220,255,.35);border-radius:8px;background:rgba(255,255,255,.07);color:#eaf7ff;padding:6px 9px;font:600 11px system-ui;cursor:pointer}
+.tx-sport-tools{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.1)}
+.tx-sport-tools small{color:#9db7ca;flex:1;min-width:130px}
+.tx-sport-size{display:flex;gap:5px}
+.tx-sport-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;padding:9px;overflow:auto;max-height:145px;flex:none}
+.tx-sport-card{min-width:0;text-align:left;border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:9px 8px;background:rgba(255,255,255,.045);color:#eaf7ff;cursor:pointer;font:600 11px/1.25 system-ui}
+.tx-sport-card span{display:block;font-size:17px;margin-bottom:3px}.tx-sport-card small{display:block;color:#9db7ca;font-size:9px;font-weight:500;margin-top:3px}
+.tx-sport-card.sel{border-color:#68e0a3;background:rgba(104,224,163,.13)}
+.tx-sport-view{position:relative;display:flex;flex-direction:column;flex:1;min-height:0;padding:9px;gap:8px}
+.tx-sport-view h3{font-size:13px;margin:0;color:#8fe8bd}
+.tx-sport-view p{font-size:11px;color:#b5c8d9;margin:0;line-height:1.45}
+.tx-sport-view iframe{width:100%;height:100%;min-height:180px;flex:1;border:1px solid rgba(255,255,255,.12);border-radius:9px;background:#07111d}
+.tx-sport-widget-config{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.tx-sport-widget-config input{flex:1;min-width:160px;background:#071827;color:#eaf7ff;border:1px solid #45647a;border-radius:8px;padding:8px;font:11px system-ui}
+.tx-sport-widget-config button,.tx-sport-open{border:1px solid rgba(104,224,163,.5);border-radius:8px;background:rgba(104,224,163,.12);color:#eafff4;padding:8px 10px;font:700 11px system-ui;text-decoration:none;cursor:pointer}
+.tx-sport-status{padding:7px 10px;color:#9db7ca;font-size:10px;border-top:1px solid rgba(255,255,255,.1)}
+.sp-open-sources{display:inline-flex;align-items:center;padding:.3em .55em;border:1px solid #68e0a3;border-radius:7px;color:#baffd9;background:rgba(104,224,163,.1);font-size:calc(var(--u)*.82);font-weight:800;cursor:pointer}
+@media(max-width:600px){.tx-sport-panel{left:7px;right:7px;top:auto;bottom:max(82px,calc(env(safe-area-inset-bottom) + 72px));width:calc(100vw - 14px);height:min(72vh,620px);min-width:0;resize:vertical}.tx-sport-cards{grid-template-columns:repeat(2,minmax(0,1fr));max-height:130px}.tx-sport-view iframe{min-height:160px}}
 
 .tx-audio-dica { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 100003; max-width: 92vw; padding: 10px 16px; border-radius: 14px;
   background: rgba(5,13,24,.94); border: 1px solid #00e5ff; color: #e9f5ff; font: 600 14px/1.35 system-ui, sans-serif; text-align: center; display: none; box-shadow: 0 0 24px rgba(0,229,255,.25); }
@@ -2771,10 +2795,10 @@ function totemPadrao(id) {
     layout: {modelo: 'full', regioes: null, gap: 0, raio: 0}, layoutRetrato: null,
     paineis: {r1: {itens: [
       {tipo:'bolsa3d',duracaoS:22},{tipo:'cotacoes',duracaoS:18},{tipo:'noticias',duracaoS:24},
-      {tipo:'mecanica3d',duracaoS:26},{tipo:'eletrica',duracaoS:26},{tipo:'artes',duracaoS:26},{tipo:'musica',duracaoS:26},
+      {tipo:'mecanica3d',duracaoS:26},{tipo:'eletrica',duracaoS:26},{tipo:'esporte',duracaoS:30},{tipo:'artes',duracaoS:26},{tipo:'musica',duracaoS:26},
       {tipo:'planetas3d',duracaoS:22},{tipo:'horoscopo',duracaoS:24},{tipo:'jornal',cidade:'auto',duracaoS:26},
       {tipo:'climagrafico',cidade:'auto',duracaoS:24},
-      {tipo:'terremotos',duracaoS:18},{tipo:'curiosidades',categoria:'astronomia',duracaoS:22}
+      {tipo:'terremotos',duracaoS:18},{tipo:'curiosidades',categoria:'aleatorio',duracaoS:22}
     ], transicao: {tipo: 'fade', ms: 850}, aleatorio: false}},
     heartbeatS: 60, configS: 30, mostrarPonto: false, esferaMarcas: {posicao:'inferior-direita', tamanhoVmin:14, itens:[]}, criadoEm: new Date().toISOString()};
 }
@@ -2915,6 +2939,7 @@ TRANSICAO_POR_TIPO.artes      = { tipo: 'blur', ms: 1150 };
 TRANSICAO_POR_TIPO.musica     = { tipo: 'fade', ms: 1100 };
 RODAPE_POR_TIPO.mecanica3d = { href:'https://almafluxo.uk/mecanica', forte:'⚙️ ALMAFLUXO MECÂNICA', em:'Conheça motores, sistemas e tecnologia automotiva', b:'almafluxo.uk/mecanica' };
 RODAPE_POR_TIPO.eletrica = { href:'https://almafluxo.uk/eletrica', forte:'⚡ ALMAFLUXO ELÉTRICA', em:'Energia, eficiência e tecnologias sustentáveis', b:'almafluxo.uk/eletrica' };
+RODAPE_POR_TIPO.esporte = { href:'https://almafluxo.uk/olhodedeus', forte:'🏆 ALMAFLUXO ESPORTE', em:'Acompanhe competições, clubes, notícias e resultados', b:'almafluxo.uk/olhodedeus' };
 RODAPE_POR_TIPO.artes = { href:'https://almafluxo.uk/almaditor', forte:'🎨 ALMADITOR', em:'Explore criação visual, artistas e obras', b:'almafluxo.uk/almaditor' };
 RODAPE_POR_TIPO.musica = { href:'https://almafluxo.uk/soma', forte:'🎼 SOMA', em:'História, cultura e experiência musical', b:'almafluxo.uk/soma' };
 /* ↓ ADICIONE ESTA LINHA ↓ */
@@ -4249,7 +4274,8 @@ Object.assign(TIPOS, {
   mecanica3d: '⚙️ Mecânica & Mobilidade',
   eletrica: '⚡ Energia & Eletricidade',
   artes: '🎨 Artes & Cultura',
-  musica: '🎼 Música & História'
+  musica: '🎼 Música & História',
+  esporte: '🏆 Esporte'
 });
 const TX_BASE = (/(^|\.)almafluxo\.uk$/i.test(location.hostname) ? '' : 'https://almafluxo.uk') + '/api/totem/dados/';
 const TX_C = {};
@@ -5078,17 +5104,28 @@ TX.demoInfoCell = { def:{duracaoS:58}, duracaoMin:45, build(P,item,s,S) {
   S.fins.push(() => { vivo = false; ivs.forEach(clearInterval); ivs.length = 0; });
 }};
 
-TX.curiosidades = {def: {categoria: 'astronomia'}, build(P, item, s, S) {
+TX.curiosidades = {def: {categoria: 'aleatorio'}, build(P, item, s, S) {
   s.className += ' tx'; txMorre(S);
-  const nomes = {astronomia:'ASTRONOMIA',catastrofes:'CATÁSTROFES NATURAIS',genios:'GÊNIOS E DESCOBERTAS'};
-  s.innerHTML = '<div class="tx-t">CURIOSIDADES · '+esc(nomes[item.categoria]||nomes.astronomia)+'</div><div class="tx-grid" style="position:absolute;left:4%;right:4%;top:12%;bottom:10%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2%;align-content:center"></div><div class="tx-av"></div>';
+  const nomes = {aleatorio:'DESCOBERTAS ALEATÓRIAS',astronomia:'ASTRONOMIA',catastrofes:'CATÁSTROFES NATURAIS',genios:'GÊNIOS E DESCOBERTAS',natureza:'NATUREZA',animais:'MUNDO ANIMAL',corpo:'CORPO HUMANO',historia:'HISTÓRIA',geografia:'GEOGRAFIA',tecnologia:'TECNOLOGIA',oceanos:'OCEANOS',brasil:'BRASIL',engenharia:'ENGENHARIA',ciencia:'CIÊNCIA',esportes:'ESPORTES'};
+  const cat = Object.prototype.hasOwnProperty.call(nomes,item.categoria) ? item.categoria : 'aleatorio';
+  s.innerHTML = '<div class="tx-t">CURIOSIDADES · '+esc(nomes[cat])+'</div><div class="tx-grid" style="position:absolute;left:4%;right:4%;top:12%;bottom:10%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2%;align-content:center"></div><div class="tx-av"></div>';
   const grid=s.querySelector('.tx-grid'), av=s.querySelector('.tx-av');
   txLoop(S,async()=>{
-    const d=await txDados('curiosidades','',3600000), cat=['astronomia','catastrofes','genios'].includes(item.categoria)?item.categoria:'astronomia';
-    const lista=Array.isArray(d[cat])?d[cat]:[];
+    const d=await txDados('curiosidades','',3600000);
+    const categorias = ['astronomia','catastrofes','genios','natureza','animais','corpo','historia','geografia','tecnologia','oceanos','brasil','engenharia','ciencia','esportes'];
+    let lista = cat === 'aleatorio' ? categorias.flatMap(k => (Array.isArray(d[k])?d[k]:[]).map((x,i)=>({...x,_id:k+':'+i,_cat:k}))) : (Array.isArray(d[cat])?d[cat]:[]).map((x,i)=>({...x,_id:cat+':'+i,_cat:cat}));
     if(!lista.length) throw new Error('Sem curiosidades nesta categoria');
-    grid.innerHTML=lista.slice(0,4).map(c=>'<article class="tx-card" style="padding:1.1em;min-height:0;overflow:hidden"><div style="font-size:calc(var(--u)*3)">'+esc(c.icone||'✨')+'</div><div style="font-size:calc(var(--u)*1.9);font-weight:800;color:#00e5ff;margin:.35em 0">'+esc(c.titulo||'Curiosidade')+'</div><div style="font-size:calc(var(--u)*1.45);color:#d7eaff;line-height:1.3">'+esc(c.texto||'')+'</div></article>').join('');
-    av.textContent=(d.fonte||'ALMAFLUXO')+' · atualizado '+txHora(d.atualizado)+txStaleTag(d);
+    // Histórico local: evita repetir até percorrer todo o conjunto disponível.
+    const chave='almafluxo_curiosidades_v2_'+cat; let usados=[];
+    try { usados=JSON.parse(localStorage.getItem(chave)||'[]'); if(!Array.isArray(usados)) usados=[]; } catch(e) { usados=[]; }
+    let novas=lista.filter(x=>!usados.includes(x._id));
+    if(!novas.length) { usados=[]; novas=lista.slice(); }
+    for(let i=novas.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[novas[i],novas[j]]=[novas[j],novas[i]];}
+    const escolhidas=novas.slice(0,4);
+    usados=usados.concat(escolhidas.map(x=>x._id));
+    try { localStorage.setItem(chave,JSON.stringify(usados.slice(-lista.length))); } catch(e) {}
+    grid.innerHTML=escolhidas.map(c=>'<article class="tx-card" style="padding:1.1em;min-height:0;overflow:hidden"><div style="font-size:calc(var(--u)*3)">'+esc(c.icone||'✨')+'</div><div style="font-size:calc(var(--u)*1.9);font-weight:800;color:#00e5ff;margin:.35em 0">'+esc(c.titulo||'Curiosidade')+'</div><div style="font-size:calc(var(--u)*1.45);color:#d7eaff;line-height:1.3">'+esc(c.texto||'')+'</div></article>').join('');
+    av.textContent=(d.fonte||'ALMAFLUXO')+' · '+(nomes[cat]||'conteúdo variado')+' · atualizado '+txHora(d.atualizado)+txStaleTag(d);
   },3600000,()=>{grid.innerHTML='<div class="tx-erro">Curiosidades temporariamente indisponíveis. A tela continuará tentando atualizar.</div>';});
 }};
 TX.linear = {
@@ -6973,9 +7010,10 @@ function txEditor(it, k, i) {
   else if (t === 'noticias') h = sel('Assunto', k + 'topico', it.topico || '', [['', 'Todos (rodízio)'], ['dolar', 'Dólar'], ['ouro', 'Ouro'], ['bitcoin', 'Bitcoin'], ['ethereum', 'Ethereum'], ['mercado', 'Mercado / Bolsa']]);
   else if (t === 'mecanica3d') h = '<div class="hintx" style="grid-column:1/-1">Editorial de mecânica e mobilidade: notícias públicas, conceito técnico e curiosidades. A animação é ilustrativa; não substitui manual técnico nem orientação profissional.</div>';
   else if (t === 'eletrica') h = '<div class="hintx" style="grid-column:1/-1">Editorial de energia: fontes renováveis, eficiência, armazenamento e notícias. Intervenções elétricas devem ser realizadas por profissional habilitado.</div>';
+  else if (t === 'esporte') h = '<div class="hintx" style="grid-column:1/-1">Esporte: futebol como padrão, com seleção de modalidade e time. Classificação, notícias e resultados são carregados pelo Worker; disponibilidade depende das fontes esportivas.</div>';
   else if (t === 'artes') h = '<div class="hintx" style="grid-column:1/-1">Artes e cultura: notícias, história da arte e referências a acervos. Obras protegidas não são reproduzidas sem autorização.</div>';
   else if (t === 'musica') h = '<div class="hintx" style="grid-column:1/-1">Música e história: movimentos, artistas, instrumentos e tendências editoriais. O painel não reproduz músicas protegidas.</div>';
-  else if (t === 'curiosidades') h = sel('Categoria',k+'categoria',it.categoria||'astronomia',[['astronomia','✨ Astronomia'],['catastrofes','🌋 Catástrofes naturais'],['genios','🧠 Gênios e descobertas']]);
+  else if (t === 'curiosidades') h = sel('Categoria',k+'categoria',it.categoria||'aleatorio',[['aleatorio','🎲 Aleatórias · todas as categorias'],['astronomia','✨ Astronomia'],['catastrofes','🌋 Catástrofes naturais'],['genios','🧠 Gênios e descobertas'],['natureza','🌿 Natureza'],['animais','🐾 Mundo animal'],['corpo','🫀 Corpo humano'],['historia','📜 História'],['geografia','🌍 Geografia'],['tecnologia','💻 Tecnologia'],['oceanos','🌊 Oceanos'],['brasil','🇧🇷 Brasil'],['engenharia','⚙️ Engenharia'],['ciencia','🔬 Ciência'],['esportes','🏅 Esportes']]);
   else if (t === 'horoscopo') h = fld('Pessoas exibidas',k+'porPagina',it.porPagina||4,'number','min="2" max="8"') + fld('URL HTTPS da página de cadastro',k+'cadastroUrl',it.cadastroUrl||'') + fld('URL HTTPS do endpoint GET JSON',k+'apiUrl',it.apiUrl||'') + '<div class="hintx">O QR de participação fica integrado ao rodapé da tela Sistema Solar. Sem URL personalizada, o totem usa /participar-horoscopo e o banco CHAT_DB do Worker. Sem participantes aprovados, aparece o Horóscopo dos Pensadores; com cadastros, aparecem os alinhamentos dos participantes. O sistema armazena somente mês e dia do nascimento; o ano é descartado. A leitura é simbólica.</div>';
   else if (t === 'recadoAmor') h = fld('Título principal',k+'titulo',it.titulo||'Uma mensagem pode mudar o dia de alguém') + fld('Mensagens exibidas',k+'porPagina',it.porPagina||3,'number','min="1" max="4"') + '<div class="hintx">O QR abre a página pública /recado-amor. As mensagens ficam pendentes e só aparecem no totem após aprovação pelo endpoint administrativo do Worker. Não solicite telefone, endereço ou dados pessoais.</div>';
   else if (t === 'planetas3d') h = '<div class="hintx" style="grid-column:1/-1">A câmera fica fixa no alinhamento do pensador/participante. A rotação automática foi removida.</div>';
@@ -7572,6 +7610,7 @@ const TX_PADRAO = () => ({id: '-', status: 'liberado', tela: {}, layout: {modelo
   {tipo: 'noticias',     duracaoS: 30},
   {tipo: 'mecanica3d',   duracaoS: 26},
   {tipo: 'eletrica',     duracaoS: 26},
+  {tipo: 'esporte',      duracaoS: 30},
   {tipo: 'artes',        duracaoS: 26},
   {tipo: 'musica',       duracaoS: 26},
   {tipo: 'planetas3d',   duracaoS: 20},
@@ -7580,7 +7619,7 @@ const TX_PADRAO = () => ({id: '-', status: 'liberado', tela: {}, layout: {modelo
   {tipo: 'climagrafico', duracaoS: 16, cidade: 'auto'},                                   // ← navegação manual
   {tipo: 'recadoAmor',   duracaoS: 24},
   {tipo: 'terremotos',   duracaoS: 18},
-  {tipo: 'curiosidades', duracaoS: 22, categoria: 'astronomia'},
+  {tipo: 'curiosidades', duracaoS: 22, categoria: 'aleatorio'},
   {tipo: 'demoKpg',      duracaoS: 62},                                                          // ← publicidade KPG
   {tipo: 'video', driveId: '1hgDC5GbytijjJgHTDFwJLFeND2Qg5VP6', nome: 'Comercial R5Fit', duracaoS: 0, pausaFinalS: 3, mudo: true, fit: 'contain', r5fit: true, loop: false},
   {tipo: 'demoInfoCell', duracaoS: 25},                                                          // ← vitrine e atendimento InfoCellTec
@@ -9621,6 +9660,195 @@ window.build = build;   // ← expõe globalmente para o MiniMotorPlayer
     TX[tipo] = { def: { duracaoS: 26 }, build(P, item, s, S) { montar(P, item, s, S, cfg); } };
   });
 })();
+
+/* ═══════════════════════════════════════════════════════════════════
+   ESPORTE — editoria independente e aditiva; não altera os slides existentes.
+   Dados: Worker /api/totem/dados/esporte (notícias RSS + ESPN scoreboard/standings).
+   ═══════════════════════════════════════════════════════════════════ */
+TX.esporte = { def: { duracaoS: 30 }, build(P, item, s, S) {
+  s.className += ' tx tx-editorial tx-editorial-esporte';
+  txMorre(S);
+  const esportes = [
+    ['futebol','⚽ Futebol'],['basquete','🏀 Basquete'],['tenis','🎾 Tênis'],
+    ['volei','🏐 Vôlei'],['formula1','🏎️ Fórmula 1'],['mma','🥊 MMA']
+  ];
+  let esporte = 'futebol', time = '', dados = null, idx = 0, tickerIdx = 0, noticias = [], resultados = [];
+  try { esporte = localStorage.getItem('almafluxo_esporte') || 'futebol'; } catch(e) {}
+  if (!esportes.some(x => x[0] === esporte)) esporte = 'futebol';
+  try { time = localStorage.getItem('almafluxo_esporte_time') || ''; } catch(e) {}
+  const escA = v => esc(String(v == null ? '' : v).slice(0, 180));
+  s.innerHTML = `
+    <style>
+      .tx-editorial-esporte{--ed-accent:#68e0a3}
+      .tx-editorial-esporte .ed-title,.tx-editorial-esporte .ed-news-top,.tx-editorial-esporte .ed-live{color:var(--ed-accent)}
+      .sp-controls{display:flex;gap:.65em;flex-wrap:wrap;align-items:center;margin:.2em 0 .8em}
+      .sp-controls label{font-size:calc(var(--u)*1.0);color:#a8bbce;display:flex;gap:.4em;align-items:center}
+      .sp-controls select{max-width:48%;min-width:0;background:#0b1a28;color:#eaf5ff;border:1px solid #356078;border-radius:8px;padding:.48em .6em;font:600 calc(var(--u)*1.05) Roboto,Arial}
+      .sp-board{min-height:0;overflow:auto;flex:1;border:1px solid rgba(104,224,163,.2);border-radius:10px;background:rgba(2,10,18,.38)}
+      .sp-board table{width:100%;border-collapse:collapse;font-size:calc(var(--u)*1.05);font-variant-numeric:tabular-nums}
+      .sp-board th,.sp-board td{padding:.42em .48em;border-bottom:1px solid rgba(160,190,220,.1);text-align:right;white-space:nowrap}
+      .sp-board th:first-child,.sp-board td:nth-child(2){text-align:left}
+      .sp-board th{position:sticky;top:0;background:#0b1a28;color:#8fe8bd}
+      .sp-board td:nth-child(2){max-width:11em;overflow:hidden;text-overflow:ellipsis}
+      .sp-empty{padding:1.2em;text-align:center;color:#9bb0c4;font-size:calc(var(--u)*1.1)}
+      .sp-ticker{position:absolute;left:4.2%;right:4.2%;bottom:2.2%;height:5.2%;min-height:22px;overflow:hidden;display:flex;align-items:center;gap:.7em;border-top:1px solid rgba(104,224,163,.25);color:#dcefe5;font-size:calc(var(--u)*1.05)}
+      .sp-ticker b{color:#8fe8bd;white-space:nowrap}
+      .sp-ticker span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+      .sp-news-link{color:inherit;text-decoration:none}
+      .sp-news-link:hover{color:#8fe8bd}
+      .sp-source-links{display:flex;flex-wrap:wrap;gap:.35em;margin:.15em 0 .55em}
+      .sp-source-links a{display:inline-flex;align-items:center;padding:.3em .55em;border:1px solid #42627a;border-radius:7px;color:#d8ecfa;text-decoration:none;font-size:calc(var(--u)*.82);font-weight:700;background:#102638}
+      .sp-source-links a:hover{border-color:#68e0a3;color:#8fe8bd}
+      .sp-team-note{font-size:calc(var(--u)*.88);color:#91a8bd;margin:.35em 0}
+      @media(max-aspect-ratio:1/1){
+        .tx-editorial-esporte .ed-layout{grid-template-columns:1fr;grid-template-rows:1fr 1fr;bottom:9%}
+        .tx-editorial-esporte .ed-hero{min-height:0}.tx-editorial-esporte .ed-news{min-height:0}
+        .sp-controls select{font-size:12px}.sp-ticker{bottom:1.5%;height:4%}
+      }
+    </style>
+    <header class="ed-head"><div class="ed-kicker">🏆 ALMAFLUXO · CANAL DIÁRIO</div><div class="ed-title">ESPORTE</div><div class="ed-sub">Competições, clubes, notícias e resultados</div></header>
+    <main class="ed-layout">
+      <section class="ed-hero">
+        <div class="ed-hero-orbit"><span>⚽</span><i></i><b></b></div>
+        <div class="ed-eyebrow">CLASSIFICAÇÃO · COMPETIÇÃO PRINCIPAL</div>
+        <div class="sp-controls">
+          <label>Esporte <select class="sp-sport" aria-label="Escolher esporte">${esportes.map(x=>`<option value="${x[0]}">${x[1]}</option>`).join('')}</select></label>
+          <label>Time <select class="sp-team" aria-label="Escolher time"><option value="">Todos os times</option></select></label>
+        </div>
+        <div class="sp-board"><div class="sp-empty">Carregando classificação…</div></div>
+        <div class="sp-team-note">A competição é selecionada conforme o esporte; no futebol, o padrão é o Campeonato Brasileiro.</div>
+      </section>
+      <section class="ed-news">
+        <div class="ed-news-top"><span>NOTÍCIAS DO ESPORTE</span><small class="ed-source">Consultando fontes…</small></div>
+        <nav class="sp-source-links" aria-label="Fontes esportivas">
+          <button type="button" class="sp-open-sources">▣ Abrir central de fontes</button>
+          <a href="https://www.sofascore.com/" target="_blank" rel="noopener">Sofascore ↗</a>
+          <a href="https://www.espn.com.br/" target="_blank" rel="noopener">ESPN ↗</a>
+          <a href="https://www.foxsports.com/" target="_blank" rel="noopener">FOX Sports Global ↗</a>
+          <a href="https://www.cnnbrasil.com.br/esportes/" target="_blank" rel="noopener">CNN Esportes ↗</a>
+          <a href="https://ge.globo.com/programas/esporte-espetacular/" target="_blank" rel="noopener">Esporte Espetacular ↗</a>
+        </nav>
+        <div class="ed-news-list"><div class="ed-news-empty">Carregando notícias…</div></div>
+        <div class="ed-news-foot"><span>Fontes públicas · notícias nacionais e internacionais</span></div>
+      </section>
+    </main>
+    <footer class="sp-ticker"><b>PLACAR</b><span>Carregando últimos resultados…</span></footer>`;
+  const selSport = s.querySelector('.sp-sport'), selTeam = s.querySelector('.sp-team');
+  const board = s.querySelector('.sp-board'), newsList = s.querySelector('.ed-news-list');
+  const source = s.querySelector('.ed-source'), ticker = s.querySelector('.sp-ticker span');
+  const btnSources = s.querySelector('.sp-open-sources');
+  if (btnSources) btnSources.addEventListener('click', () => window.TX_FONTES_ESPORTE && window.TX_FONTES_ESPORTE.abrir());
+  selSport.value = esporte; selTeam.value = time;
+  const fmtScore = c => c == null ? '—' : String(c);
+  const renderBoard = d => {
+    const rows = d && Array.isArray(d.classificacao) ? d.classificacao : [];
+    if (!rows.length) { board.innerHTML = '<div class="sp-empty">Classificação não disponível para esta modalidade neste momento. As notícias e os resultados disponíveis continuam ativos.</div>'; return; }
+    const basquete = esporte === 'basquete';
+    const cab = basquete ? ['#','Equipe','V','D','Aprov.','J atrás'] : ['#','Equipe','Pts','J','V','E','D','SG'];
+    board.innerHTML = '<table><thead><tr>' + cab.map(x=>'<th>'+x+'</th>').join('') + '</tr></thead><tbody>' +
+      rows.slice(0,20).map((r,i)=> basquete
+        ? `<tr><td>${escA(r.posicao || i+1)}</td><td>${escA(r.time)}</td><td>${escA(r.vitorias)}</td><td>${escA(r.derrotas)}</td><td>${escA(r.saldo)}</td><td>${escA(r.pontos)}</td></tr>`
+        : `<tr><td>${escA(r.posicao || i+1)}</td><td>${escA(r.time)}</td><td>${escA(r.pontos)}</td><td>${escA(r.jogos)}</td><td>${escA(r.vitorias)}</td><td>${escA(r.empates)}</td><td>${escA(r.derrotas)}</td><td>${escA(r.saldo)}</td></tr>`).join('') +
+      '</tbody></table>';
+  };
+  const renderNews = () => {
+    if (!noticias.length) { newsList.innerHTML = '<div class="ed-news-empty">Notícias indisponíveis no momento.<br><small>A classificação e os resultados continuam sendo atualizados quando houver fonte.</small></div>'; return; }
+    const n = noticias[idx % noticias.length], others = noticias.filter((_,i)=>i !== idx % noticias.length).slice(0,4);
+    const article = x => `<article class="ed-news-item"><span><a class="sp-news-link" href="${escA(x.link || '#')}" target="_blank" rel="noopener">${escA(x.titulo)}</a><small>${escA([x.fonte,x.publicada].filter(Boolean).join(' · '))}</small></span></article>`;
+    newsList.innerHTML = `<article class="ed-news-feature"><span class="ed-live">DESTAQUE · ${idx+1} DE ${noticias.length}</span><h3><a class="sp-news-link" href="${escA(n.link || '#')}" target="_blank" rel="noopener">${escA(n.titulo)}</a></h3><small>${escA([n.fonte,n.publicada].filter(Boolean).join(' · '))}</small></article>` + others.map(article).join('');
+  };
+  const renderTicker = () => {
+    if (!resultados.length) { ticker.textContent = 'Sem partidas ao vivo ou resultados recentes disponíveis para esta modalidade.'; return; }
+    const r = resultados[tickerIdx % resultados.length];
+    ticker.textContent = `${r.competicao || 'Resultado'} · ${r.casa || ''} ${fmtScore(r.golsCasa)} × ${fmtScore(r.golsFora)} ${r.fora || ''} · ${r.status || ''}`;
+  };
+  const carregar = async () => {
+    const seqSport = esporte, seqTeam = time;
+    board.innerHTML = '<div class="sp-empty">Atualizando classificação…</div>';
+    try {
+      const qs = 'esporte=' + encodeURIComponent(esporte) + (time ? '&time=' + encodeURIComponent(time) : '');
+      const d = await txDados('esporte', qs, 180000);
+      if (S.morto || seqSport !== esporte || seqTeam !== time) return;
+      dados = d; noticias = Array.isArray(d.noticias) ? d.noticias : [];
+      resultados = Array.isArray(d.resultados) ? d.resultados : [];
+      renderBoard(d); idx = 0; renderNews(); tickerIdx = 0; renderTicker();
+      source.textContent = (d.competicao || 'Dados esportivos') + ' · ' + (d.atualizado ? txHora(d.atualizado) : 'atualização recente') + (d.fonte ? ' · ' + d.fonte : '');
+      const times = Array.isArray(d.times) ? d.times : [];
+      const atual = time;
+      selTeam.innerHTML = '<option value="">Todos os times</option>' + times.map(t=>`<option value="${escA(t)}">${escA(t)}</option>`).join('');
+      if (times.includes(atual)) selTeam.value = atual; else { time = ''; selTeam.value = ''; }
+    } catch(e) {
+      if (S.morto) return;
+      board.innerHTML = '<div class="sp-empty">Não foi possível consultar os dados esportivos agora. Tentaremos novamente automaticamente.</div>';
+      source.textContent = 'Fonte temporariamente indisponível';
+    }
+  };
+  selSport.addEventListener('change', () => { esporte = selSport.value; time = ''; try { localStorage.setItem('almafluxo_esporte', esporte); localStorage.removeItem('almafluxo_esporte_time'); } catch(e) {} carregar(); });
+  selTeam.addEventListener('change', () => { time = selTeam.value; try { localStorage.setItem('almafluxo_esporte_time', time); } catch(e) {} carregar(); });
+  carregar();
+  const ivRefresh = setInterval(() => { if (!document.hidden) carregar(); }, 180000);
+  const ivNews = setInterval(() => { if (!document.hidden && noticias.length > 1) { idx=(idx+1)%noticias.length; renderNews(); } }, 8500);
+  const ivTicker = setInterval(() => { if (!document.hidden && resultados.length > 1) { tickerIdx=(tickerIdx+1)%resultados.length; renderTicker(); } }, 5500);
+  S.fins.push(() => { clearInterval(ivRefresh); clearInterval(ivNews); clearInterval(ivTicker); });
+  s.dataset.editorialLink = 'https://almafluxo.uk/olhodedeus';
+} };
+
+/* ═══════════════════════════════════════════════════════════════════
+   CENTRAL DE FONTES ESPORTIVAS — Sofascore e imprensa.
+   Portais editoriais abrem no site oficial; widget Sofascore usa iframe
+   oficial gerado pelo próprio serviço, configurável sem scraping.
+   ═══════════════════════════════════════════════════════════════════ */
+window.TX_FONTES_ESPORTE = (() => {
+  const fontes = [
+    {id:'sofascore',nome:'Sofascore',desc:'Widget oficial e estatísticas',icone:'📊',url:'https://www.sofascore.com/pt/'},
+    {id:'espn',nome:'ESPN',desc:'Notícias, análises e resultados',icone:'📺',url:'https://www.espn.com.br/'},
+    {id:'fox',nome:'FOX Sports Global',desc:'Cobertura esportiva internacional',icone:'🌎',url:'https://www.foxsports.com/'},
+    {id:'cnn',nome:'CNN Esportes',desc:'Notícias e atualizações',icone:'📰',url:'https://www.cnnbrasil.com.br/esportes/'},
+    {id:'ge',nome:'Esporte Espetacular / ge',desc:'Reportagens e esporte brasileiro',icone:'🇧🇷',url:'https://ge.globo.com/programas/esporte-espetacular/'}
+  ];
+  let panel=null, selected='sofascore', frame=null, status=null, view=null, link=null;
+  const getWidget=()=>{try{return localStorage.getItem('almafluxo_sofascore_widget')||''}catch(e){return ''}};
+  const setWidget=v=>{try{localStorage.setItem('almafluxo_sofascore_widget',v)}catch(e){}}
+  const widgetSrc=value=>{
+    let v=String(value||'').trim();
+    const m=v.match(/<iframe\b[^>]*\bsrc\s*=\s*["']([^"']+)["']/i); if(m)v=m[1];
+    try{const u=new URL(v);if(u.protocol!=='https:'||!(u.hostname==='sofascore.com'||u.hostname.endsWith('.sofascore.com')))return '';return u.href}catch(e){return ''}
+  };
+  const montar=()=>{
+    if(panel)return;
+    panel=document.createElement('section');panel.className='tx-sport-panel';panel.setAttribute('aria-label','Central de fontes esportivas');
+    panel.innerHTML='<header class="tx-sport-head"><strong>🏆 CENTRAL ESPORTIVA · ALMAFLUXO</strong><div class="tx-sport-size"><button type="button" data-size="small" title="Reduzir janela">−</button><button type="button" data-size="large" title="Ampliar janela">＋</button></div><button type="button" data-close aria-label="Fechar">✕</button></header><div class="tx-sport-tools"><small>Escolha uma fonte. A janela pode ser redimensionada pelo canto inferior.</small></div><nav class="tx-sport-cards" aria-label="Selecionar fonte esportiva"></nav><main class="tx-sport-view"></main><div class="tx-sport-status">Fontes oficiais · links externos e widget incorporado quando autorizado</div>';
+    document.body.appendChild(panel);view=panel.querySelector('.tx-sport-view');frame=null;status=panel.querySelector('.tx-sport-status');link=null;
+    const cards=panel.querySelector('.tx-sport-cards');
+    fontes.forEach(f=>{const b=document.createElement('button');b.type='button';b.className='tx-sport-card';b.dataset.id=f.id;b.innerHTML='<span>'+f.icone+'</span>'+f.nome+'<small>'+f.desc+'</small>';b.addEventListener('click',()=>selecionar(f.id));cards.appendChild(b)});
+    panel.querySelector('[data-close]').addEventListener('click',fechar);
+    panel.querySelectorAll('[data-size]').forEach(b=>b.addEventListener('click',()=>{const large=b.dataset.size==='large';panel.style.width=large?'min(760px,calc(100vw - 20px))':'min(430px,calc(100vw - 20px))';panel.style.height=large?'min(82vh,820px)':'min(58vh,520px)';}));
+    // Arraste pelo cabeçalho sem interferir nos botões.
+    const head=panel.querySelector('.tx-sport-head');let drag=null;
+    head.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;const r=panel.getBoundingClientRect();drag={x:e.clientX,y:e.clientY,left:r.left,top:r.top};head.setPointerCapture(e.pointerId)});
+    head.addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;panel.style.left=Math.max(4,Math.min(innerWidth-panel.offsetWidth-4,drag.left+dx))+'px';panel.style.top=Math.max(4,Math.min(innerHeight-panel.offsetHeight-4,drag.top+dy))+'px';panel.style.right='auto';panel.style.bottom='auto'});
+    const stop=()=>{drag=null};head.addEventListener('pointerup',stop);head.addEventListener('pointercancel',stop);
+  };
+  const abrir=()=>{montar();panel.classList.add('open');selecionar(selected)};
+  const fechar=()=>{if(panel)panel.classList.remove('open');if(frame&&frame.dataset.kind!=='sofascore')frame.src='about:blank'};
+  const selecionar=id=>{
+    const f=fontes.find(x=>x.id===id);if(!f)return;selected=id;montar();
+    panel.querySelectorAll('.tx-sport-card').forEach(b=>b.classList.toggle('sel',b.dataset.id===id));
+    if(id==='sofascore'){
+      const src=getWidget();
+      const configuracao='<div class="tx-sport-widget-config"><input type="text" data-widget-input placeholder="Cole aqui a URL ou o código iframe oficial do widget"><button type="button" data-widget-save>Salvar widget</button></div>';
+      if(src){view.innerHTML='<h3>SOFASCORE · WIDGET AO VIVO</h3><p>Conteúdo oficial incorporado. Se o widget não carregar, confira se o código continua válido no Sofascore.</p>'+configuracao;const inp=view.querySelector('[data-widget-input]');inp.value=src;const fr=document.createElement('iframe');fr.title='Widget oficial Sofascore';fr.loading='lazy';fr.referrerPolicy='strict-origin-when-cross-origin';fr.allow='clipboard-write; fullscreen';fr.src=src;fr.dataset.kind='sofascore';view.appendChild(fr);frame=fr;}
+      else view.innerHTML='<h3>SOFASCORE · WIDGET OFICIAL</h3><p>O Sofascore permite incorporar widgets gratuitos e atualizados em tempo real. Para evitar um endereço inventado ou quebrado, gere o widget da competição desejada no próprio Sofascore e cole abaixo a URL do iframe ou o código iframe completo.</p><p><a class="tx-sport-open" href="https://corporate.sofascore.com/br/widgets" target="_blank" rel="noopener">Ver como gerar o widget oficial ↗</a> &nbsp; <a class="tx-sport-open" href="https://www.sofascore.com/pt/" target="_blank" rel="noopener">Abrir Sofascore ↗</a></p>'+configuracao;
+      const save=view.querySelector('[data-widget-save]');save.addEventListener('click',()=>{const v=widgetSrc(view.querySelector('[data-widget-input]').value);if(!v){status.textContent='Endereço inválido. Cole a URL https do iframe oficial Sofascore.';return;}setWidget(v);status.textContent='Widget Sofascore salvo neste dispositivo.';selecionar('sofascore')});
+      status.textContent=src?'Widget Sofascore configurado neste dispositivo.':'Widget ainda não configurado · requer código iframe oficial da competição.';
+    }else{
+      view.innerHTML='<h3>'+f.nome.toUpperCase()+'</h3><p>'+f.desc+'. O portal pode bloquear incorporação dentro de outras páginas. Para manter o acesso confiável, o ALMAFLUXO abre o endereço oficial em uma nova aba, sem copiar ou extrair seus dados.</p><p><a class="tx-sport-open" href="'+f.url+'" target="_blank" rel="noopener">Abrir '+f.nome+' no site oficial ↗</a></p>';
+      status.textContent='Abertura direta no site oficial · a disponibilidade depende do próprio provedor.';
+    }
+  };
+  return {abrir,fechar,selecionar};
+})();
+
 </script>
 
 </body>
