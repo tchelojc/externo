@@ -7105,9 +7105,9 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
     A esfera QR é desenhada no canvas (z-index:1); este bloco (z-index:5) fica POR CIMA,
     então reservamos ~30% de altura inferior para a esfera respirar. */
   .eco3-final{
-    position:absolute;z-index:5;left:4%;right:4%;
-    bottom:calc(9% + clamp(20px,3.2vh,44px));   /* acima da timeline inferior */
-    display:flex;flex-direction:column;align-items:center;gap:clamp(4px,0.8vh,10px);
+    position:absolute;z-index:6;left:4%;right:4%;
+    bottom:calc(16% + clamp(20px,3.2vh,44px));   /* sobe para deixar a esfera respirar */
+    display:flex;flex-direction:column;align-items:center;gap:clamp(3px,0.6vh,8px);
     text-align:center;opacity:0;transition:opacity 1.6s;pointer-events:none;
     text-shadow:0 0 22px #3cc8ff;
   }
@@ -7135,9 +7135,9 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
     logo abaixo da esfera QR. Como a esfera está centralizada no meio da tela,
     este hint fica colado nela sem invadir a coluna final. */
   .eco3-qr-hint{
-    position:absolute;z-index:6;left:4%;right:4%;
+    position:absolute;z-index:5;left:4%;right:4%;
     top:auto;
-    bottom:calc(9% + clamp(20px,3.2vh,44px) + clamp(110px,17vh,190px)); /* acima do bloco final */
+    bottom:calc(9% + clamp(16px,2.6vh,36px)); /* logo acima da timeline, abaixo do bloco final */
     text-align:center;
     font:600 clamp(11px,1.4vw,20px)/1.3 Inter,system-ui,sans-serif;
     color:#bdeeff;
@@ -7185,7 +7185,7 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
   <div class="eco3-vig"></div>
   <div class="eco3-head"><strong>ALMAFLUXO · NASCIMENTO DO ECOSSISTEMA</strong><span class="eco3-phase">${esc2(CAPS[0].leg)}</span></div>
   <div class="eco3-card"><small class="eco3-ck"></small><b class="eco3-ct"></b><p class="eco3-cp"></p><div class="eco3-chips">${chips}</div></div>
-  <div class="eco3-final"><b>ALMAFLUXO</b><em>Nossa conversa diária.</em><small>${nModulos} MÓDULOS · ${GRUPOS.length} FRENTES · UMA ÚNICA TEIA</small><span class="eco3-url">ESCANEIE · ${QR_TXT}</span></div>
+    <div class="eco3-final"><b>ALMAFLUXO</b><em>Nossa conversa diária.</em><small>${nModulos} MÓDULOS · ${GRUPOS.length} FRENTES · UMA ÚNICA TEIA</small></div>
   <div class="eco3-qr-hint">📱 <b>Aponte a câmera para a esfera</b> · almafluxo.uk</div>
   <div class="eco3-groups">${legenda}</div>
   <div class="eco3-tl">${tl}</div>`;
