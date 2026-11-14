@@ -3251,21 +3251,31 @@ function criarSlide(P, item) {
     im.src = u; s.appendChild(im); if (item.kenburns) s.classList.add('kb');
   } else if (t === 'video') {
     const u = vidUrl(item);
-    if (!u) return null;
+    if (!u) { console.warn('[TOTEM][VIDEO] URL vazia para', item); return null; }
 
     const v = document.createElement('video');
     let fimVideoTimer = null;
+    let watchdog = null;
 
     v.muted       = item.mudo !== false || P.preview;
     v.autoplay    = true;
     v.playsInline = true;
     v.preload     = 'auto';
-    // Em vez de object-fit via style (que deixa faixa preta ao redor quando "contain"),
-    // usamos uma classe que pinta o fundo com o gradiente do tema.
     v.classList.add(item.fit === 'contain' ? 'fit-contain' : 'fit-cover');
     v.loop        = !!item.loop;
     v.src         = u;
     S.fimEvento   = true;
+
+    // Diagnóstico: mostra no console se o vídeo carregou/decodificou
+    v.addEventListener('loadeddata', () => {
+      console.info('[TOTEM][VIDEO] loadeddata', { src: v.currentSrc, duration: v.duration, w: v.videoWidth, h: v.videoHeight });
+      clearTimeout(watchdog);
+    });
+    v.addEventListener('canplay', () => console.info('[TOTEM][VIDEO] canplay'));
+    v.addEventListener('playing', () => { console.info('[TOTEM][VIDEO] playing'); clearTimeout(watchdog); });
+    v.addEventListener('stalled', () => console.warn('[TOTEM][VIDEO] stalled'));
+    v.addEventListener('waiting', () => console.warn('[TOTEM][VIDEO] waiting'));
+    v.addEventListener('error', () => console.error('[TOTEM][VIDEO] error', v.error && v.error.code, v.error && v.error.message));
 
     v.addEventListener('ended', () => {
       clearTimeout(fimVideoTimer);
@@ -3273,9 +3283,17 @@ function criarSlide(P, item) {
       fimVideoTimer = setTimeout(() => { if (S.aoFim) S.aoFim(); }, espera * 1000);
     });
 
-    // fallback entre branches do repo (main / alma)
+    // Watchdog: se em 12 s o vídeo não deu 'loadeddata' nem 'playing',
+    // tenta o próximo fallback (ou pula o slide). Isso cobre o caso
+    // em que o Worker devolve erro HTTP sem disparar 'error' no <video>.
+    watchdog = setTimeout(() => {
+      if (v.readyState >= 2) return;   // já carregou
+      console.warn('[TOTEM][VIDEO] watchdog 12s sem loadeddata — tentando fallback');
+      tentarFallback();
+    }, 12000);
+
     const alts = repoAlternativas(u);
-    v.addEventListener('error', () => {
+    const tentarFallback = () => {
       if (alts.length) {
         const prox = alts.shift();
         console.warn('[TOTEM][VIDEO] falhou, tentando alternativa:', prox);
@@ -3283,18 +3301,28 @@ function criarSlide(P, item) {
         v.load();
         const pp = v.play();
         if (pp && pp.catch) pp.catch(() => {});
+        // Re-arma o watchdog para a nova tentativa
+        clearTimeout(watchdog);
+        watchdog = setTimeout(() => {
+          if (v.readyState >= 2) return;
+          console.warn('[TOTEM][VIDEO] watchdog 12s sem loadeddata na alternativa — pulando');
+          if (S.aoFim) setTimeout(S.aoFim, 1500);
+        }, 12000);
         return;
       }
       console.warn('[TOTEM][VIDEO] sem alternativas; pulando:', u);
       if (S.aoFim) setTimeout(S.aoFim, 1500);
-    });
+    };
+
+    v.addEventListener('error', tentarFallback);
 
     s.appendChild(v);
     const pl = v.play();
-    if (pl && pl.catch) pl.catch(() => {});
+    if (pl && pl.catch) pl.catch(err => console.warn('[TOTEM][VIDEO] play() rejeitado:', err && err.name, err && err.message));
 
     S.destroy = () => {
       clearTimeout(fimVideoTimer);
+      clearTimeout(watchdog);
       try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {}
     };
 
@@ -4326,9 +4354,22 @@ function tx3d(s, S, THREE, montar) {
   const cv = document.createElement('canvas'); cv.className = 'tx-cv'; s.insertBefore(cv, s.firstChild);
   const R = new THREE.WebGLRenderer({canvas: cv, antialias: true, alpha: true}); R.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   const sc = new THREE.Scene(), cam = new THREE.PerspectiveCamera(45, 1, .1, 2000), C = {sc, cam, R, THREE, cb: null, desloca: 0};
-  const ajustar = () => { const w = s.clientWidth || 1, h = s.clientHeight || 1; R.setSize(w, h, false); cam.aspect = w / h; if (C.desloca && w > h) cam.setViewOffset(w, h, w * C.desloca, 0, w, h); else cam.clearViewOffset(); cam.updateProjectionMatrix(); };
+  const ajustar = () => {
+    const w = s.clientWidth || window.innerWidth || 1;
+    const h = s.clientHeight || window.innerHeight || 1;
+    R.setSize(w, h, false);
+    // Garante que o canvas ocupe o slide mesmo se o ResizeObserver ainda não disparou
+    cv.style.width = w + 'px';
+    cv.style.height = h + 'px';
+    cam.aspect = w / h;
+    if (C.desloca && w > h) cam.setViewOffset(w, h, w * C.desloca, 0, w, h); else cam.clearViewOffset();
+    cam.updateProjectionMatrix();
+  };
   C.ajustar = ajustar;
-  const ro = new ResizeObserver(ajustar); ro.observe(s); ajustar();
+  const ro = new ResizeObserver(ajustar); ro.observe(s);
+  // Espera o slide estar no DOM com altura antes do primeiro ajuste
+  requestAnimationFrame(() => { ajustar(); });
+  ajustar(); // fallback imediato
   montar(C);
   const t0 = performance.now(); let raf = 0;
   const loop = () => { raf = requestAnimationFrame(loop); if (document.hidden || S.morto) return; C.cb && C.cb((performance.now() - t0) / 1000); R.render(sc, cam); };
@@ -7043,7 +7084,7 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
   const tl = CAPS.map((c,i)=>`<div class="eco3-seg" data-i="${i}"><i></i><span>${i+1} · ${esc2(c.leg.split(' · ')[0])}</span></div>`).join('');
   s.innerHTML = `<style>
   /* NÃO definir position aqui: o slide (.sl) já é absolute/inset:0; position:relative colapsava a altura e deixava tudo preto */
-  .tx-eco3d{overflow:hidden!important;background:#030812!important;color:#eaf8ff!important;font-family:Inter,Roboto,Arial,sans-serif!important;isolation:isolate}
+  .tx-eco3d{position:absolute;inset:0;overflow:hidden!important;background:#030812!important;color:#eaf8ff!important;font-family:Inter,Roboto,Arial,sans-serif!important;isolation:isolate}
   .tx-eco3d .tx-cv{z-index:1}
   .eco3-vig{position:absolute;inset:0;z-index:3;pointer-events:none;background:radial-gradient(ellipse at 50% 46%,transparent 52%,#02060dcc 100%)}
   .eco3-head{position:absolute;z-index:5;top:3.2%;left:4%;right:4%;display:flex;justify-content:space-between;gap:12px;align-items:center;color:#9bc6df;font-size:clamp(9px,.9vw,13px);letter-spacing:.2em}
