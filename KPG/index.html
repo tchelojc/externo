@@ -2988,8 +2988,8 @@
 </style>
 <button id="kpgBtn" onclick="kpgAbrir()">🔐 Área restrita</button>
 <div id="kpgLogin"><div class="kpgBox"><h3>🔐 Área restrita KPG</h3><p>Acesso da equipe com sua conta KPG.</p>
-<input type="email" id="kpgEmail" placeholder="seu@email.com" autocomplete="email"><input type="password" id="kpgSenha" placeholder="Senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')kpgEntrar()">
-<div id="kpgErr"></div><button id="kpgOk" onclick="kpgEntrar()">Entrar</button><button class="g" onclick="kpgFechar()">Cancelar</button></div></div>
+<input type="email" id="kpgEmail" placeholder="seu@email.com" autocomplete="email"><input type="password" id="kpgSenha" placeholder="Senha" autocomplete="off" onkeydown="if(event.key==='Enter')kpgEntrar()">
+<div id="kpgErr"></div><button id="kpgOk" type="button" onmousedown="kpgEntrar(event)">Entrar</button><button class="g" onclick="kpgFechar()">Cancelar</button></div></div>
 <div id="kpgApp"><div class="top"><span>KPG · Área restrita</span><button onclick="kpgSair()">Sair</button></div><iframe id="kpgFrame" title="Painel KPG"></iframe></div>
 <script>
 (function(){
@@ -3028,13 +3028,14 @@
     setTimeout(function(){ $('kpgEmail').focus(); }, 50);
   };
 
-    window.kpgEntrar = async function() {
-      var email = $('kpgEmail').value.trim().toLowerCase();
-      var senha = $('kpgSenha').value;
-      var b = $('kpgOk');
-      erro('');
-    
-      if (!email || !senha) { erro('Informe e-mail e senha.'); return; }
+        window.kpgEntrar = async function(ev) {
+        if (ev && ev.preventDefault) ev.preventDefault();
+        var email = ($('kpgEmail').value || '').trim().toLowerCase();
+        var senha = ($('kpgSenha').value || '');
+        var b = $('kpgOk');
+        erro('');
+
+        if (!email || !senha) { erro('Informe e-mail e senha.'); return; }
     
       b.disabled = true;
       b.textContent = 'Entrando...';
