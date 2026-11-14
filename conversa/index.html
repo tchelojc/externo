@@ -3653,7 +3653,7 @@ function iniciarRegiao(P, box, id, cont) {
   const ehR5 = i => i.r5fit === true || (i.tipo === 'video' && /IMG_1929\.MOV/i.test(String(i.url || '')));
   const pesoFim = i => i.tipo === 'relogio' ? -1 : i.tipo === 'ecossistema' ? 5 : i.tipo === 'demoInfoCell' ? 3 : ehR5(i) ? 2 : i.tipo === 'demoKpg' ? 1 : 0;
   if (id === 'r1' && !P.preview) {
-    if (!itens.some(i => i.r5fit === true || (i.tipo === 'video' && /IMG_1929\.MOV/i.test(String(i.url||''))))) itens.push({tipo:'video', url:'https://tchelojc.github.io/externo/conversar/IMG_1929.MOV', nome:'Comercial R5Fit', duracaoS:0, pausaFinalS:3, mudo:true, fit:'contain', r5fit:true, loop:false, ativo:true});
+    if (!itens.some(i => i.r5fit === true)) itens.push({tipo:'video', driveId:'1IJYNHsZ_hMf-jxTnao6hxIzyUTfTAt1o', nome:'Comercial R5Fit', duracaoS:0, pausaFinalS:3, mudo:true, fit:'contain', r5fit:true, loop:false, ativo:true});
     if (!itens.some(i => i.tipo === 'demoInfoCell')) itens.push({tipo:'demoInfoCell', nome:'InfoCellTec · vitrine e atendimento', duracaoS:58, ativo:true});
     if (!itens.some(i => i.tipo === 'ecossistema')) itens.push({tipo:'ecossistema', nome:'ALMAFLUXO · linhas do universo', duracaoS:58, ativo:true});
   }
@@ -7060,25 +7060,53 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
   .eco3-groups{position:absolute;z-index:5;left:4%;right:4%;bottom:7%;display:none;justify-content:center;flex-wrap:wrap;gap:6px 14px;font-size:clamp(7px,.72vw,10px);letter-spacing:.12em;pointer-events:none}
   .eco3-groups span{color:var(--gc);opacity:.9;text-shadow:0 0 10px color-mix(in srgb,var(--gc),transparent 60%)}.eco3-groups span:before{content:'● ';font-size:.8em}
   .tx-eco3d[data-cap="5"] .eco3-groups{display:flex}
-  .eco3-final{position:absolute;z-index:5;left:0;right:0;top:67%;text-align:center;opacity:0;transition:opacity 1.6s;pointer-events:none;text-shadow:0 0 22px #3cc8ff}
+  /* Bloco final: coluna ancorada no rodapé, sem sobreposição com a esfera QR.
+    A esfera QR é desenhada no canvas (z-index:1); este bloco (z-index:5) fica POR CIMA,
+    então reservamos ~30% de altura inferior para a esfera respirar. */
+  .eco3-final{
+    position:absolute;z-index:5;left:4%;right:4%;
+    bottom:calc(9% + clamp(20px,3.2vh,44px));   /* acima da timeline inferior */
+    display:flex;flex-direction:column;align-items:center;gap:clamp(4px,0.8vh,10px);
+    text-align:center;opacity:0;transition:opacity 1.6s;pointer-events:none;
+    text-shadow:0 0 22px #3cc8ff;
+  }
   .tx-eco3d[data-cap="5"] .eco3-final{opacity:1}
-  .eco3-final b{display:block;font-size:clamp(24px,4.2vw,64px);letter-spacing:.2em;color:#fff;font-weight:800;padding-left:.2em}
-  .eco3-final em{display:block;margin-top:6px;font-style:normal;font-size:clamp(12px,1.7vw,26px);letter-spacing:.14em;color:#bdeeff}
-  .eco3-final small{display:block;margin-top:8px;font-size:clamp(7px,.75vw,11px);letter-spacing:.24em;color:#7fb6d4}
-  /* Texto instrucional sob a esfera QR — orienta o visitante a apontar a câmera */
-.eco3-qr-hint{
-  position:absolute;z-index:6;left:0;right:0;
-  top:calc(67% + clamp(22px,4.2vw,64px) + 18px);
-  text-align:center;
-  font:600 clamp(11px,1.4vw,20px)/1.3 Inter,system-ui,sans-serif;
-  color:#bdeeff;
-  letter-spacing:.06em;
-  opacity:0;transition:opacity 1.2s;
-  pointer-events:none;
-  text-shadow:0 0 12px #3cc8ff88;
-}
-.tx-eco3d[data-cap="5"] .eco3-qr-hint{opacity:1}
-.eco3-qr-hint b{color:#fff;font-weight:800}
+  .eco3-final b{
+    display:block;font-size:clamp(22px,3.6vw,56px);line-height:1;
+    letter-spacing:.2em;color:#fff;font-weight:800;padding-left:.2em;margin:0;
+  }
+  .eco3-final em{
+    display:block;margin:0;font-style:normal;
+    font-size:clamp(12px,1.6vw,24px);line-height:1.25;letter-spacing:.14em;color:#bdeeff;
+  }
+  .eco3-final small{
+    display:block;margin:0;
+    font-size:clamp(7px,.72vw,11px);line-height:1.3;letter-spacing:.24em;color:#7fb6d4;
+  }
+  .eco3-final .eco3-url{
+    display:block;margin-top:4px;
+    font-size:clamp(10px,1.2vw,18px);line-height:1.2;letter-spacing:.2em;color:#fff;
+    opacity:0;transition:opacity 1s;
+  }
+  .tx-eco3d[data-qr="1"] .eco3-final .eco3-url{opacity:1}
+
+  /* Texto instrucional "aponte a câmera": fica ACIMA do bloco final,
+    logo abaixo da esfera QR. Como a esfera está centralizada no meio da tela,
+    este hint fica colado nela sem invadir a coluna final. */
+  .eco3-qr-hint{
+    position:absolute;z-index:6;left:4%;right:4%;
+    top:auto;
+    bottom:calc(9% + clamp(20px,3.2vh,44px) + clamp(110px,17vh,190px)); /* acima do bloco final */
+    text-align:center;
+    font:600 clamp(11px,1.4vw,20px)/1.3 Inter,system-ui,sans-serif;
+    color:#bdeeff;
+    letter-spacing:.06em;
+    opacity:0;transition:opacity 1.2s;
+    pointer-events:none;
+    text-shadow:0 0 12px #3cc8ff88;
+  }
+  .tx-eco3d[data-cap="5"] .eco3-qr-hint{opacity:1}
+  .eco3-qr-hint b{color:#fff;font-weight:800}
   .tx-eco3d[data-cap="5"] .eco3-card{opacity:0}
   .eco3-url{display:block;margin-top:10px;font-size:clamp(10px,1.2vw,18px);letter-spacing:.2em;color:#fff;opacity:0;transition:opacity 1s}.tx-eco3d[data-qr="1"] .eco3-url{opacity:1}
   .eco3-tl{position:absolute;z-index:5;left:4%;right:4%;bottom:3%;display:grid;grid-template-columns:repeat(6,1fr);gap:6px;pointer-events:none}
@@ -7095,7 +7123,20 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
   .eco3-fbqr{position:absolute;z-index:1;left:50%;top:40%;width:min(46vw,34vh);height:min(46vw,34vh);transform:translate(-50%,-50%);display:none;image-rendering:pixelated;border-radius:10px;box-shadow:0 0 40px #38c9ff55}
   .tx-eco3d[data-render="fallback"][data-cap="5"] .eco3-fbqr{display:block}.tx-eco3d[data-render="fallback"][data-cap="5"] .eco3-fallback{display:none}
   .eco3-diag{position:absolute;z-index:6;right:4%;top:calc(3.2% + 40px);font-size:9px;letter-spacing:.1em;color:#587a92;pointer-events:none}
-  @media(max-width:700px),(max-aspect-ratio:1/1){.eco3-card{left:3%;right:3%;width:auto;bottom:10%}.eco3-groups{display:none!important}.eco3-chips{display:none!important}.eco3-head{font-size:7px;letter-spacing:.08em}.eco3-phase{padding:5px 7px}.eco3-seg span{display:none}.eco3-final{top:64%}}
+  @media(max-width:700px),(max-aspect-ratio:1/1){
+    .eco3-card{left:3%;right:3%;width:auto;bottom:10%}
+    .eco3-groups{display:none!important}
+    .eco3-chips{display:none!important}
+    .eco3-head{font-size:7px;letter-spacing:.08em}
+    .eco3-phase{padding:5px 7px}
+    .eco3-seg span{display:none}
+    /* Em retrato, sobe o bloco final e o hint para não encostar na timeline */
+    .eco3-final{bottom:calc(11% + clamp(16px,2.6vh,32px));gap:3px}
+    .eco3-final b{font-size:clamp(20px,5vw,40px);letter-spacing:.16em}
+    .eco3-final em{font-size:clamp(11px,3vw,18px);letter-spacing:.1em}
+    .eco3-final small{font-size:clamp(7px,2vw,10px);letter-spacing:.16em}
+    .eco3-qr-hint{bottom:calc(11% + clamp(16px,2.6vh,32px) + clamp(90px,14vh,150px));font-size:clamp(10px,2.6vw,15px)}
+  }
   @media(prefers-reduced-motion:reduce){.eco3-card,.eco3-final,.eco3-chip,.eco3-chip i{transition:none}.eco3-fb-orbit,.eco3-fb-core{animation:none}}
   </style>
   <div class="eco3-fallback" aria-hidden="true"><div class="eco3-fb-orbit"><i class="eco3-fb-n"></i><i class="eco3-fb-n"></i><i class="eco3-fb-n"></i><i class="eco3-fb-n"></i><div class="eco3-fb-core">ALMA<br>FLUXO</div></div></div>
@@ -7355,7 +7396,7 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
             camAlvo(CAPS[ci].cam,aPos,aLook);
             if(primeira||reduzido){cPos.copy(aPos);cLook.copy(aLook);primeira=false;}
             else{const kp=1-Math.exp(-dt*1.35),kl=1-Math.exp(-dt*2.2);cPos.lerp(aPos,kp);cLook.lerp(aLook,kl);}
-            camera.position.copy(cPos);camera.lookAt(cLook);camera.updateMatrixWorld();const ce=camera.matrixWorld.elements,Qs=camera.position.length()*Math.min(.30,camera.aspect*.5);
+            camera.position.copy(cPos);camera.lookAt(cLook);camera.updateMatrixWorld();const ce=camera.matrixWorld.elements,Qs=camera.position.length()*Math.min(.13,camera.aspect*.22);
 
             beatT+=dt;const bc=(beatT%1.6)/1.6;
             const b1=Math.exp(-Math.pow((bc-.12)/.06,2)),b2=.62*Math.exp(-Math.pow((bc-.30)/.05,2)),beat=clamp01(b1+b2);
@@ -7500,7 +7541,7 @@ const TX_PADRAO = () => ({id: '-', status: 'liberado', tela: {}, layout: {modelo
   {tipo: 'terremotos',   duracaoS: 18},
   {tipo: 'curiosidades', duracaoS: 22, categoria: 'astronomia'},
   {tipo: 'demoKpg',      duracaoS: 62},                                                          // ← publicidade KPG
-  {tipo: 'video', url: 'https://tchelojc.github.io/externo/conversar/IMG_1929.MOV', nome: 'Comercial R5Fit', duracaoS: 0, pausaFinalS: 3, mudo: true, fit: 'contain', r5fit: true, loop: false},
+  {tipo: 'video', driveId: '1IJYNHsZ_hMf-jxTnao6hxIzyUTfTAt1o', nome: 'Comercial R5Fit', duracaoS: 0, pausaFinalS: 3, mudo: true, fit: 'contain', r5fit: true, loop: false},
   {tipo: 'demoInfoCell', duracaoS: 25},                                                          // ← vitrine e atendimento InfoCellTec
   {tipo: 'ecossistema',  duracaoS: 42}                                                           // ← encerramento: nascimento 3D do ecossistema ALMAFLUXO
 ], transicao: {tipo: 'fade', ms: 900}, aleatorio: false}}});
