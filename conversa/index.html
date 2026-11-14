@@ -2791,19 +2791,32 @@ const imgUrl = i => { const id=driveIdFrom(i.driveId||i.url); return id ? totemM
    (o Worker só responde às rotas dele e devolve 404 "Rota não encontrada" para o resto). Caminho relativo ou
    almafluxo.uk/conversar/... é reescrito para a origem do Pages; se ela falhar, o slide tenta o raw do GitHub. */
 const GH_PAGES_BASE = 'https://tchelojc.github.io/externo/';
+const vidUrl = i => {
+  const id = driveIdFrom(i.driveId || i.url);
+  if (id) return totemMediaUrl(id);                  // ← Drive → Worker
+  return repoUrl(i.url) || assetUrl(i.url);          // ← repositório
+};
+
 const repoUrl = v => {
   v = String(v || '').trim(); if (!v) return null;
   try {
-    if (/^\/\/|^[a-z][a-z0-9+.-]*:/i.test(v)) {                       // absoluta
+    if (/^\/\/|^[a-z][a-z0-9+.-]*:/i.test(v)) {
       const x = new URL(v, location.href);
-      return (/(^|\.)almafluxo\.uk$/i.test(x.hostname) && /^\/conversar\//i.test(x.pathname)) ? GH_PAGES_BASE + x.pathname.slice(1) + x.search : null;
+      return (/(^|\.)almafluxo\.uk$/i.test(x.hostname) && /^\/conversar\//i.test(x.pathname))
+        ? GH_PAGES_BASE + x.pathname.slice(1) + x.search
+        : null;                                       // ← URLs absolutas de github.io caem AQUI
     }
     if (v.charAt(0) === '/') return /^\/conversar\//i.test(v) ? GH_PAGES_BASE + v.slice(1) : null;
-    return new URL(v, GH_PAGES_BASE + 'conversar/').href;               // relativa → pasta conversar/ do repositório
+    return new URL(v, GH_PAGES_BASE + 'conversar/').href;
   } catch (e) { return null; }
 };
-const repoAlternativas = u => { const m = /^https:\/\/tchelojc\.github\.io\/externo\/(.+)$/i.exec(String(u || '')); return m ? ['main', 'alma', 'master'].map(b => 'https://raw.githubusercontent.com/tchelojc/externo/' + b + '/' + m[1]) : []; };
-const vidUrl = i => { const id=driveIdFrom(i.driveId||i.url); if (id) return totemMediaUrl(id); return repoUrl(i.url) || assetUrl(i.url); };
+
+const repoAlternativas = u => {
+  const m = /^https:\/\/tchelojc\.github\.io\/externo\/(.+)$/i.exec(String(u || ''));
+  return m ? ['main', 'alma', 'master'].map(b =>
+    'https://raw.githubusercontent.com/tchelojc/externo/' + b + '/' + m[1]
+  ) : [];
+};
 const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
 
 /* Toda tela/card recebe uma faixa comercial padrão. O conteúdo principal continua livre. */
@@ -3197,9 +3210,54 @@ function criarSlide(P, item) {
     im.onerror = () => { s.innerHTML = '<div class="s-carregando" style="position:absolute;inset:0">imagem indisponível · confira o compartilhamento no Drive</div>'; };
     im.src = u; s.appendChild(im); if (item.kenburns) s.classList.add('kb');
   } else if (t === 'video') {
-    const u = vidUrl(item); if (!u) return null; const v = document.createElement('video'); let fimVideoTimer = null; v.muted = item.mudo !== false || P.preview; v.autoplay = true; v.playsInline = true; v.preload = 'auto'; v.style.objectFit = item.fit || 'cover';
-    v.loop = !!item.loop; v.src = u; S.fimEvento = true; v.addEventListener('ended', () => { clearTimeout(fimVideoTimer); const espera = Math.max(0, Math.min(15, Number(item.pausaFinalS) || 0)); fimVideoTimer = setTimeout(() => { if (S.aoFim) S.aoFim(); }, espera * 1000); }); const alts = repoAlternativas(u); v.addEventListener('error', () => { if (alts.length) { const prox = alts.shift(); console.warn('[TOTEM][VIDEO] falhou, tentando alternativa:', prox); v.src = prox; const pp = v.play(); if (pp && pp.catch) pp.catch(() => {}); return; } console.warn('[TOTEM][VIDEO] sem alternativas; pulando:', u); if (S.aoFim) setTimeout(S.aoFim, 1500); });
-    s.appendChild(v); const pl = v.play(); if (pl && pl.catch) pl.catch(() => {}); S.destroy = () => { clearTimeout(fimVideoTimer); try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {} };
+    const u = vidUrl(item);
+    if (!u) return null;
+
+    const v = document.createElement('video');
+    let fimVideoTimer = null;
+
+    v.muted       = item.mudo !== false || P.preview;
+    v.autoplay    = true;
+    v.playsInline = true;
+    v.preload     = 'auto';
+    v.crossOrigin = 'anonymous';              // ← necessário p/ raw.githubusercontent.com
+    v.style.objectFit = item.fit || 'cover';
+    v.loop        = !!item.loop;
+    v.src         = u;
+    S.fimEvento   = true;
+
+    // fim natural → respeita pausaFinalS antes de avançar
+    v.addEventListener('ended', () => {
+      clearTimeout(fimVideoTimer);
+      const espera = Math.max(0, Math.min(15, Number(item.pausaFinalS) || 0));
+      fimVideoTimer = setTimeout(() => { if (S.aoFim) S.aoFim(); }, espera * 1000);
+    });
+
+    // fallback entre branches do repo (main / alma)
+    const alts = repoAlternativas(u);
+    v.addEventListener('error', () => {
+      if (alts.length) {
+        const prox = alts.shift();
+        console.warn('[TOTEM][VIDEO] falhou, tentando alternativa:', prox);
+        v.src = prox;
+        v.load();
+        const pp = v.play();
+        if (pp && pp.catch) pp.catch(() => {});
+        return;
+      }
+      console.warn('[TOTEM][VIDEO] sem alternativas; pulando:', u);
+      if (S.aoFim) setTimeout(S.aoFim, 1500);
+    });
+
+    s.appendChild(v);
+    const pl = v.play();
+    if (pl && pl.catch) pl.catch(() => {});
+
+    S.destroy = () => {
+      clearTimeout(fimVideoTimer);
+      try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {}
+    };
+
   } else if (t === 'youtube') {
     const id = ytId(item.url || item.id); if (!id) return null; const f = document.createElement('iframe');
     f.allow = 'autoplay; encrypted-media; picture-in-picture'; f.src = 'https://www.youtube.com/embed/' + id + '?autoplay=1&mute=' + (item.mudo === false ? 0 : 1) + '&controls=0&loop=1&playlist=' + id + '&modestbranding=1&rel=0&playsinline=1'; s.appendChild(f);
