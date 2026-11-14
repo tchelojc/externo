@@ -2988,8 +2988,8 @@
 </style>
 <button id="kpgBtn" onclick="kpgAbrir()">🔐 Área restrita</button>
 <div id="kpgLogin"><div class="kpgBox"><h3>🔐 Área restrita KPG</h3><p>Acesso da equipe com sua conta KPG.</p>
-<input type="email" id="kpgEmail" placeholder="seu@email.com" autocomplete="email"><input type="password" id="kpgSenha" placeholder="Senha" autocomplete="off" onkeydown="if(event.key==='Enter')kpgEntrar()">
-<div id="kpgErr"></div><button id="kpgOk" type="button" onmousedown="kpgEntrar(event)">Entrar</button><button class="g" onclick="kpgFechar()">Cancelar</button></div></div>
+<input type="email" id="kpgEmail" placeholder="seu@email.com" autocomplete="username"><input type="password" id="kpgSenha" placeholder="Senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')kpgEntrar()">
+<div id="kpgErr"></div><button id="kpgOk" type="button" onclick="kpgEntrar(event)">Entrar</button><button class="g" onclick="kpgFechar()">Cancelar</button></div></div>
 <div id="kpgApp"><div class="top"><span>KPG · Área restrita</span><button onclick="kpgSair()">Sair</button></div><iframe id="kpgFrame" title="Painel KPG"></iframe></div>
 <script>
 (function(){
@@ -3028,48 +3028,54 @@
     setTimeout(function(){ $('kpgEmail').focus(); }, 50);
   };
 
-        window.kpgEntrar = async function(ev) {
-        if (ev && ev.preventDefault) ev.preventDefault();
-        var email = ($('kpgEmail').value || '').trim().toLowerCase();
-        var senha = ($('kpgSenha').value || '');
-        var b = $('kpgOk');
-        erro('');
+    var kpgOcupado = false;
+    window.kpgEntrar = async function(ev) {
+      if (ev && ev.preventDefault) ev.preventDefault();
+      if (kpgOcupado) return;
+      var email = ($('kpgEmail').value || '').trim().toLowerCase();
+      var senha = ($('kpgSenha').value || '');
+      var b = $('kpgOk');
+      erro('');
 
-        if (!email || !senha) { erro('Informe e-mail e senha.'); return; }
-    
+      if (!email || !senha) { erro('Informe e-mail e senha.'); return; }
+
+      kpgOcupado = true;
       b.disabled = true;
       b.textContent = 'Entrando...';
-    
+
       try {
-        // 1️⃣ Valida e-mail + senha no kpg.gs
         var r = await fetch(KPG_API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'validarLoginKpg',
-            email: email,
-            senha: senha
-          })
+          body: JSON.stringify({ action: 'validarLoginKpg', email: email, senha: senha })
         });
-        var d = await r.json();
-    
+
+        // Le como texto primeiro: se o Worker/Apps Script devolver HTML ou erro, a mensagem nao se perde.
+        var txt = await r.text();
+        var d = null;
+        try { d = JSON.parse(txt); } catch (_) {}
+        if (!d) throw new Error('Resposta inesperada do servidor (HTTP ' + r.status + '): ' + txt.slice(0, 120));
+
         if (!r.ok || !d.ok) {
-          throw new Error(d.error || 'Falha no login.');
+          var msg = d.error || 'Falha no login.';
+          console.warn('[KPG login] HTTP', r.status, 'resposta:', d);
+          throw new Error(msg + (r.ok ? '' : ' (HTTP ' + r.status + ')'));
         }
-    
-        // 2️⃣ Guarda o usuário na sessão do KPG (localStorage)
+        if (!d.sessionToken) throw new Error('Login aceito, mas o servidor nao devolveu o token de sessao.');
+
+        // Guarda usuario E token (antes o token era descartado).
         var usuario = d.usuario || {};
         usuario.email = email;
+        usuario.sessionToken = d.sessionToken;
         localStorage.setItem(CHAVE_SESSAO_KPG, JSON.stringify(usuario));
         $('kpgSenha').value = '';
         kpgFechar();
-    
-        // 3️⃣ Abre o painel já com o usuário
         carregar(usuario);
-    
+
       } catch(e) {
-        erro('❌ ' + e.message);
+        erro('\u274c ' + e.message);
       } finally {
+        kpgOcupado = false;
         b.disabled = false;
         b.textContent = 'Entrar';
       }
