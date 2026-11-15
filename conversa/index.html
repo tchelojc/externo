@@ -1822,6 +1822,7 @@ html, body { overscroll-behavior: none; }
         <button class="btn" id="btnAlertas" onclick="alternarAlertas()">🔕 Alertas: desligados</button>
         <button class="btn" onclick="PTabrirEditor()">🧩 Editor de slides</button>
         <button class="btn btn-ve" onclick="abrirEditorDrive()">🎬 Editor de vídeo</button>
+        <button class="btn btn-primario" onclick="abrirPainelDrive()">🛠️ Painel do Drive</button>
       </div>
       <div id="totens-banner"></div>
       <div id="totens-lista"><div class="vazio">Abra a aba para carregar.</div></div>
@@ -2759,6 +2760,47 @@ window.addEventListener('message', async (ev) => {
   } else if (m.type === 'saved') {
     carregarTudo();
   }
+});
+/* ═══════════ PAINEL DO DRIVE — painel-totens.html aberto em tela cheia (iframe isolado) ═══════════
+   O painel não enxerga a sessão: pede ao portal, por postMessage, só as 4 ações de arquivo abaixo, limitadas à pasta CONVERSA. */
+const PAINEL_ARQUIVO = 'painel-totens.html';
+const PAINEL_ACOES = new Set(['listarPastaPorId', 'obterProjetoPorId', 'editarProjetoPorId', 'uploadArquivo']);
+let pnFrame = null;
+async function abrirPainelDrive() {
+  let ed = (arquivosCache || []).find(a => (a.nome || '').toLowerCase() === PAINEL_ARQUIVO);
+  if (!ed) { await listarPasta(); ed = (arquivosCache || []).find(a => (a.nome || '').toLowerCase() === PAINEL_ARQUIVO); }
+  if (!ed) { mostrarToast('Suba o arquivo painel-totens.html para a pasta CONVERSA do Drive.', true); return; }
+  mostrarOverlay('Abrindo o painel…');
+  try {
+    const r = await apiR('obterProjetoPorId', { arquivoId: ed.id });
+    if (!r.sucesso || !r.conteudo) throw new Error(r.mensagem || 'Não consegui ler o painel no Drive.');
+    fecharPainelDrive();
+    const w = document.createElement('div'); w.id = 'pnWrap'; w.style.cssText = 'position:fixed;inset:0;z-index:250;background:#07111f';
+    const f = document.createElement('iframe'); f.setAttribute('sandbox', 'allow-scripts allow-downloads allow-modals'); f.setAttribute('allow', 'clipboard-write');
+    f.style.cssText = 'width:100%;height:100%;border:0;display:block'; f.srcdoc = r.conteudo; w.appendChild(f); document.body.appendChild(w); pnFrame = f; document.body.style.overflow = 'hidden';
+  } catch (e) { mostrarToast('❌ ' + e.message, true); } finally { esconderOverlay(); }
+}
+function fecharPainelDrive() { const w = document.getElementById('pnWrap'); if (w) w.remove(); pnFrame = null; document.body.style.overflow = ''; }
+window.addEventListener('message', async (ev) => {
+  if (!pnFrame || ev.source !== pnFrame.contentWindow) return;
+  const m = ev.data || {}, reply = o => { if (pnFrame && ev.source) ev.source.postMessage(o, '*'); };
+  if (m.type === 'totem-panel-ready') { try { await listarPasta(); } catch (e) {} reply({ type: 'totem-panel-init', arquivos: arquivosCache, pastaId: PASTA_CONVERSA_ID }); }
+  else if (m.type === 'totem-panel-api') {
+    try {
+      const d = m.dados || {};
+      if (!PAINEL_ACOES.has(m.action)) throw new Error('Ação não permitida.');
+      if ((m.action === 'listarPastaPorId' || m.action === 'uploadArquivo') && d.pastaId !== PASTA_CONVERSA_ID) throw new Error('Pasta não permitida.');
+      if (m.action === 'obterProjetoPorId' || m.action === 'editarProjetoPorId') {
+        if (!(arquivosCache || []).some(a => a.id === d.arquivoId)) await listarPasta();
+        if (!(arquivosCache || []).some(a => a.id === d.arquivoId)) throw new Error('Arquivo fora da pasta CONVERSA.');
+      }
+      const result = await Promise.race([apiR(m.action, d), new Promise((_, rej) => setTimeout(() => rej(new Error('Tempo esgotado no portal.')), 45000))]);
+      reply({ type: 'totem-panel-result', id: m.id, result });
+    } catch (e) { reply({ type: 'totem-panel-result', id: m.id, error: e.message }); }
+  }
+  else if (m.type === 'totem-panel-video') abrirEditorDrive((arquivosCache || []).find(a => a.id === m.id) || null);
+  else if (m.type === 'totem-panel-open' && /^https:\/\/almafluxo\.uk\//.test(m.url || '')) window.open(m.url, '_blank', 'noopener');
+  else if (m.type === 'totem-panel-close') { fecharPainelDrive(); try { carregarTotens(true); } catch (e) {} }
 });
 /* ══════════════════════════════════════════════════════════════
    TOTEM · NÚCLEO (constantes, utilitários, Drive, hash)
