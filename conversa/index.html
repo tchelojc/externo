@@ -1621,7 +1621,72 @@ html, body { overscroll-behavior: none; }
 .tx-audio-dica { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 100003; max-width: 92vw; padding: 10px 16px; border-radius: 14px;
   background: rgba(5,13,24,.94); border: 1px solid #00e5ff; color: #e9f5ff; font: 600 14px/1.35 system-ui, sans-serif; text-align: center; display: none; box-shadow: 0 0 24px rgba(0,229,255,.25); }
 .tx-audio-dica.on { display: block; }
-
+/* ═══════════════════════════════════════════════════════════════
+   PAINEL DE TOTENS + EDITOR DE SLIDES (integrado ao index)
+   ═══════════════════════════════════════════════════════════════ */
+.pt-shell{display:grid;grid-template-columns:280px minmax(0,1fr);gap:14px;min-width:0;margin-top:12px}
+.pt-sidebar,.pt-main{background:rgba(10,20,36,.72);border:1px solid var(--borda);border-radius:14px;padding:14px;min-width:0}
+.pt-sidebar{position:sticky;top:70px;align-self:start}
+.pt-main{display:flex;flex-direction:column;gap:14px}
+.pt-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:10px}
+.pt-tabs button{background:transparent;border:1px solid transparent;border-radius:8px;color:#8b93a7;padding:8px 12px;cursor:pointer;font:600 .82rem/1 Roboto,sans-serif;transition:.15s}
+.pt-tabs button:hover{color:#e8e6e3;background:rgba(255,255,255,.04)}
+.pt-tabs button.on{background:rgba(0,229,255,.14);color:var(--ciano);border-color:rgba(0,229,255,.4)}
+.pt-pane{display:none}
+.pt-pane.on{display:block;animation:fadeIn .25s ease}
+.pt-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}
+.pt-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:10px 0}
+.pt-fld{display:flex;flex-direction:column;gap:5px;font-size:.78rem;color:#a8b0c0}
+.pt-fld input,.pt-fld select,.pt-fld textarea{background:#081321;color:#e8f6ff;border:1px solid #2a4562;border-radius:8px;padding:8px;font:inherit;font-size:.88rem;min-width:0}
+.pt-fld input[type=color]{height:36px;padding:2px;cursor:pointer}
+.pt-fld textarea{min-height:70px;resize:vertical;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;line-height:1.5}
+.pt-hint{font-size:.78rem;color:#8ea7c2;line-height:1.55;background:rgba(0,229,255,.05);border-left:2px solid rgba(0,229,255,.4);border-radius:0;padding:9px 12px;margin:10px 0}
+.pt-chip{display:inline-block;padding:4px 9px;border-radius:20px;background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.3);color:#9fe8ff;font-size:.72rem;font-weight:600}
+.pt-list{display:flex;flex-direction:column;gap:6px;max-height:52vh;overflow:auto;padding-right:4px}
+.pt-item-btn{width:100%;display:flex;gap:9px;align-items:center;text-align:left;padding:9px 10px;border:1px solid #293d55;border-radius:9px;background:#101e30;color:#eaf4ff;cursor:pointer;font:inherit;font-size:.82rem}
+.pt-item-btn:hover{border-color:#53a9dd}
+.pt-item-btn.on{border-color:#36a9e8;background:rgba(24,116,169,.2);box-shadow:inset 3px 0 #36a9e8}
+.pt-item-n{width:24px;height:24px;flex:none;display:grid;place-items:center;border-radius:7px;background:#1d344d;font-size:11px;font-weight:800;color:#9fe8ff}
+.pt-item-info{min-width:0;flex:1;display:flex;flex-direction:column;gap:3px}
+.pt-item-info b{font-size:.8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pt-item-info small{font-size:.68rem;color:#8ea7c2}
+.pt-preview{position:relative;width:100%;aspect-ratio:16/9;min-height:210px;max-height:52vh;overflow:hidden;border-radius:10px;background:#030912;border:1px solid #25374c}
+.pt-preview .pl-root{position:absolute!important;inset:0!important;width:100%!important;height:100%!important}
+.pt-preview .pl-controls{display:none!important}
+.pt-preview iframe{width:100%;height:100%;border:0;background:#030912}
+.pt-code{width:100%;height:300px;resize:vertical;padding:11px;border-radius:9px;border:1px solid #334963;background:#071321;color:#d8edff;font:12px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace;tab-size:2;outline:none}
+.pt-code:focus{border-color:#37a9e6}
+.pt-status{font-size:.78rem;color:#9db4cc;padding:8px 11px;background:rgba(10,20,36,.7);border:1px solid #1d2a44;border-radius:9px;margin-top:9px;min-height:34px}
+.pt-status.ok{color:#58d7aa;border-color:rgba(88,215,170,.35)}
+.pt-status.warn{color:#ffca75;border-color:rgba(255,202,117,.35)}
+.pt-canvas{position:relative;width:100%;aspect-ratio:16/9;background:#030810;border:1px solid #35516f;border-radius:10px;overflow:hidden;touch-action:none;background-image:linear-gradient(#18304a55 1px,transparent 1px),linear-gradient(90deg,#18304a55 1px,transparent 1px);background-size:5% 5%}
+.pt-tile{position:absolute;min-width:5%;min-height:5%;border:2px solid var(--tile-border,#00d9f5);background:var(--tile-bg,#17445b);color:var(--tile-color,#fff);border-radius:6px;padding:6px;overflow:hidden;touch-action:none;cursor:grab;box-shadow:0 4px 15px #0008;font-size:.72rem}
+.pt-tile strong{display:block;font-size:clamp(10px,1.4vw,15px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pt-tile small{display:block;opacity:.85;overflow:hidden;max-height:70%}
+.pt-tile .handle{position:absolute;right:0;bottom:0;width:16px;height:16px;background:var(--ciano);border-radius:5px 0 0 0;cursor:nwse-resize}
+.pt-tile.off{opacity:.35;filter:grayscale(1)}
+.pt-card-row{background:#0a1727;border:1px solid #263f5b;border-radius:10px;padding:10px;margin:8px 0}
+.pt-card-row.active{border-color:var(--ciano)}
+.pt-card-head{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.pt-card-head b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.85rem}
+.pt-file-viewer{position:fixed;inset:0;z-index:200;background:#020812f5;display:none;flex-direction:column;padding:12px;gap:10px}
+.pt-file-viewer.on{display:flex}
+.pt-file-viewer-head{display:flex;gap:10px;align-items:center;justify-content:space-between;background:#0b1b2d;border:1px solid #29435f;border-radius:9px;padding:10px}
+.pt-file-viewer-body{flex:1;min-height:0;overflow:auto;background:#07111f;border:1px solid #29435f;border-radius:9px;padding:10px}
+.pt-file-viewer-body iframe{width:100%;height:100%;min-height:65vh;border:0;background:#fff;border-radius:6px}
+.pt-file-viewer-body pre{white-space:pre-wrap;overflow-wrap:anywhere;color:#dceeff;font:12px/1.5 ui-monospace,Consolas,monospace}
+.pt-file-viewer-body img{display:block;max-width:100%;max-height:78vh;margin:auto;object-fit:contain}
+.pt-files{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px;max-height:52vh;overflow:auto}
+.pt-file-entry{display:flex;gap:9px;align-items:center;justify-content:space-between;min-width:0;background:#0d2034;border:1px solid #29435f;border-radius:8px;padding:9px}
+.pt-file-entry-main{min-width:0;flex:1}
+.pt-file-entry-name{font-size:.78rem;font-weight:700;overflow-wrap:anywhere}
+.pt-file-entry-meta{font-size:.68rem;color:#8b93a7;margin-top:3px}
+@media(max-width:1000px){
+  .pt-shell{grid-template-columns:1fr}
+  .pt-sidebar{position:static}
+  .pt-list{max-height:220px}
+  .pt-code{height:240px}
+}
 </style>
 </head>
 <body>
@@ -1755,10 +1820,12 @@ html, body { overscroll-behavior: none; }
         <button class="btn btn-primario" onclick="abrirConfigTotem(null)">➕ Novo totem</button>
         <button class="btn" onclick="atualizarStatus()">🔄 Atualizar status</button>
         <button class="btn" id="btnAlertas" onclick="alternarAlertas()">🔕 Alertas: desligados</button>
+        <button class="btn" onclick="PTabrirEditor()">🧩 Editor de slides</button>
         <button class="btn btn-ve" onclick="abrirEditorDrive()">🎬 Editor de vídeo</button>
       </div>
       <div id="totens-banner"></div>
       <div id="totens-lista"><div class="vazio">Abra a aba para carregar.</div></div>
+      <div id="ptHost" style="margin-top:16px"></div>
     </div>
     <div class="painel" id="painel-upload">
       <div class="acoes-topo">
@@ -4050,16 +4117,56 @@ function renderTotens() {
   const lista = $id('totens-lista'); if (!lista) return; const aqui = TID;
   const ban = $id('totens-banner'); ban.innerHTML = aqui ? `<div class="banner-bind">📌 Este aparelho está vinculado ao totem <b>${esc(aqui)}</b>. <button class="btn" onclick="desvincular()">Desvincular</button></div>` : (PAN.dados.totens.length ? `<div class="banner-bind">📌 Este aparelho não está vinculado a nenhum totem. Vincular a: <select id="bindSel">${PAN.dados.totens.map(t => `<option value="${esc(t.id)}">${esc(t.nome || t.id)}</option>`).join('')}</select> <button class="btn btn-primario" onclick="vincular($id('bindSel').value)">Vincular</button></div>` : '');
   $id('btnAlertas').textContent = PAN.alertas ? '🔔 Alertas: ligados' : '🔕 Alertas: desligados';
-  if (!PAN.dados.totens.length) { lista.innerHTML = '<div class="vazio">Nenhum totem cadastrado. Clique em “➕ Novo totem”.</div>'; return; }
+  if (!PAN.dados.totens.length) { lista.innerHTML = '<div class="vazio">Nenhum totem cadastrado. Clique em "➕ Novo totem".</div>'; return; }
   lista.className = 'tot-grid';
-  lista.innerHTML = PAN.dados.totens.map(t => { const hb = PAN.hb[t.id], e = estadoDe(t, hb), tela = hb && hb.tela, L = modeloDe(t, tela ? tela.orientacao : 'paisagem');
-    return `<div class="tot-card${aqui === t.id ? ' aqui' : ''}"><div class="tot-head"><div class="tot-nome"><span class="dot ${e.k}"></span>${esc(t.nome || t.id)}</div><span class="obs">${e.txt}</span></div>
-    <div class="tot-meta">${esc(t.local || 'sem local')} · ID <b>${esc(t.id)}</b><br>Layout: ${esc((MODELOS[t.layout.modelo] || {}).nome || t.layout.modelo)} · ${t.tela.polegadas ? t.tela.polegadas + '″ · ' : ''}${esc(t.tela.orientacao)}${t.tela.rotacao ? ' · ' + t.tela.rotacao + '°' : ''}<br>Último sinal: ${hb ? 'há ' + haQuanto(e.seg) : '—'}${tela ? ' · ' + tela.w + '×' + tela.h : ''}${hb && hb.sessaoOk === false ? ' · <b style="color:#e74c3c">sessão expirada</b>' : ''}</div>
-    ${hb && hb.agora && Object.keys(hb.agora).length ? `<div class="tot-now">▶ ${resumoAgora(hb)}</div>` : ''}
-    <div class="tot-acoes"><button class="btn btn-primario" onclick="verTela('${esc(t.id)}')">👁️ Ver tela</button><button class="btn" onclick="abrirConfigTotem('${esc(t.id)}')">⚙️ Configurar</button><button class="btn" onclick="editarNoEditor('${esc(t.id)}')">🎬 Editor</button>
-    <button class="btn" onclick="comandoTotem('${esc(t.id)}','ping')">📡 Pedir sinal</button><button class="btn" onclick="comandoTotem('${esc(t.id)}','reload')">🔄 Recarregar</button><button class="btn" onclick="alternarBloqueio('${esc(t.id)}')">${t.status === 'bloqueado' ? '🔓 Liberar' : '🔒 Bloquear'}</button>${aqui === t.id ? '' : `<button class="btn" onclick="vincular('${esc(t.id)}')">📌 Vincular aqui</button>`}</div></div>`; }).join('');
+  lista.innerHTML = PAN.dados.totens.map(t => {
+    const hb = PAN.hb[t.id], e = estadoDe(t, hb), tela = hb && hb.tela, L = modeloDe(t, tela ? tela.orientacao : 'paisagem');
+    return `<div class="tot-card${aqui === t.id ? ' aqui' : ''}">
+      <div class="tot-head"><div class="tot-nome"><span class="dot ${e.k}"></span>${esc(t.nome || t.id)}</div><span class="obs">${e.txt}</span></div>
+      <div class="tot-meta">${esc(t.local || 'sem local')} · ID <b>${esc(t.id)}</b><br>Layout: ${esc((MODELOS[t.layout.modelo] || {}).nome || t.layout.modelo)} · ${t.tela.polegadas ? t.tela.polegadas + '″ · ' : ''}${esc(t.tela.orientacao)}${t.tela.rotacao ? ' · ' + t.tela.rotacao + '°' : ''}<br>Último sinal: ${hb ? 'há ' + haQuanto(e.seg) : '—'}${tela ? ' · ' + tela.w + '×' + tela.h : ''}${hb && hb.sessaoOk === false ? ' · <b style="color:#e74c3c">sessão expirada</b>' : ''}</div>
+      ${hb && hb.agora && Object.keys(hb.agora).length ? `<div class="tot-now">▶ ${resumoAgora(hb)}</div>` : ''}
+      <div class="tot-acoes">
+        <button class="btn btn-primario" onclick="verTela('${esc(t.id)}')">👁️ Ver tela</button>
+        <button class="btn" onclick="abrirConfigTotem('${esc(t.id)}')">⚙️ Configurar</button>
+        <button class="btn" onclick="editarNoEditor('${esc(t.id)}')">🎬 Editor</button>
+        <button class="btn" onclick="PTabrirEditor()">🧩 Slides</button>
+        <button class="btn" onclick="comandoTotem('${esc(t.id)}','ping')">📡 Pedir sinal</button>
+        <button class="btn" onclick="comandoTotem('${esc(t.id)}','reload')">🔄 Recarregar</button>
+        <button class="btn" onclick="alternarBloqueio('${esc(t.id)}')">${t.status === 'bloqueado' ? '🔓 Liberar' : '🔒 Bloquear'}</button>
+        ${aqui === t.id ? '' : `<button class="btn" onclick="vincular('${esc(t.id)}')">📌 Vincular aqui</button>`}
+      </div>
+    </div>`;
+  }).join('');
 }
-function vincular(id) { if (!id) return; lsSet(LSK.id, id); TID = id; lsDel(LSK.cfg); lsDel(LSK.hbid); SYNC.ultimo = ''; mostrarToast('📌 Aparelho vinculado a ' + id); renderTotens(); }
+/* ═══════════════════════════════════════════════════════════════
+   PAINEL DE TOTENS + EDITOR DE SLIDES — estado e utilitários globais
+   (declarados antes de vincular()/renderTotens() para evitar TDZ)
+   ═══════════════════════════════════════════════════════════════ */
+const PT = {
+  aberto: false, aba: 'config',
+  baseId: null, baseName: '', baseHtml: '',
+  totemId: null, regiao: 'r1', campo: 'itens', indice: -1,
+  original: null, working: null, preview: null,
+  customHtml: null, customHtmlName: null,
+  undo: [], redo: [], historyTimer: null, historyBefore: null, dirty: false,
+  viewerFile: null, drag: null
+};
+const PT_EL = id => document.getElementById(id);
+const ptNorm = o => JSON.stringify(o);
+const ptEsc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ptClone = o => JSON.parse(JSON.stringify(o));
+
+function vincular(id) {
+  if (!id) return;
+  lsSet(LSK.id, id); TID = id; lsDel(LSK.cfg); lsDel(LSK.hbid); SYNC.ultimo = '';
+  mostrarToast('📌 Aparelho vinculado a ' + id);
+  renderTotens();
+  if (typeof PT !== 'undefined' && PT.aberto && PT_EL('ptTotemSel')) {
+    PT.totemId = id;
+    if (PT_EL('ptTotemSel').querySelector(`option[value="${id}"]`)) PT_EL('ptTotemSel').value = id;
+    ptPreencherTotens();
+  }
+}
 function desvincular() { lsDel(LSK.id); lsDel(LSK.cfg); TID = null; SYNC.ultimo = ''; clearInterval(SYNC.tCfg); clearInterval(SYNC.tHb); if (MAIN) relogioStandby(); renderTotens(); }
 async function salvarTotens(msg) {
   try {
@@ -4100,6 +4207,20 @@ function abrirConfigTotem(id) {
   const novo = !id; const t = novo ? totemPadrao('totem' + (PAN.dados.totens.length + 1)) : clone(PAN.dados.totens.find(x => x.id === id)); if (!t) return;
   PAN.cfg = {t, novo, aba: 'id', reg: 'r1', retrato: false, item: -1, senhaNova: ''}; $id('cfgModal').classList.add('ativo'); desenharCfg();
 }
+
+/* Após salvar um totem, re-sincroniza o painel embutido (se estiver aberto). */
+(function ptHookSalvarTotem() {
+  if (typeof salvarCfgTotem !== 'function' || salvarCfgTotem.__ptHooked) return;
+  const orig = salvarCfgTotem;
+  salvarCfgTotem = async function () {
+    const r = await orig.apply(this, arguments);
+    if (typeof PT !== 'undefined' && PT.aberto && PT_EL('ptTotemSel')) {
+      try { await carregarTotens(true); ptPreencherTotens(); } catch (e) {}
+    }
+    return r;
+  };
+  salvarCfgTotem.__ptHooked = true;
+})();
 const ABAS_CFG = [['id', '🪪 Identificação'], ['tela', '🖥️ Tela'], ['layout', '🧩 Layout'], ['conteudo', '🎞️ Conteúdo'], ['esfera', '🌟 Marcas'], ['audio', '🎵 Áudio'], ['avancado', '🛠️ Avançado']];
 function desenharCfg() {
   const C = PAN.cfg; if (!C) return; $id('cfgTitulo').textContent = C.novo ? '➕ Novo totem' : '⚙️ ' + (C.t.nome || C.t.id);
@@ -7970,7 +8091,287 @@ document.addEventListener('keydown',()=>TOTEM_AUDIO.retomar());
   });
   document.body.appendChild(btn);
 })();
-/* ══════════ BOOT: o totem sobe sozinho; nada de interface visível ══════════ */
+
+function ptSetStatus(msg, kind) {
+  const el = PT_EL('ptStatus'); if (!el) return;
+  el.textContent = msg; el.className = 'pt-status' + (kind ? ' ' + kind : '');
+}
+
+async function PTabrirEditor() {
+  PT.aberto = true;
+  const host = PT_EL('ptHost'); if (!host) return;
+  host.innerHTML = '<div class="pt-status">Carregando painel…</div>';
+  try {
+    if (!sessao) throw new Error('Faça login técnico antes de abrir o editor.');
+    await listarPasta();
+    // Carrega a matriz base (index HTML) para o prompt IA
+    const htmls = (arquivosCache || []).filter(f => /\.html?$/i.test(f.nome || '') && /^index(?:[ _(-]|$)/i.test(f.nome || ''));
+    const base = htmls.find(f => (f.nome || '').toLowerCase() === 'index.html') || htmls[0];
+    if (base) {
+      const txt = await lerTexto(base.id);
+      if (txt) { PT.baseId = base.id; PT.baseName = base.nome; PT.baseHtml = txt; }
+    }
+    if (!PAN.dados || !Array.isArray(PAN.dados.totens) || !PAN.dados.totens.length) await carregarTotens(true);
+    host.innerHTML = ptMontarShell();
+    ptBindTabs();
+    ptPreencherTotens();
+    ptSetStatus('Painel pronto · ' + (PT.baseName || 'matriz não localizada') + ' · ' + arquivosCache.length + ' arquivos na pasta.', 'ok');
+  } catch (e) {
+    ptSetStatus('Falha ao abrir o editor: ' + e.message, 'warn');
+    mostrarToast('Editor: ' + e.message, true);
+  }
+}
+
+function ptMontarShell() {
+  return `
+    <div class="pt-tabs">
+      <button data-pt="config" class="on">⚙️ Configurar</button>
+      <button data-pt="slides">🧩 Editor de slides</button>
+      <button data-pt="cards">🧱 Cards / mosaico</button>
+      <button data-pt="playlist">🎞️ Playlist</button>
+      <button data-pt="arquivos">🌐 Explorador</button>
+    </div>
+    <div class="pt-pane on" id="ptPaneConfig">
+      <div class="pt-row">
+        <label class="pt-fld" style="min-width:220px">Totem<select id="ptTotemSel"></select></label>
+        <label class="pt-fld" style="min-width:160px">Região<select id="ptRegiaoSel"></select></label>
+        <span style="flex:1"></span>
+        <button class="btn btn-secundario" onclick="ptAtualizarDoDrive()">↻ Reler do Drive</button>
+      </div>
+      <div id="ptConfigBody" class="pt-hint">Escolha um totem para ver as opções.</div>
+    </div>
+    <div class="pt-pane" id="ptPaneSlides">
+      <div class="pt-shell">
+        <aside class="pt-sidebar">
+          <label class="pt-fld">Região<select id="ptSlidesRegiao"></select></label>
+          <div class="pt-row" style="justify-content:space-between;margin-top:10px"><b>Slides</b><span id="ptSlidesCount" class="pt-chip">0</span></div>
+          <div id="ptSlidesLista" class="pt-list"><div class="pt-hint" style="margin:0">Aguardando.</div></div>
+        </aside>
+        <section class="pt-main">
+          <div class="pt-preview" id="ptSlidesPreview"><div class="pt-hint" style="margin:0;position:absolute;inset:auto 12px 12px 12px">Selecione um slide.</div></div>
+          <div class="pt-grid">
+            <label class="pt-fld" style="grid-column:1/-1">JSON do slide<textarea id="ptSlidesCode" class="pt-code" spellcheck="false"></textarea></label>
+            <label class="pt-fld">Modo IA<select id="ptIaModo"><option value="html">HTML exclusivo</option><option value="json">Ajustar JSON</option></select></label>
+            <label class="pt-fld">&nbsp;<div class="pt-row" style="margin:0"><button class="btn btn-secundario" onclick="ptCopiarPrompt()">✦ Prompt IA</button><button class="btn btn-secundario" onclick="ptCopiarCodigo()">⧉ Copiar</button></div></label>
+            <label class="pt-fld" style="grid-column:1/-1">Resposta da IA<textarea id="ptSlidesResposta" class="pt-code" style="height:150px"></textarea></label>
+          </div>
+          <div class="pt-row">
+            <button class="btn btn-secundario" onclick="ptSlidesUndo()">↶</button>
+            <button class="btn btn-secundario" onclick="ptSlidesRedo()">↷</button>
+            <button class="btn btn-secundario" onclick="ptSlidesValidar()">Validar</button>
+            <button class="btn btn-secundario" onclick="ptSlidesRestaurar()">Restaurar</button>
+            <button class="btn btn-secundario" onclick="ptAplicarResposta()">Aplicar resposta</button>
+            <span style="flex:1"></span>
+            <button class="btn btn-primario" onclick="ptSalvarSlide()">💾 Salvar slide</button>
+          </div>
+          <div class="pt-status" id="ptStatus">Nenhuma alteração salva.</div>
+        </section>
+      </div>
+    </div>
+    <div class="pt-pane" id="ptPaneCards"><div class="pt-hint">Em breve.</div></div>
+    <div class="pt-pane" id="ptPanePlaylist"><div class="pt-hint">Em breve.</div></div>
+    <div class="pt-pane" id="ptPaneArquivos"><div class="pt-hint">Em breve.</div></div>
+  `;
+}
+
+function ptBindTabs() {
+  document.querySelectorAll('.pt-tabs button[data-pt]').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.pt-tabs button[data-pt]').forEach(x => x.classList.remove('on'));
+      document.querySelectorAll('.pt-pane').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+      const p = PT_EL('ptPane' + b.dataset.pt.charAt(0).toUpperCase() + b.dataset.pt.slice(1));
+      if (p) p.classList.add('on');
+      PT.aba = b.dataset.pt;
+    });
+  });
+  PT_EL('ptTotemSel').addEventListener('change', () => { PT.totemId = PT_EL('ptTotemSel').value; ptPreencherRegioes(); });
+  PT_EL('ptRegiaoSel').addEventListener('change', () => { PT.regiao = PT_EL('ptRegiaoSel').value; });
+  PT_EL('ptSlidesRegiao').addEventListener('change', () => { PT.regiao = PT_EL('ptSlidesRegiao').value; PT.indice = -1; ptSlidesLimpar(); ptRenderSlidesLista(); });
+}
+
+function ptPreencherTotens() {
+  const ts = (PAN.dados && PAN.dados.totens) || [];
+  const sel = PT_EL('ptTotemSel'); if (!sel) return;
+  sel.innerHTML = ts.map(t => `<option value="${ptEsc(t.id)}">${ptEsc(t.nome || t.id)}</option>`).join('');
+  PT.totemId = ts[0] ? ts[0].id : null;
+  if (ts[0]) sel.value = ts[0].id;
+  ptPreencherRegioes();
+}
+
+function ptPreencherRegioes() {
+  const t = (PAN.dados.totens || []).find(x => String(x.id) === String(PT.totemId));
+  const ids = Object.keys((t && t.paineis) || { r1: 1 });
+  [PT_EL('ptRegiaoSel'), PT_EL('ptSlidesRegiao')].forEach(sel => {
+    if (!sel) return;
+    sel.innerHTML = ids.map(k => `<option value="${ptEsc(k)}">Região ${ptEsc(k)}</option>`).join('');
+    PT.regiao = ids[0]; sel.value = ids[0];
+  });
+  ptRenderSlidesLista();
+}
+
+function ptPainelDados() {
+  const t = (PAN.dados.totens || []).find(x => String(x.id) === String(PT.totemId));
+  return (t && t.paineis && t.paineis[PT.regiao]) || { itens: [] };
+}
+function ptItens() {
+  const p = ptPainelDados();
+  PT.campo = (p.modo === 'cards' && Array.isArray(p.cards)) ? 'cards' : 'itens';
+  return Array.isArray(p[PT.campo]) ? p[PT.campo] : [];
+}
+function ptNomeItem(it, i) { return it.nome || it.titulo || it.texto || it.cidade || it.topico || it.tipo || ('Slide ' + (i + 1)); }
+function ptRenderSlidesLista() {
+  const list = PT_EL('ptSlidesLista'), count = PT_EL('ptSlidesCount'); if (!list) return;
+  const items = ptItens(); count.textContent = items.length; list.innerHTML = '';
+  if (!items.length) { list.innerHTML = '<div class="pt-hint" style="margin:0">Sem slides.</div>'; return; }
+  items.forEach((it, i) => {
+    const b = document.createElement('button'); b.type = 'button';
+    b.className = 'pt-item-btn' + (i === PT.indice ? ' on' : '');
+    b.innerHTML = `<span class="pt-item-n">${i + 1}</span><span class="pt-item-info"><b>${ptEsc(ptNomeItem(it, i))}</b><small>${ptEsc(it.tipo || 'sem tipo')} · ${Number(it.duracaoS) || 0}s</small></span>`;
+    b.addEventListener('click', () => ptSlidesSelecionar(i));
+    list.appendChild(b);
+  });
+}
+function ptSlidesSelecionar(i) {
+  const it = ptItens()[i]; if (!it) return;
+  PT.indice = i; PT.original = ptClone(it); PT.working = ptClone(it);
+  PT.customHtml = null; PT.customHtmlName = null;
+  PT.undo = []; PT.redo = []; PT.dirty = false;
+  PT_EL('ptSlidesCode').value = JSON.stringify(PT.working, null, 2);
+  PT_EL('ptSlidesResposta').value = '';
+  ptRenderSlidesLista(); ptAtualizarPreview();
+  ptSetStatus('Slide selecionado.', 'ok');
+}
+function ptSlidesLimpar() {
+  if (PT.preview) { try { PT.preview.destruir(); } catch (e) {} PT.preview = null; }
+  const host = PT_EL('ptSlidesPreview');
+  if (host) host.innerHTML = '<div class="pt-hint" style="margin:0;position:absolute;inset:auto 12px 12px 12px">Selecione um slide.</div>';
+  PT_EL('ptSlidesCode').value = ''; PT_EL('ptSlidesResposta').value = '';
+  PT.original = null; PT.working = null;
+}
+function ptAtualizarPreview() {
+  try {
+    if (PT.indice < 0 || !PT.working) throw new Error('Selecione um slide.');
+    if (PT.preview) { try { PT.preview.destruir(); } catch (e) {} PT.preview = null; }
+    const host = PT_EL('ptSlidesPreview'); host.innerHTML = '';
+    if (PT.customHtml) {
+      const f = document.createElement('iframe'); f.setAttribute('sandbox', 'allow-scripts allow-forms allow-modals');
+      f.srcdoc = PT.customHtml; host.appendChild(f); ptSetStatus('HTML exclusivo em prévia.', 'ok'); return;
+    }
+    const p = criarPlayer(host); PT.preview = p;
+    const item = ptClone(PT.working);
+    if (item.tipo === 'video' || item.tipo === 'youtube') item.mudo = true;
+    const t = ptClone((PAN.dados.totens || []).find(x => String(x.id) === String(PT.totemId)));
+    if (!t) throw new Error('Totem não encontrado.');
+    t.status = 'liberado';
+    const paineis = ptClone(t.paineis || {}); const painel = ptClone(paineis[PT.regiao] || {});
+    const campo = (painel.modo === 'cards' && Array.isArray(painel.cards)) ? 'cards' : 'itens';
+    painel[campo] = [item]; painel.aleatorio = false; paineis[PT.regiao] = painel; t.paineis = paineis;
+    p.aplicar(t);
+    ptSetStatus('Prévia do slide no layout real.', 'ok');
+  } catch (e) { ptSetStatus('Não foi possível renderizar: ' + e.message, 'warn'); }
+}
+function ptSlidesValidar() {
+  try {
+    if (PT.customHtml) { ptAtualizarPreview(); return; }
+    const v = JSON.parse(PT_EL('ptSlidesCode').value);
+    if (!v || typeof v !== 'object' || Array.isArray(v)) throw new Error('Precisa ser objeto JSON.');
+    if (PT.original && v.tipo !== PT.original.tipo) throw new Error('O tipo não pode ser alterado.');
+    PT.working = v; ptAtualizarPreview(); ptSetStatus('JSON válido.', 'ok');
+  } catch (e) { ptSetStatus(e.message, 'warn'); mostrarToast(e.message, true); }
+}
+function ptSnapshot() { return { working: ptClone(PT.working), customHtml: PT.customHtml, customHtmlName: PT.customHtmlName, code: PT_EL('ptSlidesCode').value }; }
+function ptHistoricoPush() { if (PT.indice < 0) return; const s = ptSnapshot(), last = PT.undo[PT.undo.length - 1]; if (last && JSON.stringify(last) === JSON.stringify(s)) return; PT.undo.push(s); if (PT.undo.length > 50) PT.undo.shift(); PT.redo = []; }
+function ptAplicarSnap(s) { PT.working = ptClone(s.working); PT.customHtml = s.customHtml; PT.customHtmlName = s.customHtmlName; PT_EL('ptSlidesCode').value = s.code; PT.dirty = true; ptAtualizarPreview(); }
+function ptSlidesUndo() { if (!PT.undo.length) return mostrarToast('Nada para desfazer.'); PT.redo.push(ptSnapshot()); ptAplicarSnap(PT.undo.pop()); }
+function ptSlidesRedo() { if (!PT.redo.length) return mostrarToast('Nada para refazer.'); PT.undo.push(ptSnapshot()); ptAplicarSnap(PT.redo.pop()); }
+function ptSlidesRestaurar() { if (!PT.original) return; ptHistoricoPush(); PT.working = ptClone(PT.original); PT.customHtml = null; PT_EL('ptSlidesCode').value = JSON.stringify(PT.working, null, 2); ptAtualizarPreview(); }
+function ptTemAlteracoes() { if (!PT.original) return false; return !!PT.dirty || !!PT.customHtml || PT_EL('ptSlidesCode').value !== JSON.stringify(PT.original, null, 2); }
+function ptMontarPrompt() {
+  if (!PT.working) throw new Error('Selecione um slide.');
+  const tipo = PT.working.tipo;
+  return `TAREFA ALMAFLUXO — aprimorar apenas o slide tipo ${tipo}. Preserve o tipo, URLs, IDs de Drive e contratos. Responda somente com JSON completo.\n\nCONFIGURAÇÃO:\n${JSON.stringify(PT.working, null, 2)}`;
+}
+async function ptCopiar(txt) { try { await navigator.clipboard.writeText(txt); mostrarToast('Copiado.'); } catch (e) { mostrarToast('Erro ao copiar.', true); } }
+function ptCopiarPrompt() { try { ptCopiar(ptMontarPrompt()); } catch (e) { mostrarToast(e.message, true); } }
+function ptCopiarCodigo() { try { if (PT.customHtml) return ptCopiar(PT.customHtml); if (!PT.working) throw new Error('Selecione um slide.'); ptCopiar(JSON.stringify(PT.working, null, 2)); } catch (e) { mostrarToast(e.message, true); } }
+function ptAplicarResposta() {
+  try {
+    if (!PT.original) throw new Error('Selecione um slide.');
+    const raw0 = PT_EL('ptSlidesResposta').value.trim().replace(/^```(?:html)?\s*/i, '').replace(/\s*```$/, '');
+    if (PT_EL('ptIaModo').value === 'html') {
+      if (!/<html[\s>]/i.test(raw0) || !/<\/html>/i.test(raw0)) throw new Error('HTML precisa de <html> e </html>.');
+      ptHistoricoPush(); PT.customHtml = raw0; PT.customHtmlName = 'slide-' + Date.now() + '.html'; PT.dirty = true; ptAtualizarPreview();
+      ptSetStatus('HTML aplicado. Salve para persistir.', 'ok'); return;
+    }
+    let raw = raw0.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+    const a = raw.indexOf('{'), b = raw.lastIndexOf('}');
+    if (a >= 0 && b > a) raw = raw.slice(a, b + 1);
+    const obj = JSON.parse(raw);
+    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) throw new Error('Precisa ser objeto JSON.');
+    if (obj.tipo !== PT.original.tipo) throw new Error('A IA alterou o tipo. Recusado.');
+    ptHistoricoPush(); PT.customHtml = null; PT.working = obj; PT.dirty = true;
+    PT_EL('ptSlidesCode').value = JSON.stringify(obj, null, 2); ptAtualizarPreview();
+    ptSetStatus('JSON aplicado.', 'ok');
+  } catch (e) { ptSetStatus(e.message, 'warn'); mostrarToast(e.message, true); }
+}
+async function ptSalvarSlide() {
+  try {
+    if (!PT.original || PT.indice < 0) throw new Error('Selecione um slide.');
+    if (!PT.customHtml) {
+      const editado = JSON.parse(PT_EL('ptSlidesCode').value);
+      if (!editado || typeof editado !== 'object' || editado.tipo !== PT.original.tipo) throw new Error('JSON inválido ou tipo alterado.');
+      PT.working = editado;
+    }
+    const files = await listarPasta();
+    const f = files.find(x => x.nome === TOTENS_FILE); if (!f) throw new Error(TOTENS_FILE + ' não encontrado.');
+    const r = await apiR('obterProjetoPorId', { arquivoId: f.id }); const rem = r.result || r;
+    if (!rem.sucesso || !rem.conteudo) throw new Error(rem.mensagem || 'Falha ao reler config.');
+    const remote = JSON.parse(rem.conteudo);
+    const t = (remote.totens || []).find(x => String(x.id) === String(PT.totemId));
+    if (!t || !t.paineis || !t.paineis[PT.regiao]) throw new Error('Totem/região mudou no Drive.');
+    const painel = t.paineis[PT.regiao];
+    const campo = (painel.modo === 'cards' && Array.isArray(painel.cards)) ? 'cards' : 'itens';
+    const arr = painel[campo] || [];
+    if (!arr[PT.indice] || ptNorm(arr[PT.indice]) !== ptNorm(PT.original)) throw new Error('Slide mudou no Drive. Recarregue.');
+    const novo = ptClone(PT.working);
+    if (PT.customHtml) {
+      const b64 = btoa(unescape(encodeURIComponent(PT.customHtml)));
+      const up = await apiR('uploadArquivo', { nomeArquivo: PT.customHtmlName, base64: b64, mimeType: 'text/html', pastaId: PASTA_CONVERSA_ID });
+      const ur = up.result || up; if (!ur.sucesso) throw new Error(ur.mensagem || 'Falha no upload HTML.');
+      const atual = await listarPasta(); const asset = atual.find(x => x.nome === PT.customHtmlName);
+      if (!asset || !asset.id) throw new Error('ID do HTML não localizado.');
+      novo.customHtmlDriveId = asset.id; novo.customHtmlDriveName = PT.customHtmlName;
+    }
+    arr[PT.indice] = novo;
+    t.rev = (Number(t.rev) || 0) + 1; remote.rev = (Number(remote.rev) || 0) + 1;
+    const save = await apiR('editarProjetoPorId', { arquivoId: f.id, novoConteudo: JSON.stringify(remote, null, 1) });
+    const sr = save.result || save; if (!sr.sucesso) throw new Error(sr.mensagem || 'Gravação não confirmada.');
+    PAN.dados = remote; PAN.fid = f.id;
+    PT.working = ptClone(novo); PT.original = ptClone(novo);
+    PT.customHtml = null; PT.customHtmlName = null; PT.undo = []; PT.redo = []; PT.dirty = false;
+    PT_EL('ptSlidesCode').value = JSON.stringify(PT.working, null, 2);
+    await listarPasta(); ptRenderSlidesLista(); ptAtualizarPreview();
+    ptSetStatus('Slide salvo no Drive.', 'ok'); mostrarToast('Slide salvo.');
+  } catch (e) { ptSetStatus('Não salvo: ' + e.message, 'warn'); mostrarToast('Erro: ' + e.message, true); }
+}
+async function ptAtualizarDoDrive() {
+  try { await carregarTotens(true); ptPreencherTotens(); ptSetStatus('Recarregado do Drive.', 'ok'); } catch (e) { ptSetStatus('Erro: ' + e.message, 'warn'); }
+}
+
+// Hook de salvamento do totem para re-sincronizar o painel
+(function ptHookSalvarTotem() {
+  if (typeof salvarCfgTotem !== 'function' || salvarCfgTotem.__ptHooked) return;
+  const orig = salvarCfgTotem;
+  salvarCfgTotem = async function () {
+    const r = await orig.apply(this, arguments);
+    if (typeof PT !== 'undefined' && PT.aberto && PT_EL('ptTotemSel')) {
+      try { await carregarTotens(true); ptPreencherTotens(); } catch (e) {}
+    }
+    return r;
+  };
+  salvarCfgTotem.__ptHooked = true;
+})();
 /* ══════════ BOOT: o totem sobe sozinho; nada de interface visível ══════════ */
 (function bootTotem() {
   const s = carregarSessaoSalva(); if (s) sessao = s;
