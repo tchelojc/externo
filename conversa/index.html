@@ -9788,9 +9788,7 @@ TX.esporte = { def: { duracaoS: 30 }, build(P, item, s, S) {
       if (S.morto || seqSport !== esporte || seqTeam !== time) return;
       // Não apaga o conteúdo válido anterior. Se nunca houve cache, informa a indisponibilidade.
       if (!salvo && !dados) {
-        board.innerHTML = '<div class="sp-empty">Aguardando a primeira conexão para criar a edição esportiva. Assim que houver uma renderização válida, ela ficará salva para uso offline.</div>';
-        newsList.innerHTML = '<div class="ed-news-empty">Notícias ainda não disponíveis neste dispositivo.</div>';
-        ticker.textContent = 'Aguardando primeira atualização válida.';
+        board.innerHTML = '<div class="sp-empty">Sem dados esportivos agora (fontes ESPN/RSS indisponíveis). O slide mantém as notícias assim que a conexão voltar.</div>';
       }
       source.textContent = 'Conexão indisponível · mantendo última edição válida';
     }
