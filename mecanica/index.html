@@ -84,6 +84,8 @@ footer{padding:10px 16px;color:var(--mu);font-size:11px;display:flex;justify-con
 #compatLab .cl-tag{position:absolute;top:6px;padding:2px 8px;border-radius:12px;background:#061226cc;border:1px solid var(--ln);color:var(--mu);font-size:10.5px;pointer-events:none}
 #compatLab .cl-tag.a{left:6px}#compatLab .cl-tag.b{right:6px}
 #compatLab .cl-div{position:absolute;top:0;bottom:0;left:50%;width:1px;background:var(--ln);pointer-events:none}
+#compatLab .mx-list{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;max-height:150px;overflow:auto}
+#compatLab .mx-i{background:#071a33;color:var(--tx);border:1px solid;border-radius:14px;padding:3px 9px;font-size:11px;cursor:pointer}
 #compatLab .st-badge{display:inline-block;padding:3px 10px;border-radius:14px;font-weight:700;font-size:12px;color:#06101e}
 #compatLab .st-box{border-left:3px solid var(--ln);padding:6px 9px;margin-top:6px;background:#071a33;border-radius:5px}
 @media(max-width:900px){#compatLab .cl-grid{grid-template-columns:1fr}#compatLab .cl-canvas{height:300px}}
@@ -134,9 +136,10 @@ footer{padding:10px 16px;color:var(--mu);font-size:11px;display:flex;justify-con
           <label style="grid-column:1/-1">Motor de destino (aberto agora)<input id="clTarget" readonly></label>
         </div>
         <div class="cl-result" id="clResult">Escolha o motor doador e a peça. O resultado vem do servidor (regras cadastradas), não é digitado.</div>
-        <div id="clDetail"></div><div id="clIAOut"></div>
+        <div id="clMatriz"></div><div id="clDetail"></div><div id="clIAOut"></div>
         <div style="display:flex;gap:7px;margin-top:9px;flex-wrap:wrap">
           <button class="btn p" id="clApply" style="flex:1" disabled>Aplicar ao motor</button>
+          <button class="btn" id="clEle" style="flex:1 1 100%;background:#2a2210;border:1px solid #f0a830;color:#f0a830">⚡ Sistema elétrico: ligado</button>
           <button class="btn" id="clIA" style="flex:1;background:#0a1d3a;border:1px solid var(--cy);color:var(--cy)" disabled>Sugerir com IA</button>
         </div>
       </div>
@@ -2196,7 +2199,7 @@ $('inv').onclick=()=>{if(!D||!G.get('bateria')){toast('Abra um demo elétrico ou
     const a=new THREE.DirectionalLight(0xffffff,1.2);a.position.set(8,12,10);sc.add(a);
     const b=new THREE.PointLight(0x27c8ff,1.1,60);b.position.set(-9,4,-8);sc.add(b);
   }
-  const V={yaw:-.65,pitch:.42,dist:27,drag:null};
+  const V={yaw:-.65,pitch:.42,dist:27,drag:null,ele:true};
   function bootCanvas(){
     if(!cRenderer){
       cRenderer=makeRenderer($c('compatCanvas'));
@@ -2238,11 +2241,19 @@ $('inv').onclick=()=>{if(!D||!G.get('bateria')){toast('Abra um demo elétrico ou
   function disposeGroup(scene,group){
     if(group){scene.remove(group);group.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material){(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m.dispose());}});}
   }
+  // fetch com diagnóstico: mostra status HTTP e rota quando falha (ex.: 404 = Worker sem a rota)
+  async function pd(path,body){
+    const r=await fetch(WK+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    let j=null;try{j=await r.json();}catch(e){}
+    if(!j)throw new Error('Servidor respondeu HTTP '+r.status+' em '+path+' sem JSON (Worker desatualizado?)');
+    if(r.status>=400)j._diag=' [HTTP '+r.status+' '+path+']';
+    return j;
+  }
   const ST={
-    compativel:{t:'Compatível',c:'#2fd48a',a:'Pode aplicar direto.'},
-    adaptavel:{t:'Adaptável',c:'#f0a830',a:'Aplicar registra as modificações necessárias no projeto.'},
-    sem_dados:{t:'Sem dados',c:'#7a9cc2',a:'Combinação ainda não cadastrada. Use a IA só como proposta: ela não declara compatibilidade.'},
-    incompativel:{t:'Incompatível',c:'#ff4d57',a:'Aplicação bloqueada.'}
+    compativel:{i:'✅',t:'Compatível',c:'#2fd48a',a:'Pode aplicar direto.'},
+    adaptavel:{i:'🔧',t:'Adaptável',c:'#f0a830',a:'Aplicar registra as modificações necessárias no projeto.'},
+    sem_dados:{i:'❔',t:'Sem dados',c:'#7a9cc2',a:'Combinação ainda não cadastrada. Use a IA só como proposta: ela não declara compatibilidade.'},
+    incompativel:{i:'❌',t:'Incompatível',c:'#ff4d57',a:'Aplicação bloqueada.'}
   };
   // Fallback retroativo: Worker antigo (sem campo status) só manda "compativel" booleano.
   function normStatus(r){
@@ -2266,8 +2277,9 @@ $('inv').onclick=()=>{if(!D||!G.get('bateria')){toast('Abra um demo elétrico ou
       $c('clResult').textContent='Escolha o motor doador e a peça. O resultado vem do servidor (regras cadastradas), não é digitado.';
     }
     sp.innerHTML='<option value="">—</option>';$c('clDetail').innerHTML='';$c('clIAOut').innerHTML='';
+    $c('clMatriz').innerHTML='';$c('clIAOut').innerHTML='';
     $c('clApply').disabled=true;$c('clIA').disabled=true;
-    rebuild();
+    rebuild();carregarResumo();
   }
   async function onDonor(){
     const id=$c('clDonor').value,sp=$c('clPart');
@@ -2276,15 +2288,91 @@ $('inv').onclick=()=>{if(!D||!G.get('bateria')){toast('Abra um demo elétrico ou
     const tok=++L.tok;$c('clResult').textContent='Carregando motor doador…';
     try{
       if(!DON[id]){
-        const j=await post('/api/mecanica/motor',Object.assign({},SES(),{id}));
-        if(!j.ok||!j.motor||!Array.isArray(j.motor.pecas))throw new Error(j.error||'Falha ao carregar o motor doador');
+        const j=await pd('/api/mecanica/motor',Object.assign({},SES(),{id}));
+        if(!j.ok||!j.motor||!Array.isArray(j.motor.pecas))throw new Error((j.error||'Falha ao carregar o motor doador')+(j._diag||''));
         DON[id]=j.motor;
       }
       if(tok!==L.tok)return;
       L.donor=id;
       sp.innerHTML='<option value="">Selecione a peça…</option>'+DON[id].pecas.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.nome)+' · '+esc(p.id)+'</option>').join('');
-      $c('clResult').textContent='Escolha a peça doadora.';rebuild();
+      $c('clResult').textContent='Analisando todas as peças do doador…';rebuild();
+      await carregarMatriz(id,tok);
     }catch(e){if(tok===L.tok)$c('clResult').textContent=e.message||'Erro ao carregar o motor doador.';}
+  }
+  const MAT={};
+  async function carregarResumo(){
+    if(!D||D.local||!window.MOTORES_SRV)return;
+    const alvo=D.id;
+    try{
+      const j=await pd('/api/mecanica/matriz',Object.assign({},SES(),{motorAlvo:alvo}));
+      if(!j.ok||D.id!==alvo)return;
+      const sd=$c('clDonor');
+      (j.motores||[]).forEach(m=>{const o=Array.from(sd.options).find(x=>x.value===m.id);if(o){const r=m.resumo;o.textContent=(window.MOTORES_SRV.find(x=>x.id===m.id)||{nome:m.nome}).nome+' — ✅'+r.compativel+' 🔧'+r.adaptavel+' ❔'+r.sem_dados+' ❌'+r.incompativel;}});
+    }catch(e){/* Worker sem /matriz: a lista segue sem contagem */}
+  }
+  async function carregarMatriz(id,tok){
+    const sp=$c('clPart');let lista=null;
+    try{
+      const j=await pd('/api/mecanica/matriz',Object.assign({},SES(),{motorAlvo:D.id,motorOrigem:id}));
+      if(j.ok&&Array.isArray(j.pecas))lista=j.pecas;
+    }catch(e){}
+    if(!lista){ // fallback: Worker sem /matriz → 1 consulta por peça, 6 em paralelo
+      lista=[];const ps=DON[id].pecas.slice();
+      for(let i=0;i<ps.length;i+=6){
+        const parte=await Promise.all(ps.slice(i,i+6).map(async p=>{
+          try{const r=await pd('/api/mecanica/compat',Object.assign({},SES(),{motorOrigem:id,motorAlvo:D.id,peca:p.id}));return {peca:p.id,nome:p.nome,status:r.ok?normStatus(r):'sem_dados'};}
+          catch(e){return {peca:p.id,nome:p.nome,status:'sem_dados'};}
+        }));
+        lista=lista.concat(parte);
+        if(tok!==L.tok)return;
+      }
+    }
+    if(tok!==L.tok)return;
+    lista.forEach(x=>{if(!ST[x.status])x.status=normStatus(x);});
+    MAT[id]=lista;
+    sp.innerHTML='<option value="">Selecione a peça…</option>'+lista.map(x=>'<option value="'+esc(x.peca)+'" style="color:'+ST[x.status].c+'">'+ST[x.status].i+(x.inferido?'≈':'')+' '+esc(x.nome)+' · '+esc(x.peca)+'</option>').join('');
+    painelMatriz();
+    $c('clResult').textContent='Escolha a peça doadora: ✅ compatível · 🔧 adaptável · ❔ sem dados · ❌ incompatível. ≈ = inferido do sentido oposto (confiança baixa).';
+    rebuild();
+  }
+  function painelMatriz(){
+    const lista=MAT[L.donor],box=$c('clMatriz');
+    if(!lista){box.innerHTML='';return;}
+    const c={compativel:0,adaptavel:0,sem_dados:0,incompativel:0};lista.forEach(x=>c[x.status]++);
+    let h='<div class="cl-result"><b>Análise do doador:</b> ✅ '+c.compativel+' · 🔧 '+c.adaptavel+' · ❔ '+c.sem_dados+' · ❌ '+c.incompativel+' de '+lista.length+' peças</div><div class="mx-list">';
+    lista.forEach(x=>{h+='<button type="button" class="mx-i" data-p="'+esc(x.peca)+'" style="border-color:'+ST[x.status].c+'">'+ST[x.status].i+(x.inferido?'≈':'')+' '+esc(x.nome)+'</button>';});
+    box.innerHTML=h+'</div>';
+    box.querySelectorAll('.mx-i').forEach(b=>b.onclick=()=>{$c('clPart').value=b.dataset.p;consultar();});
+  }
+  // ── Sistema elétrico esquemático (destaque + cabos) ──
+  const ELE_IDS=new Set(SYS.filter(x=>/El[eé]trico/i.test(x.n)).reduce((a,x)=>a.concat(x.ids||[]),[]));
+  const ELE_KIND=/^(alternador|partida|bateria_ev|inversor_ev|mcu_ev|gerador_ev)$/;
+  function isEle(p){return !!p&&(ELE_KIND.test(p.kind||'')||ELE_IDS.has(p.id)||/bobina|vela|\becu\b|chicote|sensor|bateria|alternador|partida|inversor|solenoide/i.test(p.nome||''));}
+  function cabo(g,a,b,cor,r){
+    const A=new THREE.Vector3(a[0],a[1],a[2]),B=new THREE.Vector3(b[0],b[1],b[2]),M=A.clone().add(B).multiplyScalar(.5);
+    M.y=Math.min(A.y,B.y)-1.4;M.z+=1.6;
+    g.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([A,M,B]),28,r||.08,8,false),new THREE.MeshBasicMaterial({color:cor})));
+  }
+  function eletrico(group,skip){
+    if(!V.ele||!D||!D.pecas)return null;
+    const els=D.pecas.filter(isEle);if(!els.length)return null;
+    const bat=els.find(p=>p.kind==='bateria_ev'||p.id==='bateria');let bp;
+    if(bat)bp=bat.pos||[0,0,0];
+    else{
+      const xs=D.pecas.map(p=>(p.pos||[0])[0]),ys=D.pecas.map(p=>(p.pos||[0,0])[1]);
+      bp=[Math.min.apply(null,xs)-6,Math.min.apply(null,ys),0];
+      const v=new THREE.Mesh(new THREE.BoxGeometry(3,1.5,2.2),new THREE.MeshStandardMaterial({color:'#2fd48a',transparent:true,opacity:.35,metalness:.3,roughness:.5}));
+      v.position.set(bp[0],bp[1],bp[2]);group.add(v);
+    }
+    const por=re=>els.find(p=>re.test(p.kind||''));
+    els.forEach(p=>{
+      if(p===bat||p.id===skip)return;
+      const k=p.kind||'',pos=p.pos||[0,0,0];
+      if(k==='mcu_ev'){const inv=por(/^inversor_ev$/);cabo(group,inv?(inv.pos||[0,0,0]):bp,pos,0x27c8ff,.06);return;}
+      const cor=/partida|inversor/.test(k)?0xff4d57:/alternador|gerador/.test(k)?0xf0a830:0x27c8ff;
+      cabo(group,bp,pos,cor,cor===0xff4d57?.11:.08);
+    });
+    return bp;
   }
   async function consultar(){
     const peca=$c('clPart').value;
@@ -2292,9 +2380,9 @@ $('inv').onclick=()=>{if(!D||!G.get('bateria')){toast('Abra um demo elétrico ou
     if(!D||!L.donor||!peca){rebuild();return;}
     const tok=++L.tok;$c('clResult').textContent='Consultando regras no servidor…';
     try{
-      const r=await post('/api/mecanica/compat',Object.assign({},SES(),{motorOrigem:L.donor,motorAlvo:D.id,peca}));
+      const r=await pd('/api/mecanica/compat',Object.assign({},SES(),{motorOrigem:L.donor,motorAlvo:D.id,peca}));
       if(tok!==L.tok)return;
-      if(!r.ok)throw new Error(r.error||'Falha na consulta');
+      if(!r.ok)throw new Error((r.error||'Falha na consulta')+(r._diag||''));
       L.res=r;L.status=normStatus(r);painel();rebuild();
     }catch(e){if(tok===L.tok){$c('clResult').textContent=e.message||'Erro na consulta.';rebuild();}}
   }
@@ -2316,7 +2404,8 @@ $('inv').onclick=()=>{if(!D||!G.get('bateria')){toast('Abra um demo elétrico ou
       try{
         const g=build(p);g.position.set(...(p.pos||[0,0,0]));
         const o=p.id===skipId?.1:opacity;
-        g.traverse(m=>{if(m.isMesh){m.material=m.material.clone();m.material.transparent=true;m.material.opacity=o;}});
+        const ele=V.ele&&isEle(p)&&p.id!==skipId;
+        g.traverse(m=>{if(m.isMesh){m.material=m.material.clone();m.material.transparent=true;m.material.opacity=ele?.95:o;if(ele)m.material.emissive=new THREE.Color('#5a3a00');}});
         group.add(g);
       }catch(e){}
     });
@@ -2330,7 +2419,10 @@ $('inv').onclick=()=>{if(!D||!G.get('bateria')){toast('Abra um demo elétrico ou
     const peca=$c('clPart').value,res=L.res,dp=L.donor&&DON[L.donor]&&DON[L.donor].pecas.find(x=>x.id===peca);
     ghost(rA,.55,null);
     const seated=res&&(L.status==='compativel'||L.status==='adaptavel');
-    ghost(rB,.4,seated&&P[peca]?peca:null);
+    const skip=seated&&P[peca]?peca:null;
+    ghost(rB,.4,skip);
+    eletrico(rA,null);
+    const batB=eletrico(rB,skip);
     if(dp&&res){
       const cor=ST[L.status].c;
       try{
@@ -2341,6 +2433,7 @@ $('inv').onclick=()=>{if(!D||!G.get('bateria')){toast('Abra um demo elétrico ou
           const of=Array.isArray(res.offset)?res.offset:[0,0,0];
           c.position.set(base[0]+of[0],base[1]+of[1],base[2]+of[2]);
           if(Array.isArray(res.rot))c.rotation.set(res.rot[0],res.rot[1],res.rot[2]);
+          if(batB&&isEle(dp))cabo(rB,batB,[c.position.x,c.position.y,c.position.z],cor,.1);
           const n=Math.min(12,dp.parafusos|0);
           for(let i=0;i<n;i++){
             const a=i/n*Math.PI*2,m=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,.3,8),new THREE.MeshBasicMaterial({color:0xcfd8e3}));
@@ -2367,6 +2460,7 @@ $('inv').onclick=()=>{if(!D||!G.get('bateria')){toast('Abra um demo elétrico ou
       n.push(res.rotas&&res.rotas.length?'Rotas de conexão: '+res.rotas.length+' (do servidor).':'Sem rotas de conexão cadastradas no servidor.');
       if(seated)n.push('Marcadores brancos = nº de parafusos da peça (ilustrativos, não são a furação real).');
     }
+    if(V.ele)n.push(D.pecas.some(isEle)?'Sistema elétrico (esquemático): vermelho = potência, âmbar = carga, ciano = sinal'+(D.pecas.some(p=>p.kind==='bateria_ev'||p.id==='bateria')?'.':'; bateria transparente = virtual (este motor não modela bateria).'):'Nenhuma peça elétrica identificada neste motor.');
     $c('clCanvasNote').textContent=(n.length?n.join(' '):'A: motor destino. B: mesmo motor com a peça doadora. Arraste para girar, role para aproximar.')+' Geometria ilustrativa; não é encaixe dimensional confirmado.';
   }
   function applyStudy(){
@@ -2429,7 +2523,7 @@ $('inv').onclick=()=>{if(!D||!G.get('bateria')){toast('Abra um demo elétrico ou
       else setTimeout(()=>{resize(cRenderer);},40);
     });
   }
-  $c('clApply').onclick=applyStudy;$c('clIA').onclick=sugerirIA;$c('clDonor').addEventListener('change',onDonor);
+  $c('clApply').onclick=applyStudy;$c('clIA').onclick=sugerirIA;$c('clEle').onclick=()=>{V.ele=!V.ele;$c('clEle').textContent='⚡ Sistema elétrico: '+(V.ele?'ligado':'desligado');rebuild();};$c('clDonor').addEventListener('change',onDonor);
   $c('enCalc').onclick=calcEnergy;
   ['enTorque','enRpm','enEff','enHours','enVolt','enDod'].forEach(id=>$c(id).addEventListener('change',calcEnergy));
   $c('clPart').addEventListener('change',consultar);
