@@ -57,6 +57,39 @@ footer{padding:10px 16px;color:var(--mu);font-size:11px;display:flex;justify-con
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 .mn{border:1px solid var(--ln);border-radius:8px;padding:8px;margin-bottom:8px;line-height:1.5}.mn ul,.gd,.mdl ul,.mdl ol{padding-left:18px}.mt{width:100%;border-collapse:collapse}.mt td,.mt th{border:1px solid var(--ln);padding:4px 6px;text-align:left}.fg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}.fg label{display:flex;flex-direction:column;gap:3px;color:var(--mu)}.mdl{max-height:85vh;overflow:auto}
 </style>
+
+<style>
+#compatLab{margin-top:12px}
+#compatLab .cl-head{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
+#compatLab .cl-head button{background:#0a1d3a;border:1px solid var(--ln);color:var(--tx);padding:8px 12px;border-radius:8px;cursor:pointer}
+#compatLab .cl-head button.on{background:linear-gradient(#1b5fb8,#0e3a7a);border-color:var(--cy)}
+#compatLab .cl-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(260px,.75fr);gap:12px}
+#compatLab .cl-canvas{height:360px;min-width:0;position:relative;border:1px solid var(--ln);border-radius:9px;overflow:hidden;background:radial-gradient(ellipse at 50% 45%,#12356a,#061226 75%)}
+#compatCanvas{width:100%;height:100%;display:block;touch-action:none}
+#compatLab .cl-form{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#compatLab .cl-form label{display:flex;flex-direction:column;gap:4px;color:var(--mu);font-size:11px}
+#compatLab .cl-form input,#compatLab .cl-form select,#compatLab textarea{width:100%;min-width:0;padding:9px;background:#071a33;color:var(--tx);border:1px solid var(--ln);border-radius:7px}
+#compatLab textarea{min-height:68px;resize:vertical}
+#compatLab .cl-panel{border:1px solid var(--ln);border-radius:9px;padding:10px;background:#081a32}
+#compatLab .cl-result{font-size:12px;line-height:1.6;color:var(--mu);margin-top:8px}
+#compatLab .cl-result b{color:var(--tx)}
+#compatLab .cl-energy{display:none}
+#compatLab .cl-energy.active{display:block}
+#compatLab .cl-adapt{display:block}
+#compatLab .cl-adapt.hidden{display:none}
+#compatLab .cl-metric{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:9px}
+#compatLab .cl-metric div{background:#071a33;border:1px solid var(--ln);border-radius:8px;padding:9px}
+#compatLab .cl-metric strong{display:block;color:var(--cy);font-size:17px}
+#compatLab .cl-metric small{color:var(--mu)}
+#compatLab .cl-tag{position:absolute;top:6px;padding:2px 8px;border-radius:12px;background:#061226cc;border:1px solid var(--ln);color:var(--mu);font-size:10.5px;pointer-events:none}
+#compatLab .cl-tag.a{left:6px}#compatLab .cl-tag.b{right:6px}
+#compatLab .cl-div{position:absolute;top:0;bottom:0;left:50%;width:1px;background:var(--ln);pointer-events:none}
+#compatLab .st-badge{display:inline-block;padding:3px 10px;border-radius:14px;font-weight:700;font-size:12px;color:#06101e}
+#compatLab .st-box{border-left:3px solid var(--ln);padding:6px 9px;margin-top:6px;background:#071a33;border-radius:5px}
+@media(max-width:900px){#compatLab .cl-grid{grid-template-columns:1fr}#compatLab .cl-canvas{height:300px}}
+@media(max-width:520px){#compatLab .cl-form{grid-template-columns:1fr}#compatLab .cl-metric{grid-template-columns:1fr 1fr}}
+</style>
+
 </head>
 <body>
 <header>
@@ -81,6 +114,56 @@ footer{padding:10px 16px;color:var(--mu);font-size:11px;display:flex;justify-con
       <div class="tools"><button class="btn" id="rst" title="Resetar vista">⟳</button><button class="btn" id="zi" title="Aproximar">＋</button><button class="btn" id="zo" title="Afastar">－</button></div>
     </div>
     <div class="box" style="margin-top:12px"><h2>PEÇAS DO CONJUNTO</h2><div class="car2" id="car2"></div></div>
+
+<div class="box" id="compatLab">
+  <h2>LABORATÓRIO · COMPATIBILIDADE E CONVERSÃO ENERGÉTICA</h2>
+  <div class="cl-head">
+    <button type="button" class="on" data-cltab="adapt">🔧 Compatibilidade e adaptação</button>
+    <button type="button" data-cltab="energy">⚡ Torque, potência e bateria</button>
+  </div>
+  <div class="cl-adapt" id="clAdapt">
+    <div class="cl-grid">
+      <div>
+        <div class="cl-canvas"><canvas id="compatCanvas"></canvas><div class="cl-div"></div><span class="cl-tag a">A · motor destino (original)</span><span class="cl-tag b" id="clTagB">B · com a peça doadora</span></div>
+        <div class="cl-result" id="clCanvasNote">Vista de estudo: motor atual, peça candidata e rota de conexão. A geometria é ilustrativa até receber medidas e referências técnicas.</div>
+      </div>
+      <div class="cl-panel">
+        <div class="cl-form">
+          <label>Motor doador (origem da peça)<select id="clDonor"><option value="">Selecione…</option></select></label>
+          <label>Peça doadora<select id="clPart"><option value="">—</option></select></label>
+          <label style="grid-column:1/-1">Motor de destino (aberto agora)<input id="clTarget" readonly></label>
+        </div>
+        <div class="cl-result" id="clResult">Escolha o motor doador e a peça. O resultado vem do servidor (regras cadastradas), não é digitado.</div>
+        <div id="clDetail"></div><div id="clIAOut"></div>
+        <div style="display:flex;gap:7px;margin-top:9px;flex-wrap:wrap">
+          <button class="btn p" id="clApply" style="flex:1" disabled>Aplicar ao motor</button>
+          <button class="btn" id="clIA" style="flex:1;background:#0a1d3a;border:1px solid var(--cy);color:var(--cy)" disabled>Sugerir com IA</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="cl-energy" id="clEnergy">
+    <div class="cl-grid">
+      <div>
+        <div class="cl-canvas"><canvas id="energyCanvas"></canvas></div>
+        <div class="cl-result">Representação didática de um conjunto motor-gerador-bateria. A energia armazenada depende da potência efetivamente convertida e do tempo de geração.</div>
+      </div>
+      <div class="cl-panel">
+        <div class="cl-form">
+          <label>Torque do eixo (Nm)<input id="enTorque" type="number" min="0" step="0.1" value="120"></label>
+          <label>Rotação (rpm)<input id="enRpm" type="number" min="0" step="50" value="3000"></label>
+          <label>Eficiência total (%)<input id="enEff" type="number" min="1" max="100" value="80"></label>
+          <label>Tempo de geração (h)<input id="enHours" type="number" min="0" step="0.5" value="2"></label>
+          <label>Tensão do banco (V)<input id="enVolt" type="number" min="1" step="1" value="48"></label>
+          <label>Profundidade de descarga (%)<input id="enDod" type="number" min="1" max="100" value="80"></label>
+        </div>
+        <button class="btn p" id="enCalc" style="width:100%;margin-top:9px">Calcular dimensionamento energético</button>
+        <div id="enResult" class="cl-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
   </section>
   <section>
     <div class="box"><h2 id="sh"></h2><div id="steps"></div><div class="nav2"><button class="btn" id="prev">‹ Anterior</button><button class="btn" id="next" style="background:var(--bl)">Próximo ›</button></div></div>
@@ -1655,6 +1738,7 @@ function boot(){
       const l2=$('load'); if(l2) l2.textContent='Nenhum motor disponível no servidor.';
       return;
     }
+    window.MOTORES_SRV=j.motores;
     $('veic').innerHTML = j.motores.map(m=>
       '<option value="'+esc(m.id)+'">'+esc(m.nome)+'</option>'
     ).join('');
@@ -1844,7 +1928,7 @@ const MP=(()=>{
     if(!passos.length)passos=base.passos.map((s,i)=>({...s,peca:pecas[i]?pecas[i].id:s.peca})).filter(s=>ids.has(s.peca));
     if(!passos.length)passos=[{peca:pecas[0].id,titulo:'Inspecionar '+pecas[0].nome,itens:['Inspecione a peça.'],info:''}];
     const vv=o.veiculo||{};
-    const ad={};if(o.adaptacoes&&typeof o.adaptacoes==='object')Object.keys(o.adaptacoes).forEach(k=>{if(!ids.has(k))return;const a=o.adaptacoes[k];if(!a||typeof a!=='object')return;ad[k]={motorOrigem:String(a.motorOrigem||'').slice(0,40),compativel:!!a.compativel,offset:v3(a.offset,null),rot:v3(a.rot,null),motivo:a.motivo?String(a.motivo).slice(0,200):null,adaptacao:a.adaptacao?String(a.adaptacao).slice(0,200):null,_manual:!!a._manual&&!!v3(a.offset,null)}});
+    const ad={};if(o.adaptacoes&&typeof o.adaptacoes==='object')Object.keys(o.adaptacoes).forEach(k=>{if(!ids.has(k))return;const a=o.adaptacoes[k];if(!a||typeof a!=='object')return;ad[k]={motorOrigem:String(a.motorOrigem||'').slice(0,40),compativel:!!a.compativel,status:['compativel','adaptavel','incompativel','sem_dados'].indexOf(a.status)>=0?a.status:null,confianca:a.confianca?String(a.confianca).slice(0,10):null,fonte:a.fonte?String(a.fonte).slice(0,200):null,rotas:Array.isArray(a.rotas)?a.rotas.slice(0,12):null,offset:v3(a.offset,null),rot:v3(a.rot,null),motivo:a.motivo?String(a.motivo).slice(0,200):null,adaptacao:a.adaptacao?String(a.adaptacao).slice(0,200):null,_manual:!!a._manual&&!!v3(a.offset,null)}});
     // Detecta sistema pelo kind predominante (moto / barco / carro)
     const KINDS_MOTO=['bloco_moto','tampa_moto','comando_moto','cabecote_moto','junta_moto','carter_seco','embreagem_seca','embreagem_umida','escapamento_moto','tanque_moto','banco_moto','guidon','garfo','balanca_moto','roda_moto','carburador','injecao_moto'];
     const KINDS_BARCO=['bloco_popa','bloco_inboard','carenagem_popa','rabeta','helice','pe_de_galinha','eixo_helice','tanque_barco','casco'];
@@ -2082,6 +2166,283 @@ requestAnimationFrame(fluxoLoop);
 document.querySelector('.tools').insertAdjacentHTML('beforeend','<button class="btn" id="inv" title="Inverter fluxo de energia">⇄</button>');
 $('inv').onclick=()=>{if(!D||!G.get('bateria')){toast('Abra um demo elétrico ou pare a bateria no 3D (Ferramentas → Bateria).');return}
  FLX=FLX===0?1:FLX===1?-1:0;if(!FLX&&FL){S.remove(FL);FL=null}toast(FLX>0?'Bateria → motor (tração)':FLX<0?'Motor → bateria (regeneração/gerador)':'Fluxo desligado')};
+
+// ══ LABORATÓRIO DE COMPATIBILIDADE / ENERGIA ══
+(function(){
+  const $c=id=>document.getElementById(id);
+  let cRenderer=null,cScene=null,cCamera=null,cGroup=null,cDrag=null,cAngle=-.65;
+  let eRenderer=null,eScene=null,eCamera=null,eGroup=null;
+  const estudos=[];
+  function makeRenderer(canvas){
+    if(!canvas||!window.THREE)return null;
+    const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+    const scene=new THREE.Scene();
+    const camera=new THREE.PerspectiveCamera(38,1,.1,150);
+    camera.position.set(12,9,17);camera.lookAt(0,0,0);
+    scene.add(new THREE.AmbientLight(0xffffff,.85));
+    const a=new THREE.DirectionalLight(0xffffff,1.2);a.position.set(8,12,10);scene.add(a);
+    const b=new THREE.PointLight(0x27c8ff,1.1,60);b.position.set(-9,4,-8);scene.add(b);
+    return {renderer,scene,camera};
+  }
+  function resize(r){
+    if(!r)return;
+    const w=r.renderer.domElement.clientWidth||1,h=r.renderer.domElement.clientHeight||1;
+    r.renderer.setSize(w,h,false);r.camera.aspect=w/h;r.camera.updateProjectionMatrix();
+  }
+  let cSceneA=null,cSceneB=null,loopOn=false;
+  function addLights(sc){
+    sc.add(new THREE.AmbientLight(0xffffff,.85));
+    const a=new THREE.DirectionalLight(0xffffff,1.2);a.position.set(8,12,10);sc.add(a);
+    const b=new THREE.PointLight(0x27c8ff,1.1,60);b.position.set(-9,4,-8);sc.add(b);
+  }
+  const V={yaw:-.65,pitch:.42,dist:27,drag:null};
+  function bootCanvas(){
+    if(!cRenderer){
+      cRenderer=makeRenderer($c('compatCanvas'));
+      if(cRenderer){
+        cCamera=cRenderer.camera;cSceneA=new THREE.Scene();cSceneB=new THREE.Scene();
+        addLights(cSceneA);addLights(cSceneB);resize(cRenderer);
+        const cv=cRenderer.renderer.domElement;
+        cv.addEventListener('pointerdown',e=>{V.drag=[e.clientX,e.clientY];try{cv.setPointerCapture(e.pointerId)}catch(_){}});
+        cv.addEventListener('pointermove',e=>{if(!V.drag)return;V.yaw-=(e.clientX-V.drag[0])*.01;V.pitch=Math.max(-.2,Math.min(1.3,V.pitch+(e.clientY-V.drag[1])*.01));V.drag=[e.clientX,e.clientY];});
+        cv.addEventListener('pointerup',()=>{V.drag=null});cv.addEventListener('pointercancel',()=>{V.drag=null});
+        cv.addEventListener('wheel',e=>{e.preventDefault();V.dist=Math.max(10,Math.min(60,V.dist*(e.deltaY>0?1.08:.92)));},{passive:false});
+      }
+    }
+    if(!eRenderer){
+      eRenderer=makeRenderer($c('energyCanvas'));
+      if(eRenderer){eScene=eRenderer.scene;eCamera=eRenderer.camera;resize(eRenderer);}
+    }
+    drawEnergy();
+    if(!loopOn){loopOn=true;requestAnimationFrame(loop);}
+  }
+  // Um único WebGLRenderer, dois viewports (A | B), mesma câmera orbital sincronizada.
+  function renderCompat(){
+    const r=cRenderer.renderer,el=r.domElement,w=el.clientWidth,h=el.clientHeight;
+    if(w<4||h<4||!cSceneA)return;
+    const half=Math.floor(w/2);
+    cCamera.aspect=half/h;cCamera.updateProjectionMatrix();
+    cCamera.position.set(Math.sin(V.yaw)*Math.cos(V.pitch)*V.dist,Math.sin(V.pitch)*V.dist,Math.cos(V.yaw)*Math.cos(V.pitch)*V.dist);
+    cCamera.lookAt(0,0,0);
+    r.setScissorTest(true);
+    r.setViewport(0,0,half,h);r.setScissor(0,0,half,h);r.render(cSceneA,cCamera);
+    r.setViewport(half,0,w-half,h);r.setScissor(half,0,w-half,h);r.render(cSceneB,cCamera);
+    r.setScissorTest(false);
+  }
+  function loop(){
+    requestAnimationFrame(loop);
+    if(cRenderer)renderCompat();
+    if(eRenderer&&eScene&&eCamera)eRenderer.renderer.render(eScene,eCamera);
+  }
+  function disposeGroup(scene,group){
+    if(group){scene.remove(group);group.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material){(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m.dispose());}});}
+  }
+  const ST={
+    compativel:{t:'Compatível',c:'#2fd48a',a:'Pode aplicar direto.'},
+    adaptavel:{t:'Adaptável',c:'#f0a830',a:'Aplicar registra as modificações necessárias no projeto.'},
+    sem_dados:{t:'Sem dados',c:'#7a9cc2',a:'Combinação ainda não cadastrada. Use a IA só como proposta: ela não declara compatibilidade.'},
+    incompativel:{t:'Incompatível',c:'#ff4d57',a:'Aplicação bloqueada.'}
+  };
+  // Fallback retroativo: Worker antigo (sem campo status) só manda "compativel" booleano.
+  function normStatus(r){
+    if(r&&ST[r.status])return r.status;
+    if(r&&r.compativel===true)return r.adaptacao?'adaptavel':'compativel';
+    if(r&&/^sem dados/i.test(r.motivo||''))return 'sem_dados';
+    return 'incompativel';
+  }
+  const DON={};let L={donor:null,res:null,status:null,tok:0};
+  function onMotorChange(){
+    const t=$c('clTarget');if(t)t.value=D?(D.veiculo&&D.veiculo.nome||D.titulo||D.id):'';
+    L={donor:null,res:null,status:null,tok:L.tok+1};
+    const sd=$c('clDonor'),sp=$c('clPart');if(!sd)return;
+    const lista=(window.MOTORES_SRV||[]).filter(m=>D&&m.id!==D.id);
+    if(D&&D.local){
+      sd.innerHTML='<option value="">Motor importado: indisponível</option>';sd.disabled=true;
+      $c('clResult').textContent='Motor importado: o servidor não conhece este motor, então não há comparação de compatibilidade.';
+    }else{
+      sd.disabled=false;
+      sd.innerHTML='<option value="">Selecione…</option>'+lista.map(m=>'<option value="'+esc(m.id)+'">'+esc(m.nome)+'</option>').join('');
+      $c('clResult').textContent='Escolha o motor doador e a peça. O resultado vem do servidor (regras cadastradas), não é digitado.';
+    }
+    sp.innerHTML='<option value="">—</option>';$c('clDetail').innerHTML='';$c('clIAOut').innerHTML='';
+    $c('clApply').disabled=true;$c('clIA').disabled=true;
+    rebuild();
+  }
+  async function onDonor(){
+    const id=$c('clDonor').value,sp=$c('clPart');
+    L.res=null;L.status=null;$c('clDetail').innerHTML='';$c('clIAOut').innerHTML='';$c('clApply').disabled=true;$c('clIA').disabled=true;
+    if(!id){L.donor=null;sp.innerHTML='<option value="">—</option>';rebuild();return;}
+    const tok=++L.tok;$c('clResult').textContent='Carregando motor doador…';
+    try{
+      if(!DON[id]){
+        const j=await post('/api/mecanica/motor',Object.assign({},SES(),{id}));
+        if(!j.ok||!j.motor||!Array.isArray(j.motor.pecas))throw new Error(j.error||'Falha ao carregar o motor doador');
+        DON[id]=j.motor;
+      }
+      if(tok!==L.tok)return;
+      L.donor=id;
+      sp.innerHTML='<option value="">Selecione a peça…</option>'+DON[id].pecas.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.nome)+' · '+esc(p.id)+'</option>').join('');
+      $c('clResult').textContent='Escolha a peça doadora.';rebuild();
+    }catch(e){if(tok===L.tok)$c('clResult').textContent=e.message||'Erro ao carregar o motor doador.';}
+  }
+  async function consultar(){
+    const peca=$c('clPart').value;
+    L.res=null;L.status=null;$c('clDetail').innerHTML='';$c('clIAOut').innerHTML='';$c('clApply').disabled=true;$c('clIA').disabled=true;
+    if(!D||!L.donor||!peca){rebuild();return;}
+    const tok=++L.tok;$c('clResult').textContent='Consultando regras no servidor…';
+    try{
+      const r=await post('/api/mecanica/compat',Object.assign({},SES(),{motorOrigem:L.donor,motorAlvo:D.id,peca}));
+      if(tok!==L.tok)return;
+      if(!r.ok)throw new Error(r.error||'Falha na consulta');
+      L.res=r;L.status=normStatus(r);painel();rebuild();
+    }catch(e){if(tok===L.tok){$c('clResult').textContent=e.message||'Erro na consulta.';rebuild();}}
+  }
+  function painel(){
+    const r=L.res,st=ST[L.status],p=DON[L.donor]&&DON[L.donor].pecas.find(x=>x.id===$c('clPart').value);
+    $c('clResult').innerHTML='<span class="st-badge" style="background:'+st.c+'">'+st.t+'</span> <b>'+esc(p?p.nome:r.peca)+'</b><br>'+esc(st.a);
+    let h='';
+    if(r.motivo)h+='<div class="st-box" style="border-color:'+st.c+'"><b>Motivo:</b> '+esc(r.motivo)+'</div>';
+    if(r.adaptacao)h+='<div class="st-box" style="border-color:'+st.c+'"><b>Adaptação:</b> '+esc(r.adaptacao)+'</div>';
+    if(r.nota)h+='<div class="st-box"><b>Nota:</b> '+esc(r.nota)+'</div>';
+    const meta=[r.confianca?'confiança: '+esc(r.confianca):'',r.fonte?'fonte: '+esc(r.fonte):''].filter(Boolean).join(' · ');
+    if(meta)h+='<div class="cl-result">'+meta+'</div>';
+    $c('clDetail').innerHTML=h;
+    $c('clApply').disabled=!(L.status==='compativel'||L.status==='adaptavel');
+    $c('clIA').disabled=!!(D&&D.local);
+  }
+  function ghost(group,opacity,skipId){
+    D.pecas.forEach(p=>{
+      try{
+        const g=build(p);g.position.set(...(p.pos||[0,0,0]));
+        const o=p.id===skipId?.1:opacity;
+        g.traverse(m=>{if(m.isMesh){m.material=m.material.clone();m.material.transparent=true;m.material.opacity=o;}});
+        group.add(g);
+      }catch(e){}
+    });
+  }
+  function rebuild(){
+    if(!cRenderer||!cSceneA)return;
+    disposeGroup(cSceneA,cGroup);disposeGroup(cSceneB,cGroup&&cGroup._b);cGroup=null;
+    if(!D||!Array.isArray(D.pecas))return;
+    const rA=new THREE.Group(),rB=new THREE.Group();
+    [rA,rB].forEach(r=>{r.scale.setScalar(.62);r.position.y=-1.6;});
+    const peca=$c('clPart').value,res=L.res,dp=L.donor&&DON[L.donor]&&DON[L.donor].pecas.find(x=>x.id===peca);
+    ghost(rA,.55,null);
+    const seated=res&&(L.status==='compativel'||L.status==='adaptavel');
+    ghost(rB,.4,seated&&P[peca]?peca:null);
+    if(dp&&res){
+      const cor=ST[L.status].c;
+      try{
+        const c=build(dp);
+        c.traverse(m=>{if(m.isMesh){m.material=m.material.clone();m.material.color.set(cor);m.material.emissive=new THREE.Color(cor).multiplyScalar(.25);}});
+        const base=(P[peca]&&P[peca].pos)||dp.pos||[0,0,0];
+        if(seated){
+          const of=Array.isArray(res.offset)?res.offset:[0,0,0];
+          c.position.set(base[0]+of[0],base[1]+of[1],base[2]+of[2]);
+          if(Array.isArray(res.rot))c.rotation.set(res.rot[0],res.rot[1],res.rot[2]);
+          const n=Math.min(12,dp.parafusos|0);
+          for(let i=0;i<n;i++){
+            const a=i/n*Math.PI*2,m=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,.3,8),new THREE.MeshBasicMaterial({color:0xcfd8e3}));
+            m.position.set(c.position.x+Math.cos(a)*2.2,c.position.y,c.position.z+Math.sin(a)*1.6);rB.add(m);
+          }
+        }else{
+          c.position.set(base[0]+9,base[1],base[2]);   // fora do motor: não encaixa
+        }
+        rB.add(c);
+      }catch(e){}
+      (res.rotas||[]).forEach(rt=>{
+        try{
+          const pts=rt.pontos.map(q=>new THREE.Vector3(q[0],q[1],q[2]));
+          const col=/el[eé]tr/i.test(rt.tipo||'')?0xf0a830:0x27c8ff;
+          rB.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),32,.08,8,false),new THREE.MeshBasicMaterial({color:col})));
+        }catch(e){}
+      });
+    }
+    cSceneA.add(rA);cSceneB.add(rB);cGroup=rA;cGroup._b=rB;
+    const tb=$c('clTagB');if(tb)tb.textContent=res?'B · '+ST[L.status].t.toLowerCase():'B · com a peça doadora';
+    const n=[];
+    if(res){
+      n.push(seated?'Peça colocada na posição calculada pelo servidor (offset/rot).':'Peça fora do motor: não encaixa com os dados atuais.');
+      n.push(res.rotas&&res.rotas.length?'Rotas de conexão: '+res.rotas.length+' (do servidor).':'Sem rotas de conexão cadastradas no servidor.');
+      if(seated)n.push('Marcadores brancos = nº de parafusos da peça (ilustrativos, não são a furação real).');
+    }
+    $c('clCanvasNote').textContent=(n.length?n.join(' '):'A: motor destino. B: mesmo motor com a peça doadora. Arraste para girar, role para aproximar.')+' Geometria ilustrativa; não é encaixe dimensional confirmado.';
+  }
+  function applyStudy(){
+    const peca=$c('clPart').value,res=L.res;
+    if(!D||!res||!peca)return;
+    if(!(L.status==='compativel'||L.status==='adaptavel')){toast('Aplicação bloqueada: '+ST[L.status].t+'.');return;}
+    if(!P[peca]||!G.get(peca)){toast('O motor aberto não tem uma peça com este id para receber a adaptação.');return;}
+    const o=G.get(peca),base=P[peca].pos,of=Array.isArray(res.offset)?res.offset:null;
+    if(of){
+      o.g.position.set(base[0]+of[0],base[1]+of[1],base[2]+of[2]);
+      if(Array.isArray(res.rot))o.g.rotation.set(res.rot[0],res.rot[1],res.rot[2]);
+    }
+    D.adaptacoes=D.adaptacoes||{};
+    D.adaptacoes[peca]={motorOrigem:L.donor,status:L.status,compativel:true,motivo:res.motivo||null,adaptacao:res.adaptacao||null,
+      offset:of,rot:Array.isArray(res.rot)?res.rot:null,rotas:res.rotas||null,confianca:res.confianca||null,fonte:res.fonte||null,
+      validado:false,_manual:!!of};
+    P[peca]._adaptada=L.donor;
+    render();
+    toast('Adaptação registrada no projeto (não validada tecnicamente).');
+  }
+  async function sugerirIA(){
+    const peca=$c('clPart').value;
+    if(!D||D.local||!L.donor||!peca)return;
+    const box=$c('clIAOut');box.innerHTML='<div class="cl-result">Pensando com a IA…</div>';
+    try{
+      const r=await iaAsync('/api/mecanica/iaAdaptar',Object.assign({},SES(),{motorOrigem:L.donor,motorAlvo:D.id,peca}),s=>{box.innerHTML='<div class="cl-result">Pensando com a IA… '+s+'s</div>';});
+      let h='<div class="st-box" style="border-color:var(--cy)"><b>Proposta da IA (não validada, não altera o status)</b>';
+      if(!r.ok)h+='<br>'+esc(r.error||'IA indisponível');
+      else{if(r.resposta)h+='<br>'+esc(r.resposta);if(r.adaptacao)h+='<br><b>Adaptação:</b> '+esc(r.adaptacao);if(r.riscos)h+='<br><b>Riscos:</b> '+esc(r.riscos);if(r.confianca)h+='<br>Confiança: '+esc(r.confianca);}
+      box.innerHTML=h+'</div>';
+    }catch(e){box.innerHTML='<div class="cl-result">'+esc(e.message||'Erro')+'</div>';}
+  }
+  function drawEnergy(){
+    if(!eRenderer||!eScene)return;
+    disposeGroup(eScene,eGroup);eGroup=new THREE.Group();
+    const mat=(color,metal=.4)=>new THREE.MeshStandardMaterial({color,metalness:metal,roughness:.38});
+    const engine=new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.2,3,32),mat('#8795a8',.8));engine.rotation.z=Math.PI/2;engine.position.x=-4;eGroup.add(engine);
+    const gen=new THREE.Mesh(new THREE.CylinderGeometry(.8,.8,2,28),mat('#27c8ff',.6));gen.rotation.z=Math.PI/2;gen.position.x=0;eGroup.add(gen);
+    const batt=new THREE.Mesh(new THREE.BoxGeometry(3,1.5,2),mat('#2fd48a',.3));batt.position.x=4;eGroup.add(batt);
+    for(let i=0;i<5;i++){const cell=new THREE.Mesh(new THREE.BoxGeometry(.38,.12,1.6),mat('#b9f6d0',.2));cell.position.set(3+i*.45, .82,0);eGroup.add(cell);}
+    const cable=new THREE.Mesh(new THREE.TorusGeometry(1.8,.055,8,40,Math.PI),new THREE.MeshBasicMaterial({color:0x27c8ff}));cable.position.set(2,0,0);cable.rotation.z=Math.PI/2;eGroup.add(cable);
+    eScene.add(eGroup);eCamera.position.set(10,7,15);eCamera.lookAt(0,0,0);resize(eRenderer);
+  }
+  function calcEnergy(){
+    const T=+$c('enTorque').value,rpm=+$c('enRpm').value,eff=+$c('enEff').value/100,
+      hours=+$c('enHours').value,V=+$c('enVolt').value,dod=+$c('enDod').value/100;
+    if(!(T>=0&&rpm>0&&eff>0&&eff<=1&&hours>=0&&V>0&&dod>0&&dod<=1)){
+      $c('enResult').textContent='Confira os valores: rotação e tensão devem ser positivas; eficiência e descarga devem ficar entre 1% e 100%.';return;
+    }
+    const kw=T*rpm/9549.2966,kwOut=kw*eff,kwh=kwOut*hours,nominal=kwh/dod,ah=nominal*1000/V;
+    $c('enResult').innerHTML='<div class="cl-metric"><div><strong>'+kw.toFixed(2)+' kW</strong><small>Potência mecânica</small></div><div><strong>'+kwOut.toFixed(2)+' kW</strong><small>Potência elétrica estimada</small></div><div><strong>'+kwh.toFixed(2)+' kWh</strong><small>Energia gerada</small></div><div><strong>'+nominal.toFixed(2)+' kWh</strong><small>Capacidade nominal mínima estimada</small></div><div><strong>'+Math.ceil(ah)+' Ah</strong><small>Banco em '+V+' V</small></div></div><p style="margin-top:8px"><b>Leitura:</b> cálculo idealizado com eficiência global de '+(eff*100).toFixed(0)+'%. Não inclui picos, temperatura, envelhecimento, limite de corrente, perdas auxiliares nem curva real do gerador.</p><p style="color:#f6dca0;margin-top:6px">A potência calculada só estará disponível se o motor conseguir manter esse torque nessa rotação. Para dimensionamento real, valide curva de torque, regime contínuo, gerador, controlador/BMS, química e limites de carga.</p>';
+  }
+  function tabs(){
+    document.querySelectorAll('#compatLab [data-cltab]').forEach(b=>b.onclick=()=>{
+      document.querySelectorAll('#compatLab [data-cltab]').forEach(x=>x.classList.toggle('on',x===b));
+      const energy=b.dataset.cltab==='energy';
+      $c('clAdapt').classList.toggle('hidden',energy);
+      $c('clEnergy').classList.toggle('active',energy);
+      if(energy){bootCanvas();setTimeout(()=>{resize(eRenderer);},40);}
+      else setTimeout(()=>{resize(cRenderer);},40);
+    });
+  }
+  $c('clApply').onclick=applyStudy;$c('clIA').onclick=sugerirIA;$c('clDonor').addEventListener('change',onDonor);
+  $c('enCalc').onclick=calcEnergy;
+  ['enTorque','enRpm','enEff','enHours','enVolt','enDod'].forEach(id=>$c(id).addEventListener('change',calcEnergy));
+  $c('clPart').addEventListener('change',consultar);
+  window.addEventListener('resize',()=>{resize(cRenderer);resize(eRenderer);});
+  tabs();
+  const oldUi=ui;
+  ui=function(){oldUi();onMotorChange();};
+  const oldCarregar=carregar;
+  carregar=function(id){return oldCarregar(id).then(x=>{if(D)onMotorChange();return x;});};
+  bootCanvas();
+  setTimeout(()=>{if(D)onMotorChange();calcEnergy();},250);
+})();
+
 </script>
 </body>
 </html>
