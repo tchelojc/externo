@@ -65,7 +65,7 @@ footer{padding:10px 16px;color:var(--mu);font-size:11px;display:flex;justify-con
 #compatLab .cl-head button.on{background:linear-gradient(#1b5fb8,#0e3a7a);border-color:var(--cy)}
 #compatLab .cl-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(260px,.75fr);gap:12px}
 #compatLab .cl-canvas{height:360px;min-width:0;position:relative;border:1px solid var(--ln);border-radius:9px;overflow:hidden;background:radial-gradient(ellipse at 50% 45%,#12356a,#061226 75%)}
-#compatCanvas{width:100%;height:100%;display:block;touch-action:none}
+#compatCanvas,#energyCanvas{width:100%;height:100%;display:block;touch-action:none}
 #compatLab .cl-form{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 #compatLab .cl-form label{display:flex;flex-direction:column;gap:4px;color:var(--mu);font-size:11px}
 #compatLab .cl-form input,#compatLab .cl-form select,#compatLab textarea{width:100%;min-width:0;padding:9px;background:#071a33;color:var(--tx);border:1px solid var(--ln);border-radius:7px}
@@ -149,7 +149,12 @@ footer{padding:10px 16px;color:var(--mu);font-size:11px;display:flex;justify-con
     <div class="cl-grid">
       <div>
         <div class="cl-canvas"><canvas id="energyCanvas"></canvas></div>
-        <div class="cl-result">Representação didática de um conjunto motor-gerador-bateria. A energia armazenada depende da potência efetivamente convertida e do tempo de geração.</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;font-size:12px;color:var(--mu)">
+          <label style="display:flex;gap:5px;align-items:center"><input type="checkbox" id="enShowMotor" checked> Motor aberto</label>
+          <label style="display:flex;gap:5px;align-items:center"><input type="checkbox" id="enShowGen" checked> Gerador acoplado</label>
+          <label style="display:flex;gap:5px;align-items:center"><input type="checkbox" id="enShowBat" checked> Banco de baterias</label>
+        </div>
+        <div class="cl-result" id="enNote">Representação didática de um conjunto motor-gerador-bateria. A energia armazenada depende da potência efetivamente convertida e do tempo de geração.</div>
       </div>
       <div class="cl-panel">
         <div class="cl-form">
@@ -2215,7 +2220,18 @@ $('inv').onclick=()=>{if(!D||!G.get('bateria')){toast('Abra um demo elétrico ou
     }
     if(!eRenderer){
       eRenderer=makeRenderer($c('energyCanvas'));
-      if(eRenderer){eScene=eRenderer.scene;eCamera=eRenderer.camera;resize(eRenderer);}
+      if(eRenderer){
+        eScene=eRenderer.scene;eCamera=eRenderer.camera;resize(eRenderer);
+        const ev=eRenderer.renderer.domElement;
+        ev.addEventListener('pointerdown',e=>{E.drag=[e.clientX,e.clientY];try{ev.setPointerCapture(e.pointerId)}catch(_){}});
+        ev.addEventListener('pointermove',e=>{if(!E.drag)return;E.yaw-=(e.clientX-E.drag[0])*.01;E.pitch=Math.max(-.2,Math.min(1.3,E.pitch+(e.clientY-E.drag[1])*.01));E.drag=[e.clientX,e.clientY];});
+        ev.addEventListener('pointerup',()=>{E.drag=null});ev.addEventListener('pointercancel',()=>{E.drag=null});
+        ev.addEventListener('wheel',e=>{e.preventDefault();E.dist=Math.max(8,Math.min(90,E.dist*(e.deltaY>0?1.08:.92)));},{passive:false});
+      }
+    }
+    if(!bootCanvas._ro&&typeof ResizeObserver!=='undefined'){
+      bootCanvas._ro=new ResizeObserver(()=>{resize(cRenderer);resize(eRenderer);});
+      document.querySelectorAll('#compatLab .cl-canvas').forEach(el=>bootCanvas._ro.observe(el));
     }
     drawEnergy();
     if(!loopOn){loopOn=true;requestAnimationFrame(loop);}
@@ -2236,7 +2252,7 @@ $('inv').onclick=()=>{if(!D||!G.get('bateria')){toast('Abra um demo elétrico ou
   function loop(){
     requestAnimationFrame(loop);
     if(cRenderer)renderCompat();
-    if(eRenderer&&eScene&&eCamera)eRenderer.renderer.render(eScene,eCamera);
+    if(eRenderer&&eScene&&eCamera){energyCam();if(eAnim)eAnim.tick(performance.now());eRenderer.renderer.render(eScene,eCamera);}
   }
   function disposeGroup(scene,group){
     if(group){scene.remove(group);group.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material){(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m.dispose());}});}
@@ -2279,7 +2295,7 @@ $('inv').onclick=()=>{if(!D||!G.get('bateria')){toast('Abra um demo elétrico ou
     sp.innerHTML='<option value="">—</option>';$c('clDetail').innerHTML='';$c('clIAOut').innerHTML='';
     $c('clMatriz').innerHTML='';$c('clIAOut').innerHTML='';
     $c('clApply').disabled=true;$c('clIA').disabled=true;
-    rebuild();carregarResumo();
+    rebuild();carregarResumo();drawEnergy();
   }
   async function onDonor(){
     const id=$c('clDonor').value,sp=$c('clPart');
@@ -2493,16 +2509,82 @@ $('inv').onclick=()=>{if(!D||!G.get('bateria')){toast('Abra um demo elétrico ou
       box.innerHTML=h+'</div>';
     }catch(e){box.innerHTML='<div class="cl-result">'+esc(e.message||'Erro')+'</div>';}
   }
+  // ── Aba de energia: motor aberto → gerador → banco (dimensionado pelo cálculo) ──
+  const E={yaw:-.6,pitch:.32,dist:30,drag:null,tx:3,ty:0,tz:0,motor:true,gen:true,bat:true};
+  let EN=null,eAnim=null;
+  function energyCam(){
+    const cp=Math.cos(E.pitch);
+    eCamera.position.set(E.tx+Math.sin(E.yaw)*cp*E.dist,E.ty+Math.sin(E.pitch)*E.dist,E.tz+Math.cos(E.yaw)*cp*E.dist);
+    eCamera.lookAt(E.tx,E.ty,E.tz);
+  }
   function drawEnergy(){
     if(!eRenderer||!eScene)return;
-    disposeGroup(eScene,eGroup);eGroup=new THREE.Group();
-    const mat=(color,metal=.4)=>new THREE.MeshStandardMaterial({color,metalness:metal,roughness:.38});
-    const engine=new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.2,3,32),mat('#8795a8',.8));engine.rotation.z=Math.PI/2;engine.position.x=-4;eGroup.add(engine);
-    const gen=new THREE.Mesh(new THREE.CylinderGeometry(.8,.8,2,28),mat('#27c8ff',.6));gen.rotation.z=Math.PI/2;gen.position.x=0;eGroup.add(gen);
-    const batt=new THREE.Mesh(new THREE.BoxGeometry(3,1.5,2),mat('#2fd48a',.3));batt.position.x=4;eGroup.add(batt);
-    for(let i=0;i<5;i++){const cell=new THREE.Mesh(new THREE.BoxGeometry(.38,.12,1.6),mat('#b9f6d0',.2));cell.position.set(3+i*.45, .82,0);eGroup.add(cell);}
-    const cable=new THREE.Mesh(new THREE.TorusGeometry(1.8,.055,8,40,Math.PI),new THREE.MeshBasicMaterial({color:0x27c8ff}));cable.position.set(2,0,0);cable.rotation.z=Math.PI/2;eGroup.add(cable);
-    eScene.add(eGroup);eCamera.position.set(10,7,15);eCamera.lookAt(0,0,0);resize(eRenderer);
+    disposeGroup(eScene,eGroup);eGroup=new THREE.Group();eAnim=null;
+    const mat=(c,m)=>new THREE.MeshStandardMaterial({color:c,metalness:m==null?.4:m,roughness:.4});
+    const have=!!(D&&Array.isArray(D.pecas)&&D.pecas.length);
+    let engRight=0,GX=0,gx0=0;
+    // 1) motor aberto (as peças reais do motor carregado, sem bateria/gerador que o próprio demo traz)
+    if(E.motor){
+      const mg=new THREE.Group();
+      if(have){
+        D.pecas.forEach(p=>{
+          if(p.kind==='bateria_ev'||p.kind==='gerador_ev')return;
+          try{const g=build(p);g.position.set(...(p.pos||[0,0,0]));mg.add(g);}catch(e){}
+        });
+      }else{
+        const c=new THREE.Mesh(new THREE.CylinderGeometry(1.6,1.6,4,32),mat('#8795a8',.8));c.rotation.z=Math.PI/2;mg.add(c);
+      }
+      mg.scale.setScalar(.62);
+      const bb=new THREE.Box3().setFromObject(mg);
+      if(isFinite(bb.max.x)){mg.position.set(-bb.max.x,-(bb.min.y+bb.max.y)/2,-(bb.min.z+bb.max.z)/2);}
+      eGroup.add(mg);
+    }
+    // 2) gerador acoplado ao eixo
+    let shaft=null;
+    if(E.gen){
+      const gen=build({kind:'gerador_ev',cor:'#4a4f57',metal:.6});gen.scale.setScalar(.8);
+      GX=2.7;gen.position.set(GX,0,0);eGroup.add(gen);
+      shaft=new THREE.Mesh(new THREE.CylinderGeometry(.22,.22,1.6,16),mat('#f0a830',.8));
+      shaft.rotation.z=Math.PI/2;shaft.position.set(.8,0,0);eGroup.add(shaft);
+      gx0=GX+2.4;   // borda direita do gerador
+    }
+    // 3) banco de baterias: tamanho proporcional à capacidade nominal calculada (ilustrativo)
+    let fill=null,batW=0,batL=0;
+    if(E.bat){
+      const nom=EN?EN.nominal:10,s=Math.max(.55,Math.min(1.7,.5+Math.cbrt(Math.max(nom,.1))*.18));
+      const b=build({kind:'bateria_ev',cor:'#1d6b4a',metal:.4});b.scale.setScalar(s);
+      batW=6.4*s;batL=(E.gen?gx0:3)+3.2;
+      b.position.set(batL+batW/2,0,0);eGroup.add(b);
+      const bg=new THREE.Mesh(new THREE.BoxGeometry(batW,.2,.5),mat('#0b0d11',.2));
+      bg.position.set(batL+batW/2,.7*s+.7,0);eGroup.add(bg);
+      fill=new THREE.Mesh(new THREE.BoxGeometry(1,.22,.54),new THREE.MeshBasicMaterial({color:0x2fd48a}));
+      fill.position.y=.7*s+.7;eGroup.add(fill);
+    }
+    // 4) cabo gerador → banco + partículas de energia
+    let curve=null,parts=[];
+    if(E.gen&&E.bat){
+      curve=new THREE.CatmullRomCurve3([new THREE.Vector3(gx0,.2,0),new THREE.Vector3((gx0+batL)/2,2.2,0),new THREE.Vector3(batL,.2,0)]);
+      eGroup.add(new THREE.Mesh(new THREE.TubeGeometry(curve,32,.07,8,false),new THREE.MeshBasicMaterial({color:0x27c8ff})));
+      const n=EN?Math.min(36,Math.max(6,Math.round(6+EN.kwOut*.6))):8;
+      for(let i=0;i<n;i++){const m=new THREE.Mesh(new THREE.SphereGeometry(.13,10,8),new THREE.MeshBasicMaterial({color:0xb9f6ff}));eGroup.add(m);parts.push(m);}
+    }
+    eScene.add(eGroup);
+    // enquadramento automático
+    const all=new THREE.Box3().setFromObject(eGroup);
+    if(isFinite(all.min.x)){
+      E.tx=(all.min.x+all.max.x)/2;E.ty=(all.min.y+all.max.y)/2;E.tz=(all.min.z+all.max.z)/2;
+      E.dist=Math.max(14,Math.max(all.max.x-all.min.x,all.max.y-all.min.y)*1.45);
+    }
+    const kw=EN?EN.kwOut:5,speed=.12+Math.min(.5,kw/90),rotv=EN?Math.min(14,EN.rpm/250):6,cycle=9000;
+    eAnim={tick(t){
+      if(shaft)shaft.rotation.x=(t/1000)*rotv;
+      if(curve)parts.forEach((m,i)=>{const u=((t/1000)*speed+i/parts.length)%1;m.position.copy(curve.getPoint(u));});
+      if(fill){const soc=.08+.92*((t%cycle)/cycle);fill.scale.x=Math.max(.01,batW*soc);fill.position.x=batL+fill.scale.x/2;}
+    }};
+    resize(eRenderer);
+    const nt=$c('enNote');
+    if(nt)nt.textContent=(have?'Motor aberto: '+(D.veiculo&&D.veiculo.nome||D.titulo||D.id)+'. ':'Nenhum motor carregado: bloco genérico. ')+
+      'Ciano = energia do gerador ao banco (mais partículas = mais kW calculados); barra verde = estado de carga simulado; o tamanho do banco acompanha a capacidade nominal. O torque e a rotação são os valores digitados ao lado: o servidor não informa a curva de torque deste motor. Geometria ilustrativa.';
   }
   function calcEnergy(){
     const T=+$c('enTorque').value,rpm=+$c('enRpm').value,eff=+$c('enEff').value/100,
@@ -2511,6 +2593,7 @@ $('inv').onclick=()=>{if(!D||!G.get('bateria')){toast('Abra um demo elétrico ou
       $c('enResult').textContent='Confira os valores: rotação e tensão devem ser positivas; eficiência e descarga devem ficar entre 1% e 100%.';return;
     }
     const kw=T*rpm/9549.2966,kwOut=kw*eff,kwh=kwOut*hours,nominal=kwh/dod,ah=nominal*1000/V;
+    EN={kw,kwOut,kwh,nominal,ah,V,rpm,T};drawEnergy();
     $c('enResult').innerHTML='<div class="cl-metric"><div><strong>'+kw.toFixed(2)+' kW</strong><small>Potência mecânica</small></div><div><strong>'+kwOut.toFixed(2)+' kW</strong><small>Potência elétrica estimada</small></div><div><strong>'+kwh.toFixed(2)+' kWh</strong><small>Energia gerada</small></div><div><strong>'+nominal.toFixed(2)+' kWh</strong><small>Capacidade nominal mínima estimada</small></div><div><strong>'+Math.ceil(ah)+' Ah</strong><small>Banco em '+V+' V</small></div></div><p style="margin-top:8px"><b>Leitura:</b> cálculo idealizado com eficiência global de '+(eff*100).toFixed(0)+'%. Não inclui picos, temperatura, envelhecimento, limite de corrente, perdas auxiliares nem curva real do gerador.</p><p style="color:#f6dca0;margin-top:6px">A potência calculada só estará disponível se o motor conseguir manter esse torque nessa rotação. Para dimensionamento real, valide curva de torque, regime contínuo, gerador, controlador/BMS, química e limites de carga.</p>';
   }
   function tabs(){
@@ -2525,6 +2608,7 @@ $('inv').onclick=()=>{if(!D||!G.get('bateria')){toast('Abra um demo elétrico ou
   }
   $c('clApply').onclick=applyStudy;$c('clIA').onclick=sugerirIA;$c('clEle').onclick=()=>{V.ele=!V.ele;$c('clEle').textContent='⚡ Sistema elétrico: '+(V.ele?'ligado':'desligado');rebuild();};$c('clDonor').addEventListener('change',onDonor);
   $c('enCalc').onclick=calcEnergy;
+  [['enShowMotor','motor'],['enShowGen','gen'],['enShowBat','bat']].forEach(([id,k])=>$c(id).addEventListener('change',()=>{E[k]=$c(id).checked;drawEnergy();}));
   ['enTorque','enRpm','enEff','enHours','enVolt','enDod'].forEach(id=>$c(id).addEventListener('change',calcEnergy));
   $c('clPart').addEventListener('change',consultar);
   window.addEventListener('resize',()=>{resize(cRenderer);resize(eRenderer);});
