@@ -3982,15 +3982,29 @@ function iniciarRegiao(P, box, id, cont) {
   R.alternarLoop = function () {
     if (R.morto) return false;
   
-    R.loopAtivo = !R.loopAtivo;
+    if (!R.loopAtivo) {
+      // Guarda o tempo que ainda faltava para trocar o slide.
+      if (R.duracao > 0 && R.prazo) {
+        R.restante = Math.max(0, R.prazo - Date.now());
+      }
   
-    if (R.loopAtivo) {
       clearTimeout(R.timer);
       R.timer = null;
-    } else if (!R.pausado && R.atual && R.duracao > 0) {
-      const ms = Math.max(500, R.restante || R.duracao);
-      R.prazo = Date.now() + ms;
-      R.timer = setTimeout(R.proximo, ms);
+      R.loopAtivo = true;
+  
+    } else {
+      R.loopAtivo = false;
+  
+      // Se o vídeo terminou enquanto o loop estava ativo,
+      // permite avançar agora que o loop foi desligado.
+      if (R._fimPendente && !R.pausado) {
+        R._fimPendente = false;
+        R.proximo();
+      } else if (!R.pausado && R.duracao > 0 && itens.length > 1) {
+        const restante = Math.max(500, R.restante || 500);
+        R.prazo = Date.now() + restante;
+        R.timer = setTimeout(R.proximo, restante);
+      }
     }
   
     return R.loopAtivo;
@@ -4002,7 +4016,6 @@ function iniciarRegiao(P, box, id, cont) {
       if (e) e.querySelectorAll('video,audio').forEach(fn);
     } catch (x) {}
   };
-  const midias = fn => { try { const e = R.atual && R.atual.el; if (e) e.querySelectorAll('video,audio').forEach(fn); } catch (x) {} };
   R.proximo = function (manual) {
     if (R.morto) return; clearTimeout(R.timer);
     const manteraPausa = manual === true && R.pausado;   // navegar (‹ ›) com o slide pausado continua pausado
@@ -4109,12 +4122,38 @@ function iniciarRegiao(P, box, id, cont) {
     R.pausado=true; if(R.duracao>0)R.restante=Math.max(0,R.prazo-Date.now()); clearTimeout(R.timer);
     midias(v=>{ if(!v.paused){ v._pTela=1; v.pause(); } });
   };
-  R.retomar=function(){
-    if(R.morto||!R.pausado)return;
-    R.pausado=false;
-    midias(v=>{ if(v._pTela){ v._pTela=0; v.play().catch(()=>{}); } });
-    if(R._fimPendente){ R._fimPendente=false; R.proximo(); return; }
-    if(R.duracao>0&&itens.length>1){ const ms=Math.max(500,R.restante||500); R.prazo=Date.now()+ms; R.timer=setTimeout(R.proximo,ms); }
+  R.retomar = function () {
+    if (R.morto || !R.pausado) return;
+  
+    R.pausado = false;
+  
+    midias(v => {
+      if (v._pTela) {
+        v._pTela = 0;
+        v.play().catch(() => {});
+      }
+    });
+  
+    // Se o slide terminou enquanto estava pausado:
+    // respeita o modo loop antes de avançar.
+    if (R._fimPendente) {
+      if (R.loopAtivo) return;
+  
+      R._fimPendente = false;
+      R.proximo();
+      return;
+    }
+  
+    // No modo loop, não agenda a troca automática.
+    if (R.loopAtivo) return;
+  
+    // Retoma o tempo restante do slide.
+    if (R.duracao > 0 && itens.length > 1) {
+      const ms = Math.max(500, R.restante || 500);
+      R.prazo = Date.now() + ms;
+      clearTimeout(R.timer);
+      R.timer = setTimeout(R.proximo, ms);
+    }
   };
   R.navegar=function(delta){
     if(R.morto||!itens.length)return; clearTimeout(R.timer);
