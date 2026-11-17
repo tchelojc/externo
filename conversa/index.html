@@ -3606,6 +3606,10 @@ function criarPlayer(root, opts) {
       <div class="pl-titulo" aria-live="polite">ALMAFLUXO · Nossa Conversa Diária</div>
       <div class="pl-grupo" role="group" aria-label="Áudio">
         <button type="button" data-ctl="lupa" aria-label="Lupa" title="Lupa: ligue e arraste o dedo sobre o texto">🔍</button>
+        <button type="button" data-ctl="loop"
+          aria-label="Manter slide atual"
+          title="Manter este slide na tela"
+          aria-pressed="false">∞</button>
         <button type="button" data-ctl="audio-toggle" aria-label="Pausar música" title="Pausar música">⏸</button>
         <button type="button" data-ctl="vol-down" aria-label="Diminuir volume" title="Diminuir volume">🔉</button>
         <button type="button" data-ctl="vol-up" aria-label="Aumentar volume" title="Aumentar volume">🔊</button>
@@ -3703,6 +3707,31 @@ function criarPlayer(root, opts) {
       if (zi > 0) txAviso('🔍 Lupa ' + ZOOMS[zi] + '×: arraste o dedo sobre o texto', 3500); else txAviso('');
       P._showControls();
     });
+    // NOVO: controle de loop do slide.
+    const loopBtn = ui.querySelector('[data-ctl="loop"]');
+    
+    if (loopBtn) {
+      loopBtn.addEventListener('click', () => {
+        const r = P._activeReg();
+        if (!r || !r.alternarLoop) return;
+    
+        const ativo = r.alternarLoop();
+    
+        loopBtn.dataset.ativo = ativo ? '1' : '0';
+        loopBtn.setAttribute('aria-pressed', String(ativo));
+    
+        loopBtn.title = ativo
+          ? 'Loop ativo: manter este slide'
+          : 'Loop desativado: seguir apresentação';
+    
+        loopBtn.style.opacity = ativo ? '1' : '0.65';
+        loopBtn.style.background = ativo
+          ? 'rgba(52, 152, 219, 0.25)'
+          : '';
+    
+        P._showControls();
+      });
+    }
     const paraInner = (cx, cy) => {
       const g = P._geo; if (!g) return null;
       const r = inner.getBoundingClientRect(), vx = cx - (r.left + r.width / 2), vy = cy - (r.top + r.height / 2), a = -(g.rot || 0) * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
@@ -3893,7 +3922,23 @@ function criarPlayer(root, opts) {
   return P;
 }
 function iniciarRegiao(P, box, id, cont) {
-  const R = {idx:-1,atual:null,timer:null,morto:false,pausado:false,duracao:0,restante:0,prazo:0,_forcedIndex:null,_videoDurations:{},_videoStartedAt:{},_videoFailed:{}}; cont = cont || {};
+  const R = {
+    idx: -1,
+    atual: null,
+    timer: null,
+    morto: false,
+    pausado: false,
+    loopAtivo: false, // NOVO: mantém o slide atual na tela
+    duracao: 0,
+    restante: 0,
+    prazo: 0,
+    _forcedIndex: null,
+    _videoDurations: {},
+    _videoStartedAt: {},
+    _videoFailed: {}
+  };
+
+  cont = cont || {};
   if (cont.modo === 'cards' && Array.isArray(cont.cards) && cont.cards.length) {
     const camada = el('div','cards-runtime'); camada.style.cssText='position:absolute;inset:0;overflow:hidden'; box.appendChild(camada);
     const ativos=[];
@@ -3926,7 +3971,37 @@ function iniciarRegiao(P, box, id, cont) {
   const msGlobal = Math.max(0, Math.min(3000, +trGlobal.ms || 0));
   const tr = trGlobal;
   const ms = msGlobal;
-  R.parar = function () { R.morto = true; clearTimeout(R.timer); if (R.atual) R.atual.destroy(); box.innerHTML = ''; };
+  R.parar = function () {
+    R.morto = true;
+    clearTimeout(R.timer);
+    if (R.atual) R.atual.destroy();
+    box.innerHTML = '';
+  };
+  
+  // NOVO: alterna o loop individual do slide atual.
+  R.alternarLoop = function () {
+    if (R.morto) return false;
+  
+    R.loopAtivo = !R.loopAtivo;
+  
+    if (R.loopAtivo) {
+      clearTimeout(R.timer);
+      R.timer = null;
+    } else if (!R.pausado && R.atual && R.duracao > 0) {
+      const ms = Math.max(500, R.restante || R.duracao);
+      R.prazo = Date.now() + ms;
+      R.timer = setTimeout(R.proximo, ms);
+    }
+  
+    return R.loopAtivo;
+  };
+  
+  const midias = fn => {
+    try {
+      const e = R.atual && R.atual.el;
+      if (e) e.querySelectorAll('video,audio').forEach(fn);
+    } catch (x) {}
+  };
   const midias = fn => { try { const e = R.atual && R.atual.el; if (e) e.querySelectorAll('video,audio').forEach(fn); } catch (x) {} };
   R.proximo = function (manual) {
     if (R.morto) return; clearTimeout(R.timer);
@@ -3997,10 +4072,38 @@ function iniciarRegiao(P, box, id, cont) {
     const dMin = TX[item.tipo] && TX[item.tipo].duracaoMin; if (dMin && dur > 0 && dur < dMin) dur = dMin;   // slides que precisam de tempo mínimo (ex.: demo da KPG)
     if (item.tipo === 'ecossistema' && Number(item._duracaoCalculadaS) > 0) dur = Number(item._duracaoCalculadaS); // fecha o ciclo em 540 s
     R.duracao=dur>0?dur*1000:0;R.restante=R.duracao;R.prazo=R.duracao?Date.now()+R.duracao:0;
-    if (manteraPausa) { R.pausado = true; R.restante = R.duracao; return; }
-    if (itens.length === 1) { if (item.tipo === 'video') { const v = s.el.querySelector('video'); if (v) v.loop = true; } return; }
-    if (dur > 0) R.timer = setTimeout(R.proximo, dur * 1000); else s.aoFim = () => { if (R.pausado) { R._fimPendente = true; return; } R.proximo(); };
-  };
+    if (manteraPausa) {
+      R.pausado = true;
+      R.restante = R.duracao;
+      return;
+    }
+    
+    if (itens.length === 1) {
+      if (item.tipo === 'video') {
+        const v = s.el.querySelector('video');
+        if (v) v.loop = true;
+      }
+      return;
+    }
+    
+    // NOVO: com loop ativo, não agenda a troca de slide.
+    if (R.loopAtivo) {
+      clearTimeout(R.timer);
+      R.timer = null;
+      return;
+    }
+    
+    if (dur > 0) {
+      R.timer = setTimeout(R.proximo, dur * 1000);
+    } else {
+      s.aoFim = () => {
+        if (R.pausado || R.loopAtivo) {
+          R._fimPendente = true;
+          return;
+        }
+        R.proximo();
+      };
+    }
   R.pausar=function(){
     if(R.morto||R.pausado)return;
     R.pausado=true; if(R.duracao>0)R.restante=Math.max(0,R.prazo-Date.now()); clearTimeout(R.timer);
@@ -4491,7 +4594,7 @@ function remMarca(i){PAN.cfg.t.esferaMarcas.itens.splice(i,1);desenharCfg();}
 function cfgAudio(t){const a=t.audioFundo||{ativo:false,url:'',driveId:'',volume:.16,loop:true};const aud=(arquivosCache||[]).filter(x=>/\.(mp3|m4a|aac|ogg|wav|opus)$/i.test(x.nome||''));return `<div class="fm">${chk('Ativar música ambiente','audioFundo.ativo',a.ativo)}${sel('Faixa da pasta CONVERSA','audioFundo.driveId',a.driveId||'', [['','— selecionar arquivo —'],...aud.map(x=>[x.id,x.nome])])}${fld('URL direta (alternativa)','audioFundo.url',a.url||'')}${fld('Volume (0–1)','audioFundo.volume',a.volume==null?.16:a.volume,'number','min="0" max="1" step="0.02"')}${chk('Repetir continuamente','audioFundo.loop',a.loop!==false)}</div><div class="hintx">Envie o MP3/M4A/OGG para a pasta CONVERSA pela aba Upload e selecione-o aqui. O Worker busca o arquivo no Drive e o converte para Base64 durante o carregamento; o HTML reproduz em segundo plano sem controles visíveis. Limite de conversão: 18 MB por faixa. O Drive precisa estar como “Qualquer pessoa com o link · Leitor”. O Chrome pode exigir um primeiro toque ou a política de autoplay do modo quiosque para liberar áudio. Use apenas áudio que você tenha autorização para reproduzir.</div>`;}
 function cfgAvancado(t) {
   return `<div class="fm">${fld('Sinal de vida a cada (s) · mín. 20', 'heartbeatS', t.heartbeatS || 60, 'number', 'min="20" max="900"')}${fld('Ler configuração a cada (s) · mín. 15', 'configS', t.configS || 30, 'number', 'min="15" max="900"')}${chk('Mostrar ponto de status no canto (técnico)', 'mostrarPonto', t.mostrarPonto)}</div>
-  <div class="hintx">Cada sinal de vida e cada leitura de configuração é uma chamada ao Apps Script. Valores menores dão alerta mais rápido, mas gastam mais da cota diária. Para dezenas de totens, use 60–120 s.<br>O arquivo de sinal (<b>totem_ID_heartbeat.json</b>) tem formato aberto: um servidor local (Python, etc.) pode gravar o mesmo arquivo como vigia, caso o navegador do totem trave.</div>`;
+  <div class="hintx">Cada sinal de vida e cada leitura de configuração é uma chamada ao Apps . Valores menores dão alerta mais rápido, mas gastam mais da cota diária. Para dezenas de totens, use 60–120 s.<br>O arquivo de sinal (<b>totem_ID_heartbeat.json</b>) tem formato aberto: um servidor local (Python, etc.) pode gravar o mesmo arquivo como vigia, caso o navegador do totem trave.</div>`;
 }
 /* entrada de campos (delegação) */
 document.addEventListener('input', onCfgInput); document.addEventListener('change', onCfgInput);
