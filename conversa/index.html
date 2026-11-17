@@ -3396,6 +3396,76 @@ function personalizarRodape(slide, tipo, item) {
 
 
 /* Cria um slide (item de conteúdo). Devolve {el, destroy, fimEvento} ou null */
+/* ═══════════ REC · gravador do totem (tela/aba → arquivo de vídeo local) ═══════════
+   Grava a aba (getDisplayMedia + MediaRecorder). Formato: MP4 quando o navegador grava MP4, senão WebM.
+   Modos: manual (para quando você clicar) ou ciclo completo (começa no início da próxima volta e para ao fechá-la).
+   O arquivo vai para o disco do aparelho (Downloads) ao terminar; usa o armazenamento privado do navegador como buffer para não estourar a memória. */
+const TXREC = (() => {
+  const S = { st: 'idle', modo: 'manual', rec: null, stream: null, chunks: [], writer: null, fh: null, t0: 0, tick: null, lim: null, btns: new Set(), mime: '', ext: 'webm', menu: null, fim: false };
+  const MIMES = [['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'mp4'], ['video/mp4', 'mp4'], ['video/webm;codecs=vp9,opus', 'webm'], ['video/webm;codecs=vp8,opus', 'webm'], ['video/webm', 'webm']];
+  const fmt = s => String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+  const idTotem = () => { const m = location.pathname.match(/(totem[\w-]*)/i); return (m && m[1]) || new URLSearchParams(location.search).get('t') || 'totem'; };
+  function css() { if (document.getElementById('txrecCss')) return; const s = document.createElement('style'); s.id = 'txrecCss'; s.textContent = '[data-ctl=rec]{font-variant-numeric:tabular-nums}[data-ctl=rec].rec-on{background:#b3001b!important;color:#fff!important;border-color:#ff5c73!important;animation:txrp 1.2s infinite}@keyframes txrp{50%{opacity:.55}}body.tx-gravando .pl-controls{opacity:0;transition:opacity .3s}body.tx-gravando .pl-controls:hover,body.tx-gravando .pl-controls:focus-within{opacity:1}.tx-rec-menu{position:fixed;right:12px;bottom:82px;z-index:100010;display:flex;flex-direction:column;gap:8px;min-width:270px;max-width:calc(100vw - 24px);padding:12px;border:1px solid rgba(142,220,255,.35);border-radius:14px;background:rgba(5,14,26,.96);color:#eaf7ff;font:13px system-ui,sans-serif;box-shadow:0 12px 40px #000a}.tx-rec-menu button{border:1px solid rgba(142,220,255,.35);border-radius:10px;background:rgba(255,255,255,.07);color:#eaf7ff;padding:10px;text-align:left;font:inherit;cursor:pointer}.tx-rec-menu small{color:#9db7ca}'; document.head.appendChild(s); }
+  function pintar() {
+    const t = S.st === 'gravando' ? '⏹ ' + fmt((Date.now() - S.t0) / 1000) : S.st === 'aguardando' ? '⏳' : S.st === 'salvando' ? '💾' : '⏺';
+    const tt = S.st === 'idle' ? 'Gravar vídeo do totem' : S.st === 'aguardando' ? 'Aguardando o início do próximo ciclo (clique para cancelar)' : S.st === 'gravando' ? 'Gravando (clique para parar e salvar)' : 'Salvando…';
+    S.btns.forEach(b => { b.textContent = t; b.title = tt; b.setAttribute('aria-label', tt); b.classList.toggle('rec-on', S.st === 'gravando' || S.st === 'aguardando'); });
+    document.body.classList.toggle('tx-gravando', S.st === 'gravando');
+  }
+  function aviso(txt) { let d = document.getElementById('txrecAviso'); if (!d) { d = document.createElement('div'); d.id = 'txrecAviso'; d.className = 'tx-rec-menu'; d.style.cssText = 'min-width:0;pointer-events:none'; document.body.appendChild(d); } d.textContent = txt; d.style.display = 'block'; clearTimeout(aviso.t); aviso.t = setTimeout(() => { d.style.display = 'none'; }, 6000); }
+  function fecharMenu() { if (S.menu) { S.menu.remove(); S.menu = null; } }
+  function menu() {
+    fecharMenu(); const m = document.createElement('div'); m.className = 'tx-rec-menu'; S.menu = m;
+    const e = MIMES.find(x => window.MediaRecorder && MediaRecorder.isTypeSupported(x[0]));
+    m.innerHTML = '<b>⏺ Gravar o totem em vídeo</b><small>Formato deste navegador: ' + (e ? e[1].toUpperCase() : 'indisponível') + '. Na janela do navegador escolha "Esta guia" e marque "Compartilhar áudio da guia".</small><button data-m="ciclo">🔁 Gravar 1 ciclo completo<br><small>começa no início da próxima volta e para sozinho ao fechá-la</small></button><button data-m="manual">⏺ Gravar agora<br><small>para quando você clicar em ⏹</small></button><button data-m="x">Cancelar</button>';
+    m.addEventListener('click', ev => { const b = ev.target.closest('button'); if (!b) return; fecharMenu(); if (b.dataset.m !== 'x') iniciar(b.dataset.m); });
+    document.body.appendChild(m);
+  }
+  async function iniciar(modo) {
+    if (!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) || !window.MediaRecorder) return aviso('Este navegador não permite gravar a tela. Use o Chrome no computador ou no Android.');
+    const e = MIMES.find(x => MediaRecorder.isTypeSupported(x[0])); if (!e) return aviso('Nenhum formato de vídeo é suportado por este navegador.');
+    try { S.stream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 30 }, audio: true, preferCurrentTab: true, selfBrowserSurface: 'include', systemAudio: 'include' }); } catch (x) { return aviso('Gravação cancelada: ' + (x.name === 'NotAllowedError' ? 'permissão negada.' : x.message)); }
+    S.modo = modo; S.mime = e[0]; S.ext = e[1]; S.chunks = []; S.writer = null; S.fh = null; S.fim = false;
+    S.stream.getVideoTracks()[0].addEventListener('ended', () => parar());
+    try { const root = await navigator.storage.getDirectory(); S.fh = await root.getFileHandle('txrec_' + Date.now() + '.' + S.ext, { create: true }); S.writer = await S.fh.createWritable(); } catch (x) { S.writer = null; S.fh = null; }
+    S.rec = new MediaRecorder(S.stream, { mimeType: S.mime, videoBitsPerSecond: 5e6, audioBitsPerSecond: 128e3 });
+    S.fila = Promise.resolve();
+    S.rec.ondataavailable = ev => { if (!ev.data || !ev.data.size) return; if (S.writer) S.fila = S.fila.then(() => S.writer.write(ev.data)).catch(() => { S.writer = null; }); else S.chunks.push(ev.data); };
+    S.rec.onstop = () => finalizar();
+    if (modo === 'ciclo') { S.st = 'aguardando'; aviso('Aguardando o início do próximo ciclo para começar a gravar…'); }
+    else comecar();
+    clearTimeout(S.lim); if (modo === 'ciclo') S.lim = setTimeout(() => { if (S.st === 'gravando') parar(); }, 20 * 60e3);
+    pintar();
+  }
+  function comecar() { S.t0 = Date.now(); S.rec.start(1000); S.st = 'gravando'; clearInterval(S.tick); S.tick = setInterval(pintar, 1000); pintar(); }
+  function parar() {
+    clearInterval(S.tick); clearTimeout(S.lim);
+    if (S.st === 'gravando' && S.rec && S.rec.state !== 'inactive') { S.st = 'salvando'; pintar(); try { S.rec.stop(); } catch (x) { finalizar(); } }
+    else { try { S.stream && S.stream.getTracks().forEach(t => t.stop()); } catch (x) {} S.st = 'idle'; pintar(); }
+  }
+  async function finalizar() {
+    if (S.fim) return; S.fim = true;
+    try { S.stream && S.stream.getTracks().forEach(t => t.stop()); } catch (x) {}
+    const d = new Date(), p = n => String(n).padStart(2, '0'), nome = 'totem_' + idTotem() + '_' + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '_' + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds()) + '.' + S.ext;
+    try {
+      let arq; if (S.writer) { await S.fila; await S.writer.close(); arq = await S.fh.getFile(); } else arq = new Blob(S.chunks, { type: S.mime.split(';')[0] });
+      if (!arq.size) throw new Error('gravação vazia');
+      const url = URL.createObjectURL(arq), a = document.createElement('a'); a.href = url; a.download = nome; document.body.appendChild(a); a.click(); a.remove();
+      aviso('✅ Vídeo salvo: ' + nome + ' (' + (arq.size / 1048576).toFixed(1) + ' MB)');
+      setTimeout(async () => { URL.revokeObjectURL(url); try { if (S.fh) { const r = await navigator.storage.getDirectory(); await r.removeEntry(S.fh.name); } } catch (x) {} }, 120000);
+    } catch (x) { aviso('❌ Não consegui salvar o vídeo: ' + x.message); }
+    S.st = 'idle'; S.chunks = []; S.writer = null; pintar();
+  }
+  return {
+    ligar(btn) { css(); S.btns.add(btn); pintar(); btn.addEventListener('click', ev => { ev.stopPropagation(); if (S.st === 'idle') (S.menu ? fecharMenu() : menu()); else parar(); }); },
+    parar,
+    cicloIniciou(regiao, manual) {
+      if (regiao !== 'r1' || manual) return;
+      if (S.st === 'aguardando') comecar(); else if (S.st === 'gravando' && S.modo === 'ciclo' && Date.now() - S.t0 > 3000) parar();
+    }
+  };
+})();
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.body.classList.contains('tx-gravando')) { e.preventDefault(); TXREC && TXREC.parar && TXREC.parar(); } });
 function criarSlide(P, item) {
   if (item && item.customHtmlDriveId && item.tipo !== 'html-drive') item = Object.assign({}, item, { tipo: 'html-drive', driveId: item.customHtmlDriveId });
   const s = el('div', 'sl'); const S = {el: s, destroy() {}, fimEvento: false, aoFim: null};
@@ -3540,11 +3610,13 @@ function criarPlayer(root, opts) {
         <button type="button" data-ctl="vol-down" aria-label="Diminuir volume" title="Diminuir volume">🔉</button>
         <button type="button" data-ctl="vol-up" aria-label="Aumentar volume" title="Aumentar volume">🔊</button>
         <button type="button" data-ctl="audio-menu" aria-label="Rádios e opções de áudio" title="Rádios e opções de áudio">📻</button>
+        <button type="button" data-ctl="rec" aria-label="Gravar vídeo do totem" title="Gravar vídeo do totem">⏺</button>
       </div>
       <div class="pl-progresso"><div class="pl-progresso-fill"></div></div>
     `;
     root.appendChild(ui);
     P._controls = ui;
+    if (!P.preview) { const recB = ui.querySelector('[data-ctl="rec"]'); if (recB) TXREC.ligar(recB); }
 
     // ── Aparecer/sumir ao mexer o mouse ──
     P._showControls = () => {
@@ -3866,6 +3938,7 @@ function iniciarRegiao(P, box, id, cont) {
     else if(cont.aleatorio&&itens.length>1){ if(!R._ordem||R._op>=R._ordem.length){R._ordem=ordemCiclo();R._op=0;} ni=R._ordem[R._op++]; }
     else ni=(R.idx+1)%itens.length;
     let item = itens[ni], s = null;
+    if (ni === 0 && !P.preview && typeof TXREC !== 'undefined') TXREC.cicloIniciou(id, manual === true);
     // Ao chegar ao encerramento, reserva o restante até completar 540 s.
     // A duração do vídeo R5Fit é obtida do próprio arquivo (metadata/ended);
     // se o vídeo ainda não carregou, usa-se uma estimativa conservadora para
