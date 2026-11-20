@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07111d">
 <meta name="description" content="Instalador, diagnóstico gráfico e verificação de compatibilidade ALMAFLUXO para televisores.">
+<link rel="manifest" href="/conversa/manifest.webmanifest">
 <title>ALMAFLUXO · Instalação para TV</title>
 <style>
 :root{color-scheme:dark;--bg:#07111d;--panel:#0e1d2c;--line:#294158;--muted:#9eb1c4;--text:#eff7ff;--blue:#42b9ff;--cyan:#65e4d0;--gold:#ffd17a;--red:#ff7777;--green:#69e2b6}
@@ -34,7 +35,8 @@ main{width:min(1120px,94vw);margin:auto;padding:22px 0 44px}.head{display:flex;a
 <p>Este instalador verifica o navegador, a conexão, o motor gráfico Three.js utilizado pelo totem e a capacidade de renderização 3D. A experiência original não será simplificada para esconder limitações do aparelho.</p>
 <div class="actions">
 <button class="btn primary" id="start">Iniciar diagnóstico completo</button>
-<button class="btn" id="open" disabled>Executar totem</button>
+<button class="btn" id="install">Instalar totem</button>
+<button class="btn" id="open" disabled>Abrir totem</button>
 </div>
 <div class="hint">Os testes são realizados localmente neste aparelho. A medição gráfica é aproximada: 30 FPS é o piso de execução; 45 FPS ou mais é a meta recomendada. Nenhum dado pessoal é enviado.</div>
 </section>
@@ -95,6 +97,64 @@ const $ = id => document.getElementById(id);
 const THREE_URL = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
 const TOTEM_URL = '/conversa/';
 let rows = [], approved = false, busy = false;
+let deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', event => {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+
+  const btn = $('install');
+  btn.textContent = 'Instalar totem';
+  btn.disabled = false;
+});
+
+window.addEventListener('appinstalled', () => {
+  $('install').textContent = 'Totem instalado';
+  $('install').disabled = true;
+  alert('Instalação do ALMAFLUXO confirmada pelo navegador.');
+});
+
+$('install').addEventListener('click', async () => {
+  if (!deferredInstallPrompt) {
+    const ua = navigator.userAgent || '';
+
+    let orientacao =
+      'Este navegador não oferece instalação automática.';
+
+    if (/web0s|webos/i.test(ua)) {
+      orientacao =
+        'Na TV LG, verifique as opções de adicionar aos favoritos ou à tela inicial, se disponíveis.';
+    } else if (/Tizen/i.test(ua)) {
+      orientacao =
+        'Na TV Samsung, verifique os recursos de favoritos do navegador. A instalação nativa depende da loja da TV.';
+    } else if (/Android/i.test(ua)) {
+      orientacao =
+        'No Android TV, verifique no menu do navegador a opção Instalar aplicativo ou Adicionar à tela inicial.';
+    }
+
+    alert(
+      orientacao +
+      '\n\nO acesso ao totem continua disponível pelo endereço /conversa/.'
+    );
+    return;
+  }
+
+  try {
+    deferredInstallPrompt.prompt();
+
+    const choice = await deferredInstallPrompt.userChoice;
+
+    if (choice.outcome === 'accepted') {
+      $('install').textContent = 'Instalação solicitada';
+    } else {
+      alert('Instalação não confirmada. O totem continua disponível.');
+    }
+  } catch (error) {
+    alert('Não foi possível iniciar a instalação: ' + error.message);
+  } finally {
+    deferredInstallPrompt = null;
+  }
+});
 $('year').textContent = new Date().getFullYear();
 
 function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
