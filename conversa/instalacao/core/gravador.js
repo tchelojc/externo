@@ -4,9 +4,9 @@ const filtrar=(l,alvo)=>(l||[]).filter(p=>p&&p.alvo===alvo&&p.arquivo&&/^[0-9a-f
 async function baixar(p){const r=await fetch('/'+p.arquivo,{cache:'no-store'});if(!r.ok)throw new Error('pacote não encontrado no repositório');const b=await r.arrayBuffer();
  if(hex(await crypto.subtle.digest('SHA-256',b))!==p.sha256.toLowerCase())throw new Error('hash do pacote não confere: gravação cancelada');return new Uint8Array(b)}
 window.AFGravador={filtrar,AG,
- async resumo(){try{const j=await fetch('/distribuicao/pacotes.json',{cache:'no-store'}).then(r=>r.json()),com=new Set((j.pacotes||[]).filter(p=>filtrar([p],p.alvo).length).map(p=>p.alvo));return{com:[...com],sem:Object.keys(j.alvos||{}).filter(a=>!com.has(a))}}catch(e){return{com:[],sem:[]}}},
- async alvo(a){try{const j=await fetch('/distribuicao/pacotes.json',{cache:'no-store'}).then(r=>r.json());return (j.alvos||{})[a]||null}catch(e){return null}},
- async pacotes(alvo){try{const j=await fetch('/distribuicao/pacotes.json',{cache:'no-store'}).then(r=>r.json());return filtrar(j.pacotes,alvo)}catch(e){return[]}},
+ async resumo(){try{const j=await fetch('https://almafluxo.uk/conversa/instalacao/distribuicao/pacotes.json',{cache:'no-store'}).then(r=>r.json()),com=new Set((j.pacotes||[]).filter(p=>filtrar([p],p.alvo).length).map(p=>p.alvo));return{com:[...com],sem:Object.keys(j.alvos||{}).filter(a=>!com.has(a))}}catch(e){return{com:[],sem:[]}}},
+ async alvo(a){try{const j=await fetch('https://almafluxo.uk/conversa/instalacao/distribuicao/pacotes.json',{cache:'no-store'}).then(r=>r.json());return (j.alvos||{})[a]||null}catch(e){return null}},
+ async pacotes(alvo){try{const j=await fetch('https://almafluxo.uk/conversa/instalacao/distribuicao/pacotes.json',{cache:'no-store'}).then(r=>r.json());return filtrar(j.pacotes,alvo)}catch(e){return[]}},
  // ESP32 direto do navegador por USB (Web Serial). Exige que a conexão atual seja a porta serial.
  async esp32(p,port,log,prog){if(!port)throw new Error('Conecte por USB antes (porta serial).');const d=await baixar(p);log('Pacote verificado ('+d.length+' bytes). Carregando gravador…');
   const m=await import(ESP),tr=new m.Transport(port,true),L=new m.ESPLoader({transport:tr,baudrate:115200,terminal:{clean(){},writeLine:log,write:log}});
