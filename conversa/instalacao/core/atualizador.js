@@ -2,7 +2,7 @@
 (()=>{'use strict';
 
 const BASE_INSTALACAO='https://almafluxo.uk/conversa/instalacao/';
-const URL_VERSAO=BASE_INSTALACAO+'versao.json';
+const URL_VERSAO='https://almafluxo.uk/distribuicao/versao.json';
 const PREFIXO_CACHE='af-instalador-';
 
 window.AFAtualizador={
