@@ -273,82 +273,143 @@ st.textContent='Plataforma: '+p+' (pacote nativo: '+AFDetector.pacote()+') · '+
 AFGravador.resumo().then(r=>{st.textContent+=' · Pacotes publicados: '+(r.com.length?r.com.join(', '):'nenhum ainda')+(r.sem.length?' · sem pacote: '+r.sem.join(', '):'')});
 
 
-
-// INSTALAR ALMAFLUXO — PREPARAR AMBIENTE ADAPTATIVO
 q('hInst').onclick=async()=>{
   const btn=q('hInst');
   btn.disabled=true;
 
   try{
-    st.textContent='Analisando o dispositivo...';
+    st.textContent='Diagnosticando dispositivo...';
 
+    // 1. Diagnostica o dispositivo e prepara o perfil adaptativo.
     const adaptacao=await AFAdaptador.executar();
 
-    if(!adaptacao?.perfil){
-      throw new Error('Não foi possível definir o perfil adaptativo.');
+    if(!adaptacao || !adaptacao.perfil){
+      throw new Error('O diagnóstico não retornou um perfil válido.');
     }
 
+    // Disponibiliza o diagnóstico para o instalador.
     window.AFPerfilInstalacao=adaptacao;
 
     st.textContent=
-      'Perfil '+adaptacao.nivel+
-      ' · Meta de '+adaptacao.perfil.fps+' FPS'+
-      ' · Preparando ambiente...';
+      'Perfil: '+adaptacao.nivel+
+      ' · Meta de renderização: '+adaptacao.perfil.fps+' FPS'+
+      ' · Preparando instalação...';
 
+    // 2. Instala o ambiente de navegação adaptativo.
     const r=await AFInst.instalar();
-    
-    if(!r?.ok){
-      throw new Error(r?.msg||'Falha ao preparar o ambiente.');
+
+    st.textContent=r?.msg||'Instalação finalizada.';
+
+    // 3. Verifica se existe atualização disponível.
+    const a=await AFAtualizador.checar();
+
+    if(a.erro){
+      st.textContent+=' · Atualização: '+a.erro;
+    }else if(a.remota){
+      // 4. Verifica a integridade antes de registrar a versão.
+      const i=await AFIntegridade.verificar('/');
+
+      if(i.length&&i.every(x=>x.ok)){
+        AFEstado.set({versao:a.remota});
+      }
     }
-    
-    st.textContent=r.msg;
 
   }catch(e){
-    st.textContent='Falha na instalação: '+(e?.message||String(e));
+    st.textContent='Falha: '+(e?.message||String(e));
   }finally{
     btn.disabled=false;
   }
 };
 
 
-// ABRIR NOSSA CONVERSA — RENDERIZADOR ADAPTATIVO
-q('hConv').onclick=async()=>{
-  const btn=q('hConv');
+// ATUALIZAR ECOSSISTEMA
+q('hUpd').onclick=async()=>{
+  const btn=q('hUpd');
   btn.disabled=true;
 
+  try{
+    st.textContent='Verificando atualizações...';
+
+    const a=await AFAtualizador.checar();
+
+    if(a.erro){
+      st.textContent=a.erro;
+      return;
+    }
+
+    if(!a.nova){
+      st.textContent='Já está na versão '+a.remota;
+      return;
+    }
+
+    st.textContent='Aplicando atualização...';
+
+    const r=await AFAtualizador.aplicar(a.remota);
+
+    st.textContent=r?.msg||'Atualização concluída.';
+
+  }catch(e){
+    st.textContent='Falha na atualização: '+(e?.message||String(e));
+  }finally{
+    btn.disabled=false;
+  }
+};
+
+
+// GUIA DE INSTALAÇÃO POR DISPOSITIVO
+{
+  const sel=q('hGSel');
+  const mp={desconhecida:'outras'};
+
+  AFGuia.ids().then(L=>{
+    sel.innerHTML=L.map(x=>
+      '<option value="'+x.id+'">'+x.nome+'</option>'
+    ).join('');
+
+    sel.value=L.some(x=>x.id===p)
+      ?p
+      :(mp[p]||'outras');
+
+  }).catch(e=>{
+    st.textContent='Falha ao carregar os guias: '+e.message;
+  });
+
+  q('hGo').onclick=()=>{
+    AFGuia.abrir(sel.value);
+  };
+}
+
+
+// ABRIR NOSSA CONVERSA — DENTRO DO RENDERIZADOR ADAPTATIVO
+q('hConv').onclick=async()=>{
   try{
     st.textContent='Abrindo nossa conversa no ambiente adaptativo...';
 
     const r=await AFInst.abrir('/conversa');
 
-    st.textContent=r?.msg||'Solicitação de abertura enviada.';
+    st.textContent=r?.msg||'Nossa conversa foi aberta no renderizador.';
 
   }catch(e){
     st.textContent='Falha ao abrir nossa conversa: '+(e?.message||String(e));
-  }finally{
-    btn.disabled=false;
   }
 };
 
 
-// ABRIR UNIVERSO — RENDERIZADOR ADAPTATIVO
+// ABRIR UNIVERSO — DENTRO DO RENDERIZADOR ADAPTATIVO
 q('hUni').onclick=async()=>{
-  const btn=q('hUni');
-  btn.disabled=true;
-
   try{
-    st.textContent='Abrindo ALMAFLUXO no ambiente adaptativo...';
+    st.textContent='Abrindo Universo no ambiente adaptativo...';
 
     const r=await AFInst.abrir('/');
 
-    st.textContent=r?.msg||'Solicitação de abertura enviada.';
+    st.textContent=r?.msg||'Universo aberto no renderizador.';
 
   }catch(e){
-    st.textContent='Falha ao abrir ALMAFLUXO: '+(e?.message||String(e));
-  }finally{
-    btn.disabled=false;
+    st.textContent='Falha ao abrir Universo: '+(e?.message||String(e));
   }
 };
+
+
 // LOGIN
 q('hLog').onclick=async()=>{
   try{
@@ -388,7 +449,7 @@ window.addEventListener('beforeinstallprompt', event => {
 window.addEventListener('appinstalled', () => {
   $('install').textContent = 'Totem instalado';
   $('install').disabled = true;
-  alert('Instalação do Totem confirmada pelo navegador.');
+  alert('Instalação do ALMAFLUXO confirmada pelo navegador.');
 });
 
 $('install').addEventListener('click', async () => {
@@ -623,44 +684,9 @@ function configurarControleRemoto(){
 }
 configurarControleRemoto();
 
-$('start').addEventListener('click',run);
-$('again').addEventListener('click',run);
-
-
-// ABRIR TOTEM — COM DIAGNÓSTICO ADAPTATIVO
-$('open').addEventListener('click',async()=>{
-  if(!approved)return;
-
-  const btn=$('open');
-  btn.disabled=true;
-
-  try{
-    const r=await AFInst.abrirDireto();
-
-    if(!r?.ok){
-      throw new Error(
-        r?.msg||'Não foi possível abrir o Totem.'
-      );
-    }
-
-  }catch(e){
-    alert(
-      'Falha ao abrir Totem: '+
-      (e?.message||String(e))
-    );
-  }finally{
-    btn.disabled=false;
-  }
-});
-
-
-// EXECUTAR TOTEM COMPLETO — ABERTURA DIRETA
-$('resultOpen').addEventListener('click',()=>{
-  if(!approved)return;
-
-  AFInst.executarCompleto();
-});
-
+$('start').addEventListener('click',run);$('again').addEventListener('click',run);
+function openTotem(){if(approved)location.href=TOTEM_URL;}
+$('open').addEventListener('click',openTotem);$('resultOpen').addEventListener('click',openTotem);
 })();
 </script>
 </body>
