@@ -273,6 +273,7 @@ st.textContent='Plataforma: '+p+' (pacote nativo: '+AFDetector.pacote()+') · '+
 AFGravador.resumo().then(r=>{st.textContent+=' · Pacotes publicados: '+(r.com.length?r.com.join(', '):'nenhum ainda')+(r.sem.length?' · sem pacote: '+r.sem.join(', '):'')});
 
 
+
 q('hInst').onclick=async()=>{
   const btn=q('hInst');
   btn.disabled=true;
@@ -280,55 +281,38 @@ q('hInst').onclick=async()=>{
   try{
     st.textContent='Diagnosticando dispositivo...';
 
-    // 1. Diagnostica o dispositivo e prepara o perfil adaptativo.
     const adaptacao=await AFAdaptador.executar();
 
     if(!adaptacao || !adaptacao.perfil){
-      throw new Error('O diagnóstico não retornou um perfil válido.');
+      throw new Error('Perfil adaptativo inválido.');
     }
 
-    // Disponibiliza o diagnóstico para o instalador.
     window.AFPerfilInstalacao=adaptacao;
 
     st.textContent=
       'Perfil: '+adaptacao.nivel+
-      ' · Meta de renderização: '+adaptacao.perfil.fps+' FPS'+
-      ' · Preparando instalação...';
+      ' · Meta: '+adaptacao.perfil.fps+' FPS'+
+      ' · Instalando ambiente...';
 
-    // 2. Instala o ambiente de navegação adaptativo.
     const r=await AFInst.instalar();
 
-    st.textContent=r?.msg||'Instalação finalizada.';
-
-    // 3. Verifica se existe atualização disponível.
-    const a=await AFAtualizador.checar();
-
-    if(a.erro){
-      st.textContent+=' · Atualização: '+a.erro;
-    }else if(a.remota){
-      // 4. Verifica a integridade antes de registrar a versão.
-      const i=await AFIntegridade.verificar('/');
-
-      if(i.length&&i.every(x=>x.ok)){
-        AFEstado.set({versao:a.remota});
-      }
-    }
+    st.textContent=r?.msg||'Ambiente instalado.';
 
   }catch(e){
-    st.textContent='Falha: '+(e?.message||String(e));
+    st.textContent='Falha na instalação: '+(e?.message||String(e));
   }finally{
     btn.disabled=false;
   }
 };
 
 
-// ATUALIZAR ECOSSISTEMA
+// ATUALIZAÇÃO — SOMENTE QUANDO SOLICITADA
 q('hUpd').onclick=async()=>{
   const btn=q('hUpd');
   btn.disabled=true;
 
   try{
-    st.textContent='Verificando atualizações...';
+    st.textContent='Verificando atualização...';
 
     const a=await AFAtualizador.checar();
 
@@ -342,36 +326,30 @@ q('hUpd').onclick=async()=>{
       return;
     }
 
-    st.textContent='Aplicando atualização...';
-
     const r=await AFAtualizador.aplicar(a.remota);
-
     st.textContent=r?.msg||'Atualização concluída.';
 
   }catch(e){
-    st.textContent='Falha na atualização: '+(e?.message||String(e));
+    st.textContent='Falha: '+(e?.message||String(e));
   }finally{
     btn.disabled=false;
   }
 };
 
 
-// GUIA DE INSTALAÇÃO POR DISPOSITIVO
+// GUIA DO DISPOSITIVO
 {
   const sel=q('hGSel');
-  const mp={desconhecida:'outras'};
 
   AFGuia.ids().then(L=>{
     sel.innerHTML=L.map(x=>
       '<option value="'+x.id+'">'+x.nome+'</option>'
     ).join('');
 
-    sel.value=L.some(x=>x.id===p)
-      ?p
-      :(mp[p]||'outras');
+    sel.value=L.some(x=>x.id===p)?p:'outras';
 
   }).catch(e=>{
-    st.textContent='Falha ao carregar os guias: '+e.message;
+    st.textContent='Falha ao carregar guias: '+e.message;
   });
 
   q('hGo').onclick=()=>{
@@ -380,33 +358,40 @@ q('hUpd').onclick=async()=>{
 }
 
 
-// ABRIR NOSSA CONVERSA — DENTRO DO RENDERIZADOR ADAPTATIVO
-q('hConv').onclick=async()=>{
+// NOSSA CONVERSA — RENDERIZADOR ADAPTATIVO
+q('hConv').onclick=()=>{
   try{
-    st.textContent='Abrindo nossa conversa no ambiente adaptativo...';
-
-    const r=await AFInst.abrir('/conversa');
-
-    st.textContent=r?.msg||'Nossa conversa foi aberta no renderizador.';
-
+    AFInst.abrir('/conversa');
   }catch(e){
-    st.textContent='Falha ao abrir nossa conversa: '+(e?.message||String(e));
+    st.textContent='Falha ao abrir conversa: '+e.message;
   }
 };
 
 
-// ABRIR UNIVERSO — DENTRO DO RENDERIZADOR ADAPTATIVO
-q('hUni').onclick=async()=>{
+// UNIVERSO — RENDERIZADOR ADAPTATIVO
+q('hUni').onclick=()=>{
   try{
-    st.textContent='Abrindo Universo no ambiente adaptativo...';
-
-    const r=await AFInst.abrir('/');
-
-    st.textContent=r?.msg||'Universo aberto no renderizador.';
-
+    AFInst.abrir('/');
   }catch(e){
-    st.textContent='Falha ao abrir Universo: '+(e?.message||String(e));
+    st.textContent='Falha ao abrir Universo: '+e.message;
   }
+};
+
+
+// ABRIR TOTEM — DIAGNÓSTICO E NAVEGAÇÃO DIRETA
+q('hAbrirTotem').onclick=async()=>{
+  try{
+    st.textContent='Preparando abertura do Totem...';
+    await AFInst.abrirDireto();
+  }catch(e){
+    st.textContent='Falha: '+(e?.message||String(e));
+  }
+};
+
+
+// EXECUTAR TOTEM COMPLETO — NAVEGAÇÃO DIRETA
+q('hExecutarCompleto').onclick=()=>{
+  AFInst.executarCompleto();
 };
 
 
