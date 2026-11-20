@@ -199,9 +199,8 @@ function criarJanela(){
   frame.title='Navegação ALMAFLUXO';
   frame.setAttribute(
     'allow',
-    'fullscreen; autoplay; encrypted-media; picture-in-picture'
+    'autoplay; encrypted-media; picture-in-picture'
   );
-  frame.setAttribute('allowfullscreen','');
 
   janela.append(barra,frame);
   document.body.appendChild(janela);
@@ -307,37 +306,45 @@ async function abrir(destino){
   const caminho=validarDestino(destino||'/');
 
   if(!caminho){
-    return{
+    return {
       ok:false,
       msg:'Destino inválido.'
     };
   }
 
-  const espera=await obterEsperaTotem();
-
+  // Navegação direta: não grava AFEstado.proximo.
+  // Isso evita conflito com a ponte do Totem.
   try{
-    AFEstado.set({
-      proximo:caminho,
-      esperaTotem:espera,
-      ultimaAbertura:Date.now()
-    });
+    return renderizar(caminho);
   }catch(e){
-    console.warn('[AFInst] Estado:',e);
-  }
+    console.error('[AFInst] Erro ao abrir destino:',e);
 
-  return renderizar(caminho);
+    return {
+      ok:false,
+      msg:'Não foi possível abrir o endereço: '+e.message
+    };
+  }
 }
 
 async function instalar(){
   try{
+    // Mostra imediatamente que o botão respondeu.
+    criarJanela();
+    janela.style.display='flex';
+
+    status.textContent='Preparando ambiente ALMAFLUXO...';
+
     try{
       await AFEstado.persistir();
     }catch(e){
       console.warn('[AFInst] Persistência:',e);
     }
 
-    const adaptacao=window.AFAdaptador?
-      await AFAdaptador.executar():perfilAtual();
+    status.textContent='Analisando capacidade do dispositivo...';
+
+    const adaptacao=window.AFAdaptador
+      ?await window.AFAdaptador.executar()
+      :perfilAtual();
 
     if(adaptacao){
       window.AFPerfilInstalacao=adaptacao;
@@ -360,37 +367,54 @@ async function instalar(){
       );
       persistido=true;
     }catch(e){
-      console.warn('[AFInst] Armazenamento indisponível:',e);
+      console.warn('[AFInst] Armazenamento:',e);
     }
 
-    // Se o navegador oferecer instalação PWA,
-    // ela é complementar à criação do ambiente.
+    status.textContent='Preparando navegação adaptativa...';
+
+    // A instalação PWA é complementar.
     if(ev){
       const evento=ev;
       ev=null;
 
       try{
         await evento.prompt();
-        await evento.userChoice;
+        const escolha=await evento.userChoice;
+
+        console.info('[AFInst] Resultado PWA:',escolha.outcome);
       }catch(e){
-        console.warn('[AFInst] PWA:',e);
+        console.warn('[AFInst] PWA indisponível:',e);
       }
     }
 
-    const r=renderizar('/');
+    const resultado=renderizar('/');
 
-    return{
+    if(!resultado.ok){
+      throw new Error(resultado.msg);
+    }
+
+    status.textContent=
+      'Ambiente preparado · Perfil '+configuracao.perfil+
+      ' · '+configuracao.fps+' FPS';
+
+    return {
       ok:true,
       msg:
-        'Ambiente ALMAFLUXO preparado. '+
-        'Perfil: '+configuracao.perfil+
-        '. '+(persistido?
-          'Configuração salva neste navegador.':
-          'Configuração mantida apenas nesta sessão.')
+        'Ambiente ALMAFLUXO preparado. Perfil: '+
+        configuracao.perfil+'. '+
+        (persistido
+          ?'Configuração salva neste navegador.'
+          :'Configuração disponível somente nesta sessão.')
     };
 
   }catch(e){
-    return{
+    console.error('[AFInst] Falha na instalação:',e);
+
+    if(status){
+      status.textContent='Falha: '+e.message;
+    }
+
+    return {
       ok:false,
       msg:'Falha ao preparar o ambiente: '+e.message
     };
