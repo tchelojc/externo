@@ -376,25 +376,6 @@ q('hUni').onclick=()=>{
     st.textContent='Falha ao abrir Universo: '+e.message;
   }
 };
-
-
-// ABRIR TOTEM — DIAGNÓSTICO E NAVEGAÇÃO DIRETA
-q('hAbrirTotem').onclick=async()=>{
-  try{
-    st.textContent='Preparando abertura do Totem...';
-    await AFInst.abrirDireto();
-  }catch(e){
-    st.textContent='Falha: '+(e?.message||String(e));
-  }
-};
-
-
-// EXECUTAR TOTEM COMPLETO — NAVEGAÇÃO DIRETA
-q('hExecutarCompleto').onclick=()=>{
-  AFInst.executarCompleto();
-};
-
-
 // LOGIN
 q('hLog').onclick=async()=>{
   try{
