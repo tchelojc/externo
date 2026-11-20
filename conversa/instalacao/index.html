@@ -86,7 +86,8 @@ AFGravador.resumo().then(r=>{st.textContent+=' · Pacotes publicados: '+(r.com.l
 q('hInst').onclick=async()=>{const r=await AFInst.instalar();st.textContent=r.msg;const a=await AFAtualizador.checar();if(a.remota){const i=await AFIntegridade.verificar('/');if(i.length&&i.every(x=>x.ok))AFEstado.set({versao:a.remota})}};
 q('hUpd').onclick=async()=>{const a=await AFAtualizador.checar();if(a.erro)return st.textContent=a.erro;if(!a.nova)return st.textContent='Já está na versão '+a.remota;const r=await AFAtualizador.aplicar(a.remota);st.textContent=r.msg};
 {const sel=q('hGSel'),mp={desconhecida:'outras'};AFGuia.ids().then(L=>{sel.innerHTML=L.map(x=>'<option value="'+x.id+'">'+x.nome+'</option>').join('');sel.value=L.some(x=>x.id===p)?p:(mp[p]&&'outras')||'outras'});q('hGo').onclick=()=>AFGuia.abrir(sel.value)}
-q('hConv').onclick=()=>AFInst.abrir(null);q('hUni').onclick=()=>AFInst.abrir('/');
+q('hConv').onclick=()=>window.open('https://almafluxo.uk/conversa/','_blank');
+q('hUni').onclick=()=>window.open('https://almafluxo.uk/','_blank');
 q('hLog').onclick=async()=>{try{const U=await AFEstado.login(q('hE').value.trim().toLowerCase(),q('hS').value);q('hS').value='';q('hUser').textContent='Sessão ativa: '+U.email}catch(e){q('hUser').textContent=e.message}};
 })();
 </script>
