@@ -274,29 +274,30 @@ AFGravador.resumo().then(r=>{st.textContent+=' · Pacotes publicados: '+(r.com.l
 
 
 
+// INSTALAR ALMAFLUXO — PREPARAR AMBIENTE ADAPTATIVO
 q('hInst').onclick=async()=>{
   const btn=q('hInst');
   btn.disabled=true;
 
   try{
-    st.textContent='Diagnosticando dispositivo...';
+    st.textContent='Analisando o dispositivo...';
 
     const adaptacao=await AFAdaptador.executar();
 
-    if(!adaptacao || !adaptacao.perfil){
-      throw new Error('Perfil adaptativo inválido.');
+    if(!adaptacao?.perfil){
+      throw new Error('Não foi possível definir o perfil adaptativo.');
     }
 
     window.AFPerfilInstalacao=adaptacao;
 
     st.textContent=
-      'Perfil: '+adaptacao.nivel+
-      ' · Meta: '+adaptacao.perfil.fps+' FPS'+
-      ' · Instalando ambiente...';
+      'Perfil '+adaptacao.nivel+
+      ' · Meta de '+adaptacao.perfil.fps+' FPS'+
+      ' · Preparando ambiente...';
 
     const r=await AFInst.instalar();
 
-    st.textContent=r?.msg||'Ambiente instalado.';
+    st.textContent=r?.msg||'Preparação do ambiente concluída.';
 
   }catch(e){
     st.textContent='Falha na instalação: '+(e?.message||String(e));
@@ -306,74 +307,42 @@ q('hInst').onclick=async()=>{
 };
 
 
-// ATUALIZAÇÃO — SOMENTE QUANDO SOLICITADA
-q('hUpd').onclick=async()=>{
-  const btn=q('hUpd');
+// ABRIR NOSSA CONVERSA — RENDERIZADOR ADAPTATIVO
+q('hConv').onclick=async()=>{
+  const btn=q('hConv');
   btn.disabled=true;
 
   try{
-    st.textContent='Verificando atualização...';
+    st.textContent='Abrindo nossa conversa no ambiente adaptativo...';
 
-    const a=await AFAtualizador.checar();
+    const r=await AFInst.abrir('/conversa');
 
-    if(a.erro){
-      st.textContent=a.erro;
-      return;
-    }
-
-    if(!a.nova){
-      st.textContent='Já está na versão '+a.remota;
-      return;
-    }
-
-    const r=await AFAtualizador.aplicar(a.remota);
-    st.textContent=r?.msg||'Atualização concluída.';
+    st.textContent=r?.msg||'Solicitação de abertura enviada.';
 
   }catch(e){
-    st.textContent='Falha: '+(e?.message||String(e));
+    st.textContent='Falha ao abrir nossa conversa: '+(e?.message||String(e));
   }finally{
     btn.disabled=false;
   }
 };
 
 
-// GUIA DO DISPOSITIVO
-{
-  const sel=q('hGSel');
+// ABRIR UNIVERSO — RENDERIZADOR ADAPTATIVO
+q('hUni').onclick=async()=>{
+  const btn=q('hUni');
+  btn.disabled=true;
 
-  AFGuia.ids().then(L=>{
-    sel.innerHTML=L.map(x=>
-      '<option value="'+x.id+'">'+x.nome+'</option>'
-    ).join('');
-
-    sel.value=L.some(x=>x.id===p)?p:'outras';
-
-  }).catch(e=>{
-    st.textContent='Falha ao carregar guias: '+e.message;
-  });
-
-  q('hGo').onclick=()=>{
-    AFGuia.abrir(sel.value);
-  };
-}
-
-
-// NOSSA CONVERSA — RENDERIZADOR ADAPTATIVO
-q('hConv').onclick=()=>{
   try{
-    AFInst.abrir('/conversa');
-  }catch(e){
-    st.textContent='Falha ao abrir conversa: '+e.message;
-  }
-};
+    st.textContent='Abrindo ALMAFLUXO no ambiente adaptativo...';
 
+    const r=await AFInst.abrir('/');
 
-// UNIVERSO — RENDERIZADOR ADAPTATIVO
-q('hUni').onclick=()=>{
-  try{
-    AFInst.abrir('/');
+    st.textContent=r?.msg||'Solicitação de abertura enviada.';
+
   }catch(e){
-    st.textContent='Falha ao abrir Universo: '+e.message;
+    st.textContent='Falha ao abrir ALMAFLUXO: '+(e?.message||String(e));
+  }finally{
+    btn.disabled=false;
   }
 };
 // LOGIN
@@ -415,7 +384,7 @@ window.addEventListener('beforeinstallprompt', event => {
 window.addEventListener('appinstalled', () => {
   $('install').textContent = 'Totem instalado';
   $('install').disabled = true;
-  alert('Instalação do ALMAFLUXO confirmada pelo navegador.');
+  alert('Instalação do Totem confirmada pelo navegador.');
 });
 
 $('install').addEventListener('click', async () => {
