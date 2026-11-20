@@ -2,9 +2,29 @@
 (()=>{
 'use strict';
 
+/*
+ * ALMAFLUXO — INSTALADOR E MOTOR DE NAVEGAÇÃO
+ *
+ * 1. instalar()
+ *    Prepara o ambiente e cria o renderizador.
+ *
+ * 2. abrir('/conversa')
+ *    Abre o Totem dentro do renderizador adaptativo.
+ *
+ * 3. abrirDireto()
+ *    Executa o diagnóstico, registra o perfil e abre
+ *    o Totem diretamente, sem iframe.
+ *
+ * 4. executarCompleto()
+ *    Abre o Totem diretamente, sem filtro adaptativo.
+ */
+
 const BASE='https://almafluxo.uk/conversa/instalacao/';
 const PACOTES_URL=BASE+'distribuicao/pacotes.json';
 const STORAGE='AF_AMBIENTE_RENDERIZACAO_V1';
+const PERFIL_STORAGE='AF_PERFIL_TOTEM_V1';
+
+const TOTEM_URL='https://almafluxo.uk/conversa';
 
 let ev=null;
 let janela=null;
@@ -54,9 +74,13 @@ const GUIA={
   ],
   outras:[
     'Abra o portal em um navegador compatível.',
-    'A janela adaptativa verifica o suporte de incorporação dos endereços.'
+    'A janela adaptativa verifica o suporte de incorporação.'
   ]
 };
+
+/* =====================================================
+   VALIDAÇÃO DE ENDEREÇOS
+===================================================== */
 
 function validarDestino(destino){
   if(typeof destino!=='string'||!destino)return null;
@@ -69,10 +93,15 @@ function validarDestino(destino){
     if(url.pathname.startsWith('//'))return null;
 
     return url.pathname;
+
   }catch(e){
     return null;
   }
 }
+
+/* =====================================================
+   CONFIGURAÇÃO DO TOTEM
+===================================================== */
 
 async function obterEsperaTotem(){
   try{
@@ -86,8 +115,9 @@ async function obterEsperaTotem(){
     const j=await r.json();
     const n=Number(j?.comunicacao?.totem?.espera_s);
 
-    return Number.isFinite(n)&&n>=1?
-      Math.min(n,300):45;
+    return Number.isFinite(n)&&n>=1
+      ?Math.min(n,300)
+      :45;
 
   }catch(e){
     console.warn('[AFInst] Espera padrão:',e);
@@ -95,11 +125,60 @@ async function obterEsperaTotem(){
   }
 }
 
+/* =====================================================
+   PERFIL ADAPTATIVO
+===================================================== */
+
 function perfilAtual(){
   return window.AFPerfilInstalacao||
          window.AFDiagnosticoAdaptativo||
          null;
 }
+
+async function diagnosticar(){
+  if(!window.AFAdaptador){
+    return perfilAtual();
+  }
+
+  const resultado=await window.AFAdaptador.executar();
+
+  if(resultado){
+    window.AFPerfilInstalacao=resultado;
+  }
+
+  return resultado;
+}
+
+function salvarPerfilTotem(resultado){
+  if(!resultado)return false;
+
+  try{
+    const dados={
+      versao:1,
+      perfil:resultado.nivel||'equilibrado',
+      fps:resultado.perfil?.fps||30,
+      imagem:resultado.perfil?.imagem||'media',
+      animacoes:resultado.perfil?.animacoes!==false,
+      efeitos:resultado.perfil?.efeitos!==false,
+      registradoEm:Date.now()
+    };
+
+    localStorage.setItem(
+      PERFIL_STORAGE,
+      JSON.stringify(dados)
+    );
+
+    return true;
+
+  }catch(e){
+    console.warn('[AFInst] Perfil não persistido:',e);
+    return false;
+  }
+}
+
+/* =====================================================
+   ESTILO DO RENDERIZADOR
+===================================================== */
 
 function criarEstilo(){
   if(document.getElementById('af-render-style'))return;
@@ -156,6 +235,10 @@ function criarEstilo(){
   document.head.appendChild(css);
 }
 
+/* =====================================================
+   CRIAÇÃO DA JANELA
+===================================================== */
+
 function criarJanela(){
   if(janela&&frame)return;
 
@@ -180,11 +263,23 @@ function criarJanela(){
 
   barra.append(
     titulo,
-    botao('Início',()=>abrir('/')),
-    botao('Totem',()=>abrir('/conversa/')),
-    botao('Voltar',()=>{
-      try{frame.contentWindow.history.back()}catch(e){}
+
+    botao('Início',()=>{
+      abrir('/');
     }),
+
+    botao('Totem',()=>{
+      abrir('/conversa');
+    }),
+
+    botao('Voltar',()=>{
+      try{
+        frame.contentWindow.history.back();
+      }catch(e){
+        console.warn('[AFInst] Histórico:',e);
+      }
+    }),
+
     botao('Fechar',fechar)
   );
 
@@ -197,47 +292,76 @@ function criarJanela(){
   frame=document.createElement('iframe');
   frame.id='af-render-frame';
   frame.title='Navegação ALMAFLUXO';
+
   frame.setAttribute(
     'allow',
     'autoplay; encrypted-media; picture-in-picture'
   );
 
+  frame.addEventListener('load',()=>{
+    adaptarFrame();
+  });
+
   janela.append(barra,frame);
   document.body.appendChild(janela);
 }
+
+/* =====================================================
+   ADAPTAÇÃO DO IFRAME
+===================================================== */
 
 function adaptarFrame(){
   if(!frame)return;
 
   const resultado=perfilAtual();
 
-  if(!resultado)return;
+  if(!resultado||!resultado.perfil)return;
 
-  const nivel=resultado.nivel;
+  const nivel=resultado.nivel||'equilibrado';
   const p=resultado.perfil;
 
-  status.textContent=
-    'Perfil '+nivel+' · Meta '+p.fps+' FPS';
+  if(status){
+    status.textContent=
+      'Perfil '+nivel+' · Meta '+p.fps+' FPS';
+  }
 
   try{
     const doc=frame.contentDocument;
-    if(!doc||!doc.documentElement)return;
+
+    if(!doc||!doc.documentElement){
+      throw new Error('Documento incorporado indisponível.');
+    }
 
     const root=doc.documentElement;
 
     root.dataset.afDesempenho=nivel;
-    root.style.setProperty('--af-fps',p.fps);
+
+    root.style.setProperty(
+      '--af-fps',
+      p.fps
+    );
+
     root.style.setProperty(
       '--af-frame-ms',
       Math.round(1000/p.fps)+'ms'
     );
+
+    let head=doc.head;
+
+    if(!head){
+      head=doc.createElement('head');
+      doc.documentElement.insertBefore(
+        head,
+        doc.documentElement.firstChild
+      );
+    }
 
     let css=doc.getElementById('af-adaptacao-injetada');
 
     if(!css){
       css=doc.createElement('style');
       css.id='af-adaptacao-injetada';
-      doc.head.appendChild(css);
+      head.appendChild(css);
     }
 
     css.textContent=`
@@ -264,37 +388,126 @@ function adaptarFrame(){
     doc.defaultView.dispatchEvent(evento);
 
   }catch(e){
+
     if(status){
       status.textContent=
-        'O navegador não permite adaptar esta página incorporada.';
+        'Adaptação limitada pelo navegador.';
     }
 
-    console.warn('[AFInst] Adaptação do frame limitada:',e);
+    console.warn(
+      '[AFInst] Não foi possível adaptar o frame:',
+      e
+    );
   }
 }
 
+/* =====================================================
+   ABERTURA PELO RENDERIZADOR
+===================================================== */
+
 function renderizar(destino){
+  const caminho=validarDestino(destino);
+
+  if(!caminho){
+    return {
+      ok:false,
+      msg:'Destino inválido para o renderizador.'
+    };
+  }
+
   criarJanela();
 
-  const url=new URL(destino,location.origin);
+  const url='https://almafluxo.uk'+caminho;
 
-  if(frame.src!==url.href){
-    frame.onload=()=>{
-      adaptarFrame();
-    };
+  janela.style.display='flex';
 
-    frame.src=url.href;
+  if(status){
+    status.textContent='Carregando '+caminho+'...';
+  }
+
+  // Não utiliza AFEstado.proximo.
+  // Não redireciona para o portal.
+  // Carrega diretamente o destino no iframe.
+
+  if(frame.getAttribute('src')!==url){
+    frame.setAttribute('src',url);
   }else{
     adaptarFrame();
   }
 
-  janela.style.display='flex';
-
-  return{
+  return {
     ok:true,
-    msg:'Ambiente de navegação aberto.'
+    msg:'Endereço aberto pelo renderizador ALMAFLUXO.'
   };
 }
+
+/* =====================================================
+   BOTÃO 2 — NOSSA CONVERSA COM RENDERIZADOR
+===================================================== */
+
+async function abrir(destino){
+  return renderizar(destino||'/conversa');
+}
+
+/* =====================================================
+   BOTÃO — ABRIR TOTEM DIRETAMENTE COM DIAGNÓSTICO
+===================================================== */
+
+async function abrirDireto(){
+  try{
+    if(status){
+      status.textContent='Analisando dispositivo...';
+    }
+
+    const resultado=await diagnosticar();
+
+    if(resultado){
+      salvarPerfilTotem(resultado);
+    }
+
+    // Navegação direta.
+    // Sem iframe e sem redirecionamento pelo portal.
+    location.assign(TOTEM_URL);
+
+    return {
+      ok:true,
+      msg:'Diagnóstico concluído. Abrindo Totem diretamente.'
+    };
+
+  }catch(e){
+
+    console.error('[AFInst] Diagnóstico do Totem:',e);
+
+    return {
+      ok:false,
+      msg:'Falha no diagnóstico: '+e.message
+    };
+  }
+}
+
+/* =====================================================
+   BOTÃO — EXECUTAR TOTEM COMPLETO
+===================================================== */
+
+function executarCompleto(){
+
+  // Não executa diagnóstico.
+  // Não aplica perfil.
+  // Não utiliza iframe.
+  // Não altera AFEstado.
+  // Abre o endereço integral diretamente.
+
+  location.assign(TOTEM_URL);
+
+  return {
+    ok:true,
+    msg:'Abrindo Totem completo diretamente.'
+  };
+}
+
+/* =====================================================
+   FECHAR RENDERIZADOR
+===================================================== */
 
 function fechar(){
   if(janela){
@@ -302,53 +515,28 @@ function fechar(){
   }
 }
 
-async function abrir(destino){
-  const caminho=validarDestino(destino||'/');
-
-  if(!caminho){
-    return {
-      ok:false,
-      msg:'Destino inválido.'
-    };
-  }
-
-  // Navegação direta: não grava AFEstado.proximo.
-  // Isso evita conflito com a ponte do Totem.
-  try{
-    return renderizar(caminho);
-  }catch(e){
-    console.error('[AFInst] Erro ao abrir destino:',e);
-
-    return {
-      ok:false,
-      msg:'Não foi possível abrir o endereço: '+e.message
-    };
-  }
-}
+/* =====================================================
+   INSTALAÇÃO DO AMBIENTE ALMAFLUXO
+===================================================== */
 
 async function instalar(){
   try{
-    // Mostra imediatamente que o botão respondeu.
     criarJanela();
     janela.style.display='flex';
 
     status.textContent='Preparando ambiente ALMAFLUXO...';
 
     try{
-      await AFEstado.persistir();
+      if(window.AFEstado){
+        await AFEstado.persistir();
+      }
     }catch(e){
       console.warn('[AFInst] Persistência:',e);
     }
 
     status.textContent='Analisando capacidade do dispositivo...';
 
-    const adaptacao=window.AFAdaptador
-      ?await window.AFAdaptador.executar()
-      :perfilAtual();
-
-    if(adaptacao){
-      window.AFPerfilInstalacao=adaptacao;
-    }
+    const adaptacao=await diagnosticar();
 
     const configuracao={
       versao:1,
@@ -365,25 +553,32 @@ async function instalar(){
         STORAGE,
         JSON.stringify(configuracao)
       );
+
       persistido=true;
+
     }catch(e){
       console.warn('[AFInst] Armazenamento:',e);
     }
 
-    status.textContent='Preparando navegação adaptativa...';
+    status.textContent='Preparando renderizador...';
 
-    // A instalação PWA é complementar.
+    // O prompt PWA é opcional.
     if(ev){
       const evento=ev;
       ev=null;
 
       try{
         await evento.prompt();
+
         const escolha=await evento.userChoice;
 
-        console.info('[AFInst] Resultado PWA:',escolha.outcome);
+        console.info(
+          '[AFInst] Resultado PWA:',
+          escolha.outcome
+        );
+
       }catch(e){
-        console.warn('[AFInst] PWA indisponível:',e);
+        console.warn('[AFInst] PWA:',e);
       }
     }
 
@@ -394,7 +589,8 @@ async function instalar(){
     }
 
     status.textContent=
-      'Ambiente preparado · Perfil '+configuracao.perfil+
+      'Ambiente preparado · Perfil '+
+      configuracao.perfil+
       ' · '+configuracao.fps+' FPS';
 
     return {
@@ -404,11 +600,12 @@ async function instalar(){
         configuracao.perfil+'. '+
         (persistido
           ?'Configuração salva neste navegador.'
-          :'Configuração disponível somente nesta sessão.')
+          :'Configuração mantida nesta sessão.')
     };
 
   }catch(e){
-    console.error('[AFInst] Falha na instalação:',e);
+
+    console.error('[AFInst] Instalação:',e);
 
     if(status){
       status.textContent='Falha: '+e.message;
@@ -416,10 +613,14 @@ async function instalar(){
 
     return {
       ok:false,
-      msg:'Falha ao preparar o ambiente: '+e.message
+      msg:'Falha ao preparar ambiente: '+e.message
     };
   }
 }
+
+/* =====================================================
+   CONSULTA DO AMBIENTE
+===================================================== */
 
 function instalado(){
   try{
@@ -429,17 +630,46 @@ function instalado(){
   }
 }
 
+function lerPerfilTotem(){
+  try{
+    const valor=localStorage.getItem(PERFIL_STORAGE);
+    return valor?JSON.parse(valor):null;
+  }catch(e){
+    return null;
+  }
+}
+
+/* =====================================================
+   API PÚBLICA
+===================================================== */
+
 window.AFInst={
+
   guia(plataforma){
     return GUIA[plataforma]||GUIA.outras;
   },
 
   instalar,
+
+  // Abertura dentro do renderizador.
   abrir,
+
+  // Abertura direta com diagnóstico.
+  abrirDireto,
+
+  // Abertura direta integral, sem filtro.
+  executarCompleto,
+
   fechar,
   renderizar,
   adaptarFrame,
-  instalado
+  instalado,
+  lerPerfilTotem,
+
+  obterEnderecoTotem(){
+    return TOTEM_URL;
+  }
+
 };
 
 })();
