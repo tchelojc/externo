@@ -280,9 +280,14 @@ q('hInst').onclick=async()=>{
   try{
     st.textContent='Diagnosticando dispositivo...';
 
+    // 1. Diagnostica o dispositivo e prepara o perfil adaptativo.
     const adaptacao=await AFAdaptador.executar();
 
-    // Disponibiliza o diagnóstico para o instalador
+    if(!adaptacao || !adaptacao.perfil){
+      throw new Error('O diagnóstico não retornou um perfil válido.');
+    }
+
+    // Disponibiliza o diagnóstico para o instalador.
     window.AFPerfilInstalacao=adaptacao;
 
     st.textContent=
@@ -290,16 +295,18 @@ q('hInst').onclick=async()=>{
       ' · Meta de renderização: '+adaptacao.perfil.fps+' FPS'+
       ' · Preparando instalação...';
 
-    // Mantém a assinatura original até verificarmos AFInst
+    // 2. Instala o ambiente de navegação adaptativo.
     const r=await AFInst.instalar();
 
     st.textContent=r?.msg||'Instalação finalizada.';
 
+    // 3. Verifica se existe atualização disponível.
     const a=await AFAtualizador.checar();
 
     if(a.erro){
       st.textContent+=' · Atualização: '+a.erro;
     }else if(a.remota){
+      // 4. Verifica a integridade antes de registrar a versão.
       const i=await AFIntegridade.verificar('/');
 
       if(i.length&&i.every(x=>x.ok)){
@@ -313,16 +320,112 @@ q('hInst').onclick=async()=>{
     btn.disabled=false;
   }
 };
-q('hUpd').onclick=async()=>{const a=await AFAtualizador.checar();if(a.erro)return st.textContent=a.erro;if(!a.nova)return st.textContent='Já está na versão '+a.remota;const r=await AFAtualizador.aplicar(a.remota);st.textContent=r.msg};
-{const sel=q('hGSel'),mp={desconhecida:'outras'};AFGuia.ids().then(L=>{sel.innerHTML=L.map(x=>'<option value="'+x.id+'">'+x.nome+'</option>').join('');sel.value=L.some(x=>x.id===p)?p:(mp[p]&&'outras')||'outras'});q('hGo').onclick=()=>AFGuia.abrir(sel.value)}
-q('hConv').onclick=()=>{
-  window.open('https://almafluxo.uk/conversa/','_blank');
+
+
+// ATUALIZAR ECOSSISTEMA
+q('hUpd').onclick=async()=>{
+  const btn=q('hUpd');
+  btn.disabled=true;
+
+  try{
+    st.textContent='Verificando atualizações...';
+
+    const a=await AFAtualizador.checar();
+
+    if(a.erro){
+      st.textContent=a.erro;
+      return;
+    }
+
+    if(!a.nova){
+      st.textContent='Já está na versão '+a.remota;
+      return;
+    }
+
+    st.textContent='Aplicando atualização...';
+
+    const r=await AFAtualizador.aplicar(a.remota);
+
+    st.textContent=r?.msg||'Atualização concluída.';
+
+  }catch(e){
+    st.textContent='Falha na atualização: '+(e?.message||String(e));
+  }finally{
+    btn.disabled=false;
+  }
 };
 
-q('hUni').onclick=()=>{
-  window.open('https://almafluxo.uk/','_blank');
+
+// GUIA DE INSTALAÇÃO POR DISPOSITIVO
+{
+  const sel=q('hGSel');
+  const mp={desconhecida:'outras'};
+
+  AFGuia.ids().then(L=>{
+    sel.innerHTML=L.map(x=>
+      '<option value="'+x.id+'">'+x.nome+'</option>'
+    ).join('');
+
+    sel.value=L.some(x=>x.id===p)
+      ?p
+      :(mp[p]||'outras');
+
+  }).catch(e=>{
+    st.textContent='Falha ao carregar os guias: '+e.message;
+  });
+
+  q('hGo').onclick=()=>{
+    AFGuia.abrir(sel.value);
+  };
+}
+
+
+// ABRIR NOSSA CONVERSA — DENTRO DO RENDERIZADOR ADAPTATIVO
+q('hConv').onclick=async()=>{
+  try{
+    st.textContent='Abrindo nossa conversa no ambiente adaptativo...';
+
+    const r=await AFInst.abrir('/conversa');
+
+    st.textContent=r?.msg||'Nossa conversa foi aberta no renderizador.';
+
+  }catch(e){
+    st.textContent='Falha ao abrir nossa conversa: '+(e?.message||String(e));
+  }
 };
-q('hLog').onclick=async()=>{try{const U=await AFEstado.login(q('hE').value.trim().toLowerCase(),q('hS').value);q('hS').value='';q('hUser').textContent='Sessão ativa: '+U.email}catch(e){q('hUser').textContent=e.message}};
+
+
+// ABRIR UNIVERSO — DENTRO DO RENDERIZADOR ADAPTATIVO
+q('hUni').onclick=async()=>{
+  try{
+    st.textContent='Abrindo Universo no ambiente adaptativo...';
+
+    const r=await AFInst.abrir('/');
+
+    st.textContent=r?.msg||'Universo aberto no renderizador.';
+
+  }catch(e){
+    st.textContent='Falha ao abrir Universo: '+(e?.message||String(e));
+  }
+};
+
+
+// LOGIN
+q('hLog').onclick=async()=>{
+  try{
+    const U=await AFEstado.login(
+      q('hE').value.trim().toLowerCase(),
+      q('hS').value
+    );
+
+    q('hS').value='';
+    q('hUser').textContent='Sessão ativa: '+U.email;
+
+  }catch(e){
+    q('hUser').textContent=e.message;
+  }
+};
+
 })();
 </script>
 <script>
