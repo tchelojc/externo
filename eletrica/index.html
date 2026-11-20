@@ -84,7 +84,121 @@ footer{padding:10px 16px;color:var(--mu);font-size:11px;border-top:1px solid var
 const WK='https://almafluxo.uk',$=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let U=null;try{U=JSON.parse(localStorage.getItem('almafluxo_usuario')||'null')}catch(e){}
-const post=(p,b)=>fetch(WK+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).then(r=>r.json());
+
+
+const post = async (p, b, options = {}) => {
+  const controller = new AbortController();
+  let expirou = false;
+
+  const abortarExterno = () => controller.abort();
+
+  if (options.signal) {
+    if (options.signal.aborted) {
+      controller.abort();
+    } else {
+      options.signal.addEventListener('abort', abortarExterno, {
+        once: true
+      });
+    }
+  }
+
+  const timeout = setTimeout(() => {
+    expirou = true;
+    controller.abort();
+  }, options.timeout || 25000);
+
+  try {
+    const response = await fetch(WK + p, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(b),
+      signal: controller.signal,
+      cache: 'no-store'
+    });
+
+    const contentType = response.headers.get('content-type') || '';
+
+    if (!contentType.includes('application/json')) {
+      const raw = await response.text();
+
+      throw new Error(
+        'Resposta inválida do Worker: HTTP ' +
+        response.status + ' em ' + p +
+        '. ' + raw.slice(0, 180)
+      );
+    }
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      data._httpStatus = response.status;
+      data._rota = p;
+    }
+
+    return data;
+
+  } catch (error) {
+    if (controller.signal.aborted) {
+      const cancelamento = new Error(
+        expirou
+          ? 'Tempo limite excedido na rota ' + p
+          : 'Requisição cancelada na rota ' + p
+      );
+
+      cancelamento.name = expirou ? 'TimeoutError' : 'AbortError';
+      throw cancelamento;
+    }
+
+    throw error;
+
+  } finally {
+    clearTimeout(timeout);
+
+    if (options.signal) {
+      options.signal.removeEventListener('abort', abortarExterno);
+    }
+  }
+};
+
+// CONTROLE DE REQUISIÇÕES DA ELÉTRICA
+const AFEL = {
+  sequencias: Object.create(null),
+  controllers: Object.create(null),
+
+  iniciar(chave) {
+    if (this.controllers[chave]) {
+      this.controllers[chave].abort();
+    }
+
+    const controller = new AbortController();
+    this.controllers[chave] = controller;
+
+    const sequencia = (this.sequencias[chave] || 0) + 1;
+    this.sequencias[chave] = sequencia;
+
+    return {
+      controller,
+      signal: controller.signal,
+      sequencia,
+      atual: () => this.sequencias[chave] === sequencia
+    };
+  },
+
+  finalizar(chave, operacao) {
+    if (this.controllers[chave] === operacao.controller) {
+      delete this.controllers[chave];
+    }
+  },
+
+  cancelar(chave) {
+    if (this.controllers[chave]) {
+      this.controllers[chave].abort();
+      delete this.controllers[chave];
+    }
+  }
+};
 const SES=()=>({email:U.email,sessionToken:U.sessionToken});
 const tipo=n=>/^(5V|VIN)$/.test(n)?'p5':n==='3V3'?'p3':n==='GND'?'g':/^(EN|ID_S[DC])$/.test(n)?'x':'io';
 const COR={p5:'#ff4d57',p3:'#f0a830',g:'#7f8da3',io:'#27c8ff',x:'#556677'};
@@ -105,7 +219,66 @@ function draw(){const n=B.pinos.length,pi=B.layout==='par-impar',rows=pi?n/2:Mat
 function click(i){if(pend===null)pend=i;else if(pend===i)pend=null;else{if(!wires.some(w=>(w[0]===pend&&w[1]===i)||(w[0]===i&&w[1]===pend)))wires.push([pend,i]);pend=null}run()}
 const par=()=>({q:$('bq').value,h:$('bh').value,ef:$('be').value,mm:$('bm').value,metal:$('bt').value,pr:$('bp').value});
 const al=a=>'<div class="al '+a[0]+'">'+esc(a[1])+(a[2]?'<small>'+esc(a[2])+'</small>':'')+'</div>';
-function calc(){clearTimeout(tmr);tmr=setTimeout(()=>post('/api/eletrica/calcular',{...SES(),placa:B.id,fios:wires,cargas:cg(),params:par()}).then(r=>{if(!r.ok){if(/Entre/.test(r.error||''))gate();throw r}show(r)}).catch(r=>{$('obs').innerHTML='<div class="al bad">'+esc((r&&r.error)||'Falha ao calcular')+'</div>'}),250)}
+
+function calc(){
+  clearTimeout(tmr);
+
+  const op = AFEL.iniciar('calcular');
+
+  $('ost').textContent = 'CALCULANDO...';
+  $('ost').style.background = '#174b78';
+
+  tmr = setTimeout(async () => {
+    try {
+      const resposta = await post(
+        '/api/eletrica/calcular',
+        {
+          ...SES(),
+          placa: B.id,
+          fios: wires,
+          cargas: cg(),
+          params: par()
+        },
+        {
+          signal: op.signal,
+          timeout: 25000
+        }
+      );
+
+      // Impede uma resposta antiga de atualizar a bancada.
+      if (!op.atual()) return;
+
+      if (!resposta.ok) {
+        if (/Entre/.test(resposta.error || '')) {
+          gate();
+        }
+
+        throw new Error(
+          resposta.error || 'O Worker recusou o cálculo.'
+        );
+      }
+
+      show(resposta);
+
+    } catch (erro) {
+      // Requisição antiga ou cancelada: não altera a tela.
+      if (!op.atual() || erro.name === 'AbortError') {
+        return;
+      }
+
+      $('ost').textContent = 'ERRO';
+      $('ost').style.background = '#a02834';
+
+      $('obs').innerHTML =
+        '<div class="al bad">' +
+        esc(erro.message || 'Falha ao calcular') +
+        '</div>';
+
+    } finally {
+      AFEL.finalizar('calcular', op);
+    }
+  }, 250);
+}
 function show(r){last=r;const A=r.alertas,bad=A.some(a=>a[0]==='bad'),o=$('ost'),b=r.bateria;
  o.textContent=bad?'CURTO/RISCO':A.length?A.length+' alerta(s)':'OK';o.style.background=bad?'#a02834':A.length?'#7a5a10':'#1f7a50';
  $('obs').innerHTML=A.length?A.map(al).join(''):'<div class="al ok">Nenhum problema encontrado nos fios e nas cargas atuais.</div>';
