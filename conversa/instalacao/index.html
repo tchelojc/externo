@@ -19,6 +19,27 @@ main{width:min(1120px,94vw);margin:auto;padding:22px 0 44px}.head{display:flex;a
 #bench{position:absolute;left:-10000px;top:-10000px;width:640px;height:360px;opacity:0;pointer-events:none}
 @media(max-width:720px){.grid{grid-template-columns:1fr}.hero{border-radius:17px}main{padding-top:15px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+/* ALMAFLUXO — adaptação visual */
+
+.af-sem-animacao *,
+.af-sem-animacao *::before,
+.af-sem-animacao *::after{
+  animation:none!important;
+  scroll-behavior:auto!important;
+  transition:none!important;
+}
+
+.af-sem-efeitos *,
+.af-sem-efeitos *::before,
+.af-sem-efeitos *::after{
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+}
+
+html[data-af-desempenho="economico"],
+html[data-af-desempenho="compatibilidade"]{
+  content-visibility:auto;
+}
 </style>
 </head>
 <body>
@@ -77,17 +98,230 @@ main{width:min(1120px,94vw);margin:auto;padding:22px 0 44px}.head{display:flex;a
 <script src="/conversa/instalacao/core/guia.js"></script>
 <script src="/conversa/instalacao/core/gravador.js"></script>
 <script>
+
+/* =========================================================
+   ALMAFLUXO — MOTOR DE ADAPTAÇÃO
+   Ajusta instalação e renderização ao dispositivo
+========================================================= */
+const AFAdaptador=(()=>{
+'use strict';
+
+const limitar=(v,min,max)=>Math.max(min,Math.min(max,v));
+
+function diagnosticar(){
+  const nav=navigator;
+  const mem=Number(nav.deviceMemory)||0;
+  const cpu=Number(nav.hardwareConcurrency)||0;
+  const tela=Math.max(1,(screen.width||0)*(screen.height||0));
+  const reduzido=!!(
+    nav.connection?.saveData ||
+    matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
+
+  const gpu=(()=>{
+    try{
+      const c=document.createElement('canvas');
+      const gl=c.getContext('webgl')||
+               c.getContext('experimental-webgl');
+      if(!gl)return false;
+      const ext=gl.getExtension('WEBGL_debug_renderer_info');
+      return {
+        disponivel:true,
+        renderer:ext?
+          gl.getParameter(ext.UNMASKED_RENDERER_WEBGL):'indisponível'
+      };
+    }catch(e){return false}
+  })();
+
+  const plataforma=AFDetector.plataforma();
+  const caps=AFDetector.caps();
+
+  return {
+    plataforma,
+    memoria:mem,
+    nucleos:cpu,
+    pixels:tela,
+    gpu,
+    conexao:nav.connection?.effectiveType||'desconhecida',
+    economia:reduzido,
+    usb:!!(caps.usb||caps.serial),
+    bluetooth:!!caps.bluetooth,
+    standalone:!!(matchMedia('(display-mode: standalone)').matches||
+      navigator.standalone)
+  };
+}
+
+
+function selecionar(d){
+  let pontos=0;
+  let avaliados=0;
+
+  if(d.memoria>0){
+    avaliados++;
+    if(d.memoria>=8)pontos+=3;
+    else if(d.memoria>=4)pontos+=2;
+    else if(d.memoria>=2)pontos+=1;
+  }
+
+  if(d.nucleos>0){
+    avaliados++;
+    if(d.nucleos>=8)pontos+=3;
+    else if(d.nucleos>=4)pontos+=2;
+    else if(d.nucleos>=2)pontos+=1;
+  }
+
+  if(d.gpu&&d.gpu.disponivel){
+    pontos+=1;
+    avaliados++;
+  }
+
+  if(d.economia)pontos-=2;
+  if(['slow-2g','2g'].includes(d.conexao))pontos-=1;
+
+  // Dados insuficientes: começar com perfil equilibrado
+  if(avaliados===0)return 'equilibrado';
+
+  if(pontos>=6)return 'completo';
+  if(pontos>=4)return 'equilibrado';
+  if(pontos>=2)return 'economico';
+
+  return 'compatibilidade';
+}
+
+const perfis={
+  completo:{
+    fps:60,
+    animacoes:true,
+    efeitos:true,
+    concorrencia:4,
+    imagem:'alta'
+  },
+  equilibrado:{
+    fps:30,
+    animacoes:true,
+    efeitos:false,
+    concorrencia:2,
+    imagem:'media'
+  },
+  economico:{
+    fps:20,
+    animacoes:false,
+    efeitos:false,
+    concorrencia:1,
+    imagem:'baixa'
+  },
+  compatibilidade:{
+    fps:15,
+    animacoes:false,
+    efeitos:false,
+    concorrencia:1,
+    imagem:'minima'
+  }
+};
+
+function aplicar(perfil){
+  const p=perfis[perfil]||perfis.compatibilidade;
+  const root=document.documentElement;
+
+  root.dataset.afDesempenho=perfil;
+  root.style.setProperty('--af-fps',String(p.fps));
+  root.style.setProperty('--af-frame-ms',
+    String(Math.round(1000/p.fps))+'ms');
+
+  root.classList.toggle('af-sem-animacao',!p.animacoes);
+  root.classList.toggle('af-sem-efeitos',!p.efeitos);
+
+  return p;
+}
+
+async function executar(){
+  const dados=diagnosticar();
+  const nivel=selecionar(dados);
+  const perfil=aplicar(nivel);
+
+  const resultado={
+    dados,
+    nivel,
+    perfil,
+    data:new Date().toISOString()
+  };
+
+  window.AFDiagnosticoAdaptativo=resultado;
+
+  window.dispatchEvent(new CustomEvent(
+    'af:perfil-adaptativo',
+    {detail:resultado}
+  ));
+
+  return resultado;
+}
+
+return {
+  diagnosticar,
+  selecionar,
+  aplicar,
+  executar,
+  perfis
+};
+})();
 (async()=>{const q=i=>document.getElementById(i),p=AFDetector.plataforma(),st=q('hSt');
 q('hGuia').innerHTML=AFInst.guia(p).map(x=>'<li>'+x.replace(/</g,'&lt;')+'</li>').join('');
 const u=AFEstado.usuario();q('hUser').textContent=u?'Sessão ativa: '+u.email:'Sem sessão.';
 const ex=await AFDetector.existente(),c=AFDetector.caps();
+const adaptacao=await AFAdaptador.executar();
 st.textContent='Plataforma: '+p+' (pacote nativo: '+AFDetector.pacote()+') · '+(ex.standalone||ex.flag?'ALMAFLUXO instalado'+(ex.versao?' v'+ex.versao:''):'ainda não instalado')+' · USB:'+(c.usb||c.serial?'sim':'não')+' Bluetooth:'+(c.bluetooth?'sim':'não');
 AFGravador.resumo().then(r=>{st.textContent+=' · Pacotes publicados: '+(r.com.length?r.com.join(', '):'nenhum ainda')+(r.sem.length?' · sem pacote: '+r.sem.join(', '):'')});
-q('hInst').onclick=async()=>{const r=await AFInst.instalar();st.textContent=r.msg;const a=await AFAtualizador.checar();if(a.remota){const i=await AFIntegridade.verificar('/');if(i.length&&i.every(x=>x.ok))AFEstado.set({versao:a.remota})}};
+
+
+q('hInst').onclick=async()=>{
+  const btn=q('hInst');
+  btn.disabled=true;
+
+  try{
+    st.textContent='Diagnosticando dispositivo...';
+
+    const adaptacao=await AFAdaptador.executar();
+
+    // Disponibiliza o diagnóstico para o instalador
+    window.AFPerfilInstalacao=adaptacao;
+
+    st.textContent=
+      'Perfil: '+adaptacao.nivel+
+      ' · Meta de renderização: '+adaptacao.perfil.fps+' FPS'+
+      ' · Preparando instalação...';
+
+    // Mantém a assinatura original até verificarmos AFInst
+    const r=await AFInst.instalar();
+
+    st.textContent=r?.msg||'Instalação finalizada.';
+
+    const a=await AFAtualizador.checar();
+
+    if(a.erro){
+      st.textContent+=' · Atualização: '+a.erro;
+    }else if(a.remota){
+      const i=await AFIntegridade.verificar('/');
+
+      if(i.length&&i.every(x=>x.ok)){
+        AFEstado.set({versao:a.remota});
+      }
+    }
+
+  }catch(e){
+    st.textContent='Falha: '+(e?.message||String(e));
+  }finally{
+    btn.disabled=false;
+  }
+};
 q('hUpd').onclick=async()=>{const a=await AFAtualizador.checar();if(a.erro)return st.textContent=a.erro;if(!a.nova)return st.textContent='Já está na versão '+a.remota;const r=await AFAtualizador.aplicar(a.remota);st.textContent=r.msg};
 {const sel=q('hGSel'),mp={desconhecida:'outras'};AFGuia.ids().then(L=>{sel.innerHTML=L.map(x=>'<option value="'+x.id+'">'+x.nome+'</option>').join('');sel.value=L.some(x=>x.id===p)?p:(mp[p]&&'outras')||'outras'});q('hGo').onclick=()=>AFGuia.abrir(sel.value)}
-q('hConv').onclick=()=>window.open('https://almafluxo.uk/conversa/','_blank');
-q('hUni').onclick=()=>window.open('https://almafluxo.uk/','_blank');
+q('hConv').onclick=()=>{
+  window.open('https://almafluxo.uk/conversa/','_blank');
+};
+
+q('hUni').onclick=()=>{
+  window.open('https://almafluxo.uk/','_blank');
+};
 q('hLog').onclick=async()=>{try{const U=await AFEstado.login(q('hE').value.trim().toLowerCase(),q('hS').value);q('hS').value='';q('hUser').textContent='Sessão ativa: '+U.email}catch(e){q('hUser').textContent=e.message}};
 })();
 </script>
