@@ -1,206 +1,421 @@
 
 (()=>{
-  'use strict';
+'use strict';
 
-  const BASE = 'https://almafluxo.uk/conversa/instalacao/';
-  const PACOTES_URL = BASE + 'distribuicao/pacotes.json';
+const BASE='https://almafluxo.uk/conversa/instalacao/';
+const PACOTES_URL=BASE+'distribuicao/pacotes.json';
+const STORAGE='AF_AMBIENTE_RENDERIZACAO_V1';
 
-  let ev = null;
+let ev=null;
+let janela=null;
+let frame=null;
+let status=null;
 
-  // Captura o evento de instalação PWA.
-  addEventListener('beforeinstallprompt', e => {
-    e.preventDefault();
-    ev = e;
-  });
+addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  ev=e;
+});
 
-  // Registra quando o aplicativo foi instalado.
-  addEventListener('appinstalled', () => {
-    try {
-      AFEstado.set({
-        instalado: true,
-        instaladoEm: Date.now()
-      });
-    } catch (erro) {
-      console.warn('[AFInst] Não foi possível registrar instalação:', erro);
+addEventListener('appinstalled',()=>{
+  try{
+    AFEstado.set({
+      instalado:true,
+      instaladoEm:Date.now()
+    });
+  }catch(e){
+    console.warn('[AFInst]',e);
+  }
+});
+
+const GUIA={
+  tizen:[
+    'Use o pacote nativo Tizen quando disponível.',
+    'Para navegação adaptativa, utilize um navegador compatível.',
+    'A execução automática depende do suporte do fabricante.'
+  ],
+  webos:[
+    'Use o pacote nativo webOS quando disponível.',
+    'Verifique a compatibilidade do navegador da televisão.',
+    'A execução automática depende do modelo.'
+  ],
+  'android-tv':[
+    'Use o navegador compatível ou o pacote Android TV.',
+    'A janela adaptativa funciona dentro do navegador.',
+    'Um APK pode oferecer integração nativa adicional.'
+  ],
+  windows:[
+    'Use o PWA quando disponível.',
+    'A janela adaptativa pode abrir os endereços do ecossistema.',
+    'Um executável nativo exige um pacote próprio.'
+  ],
+  linux:[
+    'Use o PWA ou navegador compatível.',
+    'A janela adaptativa utiliza os endereços existentes.'
+  ],
+  outras:[
+    'Abra o portal em um navegador compatível.',
+    'A janela adaptativa verifica o suporte de incorporação dos endereços.'
+  ]
+};
+
+function validarDestino(destino){
+  if(typeof destino!=='string'||!destino)return null;
+
+  try{
+    const url=new URL(destino,location.origin);
+
+    if(url.origin!==location.origin)return null;
+    if(!/^\/[\w./-]*$/.test(url.pathname))return null;
+    if(url.pathname.startsWith('//'))return null;
+
+    return url.pathname;
+  }catch(e){
+    return null;
+  }
+}
+
+async function obterEsperaTotem(){
+  try{
+    const r=await fetch(PACOTES_URL,{
+      cache:'no-store',
+      credentials:'same-origin'
+    });
+
+    if(!r.ok)throw new Error('HTTP '+r.status);
+
+    const j=await r.json();
+    const n=Number(j?.comunicacao?.totem?.espera_s);
+
+    return Number.isFinite(n)&&n>=1?
+      Math.min(n,300):45;
+
+  }catch(e){
+    console.warn('[AFInst] Espera padrão:',e);
+    return 45;
+  }
+}
+
+function perfilAtual(){
+  return window.AFPerfilInstalacao||
+         window.AFDiagnosticoAdaptativo||
+         null;
+}
+
+function criarEstilo(){
+  if(document.getElementById('af-render-style'))return;
+
+  const css=document.createElement('style');
+  css.id='af-render-style';
+
+  css.textContent=`
+    #af-render-window{
+      position:fixed;
+      inset:0;
+      z-index:2147483000;
+      display:flex;
+      flex-direction:column;
+      background:#080d18;
+      color:#fff;
+      font:14px Arial,sans-serif;
     }
-  });
 
-  // Início automático: depende do fabricante/modelo.
-  const GUIA = {
-    tizen: [
-      'Instale pelo módulo plataformas/tizen (.wgt, modo desenvolvedor ou loja).',
-      'Ajustes › Geral › procure a opção de executar o último app/Smart Hub ao ligar (o nome varia por ano/modelo).',
-      'TV corporativa/sinalização: use "URL Launcher" apontando para https://almafluxo.uk/conversa/instalacao/.'
-    ],
-
-    webos: [
-      'Instale pelo módulo plataformas/webos (.ipk, modo desenvolvedor ou loja).',
-      'Ajustes › Geral › procure o início automático/aplicativo inicial (varia por modelo).',
-      'Sinalização LG: configure app/URL de início no menu de instalação.'
-    ],
-
-    'android-tv': [
-      'Instale o .apk (plataformas/android-tv) ou instale o PWA pelo Chrome.',
-      'Um APK nativo pode iniciar no boot; PWA em navegador não inicia sozinho.',
-      'Alternativa: definir o app como launcher/tela inicial pelo menu do fabricante.'
-    ],
-
-    windows: [
-      'Instale o PWA (Edge/Chrome › Instalar) e abra a pasta Inicializar (Win+R › shell:startup).',
-      'Coloque ali um atalho para o app instalado.'
-    ],
-
-    linux: [
-      'Instale o PWA ou use o pacote em plataformas/linux/debian-offline.',
-      'Adicione o app em Aplicativos de inicialização da sessão.'
-    ],
-
-    outras: [
-      'Abra https://almafluxo.uk/conversa/instalacao/ no navegador da TV e salve como página inicial/favorita.',
-      'Se o navegador não abre o totem, é falta de suporte do aparelho: use o módulo nativo da plataforma.'
-    ]
-  };
-
-  // Valida destinos internos do ecossistema.
-  function validarDestino(destino) {
-    if (typeof destino !== 'string' || !destino) {
-      return null;
+    #af-render-toolbar{
+      min-height:46px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:5px 10px;
+      background:#101b2b;
+      flex-wrap:wrap;
     }
 
-    try {
-      const url = new URL(destino, location.origin);
-
-      if (url.origin !== location.origin) return null;
-      if (!/^\/[\w./-]*$/.test(url.pathname)) return null;
-      if (url.pathname.startsWith('//')) return null;
-
-      return url.pathname;
-    } catch (erro) {
-      return null;
+    #af-render-toolbar button{
+      border:1px solid #40516a;
+      border-radius:7px;
+      background:#1b2c42;
+      color:white;
+      padding:8px 12px;
+      cursor:pointer;
     }
+
+    #af-render-status{
+      margin-left:auto;
+      font-size:11px;
+      opacity:.8;
+    }
+
+    #af-render-frame{
+      width:100%;
+      height:100%;
+      flex:1;
+      border:0;
+      background:#080d18;
+    }
+  `;
+
+  document.head.appendChild(css);
+}
+
+function criarJanela(){
+  if(janela&&frame)return;
+
+  criarEstilo();
+
+  janela=document.createElement('section');
+  janela.id='af-render-window';
+
+  const barra=document.createElement('nav');
+  barra.id='af-render-toolbar';
+
+  const titulo=document.createElement('strong');
+  titulo.textContent='ALMAFLUXO';
+
+  function botao(nome,acao){
+    const b=document.createElement('button');
+    b.type='button';
+    b.textContent=nome;
+    b.addEventListener('click',acao);
+    return b;
   }
 
-  // Obtém o tempo configurado no pacotes.json.
-  async function obterEsperaTotem() {
-    const PADRAO = 45;
+  barra.append(
+    titulo,
+    botao('Início',()=>abrir('/')),
+    botao('Totem',()=>abrir('/conversa/')),
+    botao('Voltar',()=>{
+      try{frame.contentWindow.history.back()}catch(e){}
+    }),
+    botao('Fechar',fechar)
+  );
 
-    try {
-      const resposta = await fetch(PACOTES_URL, {
-        cache: 'no-store',
-        credentials: 'same-origin'
-      });
+  status=document.createElement('span');
+  status.id='af-render-status';
+  status.textContent='Preparando renderização...';
 
-      if (!resposta.ok) {
-        throw new Error(`HTTP ${resposta.status}`);
-      }
+  barra.appendChild(status);
 
-      const dados = await resposta.json();
-      const valor = Number(dados?.comunicacao?.totem?.espera_s);
+  frame=document.createElement('iframe');
+  frame.id='af-render-frame';
+  frame.title='Navegação ALMAFLUXO';
+  frame.setAttribute(
+    'allow',
+    'fullscreen; autoplay; encrypted-media; picture-in-picture'
+  );
+  frame.setAttribute('allowfullscreen','');
 
-      if (!Number.isFinite(valor) || valor < 1) {
-        return PADRAO;
-      }
+  janela.append(barra,frame);
+  document.body.appendChild(janela);
+}
 
-      return Math.min(valor, 300);
+function adaptarFrame(){
+  if(!frame)return;
 
-    } catch (erro) {
-      console.warn('[AFInst] Usando espera padrão:', erro);
-      return PADRAO;
+  const resultado=perfilAtual();
+
+  if(!resultado)return;
+
+  const nivel=resultado.nivel;
+  const p=resultado.perfil;
+
+  status.textContent=
+    'Perfil '+nivel+' · Meta '+p.fps+' FPS';
+
+  try{
+    const doc=frame.contentDocument;
+    if(!doc||!doc.documentElement)return;
+
+    const root=doc.documentElement;
+
+    root.dataset.afDesempenho=nivel;
+    root.style.setProperty('--af-fps',p.fps);
+    root.style.setProperty(
+      '--af-frame-ms',
+      Math.round(1000/p.fps)+'ms'
+    );
+
+    let css=doc.getElementById('af-adaptacao-injetada');
+
+    if(!css){
+      css=doc.createElement('style');
+      css.id='af-adaptacao-injetada';
+      doc.head.appendChild(css);
     }
-  }
 
-  window.AFInst = {
-
-    guia(plataforma) {
-      return GUIA[plataforma] || GUIA.outras;
-    },
-
-    async instalar() {
-      await AFEstado.persistir();
-
-      if (ev) {
-        const evento = ev;
-        ev = null;
-
-        try {
-          await evento.prompt();
-
-          const resultado = await evento.userChoice;
-
-          if (resultado.outcome === 'accepted') {
-            AFEstado.set({
-              instalado: true,
-              instaladoEm: Date.now()
-            });
-
-            return {
-              ok: true,
-              msg: 'Instalado.'
-            };
-          }
-
-          return {
-            ok: false,
-            msg: 'Instalação cancelada.'
-          };
-
-        } catch (erro) {
-          return {
-            ok: false,
-            msg: 'Não foi possível iniciar a instalação: ' + erro.message
-          };
+    css.textContent=`
+      ${!p.animacoes?`
+        *,*::before,*::after{
+          animation:none!important;
+          transition:none!important;
+          scroll-behavior:auto!important;
         }
-      }
+      `:''}
 
-      if (AFDetector.instalado()) {
-        return {
-          ok: true,
-          msg: 'Já está rodando como aplicativo instalado.'
-        };
-      }
+      ${!p.efeitos?`
+        *{
+          backdrop-filter:none!important;
+        }
+      `:''}
+    `;
 
-      const plataforma = AFDetector.plataforma();
+    const evento=new doc.defaultView.CustomEvent(
+      'af:perfil-adaptativo',
+      {detail:resultado}
+    );
 
-      return {
-        ok: false,
-        msg:
-          'Este navegador não oferece instalação direta. ' +
-          (plataforma === 'ios'
-            ? 'No iPhone/iPad: Compartilhar › Adicionar à Tela de Início.'
-            : 'Use o menu do navegador (Instalar/Adicionar à tela inicial) ou o pacote ' +
-              AFDetector.pacote() +
-              ' da plataforma.')
-      };
-    },
+    doc.defaultView.dispatchEvent(evento);
 
-    // Toda entrada no ecossistema passa por /conversa.
-    // O destino é gravado para a ponte do totem.
-    async abrir(destino) {
-      const caminho = destino ? validarDestino(destino) : null;
-
-      if (destino && !caminho) {
-        return {
-          ok: false,
-          msg: 'Destino inválido ou externo. Redirecionamento cancelado.'
-        };
-      }
-
-      const espera = await obterEsperaTotem();
-
-      AFEstado.set({
-        proximo: caminho,
-        esperaTotem: espera,
-        ultimaAbertura: Date.now()
-      });
-
-      location.href = '/conversa/';
-
-      return {
-        ok: true,
-        msg: 'Abrindo o ecossistema.'
-      };
+  }catch(e){
+    if(status){
+      status.textContent=
+        'O navegador não permite adaptar esta página incorporada.';
     }
 
+    console.warn('[AFInst] Adaptação do frame limitada:',e);
+  }
+}
+
+function renderizar(destino){
+  criarJanela();
+
+  const url=new URL(destino,location.origin);
+
+  if(frame.src!==url.href){
+    frame.onload=()=>{
+      adaptarFrame();
+    };
+
+    frame.src=url.href;
+  }else{
+    adaptarFrame();
+  }
+
+  janela.style.display='flex';
+
+  return{
+    ok:true,
+    msg:'Ambiente de navegação aberto.'
   };
+}
+
+function fechar(){
+  if(janela){
+    janela.style.display='none';
+  }
+}
+
+async function abrir(destino){
+  const caminho=validarDestino(destino||'/');
+
+  if(!caminho){
+    return{
+      ok:false,
+      msg:'Destino inválido.'
+    };
+  }
+
+  const espera=await obterEsperaTotem();
+
+  try{
+    AFEstado.set({
+      proximo:caminho,
+      esperaTotem:espera,
+      ultimaAbertura:Date.now()
+    });
+  }catch(e){
+    console.warn('[AFInst] Estado:',e);
+  }
+
+  return renderizar(caminho);
+}
+
+async function instalar(){
+  try{
+    try{
+      await AFEstado.persistir();
+    }catch(e){
+      console.warn('[AFInst] Persistência:',e);
+    }
+
+    const adaptacao=window.AFAdaptador?
+      await AFAdaptador.executar():perfilAtual();
+
+    if(adaptacao){
+      window.AFPerfilInstalacao=adaptacao;
+    }
+
+    const configuracao={
+      versao:1,
+      tipo:'ambiente-navegacao',
+      perfil:adaptacao?.nivel||'equilibrado',
+      fps:adaptacao?.perfil?.fps||30,
+      criadoEm:Date.now()
+    };
+
+    let persistido=false;
+
+    try{
+      localStorage.setItem(
+        STORAGE,
+        JSON.stringify(configuracao)
+      );
+      persistido=true;
+    }catch(e){
+      console.warn('[AFInst] Armazenamento indisponível:',e);
+    }
+
+    // Se o navegador oferecer instalação PWA,
+    // ela é complementar à criação do ambiente.
+    if(ev){
+      const evento=ev;
+      ev=null;
+
+      try{
+        await evento.prompt();
+        await evento.userChoice;
+      }catch(e){
+        console.warn('[AFInst] PWA:',e);
+      }
+    }
+
+    const r=renderizar('/');
+
+    return{
+      ok:true,
+      msg:
+        'Ambiente ALMAFLUXO preparado. '+
+        'Perfil: '+configuracao.perfil+
+        '. '+(persistido?
+          'Configuração salva neste navegador.':
+          'Configuração mantida apenas nesta sessão.')
+    };
+
+  }catch(e){
+    return{
+      ok:false,
+      msg:'Falha ao preparar o ambiente: '+e.message
+    };
+  }
+}
+
+function instalado(){
+  try{
+    return !!localStorage.getItem(STORAGE);
+  }catch(e){
+    return false;
+  }
+}
+
+window.AFInst={
+  guia(plataforma){
+    return GUIA[plataforma]||GUIA.outras;
+  },
+
+  instalar,
+  abrir,
+  fechar,
+  renderizar,
+  adaptarFrame,
+  instalado
+};
 
 })();
