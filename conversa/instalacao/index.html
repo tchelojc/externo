@@ -296,8 +296,12 @@ q('hInst').onclick=async()=>{
       ' · Preparando ambiente...';
 
     const r=await AFInst.instalar();
-
-    st.textContent=r?.msg||'Preparação do ambiente concluída.';
+    
+    if(!r?.ok){
+      throw new Error(r?.msg||'Falha ao preparar o ambiente.');
+    }
+    
+    st.textContent=r.msg;
 
   }catch(e){
     st.textContent='Falha na instalação: '+(e?.message||String(e));
@@ -619,9 +623,44 @@ function configurarControleRemoto(){
 }
 configurarControleRemoto();
 
-$('start').addEventListener('click',run);$('again').addEventListener('click',run);
-function openTotem(){if(approved)location.href=TOTEM_URL;}
-$('open').addEventListener('click',openTotem);$('resultOpen').addEventListener('click',openTotem);
+$('start').addEventListener('click',run);
+$('again').addEventListener('click',run);
+
+
+// ABRIR TOTEM — COM DIAGNÓSTICO ADAPTATIVO
+$('open').addEventListener('click',async()=>{
+  if(!approved)return;
+
+  const btn=$('open');
+  btn.disabled=true;
+
+  try{
+    const r=await AFInst.abrirDireto();
+
+    if(!r?.ok){
+      throw new Error(
+        r?.msg||'Não foi possível abrir o Totem.'
+      );
+    }
+
+  }catch(e){
+    alert(
+      'Falha ao abrir Totem: '+
+      (e?.message||String(e))
+    );
+  }finally{
+    btn.disabled=false;
+  }
+});
+
+
+// EXECUTAR TOTEM COMPLETO — ABERTURA DIRETA
+$('resultOpen').addEventListener('click',()=>{
+  if(!approved)return;
+
+  AFInst.executarCompleto();
+});
+
 })();
 </script>
 </body>
