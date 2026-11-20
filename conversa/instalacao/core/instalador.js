@@ -26,15 +26,9 @@ const PERFIL_STORAGE='AF_PERFIL_TOTEM_V1';
 
 const TOTEM_URL='https://almafluxo.uk/conversa';
 
-let ev=null;
 let janela=null;
 let frame=null;
 let status=null;
-
-addEventListener('beforeinstallprompt',e=>{
-  e.preventDefault();
-  ev=e;
-});
 
 addEventListener('appinstalled',()=>{
   try{
@@ -136,13 +130,21 @@ function perfilAtual(){
 }
 
 async function diagnosticar(){
+  const atual=perfilAtual();
+
+  // Reaproveita o perfil já calculado durante a abertura
+  // do portal ou pelo botão de instalação.
+  if(atual?.perfil&&atual?.nivel){
+    return atual;
+  }
+
   if(!window.AFAdaptador){
-    return perfilAtual();
+    return null;
   }
 
   const resultado=await window.AFAdaptador.executar();
 
-  if(resultado){
+  if(resultado?.perfil){
     window.AFPerfilInstalacao=resultado;
   }
 
@@ -521,28 +523,28 @@ function fechar(){
 
 async function instalar(){
   try{
+    status=null;
+
+    // Cria a estrutura do renderizador, mas não abre
+    // nenhuma rota e não inicia navegação.
     criarJanela();
-    janela.style.display='flex';
 
-    status.textContent='Preparando ambiente ALMAFLUXO...';
-
-    try{
-      if(window.AFEstado){
-        await AFEstado.persistir();
-      }
-    }catch(e){
-      console.warn('[AFInst] Persistência:',e);
-    }
-
-    status.textContent='Analisando capacidade do dispositivo...';
+    janela.style.display='none';
 
     const adaptacao=await diagnosticar();
+
+    if(!adaptacao?.perfil){
+      throw new Error(
+        'Não foi possível preparar um perfil adaptativo válido.'
+      );
+    }
 
     const configuracao={
       versao:1,
       tipo:'ambiente-navegacao',
-      perfil:adaptacao?.nivel||'equilibrado',
-      fps:adaptacao?.perfil?.fps||30,
+      perfil:adaptacao.nivel,
+      fps:adaptacao.perfil.fps,
+      imagem:adaptacao.perfil.imagem,
       criadoEm:Date.now()
     };
 
@@ -560,44 +562,20 @@ async function instalar(){
       console.warn('[AFInst] Armazenamento:',e);
     }
 
-    status.textContent='Preparando renderizador...';
-
-    // O prompt PWA é opcional.
-    if(ev){
-      const evento=ev;
-      ev=null;
-
-      try{
-        await evento.prompt();
-
-        const escolha=await evento.userChoice;
-
-        console.info(
-          '[AFInst] Resultado PWA:',
-          escolha.outcome
-        );
-
-      }catch(e){
-        console.warn('[AFInst] PWA:',e);
+    try{
+      if(window.AFEstado){
+        await AFEstado.persistir();
       }
+    }catch(e){
+      console.warn('[AFInst] Persistência:',e);
     }
-
-    const resultado=renderizar('/');
-
-    if(!resultado.ok){
-      throw new Error(resultado.msg);
-    }
-
-    status.textContent=
-      'Ambiente preparado · Perfil '+
-      configuracao.perfil+
-      ' · '+configuracao.fps+' FPS';
 
     return {
       ok:true,
       msg:
-        'Ambiente ALMAFLUXO preparado. Perfil: '+
-        configuracao.perfil+'. '+
+        'Ambiente ALMAFLUXO preparado. '+
+        'Perfil: '+configuracao.perfil+
+        ' · Meta: '+configuracao.fps+' FPS. '+
         (persistido
           ?'Configuração salva neste navegador.'
           :'Configuração mantida nesta sessão.')
@@ -607,13 +585,9 @@ async function instalar(){
 
     console.error('[AFInst] Instalação:',e);
 
-    if(status){
-      status.textContent='Falha: '+e.message;
-    }
-
     return {
       ok:false,
-      msg:'Falha ao preparar ambiente: '+e.message
+      msg:'Falha ao preparar ambiente: '+(e?.message||String(e))
     };
   }
 }
