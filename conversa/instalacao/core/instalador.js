@@ -26,6 +26,18 @@ const PERFIL_STORAGE='AF_PERFIL_TOTEM_V1';
 
 const TOTEM_URL='https://almafluxo.uk/conversa';
 
+/* Guarda anti-loop: mais de 3 navegações em 20 s encerra o ciclo. */
+function guardaNavegacao(){
+  try{
+    const agora=Date.now();
+    const log=(JSON.parse(sessionStorage.getItem('AF_NAV_LOG')||'[]')).filter(t=>agora-t<20000);
+    log.push(agora);
+    sessionStorage.setItem('AF_NAV_LOG',JSON.stringify(log));
+    return log.length<=3;
+  }catch(e){return true;}
+}
+const MSG_LOOP='Várias aberturas seguidas detectadas (possível loop). Aguarde 20 segundos e use "Executar totem completo".';
+
 let janela=null;
 let frame=null;
 let status=null;
@@ -162,6 +174,7 @@ function salvarPerfilTotem(resultado){
       imagem:resultado.perfil?.imagem||'media',
       animacoes:resultado.perfil?.animacoes!==false,
       efeitos:resultado.perfil?.efeitos!==false,
+      esfera:resultado.perfil?.esfera||'2d',
       registradoEm:Date.now()
     };
 
@@ -282,6 +295,10 @@ function criarJanela(){
       }
     }),
 
+    botao('Abrir direto',()=>{
+      location.assign(TOTEM_URL);
+    }),
+
     botao('Fechar',fechar)
   );
 
@@ -302,6 +319,13 @@ function criarJanela(){
 
   frame.addEventListener('load',()=>{
     adaptarFrame();
+
+    try{
+      const d=frame.contentDocument;
+      if(d&&d.body&&!d.body.childElementCount&&status){
+        status.textContent='Página vazia no renderizador. Use "Abrir direto".';
+      }
+    }catch(e){}
   });
 
   janela.append(barra,frame);
@@ -408,6 +432,14 @@ function adaptarFrame(){
 ===================================================== */
 
 function renderizar(destino){
+  if(window.top!==window){
+    return {ok:false,msg:'Já está dentro do renderizador; abertura aninhada evitada.'};
+  }
+
+  if(!guardaNavegacao()){
+    return {ok:false,msg:MSG_LOOP};
+  }
+
   const caminho=validarDestino(destino);
 
   if(!caminho){
@@ -467,6 +499,10 @@ async function abrirDireto(){
       salvarPerfilTotem(resultado);
     }
 
+    if(!guardaNavegacao()){
+      return {ok:false,msg:MSG_LOOP};
+    }
+
     // Navegação direta.
     // Sem iframe e sem redirecionamento pelo portal.
     location.assign(TOTEM_URL);
@@ -498,6 +534,7 @@ function executarCompleto(){
   // Não utiliza iframe.
   // Não altera AFEstado.
   // Abre o endereço integral diretamente.
+  // Sem guarda: é a saída manual quando o ciclo foi interrompido.
 
   location.assign(TOTEM_URL);
 
