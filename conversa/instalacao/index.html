@@ -23,6 +23,11 @@ main{width:min(1120px,94vw);margin:auto;padding:22px 0 44px}.head{display:flex;a
 <body>
 <main>
 <header class="head"><div class="orb" aria-hidden="true"></div><div class="brand">ALMAFLUXO<small>INSTALAÇÃO UNIVERSAL · TELEVISOR</small></div></header>
+<section class="panel" id="hub" style="margin-bottom:16px"><h2>O que você quer fazer?</h2>
+<div class="actions"><button class="btn primary" id="hInst">1 · Instalar ALMAFLUXO</button><button class="btn" id="hUpd">Atualizar</button><button class="btn primary" id="hConv">2 · Abrir nossa conversa (totem)</button><button class="btn" id="hUni">3 · Abrir o ALMAFLUXO</button></div>
+<p class="muted" id="hSt" aria-live="polite"></p>
+<details style="margin-top:10px"><summary>Login (mantém a sessão neste aparelho)</summary><p class="muted" id="hUser"></p><input id="hE" type="email" placeholder="e-mail" style="padding:10px;margin:6px 6px 0 0"><input id="hS" type="password" placeholder="senha" style="padding:10px;margin:6px 6px 0 0"><button class="btn" id="hLog">Entrar</button><p class="muted">Só o token de sessão fica gravado, nunca a senha. Totem comercial abre grátis; permanência de estado exige login.</p></details>
+<div style="margin-top:10px"><label class="muted" for="hGSel">Guia passo a passo:</label> <select id="hGSel" style="padding:10px;margin:0 6px"></select><button class="btn primary" id="hGo">Abrir guia</button></div><details style="margin-top:8px"><summary>Iniciar junto com a TV (guia)</summary><ol id="hGuia" class="muted"></ol></details></section>
 <section class="hero">
 <div class="eyebrow">Diagnóstico técnico · experiência integral</div>
 <h1>Prepare sua TV para executar o ALMAFLUXO.</h1>
@@ -61,6 +66,28 @@ main{width:min(1120px,94vw);margin:auto;padding:22px 0 44px}.head{display:flex;a
 <div class="footer">ALMAFLUXO · Diagnóstico local · <span id="year"></span></div>
 </main>
 <canvas id="bench" width="640" height="360"></canvas>
+<script src="/core/estado.js"></script>
+<script src="/core/detector.js"></script>
+<script src="/core/integridade.js"></script>
+<script src="/core/atualizador.js"></script>
+<script src="/core/instalador.js"></script>
+<script src="/core/diagnostico.js"></script>
+<script src="/core/guia.js"></script>
+<script src="/core/gravador.js"></script>
+<script>
+(async()=>{const q=i=>document.getElementById(i),p=AFDetector.plataforma(),st=q('hSt');
+q('hGuia').innerHTML=AFInst.guia(p).map(x=>'<li>'+x.replace(/</g,'&lt;')+'</li>').join('');
+const u=AFEstado.usuario();q('hUser').textContent=u?'Sessão ativa: '+u.email:'Sem sessão.';
+const ex=await AFDetector.existente(),c=AFDetector.caps();
+st.textContent='Plataforma: '+p+' (pacote nativo: '+AFDetector.pacote()+') · '+(ex.standalone||ex.flag?'ALMAFLUXO instalado'+(ex.versao?' v'+ex.versao:''):'ainda não instalado')+' · USB:'+(c.usb||c.serial?'sim':'não')+' Bluetooth:'+(c.bluetooth?'sim':'não');
+AFGravador.resumo().then(r=>{st.textContent+=' · Pacotes publicados: '+(r.com.length?r.com.join(', '):'nenhum ainda')+(r.sem.length?' · sem pacote: '+r.sem.join(', '):'')});
+q('hInst').onclick=async()=>{const r=await AFInst.instalar();st.textContent=r.msg;const a=await AFAtualizador.checar();if(a.remota){const i=await AFIntegridade.verificar('/');if(i.length&&i.every(x=>x.ok))AFEstado.set({versao:a.remota})}};
+q('hUpd').onclick=async()=>{const a=await AFAtualizador.checar();if(a.erro)return st.textContent=a.erro;if(!a.nova)return st.textContent='Já está na versão '+a.remota;const r=await AFAtualizador.aplicar(a.remota);st.textContent=r.msg};
+{const sel=q('hGSel'),mp={desconhecida:'outras'};AFGuia.ids().then(L=>{sel.innerHTML=L.map(x=>'<option value="'+x.id+'">'+x.nome+'</option>').join('');sel.value=L.some(x=>x.id===p)?p:(mp[p]&&'outras')||'outras'});q('hGo').onclick=()=>AFGuia.abrir(sel.value)}
+q('hConv').onclick=()=>AFInst.abrir(null);q('hUni').onclick=()=>AFInst.abrir('/');
+q('hLog').onclick=async()=>{try{const U=await AFEstado.login(q('hE').value.trim().toLowerCase(),q('hS').value);q('hS').value='';q('hUser').textContent='Sessão ativa: '+U.email}catch(e){q('hUser').textContent=e.message}};
+})();
+</script>
 <script>
 (() => {
 'use strict';
