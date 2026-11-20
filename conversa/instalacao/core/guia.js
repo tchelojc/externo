@@ -1,5 +1,5 @@
 (()=>{'use strict';const K='guias',$=(t,s,c)=>{const e=document.createElement(t);if(s)e.style.cssText=s;if(c)e.textContent=c;return e};
-async function dados(){try{return (await fetch('/distribuicao/pacotes.json',{cache:'no-store'}).then(r=>r.json())).guias||{}}catch(e){return{}}}
+async function dados(){try{return (await fetch('https://almafluxo.uk/conversa/instalacao/distribuicao/pacotes.json',{cache:'no-store'}).then(r=>r.json())).guias||{}}catch(e){return{}}}
 const VER={agente:async()=>!!(window.AFDiag&&await AFDiag.agente()),serial:async()=>!!navigator.serial||!!navigator.usb,bluetooth:async()=>!!navigator.bluetooth,instalado:async()=>!!(window.AFDetector&&(AFDetector.instalado()||AFEstado.get().instalado))};
 const NV={agente:'Agente local ativo',serial:'Navegador com USB/serial',bluetooth:'Navegador com Bluetooth',instalado:'ALMAFLUXO instalado'};
 window.AFGuia={ids:async()=>Object.entries(await dados()).map(([id,g])=>({id,nome:g.nome})),
