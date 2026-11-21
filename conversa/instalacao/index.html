@@ -20,6 +20,41 @@ main{width:min(1120px,94vw);margin:auto;padding:22px 0 44px}.head{display:flex;a
 #bench{position:absolute;left:-10000px;top:-10000px;width:640px;height:360px;opacity:0;pointer-events:none}
 @media(max-width:720px){.grid{grid-template-columns:1fr}.hero{border-radius:17px}main{padding-top:15px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+/* ALMAFLUXO — foco visível para controle remoto */
+.btn:focus,
+.btn:focus-visible,
+input:focus,
+select:focus,
+summary:focus{
+  outline:4px solid var(--gold)!important;
+  outline-offset:4px!important;
+  box-shadow:0 0 0 7px #ffd17a30!important;
+  position:relative;
+  z-index:20;
+}
+
+#af-tooltip{
+  position:fixed;
+  left:50%;
+  bottom:8%;
+  transform:translateX(-50%);
+  width:min(90vw,650px);
+  padding:18px 22px;
+  border:2px solid var(--cyan);
+  border-radius:14px;
+  background:#07111d;
+  color:#eff7ff;
+  font:600 16px/1.5 system-ui;
+  text-align:center;
+  box-shadow:0 10px 35px #0009;
+  z-index:99999;
+  display:none;
+  pointer-events:none;
+}
+
+#af-tooltip.visivel{
+  display:block;
+}
 /* ALMAFLUXO — adaptação visual */
 
 .af-sem-animacao *,
@@ -37,59 +72,209 @@ main{width:min(1120px,94vw);margin:auto;padding:22px 0 44px}.head{display:flex;a
   backdrop-filter:none!important;
 }
 
-html[data-af-desempenho="economico"],
-html[data-af-desempenho="compatibilidade"]{
-  content-visibility:auto;
-}
+
 </style>
 </head>
 <body>
 <main>
-<header class="head"><div class="orb" aria-hidden="true"></div><div class="brand">ALMAFLUXO<small>INSTALAÇÃO UNIVERSAL · TELEVISOR</small></div></header>
-<section class="panel" id="hub" style="margin-bottom:16px"><h2>O que você quer fazer?</h2>
-<div class="actions"><button class="btn primary" id="hInst">1 · Instalar ALMAFLUXO</button><button class="btn" id="hUpd">Atualizar</button><button class="btn primary" id="hConv">2 · Abrir nossa conversa (totem)</button><button class="btn" id="hUni">3 · Abrir o ALMAFLUXO</button></div>
-<p class="muted" id="hSt" aria-live="polite"></p>
-<details style="margin-top:10px"><summary>Login (mantém a sessão neste aparelho)</summary><p class="muted" id="hUser"></p><input id="hE" type="email" placeholder="e-mail" style="padding:10px;margin:6px 6px 0 0"><input id="hS" type="password" placeholder="senha" style="padding:10px;margin:6px 6px 0 0"><button class="btn" id="hLog">Entrar</button><p class="muted">Só o token de sessão fica gravado, nunca a senha. Totem comercial abre grátis; permanência de estado exige login.</p></details>
-<div style="margin-top:10px"><label class="muted" for="hGSel">Guia passo a passo:</label> <select id="hGSel" style="padding:10px;margin:0 6px"></select><button class="btn primary" id="hGo">Abrir guia</button></div><details style="margin-top:8px"><summary>Iniciar junto com a TV (guia)</summary><ol id="hGuia" class="muted"></ol></details></section>
+
+<header class="head">
+  <div class="orb" aria-hidden="true"></div>
+  <div class="brand">
+    ALMAFLUXO
+    <small>INSTALAÇÃO UNIVERSAL · TELEVISOR</small>
+  </div>
+</header>
+
+<section class="panel" id="hub" style="margin-bottom:16px">
+  <h2>O que você quer fazer?</h2>
+
+  <div class="actions">
+    <button class="btn primary" id="hInst" type="button"
+      title="Prepara este aparelho para instalar o ALMAFLUXO.">
+      1 · Instalar ALMAFLUXO
+    </button>
+
+    <button class="btn" id="hUpd" type="button"
+      title="Atualiza os componentes do ALMAFLUXO neste aparelho.">
+      Atualizar
+    </button>
+
+    <button class="btn primary" id="hConv" type="button"
+      title="Abre nossa conversa diária no Totem.">
+      2 · Abrir nossa conversa (totem)
+    </button>
+
+    <button class="btn" id="hUni" type="button"
+      title="Abre a página principal do ALMAFLUXO.">
+      3 · Abrir o ALMAFLUXO
+    </button>
+  </div>
+
+  <p class="muted" id="hSt" aria-live="polite"></p>
+
+  <details style="margin-top:10px">
+    <summary>Login (mantém a sessão neste aparelho)</summary>
+    <p class="muted" id="hUser"></p>
+
+    <input id="hE" type="email" placeholder="e-mail"
+      style="padding:10px;margin:6px 6px 0 0">
+
+    <input id="hS" type="password" placeholder="senha"
+      style="padding:10px;margin:6px 6px 0 0">
+
+    <button class="btn" id="hLog" type="button">Entrar</button>
+
+    <p class="muted">
+      Só o token de sessão fica gravado, nunca a senha.
+      Totem comercial abre grátis; permanência de estado exige login.
+    </p>
+  </details>
+</section>
+
 <section class="hero">
-<div class="eyebrow">Diagnóstico técnico · experiência integral</div>
-<h1>Prepare sua TV para executar o ALMAFLUXO.</h1>
-<p>Este instalador verifica o navegador, a conexão, o motor gráfico Three.js utilizado pelo totem e a capacidade de renderização 3D. A experiência original não será simplificada para esconder limitações do aparelho.</p>
-<div class="actions">
-<button class="btn primary" id="start">Iniciar diagnóstico completo</button>
-<button class="btn" id="install">Instalar totem</button>
-<button class="btn" id="open" disabled>Abrir totem</button>
-</div>
-<div class="hint">Os testes são realizados localmente neste aparelho. A medição gráfica é aproximada: 30 FPS é o piso de execução; 45 FPS ou mais é a meta recomendada. Nenhum dado pessoal é enviado.</div>
+  <div class="eyebrow">Diagnóstico técnico · experiência integral</div>
+
+  <h1>Prepare sua TV para executar o ALMAFLUXO.</h1>
+
+  <p>
+    Este instalador verifica o navegador, a conexão, o motor gráfico
+    Three.js utilizado pelo totem e a capacidade de renderização 3D.
+    A experiência original não será simplificada para esconder
+    limitações do aparelho.
+  </p>
+
+  <div class="actions">
+    <button class="btn primary" id="start" type="button">
+      Iniciar diagnóstico completo
+    </button>
+
+    <button class="btn" id="install" type="button">
+      Instalar totem
+    </button>
+
+    <button class="btn" id="open" type="button" disabled>
+      Abrir totem
+    </button>
+  </div>
+
+  <div class="hint">
+    Os testes são realizados localmente neste aparelho.
+    A medição gráfica é aproximada: 30 FPS é o piso de execução;
+    45 FPS ou mais é a meta recomendada.
+    Nenhum dado pessoal é enviado.
+  </div>
 </section>
+
 <div class="grid">
-<section class="panel">
-<h2>Verificação de compatibilidade</h2><div class="progress"><span id="bar"></span></div>
-<div class="checks" id="checks" aria-live="polite"><div class="check"><i class="dot"></i><div><b>Aguardando diagnóstico</b><small>Pressione “Iniciar diagnóstico completo”.</small></div></div></div>
-</section>
-<section class="panel">
-<h2>Ambiente detectado</h2>
-<div class="specs">
-<div class="spec"><span>Resolução da tela</span><strong id="resolution">—</strong></div>
-<div class="spec"><span>Área disponível</span><strong id="viewport">—</strong></div>
-<div class="spec"><span>Memória informada</span><strong id="memory">—</strong></div>
-<div class="spec"><span>Processadores lógicos</span><strong id="cores">—</strong></div>
-<div class="spec"><span>GPU / WebGL</span><strong id="gpu">—</strong></div>
-<div class="spec"><span>FPS no teste 3D</span><strong id="fps">—</strong></div>
-<div class="spec"><span>Rede</span><strong id="network">—</strong></div>
-<div class="spec"><span>Armazenamento</span><strong id="storage">—</strong></div>
+
+  <section class="panel">
+    <h2>Verificação de compatibilidade</h2>
+
+    <div class="progress">
+      <span id="bar"></span>
+    </div>
+
+    <div class="checks" id="checks" aria-live="polite">
+      <div class="check">
+        <i class="dot"></i>
+        <div>
+          <b>Aguardando diagnóstico</b>
+          <small>Pressione “Iniciar diagnóstico completo”.</small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Ambiente detectado</h2>
+
+    <div class="specs">
+      <div class="spec">
+        <span>Resolução da tela</span>
+        <strong id="resolution">—</strong>
+      </div>
+
+      <div class="spec">
+        <span>Área disponível</span>
+        <strong id="viewport">—</strong>
+      </div>
+
+      <div class="spec">
+        <span>Memória informada</span>
+        <strong id="memory">—</strong>
+      </div>
+
+      <div class="spec">
+        <span>Processadores lógicos</span>
+        <strong id="cores">—</strong>
+      </div>
+
+      <div class="spec">
+        <span>GPU / WebGL</span>
+        <strong id="gpu">—</strong>
+      </div>
+
+      <div class="spec">
+        <span>FPS no teste 3D</span>
+        <strong id="fps">—</strong>
+      </div>
+
+      <div class="spec">
+        <span>Rede</span>
+        <strong id="network">—</strong>
+      </div>
+
+      <div class="spec">
+        <span>Armazenamento</span>
+        <strong id="storage">—</strong>
+      </div>
+    </div>
+
+    <p class="muted" style="margin-top:11px">
+      Dados de hardware podem ser ocultados pelo fabricante.
+      Informação ausente será tratada como desconhecida,
+      nunca como aprovação.
+    </p>
+  </section>
+
 </div>
-<p class="muted" style="margin-top:11px">Dados de hardware podem ser ocultados pelo fabricante. Informação ausente será tratada como desconhecida, nunca como aprovação.</p>
-</section>
-</div>
+
 <section id="result" class="result" aria-live="polite">
-<h2 id="resultTitle">Resultado</h2><p id="resultText"></p><p class="muted" id="resultDetail"></p>
-<div class="actions"><button class="btn primary" id="resultOpen" disabled>Executar totem completo</button><button class="btn" id="again">Refazer diagnóstico</button></div>
+  <h2 id="resultTitle">Resultado</h2>
+
+  <p id="resultText"></p>
+  <p class="muted" id="resultDetail"></p>
+
+  <div class="actions">
+    <button class="btn primary" id="resultOpen" type="button" disabled>
+      Executar totem completo
+    </button>
+
+    <button class="btn" id="again" type="button">
+      Refazer diagnóstico
+    </button>
+  </div>
 </section>
-<aside class="note"><b>Limite técnico importante:</b> uma página web não pode substituir o navegador interno da TV, instalar drivers de GPU, codecs do sistema ou um Chromium nativo. Ela pode carregar bibliotecas JavaScript, como o Three.js, mas não cria recursos de hardware ausentes. Se a TV não passar, a solução é um dispositivo externo HDMI com navegador moderno e aceleração gráfica.</aside>
-<div class="footer">ALMAFLUXO · Diagnóstico local · <span id="year"></span></div>
+
+<aside class="note">
+  <b>Limite técnico importante:</b>
+  uma página web não pode substituir o navegador interno da TV,
+  instalar drivers de GPU, codecs do sistema ou um Chromium nativo.
+  Ela pode carregar bibliotecas JavaScript, como o Three.js,
+  mas não cria recursos de hardware ausentes.
+  Se a TV não passar, a solução é um dispositivo externo HDMI
+  com navegador moderno e aceleração gráfica.
+</aside>
+
+<div class="footer">
+  ALMAFLUXO · Diagnóstico local · <span id="year"></span>
+</div>
+
 </main>
+
 <canvas id="bench" width="640" height="360"></canvas>
+
 <script src="/conversa/instalacao/core/estado.js"></script>
 <script src="/conversa/instalacao/core/detector.js"></script>
 <script src="/conversa/instalacao/core/integridade.js"></script>
@@ -98,6 +283,7 @@ html[data-af-desempenho="compatibilidade"]{
 <script src="/conversa/instalacao/core/diagnostico.js"></script>
 <script src="/conversa/instalacao/core/guia.js"></script>
 <script src="/conversa/instalacao/core/gravador.js"></script>
+
 <script>
 
 /* =========================================================
@@ -136,7 +322,6 @@ function diagnosticar(){
       };
     }catch(e){return false}
   })();
-window.AFAdaptador=AFAdaptador;
 
   const plataforma=AFDetector.plataforma();
   const caps=AFDetector.caps();
@@ -273,8 +458,9 @@ return {
   perfis
 };
 })();
+
+window.AFAdaptador=AFAdaptador;
 (async()=>{const q=i=>document.getElementById(i),p=AFDetector.plataforma(),st=q('hSt');
-q('hGuia').innerHTML=AFInst.guia(p).map(x=>'<li>'+x.replace(/</g,'&lt;')+'</li>').join('');
 const u=AFEstado.usuario();q('hUser').textContent=u?'Sessão ativa: '+u.email:'Sem sessão.';
 const ex=await AFDetector.existente(),c=AFDetector.caps();
 const adaptacao=await AFAdaptador.executar();
@@ -310,14 +496,16 @@ q('hInst').onclick=async()=>{
       throw new Error(r?.msg||'Falha ao preparar o ambiente.');
     }
     
-    st.textContent=r.msg;
-
-  }catch(e){
-    st.textContent='Falha na instalação: '+(e?.message||String(e));
-  }finally{
-    btn.disabled=false;
-  }
-};
+    st.textContent =
+      'PREPARAÇÃO CONCLUÍDA · ' +
+      (r.msg || 'O ambiente adaptativo foi preparado com sucesso.');
+    
+      }catch(e){
+        st.textContent='Falha na instalação: '+(e?.message||String(e));
+      }finally{
+        btn.disabled=false;
+      }
+    };
 
 
 // ABRIR NOSSA CONVERSA — RENDERIZADOR ADAPTATIVO
@@ -329,8 +517,12 @@ q('hConv').onclick=async()=>{
     st.textContent='Abrindo nossa conversa no ambiente adaptativo...';
 
     const r=await AFInst.abrir('/conversa');
-
-    st.textContent=r?.msg||'Solicitação de abertura enviada.';
+    
+    if(!r?.ok){
+      throw new Error(r?.msg||'Não foi possível abrir nossa conversa.');
+    }
+    
+    st.textContent=r.msg||'Nossa conversa foi aberta.';
 
   }catch(e){
     st.textContent='Falha ao abrir nossa conversa: '+(e?.message||String(e));
@@ -349,8 +541,12 @@ q('hUni').onclick=async()=>{
     st.textContent='Abrindo ALMAFLUXO no ambiente adaptativo...';
 
     const r=await AFInst.abrir('/');
-
-    st.textContent=r?.msg||'Solicitação de abertura enviada.';
+    
+    if(!r?.ok){
+      throw new Error(r?.msg||'Não foi possível abrir o ALMAFLUXO.');
+    }
+    
+    st.textContent=r.msg||'ALMAFLUXO aberto com sucesso.';
 
   }catch(e){
     st.textContent='Falha ao abrir ALMAFLUXO: '+(e?.message||String(e));
@@ -394,51 +590,78 @@ window.addEventListener('beforeinstallprompt', event => {
   btn.disabled = false;
 });
 
+let appInstalado = false;
+
 window.addEventListener('appinstalled', () => {
+  appInstalado = true;
+
   $('install').textContent = 'Totem instalado';
   $('install').disabled = true;
-  alert('Instalação do Totem confirmada pelo navegador.');
+
+  const status = $('hSt');
+
+  if (status) {
+    status.textContent =
+      'INSTALAÇÃO CONFIRMADA · O navegador confirmou a instalação do Totem ALMAFLUXO neste aparelho.';
+  }
 });
 
+
 $('install').addEventListener('click', async () => {
+  const btn = $('install');
+  const st = $('hSt');
+
   if (!deferredInstallPrompt) {
     const ua = navigator.userAgent || '';
 
     let orientacao =
-      'Este navegador não oferece instalação automática.';
+      'Este navegador não oferece instalação automática. O acesso ao ALMAFLUXO continua disponível.';
 
     if (/web0s|webos/i.test(ua)) {
       orientacao =
-        'Na TV LG, verifique as opções de adicionar aos favoritos ou à tela inicial, se disponíveis.';
+        'TV LG: consulte o menu do navegador para verificar se existe opção de adicionar aos favoritos ou à tela inicial.';
     } else if (/Tizen/i.test(ua)) {
       orientacao =
-        'Na TV Samsung, verifique os recursos de favoritos do navegador. A instalação nativa depende da loja da TV.';
+        'TV Samsung: consulte os recursos de favoritos do navegador. A instalação nativa depende dos recursos disponíveis na TV.';
     } else if (/Android/i.test(ua)) {
       orientacao =
-        'No Android TV, verifique no menu do navegador a opção Instalar aplicativo ou Adicionar à tela inicial.';
+        'Android TV: abra o menu do navegador e procure Instalar aplicativo ou Adicionar à tela inicial.';
     }
 
-    alert(
-      orientacao +
-      '\n\nO acesso ao totem continua disponível pelo endereço /conversa/.'
-    );
+    st.textContent = orientacao + ' Acesse o totem em /conversa/.';
     return;
   }
 
+  btn.disabled = true;
+  btn.textContent = 'Instalando...';
+  st.textContent = 'Aguardando confirmação do navegador para instalar o ALMAFLUXO...';
+
   try {
-    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.prompt();
 
     const choice = await deferredInstallPrompt.userChoice;
 
     if (choice.outcome === 'accepted') {
-      $('install').textContent = 'Instalação solicitada';
+      st.textContent =
+        'Solicitação de instalação aceita pelo navegador. Aguardando confirmação da instalação.';
+      btn.textContent = 'Instalação solicitada';
     } else {
-      alert('Instalação não confirmada. O totem continua disponível.');
+      st.textContent =
+        'Instalação cancelada pelo usuário. O acesso ao ALMAFLUXO continua disponível em /conversa/.';
+      btn.textContent = 'Instalar ALMAFLUXO';
     }
   } catch (error) {
-    alert('Não foi possível iniciar a instalação: ' + error.message);
+    st.textContent =
+      'Não foi possível iniciar a instalação: ' +
+      (error.message || 'erro desconhecido');
+
+    btn.textContent = 'Instalar ALMAFLUXO';
   } finally {
     deferredInstallPrompt = null;
+
+    if (!appInstalado) {
+      btn.disabled = false;
+    }
   }
 });
 $('year').textContent = new Date().getFullYear();
@@ -447,7 +670,7 @@ function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;',
 function add(name, detail, status='warn'){
  rows.push({name,detail,status});
  $('checks').innerHTML=rows.map(r=>`<div class="check ${r.status}"><i class="dot"></i><div><b>${esc(r.name)}</b><small>${esc(r.detail)}</small></div></div>`).join('');
- $('bar').style.width=(rows.length/10*100)+'%';
+ $('bar').style.width=Math.min(100,(rows.length/12)*100)+'%';
 }
 function setSpec(id,v){$(id).textContent=v;}
 function getWebGL(){
@@ -607,29 +830,130 @@ async function run(){
  const pass=!fail&&!!bench&&bench.fps>=30&&!bench.lost&&String(three.REVISION)==='128';
  const details=`Perfil avaliado: totem atual usa Three.js r128. Resultado de FPS é um benchmark de cena sintética, não garantia de desempenho de todas as regiões, vídeos ou fontes externas. Os codecs foram avaliados por declaração do navegador; reprodução efetiva depende dos arquivos e políticas de autoplay.`;
  finishResult(pass,unknown,details);
- $('start').disabled=false;busy=false;
+
+ $('bar').style.width='100%';
+ $('start').disabled=false;
+ busy=false;
 }
 
+/* =========================================================
+   ALMAFLUXO — NAVEGAÇÃO ESPACIAL PARA CONTROLE REMOTO
+========================================================= */
 function configurarControleRemoto(){
- const seletor='button:not(:disabled):not([hidden])';
- document.addEventListener('keydown',function(ev){
-  const k=ev.key||ev.keyCode;
-  const mapa={ArrowRight:39,ArrowDown:40,ArrowLeft:37,ArrowUp:38};
-  const code=typeof k==='number'?k:(mapa[k]||0);
-  if(code!==37&&code!==38&&code!==39&&code!==40)return;
-  const els=Array.prototype.slice.call(document.querySelectorAll(seletor)).filter(function(el){
-   return !!(el.offsetWidth||el.offsetHeight||el.getClientRects().length);
+
+  const seletor=
+    'button:not(:disabled),input:not(:disabled),select,summary';
+
+  function elementos(){
+    return Array.from(document.querySelectorAll(seletor))
+      .filter(el=>{
+        return el.getClientRects().length>0 &&
+               el.offsetWidth>0 &&
+               el.offsetHeight>0;
+      });
+  }
+
+  document.addEventListener('keydown',ev=>{
+
+    const teclas=[
+      'ArrowUp',
+      'ArrowDown',
+      'ArrowLeft',
+      'ArrowRight'
+    ];
+
+    if(!teclas.includes(ev.key))return;
+    const tag = ev.target.tagName;
+    
+    if (
+      tag === 'INPUT' ||
+      tag === 'TEXTAREA' ||
+      tag === 'SELECT'
+    ) {
+      return;
+    }
+
+    const lista=elementos();
+
+    if(!lista.length)return;
+
+    const atual=document.activeElement;
+
+    if(!lista.includes(atual)){
+      lista[0].focus();
+      ev.preventDefault();
+      return;
+    }
+
+    const a=atual.getBoundingClientRect();
+
+    const cx=a.left+a.width/2;
+    const cy=a.top+a.height/2;
+
+    let melhor=null;
+    let menor=Infinity;
+
+    lista.forEach(el=>{
+
+      if(el===atual)return;
+
+      const r=el.getBoundingClientRect();
+
+      const x=r.left+r.width/2;
+      const y=r.top+r.height/2;
+
+      const dx=x-cx;
+      const dy=y-cy;
+
+      let valido=false;
+      let distancia=Infinity;
+
+      switch(ev.key){
+
+        case 'ArrowRight':
+          valido=dx>8;
+          distancia=dx+Math.abs(dy)*2;
+          break;
+
+        case 'ArrowLeft':
+          valido=dx<-8;
+          distancia=Math.abs(dx)+Math.abs(dy)*2;
+          break;
+
+        case 'ArrowDown':
+          valido=dy>8;
+          distancia=dy+Math.abs(dx)*2;
+          break;
+
+        case 'ArrowUp':
+          valido=dy<-8;
+          distancia=Math.abs(dy)+Math.abs(dx)*2;
+          break;
+      }
+
+      if(valido && distancia<menor){
+        menor=distancia;
+        melhor=el;
+      }
+
+    });
+
+    if(melhor){
+      ev.preventDefault();
+      melhor.focus();
+
+      try{
+        melhor.scrollIntoView({
+          block:'nearest',
+          inline:'nearest'
+        });
+      }catch(_){}
+    }
+
   });
-  if(!els.length)return;
-  ev.preventDefault();
-  const atual=document.activeElement;
-  let idx=els.indexOf(atual);
-  if(idx<0)idx=0;
-  const prox=(idx+1)%els.length;
-  els[prox].focus();
-  try{els[prox].scrollIntoView({block:'nearest',behavior:'smooth'});}catch(_){}
- });
+
 }
+
 configurarControleRemoto();
 
 $('start').addEventListener('click',run);
@@ -664,11 +988,118 @@ $('open').addEventListener('click',async()=>{
 
 
 // EXECUTAR TOTEM COMPLETO — ABERTURA DIRETA
-$('resultOpen').addEventListener('click',()=>{
+$('resultOpen').addEventListener('click',async()=>{
   if(!approved)return;
 
-  AFInst.executarCompleto();
+  const btn=$('resultOpen');
+  const status=$('hSt');
+
+  btn.disabled=true;
+  status.textContent='Preparando a execução completa do Totem...';
+
+  try{
+    const r=await AFInst.executarCompleto();
+
+    if(r?.ok===false){
+      throw new Error(r.msg||'Falha ao executar o Totem.');
+    }
+
+    status.textContent=
+      r?.msg||'Solicitação de execução do Totem enviada.';
+
+  }catch(e){
+    status.textContent=
+      'Falha ao executar o Totem: '+(e?.message||String(e));
+  }finally{
+    btn.disabled=false;
+  }
 });
+
+/* =========================================================
+   ALMAFLUXO — ORIENTAÇÃO E FEEDBACK DE CONTROLES
+========================================================= */
+(()=>{
+'use strict';
+
+const dicas={
+  hInst:'Instala ou prepara o ambiente ALMAFLUXO neste aparelho, de acordo com os recursos detectados.',
+  hUpd:'Solicita a atualização do ambiente ALMAFLUXO. A execução depende da função de atualização configurada.',
+  hConv:'Abre nossa conversa diária, o Totem ALMAFLUXO.',
+  hUni:'Abre o Universo ALMAFLUXO.',
+  hLog:'Autentica sua sessão neste aparelho.',
+  start:'Executa o diagnóstico de compatibilidade, conexão, shaders, biblioteca gráfica e renderização 3D.',
+  install:'Solicita a instalação do Totem quando o navegador oferece suporte à instalação.',
+  open:'Abre o Totem após a aprovação do diagnóstico.',
+  resultOpen:'Executa o Totem completo após a aprovação técnica.',
+  again:'Executa novamente o diagnóstico de compatibilidade.'
+};
+
+const tooltip=document.createElement('div');
+tooltip.id='af-tooltip';
+tooltip.setAttribute('role','status');
+tooltip.setAttribute('aria-live','polite');
+document.body.appendChild(tooltip);
+
+function mostrar(el){
+  if(!el)return;
+
+  const texto=dicas[el.id];
+
+  if(!texto)return;
+
+  tooltip.textContent=texto;
+  tooltip.classList.add('visivel');
+}
+
+function ocultar(){
+  tooltip.classList.remove('visivel');
+  tooltip.textContent='';
+}
+
+document.addEventListener('focusin',ev=>{
+  mostrar(ev.target);
+});
+
+document.addEventListener('focusout',ev=>{
+  if(ev.target.matches('button,input,select,summary')){
+    ocultar();
+  }
+});
+
+document.addEventListener('mouseover',ev=>{
+  if(ev.target.matches('button,input,select,summary')){
+    mostrar(ev.target);
+  }
+});
+
+document.addEventListener('mouseout',ev=>{
+  if(ev.target.matches('button,input,select,summary')){
+    ocultar();
+  }
+});
+
+/* Feedback visual de execução */
+document.addEventListener('click',ev=>{
+  const btn=ev.target.closest('button');
+
+  if(!btn || btn.disabled)return;
+
+  if(btn.id==='start' ||
+     btn.id==='again' ||
+     btn.id==='install' ||
+     btn.id==='open' ||
+     btn.id==='resultOpen'){
+    ocultar();
+    return;
+  }
+
+  if(btn.id==='hInst' ||
+     btn.id==='hConv' ||
+     btn.id==='hUni' ||
+     btn.id==='hLog'){
+    ocultar();
+  }
+},true);
 
 })();
 </script>
