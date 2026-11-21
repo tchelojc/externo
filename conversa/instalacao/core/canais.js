@@ -31,7 +31,7 @@ function decidir(c,ctx){
   return{tipo:'login',rota:'/conversa/instalacao/'};
  }
 
- if(c.tipo!=='totem'&&!ctx.vista){
+ if(c.tipo!=='totem'&&!c.direto&&!ctx.vista){
   return{
    tipo:'conversa',
    rota:'/conversa/',
@@ -83,8 +83,10 @@ const cur=()=>{
  const atual=location.pathname.replace(/\/+$/,'')||'/';
 
  return L.findIndex(c=>{
-  const rota=normalizarRota(c.rota);
-  return rota&&(rota.replace(/\/+$/,'')||'/')===atual;
+  return [c.rota].concat(c.alias||[]).some(r=>{
+   const rota=normalizarRota(r);
+   return rota&&(rota.replace(/\/+$/,'')||'/')===atual;
+  });
  });
 };
 
@@ -129,8 +131,53 @@ function atualizarRotulo(){
   });
 }
 
+let contagem=null;
+
+function marcarVista(){
+ try{sessionStorage.setItem('af_conversa_vista','1');}catch(e){}
+}
+
+function limparContagem(){
+ if(contagem){clearInterval(contagem.t);contagem=null;}
+ if(avisoElemento)avisoElemento.style.display='none';
+}
+
+// Já está na conversa (totem): não recarrega a mesma página.
+// Mostra a contagem da propaganda e abre o canal ao terminar.
+function esperarConversa(c,destino){
+ const espera=Number(cfg.espera_conversa_s);
+ const total=Number.isFinite(espera)&&espera>=1&&espera<=300?espera:45;
+ const falta=()=>Math.ceil(total-(performance.now()/1000));
+
+ if(falta()<=0){
+  marcarVista();
+  location.href=destino;
+  return;
+ }
+
+ limparContagem();
+
+ const texto=()=>'Abrindo '+c.nome+' em '+Math.max(0,falta())+' s (a conversa vem primeiro)';
+ aviso(texto());
+ if(avisoElemento)clearTimeout(avisoElemento._t);
+
+ contagem={t:setInterval(()=>{
+  if(falta()<=0){
+   limparContagem();
+   marcarVista();
+   location.href=destino;
+   return;
+  }
+  aviso(texto());
+  if(avisoElemento)clearTimeout(avisoElemento._t);
+ },500)};
+}
+
 function ir(c){
- if(!c)return;
+ if(!c){
+  aviso('Lista de canais indisponível. Recarregue a página.');
+  return;
+ }
 
  const destino=normalizarRota(c.rota);
 
@@ -144,6 +191,16 @@ function ir(c){
   logado:logado(),
   vista:vista()
  });
+
+ const atualCanal=L[cur()];
+
+ // Na conversa e sem ter visto: espera na própria página.
+ if(d.tipo==='conversa'&&atualCanal&&atualCanal.tipo==='totem'){
+  esperarConversa(c,destino);
+  return;
+ }
+
+ limparContagem();
 
  let rotaDestino=d.rota;
 
