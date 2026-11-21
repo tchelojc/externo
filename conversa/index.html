@@ -3605,11 +3605,13 @@ function criarPlayer(root, opts) {
         <button type="button" data-ctl="pause" aria-label="Pausar slide" title="Pausar slide">Ⅱ</button>
         <button type="button" data-ctl="next" aria-label="Próximo slide" title="Próximo slide">›</button>
       </div>
-      <div class="pl-grupo pl-canais" role="group" aria-label="Canais">
-        <button type="button" data-ctl="canal-prev" aria-label="Canal anterior" title="Canal anterior">CH‹</button>
-        <span data-ctl="canal-nome" style="font:600 12px system-ui;color:#e8f1ff;padding:0 6px;white-space:nowrap">CH</span>
-        <button type="button" data-ctl="canal-next" aria-label="Próximo canal" title="Próximo canal">›CH</button>
-        <button type="button" data-ctl="canal-lista" aria-label="Lista de canais" title="Lista de canais">☰</button>
+      <div class="pl-grupo pl-canais" role="group" aria-label="Central de canais">
+        <button
+          type="button"
+          data-ctl="canal-central"
+          aria-label="Abrir central de canais"
+          title="Abrir central de canais"
+        >☷ Canais</button>
       </div>
       <div class="pl-titulo" aria-live="polite">ALMAFLUXO · Nossa Conversa Diária</div>
       <div class="pl-grupo" role="group" aria-label="Áudio">
@@ -3637,13 +3639,15 @@ function criarPlayer(root, opts) {
     };
     P._activeReg = () => P.regs.r1 || Object.values(P.regs)[0] || null;
 
-    // ── Canais: navegação independente do ciclo de slides ──
-    const canalPrev = ui.querySelector('[data-ctl="canal-prev"]');
-    const canalNext = ui.querySelector('[data-ctl="canal-next"]');
-    const canalLista = ui.querySelector('[data-ctl="canal-lista"]');
-    if (canalPrev) canalPrev.addEventListener('click', () => { P._showControls(); window.AFCanais?.mover(-1); });
-    if (canalNext) canalNext.addEventListener('click', () => { P._showControls(); window.AFCanais?.mover(1); });
-    if (canalLista) canalLista.addEventListener('click', () => { P._showControls(); window.AFCanais?.lista(); });
+    // ── Acesso à central de canais ──
+    const canalCentral = ui.querySelector('[data-ctl="canal-central"]');
+    
+    if (canalCentral) {
+      canalCentral.addEventListener('click', () => {
+        P._showControls();
+        window.location.assign('/conversa/instalacao/canal');
+      });
+    }
     // ── Navegação de slides ──
     ui.querySelector('[data-ctl="prev"]').addEventListener('click', () => {
       P._showControls();
