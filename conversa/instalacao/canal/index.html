@@ -289,6 +289,7 @@ function mostrarDetalhe(ch){
  }
 }
 
+
 function renderizar(){
  limpar();
 
@@ -313,15 +314,25 @@ function renderizar(){
    return;
   }
 
+  // Canais de acesso direto, incluindo Entrevista.
+  if(ch.direto===true){
+   abrirDestino(ch);
+   return;
+  }
+
+  // YouTube possui reprodução própria neste índice.
   if(ch.tipo==='youtube'){
    mostrarYoutube(ch);
-  }else{
-   mostrarDetalhe(ch);
+   return;
   }
+
+  // Outros tipos permanecem com sua tela de acesso.
+  mostrarDetalhe(ch);
   return;
  }
 
  document.title='ALMAFLUXO · Canais';
+
  status.textContent=canais.length
   ? canais.length+' canais disponíveis'
   : 'Nenhum canal disponível.';
@@ -334,12 +345,33 @@ function renderizar(){
   nome.textContent=texto(ch.nome,'Canal');
 
   const tipo=document.createElement('p');
-  tipo.textContent=texto(ch.tipo,'Canal ALMAFLUXO');
+
+  const descricao=texto(ch.descricao);
+
+  tipo.textContent=descricao||(
+   ch.tipo==='video'?'Canal de vídeo':
+   ch.tipo==='youtube'?'Canal YouTube':
+   ch.tipo==='social'?'Rede social':
+   'Canal ALMAFLUXO'
+  );
+
+  const destinoDireto=ch.direto===true;
 
   const botao=criarBotao(
    'Abrir canal',
-   URL_CANAL+'?id='+encodeURIComponent(ch.id)
+   destinoDireto
+    ? (texto(ch.url)||texto(ch.rota)||'#')
+    : URL_CANAL+'?id='+encodeURIComponent(ch.id)
   );
+
+  // O redirecionamento passa pela validação de endereço
+  // e pelo controle de login já existente.
+  if(destinoDireto){
+   botao.addEventListener('click',e=>{
+    e.preventDefault();
+    abrirDestino(ch);
+   });
+  }
 
   card.append(nome,tipo,botao);
   lista.appendChild(card);
