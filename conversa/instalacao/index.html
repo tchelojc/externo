@@ -96,7 +96,7 @@ summary:focus{
     </button>
 
     <button class="btn" id="hUpd" type="button"
-      title="Atualiza os componentes do ALMAFLUXO neste aparelho.">
+      title="Consulta a versão publicada e verifica a integridade da instalação.">
       Atualizar
     </button>
 
@@ -305,22 +305,42 @@ function diagnosticar(){
     matchMedia('(prefers-reduced-motion: reduce)').matches
   );
 
+
   const gpu=(()=>{
+    let gl=null;
+
     try{
       const c=document.createElement('canvas');
-      const gl=c.getContext('webgl')||
-               c.getContext('experimental-webgl');
+
+      gl=c.getContext('webgl')||
+         c.getContext('experimental-webgl');
+
       if(!gl)return false;
+
       const ext=gl.getExtension('WEBGL_debug_renderer_info');
-      const renderer=ext?
-          String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)):'indisponível';
+
+      const renderer=ext
+        ?String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL))
+        :'indisponível';
+
+      const texturaMax=gl.getParameter(gl.MAX_TEXTURE_SIZE);
+
       return {
         disponivel:true,
         renderer,
         software:/swiftshader|llvmpipe|software|softpipe/i.test(renderer),
-        texturaMax:gl.getParameter(gl.MAX_TEXTURE_SIZE)
+        texturaMax
       };
-    }catch(e){return false}
+
+    }catch(e){
+      return false;
+
+    }finally{
+      // Libera o contexto temporário após coletar os dados.
+      try{
+        gl?.getExtension('WEBGL_lose_context')?.loseContext();
+      }catch(e){}
+    }
   })();
 
   const plataforma=AFDetector.plataforma();
@@ -1023,7 +1043,7 @@ $('resultOpen').addEventListener('click',async()=>{
 
 const dicas={
   hInst:'Instala ou prepara o ambiente ALMAFLUXO neste aparelho, de acordo com os recursos detectados.',
-  hUpd:'Solicita a atualização do ambiente ALMAFLUXO. A execução depende da função de atualização configurada.',
+  hUpd:'Consulta a versão publicada, verifica a integridade dos arquivos, atualiza os Service Workers e verifica os caches antigos do instalador.',
   hConv:'Abre nossa conversa diária, o Totem ALMAFLUXO.',
   hUni:'Abre o Universo ALMAFLUXO.',
   hLog:'Autentica sua sessão neste aparelho.',
