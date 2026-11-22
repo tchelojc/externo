@@ -1,0 +1,1586 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07111d">
+<meta name="description" content="Instalador, diagnóstico gráfico e verificação de compatibilidade ALMAFLUXO para televisores.">
+<link rel="icon" href="data:,">
+<link rel="manifest" href="/conversa/manifest.webmanifest">
+<title>ALMAFLUXO · Instalação para TV</title>
+<style>
+:root{color-scheme:dark;--bg:#07111d;--panel:#0e1d2c;--line:#294158;--muted:#9eb1c4;--text:#eff7ff;--blue:#42b9ff;--cyan:#65e4d0;--gold:#ffd17a;--red:#ff7777;--green:#69e2b6}
+*{box-sizing:border-box}html{min-height:100%;background:var(--bg)}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 85% -5%,#174061 0,transparent 43%),linear-gradient(145deg,#07111d,#0a1928 60%,#06101b);color:var(--text);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+main{width:min(1120px,94vw);margin:auto;padding:22px 0 44px}.head{display:flex;align-items:center;gap:13px;margin-bottom:22px}.orb{width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 35% 28%,#fff 0,#a3f1ff 7%,#2e9cdd 27%,#173c82 62%,#07111d 76%);box-shadow:0 0 28px #3bbaff70}.brand{font-size:14px;font-weight:850;letter-spacing:.2em}.brand small{display:block;color:var(--muted);font-size:10px;font-weight:500;letter-spacing:.17em}
+.hero{position:relative;overflow:hidden;padding:clamp(22px,5vw,46px);border:1px solid #31516c;border-radius:23px;background:linear-gradient(125deg,#142e46ed,#0c1a2bed);box-shadow:0 24px 70px #0005}.hero:after{content:"";position:absolute;width:280px;height:280px;right:-130px;top:-160px;border:1px solid #58caff35;border-radius:50%;box-shadow:0 0 0 28px #58caff0b,0 0 0 58px #58caff08;pointer-events:none}.eyebrow{color:var(--cyan);font-size:11px;font-weight:800;letter-spacing:.2em;text-transform:uppercase}h1{font-size:clamp(29px,5vw,52px);line-height:1.06;max-width:800px;margin:12px 0 14px}p{color:#c2d2e1;margin:0 0 12px}.hero p{font-size:clamp(15px,2vw,18px);max-width:790px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}.btn{appearance:none;border:1px solid #456580;border-radius:12px;padding:12px 18px;min-height:48px;background:#172e44;color:#f5fbff;font:700 14px system-ui;cursor:pointer}.btn.primary{background:linear-gradient(100deg,#147dc0,#168eaa);border-color:#50c9e8}.btn:focus,.btn:focus-visible{outline:3px solid var(--gold);outline-offset:3px;box-shadow:0 0 0 5px #ffd17a22}.btn:disabled{opacity:.45;cursor:not-allowed}.hint{font-size:12px;color:var(--muted);margin-top:12px}
+.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:15px;margin-top:16px}.panel{min-width:0;padding:19px;border:1px solid var(--line);border-radius:17px;background:#0d1b2a}.panel h2{font-size:17px;margin:0 0 12px}.muted{font-size:13px;color:var(--muted)}.progress{height:7px;background:#20354a;border-radius:20px;overflow:hidden;margin:13px 0 16px}.progress span{display:block;width:0;height:100%;background:linear-gradient(90deg,var(--blue),var(--cyan));transition:width .25s}
+.checks{display:grid;gap:8px}.check{display:flex;align-items:flex-start;gap:10px;padding:9px 11px;border:1px solid #20384e;border-radius:10px;background:#091725}.dot{width:9px;height:9px;flex:none;margin-top:5px;border-radius:50%;background:#61778c}.check.ok .dot{background:var(--green);box-shadow:0 0 9px #69e2b6a0}.check.fail .dot{background:var(--red)}.check.warn .dot{background:var(--gold)}.check b{font-size:13px}.check small{display:block;color:var(--muted);font-size:11px;line-height:1.4}
+.specs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.spec{min-width:0;padding:11px;border:1px solid #20384e;border-radius:10px}.spec span{display:block;color:var(--muted);font-size:11px}.spec strong{display:block;font-size:16px;overflow-wrap:anywhere}.result{display:none;margin-top:16px;padding:20px;border:1px solid var(--line);border-radius:16px;background:#0c1a28}.result.show{display:block}.result.good{border-color:#267b69}.result.bad{border-color:#854747}.result.warn{border-color:#806a3b}.result h2{margin:0 0 8px;font-size:22px}.note{margin-top:16px;padding:15px 17px;border-left:3px solid var(--blue);border-radius:0 11px 11px 0;background:#0a1928;color:#bfd0df;font-size:13px}.footer{text-align:center;color:#8299ad;font-size:11px;margin-top:22px}
+#bench{position:absolute;left:-10000px;top:-10000px;width:640px;height:360px;opacity:0;pointer-events:none}
+@media(max-width:720px){.grid{grid-template-columns:1fr}.hero{border-radius:17px}main{padding-top:15px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+/* ALMAFLUXO — foco visível para controle remoto */
+.btn:focus,
+.btn:focus-visible,
+input:focus,
+select:focus,
+summary:focus{
+  outline:4px solid var(--gold)!important;
+  outline-offset:4px!important;
+  box-shadow:0 0 0 7px #ffd17a30!important;
+  position:relative;
+  z-index:20;
+}
+
+#af-tooltip{
+  position:fixed;
+  left:50%;
+  bottom:8%;
+  transform:translateX(-50%);
+  width:min(90vw,650px);
+  padding:18px 22px;
+  border:2px solid var(--cyan);
+  border-radius:14px;
+  background:#07111d;
+  color:#eff7ff;
+  font:600 16px/1.5 system-ui;
+  text-align:center;
+  box-shadow:0 10px 35px #0009;
+  z-index:99999;
+  display:none;
+  pointer-events:none;
+}
+
+#af-tooltip.visivel{
+  display:block;
+}
+/* ALMAFLUXO — adaptação visual */
+
+.af-sem-animacao *,
+.af-sem-animacao *::before,
+.af-sem-animacao *::after{
+  animation:none!important;
+  scroll-behavior:auto!important;
+  transition:none!important;
+}
+
+.af-sem-efeitos *,
+.af-sem-efeitos *::before,
+.af-sem-efeitos *::after{
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+}
+
+
+
+/* Compatibilidade com navegadores de TV antigos (sem min(), clamp(), gap, grid) */
+main{width:94%;max-width:1120px}
+.hero{padding:34px}
+.actions{gap:0}
+.actions .btn,.actions select,.actions input{margin:0 10px 10px 0}
+.head .orb{margin-right:13px}
+@supports not (display:grid){
+ .specs .spec{display:inline-block;width:48%;margin:0 1% 9px 0;vertical-align:top}
+ .checks .check{margin-bottom:8px}
+ .grid .panel{margin-bottom:15px}
+}
+</style>
+</head>
+<body>
+<main>
+
+<header class="head">
+  <div class="orb" aria-hidden="true"></div>
+  <div class="brand">
+    ALMAFLUXO
+    <small>INSTALAÇÃO UNIVERSAL · TELEVISOR</small>
+  </div>
+</header>
+
+<section class="panel" id="hub" style="margin-bottom:16px">
+  <h2>O que você quer fazer?</h2>
+
+  <div class="actions">
+    <button class="btn primary" id="hInst" type="button"
+      title="Prepara este aparelho para instalar o ALMAFLUXO.">
+      1 · Instalar ALMAFLUXO
+    </button>
+
+    <button class="btn" id="hUpd" type="button"
+      title="Consulta a versão publicada e verifica a integridade da instalação.">
+      Atualizar
+    </button>
+
+    <button class="btn primary" id="hConv" type="button"
+      title="Abre nossa conversa diária no Totem.">
+      2 · Abrir nossa conversa (totem)
+    </button>
+
+    <button class="btn" id="hUni" type="button"
+      title="Abre a página principal do ALMAFLUXO.">
+      3 · Abrir o ALMAFLUXO
+    </button>
+  </div>
+
+  <p class="muted" id="hSt" aria-live="polite"></p>
+  <div id="hPacOut" aria-live="polite" style="margin-top:8px"></div>
+
+  <details style="margin-top:10px">
+    <summary>Login (mantém a sessão neste aparelho)</summary>
+    <p class="muted" id="hUser"></p>
+
+    <input id="hE" type="email" placeholder="e-mail"
+      style="padding:10px;margin:6px 6px 0 0">
+
+    <input id="hS" type="password" placeholder="senha"
+      style="padding:10px;margin:6px 6px 0 0">
+
+    <button class="btn" id="hLog" type="button">Entrar</button>
+
+    <p class="muted">
+      Só o token de sessão fica gravado, nunca a senha.
+      Totem comercial abre grátis; permanência de estado exige login.
+    </p>
+  </details>
+</section>
+
+<section class="hero">
+  <div class="eyebrow">Diagnóstico técnico · experiência integral</div>
+
+  <h1>Prepare sua TV para executar o ALMAFLUXO.</h1>
+
+  <p>
+    Este instalador verifica o navegador, a conexão, o motor gráfico
+    Three.js utilizado pelo totem e a capacidade de renderização 3D.
+    A experiência original não será simplificada para esconder
+    limitações do aparelho.
+  </p>
+
+  <div class="actions">
+    <button class="btn primary" id="start" type="button">
+      Iniciar diagnóstico completo
+    </button>
+
+    <button class="btn" id="install" type="button">
+      Instalar totem
+    </button>
+
+    <button class="btn" id="open" type="button" disabled>
+      Abrir totem
+    </button>
+  </div>
+
+  <div class="hint">
+    Os testes de hardware são realizados neste aparelho.
+    A biblioteca gráfica Three.js é carregada de uma CDN externa.
+    A medição é aproximada: 30 FPS é o piso de execução;
+    45 FPS ou mais é a meta recomendada.
+  </div>
+</section>
+
+<div class="grid">
+
+  <section class="panel">
+    <h2>Verificação de compatibilidade</h2>
+
+    <div class="progress">
+      <span id="bar"></span>
+    </div>
+
+    <div class="checks" id="checks" aria-live="polite">
+      <div class="check">
+        <i class="dot"></i>
+        <div>
+          <b>Aguardando diagnóstico</b>
+          <small>Pressione “Iniciar diagnóstico completo”.</small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Ambiente detectado</h2>
+
+    <div class="specs">
+      <div class="spec">
+        <span>Resolução da tela</span>
+        <strong id="resolution">—</strong>
+      </div>
+
+      <div class="spec">
+        <span>Área disponível</span>
+        <strong id="viewport">—</strong>
+      </div>
+
+      <div class="spec">
+        <span>Memória informada</span>
+        <strong id="memory">—</strong>
+      </div>
+
+      <div class="spec">
+        <span>Processadores lógicos</span>
+        <strong id="cores">—</strong>
+      </div>
+
+      <div class="spec">
+        <span>GPU / WebGL</span>
+        <strong id="gpu">—</strong>
+      </div>
+
+      <div class="spec">
+        <span>FPS no teste 3D</span>
+        <strong id="fps">—</strong>
+      </div>
+
+      <div class="spec">
+        <span>Rede</span>
+        <strong id="network">—</strong>
+      </div>
+
+      <div class="spec">
+        <span>Armazenamento</span>
+        <strong id="storage">—</strong>
+      </div>
+    </div>
+
+    <p class="muted" style="margin-top:11px">
+      Dados de hardware podem ser ocultados pelo fabricante.
+      Informação ausente será tratada como desconhecida,
+      nunca como aprovação.
+    </p>
+  </section>
+
+</div>
+
+<section id="result" class="result" aria-live="polite">
+  <h2 id="resultTitle">Resultado</h2>
+
+  <p id="resultText"></p>
+  <p class="muted" id="resultDetail"></p>
+
+  <div class="actions">
+    <button class="btn primary" id="resultOpen" type="button" disabled>
+      Executar totem completo
+    </button>
+
+    <button class="btn" id="again" type="button">
+      Refazer diagnóstico
+    </button>
+  </div>
+</section>
+
+<aside class="note">
+  <b>Limite técnico importante:</b>
+  uma página web não pode substituir o navegador interno da TV,
+  instalar drivers de GPU, codecs do sistema ou um Chromium nativo.
+  Ela pode carregar bibliotecas JavaScript, como o Three.js,
+  mas não cria recursos de hardware ausentes.
+  Se a TV não passar, a solução é um dispositivo externo HDMI
+  com navegador moderno e aceleração gráfica.
+</aside>
+
+<div class="footer">
+  ALMAFLUXO · Diagnóstico local · <span id="year"></span>
+</div>
+
+</main>
+
+<canvas id="bench" width="640" height="360"></canvas>
+
+<script>
+(function () {
+  function mostrar(m) {
+    try {
+      var d = document.getElementById('af-erro');
+      if (!d) {
+        d = document.createElement('div');
+        d.id = 'af-erro';
+        d.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:2147483647;background:#7a1020;color:#fff;font:14px Arial,sans-serif;padding:10px';
+        (document.body || document.documentElement).appendChild(d);
+      }
+      d.textContent = m;
+    } catch (e) {}
+  }
+  window.onerror = function (m, s, l) {
+    mostrar('Erro de script: ' + m + (l ? ' (linha ' + l + ')' : '') + (s ? ' em ' + String(s).split('/').pop() : ''));
+  };
+  var ok = window.Promise && Object.assign && window.fetch && window.Symbol && Array.from && Array.prototype.includes && String.prototype.startsWith && Object.entries && String.prototype.padStart;
+  if (!ok) document.write('<script src="/conversa/instalacao/core/polifill.js"><\/script>');
+})();
+</script>
+<script src="/conversa/instalacao/core/estado.js"></script>
+<script src="/conversa/instalacao/core/detector.js"></script>
+<script src="/conversa/instalacao/core/integridade.js"></script>
+<script src="/conversa/instalacao/core/atualizador.js"></script>
+<script src="/conversa/instalacao/core/instalador.js"></script>
+<script src="/conversa/instalacao/core/pacote.js"></script>
+<script src="/conversa/instalacao/core/diagnostico.js"></script>
+<script src="/conversa/instalacao/core/guia.js"></script>
+<script src="/conversa/instalacao/core/gravador.js"></script>
+
+<script>
+function _regenerator() { var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? (c > 1 && (G.n = c < 3 ? -1 : u), d(c, u)) : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i.return) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+var AFAdaptador = function () {
+  'use strict';
+
+  var limitar = function limitar(v, min, max) {
+    return Math.max(min, Math.min(max, v));
+  };
+  function diagnosticar() {
+    var _nav$connection, _nav$connection2;
+    var nav = navigator;
+    var mem = Number(nav.deviceMemory) || 0;
+    var cpu = Number(nav.hardwareConcurrency) || 0;
+    var tela = Math.max(1, (screen.width || 0) * (screen.height || 0));
+    var reduzido = !!((_nav$connection = nav.connection) !== null && _nav$connection !== void 0 && _nav$connection.saveData || matchMedia('(prefers-reduced-motion: reduce)').matches);
+    var gpu = function () {
+      var gl = null;
+      try {
+        var c = document.createElement('canvas');
+        gl = c.getContext('webgl') || c.getContext('experimental-webgl');
+        if (!gl) return false;
+        var ext = gl.getExtension('WEBGL_debug_renderer_info');
+        var renderer = ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : 'indisponível';
+        var texturaMax = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+        return {
+          disponivel: true,
+          renderer: renderer,
+          software: /swiftshader|llvmpipe|software|softpipe/i.test(renderer),
+          texturaMax: texturaMax
+        };
+      } catch (e) {
+        return false;
+      } finally {
+        try {
+          var _gl;
+          (_gl = gl) === null || _gl === void 0 || (_gl = _gl.getExtension('WEBGL_lose_context')) === null || _gl === void 0 || _gl.loseContext();
+        } catch (e) {}
+      }
+    }();
+    var plataforma = AFDetector.plataforma();
+    var caps = AFDetector.caps();
+    return {
+      plataforma: plataforma,
+      memoria: mem,
+      nucleos: cpu,
+      pixels: tela,
+      gpu: gpu,
+      conexao: ((_nav$connection2 = nav.connection) === null || _nav$connection2 === void 0 ? void 0 : _nav$connection2.effectiveType) || 'desconhecida',
+      economia: reduzido,
+      usb: !!(caps.usb || caps.serial),
+      bluetooth: !!caps.bluetooth,
+      standalone: !!(matchMedia('(display-mode: standalone)').matches || navigator.standalone)
+    };
+  }
+  function selecionar(d) {
+    var pontos = 0;
+    var avaliados = 0;
+    if (d.memoria > 0) {
+      avaliados++;
+      if (d.memoria >= 8) pontos += 3;else if (d.memoria >= 4) pontos += 2;else if (d.memoria >= 2) pontos += 1;
+    }
+    if (d.nucleos > 0) {
+      avaliados++;
+      if (d.nucleos >= 8) pontos += 3;else if (d.nucleos >= 4) pontos += 2;else if (d.nucleos >= 2) pontos += 1;
+    }
+    if (d.gpu && d.gpu.disponivel) {
+      pontos += 1;
+      avaliados++;
+    }
+    if (d.economia) pontos -= 2;
+    if (['slow-2g', '2g'].includes(d.conexao)) pontos -= 1;
+    if (avaliados === 0) return 'equilibrado';
+    if (pontos >= 6) return 'completo';
+    if (pontos >= 4) return 'equilibrado';
+    if (pontos >= 2) return 'economico';
+    return 'compatibilidade';
+  }
+  var perfis = {
+    completo: {
+      fps: 60,
+      animacoes: true,
+      efeitos: true,
+      concorrencia: 4,
+      imagem: 'alta'
+    },
+    equilibrado: {
+      fps: 30,
+      animacoes: true,
+      efeitos: false,
+      concorrencia: 2,
+      imagem: 'media'
+    },
+    economico: {
+      fps: 20,
+      animacoes: false,
+      efeitos: false,
+      concorrencia: 1,
+      imagem: 'baixa'
+    },
+    compatibilidade: {
+      fps: 15,
+      animacoes: false,
+      efeitos: false,
+      concorrencia: 1,
+      imagem: 'minima'
+    }
+  };
+  function aplicar(perfil) {
+    var p = perfis[perfil] || perfis.compatibilidade;
+    var root = document.documentElement;
+    root.dataset.afDesempenho = perfil;
+    root.style.setProperty('--af-fps', String(p.fps));
+    root.style.setProperty('--af-frame-ms', String(Math.round(1000 / p.fps)) + 'ms');
+    root.classList.toggle('af-sem-animacao', !p.animacoes);
+    root.classList.toggle('af-sem-efeitos', !p.efeitos);
+    return p;
+  }
+  function executar() {
+    return _executar.apply(this, arguments);
+  }
+  function _executar() {
+    _executar = _asyncToGenerator(_regenerator().m(function _callee() {
+      var dados, nivel, perfil, resultado;
+      return _regenerator().w(function (_context) {
+        while (1) switch (_context.n) {
+          case 0:
+            dados = diagnosticar();
+            nivel = selecionar(dados);
+            perfil = Object.assign({}, aplicar(nivel), {
+              esfera: dados.gpu && dados.gpu.disponivel && !dados.gpu.software && nivel !== 'compatibilidade' ? '3d' : '2d'
+            });
+            document.documentElement.dataset.afEsfera = perfil.esfera;
+            resultado = {
+              dados: dados,
+              nivel: nivel,
+              perfil: perfil,
+              data: new Date().toISOString()
+            };
+            window.AFDiagnosticoAdaptativo = resultado;
+            window.dispatchEvent(new CustomEvent('af:perfil-adaptativo', {
+              detail: resultado
+            }));
+            return _context.a(2, resultado);
+        }
+      }, _callee);
+    }));
+    return _executar.apply(this, arguments);
+  }
+  return {
+    diagnosticar: diagnosticar,
+    selecionar: selecionar,
+    aplicar: aplicar,
+    executar: executar,
+    perfis: perfis
+  };
+}();
+window.AFAdaptador = AFAdaptador;
+document.getElementById('hLog').onclick = _asyncToGenerator(_regenerator().m(function _callee2() {
+  var btn, user, U, _t;
+  return _regenerator().w(function (_context2) {
+    while (1) switch (_context2.p = _context2.n) {
+      case 0:
+        btn = document.getElementById('hLog');
+        user = document.getElementById('hUser');
+        btn.disabled = true;
+        user.textContent = 'Autenticando...';
+        _context2.p = 1;
+        if (!(!window.AFEstado || typeof AFEstado.login !== 'function')) {
+          _context2.n = 2;
+          break;
+        }
+        throw new Error('Módulo de autenticação AFEstado indisponível.');
+      case 2:
+        _context2.n = 3;
+        return AFEstado.login(document.getElementById('hE').value.trim().toLowerCase(), document.getElementById('hS').value);
+      case 3:
+        U = _context2.v;
+        if (!(!U || !U.email)) {
+          _context2.n = 4;
+          break;
+        }
+        throw new Error('A autenticação não retornou os dados da sessão.');
+      case 4:
+        document.getElementById('hS').value = '';
+        user.textContent = 'Sessão ativa: ' + U.email;
+        _context2.n = 6;
+        break;
+      case 5:
+        _context2.p = 5;
+        _t = _context2.v;
+        user.textContent = (_t === null || _t === void 0 ? void 0 : _t.message) || 'Não foi possível realizar o login.';
+      case 6:
+        _context2.p = 6;
+        btn.disabled = false;
+        return _context2.f(6);
+      case 7:
+        return _context2.a(2);
+    }
+  }, _callee2, null, [[1, 5, 6, 7]]);
+}));
+(function () {
+  var q = function q(i) {
+    return document.getElementById(i);
+  };
+  var st = q('hSt');
+  var saida = q('hPacOut');
+  var msgErro = function msgErro(e) {
+    return e && e.message ? e.message : String(e);
+  };
+  function passos(r) {
+    saida.textContent = '';
+    if (!r || !r.passos) return;
+    r.passos.forEach(function (t) {
+      var d = document.createElement('div');
+      d.style.cssText = 'margin:6px 0;padding:8px 10px;border:1px solid #294158;border-radius:8px;background:#091725;word-break:break-word';
+      d.textContent = t;
+      saida.appendChild(d);
+    });
+  }
+  function pronto(nome) {
+    if (!window[nome]) throw new Error('Módulo ' + nome + ' não carregou neste aparelho.');
+    return window[nome];
+  }
+  q('hInst').onclick = _asyncToGenerator(_regenerator().m(function _callee3() {
+    var btn, adaptacao, r, pk, _t2;
+    return _regenerator().w(function (_context3) {
+      while (1) switch (_context3.p = _context3.n) {
+        case 0:
+          btn = q('hInst');
+          btn.disabled = true;
+          saida.textContent = '';
+          _context3.p = 1;
+          st.textContent = 'Analisando o dispositivo...';
+          _context3.n = 2;
+          return pronto('AFAdaptador').executar();
+        case 2:
+          adaptacao = _context3.v;
+          if (!(!adaptacao || !adaptacao.perfil)) {
+            _context3.n = 3;
+            break;
+          }
+          throw new Error('Não foi possível definir o perfil adaptativo.');
+        case 3:
+          window.AFPerfilInstalacao = adaptacao;
+          st.textContent = 'Perfil ' + adaptacao.nivel + ' · Meta de ' + adaptacao.perfil.fps + ' FPS · Preparando ambiente...';
+          _context3.n = 4;
+          return pronto('AFInst').instalar();
+        case 4:
+          r = _context3.v;
+          if (!(!r || !r.ok)) {
+            _context3.n = 5;
+            break;
+          }
+          throw new Error(r && r.msg || 'Falha ao preparar o ambiente.');
+        case 5:
+          st.textContent = 'Gerando o instalador para este aparelho...';
+          _context3.n = 6;
+          return pronto('AFPacote').executar(adaptacao);
+        case 6:
+          pk = _context3.v;
+          st.textContent = pk && pk.msg || 'Preparação concluída.';
+          passos(pk);
+          _context3.n = 8;
+          break;
+        case 7:
+          _context3.p = 7;
+          _t2 = _context3.v;
+          st.textContent = 'Falha na instalação: ' + msgErro(_t2);
+        case 8:
+          _context3.p = 8;
+          btn.disabled = false;
+          return _context3.f(8);
+        case 9:
+          return _context3.a(2);
+      }
+    }, _callee3, null, [[1, 7, 8, 9]]);
+  }));
+  q('hUpd').onclick = _asyncToGenerator(_regenerator().m(function _callee4() {
+    var btn, A, c, a, _t3;
+    return _regenerator().w(function (_context4) {
+      while (1) switch (_context4.p = _context4.n) {
+        case 0:
+          btn = q('hUpd');
+          btn.disabled = true;
+          _context4.p = 1;
+          st.textContent = 'Consultando a versão publicada...';
+          A = pronto('AFAtualizador');
+          _context4.n = 2;
+          return A.checar();
+        case 2:
+          c = _context4.v;
+          if (!c.erro) {
+            _context4.n = 3;
+            break;
+          }
+          throw new Error(c.erro);
+        case 3:
+          if (!(c.remota && c.remota !== c.local)) {
+            _context4.n = 5;
+            break;
+          }
+          st.textContent = 'Atualizando para a versão ' + c.remota + '...';
+          _context4.n = 4;
+          return A.aplicar(c.remota);
+        case 4:
+          a = _context4.v;
+          st.textContent = a && a.msg || 'Atualização concluída.';
+          _context4.n = 6;
+          break;
+        case 5:
+          st.textContent = 'Já está na versão publicada' + (c.remota ? ' (' + c.remota + ')' : '') + '.';
+        case 6:
+          _context4.n = 8;
+          break;
+        case 7:
+          _context4.p = 7;
+          _t3 = _context4.v;
+          st.textContent = 'Falha ao atualizar: ' + msgErro(_t3);
+        case 8:
+          _context4.p = 8;
+          btn.disabled = false;
+          return _context4.f(8);
+        case 9:
+          return _context4.a(2);
+      }
+    }, _callee4, null, [[1, 7, 8, 9]]);
+  }));
+  q('hConv').onclick = _asyncToGenerator(_regenerator().m(function _callee5() {
+    var btn, r, _t4;
+    return _regenerator().w(function (_context5) {
+      while (1) switch (_context5.p = _context5.n) {
+        case 0:
+          btn = q('hConv');
+          btn.disabled = true;
+          _context5.p = 1;
+          st.textContent = 'Abrindo nossa conversa no ambiente adaptativo...';
+          _context5.n = 2;
+          return pronto('AFInst').abrir('/conversa');
+        case 2:
+          r = _context5.v;
+          if (!(!r || !r.ok)) {
+            _context5.n = 3;
+            break;
+          }
+          throw new Error(r && r.msg || 'Não foi possível abrir nossa conversa.');
+        case 3:
+          st.textContent = r.msg || 'Nossa conversa foi aberta.';
+          _context5.n = 5;
+          break;
+        case 4:
+          _context5.p = 4;
+          _t4 = _context5.v;
+          st.textContent = 'Falha ao abrir nossa conversa: ' + msgErro(_t4);
+        case 5:
+          _context5.p = 5;
+          btn.disabled = false;
+          return _context5.f(5);
+        case 6:
+          return _context5.a(2);
+      }
+    }, _callee5, null, [[1, 4, 5, 6]]);
+  }));
+  q('hUni').onclick = _asyncToGenerator(_regenerator().m(function _callee6() {
+    var btn, r, _t5;
+    return _regenerator().w(function (_context6) {
+      while (1) switch (_context6.p = _context6.n) {
+        case 0:
+          btn = q('hUni');
+          btn.disabled = true;
+          _context6.p = 1;
+          st.textContent = 'Abrindo ALMAFLUXO no ambiente adaptativo...';
+          _context6.n = 2;
+          return pronto('AFInst').abrir('/');
+        case 2:
+          r = _context6.v;
+          if (!(!r || !r.ok)) {
+            _context6.n = 3;
+            break;
+          }
+          throw new Error(r && r.msg || 'Não foi possível abrir o ALMAFLUXO.');
+        case 3:
+          st.textContent = r.msg || 'ALMAFLUXO aberto com sucesso.';
+          _context6.n = 5;
+          break;
+        case 4:
+          _context6.p = 4;
+          _t5 = _context6.v;
+          st.textContent = 'Falha ao abrir ALMAFLUXO: ' + msgErro(_t5);
+        case 5:
+          _context6.p = 5;
+          btn.disabled = false;
+          return _context6.f(5);
+        case 6:
+          return _context6.a(2);
+      }
+    }, _callee6, null, [[1, 4, 5, 6]]);
+  }));
+  q('hLog').onclick = _asyncToGenerator(_regenerator().m(function _callee7() {
+    var btn, user, E, U, _t6;
+    return _regenerator().w(function (_context7) {
+      while (1) switch (_context7.p = _context7.n) {
+        case 0:
+          btn = q('hLog'), user = q('hUser');
+          btn.disabled = true;
+          user.textContent = 'Autenticando...';
+          _context7.p = 1;
+          E = pronto('AFEstado');
+          if (!(typeof E.login !== 'function')) {
+            _context7.n = 2;
+            break;
+          }
+          throw new Error('Módulo de autenticação indisponível.');
+        case 2:
+          _context7.n = 3;
+          return E.login(q('hE').value.trim().toLowerCase(), q('hS').value);
+        case 3:
+          U = _context7.v;
+          if (!(!U || !U.email)) {
+            _context7.n = 4;
+            break;
+          }
+          throw new Error('A autenticação não retornou os dados da sessão.');
+        case 4:
+          q('hS').value = '';
+          user.textContent = 'Sessão ativa: ' + U.email;
+          _context7.n = 6;
+          break;
+        case 5:
+          _context7.p = 5;
+          _t6 = _context7.v;
+          user.textContent = msgErro(_t6) || 'Não foi possível realizar o login.';
+        case 6:
+          _context7.p = 6;
+          btn.disabled = false;
+          return _context7.f(6);
+        case 7:
+          return _context7.a(2);
+      }
+    }, _callee7, null, [[1, 5, 6, 7]]);
+  }));
+  try {
+    q('hConv').focus();
+  } catch (e) {}
+  _asyncToGenerator(_regenerator().m(function _callee8() {
+    var p, u, ex, c, _t7;
+    return _regenerator().w(function (_context8) {
+      while (1) switch (_context8.p = _context8.n) {
+        case 0:
+          _context8.p = 0;
+          p = AFDetector.plataforma();
+          u = AFEstado.usuario();
+          q('hUser').textContent = u ? 'Sessão ativa: ' + u.email : 'Sem sessão.';
+          st.textContent = 'Plataforma: ' + p + ' · verificando...';
+          _context8.n = 1;
+          return AFDetector.existente();
+        case 1:
+          ex = _context8.v;
+          c = AFDetector.caps();
+          _context8.n = 2;
+          return AFAdaptador.executar();
+        case 2:
+          st.textContent = 'Plataforma: ' + p + ' (pacote nativo: ' + AFDetector.pacote() + ') · ' + (ex.standalone || ex.flag ? 'ALMAFLUXO instalado' + (ex.versao ? ' v' + ex.versao : '') : 'ainda não instalado') + ' · USB:' + (c.usb || c.serial ? 'sim' : 'não') + ' Bluetooth:' + (c.bluetooth ? 'sim' : 'não');
+          AFGravador.resumo().then(function (r) {
+            st.textContent += ' · Pacotes publicados: ' + (r.com.length ? r.com.join(', ') : 'nenhum ainda') + (r.sem.length ? ' · sem pacote: ' + r.sem.join(', ') : '');
+          }).catch(function () {});
+          _context8.n = 4;
+          break;
+        case 3:
+          _context8.p = 3;
+          _t7 = _context8.v;
+          st.textContent = 'Verificação inicial incompleta (' + msgErro(_t7) + '). Os botões continuam disponíveis.';
+        case 4:
+          return _context8.a(2);
+      }
+    }, _callee8, null, [[0, 3]]);
+  }))();
+})();
+</script>
+<script>
+function _regenerator() { var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? (c > 1 && (G.n = c < 3 ? -1 : u), d(c, u)) : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i.return) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+(function () {
+  'use strict';
+
+  var $ = function $(id) {
+    return document.getElementById(id);
+  };
+  var THREE_URL = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+  var TOTEM_URL = '/conversa/';
+  var rows = [],
+    approved = false,
+    busy = false;
+  var deferredInstallPrompt = null;
+  window.addEventListener('beforeinstallprompt', function (event) {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    var btn = $('install');
+    btn.textContent = 'Instalar totem';
+    btn.disabled = false;
+  });
+  var appInstalado = false;
+  window.addEventListener('appinstalled', function () {
+    appInstalado = true;
+    $('install').textContent = 'Totem instalado';
+    $('install').disabled = true;
+    var status = $('hSt');
+    if (status) {
+      status.textContent = 'INSTALAÇÃO CONFIRMADA · O navegador confirmou a instalação do Totem ALMAFLUXO neste aparelho.';
+    }
+  });
+  $('install').addEventListener('click', _asyncToGenerator(_regenerator().m(function _callee() {
+    var btn, st, ua, orientacao, choice, _t;
+    return _regenerator().w(function (_context) {
+      while (1) switch (_context.p = _context.n) {
+        case 0:
+          btn = $('install');
+          st = $('hSt');
+          if (deferredInstallPrompt) {
+            _context.n = 1;
+            break;
+          }
+          ua = navigator.userAgent || '';
+          orientacao = 'Este navegador não oferece instalação automática. O acesso ao ALMAFLUXO continua disponível.';
+          if (/web0s|webos/i.test(ua)) {
+            orientacao = 'TV LG: consulte o menu do navegador para verificar se existe opção de adicionar aos favoritos ou à tela inicial.';
+          } else if (/Tizen/i.test(ua)) {
+            orientacao = 'TV Samsung: consulte os recursos de favoritos do navegador. A instalação nativa depende dos recursos disponíveis na TV.';
+          } else if (/Android/i.test(ua)) {
+            orientacao = 'Android TV: abra o menu do navegador e procure Instalar aplicativo ou Adicionar à tela inicial.';
+          }
+          st.textContent = orientacao + ' Acesse o totem em /conversa/.';
+          return _context.a(2);
+        case 1:
+          btn.disabled = true;
+          btn.textContent = 'Instalando...';
+          st.textContent = 'Aguardando confirmação do navegador para instalar o ALMAFLUXO...';
+          _context.p = 2;
+          _context.n = 3;
+          return deferredInstallPrompt.prompt();
+        case 3:
+          _context.n = 4;
+          return deferredInstallPrompt.userChoice;
+        case 4:
+          choice = _context.v;
+          if (choice.outcome === 'accepted') {
+            st.textContent = 'Solicitação de instalação aceita pelo navegador. Aguardando confirmação da instalação.';
+            btn.textContent = 'Instalação solicitada';
+          } else {
+            st.textContent = 'Instalação cancelada pelo usuário. O acesso ao ALMAFLUXO continua disponível em /conversa/.';
+            btn.textContent = 'Instalar ALMAFLUXO';
+          }
+          _context.n = 6;
+          break;
+        case 5:
+          _context.p = 5;
+          _t = _context.v;
+          st.textContent = 'Não foi possível iniciar a instalação: ' + (_t.message || 'erro desconhecido');
+          btn.textContent = 'Instalar ALMAFLUXO';
+        case 6:
+          _context.p = 6;
+          deferredInstallPrompt = null;
+          if (!appInstalado) {
+            btn.disabled = false;
+          }
+          return _context.f(6);
+        case 7:
+          return _context.a(2);
+      }
+    }, _callee, null, [[2, 5, 6, 7]]);
+  })));
+  $('year').textContent = new Date().getFullYear();
+  function esc(v) {
+    return String(v).replace(/[&<>"']/g, function (c) {
+      return {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[c];
+    });
+  }
+  function add(name, detail) {
+    var status = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 'warn';
+    rows.push({
+      name: name,
+      detail: detail,
+      status: status
+    });
+    $('checks').innerHTML = rows.map(function (r) {
+      return "<div class=\"check ".concat(r.status, "\"><i class=\"dot\"></i><div><b>").concat(esc(r.name), "</b><small>").concat(esc(r.detail), "</small></div></div>");
+    }).join('');
+    $('bar').style.width = Math.min(100, rows.length / 12 * 100) + '%';
+  }
+  function setSpec(id, v) {
+    $(id).textContent = v;
+  }
+  function getWebGL() {
+    var c = document.createElement('canvas');
+    var gl = null,
+      kind = '';
+    try {
+      gl = c.getContext('webgl2', {
+        antialias: true,
+        alpha: false
+      });
+      if (gl) kind = 'WebGL 2';
+    } catch (e) {}
+    if (!gl) {
+      try {
+        gl = c.getContext('webgl', {
+          antialias: true,
+          alpha: false
+        }) || c.getContext('experimental-webgl');
+        if (gl) kind = 'WebGL 1';
+      } catch (e) {}
+    }
+    if (!gl) return null;
+    var renderer = 'não informado',
+      version = '';
+    try {
+      version = gl.getParameter(gl.VERSION) || '';
+      var ext = gl.getExtension('WEBGL_debug_renderer_info');
+      renderer = ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : 'identificação protegida';
+    } catch (e) {}
+    return {
+      gl: gl,
+      kind: kind,
+      renderer: renderer,
+      version: version
+    };
+  }
+  function shaderProbe(gl) {
+    var webgl2 = /WebGL 2/i.test(gl.getParameter(gl.VERSION) || '');
+    var vertexSource = webgl2 ? "#version 300 es\n       in vec3 position;\n       uniform mat4 mvp;\n       void main(){\n         gl_Position=mvp*vec4(position,1.0);\n       }" : "attribute vec3 position;\n       uniform mat4 mvp;\n       void main(){\n         gl_Position=mvp*vec4(position,1.0);\n       }";
+    var fragmentSource = webgl2 ? "#version 300 es\n       precision mediump float;\n       uniform float time;\n       out vec4 fragColor;\n       void main(){\n         fragColor=vec4(0.15+0.1*sin(time),0.65,0.95,1.0);\n       }" : "precision mediump float;\n       uniform float time;\n       void main(){\n         gl_FragColor=vec4(0.15+0.1*sin(time),0.65,0.95,1.0);\n       }";
+    var vs = null,
+      fs = null,
+      p = null;
+    try {
+      vs = gl.createShader(gl.VERTEX_SHADER);
+      fs = gl.createShader(gl.FRAGMENT_SHADER);
+      if (!vs || !fs) return false;
+      gl.shaderSource(vs, vertexSource);
+      gl.compileShader(vs);
+      if (!gl.getShaderParameter(vs, gl.COMPILE_STATUS)) {
+        return false;
+      }
+      gl.shaderSource(fs, fragmentSource);
+      gl.compileShader(fs);
+      if (!gl.getShaderParameter(fs, gl.COMPILE_STATUS)) {
+        return false;
+      }
+      p = gl.createProgram();
+      if (!p) return false;
+      gl.attachShader(p, vs);
+      gl.attachShader(p, fs);
+      gl.linkProgram(p);
+      return gl.getProgramParameter(p, gl.LINK_STATUS);
+    } finally {
+      if (p) gl.deleteProgram(p);
+      if (vs) gl.deleteShader(vs);
+      if (fs) gl.deleteShader(fs);
+    }
+  }
+  function loadScript(url) {
+    var timeout = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 12000;
+    return new Promise(function (resolve, reject) {
+      if (window.THREE) return resolve(window.THREE);
+      var s = document.createElement('script');
+      var done = false;
+      var timer = setTimeout(function () {
+        if (done) return;
+        done = true;
+        s.remove();
+        reject(new Error('tempo limite ao carregar biblioteca'));
+      }, timeout);
+      s.src = url;
+      s.async = true;
+      s.onload = function () {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        window.THREE ? resolve(window.THREE) : reject(new Error('biblioteca carregada sem expor THREE'));
+      };
+      s.onerror = function () {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        reject(new Error('CDN do Three.js inacessível'));
+      };
+      document.head.appendChild(s);
+    });
+  }
+  function mediaCapabilities() {
+    var v = document.createElement('video'),
+      a = document.createElement('audio');
+    return {
+      videoH264: !!v.canPlayType('video/mp4; codecs="avc1.42E01E"'),
+      videoWebM: !!v.canPlayType('video/webm; codecs="vp9"'),
+      audioMP3: !!a.canPlayType('audio/mpeg'),
+      audioAAC: !!a.canPlayType('audio/mp4; codecs="mp4a.40.2"')
+    };
+  }
+  function storageTest() {
+    try {
+      var k = 'af_tv_probe_' + Date.now();
+      localStorage.setItem(k, 'ok');
+      var ok = localStorage.getItem(k) === 'ok';
+      localStorage.removeItem(k);
+      return ok;
+    } catch (e) {
+      return false;
+    }
+  }
+  function storageEstimate() {
+    return _storageEstimate.apply(this, arguments);
+  }
+  function _storageEstimate() {
+    _storageEstimate = _asyncToGenerator(_regenerator().m(function _callee4() {
+      var x, _t4;
+      return _regenerator().w(function (_context4) {
+        while (1) switch (_context4.p = _context4.n) {
+          case 0:
+            _context4.p = 0;
+            if (!(navigator.storage && navigator.storage.estimate)) {
+              _context4.n = 2;
+              break;
+            }
+            _context4.n = 1;
+            return navigator.storage.estimate();
+          case 1:
+            x = _context4.v;
+            return _context4.a(2, x.quota ? "".concat((x.quota / 1073741824).toFixed(1), " GB de cota estimada*") : 'API sem quota');
+          case 2:
+            _context4.n = 4;
+            break;
+          case 3:
+            _context4.p = 3;
+            _t4 = _context4.v;
+          case 4:
+            return _context4.a(2, 'Não informado');
+        }
+      }, _callee4, null, [[0, 3]]);
+    }));
+    return _storageEstimate.apply(this, arguments);
+  }
+  function networkProbe() {
+    return _networkProbe.apply(this, arguments);
+  }
+  function _networkProbe() {
+    _networkProbe = _asyncToGenerator(_regenerator().m(function _callee5() {
+      var lib, _t5;
+      return _regenerator().w(function (_context5) {
+        while (1) switch (_context5.p = _context5.n) {
+          case 0:
+            _context5.p = 0;
+            _context5.n = 1;
+            return loadScript(THREE_URL);
+          case 1:
+            lib = _context5.v;
+            return _context5.a(2, {
+              ok: true,
+              three: lib,
+              detail: 'Three.js carregado pelo navegador através de script externo.'
+            });
+          case 2:
+            _context5.p = 2;
+            _t5 = _context5.v;
+            return _context5.a(2, {
+              ok: false,
+              detail: 'Falha ao carregar o Three.js pelo navegador: ' + _t5.message
+            });
+        }
+      }, _callee5, null, [[0, 2]]);
+    }));
+    return _networkProbe.apply(this, arguments);
+  }
+  function threeBenchmark(_x) {
+    return _threeBenchmark.apply(this, arguments);
+  }
+  function _threeBenchmark() {
+    _threeBenchmark = _asyncToGenerator(_regenerator().m(function _callee6(THREE) {
+      var canvas, w, h, renderer, scene, camera, mesh, light, geo, mat, ring, i, frames, start, last, slowFrames, duration, elapsed, fps, info, result, _t6;
+      return _regenerator().w(function (_context6) {
+        while (1) switch (_context6.p = _context6.n) {
+          case 0:
+            canvas = $('bench'), w = 640, h = 360;
+            _context6.p = 1;
+            renderer = new THREE.WebGLRenderer({
+              canvas: canvas,
+              antialias: true,
+              alpha: false,
+              powerPreference: 'high-performance'
+            });
+            renderer.setPixelRatio(1);
+            renderer.setSize(w, h, false);
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x071522);
+            camera = new THREE.PerspectiveCamera(42, w / h, .1, 100);
+            camera.position.z = 4.2;
+            light = new THREE.DirectionalLight(0xffffff, 1.3);
+            light.position.set(3, 4, 5);
+            scene.add(light);
+            scene.add(new THREE.AmbientLight(0x789abc, .65));
+            geo = new THREE.IcosahedronGeometry(1, 4);
+            mat = new THREE.MeshStandardMaterial({
+              color: 0x269edb,
+              metalness: .55,
+              roughness: .24,
+              wireframe: false
+            });
+            mesh = new THREE.Mesh(geo, mat);
+            scene.add(mesh);
+            ring = new THREE.Mesh(new THREE.TorusGeometry(1.45, .012, 8, 120), new THREE.MeshBasicMaterial({
+              color: 0x65e4d0
+            }));
+            ring.rotation.x = .85;
+            scene.add(ring);
+            for (i = 0; i < 12; i++) {
+              mesh.rotation.y += .035;
+              renderer.render(scene, camera);
+            }
+            frames = 0, start = 0, last = 0, slowFrames = 0;
+            duration = 5000;
+            _context6.n = 2;
+            return new Promise(function (resolve) {
+              var _frame = function frame(t) {
+                if (!start) start = t;
+                if (last && t - last > 40) slowFrames++;
+                last = t;
+                frames++;
+                mesh.rotation.y += .012;
+                mesh.rotation.x += .004;
+                ring.rotation.z += .003;
+                renderer.render(scene, camera);
+                if (t - start < duration) requestAnimationFrame(_frame);else resolve();
+              };
+              requestAnimationFrame(_frame);
+            });
+          case 2:
+            elapsed = performance.now();
+            fps = Math.round((frames - 1) * 1000 / (last - start));
+            info = renderer.info;
+            result = {
+              fps: fps,
+              slowRatio: frames ? slowFrames / frames : 1,
+              triangles: info.render.triangles,
+              renderer: renderer.getContext().getParameter(renderer.getContext().RENDERER) || 'GPU não identificada',
+              lost: renderer.getContext().isContextLost()
+            };
+            renderer.dispose();
+            geo.dispose();
+            mat.dispose();
+            ring.geometry.dispose();
+            ring.material.dispose();
+            return _context6.a(2, result);
+          case 3:
+            _context6.p = 3;
+            _t6 = _context6.v;
+            try {
+              renderer && renderer.dispose();
+            } catch (_) {}
+            throw _t6;
+          case 4:
+            return _context6.a(2);
+        }
+      }, _callee6, null, [[1, 3]]);
+    }));
+    return _threeBenchmark.apply(this, arguments);
+  }
+  function finishResult(pass, unknowns, details) {
+    approved = pass;
+    $('open').disabled = !pass;
+    $('resultOpen').disabled = !pass;
+    var r = $('result');
+    r.className = 'result show ' + (pass ? 'good' : unknowns ? 'warn' : 'bad');
+    $('resultTitle').textContent = pass ? 'Compatibilidade técnica inicial aprovada' : 'Compatibilidade integral não comprovada';
+    $('resultText').textContent = pass ? 'O aparelho carregou o Three.js r128 e concluiu o teste gráfico 3D a pelo menos 30 FPS. A meta recomendada é 45 FPS ou mais. A aprovação é inicial: a execução real do totem ainda deve ser observada neste aparelho.' : 'Um ou mais requisitos essenciais falharam ou não puderam ser comprovados. Para preservar a qualidade original, o instalador não libera o totem como compatível. Recomendamos um dispositivo externo HDMI com Chromium/WebView atualizado e GPU compatível.';
+    $('resultDetail').textContent = details;
+    r.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest'
+    });
+  }
+  function run() {
+    return _run.apply(this, arguments);
+  }
+  function _run() {
+    _run = _asyncToGenerator(_regenerator().m(function _callee7() {
+      var sw, sh, vw, vh, fail, unknown, secure, js, storage, media, video, audio, gl, shader, lose, net, three, bench, memory, cores, deviceKnown, pass, details, _t7, _t8, _t9;
+      return _regenerator().w(function (_context7) {
+        while (1) switch (_context7.p = _context7.n) {
+          case 0:
+            if (!busy) {
+              _context7.n = 1;
+              break;
+            }
+            return _context7.a(2);
+          case 1:
+            busy = true;
+            approved = false;
+            _context7.p = 2;
+            rows = [];
+            $('checks').innerHTML = '';
+            $('bar').style.width = '0%';
+            $('result').className = 'result';
+            $('start').disabled = true;
+            $('open').disabled = true;
+            $('resultOpen').disabled = true;
+            sw = screen.width, sh = screen.height, vw = innerWidth, vh = innerHeight;
+            setSpec('resolution', "".concat(sw, " \xD7 ").concat(sh));
+            setSpec('viewport', "".concat(vw, " \xD7 ").concat(vh));
+            setSpec('memory', navigator.deviceMemory ? "".concat(navigator.deviceMemory, " GB*") : 'Oculta');
+            setSpec('cores', navigator.hardwareConcurrency || 'Oculto');
+            setSpec('network', navigator.connection ? navigator.connection.effectiveType || 'Disponível' : 'Não informada');
+            _t7 = setSpec;
+            _context7.n = 3;
+            return storageEstimate();
+          case 3:
+            _t7('storage', _context7.v);
+            fail = false, unknown = false;
+            secure = location.protocol === 'https:' || location.hostname === 'localhost';
+            add('Conexão segura', secure ? 'HTTPS ativo' : 'A instalação exige HTTPS', secure ? 'ok' : 'fail');
+            if (!secure) fail = true;
+            js = typeof Promise === 'function' && typeof fetch === 'function' && typeof requestAnimationFrame === 'function';
+            add('JavaScript moderno', js ? 'APIs fundamentais disponíveis' : 'APIs fundamentais ausentes', js ? 'ok' : 'fail');
+            if (!js) fail = true;
+            storage = storageTest();
+            add('Armazenamento local', storage ? 'Leitura e gravação local funcionando' : 'Armazenamento bloqueado ou indisponível', storage ? 'ok' : 'warn');
+            if (!storage) unknown = true;
+            media = mediaCapabilities(), video = media.videoH264 || media.videoWebM, audio = media.audioMP3 || media.audioAAC;
+            add('Codecs de vídeo', video ? 'Navegador anuncia H.264 ou VP9 (não é teste de decodificação real)' : 'Navegador não anunciou H.264/VP9; validar os vídeos reais do totem', video ? 'ok' : 'warn');
+            if (!video) unknown = true;
+            add('Codecs de áudio', audio ? 'Navegador anuncia MP3 ou AAC' : 'Navegador não anunciou MP3/AAC; validar o áudio real do totem', audio ? 'ok' : 'warn');
+            if (!audio) unknown = true;
+            gl = getWebGL();
+            setSpec('gpu', gl ? gl.kind : 'Ausente');
+            add('WebGL e GPU', gl ? "".concat(gl.kind, "; ").concat(gl.renderer) : 'Não foi possível criar contexto WebGL', gl ? 'ok' : 'fail');
+            if (!gl) fail = true;
+            shader = false;
+            if (gl) {
+              try {
+                shader = shaderProbe(gl.gl);
+              } catch (e) {}
+            }
+            add('Shaders', shader ? 'Shaders vertex e fragment compilados e vinculados' : 'Falha na compilação ou linkagem de shaders', shader ? 'ok' : 'fail');
+            if (!shader) fail = true;
+            if (gl) {
+              try {
+                lose = gl.gl.getExtension('WEBGL_lose_context');
+                if (lose) lose.loseContext();
+              } catch (e) {}
+            }
+            add('Resolução', sw >= 1280 && sh >= 720 ? "".concat(sw, "\xD7").concat(sh, " atende ao m\xEDnimo de 720p") : "".concat(sw, "\xD7").concat(sh, " abaixo de 1280\xD7720"), sw >= 1280 && sh >= 720 ? 'ok' : 'warn');
+            if (sw < 1280 || sh < 720) unknown = true;
+            add('Conexão com CDN', 'Verificando a biblioteca usada pelo totem…', 'warn');
+            _context7.n = 4;
+            return networkProbe();
+          case 4:
+            net = _context7.v;
+            rows[rows.length - 1] = {
+              name: 'CDN do Three.js',
+              detail: net.detail,
+              status: net.ok ? 'ok' : 'fail'
+            };
+            $('checks').innerHTML = rows.map(function (x) {
+              return "<div class=\"check ".concat(x.status, "\"><i class=\"dot\"></i><div><b>").concat(esc(x.name), "</b><small>").concat(esc(x.detail), "</small></div></div>");
+            }).join('');
+            if (!net.ok) fail = true;
+            three = null, bench = null;
+            if (net.ok) {
+              three = net.three;
+              add('Three.js r128', "Vers\xE3o carregada: ".concat(three.REVISION || 'não identificada'), String(three.REVISION) === '128' ? 'ok' : 'warn');
+              if (String(three.REVISION) !== '128') unknown = true;
+            } else {
+              add('Three.js r128', net.detail, 'fail');
+              fail = true;
+            }
+            if (!three) {
+              _context7.n = 9;
+              break;
+            }
+            _context7.p = 5;
+            add('Renderização 3D real', 'Executando cena Three.js com esfera, luz, material e anel…', 'warn');
+            _context7.n = 6;
+            return threeBenchmark(three);
+          case 6:
+            bench = _context7.v;
+            setSpec('fps', "".concat(bench.fps, " FPS"));
+            rows[rows.length - 1] = {
+              name: 'Renderização 3D real',
+              detail: "".concat(bench.fps, " FPS m\xE9dios \xB7 ").concat(bench.triangles, " tri\xE2ngulos \xB7 contexto ").concat(bench.lost ? 'perdido' : 'estável', " ao final"),
+              status: bench.fps >= 45 && !bench.lost ? 'ok' : bench.fps >= 30 && !bench.lost ? 'warn' : 'fail'
+            };
+            $('checks').innerHTML = rows.map(function (x) {
+              return "<div class=\"check ".concat(x.status, "\"><i class=\"dot\"></i><div><b>").concat(esc(x.name), "</b><small>").concat(esc(x.detail), "</small></div></div>");
+            }).join('');
+            if (bench.fps < 30 || bench.lost) fail = true;
+            _context7.n = 8;
+            break;
+          case 7:
+            _context7.p = 7;
+            _t8 = _context7.v;
+            add('Renderização 3D real', 'Falha ao iniciar ou renderizar cena Three.js: ' + _t8.message, 'fail');
+            fail = true;
+          case 8:
+            _context7.n = 10;
+            break;
+          case 9:
+            setSpec('fps', 'Não testado');
+          case 10:
+            memory = navigator.deviceMemory || 0, cores = navigator.hardwareConcurrency || 0;
+            deviceKnown = !!(memory && cores);
+            add('Recursos de hardware', deviceKnown ? "".concat(memory, " GB informados \xB7 ").concat(cores, " processadores l\xF3gicos") : 'Informações parcialmente ocultas pelo navegador; desempenho avaliado pelo teste 3D.', deviceKnown ? 'ok' : 'warn');
+            if (!deviceKnown) unknown = true;
+            pass = !fail && !unknown && !!bench && bench.fps >= 30 && !bench.lost && String(three.REVISION) === '128';
+            details = "Perfil avaliado: totem atual usa Three.js r128. Resultado de FPS \xE9 um benchmark de cena sint\xE9tica, n\xE3o garantia de desempenho de todas as regi\xF5es, v\xEDdeos ou fontes externas. Os codecs foram avaliados por declara\xE7\xE3o do navegador; reprodu\xE7\xE3o efetiva depende dos arquivos e pol\xEDticas de autoplay.";
+            finishResult(pass, unknown && !fail, details);
+            $('bar').style.width = '100%';
+            _context7.n = 12;
+            break;
+          case 11:
+            _context7.p = 11;
+            _t9 = _context7.v;
+            add('Falha inesperada no diagnóstico', (_t9 === null || _t9 === void 0 ? void 0 : _t9.message) || String(_t9), 'fail');
+            finishResult(false, false, 'O diagnóstico foi interrompido por uma falha inesperada. Não foi possível confirmar a compatibilidade.');
+            $('bar').style.width = '100%';
+          case 12:
+            _context7.p = 12;
+            $('start').disabled = false;
+            busy = false;
+            return _context7.f(12);
+          case 13:
+            return _context7.a(2);
+        }
+      }, _callee7, null, [[5, 7], [2, 11, 12, 13]]);
+    }));
+    return _run.apply(this, arguments);
+  }
+  function configurarControleRemoto() {
+    var seletor = 'button:not(:disabled),input:not(:disabled),select,summary';
+    function elementos() {
+      return Array.from(document.querySelectorAll(seletor)).filter(function (el) {
+        return el.getClientRects().length > 0 && el.offsetWidth > 0 && el.offsetHeight > 0;
+      });
+    }
+    document.addEventListener('keydown', function (ev) {
+      var teclas = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
+      if (!teclas.includes(ev.key)) return;
+      var tag = ev.target.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
+        return;
+      }
+      var lista = elementos();
+      if (!lista.length) return;
+      var atual = document.activeElement;
+      if (!lista.includes(atual)) {
+        lista[0].focus();
+        ev.preventDefault();
+        return;
+      }
+      var a = atual.getBoundingClientRect();
+      var cx = a.left + a.width / 2;
+      var cy = a.top + a.height / 2;
+      var melhor = null;
+      var menor = Infinity;
+      lista.forEach(function (el) {
+        if (el === atual) return;
+        var r = el.getBoundingClientRect();
+        var x = r.left + r.width / 2;
+        var y = r.top + r.height / 2;
+        var dx = x - cx;
+        var dy = y - cy;
+        var valido = false;
+        var distancia = Infinity;
+        switch (ev.key) {
+          case 'ArrowRight':
+            valido = dx > 8;
+            distancia = dx + Math.abs(dy) * 2;
+            break;
+          case 'ArrowLeft':
+            valido = dx < -8;
+            distancia = Math.abs(dx) + Math.abs(dy) * 2;
+            break;
+          case 'ArrowDown':
+            valido = dy > 8;
+            distancia = dy + Math.abs(dx) * 2;
+            break;
+          case 'ArrowUp':
+            valido = dy < -8;
+            distancia = Math.abs(dy) + Math.abs(dx) * 2;
+            break;
+        }
+        if (valido && distancia < menor) {
+          menor = distancia;
+          melhor = el;
+        }
+      });
+      if (melhor) {
+        ev.preventDefault();
+        melhor.focus();
+        try {
+          melhor.scrollIntoView({
+            block: 'nearest',
+            inline: 'nearest'
+          });
+        } catch (_) {}
+      }
+    });
+  }
+  configurarControleRemoto();
+  $('start').addEventListener('click', run);
+  $('again').addEventListener('click', run);
+  $('open').addEventListener('click', _asyncToGenerator(_regenerator().m(function _callee2() {
+    var btn, r, _t2;
+    return _regenerator().w(function (_context2) {
+      while (1) switch (_context2.p = _context2.n) {
+        case 0:
+          if (approved) {
+            _context2.n = 1;
+            break;
+          }
+          return _context2.a(2);
+        case 1:
+          btn = $('open');
+          btn.disabled = true;
+          _context2.p = 2;
+          _context2.n = 3;
+          return AFInst.abrirDireto();
+        case 3:
+          r = _context2.v;
+          if (r !== null && r !== void 0 && r.ok) {
+            _context2.n = 4;
+            break;
+          }
+          throw new Error((r === null || r === void 0 ? void 0 : r.msg) || 'Não foi possível abrir o Totem.');
+        case 4:
+          _context2.n = 6;
+          break;
+        case 5:
+          _context2.p = 5;
+          _t2 = _context2.v;
+          alert('Falha ao abrir Totem: ' + ((_t2 === null || _t2 === void 0 ? void 0 : _t2.message) || String(_t2)));
+        case 6:
+          _context2.p = 6;
+          btn.disabled = false;
+          return _context2.f(6);
+        case 7:
+          return _context2.a(2);
+      }
+    }, _callee2, null, [[2, 5, 6, 7]]);
+  })));
+  $('resultOpen').addEventListener('click', _asyncToGenerator(_regenerator().m(function _callee3() {
+    var btn, status, r, _t3;
+    return _regenerator().w(function (_context3) {
+      while (1) switch (_context3.p = _context3.n) {
+        case 0:
+          if (approved) {
+            _context3.n = 1;
+            break;
+          }
+          return _context3.a(2);
+        case 1:
+          btn = $('resultOpen');
+          status = $('hSt');
+          btn.disabled = true;
+          status.textContent = 'Preparando a execução completa do Totem...';
+          _context3.p = 2;
+          _context3.n = 3;
+          return AFInst.executarCompleto();
+        case 3:
+          r = _context3.v;
+          if (!((r === null || r === void 0 ? void 0 : r.ok) === false)) {
+            _context3.n = 4;
+            break;
+          }
+          throw new Error(r.msg || 'Falha ao executar o Totem.');
+        case 4:
+          status.textContent = (r === null || r === void 0 ? void 0 : r.msg) || 'Solicitação de execução do Totem enviada.';
+          _context3.n = 6;
+          break;
+        case 5:
+          _context3.p = 5;
+          _t3 = _context3.v;
+          status.textContent = 'Falha ao executar o Totem: ' + ((_t3 === null || _t3 === void 0 ? void 0 : _t3.message) || String(_t3));
+        case 6:
+          _context3.p = 6;
+          btn.disabled = false;
+          return _context3.f(6);
+        case 7:
+          return _context3.a(2);
+      }
+    }, _callee3, null, [[2, 5, 6, 7]]);
+  })));
+  (function () {
+    'use strict';
+
+    var dicas = {
+      hInst: 'Instala ou prepara o ambiente ALMAFLUXO neste aparelho, de acordo com os recursos detectados.',
+      hUpd: 'Consulta a versão publicada, verifica a integridade dos arquivos, atualiza os Service Workers e verifica os caches antigos do instalador.',
+      hConv: 'Abre nossa conversa diária, o Totem ALMAFLUXO.',
+      hUni: 'Abre o Universo ALMAFLUXO.',
+      hLog: 'Autentica sua sessão neste aparelho.',
+      start: 'Executa o diagnóstico de compatibilidade, conexão, shaders, biblioteca gráfica e renderização 3D.',
+      install: 'Solicita a instalação do Totem quando o navegador oferece suporte à instalação.',
+      open: 'Abre o Totem após a aprovação do diagnóstico.',
+      resultOpen: 'Executa o Totem completo após a aprovação técnica.',
+      again: 'Executa novamente o diagnóstico de compatibilidade.'
+    };
+    var tooltip = document.createElement('div');
+    tooltip.id = 'af-tooltip';
+    tooltip.setAttribute('role', 'status');
+    tooltip.setAttribute('aria-live', 'polite');
+    document.body.appendChild(tooltip);
+    function mostrar(el) {
+      if (!el) return;
+      var texto = dicas[el.id];
+      if (!texto) return;
+      tooltip.textContent = texto;
+      tooltip.classList.add('visivel');
+    }
+    function ocultar() {
+      tooltip.classList.remove('visivel');
+      tooltip.textContent = '';
+    }
+    document.addEventListener('focusin', function (ev) {
+      mostrar(ev.target);
+    });
+    document.addEventListener('focusout', function (ev) {
+      if (ev.target.matches('button,input,select,summary')) {
+        ocultar();
+      }
+    });
+    document.addEventListener('mouseover', function (ev) {
+      if (ev.target.matches('button,input,select,summary')) {
+        mostrar(ev.target);
+      }
+    });
+    document.addEventListener('mouseout', function (ev) {
+      if (ev.target.matches('button,input,select,summary')) {
+        ocultar();
+      }
+    });
+    document.addEventListener('click', function (ev) {
+      var btn = ev.target.closest('button');
+      if (!btn || btn.disabled) return;
+      if (btn.id === 'start' || btn.id === 'again' || btn.id === 'install' || btn.id === 'open' || btn.id === 'resultOpen') {
+        ocultar();
+        return;
+      }
+      if (btn.id === 'hInst' || btn.id === 'hConv' || btn.id === 'hUni' || btn.id === 'hLog') {
+        ocultar();
+      }
+    }, true);
+  })();
+})();
+</script>
+</body>
+</html>
