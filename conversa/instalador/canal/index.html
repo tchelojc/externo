@@ -1,0 +1,24 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ALMAFLUXO · Canal</title>
+<style>:root{color-scheme:dark}*{box-sizing:border-box}html,body{height:100%;margin:0;background:#03060d;color:#eaf6ff;font-family:system-ui,Segoe UI,Arial,sans-serif}
+#c{height:100%;display:grid;place-items:center;text-align:center;padding:24px}iframe{width:100%;height:100%;border:0;background:#000}
+.box{max-width:560px}h1{margin:0 0 10px;font-size:clamp(22px,4vw,34px)}p{color:#b8cbe6;line-height:1.5}
+a.btn,button.btn{display:inline-block;font:inherit;color:#eaf6ff;background:#1f7bff;border:1px solid #27c8ff;border-radius:12px;padding:14px 22px;margin:8px;text-decoration:none;cursor:pointer}a.btn:focus,button.btn:focus{outline:3px solid #ffd17a}input{font:inherit;padding:12px;border-radius:10px;border:1px solid #27c8ff;background:#0a1d3a;color:#fff;width:min(420px,90vw)}</style></head>
+<body><div id="c"><div class="box"><p>Carregando canal…</p></div></div>
+<script>
+(async()=>{const c=document.getElementById('c'),id=location.pathname.replace(/\/$/,'').split('/').pop().replace(/\d+$/,'');
+ let J;try{J=await fetch('/distribuicao/canais.json',{cache:'no-store'}).then(r=>r.json())}catch(e){c.innerHTML='<div class="box"><h1>Canais indisponíveis</h1></div>';return}
+ const ch=(J.canais||[]).find(x=>x.id===id);if(!ch){c.innerHTML='<div class="box"><h1>Canal não encontrado</h1><a class="btn" href="/conversa/">Voltar</a></div>';return}
+ const logado=(()=>{try{return !!JSON.parse(localStorage.getItem('almafluxo_usuario')||'null')}catch(e){return false}})(),vista=(()=>{try{return !!sessionStorage.getItem('af_conversa_vista')}catch(e){return false}})();
+ // regras: login quando o canal exige; a conversa passa primeiro, uma vez por sessão
+ if(ch.login&&!logado){c.innerHTML='<div class="box"><h1>'+ch.nome+'</h1><p>Este canal exige uma conta ALMAFLUXO.</p><a class="btn" href="/conversa/instalacao">Entrar / criar conta</a></div>';return}
+ if(!vista){try{const s=JSON.parse(localStorage.getItem('almafluxo_instalador')||'{}');s.proximo=ch.rota;s.ultimaAbertura=Date.now();s.esperaTotem=J.espera_conversa_s||45;localStorage.setItem('almafluxo_instalador',JSON.stringify(s))}catch(e){}location.replace('/conversa/');return}
+ document.title='ALMAFLUXO · '+ch.nome;
+ if(ch.tipo==='youtube'){const ex=v=>{const m=String(v).match(/(?:list=|v=|youtu\.be\/|embed\/)([\w-]{6,})/);return m?m[1]:/^[\w-]{6,}$/.test(v)?v:null};
+  const f=(ch.fontes||[]);const src=(x)=>x.lista?'https://www.youtube-nocookie.com/embed/videoseries?list='+encodeURIComponent(x.lista)+'&autoplay=1':'https://www.youtube-nocookie.com/embed/'+encodeURIComponent(x.video)+'?autoplay=1';
+  const play=x=>{c.innerHTML='';const i=document.createElement('iframe');i.allow='autoplay; encrypted-media; picture-in-picture; fullscreen';i.allowFullscreen=true;i.src=src(x);c.appendChild(i)};
+  if(f.length)return play(f[0]);
+  c.innerHTML='<div class="box"><h1>YouTube</h1><p>Cole o link de um vídeo ou playlist. (Nenhuma fonte foi configurada em canais.json.)</p><input id="u" placeholder="https://www.youtube.com/watch?v=…" aria-label="Link do YouTube"><br><button class="btn" id="go">Assistir</button></div>';
+  document.getElementById('go').onclick=()=>{const v=document.getElementById('u').value,m=String(v).match(/list=([\w-]+)/),id=ex(v);if(m)play({lista:m[1]});else if(id)play({video:id})};return}
+ c.innerHTML='<div class="box"><h1>'+ch.nome+'</h1><p>'+ch.nome+' não permite abrir dentro de outra página, e o login dele é feito no próprio site. O canal abre em uma nova janela; a sua sessão do '+ch.nome+' é mantida pelo navegador, não pelo ALMAFLUXO.</p><button class="btn" id="o">Abrir '+ch.nome+'</button><a class="btn" href="/conversa/" style="background:#0a1d3a">Voltar ao totem</a></div>';
+ document.getElementById('o').onclick=()=>window.open(ch.url,'_blank','noopener')})();
+</script><script src="/core/canais.js"></script></body></html>
