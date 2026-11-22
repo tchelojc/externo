@@ -4,7 +4,7 @@
 if(window.AFCanais)return;
 
 const BASE_INSTALACAO='https://almafluxo.uk/conversa/instalacao/';
-const URL_CANAIS=BASE_INSTALACAO+'distribuicao/canais.json';
+const URL_CANAIS=BASE_INSTALACAO+'canais.json';
 const CHAVE_ESTADO='almafluxo_instalador';
 
 // Aceita caminhos internos e URLs absolutas do próprio ALMAFLUXO.
