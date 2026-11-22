@@ -264,11 +264,22 @@ async function iniciar() {
   const canais = dados.canais || [];
   const id = obterIdDaRota(canais);
 
+
   if (!id) {
-    mostrar('Identificação do canal ausente',
-      'A página abriu, mas não recebeu o identificador do canal na URL.',
-      [{texto:'Voltar ao totem',href:'/conversa/'}],
-      'Rota recebida: ' + location.pathname + location.search);
+    const botoes = canais
+      .filter(ch => ch && ch.id)
+      .map(ch => ({
+        texto: (ch.numero ? ch.numero + ' · ' : '') + ch.nome,
+        href: '/conversa/instalacao/canal/?id=' +
+          encodeURIComponent(ch.id)
+      }));
+  
+    mostrar(
+      'Central de canais ALMAFLUXO',
+      'Selecione o canal que deseja acessar.',
+      botoes,
+      'Canais disponíveis: ' + botoes.length
+    );
     return;
   }
 
