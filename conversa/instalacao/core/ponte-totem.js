@@ -1,31 +1,21 @@
-
-(()=>{
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+(function () {
   'use strict';
-
-  /* ALMAFLUXO — Ponte entre instalador e totem.
-     Executada pelo Worker sem editar o código do totem. */
-
-  const CHAVE = 'almafluxo_instalador';
-  const CHAVE_SESSAO = 'af_conversa_vista';
-  const TEMPO_PADRAO = 45;
-  const TEMPO_MAXIMO = 300;
-  const VALIDADE_DESTINO = 10 * 60 * 1000;
-
-  // Evita executar a ponte duas vezes na mesma página.
+  var CHAVE = 'almafluxo_instalador';
+  var CHAVE_SESSAO = 'af_conversa_vista';
+  var TEMPO_PADRAO = 45;
+  var TEMPO_MAXIMO = 300;
+  var VALIDADE_DESTINO = 10 * 60 * 1000;
   if (window.__AF_PONTE_TOTEM_EXECUTADA__) return;
   window.__AF_PONTE_TOTEM_EXECUTADA__ = true;
-
   function lerEstado() {
     try {
-      const valor = JSON.parse(localStorage.getItem(CHAVE) || '{}');
-      return valor && typeof valor === 'object' && !Array.isArray(valor)
-        ? valor
-        : {};
+      var valor = JSON.parse(localStorage.getItem(CHAVE) || '{}');
+      return valor && _typeof(valor) === 'object' && !Array.isArray(valor) ? valor : {};
     } catch (erro) {
       return {};
     }
   }
-
   function salvarEstado(estado) {
     try {
       localStorage.setItem(CHAVE, JSON.stringify(estado));
@@ -34,87 +24,50 @@
       return false;
     }
   }
-
   function obterEspera(estado) {
-    const valor = Number(estado.esperaTotem);
-
+    var valor = Number(estado.esperaTotem);
     if (!Number.isFinite(valor) || valor < 1) {
       return TEMPO_PADRAO * 1000;
     }
-
     return Math.min(valor, TEMPO_MAXIMO) * 1000;
   }
-
   function validarDestino(destino) {
     if (typeof destino !== 'string' || !destino) return null;
-
     try {
-      const url = new URL(destino, location.origin);
-
-      // Somente caminhos internos da mesma origem.
+      var url = new URL(destino, location.origin);
       if (url.origin !== location.origin) return null;
-
       if (!/^\/[\w./-]*$/.test(url.pathname)) return null;
-
       if (url.pathname.startsWith('//')) return null;
-
-      // Impede retorno ao próprio endereço atual.
       if (url.href === location.href) return null;
-
       return url;
     } catch (erro) {
       return null;
     }
   }
-
-  const estadoInicial = lerEstado();
-  const espera = obterEspera(estadoInicial);
-
-  // A conversa só é considerada vista após o tempo mínimo.
-  setTimeout(() => {
+  var estadoInicial = lerEstado();
+  var espera = obterEspera(estadoInicial);
+  setTimeout(function () {
     try {
       sessionStorage.setItem(CHAVE_SESSAO, '1');
     } catch (erro) {}
   }, espera);
-
-  const destino = validarDestino(estadoInicial.proximo);
-  const ultimaAbertura = Number(estadoInicial.ultimaAbertura);
-
-  if (
-    !destino ||
-    !Number.isFinite(ultimaAbertura) ||
-    ultimaAbertura <= 0 ||
-    Date.now() - ultimaAbertura > VALIDADE_DESTINO
-  ) {
+  var destino = validarDestino(estadoInicial.proximo);
+  var ultimaAbertura = Number(estadoInicial.ultimaAbertura);
+  if (!destino || !Number.isFinite(ultimaAbertura) || ultimaAbertura <= 0 || Date.now() - ultimaAbertura > VALIDADE_DESTINO) {
     return;
   }
-
-  setTimeout(() => {
+  setTimeout(function () {
     try {
-      // Confere novamente o estado antes de redirecionar.
-      const estadoAtual = lerEstado();
-      const destinoAtual = validarDestino(estadoAtual.proximo);
-      const aberturaAtual = Number(estadoAtual.ultimaAbertura);
-
-      if (
-        !destinoAtual ||
-        !Number.isFinite(aberturaAtual) ||
-        Date.now() - aberturaAtual > VALIDADE_DESTINO
-      ) {
+      var estadoAtual = lerEstado();
+      var destinoAtual = validarDestino(estadoAtual.proximo);
+      var aberturaAtual = Number(estadoAtual.ultimaAbertura);
+      if (!destinoAtual || !Number.isFinite(aberturaAtual) || Date.now() - aberturaAtual > VALIDADE_DESTINO) {
         return;
       }
-
-      // Consome o destino antes do redirecionamento.
       delete estadoAtual.proximo;
       delete estadoAtual.ultimaAbertura;
-
       if (!salvarEstado(estadoAtual)) return;
-
       location.assign(destinoAtual.href);
-
-    } catch (erro) {
-      // Falha silenciosa: o totem permanece aberto.
-    }
+    } catch (erro) {}
   }, espera);
-
 })();

@@ -1,419 +1,128 @@
-
-<!doctype html>
-<html lang="pt-BR">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#03060d">
-<title>ALMAFLUXO · Canais</title>
-
-<style>
-:root{color-scheme:dark}
-*{box-sizing:border-box}
-html,body{min-height:100%;margin:0}
-body{
- background:#03060d;
- color:#eaf6ff;
- font-family:system-ui,Segoe UI,Arial,sans-serif;
-}
-#app{
- min-height:100vh;
- padding:24px;
- display:grid;
- place-items:center;
-}
-.box{width:min(900px,100%);margin:auto}
-header{text-align:center;margin-bottom:28px}
-h1{font-size:clamp(25px,5vw,38px);margin:0 0 8px}
-p{color:#b8cbe6;line-height:1.5}
-#status{text-align:center;color:#8eb8ed}
-#lista{
- display:grid;
- grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
- gap:14px;
-}
-.canal{
- padding:20px;
- background:#0a1d3a;
- border:1px solid #164b80;
- border-radius:16px;
-}
-.canal h2{font-size:20px;margin:0 0 8px}
-.canal p{margin:0 0 16px}
-.btn{
- display:inline-block;
- font:inherit;
- color:#eaf6ff;
- background:#1f7bff;
- border:1px solid #27c8ff;
- border-radius:12px;
- padding:12px 18px;
- text-decoration:none;
- cursor:pointer;
-}
-.btn.sec{background:#0a1d3a}
-.btn:focus{outline:3px solid #ffd17a}
-.acoes{display:flex;gap:10px;flex-wrap:wrap}
-iframe{width:100%;aspect-ratio:16/9;border:0;background:#000}
-input{
- width:min(420px,100%);
- padding:13px;
- border-radius:10px;
- border:1px solid #27c8ff;
- background:#0a1d3a;
- color:#fff;
- font:inherit;
-}
-#player{margin-top:20px}
-.escondido{display:none!important}
-</style>
-</head>
-
-<body>
-<main id="app">
- <section class="box">
-  <header>
-   <h1>ALMAFLUXO · Canais</h1>
-   <p>Escolha o canal que deseja acessar.</p>
-  </header>
-
-  <div id="status">Carregando canais...</div>
-  <div id="lista"></div>
-  <div id="player"></div>
- </section>
-</main>
-
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ALMAFLUXO · Canal</title>
+<style>:root{color-scheme:dark}*{box-sizing:border-box}html,body{height:100%;margin:0;background:#03060d;color:#eaf6ff;font-family:system-ui,Segoe UI,Arial,sans-serif}
+#c{height:100%;display:grid;place-items:center;text-align:center;padding:24px}iframe{width:100%;height:100%;border:0;background:#000}
+.box{max-width:560px}h1{margin:0 0 10px;font-size:clamp(22px,4vw,34px)}p{color:#b8cbe6;line-height:1.5}
+a.btn,button.btn{display:inline-block;font:inherit;color:#eaf6ff;background:#1f7bff;border:1px solid #27c8ff;border-radius:12px;padding:14px 22px;margin:8px;text-decoration:none;cursor:pointer}a.btn:focus,button.btn:focus{outline:3px solid #ffd17a}input{font:inherit;padding:12px;border-radius:10px;border:1px solid #27c8ff;background:#0a1d3a;color:#fff;width:min(420px,90vw)}</style></head>
+<body><div id="c"><div class="box"><p>Carregando canal…</p></div></div>
 <script>
-(()=> {
-'use strict';
-
-const BASE='/conversa/instalacao/';
-const URL_JSON=BASE+'distribuicao/canais.json';
-const URL_CANAL=BASE+'canal';
-
-const $=id=>document.getElementById(id);
-const status=$('status');
-const lista=$('lista');
-const player=$('player');
-
-let canais=[];
-
-function usuarioLogado(){
- try{
-  return !!JSON.parse(
-   localStorage.getItem('almafluxo_usuario')||'null'
-  );
- }catch(e){
-  return false;
- }
-}
-
-function limpar(){
- lista.replaceChildren();
- player.replaceChildren();
-}
-
-function texto(valor,alternativo=''){
- return typeof valor==='string'&&valor.trim()
-  ? valor.trim()
-  : alternativo;
-}
-
-function criarBotao(nome,url){
- const a=document.createElement('a');
- a.className='btn';
- a.textContent=nome;
- a.href=url;
- return a;
-}
-
-function abrirPaginaCanal(ch){
- const id=texto(ch.id);
- if(!id)return;
-
- location.assign(
-  URL_CANAL+'?id='+encodeURIComponent(id)
- );
-}
-
-function abrirDestino(ch){
- const destino=texto(ch.url)||texto(ch.rota);
-
- if(!destino){
-  status.textContent='Este canal ainda não possui endereço configurado.';
-  return;
- }
-
- if(ch.login&&!usuarioLogado()){
-  location.assign(BASE);
-  return;
- }
-
- let url;
-
- try{
-  url=new URL(destino,location.origin);
- }catch(e){
-  status.textContent='Endereço do canal inválido.';
-  return;
- }
-
- if(!['https:','http:'].includes(url.protocol)){
-  status.textContent='Protocolo de endereço não permitido.';
-  return;
- }
-
- location.assign(url.href);
-}
-
-function youtubeId(valor){
- const v=String(valor||'').trim();
-
- if(/^[\w-]{6,}$/.test(v))return v;
-
- try{
-  const u=new URL(v);
-  if(u.hostname==='youtu.be'){
-   return u.pathname.split('/').filter(Boolean)[0]||null;
-  }
-
-  if(u.searchParams.get('v'))return u.searchParams.get('v');
-
-  const m=u.pathname.match(/\/(?:embed|shorts)\/([\w-]+)/);
-  return m?m[1]:null;
- }catch(e){
-  return null;
- }
-}
-
-function tocarYoutube(fonte){
- const area=document.createElement('div');
- const idLista=texto(fonte.lista);
- const idVideo=youtubeId(fonte.video);
-
- let src='';
-
- if(idLista){
-  src='https://www.youtube-nocookie.com/embed/videoseries?list='+
-   encodeURIComponent(idLista)+'&autoplay=1';
- }else if(idVideo){
-  src='https://www.youtube-nocookie.com/embed/'+
-   encodeURIComponent(idVideo)+'?autoplay=1';
- }
-
- if(!src)return false;
-
- const iframe=document.createElement('iframe');
- iframe.src=src;
- iframe.allow='autoplay; encrypted-media; picture-in-picture; fullscreen';
- iframe.allowFullscreen=true;
- iframe.title='Reprodução do canal YouTube';
-
- area.appendChild(iframe);
- player.replaceChildren(area);
- return true;
-}
-
-function mostrarYoutube(ch){
- const fontes=Array.isArray(ch.fontes)?ch.fontes:[];
-
- if(fontes.length){
-  if(tocarYoutube(fontes[0])){
-   status.textContent=ch.nome;
-   return;
-  }
- }
-
- const titulo=document.createElement('h2');
- titulo.textContent=ch.nome;
-
- const explicacao=document.createElement('p');
- explicacao.textContent='Informe um link de vídeo ou playlist do YouTube.';
-
- const input=document.createElement('input');
- input.placeholder='Cole o link do YouTube';
- input.setAttribute('aria-label','Link do YouTube');
-
- const botao=document.createElement('button');
- botao.className='btn';
- botao.textContent='Assistir';
-
- botao.onclick=()=>{
-  const valor=input.value.trim();
-  const listaId=(()=> {
-   try{return new URL(valor).searchParams.get('list')}catch(e){return null}
-  })();
-
-  const video=youtubeId(valor);
-
-  if(listaId){
-   tocarYoutube({lista:listaId});
-  }else if(video){
-   tocarYoutube({video});
-  }else{
-   explicacao.textContent='Link do YouTube inválido.';
-  }
- };
-
- player.replaceChildren(titulo,explicacao,input,botao);
- status.textContent='';
-}
-
-function mostrarDetalhe(ch){
- limpar();
-
- const titulo=document.createElement('h2');
- titulo.textContent=ch.nome;
-
- const descricao=document.createElement('p');
- descricao.textContent='Acessar '+ch.nome+'.';
-
- const voltar=criarBotao('Todos os canais',URL_CANAL);
- voltar.className='btn sec';
-
- const abrir=document.createElement('button');
- abrir.className='btn';
- abrir.textContent='Abrir '+ch.nome;
- abrir.onclick=()=>abrirDestino(ch);
-
- const acoes=document.createElement('div');
- acoes.className='acoes';
- acoes.append(abrir,voltar);
-
- player.append(titulo,descricao,acoes);
-
- if(ch.login&&!usuarioLogado()){
-  abrir.disabled=true;
-  abrir.textContent='Acesso exige login';
-  status.textContent='Entre na sua conta ALMAFLUXO para acessar este canal.';
- }
-}
-
-
-function renderizar(){
- limpar();
-
- const params=new URLSearchParams(location.search);
- const id=params.get('id');
-
- if(id){
-  const ch=canais.find(x=>String(x.id)===id);
-
-  if(!ch){
-   status.textContent='Canal não encontrado.';
-   return;
-  }
-
-  document.title='ALMAFLUXO · '+texto(ch.nome,'Canal');
-
-  if(ch.login&&!usuarioLogado()){
-   status.textContent='Este canal exige uma conta ALMAFLUXO.';
-   player.append(
-    criarBotao('Entrar / criar conta',BASE)
-   );
-   return;
-  }
-
-  // Canais de acesso direto, incluindo Entrevista.
-  if(ch.direto===true){
-   abrirDestino(ch);
-   return;
-  }
-
-  // YouTube possui reprodução própria neste índice.
-  if(ch.tipo==='youtube'){
-   mostrarYoutube(ch);
-   return;
-  }
-
-  // Outros tipos permanecem com sua tela de acesso.
-  mostrarDetalhe(ch);
-  return;
- }
-
- document.title='ALMAFLUXO · Canais';
-
- status.textContent=canais.length
-  ? canais.length+' canais disponíveis'
-  : 'Nenhum canal disponível.';
-
- canais.forEach(ch=>{
-  const card=document.createElement('article');
-  card.className='canal';
-
-  const nome=document.createElement('h2');
-  nome.textContent=texto(ch.nome,'Canal');
-
-  const tipo=document.createElement('p');
-
-  const descricao=texto(ch.descricao);
-
-  tipo.textContent=descricao||(
-   ch.tipo==='video'?'Canal de vídeo':
-   ch.tipo==='youtube'?'Canal YouTube':
-   ch.tipo==='social'?'Rede social':
-   'Canal ALMAFLUXO'
-  );
-
-  const destinoDireto=ch.direto===true;
-
-  const botao=criarBotao(
-   'Abrir canal',
-   destinoDireto
-    ? (texto(ch.url)||texto(ch.rota)||'#')
-    : URL_CANAL+'?id='+encodeURIComponent(ch.id)
-  );
-
-  // O redirecionamento passa pela validação de endereço
-  // e pelo controle de login já existente.
-  if(destinoDireto){
-   botao.addEventListener('click',e=>{
-    e.preventDefault();
-    abrirDestino(ch);
-   });
-  }
-
-  card.append(nome,tipo,botao);
-  lista.appendChild(card);
- });
-}
-
-async function iniciar(){
- try{
-  const r=await fetch(URL_JSON,{
-   method:'GET',
-   cache:'no-store'
-  });
-
-  if(!r.ok){
-   throw new Error('JSON respondeu HTTP '+r.status);
-  }
-
-  const dados=await r.json();
-
-  if(!dados||!Array.isArray(dados.canais)){
-   throw new Error('Estrutura canais[] não encontrada no JSON.');
-  }
-
-  canais=dados.canais.filter(ch=>
-   ch&&typeof ch.id==='string'&&ch.id.trim()
-  );
-
-  if(!canais.length){
-   throw new Error('Nenhum canal válido encontrado.');
-  }
-
-  renderizar();
-
- }catch(e){
-  console.error('[ALMAFLUXO CANAIS]',e);
-  status.textContent='Não foi possível carregar os canais: '+e.message;
- }
-}
-
-iniciar();
-
-})();
-</script>
-</body>
-</html>
+function _regenerator() { var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? (c > 1 && (G.n = c < 3 ? -1 : u), d(c, u)) : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i.return) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+_asyncToGenerator(_regenerator().m(function _callee() {
+  var c, id, J, ch, logado, vista, s, ex, f, src, play, _t;
+  return _regenerator().w(function (_context) {
+    while (1) switch (_context.p = _context.n) {
+      case 0:
+        c = document.getElementById('c'), id = location.pathname.replace(/\/$/, '').split('/').pop().replace(/\d+$/, '');
+        _context.p = 1;
+        _context.n = 2;
+        return fetch('/distribuicao/canais.json', {
+          cache: 'no-store'
+        }).then(function (r) {
+          return r.json();
+        });
+      case 2:
+        J = _context.v;
+        _context.n = 4;
+        break;
+      case 3:
+        _context.p = 3;
+        _t = _context.v;
+        c.innerHTML = '<div class="box"><h1>Canais indisponíveis</h1></div>';
+        return _context.a(2);
+      case 4:
+        ch = (J.canais || []).find(function (x) {
+          return x.id === id;
+        });
+        if (ch) {
+          _context.n = 5;
+          break;
+        }
+        c.innerHTML = '<div class="box"><h1>Canal não encontrado</h1><a class="btn" href="/conversa/">Voltar</a></div>';
+        return _context.a(2);
+      case 5:
+        logado = function () {
+          try {
+            return !!JSON.parse(localStorage.getItem('almafluxo_usuario') || 'null');
+          } catch (e) {
+            return false;
+          }
+        }(), vista = function () {
+          try {
+            return !!sessionStorage.getItem('af_conversa_vista');
+          } catch (e) {
+            return false;
+          }
+        }();
+        if (!(ch.login && !logado)) {
+          _context.n = 6;
+          break;
+        }
+        c.innerHTML = '<div class="box"><h1>' + ch.nome + '</h1><p>Este canal exige uma conta ALMAFLUXO.</p><a class="btn" href="/conversa/instalacao">Entrar / criar conta</a></div>';
+        return _context.a(2);
+      case 6:
+        if (vista) {
+          _context.n = 7;
+          break;
+        }
+        try {
+          s = JSON.parse(localStorage.getItem('almafluxo_instalador') || '{}');
+          s.proximo = ch.rota;
+          s.ultimaAbertura = Date.now();
+          s.esperaTotem = J.espera_conversa_s || 45;
+          localStorage.setItem('almafluxo_instalador', JSON.stringify(s));
+        } catch (e) {}
+        location.replace('/conversa/');
+        return _context.a(2);
+      case 7:
+        document.title = 'ALMAFLUXO · ' + ch.nome;
+        if (!(ch.tipo === 'youtube')) {
+          _context.n = 9;
+          break;
+        }
+        ex = function ex(v) {
+          var m = String(v).match(/(?:list=|v=|youtu\.be\/|embed\/)([\w-]{6,})/);
+          return m ? m[1] : /^[\w-]{6,}$/.test(v) ? v : null;
+        };
+        f = ch.fontes || [];
+        src = function src(x) {
+          return x.lista ? 'https://www.youtube-nocookie.com/embed/videoseries?list=' + encodeURIComponent(x.lista) + '&autoplay=1' : 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(x.video) + '?autoplay=1';
+        };
+        play = function play(x) {
+          c.innerHTML = '';
+          var i = document.createElement('iframe');
+          i.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+          i.allowFullscreen = true;
+          i.src = src(x);
+          c.appendChild(i);
+        };
+        if (!f.length) {
+          _context.n = 8;
+          break;
+        }
+        return _context.a(2, play(f[0]));
+      case 8:
+        c.innerHTML = '<div class="box"><h1>YouTube</h1><p>Cole o link de um vídeo ou playlist. (Nenhuma fonte foi configurada em canais.json.)</p><input id="u" placeholder="https://www.youtube.com/watch?v=…" aria-label="Link do YouTube"><br><button class="btn" id="go">Assistir</button></div>';
+        document.getElementById('go').onclick = function () {
+          var v = document.getElementById('u').value,
+            m = String(v).match(/list=([\w-]+)/),
+            id = ex(v);
+          if (m) play({
+            lista: m[1]
+          });else if (id) play({
+            video: id
+          });
+        };
+        return _context.a(2);
+      case 9:
+        c.innerHTML = '<div class="box"><h1>' + ch.nome + '</h1><p>' + ch.nome + ' não permite abrir dentro de outra página, e o login dele é feito no próprio site. O canal abre em uma nova janela; a sua sessão do ' + ch.nome + ' é mantida pelo navegador, não pelo ALMAFLUXO.</p><button class="btn" id="o">Abrir ' + ch.nome + '</button><a class="btn" href="/conversa/" style="background:#0a1d3a">Voltar ao totem</a></div>';
+        document.getElementById('o').onclick = function () {
+          return window.open(ch.url, '_blank', 'noopener');
+        };
+      case 10:
+        return _context.a(2);
+    }
+  }, _callee, null, [[1, 3]]);
+}))();
+</script><script src="/core/canais.js"></script></body></html>

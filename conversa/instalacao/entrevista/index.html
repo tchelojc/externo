@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ALMAFLUXO · Entrevista</title>
+<link rel="icon" href="data:,">
+<style>
+:root{color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:#000;color:#eaf6ff;font-family:system-ui,Segoe UI,Arial,sans-serif;overflow:hidden}
+video{position:fixed;top:0;right:0;bottom:0;left:0;width:100%;height:100%;object-fit:contain;background:#000;opacity:0;pointer-events:none}
+video.on{opacity:1;pointer-events:auto}
+#msg{position:fixed;top:0;right:0;bottom:0;left:0;display:grid;place-items:center;text-align:center;padding:24px;z-index:5;background:#000c}
+#msg.off{display:none}
+#msg .box{max-width:560px}
+#msg h1{margin:0 0 10px;font-size:clamp(22px,4vw,34px)}
+#msg p{color:#b8cbe6;line-height:1.5;margin:0 0 12px}
+button{font:inherit;color:#eaf6ff;background:#0a1d3a;border:1px solid #27c8ff;border-radius:10px;padding:12px 18px;cursor:pointer}
+button.p{background:#1f7bff}
+button:focus{outline:3px solid #ffd17a}
+#bar{position:fixed;left:0;right:0;bottom:0;z-index:4;padding:12px 16px 16px;background:linear-gradient(transparent,#000d);display:flex;flex-wrap:wrap;gap:8px;align-items:center;transition:opacity .3s}
+#bar.hide{opacity:0;pointer-events:none}
+#info{flex:1 1 200px;font-size:15px;color:#cfe3ff}
+#prog{flex:1 1 100%;height:6px;background:#254365;border-radius:3px;overflow:hidden}
+#prog i{display:block;height:100%;width:0;background:#27c8ff}
+#lista{position:fixed;z-index:6;left:12px;bottom:84px;max-height:60vh;overflow:auto;min-width:240px;background:#06122cf5;border:1px solid #27c8ff;border-radius:12px;padding:8px;display:none}
+#lista button{display:block;width:100%;text-align:left;margin:3px 0}
+#lista button.at{background:#1f7bff}
+#espera{position:fixed;top:12px;left:12px;z-index:4;font-size:14px;color:#cfe3ff;background:#0a1d3acc;border:1px solid #27c8ff;border-radius:8px;padding:6px 10px;display:none}
+</style>
+</head>
+<body>
+<video id="a" playsinline preload="auto"></video>
+<video id="b" playsinline preload="auto"></video>
+<div id="espera">Carregando…</div>
+<div id="msg"><div class="box"><h1>Entrevista</h1><p id="mt">Procurando as partes da entrevista…</p><div id="ma"></div></div></div>
+<div id="lista" role="listbox" aria-label="Partes da entrevista"></div>
+<div id="bar" class="hide">
+ <div id="prog"><i id="pg"></i></div>
+ <button id="bAnt" type="button" aria-label="Parte anterior">⏮ Parte</button>
+ <button id="bMenos" type="button" aria-label="Voltar 10 segundos">−10 s</button>
+ <button id="bPlay" type="button" class="p" aria-label="Pausar ou continuar">⏯</button>
+ <button id="bMais" type="button" aria-label="Avançar 10 segundos">+10 s</button>
+ <button id="bProx" type="button" aria-label="Próxima parte">Parte ⏭</button>
+ <button id="bLista" type="button" aria-label="Lista de partes">☰ Partes</button>
+ <button id="bTela" type="button" aria-label="Tela cheia">⛶</button>
+ <div id="info"></div>
+</div>
+<script>
+function _regenerator() { var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? (c > 1 && (G.n = c < 3 ? -1 : u), d(c, u)) : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i.return) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t.return && (u = t.return(), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+(function () {
+  'use strict';
+
+  var BASE = '/entrevista/',
+    CH = 'af_entrevista_pos';
+  var A = document.getElementById('a'),
+    B = document.getElementById('b');
+  var $ = function $(id) {
+    return document.getElementById(id);
+  };
+  var partes = [],
+    i = 0,
+    ativo = A,
+    reserva = B,
+    titulo = 'Entrevista',
+    ultimoSalvo = 0,
+    tBar = null;
+  var url = function url(k) {
+    return k >= 0 && k < partes.length ? BASE + partes[k].arquivo : '';
+  };
+  var msg = function msg(t, acoes) {
+    $('msg').classList.remove('off');
+    $('mt').textContent = t;
+    var m = $('ma');
+    m.replaceChildren();
+    (acoes || []).forEach(function (_ref) {
+      var _ref2 = _slicedToArray(_ref, 3),
+        r = _ref2[0],
+        f = _ref2[1],
+        p = _ref2[2];
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = r;
+      if (p) b.className = 'p';
+      b.onclick = f;
+      m.appendChild(b);
+      m.append(' ');
+    });
+    var f = m.querySelector('button');
+    if (f) f.focus();
+  };
+  var fecharMsg = function fecharMsg() {
+    return $('msg').classList.add('off');
+  };
+  function existe(_x) {
+    return _existe.apply(this, arguments);
+  }
+  function _existe() {
+    _existe = _asyncToGenerator(_regenerator().m(function _callee(u) {
+      var r, _t;
+      return _regenerator().w(function (_context) {
+        while (1) switch (_context.p = _context.n) {
+          case 0:
+            _context.p = 0;
+            _context.n = 1;
+            return fetch(u, {
+              method: 'HEAD',
+              cache: 'no-store'
+            });
+          case 1:
+            r = _context.v;
+            return _context.a(2, r.ok);
+          case 2:
+            _context.p = 2;
+            _t = _context.v;
+            return _context.a(2, false);
+        }
+      }, _callee, null, [[0, 2]]);
+    }));
+    return _existe.apply(this, arguments);
+  }
+  function carregarLista() {
+    return _carregarLista.apply(this, arguments);
+  }
+  function _carregarLista() {
+    _carregarLista = _asyncToGenerator(_regenerator().m(function _callee2() {
+      var r, j, L, out, n, f, _t2;
+      return _regenerator().w(function (_context2) {
+        while (1) switch (_context2.p = _context2.n) {
+          case 0:
+            _context2.p = 0;
+            _context2.n = 1;
+            return fetch(BASE + 'lista.json', {
+              cache: 'no-store'
+            });
+          case 1:
+            r = _context2.v;
+            if (!r.ok) {
+              _context2.n = 3;
+              break;
+            }
+            _context2.n = 2;
+            return r.json();
+          case 2:
+            j = _context2.v;
+            if (j && typeof j.titulo === 'string' && j.titulo.trim()) titulo = j.titulo.trim();
+            if (!(j && Array.isArray(j.partes) && j.partes.length)) {
+              _context2.n = 3;
+              break;
+            }
+            L = j.partes.map(function (p, k) {
+              return typeof p === 'string' ? {
+                arquivo: p,
+                titulo: 'Parte ' + (k + 1)
+              } : {
+                arquivo: String(p && p.arquivo || ''),
+                titulo: String(p && p.titulo || 'Parte ' + (k + 1))
+              };
+            }).filter(function (p) {
+              return /^[\w.-]+\.(mp4|webm)$/.test(p.arquivo);
+            });
+            if (!L.length) {
+              _context2.n = 3;
+              break;
+            }
+            return _context2.a(2, L);
+          case 3:
+            _context2.n = 5;
+            break;
+          case 4:
+            _context2.p = 4;
+            _t2 = _context2.v;
+          case 5:
+            out = [];
+            n = 1;
+          case 6:
+            if (!(n <= 99)) {
+              _context2.n = 10;
+              break;
+            }
+            f = 'parte-' + String(n).padStart(2, '0') + '.mp4';
+            $('mt').textContent = 'Procurando as partes… (' + n + ')';
+            _context2.n = 7;
+            return existe(BASE + f);
+          case 7:
+            if (_context2.v) {
+              _context2.n = 8;
+              break;
+            }
+            return _context2.a(3, 10);
+          case 8:
+            out.push({
+              arquivo: f,
+              titulo: 'Parte ' + n
+            });
+          case 9:
+            n++;
+            _context2.n = 6;
+            break;
+          case 10:
+            return _context2.a(2, out);
+        }
+      }, _callee2, null, [[0, 4]]);
+    }));
+    return _carregarLista.apply(this, arguments);
+  }
+  var salvar = function salvar(forcar) {
+    var v = ativo,
+      agora = Date.now();
+    if (!forcar && agora - ultimoSalvo < 3000) return;
+    ultimoSalvo = agora;
+    try {
+      localStorage.setItem(CH, JSON.stringify({
+        i: i,
+        t: Math.floor(v.currentTime || 0)
+      }));
+    } catch (e) {}
+  };
+  var lerPos = function lerPos() {
+    try {
+      var p = JSON.parse(localStorage.getItem(CH) || 'null');
+      if (p && Number.isInteger(p.i) && p.i >= 0 && p.i < partes.length) return p;
+    } catch (e) {}
+    return null;
+  };
+  function mostrar(v) {
+    A.classList.toggle('on', v === A);
+    B.classList.toggle('on', v === B);
+  }
+  function preparar() {
+    var n = url(i + 1);
+    if (n && reserva.dataset.src !== n) {
+      reserva.dataset.src = n;
+      reserva.src = n;
+      reserva.load();
+    }
+    if (!n) {
+      reserva.removeAttribute('src');
+      reserva.dataset.src = '';
+    }
+  }
+  function atualizarUI() {
+    $('info').textContent = titulo + ' · ' + (partes[i] ? partes[i].titulo : '') + ' (' + (i + 1) + '/' + partes.length + ')';
+    document.querySelectorAll('#lista button').forEach(function (b, k) {
+      return b.classList.toggle('at', k === i);
+    });
+  }
+  function abrir(k, t) {
+    if (k < 0 || k >= partes.length) return;
+    var alvo = url(k);
+    ativo.pause();
+    i = k;
+    if (reserva.dataset.src === alvo && reserva.readyState > 0) {
+      var x = ativo;
+      ativo = reserva;
+      reserva = x;
+    } else {
+      ativo.dataset.src = alvo;
+      ativo.src = alvo;
+      ativo.load();
+    }
+    if (t) {
+      var v = ativo;
+      var f = function f() {
+        try {
+          v.currentTime = t;
+        } catch (e) {}
+      };
+      if (v.readyState > 0) f();else v.addEventListener('loadedmetadata', f, {
+        once: true
+      });
+    }
+    mostrar(ativo);
+    ativo.muted = false;
+    var p = ativo.play();
+    if (p && p.catch) p.catch(function () {
+      return msg('Toque para começar a assistir.', [['▶ Assistir', function () {
+        fecharMsg();
+        ativo.play().catch(function () {});
+      }, true]]);
+    });
+    preparar();
+    atualizarUI();
+    salvar(true);
+  }
+  var proxima = function proxima() {
+    if (i + 1 < partes.length) abrir(i + 1, 0);else fim();
+  };
+  var anterior = function anterior() {
+    if (ativo.currentTime > 5) ativo.currentTime = 0;else abrir(Math.max(0, i - 1), 0);
+  };
+  function fim() {
+    try {
+      localStorage.removeItem(CH);
+    } catch (e) {}
+    msg('Fim da entrevista.', [['↺ Rever do início', function () {
+      fecharMsg();
+      abrir(0, 0);
+    }, true]]);
+  }
+  var alternar = function alternar() {
+    if (ativo.paused) ativo.play().catch(function () {});else ativo.pause();
+  };
+  var pular = function pular(s) {
+    try {
+      ativo.currentTime = Math.max(0, Math.min(ativo.duration || 1e9, ativo.currentTime + s));
+    } catch (e) {}
+  };
+  function montarLista() {
+    var L = $('lista');
+    L.replaceChildren();
+    partes.forEach(function (p, k) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = k + 1 + ' · ' + p.titulo;
+      b.onclick = function () {
+        L.style.display = 'none';
+        abrir(k, 0);
+      };
+      L.appendChild(b);
+    });
+  }
+  function eventosVideo(v) {
+    v.addEventListener('ended', function () {
+      if (v === ativo) proxima();
+    });
+    v.addEventListener('timeupdate', function () {
+      if (v !== ativo) return;
+      var d = v.duration;
+      $('pg').style.width = (d ? Math.min(100, v.currentTime / d * 100) : 0) + '%';
+      salvar(false);
+    });
+    v.addEventListener('waiting', function () {
+      if (v === ativo) $('espera').style.display = 'block';
+    });
+    var ok = function ok() {
+      if (v === ativo) $('espera').style.display = 'none';
+    };
+    v.addEventListener('playing', ok);
+    v.addEventListener('canplay', ok);
+    v.addEventListener('error', function () {
+      if (v !== ativo || !v.getAttribute('src')) return;
+      msg('Não foi possível reproduzir "' + (partes[i] ? partes[i].titulo : '') + '". Confira se o arquivo foi enviado ao GitHub e se é MP4 (H.264).', [['Tentar de novo', function () {
+        fecharMsg();
+        abrir(i, 0);
+      }, true], ['Pular para a próxima', function () {
+        fecharMsg();
+        proxima();
+      }]]);
+    });
+  }
+  function barra() {
+    var b = $('bar');
+    b.classList.remove('hide');
+    clearTimeout(tBar);
+    tBar = setTimeout(function () {
+      if (!ativo.paused) b.classList.add('hide');
+    }, 4500);
+  }
+  function iniciar() {
+    return _iniciar.apply(this, arguments);
+  }
+  function _iniciar() {
+    _iniciar = _asyncToGenerator(_regenerator().m(function _callee3() {
+      var p;
+      return _regenerator().w(function (_context3) {
+        while (1) switch (_context3.n) {
+          case 0:
+            eventosVideo(A);
+            eventosVideo(B);
+            _context3.n = 1;
+            return carregarLista();
+          case 1:
+            partes = _context3.v;
+            if (partes.length) {
+              _context3.n = 2;
+              break;
+            }
+            msg('Nenhuma parte encontrada. Envie os vídeos ao GitHub na pasta da entrevista com os nomes parte-01.mp4, parte-02.mp4… (ou crie o lista.json).', [['Procurar de novo', function () {
+              return location.reload();
+            }, true]]);
+            return _context3.a(2);
+          case 2:
+            montarLista();
+            $('bPlay').onclick = alternar;
+            $('bMais').onclick = function () {
+              return pular(10);
+            };
+            $('bMenos').onclick = function () {
+              return pular(-10);
+            };
+            $('bProx').onclick = proxima;
+            $('bAnt').onclick = anterior;
+            $('bLista').onclick = function () {
+              var L = $('lista');
+              L.style.display = L.style.display === 'block' ? 'none' : 'block';
+            };
+            $('bTela').onclick = function () {
+              var d = document.documentElement;
+              if (document.fullscreenElement) document.exitFullscreen();else if (d.requestFullscreen) d.requestFullscreen().catch(function () {});
+            };
+            ['pointermove', 'pointerdown', 'keydown'].forEach(function (e) {
+              return addEventListener(e, barra);
+            });
+            addEventListener('keydown', function (e) {
+              if (/INPUT|TEXTAREA|SELECT/.test(e.target && e.target.tagName || '')) return;
+              var k = e.key;
+              if (k === ' ' || k === 'MediaPlayPause' || k === 'Enter' && e.target === document.body) {
+                e.preventDefault();
+                alternar();
+              } else if (k === 'ArrowRight') {
+                e.preventDefault();
+                pular(10);
+              } else if (k === 'ArrowLeft') {
+                e.preventDefault();
+                pular(-10);
+              } else if (k === 'ArrowDown' || k === 'n') {
+                e.preventDefault();
+                proxima();
+              } else if (k === 'ArrowUp' || k === 'p') {
+                e.preventDefault();
+                anterior();
+              } else if (k === 'f') {
+                $('bTela').click();
+              }
+            });
+            addEventListener('beforeunload', function () {
+              return salvar(true);
+            });
+            p = lerPos();
+            fecharMsg();
+            abrir(p ? p.i : 0, p ? p.t : 0);
+            barra();
+          case 3:
+            return _context3.a(2);
+        }
+      }, _callee3);
+    }));
+    return _iniciar.apply(this, arguments);
+  }
+  iniciar();
+})();
+</script>
+<script src="/core/canais.js"></script>
+</body>
+</html>
