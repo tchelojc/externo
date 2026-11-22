@@ -3,9 +3,9 @@
 
 if(window.AFCanais)return;
 
-const BASE_INSTALACAO='https://almafluxo.uk/conversa/instalacao/';
-const URL_CANAIS=BASE_INSTALACAO+'canais.json';
-const CHAVE_ESTADO='almafluxo_instalador';
+const BASE_INSTALACAO = 'https://almafluxo.uk/conversa/instalacao/';
+const URL_CANAIS = BASE_INSTALACAO + 'canais.json';
+const CHAVE_ESTADO = 'almafluxo_instalador';
 
 // Aceita caminhos internos e URLs absolutas do próprio ALMAFLUXO.
 // Retorna somente o caminho, para compatibilidade com ponte-totem.js.
