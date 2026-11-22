@@ -3,7 +3,7 @@
 
   if (window.AFCanais) return;
   var BASE_INSTALACAO = 'https://almafluxo.uk/conversa/instalacao/';
-  var URL_CANAIS = BASE_INSTALACAO + 'distribuicao/canais.json';
+  var URL_CANAIS = BASE_INSTALACAO + 'canais.json';
   var CHAVE_ESTADO = 'almafluxo_instalador';
   function normalizarRota(rota) {
     try {
