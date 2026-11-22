@@ -1,28 +1,23 @@
+// Manifesto PWA original do ALMAFLUXO
+if (p === "/conversa/manifest.webmanifest") {
+  const manifesto = await fetch(
+    INSTALADOR_BASE + "manifest.webmanifest",
+    { cf: { cacheTtl: 0 } }
+  );
 
-{
-  "id": "/conversa/",
-  "name": "ALMAFLUXO · Totem",
-  "short_name": "ALMAFLUXO",
-  "description": "Totem digital ALMAFLUXO — nossa conversa diária.",
-  "start_url": "/conversa/",
-  "scope": "/conversa/",
-  "display": "fullscreen",
-  "background_color": "#030508",
-  "theme_color": "#030508",
-  "orientation": "any",
-  "lang": "pt-BR",
-  "icons": [
-    {
-      "src": "/icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+  if (!manifesto.ok) {
+    return new Response(
+      "Manifesto não encontrado no repositório: " + manifesto.status,
+      { status: 502 }
+    );
+  }
+
+  return new Response(manifesto.body, {
+    status: 200,
+    headers: {
+      "Content-Type": "application/manifest+json; charset=utf-8",
+      "Cache-Control": "no-cache",
+      ...corsHeaders(origin)
     }
-  ]
+  });
 }
