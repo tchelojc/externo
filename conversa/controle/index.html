@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>ALMAFLUXO · Controle</title>
+<style>
+:root{color-scheme:dark;--bg:#030508;--card:#0a1d3a;--bd:#27c8ff;--tx:#eaf6ff;--mut:#9fb6d4;--ok:#5be39a;--er:#ff8a8a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,sans-serif;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+h1{font-size:20px;margin:0 0 4px}
+.mut{color:var(--mut);font-size:14px}
+.card{background:var(--card);border:1px solid #1d4a73;border-radius:14px;padding:14px;margin:12px 0}
+button,input{font:inherit;color:var(--tx)}
+button{background:#0d2a52;border:1px solid var(--bd);border-radius:12px;padding:14px 10px;cursor:pointer;min-height:52px}
+button:active{background:#1f7bff}
+button.p{background:#1f7bff}
+button:disabled{opacity:.45}
+input{width:100%;background:#06122c;border:1px solid #1d4a73;border-radius:10px;padding:12px;margin:6px 0}
+.g{display:grid;gap:8px}
+.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}
+#st{font-size:14px;min-height:20px}
+.ok{color:var(--ok)}.er{color:var(--er)}
+.tag{display:inline-block;border:1px solid #1d4a73;border-radius:999px;padding:2px 10px;margin:2px;font-size:13px}
+.pend{border-color:#ffd17a;color:#ffd17a}
+.hide{display:none}
+</style>
+</head>
+<body>
+<h1>Controle da TV</h1>
+<div class="mut" id="sub">Conectando…</div>
+
+<div id="login" class="card hide">
+  <div>Entre na sua conta ALMAFLUXO para usar o controle.</div>
+  <input id="em" type="email" autocomplete="username" placeholder="E-mail">
+  <input id="sn" type="password" autocomplete="current-password" placeholder="Senha">
+  <button id="bEntrar" class="p" type="button" style="width:100%">Entrar</button>
+  <div class="mut" style="margin-top:8px">Ainda não tem cadastro? Crie sua conta no <a href="/" style="color:#7fd6ff">ALMAFLUXO</a> e volte a escanear o QR.</div>
+</div>
+
+<div id="painel" class="hide">
+  <div class="card">
+    <div class="mut">Na TV agora</div>
+    <div id="tv" style="font-size:18px;margin-top:2px">—</div>
+    <div id="fila" style="margin-top:8px"></div>
+    <div class="mut" style="margin-top:6px">A troca de canal só acontece quando o ciclo atual terminar.</div>
+  </div>
+  <div class="card">
+    <div class="mut" style="margin-bottom:8px">Canal</div>
+    <div class="g g2" id="canais"></div>
+  </div>
+  <div class="card">
+    <div class="mut" style="margin-bottom:8px">Reprodução</div>
+    <div class="g g3">
+      <button data-c="ant" type="button">⏮ Parte</button>
+      <button data-c="alternar" class="p" type="button">⏯</button>
+      <button data-c="prox" type="button">Parte ⏭</button>
+      <button data-c="pular" data-a="-10" type="button">−10 s</button>
+      <button data-c="pular" data-a="30" type="button">+30 s</button>
+      <button data-c="pular" data-a="10" type="button">+10 s</button>
+    </div>
+    <div class="mut" style="margin:10px 0 6px">Velocidade</div>
+    <div class="g g3">
+      <button data-c="vel" data-a="0.75" type="button">0,75×</button>
+      <button data-c="vel" data-a="1" type="button">1×</button>
+      <button data-c="vel" data-a="1.5" type="button">1,5×</button>
+      <button data-c="vel" data-a="2" type="button">2×</button>
+      <button data-c="vel" data-a="3" type="button">3×</button>
+    </div>
+  </div>
+  <button id="bSair" type="button" style="width:100%">Desconectar</button>
+</div>
+<div id="st" class="mut" role="status"></div>
+
+<script>
+(function () {
+  'use strict';
+  var API = '/proxy/controle';
+  var $ = function (id) { return document.getElementById(id); };
+  var code = (new URLSearchParams(location.search).get('p') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  var ctlKey = null, usuario = null, timer = null;
+
+  function msg(t, cls) { var e = $('st'); e.textContent = t || ''; e.className = cls || 'mut'; }
+  function post(c) {
+    return fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(c) })
+      .then(function (r) { return r.json().catch(function () { return { ok: false, error: 'Resposta inválida.' }; }); })
+      .catch(function () { return { ok: false, error: 'Sem conexão.' }; });
+  }
+  function lerUsuario() {
+    try { var u = JSON.parse(localStorage.getItem('almafluxo_usuario') || 'null'); return u && u.email && u.sessionToken ? u : null; } catch (e) { return null; }
+  }
+
+  function mostrarLogin(texto) {
+    $('login').classList.remove('hide'); $('painel').classList.add('hide');
+    $('sub').textContent = texto || 'Faça login para continuar.';
+  }
+
+  function reivindicar() {
+    if (!/^[A-Z0-9]{8}$/.test(code)) { $('sub').textContent = 'Link inválido. Escaneie o QR da TV novamente.'; return; }
+    usuario = lerUsuario();
+    if (!usuario) { mostrarLogin(); return; }
+    $('sub').textContent = 'Conectando à TV…';
+    post({ action: 'reivindicar', code: code, email: usuario.email, sessionToken: usuario.sessionToken }).then(function (r) {
+      if (r.ok) {
+        ctlKey = r.ctlKey;
+        $('login').classList.add('hide'); $('painel').classList.remove('hide');
+        $('sub').textContent = 'Conectado como ' + usuario.email;
+        msg(''); loop();
+      } else if (r.precisaLogin) {
+        try { localStorage.removeItem('almafluxo_usuario'); } catch (e) {}
+        mostrarLogin('Sua sessão expirou. Entre de novo.');
+      } else {
+        $('sub').textContent = r.error || 'Não foi possível conectar.';
+      }
+    });
+  }
+
+  $('bEntrar').onclick = function () {
+    var email = $('em').value.trim().toLowerCase(), senha = $('sn').value;
+    if (!/^\S+@\S+\.\S+$/.test(email) || !senha) { msg('Digite e-mail e senha.', 'er'); return; }
+    $('bEntrar').disabled = true; msg('Entrando…');
+    post2('/proxy/central', { action: 'login', email: email, senha: senha }).then(function (d) {
+      $('bEntrar').disabled = false;
+      var u = d.usuario || d, tok = d.token || d.sessionToken || u.sessionToken;
+      if (!(d.ok || d.success || tok) || !tok) { msg(d.error || d.message || 'Login não aceito.', 'er'); return; }
+      try { localStorage.setItem('almafluxo_usuario', JSON.stringify({ nome: u.nome || email.split('@')[0], email: email, balance: u.balance ?? u.saldo ?? 0, sessionToken: tok })); } catch (e) {}
+      $('sn').value = ''; msg(''); reivindicar();
+    });
+  };
+  function post2(url, c) {
+    return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(c) })
+      .then(function (r) { return r.json().catch(function () { return {}; }); }).catch(function () { return { error: 'Sem conexão.' }; });
+  }
+
+  var ultimoEnvio = 0;
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-c]');
+    if (!b || !ctlKey) return;
+    if (Date.now() - ultimoEnvio < 800) return; ultimoEnvio = Date.now();
+    b.disabled = true; setTimeout(function () { b.disabled = false; }, 900);
+    post({ action: 'comando', code: code, ctlKey: ctlKey, cmd: b.dataset.c, arg: b.dataset.a === undefined ? null : b.dataset.a }).then(function (r) {
+      if (r.ok) msg('Enviado — aguardando a TV.', 'ok'); else { msg(r.error || 'Falhou.', 'er'); if (r.expirado) fim('Pareamento expirado. Escaneie o QR de novo.'); }
+      atualizar();
+    });
+  });
+  $('bSair').onclick = function () { fim('Desconectado.'); };
+
+  function fim(t) { clearTimeout(timer); ctlKey = null; $('painel').classList.add('hide'); $('sub').textContent = t; }
+
+  function atualizar() {
+    if (!ctlKey) return Promise.resolve();
+    return post({ action: 'estado', code: code, ctlKey: ctlKey }).then(function (r) {
+      if (!r.ok) { if (r.expirado || /expirad/i.test(r.error || '')) fim('Pareamento expirado. Escaneie o QR de novo.'); return; }
+      var t = r.tv || {};
+      $('tv').textContent = t.canal ? (t.canal + (t.total ? ' · parte ' + t.parte + '/' + t.total : '') + (t.vel && t.vel !== 1 ? ' · ' + t.vel + '×' : '')) + (t.titulo ? ' — ' + t.titulo : '') : 'Aguardando a TV informar…';
+      var f = $('fila'); f.replaceChildren();
+      (r.pendentes || []).forEach(function (c) { var s = document.createElement('span'); s.className = 'tag pend'; s.textContent = '⏳ ' + c.cmd + (c.arg != null ? ' ' + c.arg : ''); f.appendChild(s); });
+      (r.resultados || []).slice(-3).forEach(function (c) { var s = document.createElement('span'); s.className = 'tag'; s.textContent = '✓ ' + c.estado; f.appendChild(s); });
+    });
+  }
+  function loop() { clearTimeout(timer); atualizar().then(function () { if (ctlKey) timer = setTimeout(loop, 3000); }); }
+
+  var PADRAO = [['conversa','1','Conversa'],['entrevista','2','Entrevista'],['youtube','3','YouTube'],['instagram','4','Instagram'],['tiktok','5','TikTok'],['facebook','6','Facebook'],['linkedin','7','LinkedIn'],['twitter','8','X (Twitter)']];
+  function desenharCanais(lista) {
+    var box = $('canais'); box.replaceChildren();
+    lista.forEach(function (c) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.dataset.c = 'canal'; b.dataset.a = c[0];
+      b.textContent = c[1] + ' · ' + c[2] + (c[3] ? ' 🔒' : '');
+      box.appendChild(b);
+    });
+  }
+  desenharCanais(PADRAO);
+  fetch('/conversa/instalacao/distribuicao/canais.json', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+    if (j && Array.isArray(j.canais) && j.canais.length) {
+      desenharCanais(j.canais.filter(function (c) { return c && c.ativo !== false && /^[a-z0-9_-]{1,32}$/.test(String(c.id)); })
+        .map(function (c) { return [c.id, c.numero, c.nome, c.login]; }));
+    }
+  }).catch(function () {});
+
+  reivindicar();
+})();
+</script>
+</body>
+</html>
