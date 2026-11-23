@@ -3605,14 +3605,6 @@ function criarPlayer(root, opts) {
         <button type="button" data-ctl="pause" aria-label="Pausar slide" title="Pausar slide">Ⅱ</button>
         <button type="button" data-ctl="next" aria-label="Próximo slide" title="Próximo slide">›</button>
       </div>
-      <div class="pl-grupo pl-canais" role="group" aria-label="Central de canais">
-        <button
-          type="button"
-          data-ctl="canal-central"
-          aria-label="Abrir central de canais"
-          title="Abrir central de canais"
-        >☷ Canais</button>
-      </div>
       <div class="pl-titulo" aria-live="polite">ALMAFLUXO · Nossa Conversa Diária</div>
       <div class="pl-grupo" role="group" aria-label="Áudio">
         <button type="button" data-ctl="lupa" aria-label="Lupa" title="Lupa: ligue e arraste o dedo sobre o texto">🔍</button>
@@ -3639,15 +3631,13 @@ function criarPlayer(root, opts) {
     };
     P._activeReg = () => P.regs.r1 || Object.values(P.regs)[0] || null;
 
-    // ── Acesso à central de canais ──
-    const canalCentral = ui.querySelector('[data-ctl="canal-central"]');
-    
-    if (canalCentral) {
-      canalCentral.addEventListener('click', () => {
-        P._showControls();
-        window.location.assign('/conversa/instalacao/canal');
-      });
-    }
+    // ── Canais: navegação independente do ciclo de slides ──
+    const canalPrev = ui.querySelector('[data-ctl="canal-prev"]');
+    const canalNext = ui.querySelector('[data-ctl="canal-next"]');
+    const canalLista = ui.querySelector('[data-ctl="canal-lista"]');
+    if (canalPrev) canalPrev.addEventListener('click', () => { P._showControls(); window.AFCanais?.mover(-1); });
+    if (canalNext) canalNext.addEventListener('click', () => { P._showControls(); window.AFCanais?.mover(1); });
+    if (canalLista) canalLista.addEventListener('click', () => { P._showControls(); window.AFCanais?.lista(); });
     // ── Navegação de slides ──
     ui.querySelector('[data-ctl="prev"]').addEventListener('click', () => {
       P._showControls();
