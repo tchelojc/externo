@@ -1689,7 +1689,6 @@ html, body { overscroll-behavior: none; }
   .pt-code{height:240px}
 }
 </style>
-<style>.pl-canais{display:none}.af-canais .pl-canais{display:flex;align-items:center}</style><script>window.AF_CANAL_EMBUTIDO=true;</script>
 </head>
 <body>
 
@@ -3631,13 +3630,6 @@ function criarPlayer(root, opts) {
     };
     P._activeReg = () => P.regs.r1 || Object.values(P.regs)[0] || null;
 
-    // ── Canais: navegação independente do ciclo de slides ──
-    const canalPrev = ui.querySelector('[data-ctl="canal-prev"]');
-    const canalNext = ui.querySelector('[data-ctl="canal-next"]');
-    const canalLista = ui.querySelector('[data-ctl="canal-lista"]');
-    if (canalPrev) canalPrev.addEventListener('click', () => { P._showControls(); window.AFCanais?.mover(-1); });
-    if (canalNext) canalNext.addEventListener('click', () => { P._showControls(); window.AFCanais?.mover(1); });
-    if (canalLista) canalLista.addEventListener('click', () => { P._showControls(); window.AFCanais?.lista(); });
     // ── Navegação de slides ──
     ui.querySelector('[data-ctl="prev"]').addEventListener('click', () => {
       P._showControls();
@@ -7401,7 +7393,6 @@ TX.ecossistema = {def:{duracaoS:60}, duracaoMin:20, build(P,item,s,S) {
     {nome:'SERVIÇOS & MERCADO', cor:0x7ce0b5, itens:['Marido de Aluguel','Preço Justo','Sôlombo','InfoCellTec','Mecânica','Elétrica','OSFluxo','FluxoWhatsApp','CarFluxo']},
     {nome:'COMUNICAÇÃO & ATENDIMENTO', cor:0xffcf7b, itens:['CHAT ALMAFLUXO','27 Salas de bate-papo','Células IA','ALMAFLUXO Solution','Atendimento AlmaFluxo']},
     {nome:'CLIMA & UNIVERSO', cor:0x72d6d0, itens:['ClimaFluxo','Ciclos e alinhamentos','Astronomia e curiosidades','Sismos e índice Kp','Notícias e dados do mundo']},
-    {nome:'PRESENÇA & MÍDIA', cor:0xffffff, itens:['Canal YouTube','Canal TikTok','Conversa · Totem','Nossa Conversa Diária']}
   ];
   const PLAT = {
     'CHAT ALMAFLUXO':{ic:'💬',rot:'CHAT'}, 'SOMA · Quantum Sound':{ic:'🎵',rot:'SOMA'}, 'ALMAFLUXO Solution':{ic:'💼',rot:'SOLUTION'},
