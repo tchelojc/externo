@@ -17,7 +17,7 @@
   if (window.AFControle) return;
   var API = '/proxy/controle';
   var QR_LIB = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js';
-  var CONTROLE_URL = location.origin + '/conversa/controle/';
+  var CONTROLE_URL = location.origin + '/conversa/instalacao/controle/';
 
   var cfg = null, par = null, pend = [], visto = {}, painelAberto = false, timer = null, ctlNome = null;
   var ultimoEstado = '', pareando = null;
