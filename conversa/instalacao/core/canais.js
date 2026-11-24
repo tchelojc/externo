@@ -385,15 +385,18 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
       return;
     }
 
-    // Nos demais canais, preserva integralmente a regra atual de ciclo.
+    // Nos demais canais, se não houver ciclo ativo, troca imediata.
     if (!(cicloAtivo && janelaAberta())) { irAgora(c); return; }
     if (L[cur()] === c) { aviso('Você já está em ' + c.nome); return; }
     pendenteCanal = c;
     clearTimeout(tPend);
-    var max = Number(cfg.ciclo_max_s);
-    max = Number.isFinite(max) && max >= 30 && max <= 3600 ? max : 900;
-    tPend = setTimeout(function () { fimDeCiclo('limite'); }, max * 1000);
-    aviso('Canal ' + c.numero + ' · ' + c.nome + ' entra quando o ciclo terminar');
+    // Troca programada fixa em 60 s após o clique, independente do ciclo.
+    tPend = setTimeout(function () {
+      pendenteCanal = null;
+      atualizarPainel();
+      irAgora(c);
+    }, 60000);
+    aviso('Canal ' + c.numero + ' · ' + c.nome + ' entra em 60 s');
     atualizarPainel();
   }
   function fimDeCiclo() {
