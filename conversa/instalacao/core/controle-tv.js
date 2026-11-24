@@ -1,17 +1,3 @@
-/* ALMAFLUXO · CONTROLE — módulo da TV, SEM interface própria.
- *
- * Quem desenha o painel (centralizado e escondido) é o canais.js, que só roda
- * dentro da janela do instalador (/portal e /conversa/instalacao). Este módulo
- * não abre nada sozinho: nunca é carregado em /conversa nem no totem.
- *
- *   AFControle.iniciar({ canal, comandos:{prox,ant,alternar,vel,pular,canal},
- *     imediatos:[...], estado(){...}, aoMudar(info){...}, cicloAtivo(){bool}, cicloMaxMs })
- *   AFControle.ativar(true|false)  // true = painel aberto (polling mais rápido)
- *   AFControle.parear()            // Promise<{code,...}|null>
- *   AFControle.fimDeCiclo()        // aplica o que esperava o ciclo (troca de canal)
- *   AFControle.qr(el, texto, px)   // QR gerado localmente
- * Um handler pode devolver uma string de estado ('nao_suportado', ...).
- */
 (function () {
   'use strict';
   if (window.AFControle) return;
@@ -20,7 +6,7 @@
   var CONTROLE_URL = location.origin + '/conversa/instalacao/controle/';
 
   var cfg = null, par = null, pend = [], visto = {}, painelAberto = false, timer = null, ctlNome = null;
-  var ultimoEstado = '', pareando = null;
+  var ultimoEstado = '', pareando = null, falhas = 0, indisponivel = false, tentouEm = 0;
 
   function post(corpo) {
     return fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo) })
@@ -61,19 +47,26 @@
   function parear() {
     if (par && (ctlNome || Date.now() < par.expiraEm - 15000)) { avisar(); return Promise.resolve(par); }
     if (pareando) return pareando;
+    // Servidor sem o KV (503) ou fora do ar: tenta de novo no máximo a cada 60 s, sem martelar.
+    if (indisponivel && Date.now() - tentouEm < 60000) {
+      avisar({ erro: 'Controle pelo telefone indisponível no servidor.' });
+      return Promise.resolve(null);
+    }
     pareando = post({ action: 'parear', canal: cfg.canal }).then(function (r) {
       pareando = null;
-      if (r.ok) { par = { code: r.code, tvSecret: r.tvSecret, expiraEm: r.expiraEm }; ctlNome = null; visto = {}; avisar(); return par; }
-      avisar({ erro: r.error || 'Sem conexão com o servidor.' });
+      if (r.ok) { par = { code: r.code, tvSecret: r.tvSecret, expiraEm: r.expiraEm }; ctlNome = null; visto = {}; falhas = 0; indisponivel = false; avisar(); return par; }
+      falhas++; tentouEm = Date.now();
+      if (/CONTROLE_KV/.test(r.error || '') || falhas >= 3) indisponivel = true;
+      avisar({ erro: indisponivel ? 'Controle pelo telefone indisponível no servidor.' : (r.error || 'Sem conexão com o servidor.') });
       return null;
     });
     return pareando;
   }
   function agendar(ms) { clearTimeout(timer); if (ms) timer = setTimeout(ciclo, ms); }
-  function proximoPoll() { return ctlNome ? 3000 : (painelAberto ? 4000 : (par ? 10000 : 0)); }
+  function proximoPoll() { return !par ? 0 : (ctlNome ? 3000 : (painelAberto ? 4000 : 10000)); }
 
   function ciclo() {
-    if (!par) { if (painelAberto) parear().then(function () { agendar(proximoPoll()); }); return; }
+    if (!par) { if (painelAberto && !indisponivel) parear().then(function () { agendar(proximoPoll()); }); return; }
     var est = cfg.estado ? cfg.estado() : null, assin = JSON.stringify(est || {});
     var corpo = { action: 'fila', code: par.code, tvSecret: par.tvSecret };
     if (est && assin !== ultimoEstado) { corpo.estado = Object.assign({ canal: cfg.canal }, est); ultimoEstado = assin; }
