@@ -348,66 +348,38 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
       navegar(rotaDestino, d.tipo === 'login');
     }, d.tipo === 'login' ? 1200 : 0);
   }
-  // ── Liberação manual de canal: 60 s após abrir o totem ──
-  var pendenteCanal = null, tPend = null, cicloAtivo = false, ultimoFim = 0;
-  var inicioTotem = 0;
-  var TEMPO_LIBERACAO_CANAL_MS = 60000;
-
-  function totemAtualAberto() {
-    var atual = L[cur()];
-    return !!(atual && atual.tipo === 'totem' && janelaAberta());
+  // ── Troca de canal: entra 60 s depois do pedido (configurável: troca_canal_s no canais.json) ──
+  var pendenteCanal = null, tPend = null, tTick = null, fimTroca = 0;
+  function segundosTroca() {
+    var n = Number(cfg.troca_canal_s);
+    return Number.isFinite(n) && n >= 5 && n <= 600 ? n : 60;
   }
-
-  function canalLiberado() {
-    if (!totemAtualAberto()) return true;
-    // Se a abertura do quadro não foi observada, começa a contagem agora,
-    // evitando liberar a troca antes de completar um minuto.
-    if (!inicioTotem) inicioTotem = Date.now();
-    var restante = TEMPO_LIBERACAO_CANAL_MS - (Date.now() - inicioTotem);
-    if (restante > 0) {
-      aviso('Aguarde ' + Math.ceil(restante / 1000) + ' s para liberar a mudança de canal.');
-      return false;
-    }
-    return true;
+  function restante() { return Math.max(0, Math.ceil((fimTroca - Date.now()) / 1000)); }
+  function limparTroca() {
+    clearTimeout(tPend); clearInterval(tTick);
+    tPend = null; tTick = null; pendenteCanal = null; fimTroca = 0;
   }
-
-  function ir(c) {
-    if (!c) { irAgora(c); return; }
-
-    // No totem, a troca manual fica bloqueada por 60 s após a abertura.
-    // Depois disso, é liberada imediatamente, sem depender do fim do ciclo.
-    if (totemAtualAberto()) {
-      if (!canalLiberado()) return;
-      if (L[cur()] === c) { aviso('Você já está em ' + c.nome); return; }
-      pendenteCanal = null;
-      clearTimeout(tPend);
-      irAgora(c);
-      return;
-    }
-
-    // Nos demais canais, se não houver ciclo ativo, troca imediata.
-    if (!(cicloAtivo && janelaAberta())) { irAgora(c); return; }
-    if (L[cur()] === c) { aviso('Você já está em ' + c.nome); return; }
-    pendenteCanal = c;
-    clearTimeout(tPend);
-    // Troca programada fixa em 60 s após o clique, independente do ciclo.
-    tPend = setTimeout(function () {
-      pendenteCanal = null;
-      atualizarPainel();
-      irAgora(c);
-    }, 60000);
-    aviso('Canal ' + c.numero + ' · ' + c.nome + ' entra em 60 s');
-    atualizarPainel();
-  }
-  function fimDeCiclo() {
-    var agora = Date.now();
-    if (agora - ultimoFim < 1000) return;
-    ultimoFim = agora;
-    clearTimeout(tPend);
-    var c = pendenteCanal; pendenteCanal = null;
+  function cancelarTroca() { limparTroca(); atualizarPainel(); }
+  function executarTroca() {
+    var c = pendenteCanal;
+    limparTroca();
     atualizarPainel();
     if (c) irAgora(c);
-    if (window.AFControle) { try { window.AFControle.fimDeCiclo(); } catch (e) {} }
+  }
+  function ir(c) {
+    if (!c) { irAgora(c); return; }
+    // Fora da janela do instalador, ou sem nenhum canal no ar ainda: entra na hora.
+    if (!janelaAberta() || !L[cur()]) { irAgora(c); return; }
+    if (L[cur()] === c) { cancelarTroca(); aviso('Você já está em ' + c.nome); return; }
+    var novo = !pendenteCanal;
+    pendenteCanal = c;   // outro pedido só troca o destino; o relógio de 60 s não reinicia
+    if (novo) {
+      fimTroca = Date.now() + segundosTroca() * 1000;
+      tPend = setTimeout(executarTroca, segundosTroca() * 1000);
+      tTick = setInterval(atualizarPainel, 1000);
+    }
+    aviso('Canal ' + c.numero + ' · ' + c.nome + ' entra em ' + restante() + ' s');
+    atualizarPainel();
   }
   var mover = function mover(d) {
     return ir(vizinho(L, cur(), d));
@@ -423,7 +395,7 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
     }
   };
   // ═════════ Painel de controle: ESCONDIDO; quando aparece, fica no CENTRO ═════════
-  var painel = null, boxQR = null, lblCodigo = null, lblSessao = null, lblStatus = null, lblPend = null, boxLista = null;
+  var painel = null, btnCancelar = null, btnColab = null, boxColab = null, boxQR = null, lblCodigo = null, lblSessao = null, lblStatus = null, lblPend = null, boxLista = null;
   var msOcioso = 15000, tPainel = null, querAberto = false, controleCarregado = null, controleIniciado = false;
   var estiloBtn = 'font:inherit;color:#e8f1ff;background:#0a1d3a;border:1px solid #27c8ff;border-radius:10px;padding:12px 14px;cursor:pointer;min-height:44px';
   function btn(t, f, a) {
@@ -436,6 +408,41 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
   function reiniciarAutoOcultar() {
     clearTimeout(tPainel);
     tPainel = setTimeout(fecharPainel, msOcioso);
+  }
+  // ── Colaboradores (IAs): ATALHOS de link que abrem em nova aba — sem iframe, sem canvas ──
+  // Edite em canais.json: "colaboradores": [{ "nome": "...", "url": "https://...", "icone": "🤖" }]
+  var COLAB_PADRAO = [
+    { nome: 'ChatGPT', url: 'https://chatgpt.com/', icone: '🤖' },
+    { nome: 'DeepSeek', url: 'https://chat.deepseek.com/', icone: '🔍' },
+    { nome: 'Gemini', url: 'https://gemini.google.com/', icone: '✨' },
+    { nome: 'Claude', url: 'https://claude.ai/', icone: '🧠' },
+    { nome: 'Qwen', url: 'https://chat.qwen.ai/', icone: '🌟' }
+  ];
+  function listaColab() {
+    var l = Array.isArray(cfg.colaboradores) ? cfg.colaboradores : COLAB_PADRAO;
+    return l.filter(function (c) {
+      return c && c.ativo !== false && typeof c.nome === 'string' && /^https:\/\//i.test(String(c.url || ''));
+    }).slice(0, 12);
+  }
+  function montarColab() {
+    if (!boxColab) return;
+    boxColab.replaceChildren();
+    listaColab().forEach(function (c) {
+      var a = document.createElement('a');
+      a.href = c.url;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.textContent = (c.icone ? c.icone + ' ' : '') + String(c.nome).slice(0, 40);
+      a.setAttribute('aria-label', 'Abrir ' + c.nome + ' em nova aba');
+      a.style.cssText = estiloBtn + ';display:block;text-align:left;text-decoration:none;box-sizing:border-box';
+      boxColab.appendChild(a);
+    });
+  }
+  function alternarColab() {
+    if (!boxColab) return;
+    var abrir = boxColab.style.display === 'none';
+    if (abrir) montarColab();
+    boxColab.style.display = abrir ? 'grid' : 'none';
   }
   function montarPainel() {
     if (painel) return;
@@ -456,6 +463,13 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
     boxLista.style.cssText = 'display:grid;gap:6px;margin-bottom:8px';
     lblPend = document.createElement('div');
     lblPend.style.cssText = 'color:#ffd17a;font-size:14px;min-height:18px;margin-bottom:8px';
+    btnCancelar = btn('Cancelar troca', cancelarTroca, 'Cancelar troca de canal');
+    btnCancelar.style.display = 'none';
+    btnCancelar.style.marginBottom = '8px';
+    btnColab = btn('👥 Colaboradores (IAs)', alternarColab, 'Abrir lista de IAs colaboradoras');
+    btnColab.style.marginBottom = '8px';
+    boxColab = document.createElement('div');
+    boxColab.style.cssText = 'display:none;gap:6px;margin-bottom:8px';
     var sep = document.createElement('div');
     sep.style.cssText = 'border-top:1px solid #1d4a73;margin:8px 0;padding-top:10px;font-size:14px;color:#b8cbe6';
     sep.textContent = 'Controle pelo telefone — escaneie com a câmera e entre no telefone com a sua conta ALMAFLUXO';
@@ -467,7 +481,7 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
     lblSessao.style.cssText = 'font-size:12px;color:#9fb6d4;margin-top:4px';
     lblStatus = document.createElement('div');
     lblStatus.style.cssText = 'font-size:13px;color:#cfe3ff;min-height:18px;margin:6px 0 10px';
-    painel.append(t, etiquetaCanal, nav, boxLista, lblPend, sep, boxQR, lblCodigo, lblSessao, lblStatus, btn('Fechar', fecharPainel, 'Fechar controle'));
+    painel.append(t, etiquetaCanal, nav, boxLista, lblPend, btnCancelar, btnColab, boxColab, sep, boxQR, lblCodigo, lblSessao, lblStatus, btn('Fechar', fecharPainel, 'Fechar controle'));
     painel.addEventListener('click', reiniciarAutoOcultar);
     painel.addEventListener('keydown', reiniciarAutoOcultar);
     document.body.appendChild(painel);
@@ -477,7 +491,8 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
     if (!boxLista) return;
     boxLista.replaceChildren();
     L.forEach(function (c) {
-      var b = btn(c.numero + ' · ' + c.nome + (c.login ? ' 🔒' : ''), function () { pelaNumero(c.numero); }, 'Canal ' + c.nome);
+      var pat = c.patrocinador && c.patrocinador.marca ? '  ·  oferecido por ' + String(c.patrocinador.marca).slice(0, 40) : '';
+      var b = btn(c.numero + ' · ' + c.nome + (c.login ? ' 🔒' : '') + pat, function () { pelaNumero(c.numero); }, 'Canal ' + c.nome);
       b.dataset.numero = String(c.numero);
       b.style.textAlign = 'left';
       boxLista.appendChild(b);
@@ -486,7 +501,8 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
   function atualizarPainel() {
     if (!painel) return;
     atualizarRotulo();
-    lblPend.textContent = pendenteCanal ? '⏳ ' + pendenteCanal.nome + ' entra quando o ciclo terminar' : '';
+    lblPend.textContent = pendenteCanal ? '⏳ ' + pendenteCanal.nome + ' entra em ' + restante() + ' s' : '';
+    if (btnCancelar) btnCancelar.style.display = pendenteCanal ? 'inline-block' : 'none';
     var atual = L[cur()];
     boxLista && boxLista.querySelectorAll('button').forEach(function (b) {
       b.style.background = atual && String(atual.numero) === b.dataset.numero ? '#1f7bff' : '#0a1d3a';
@@ -530,14 +546,13 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
           return u && u.email && u.sessionToken ? { email: u.email, sessionToken: u.sessionToken } : null;
         } catch (e) { return null; }
       },
-      imediatos: ['vel', 'pular', 'prox', 'ant', 'alternar'],
-      cicloAtivo: function () { return cicloAtivo && janelaAberta(); },
-      cicloMaxMs: (Number(cfg.ciclo_max_s) >= 30 ? Number(cfg.ciclo_max_s) : 900) * 1000,
+      imediatos: ['canal', 'vel', 'pular', 'prox', 'ant', 'alternar'],
       comandos: {
         canal: function (id) {
           var c = L.find(function (x) { return x.id === id; });
           if (!c) return 'canal_desconhecido';
-          if (totemAtualAberto()) ir(c); else irAgora(c);
+          ir(c);
+          return pendenteCanal ? 'agendado' : 'aplicado';
         },
         prox: comEntrevista('prox'),
         ant: comEntrevista('ant'),
@@ -589,33 +604,12 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
     fechar: fecharPainel,
     alternar: function () { painelAberto() ? fecharPainel() : (L.length ? abrirPainel(15000) : (querAberto = true)); }
   };
-  // Quadro (iframe do instalador) carregou: observa o ciclo SEM alterar o totem
+  // Quadro (iframe do instalador) carregou: registra a visita ao totem e as teclas de canal
   function quadroCarregado(frame) {
-    cicloAtivo = false;
     try {
       var w = frame.contentWindow;
       var p = (w.location.pathname || '').replace(/\/+$/, '') || '/';
-      if (p === '/conversa' || p === '/conversa/totem1') {
-        marcarVista();
-        inicioTotem = Date.now();
-        pendenteCanal = null;
-        clearTimeout(tPend);
-      } else {
-        inicioTotem = 0;
-      }
-      var T = w.TOTEM_AMBIENTE;
-      if (T && typeof T.cicloCompleto === 'function') {
-        if (!T.__afCiclo) {
-          var orig = T.cicloCompleto;
-          T.cicloCompleto = function () {
-            try { return orig.apply(this, arguments); } finally { try { fimDeCiclo('totem'); } catch (e) {} }
-          };
-          T.__afCiclo = 1;
-        }
-        cicloAtivo = true;
-      }
-      if (w.AFEntrevista) cicloAtivo = true;
-      w.addEventListener('af:ciclo-fim', function () { fimDeCiclo('canal'); });
+      if (p === '/conversa' || p === '/conversa/totem1') marcarVista();
       w.addEventListener('keydown', tecla);
     } catch (e) {}
     atualizarPainel();
@@ -627,7 +621,7 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
     rotulo: rotulo,
     controle: controle,
     quadroCarregado: quadroCarregado,
-    fimDeCiclo: fimDeCiclo
+    cancelarTroca: cancelarTroca
   });
   function tecla(e) {
     if (/INPUT|TEXTAREA|SELECT/.test(e.target && e.target.tagName || '')) return;
