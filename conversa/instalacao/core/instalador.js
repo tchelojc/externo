@@ -189,7 +189,7 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
       }
     }), botao('Abrir direto', function () {
       location.assign(TOTEM_URL);
-    }), botao('Fechar', fechar));
+    }), botao('Controle', abrirControle), botao('Fechar', fechar));
     status = document.createElement('span');
     status.id = 'af-render-status';
     status.textContent = 'Preparando renderização...';
@@ -200,6 +200,9 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
     frame.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture');
     frame.addEventListener('load', function () {
       adaptarFrame();
+      try {
+        if (window.AFCanais && window.AFCanais.quadroCarregado) window.AFCanais.quadroCarregado(frame);
+      } catch (e) {}
       try {
         var d = frame.contentDocument;
         if (d && d.body && !d.body.childElementCount && status) {
@@ -251,7 +254,7 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
       console.warn('[AFInst] Não foi possível adaptar o frame:', e);
     }
   }
-  function renderizar(destino) {
+  function renderizar(destino, op) {
     if (window.top !== window) {
       return {
         ok: false,
@@ -274,6 +277,8 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
     criarJanela();
     var url = 'https://almafluxo.uk' + caminho;
     janela.style.display = 'flex';
+    // links do portal/instalação abrem o controle (centralizado); trocas feitas pelo próprio controle não
+    if (!(op && op.semControle)) carregarCanais(true);
     if (status) {
       status.textContent = 'Carregando ' + caminho + '...';
     }
@@ -291,11 +296,11 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
     return _abrir.apply(this, arguments);
   }
   function _abrir() {
-    _abrir = _asyncToGenerator(_regenerator().m(function _callee3(destino) {
+    _abrir = _asyncToGenerator(_regenerator().m(function _callee3(destino, op) {
       return _regenerator().w(function (_context3) {
         while (1) switch (_context3.n) {
           case 0:
-            return _context3.a(2, renderizar(destino || '/conversa'));
+            return _context3.a(2, renderizar(destino || '/conversa', op));
         }
       }, _callee3);
     }));
@@ -355,7 +360,32 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
       msg: 'Abrindo Totem completo diretamente.'
     };
   }
+  // ── Controle de canais: só existe dentro desta janela (portal / instalação) ──
+  var canaisScript = null;
+  function carregarCanais(abrirAoCarregar) {
+    if (window.AFCanais && window.AFCanais.controle) {
+      if (abrirAoCarregar) window.AFCanais.controle.abrir();
+      return;
+    }
+    if (canaisScript) return;
+    canaisScript = document.createElement('script');
+    canaisScript.src = '/conversa/instalacao/core/canais.js';
+    canaisScript.onload = function () {
+      if (!(window.AFCanais && window.AFCanais.controle)) return;
+      if (frame) window.AFCanais.quadroCarregado(frame);
+      if (abrirAoCarregar) window.AFCanais.controle.abrir();
+    };
+    canaisScript.onerror = function () {
+      canaisScript = null;
+      if (status) status.textContent = 'Controle de canais indisponível.';
+    };
+    document.head.appendChild(canaisScript);
+  }
+  function abrirControle() {
+    if (window.AFCanais && window.AFCanais.controle) window.AFCanais.controle.alternar();else carregarCanais(true);
+  }
   function fechar() {
+    if (window.AFCanais && window.AFCanais.controle) window.AFCanais.controle.fechar();
     if (janela) {
       janela.style.display = 'none';
     }
@@ -455,6 +485,12 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
     executarCompleto: executarCompleto,
     fechar: fechar,
     renderizar: renderizar,
+    quadro: function quadro() {
+      return frame;
+    },
+    janelaAberta: function janelaAberta() {
+      return !!(janela && frame && janela.style.display !== 'none');
+    },
     adaptarFrame: adaptarFrame,
     instalado: instalado,
     lerPerfilTotem: lerPerfilTotem,
