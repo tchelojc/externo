@@ -348,10 +348,44 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
       navegar(rotaDestino, d.tipo === 'login');
     }, d.tipo === 'login' ? 1200 : 0);
   }
-  // ── Troca de canal SÓ ao fim do ciclo (quando o quadro informa ciclo) ──
+  // ── Liberação manual de canal: 60 s após abrir o totem ──
   var pendenteCanal = null, tPend = null, cicloAtivo = false, ultimoFim = 0;
+  var inicioTotem = 0;
+  var TEMPO_LIBERACAO_CANAL_MS = 60000;
+
+  function totemAtualAberto() {
+    var atual = L[cur()];
+    return !!(atual && atual.tipo === 'totem' && janelaAberta());
+  }
+
+  function canalLiberado() {
+    if (!totemAtualAberto()) return true;
+    // Se a abertura do quadro não foi observada, começa a contagem agora,
+    // evitando liberar a troca antes de completar um minuto.
+    if (!inicioTotem) inicioTotem = Date.now();
+    var restante = TEMPO_LIBERACAO_CANAL_MS - (Date.now() - inicioTotem);
+    if (restante > 0) {
+      aviso('Aguarde ' + Math.ceil(restante / 1000) + ' s para liberar a mudança de canal.');
+      return false;
+    }
+    return true;
+  }
+
   function ir(c) {
     if (!c) { irAgora(c); return; }
+
+    // No totem, a troca manual fica bloqueada por 60 s após a abertura.
+    // Depois disso, é liberada imediatamente, sem depender do fim do ciclo.
+    if (totemAtualAberto()) {
+      if (!canalLiberado()) return;
+      if (L[cur()] === c) { aviso('Você já está em ' + c.nome); return; }
+      pendenteCanal = null;
+      clearTimeout(tPend);
+      irAgora(c);
+      return;
+    }
+
+    // Nos demais canais, preserva integralmente a regra atual de ciclo.
     if (!(cicloAtivo && janelaAberta())) { irAgora(c); return; }
     if (L[cur()] === c) { aviso('Você já está em ' + c.nome); return; }
     pendenteCanal = c;
@@ -500,7 +534,7 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
         canal: function (id) {
           var c = L.find(function (x) { return x.id === id; });
           if (!c) return 'canal_desconhecido';
-          irAgora(c);
+          if (totemAtualAberto()) ir(c); else irAgora(c);
         },
         prox: comEntrevista('prox'),
         ant: comEntrevista('ant'),
@@ -558,7 +592,14 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
     try {
       var w = frame.contentWindow;
       var p = (w.location.pathname || '').replace(/\/+$/, '') || '/';
-      if (p === '/conversa' || p === '/conversa/totem1') marcarVista();
+      if (p === '/conversa' || p === '/conversa/totem1') {
+        marcarVista();
+        inicioTotem = Date.now();
+        pendenteCanal = null;
+        clearTimeout(tPend);
+      } else {
+        inicioTotem = 0;
+      }
       var T = w.TOTEM_AMBIENTE;
       if (T && typeof T.cicloCompleto === 'function') {
         if (!T.__afCiclo) {
