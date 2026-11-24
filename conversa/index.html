@@ -1538,6 +1538,7 @@ html,body{background:#000}
   gap: 4px;
   padding: 0 6px;
 }
+.pl-controls [data-ctl="loop"].loop-on { background:rgba(0,229,255,.22); color:#00e5ff; border-color:#00e5ff; box-shadow:0 0 0 1px rgba(0,229,255,.25),0 0 12px rgba(0,229,255,.25); }
 .pl-controls .pl-volume input[type="range"] {
   width: 70px;
   accent-color: #00e5ff;
@@ -3606,6 +3607,7 @@ function criarPlayer(root, opts) {
       <div class="pl-titulo" aria-live="polite">ALMAFLUXO · Nossa Conversa Diária</div>
       <div class="pl-grupo" role="group" aria-label="Áudio">
         <button type="button" data-ctl="lupa" aria-label="Lupa" title="Lupa: ligue e arraste o dedo sobre o texto">🔍</button>
+        <button type="button" data-ctl="loop" aria-label="Repetir slide atual" title="Repetir o slide atual" aria-pressed="false">∞</button>
         <button type="button" data-ctl="audio-toggle" aria-label="Pausar música" title="Pausar música">⏸</button>
         <button type="button" data-ctl="vol-down" aria-label="Diminuir volume" title="Diminuir volume">🔉</button>
         <button type="button" data-ctl="vol-up" aria-label="Aumentar volume" title="Aumentar volume">🔊</button>
@@ -3660,7 +3662,7 @@ function criarPlayer(root, opts) {
     // ── Áudio, pausa e lupa ──
     const AMBX = () => (typeof TOTEM_AMBIENTE !== 'undefined' ? TOTEM_AMBIENTE : null);
     const audioBtn = ui.querySelector('[data-ctl="audio-toggle"]'), radioBtn = ui.querySelector('[data-ctl="audio-menu"]');
-    const lupaBtn = ui.querySelector('[data-ctl="lupa"]'), pauseBtn = ui.querySelector('[data-ctl="pause"]');
+    const lupaBtn = ui.querySelector('[data-ctl="lupa"]'), loopBtn = ui.querySelector('[data-ctl="loop"]'), pauseBtn = ui.querySelector('[data-ctl="pause"]');
     const pill = document.createElement('div'); pill.className = 'pl-pausado'; pill.textContent = '⏸ PAUSADO'; root.appendChild(pill); P._pill = pill;
 
     const atualizarBotaoPausa = () => {
@@ -3668,6 +3670,19 @@ function criarPlayer(root, opts) {
       pauseBtn.textContent = p ? '▶' : 'Ⅱ'; pauseBtn.title = p ? 'Retomar slide' : 'Pausar slide'; pauseBtn.setAttribute('aria-label', pauseBtn.title);
       pill.classList.toggle('on', p);
     };
+    const atualizarBotaoLoop = () => {
+      const r = P._activeReg(), ativo = !!(r && r.loopAtivo);
+      loopBtn.classList.toggle('loop-on', ativo);
+      loopBtn.dataset.ativo = ativo ? '1' : '0';
+      loopBtn.setAttribute('aria-pressed', ativo ? 'true' : 'false');
+      loopBtn.title = ativo ? 'Repetição ligada — toque para voltar ao ciclo' : 'Repetir o slide atual';
+      loopBtn.setAttribute('aria-label', loopBtn.title);
+    };
+    loopBtn.addEventListener('click', () => {
+      const r = P._activeReg();
+      if (!r || typeof r.alternarLoop !== 'function') return;
+      r.alternarLoop(); atualizarBotaoLoop(); atualizarBotaoPausa(); P._showControls();
+    });
     const atualizarBotaoAudio = () => {
       const A = AMBX(), tem = !!(A && A.temFaixas && A.temFaixas());
       audioBtn.disabled = false; radioBtn.disabled = false;
@@ -3762,11 +3777,11 @@ function criarPlayer(root, opts) {
 
     // Atualiza o estado dos botões de áudio a cada 2s (reflete mudanças externas)
     P._ctlAudioTick = setInterval(atualizarBotaoAudio, 2000);
-    atualizarBotaoAudio();
+    atualizarBotaoAudio(); atualizarBotaoLoop();
 
     // ── Progresso do slide atual ──
     P._ctlTick = setInterval(() => {
-      atualizarBotaoPausa();
+      atualizarBotaoPausa(); atualizarBotaoLoop();
       const r = P._activeReg();
       const info = P.agora.r1 || Object.values(P.agora)[0];
       const bar = ui.querySelector('.pl-progresso-fill');
@@ -3776,7 +3791,7 @@ function criarPlayer(root, opts) {
           ? (info.nome || info.tipo) + ' · ' + (info.idx + 1) + '/' + info.total
           : 'ALMAFLUXO · Nossa Conversa Diária';
       }
-      if (bar) {
+      if (bar && !(r && r.loopAtivo)) {
         bar.style.width = (r && r.duracao > 0
           ? Math.max(0, Math.min(100, 100 - (Math.max(0, r.prazo - Date.now()) / r.duracao * 100)))
           : 0) + '%';
@@ -3893,7 +3908,7 @@ function criarPlayer(root, opts) {
   return P;
 }
 function iniciarRegiao(P, box, id, cont) {
-  const R = {idx:-1,atual:null,timer:null,morto:false,pausado:false,duracao:0,restante:0,prazo:0,_forcedIndex:null,_videoDurations:{},_videoStartedAt:{},_videoFailed:{}}; cont = cont || {};
+  const R = {idx:-1,atual:null,timer:null,morto:false,pausado:false,loopAtivo:false,duracao:0,restante:0,prazo:0,_forcedIndex:null,_videoDurations:{},_videoStartedAt:{},_videoFailed:{},_loopVideo:null,_loopVideoOriginal:null}; cont = cont || {};
   if (cont.modo === 'cards' && Array.isArray(cont.cards) && cont.cards.length) {
     const camada = el('div','cards-runtime'); camada.style.cssText='position:absolute;inset:0;overflow:hidden'; box.appendChild(camada);
     const ativos=[];
@@ -3926,10 +3941,33 @@ function iniciarRegiao(P, box, id, cont) {
   const msGlobal = Math.max(0, Math.min(3000, +trGlobal.ms || 0));
   const tr = trGlobal;
   const ms = msGlobal;
-  R.parar = function () { R.morto = true; clearTimeout(R.timer); if (R.atual) R.atual.destroy(); box.innerHTML = ''; };
+  R.parar = function () { R.morto = true; R.loopAtivo = false; R._restaurarLoopVideo(); clearTimeout(R.timer); if (R.atual) R.atual.destroy(); box.innerHTML = ''; };
   const midias = fn => { try { const e = R.atual && R.atual.el; if (e) e.querySelectorAll('video,audio').forEach(fn); } catch (x) {} };
+  R._restaurarLoopVideo = function () {
+    const v = R._loopVideo;
+    if (v && R._loopVideoOriginal !== null) { try { v.loop = R._loopVideoOriginal; } catch (e) {} }
+    R._loopVideo = null; R._loopVideoOriginal = null;
+  };
+  R.alternarLoop = function () {
+    if (R.morto || !R.atual) return;
+    if (!R.loopAtivo) {
+      if (R.duracao > 0) R.restante = Math.max(0, R.prazo - Date.now());
+      clearTimeout(R.timer); R.timer = null; R.loopAtivo = true; R._fimPendente = false;
+      const v = R.atual.el && R.atual.el.querySelector('video');
+      if (v) { R._loopVideo = v; R._loopVideoOriginal = !!v.loop; v.loop = true; }
+    } else {
+      R.loopAtivo = false; R._restaurarLoopVideo();
+      if (R.pausado) { /* retoma somente quando o usuário retirar a pausa */ }
+      else if (R._fimPendente) { R._fimPendente = false; R.proximo(); }
+      else if (R.duracao > 0 && itens.length > 1) {
+        const ms = Math.max(500, R.restante || 500); R.prazo = Date.now() + ms; R.timer = setTimeout(R.proximo, ms);
+      }
+    }
+  };
   R.proximo = function (manual) {
-    if (R.morto) return; clearTimeout(R.timer);
+    if (R.morto) return;
+    if (manual === true && R.loopAtivo) { R.loopAtivo = false; R._restaurarLoopVideo(); }
+    clearTimeout(R.timer);
     const manteraPausa = manual === true && R.pausado;   // navegar (‹ ›) com o slide pausado continua pausado
     R._fimPendente = false;
     R.pausado=false;
@@ -3999,22 +4037,24 @@ function iniciarRegiao(P, box, id, cont) {
     R.duracao=dur>0?dur*1000:0;R.restante=R.duracao;R.prazo=R.duracao?Date.now()+R.duracao:0;
     if (manteraPausa) { R.pausado = true; R.restante = R.duracao; return; }
     if (itens.length === 1) { if (item.tipo === 'video') { const v = s.el.querySelector('video'); if (v) v.loop = true; } return; }
-    if (dur > 0) R.timer = setTimeout(R.proximo, dur * 1000); else s.aoFim = () => { if (R.pausado) { R._fimPendente = true; return; } R.proximo(); };
+    if (R.loopAtivo) { const v = s.el.querySelector('video'); if (v) { if (R._loopVideo !== v) { R._restaurarLoopVideo(); R._loopVideo = v; R._loopVideoOriginal = !!v.loop; } v.loop = true; } return; }
+    if (dur > 0) R.timer = setTimeout(R.proximo, dur * 1000); else s.aoFim = () => { if (R.pausado || R.loopAtivo) { R._fimPendente = true; return; } R.proximo(); };
   };
   R.pausar=function(){
     if(R.morto||R.pausado)return;
-    R.pausado=true; if(R.duracao>0)R.restante=Math.max(0,R.prazo-Date.now()); clearTimeout(R.timer);
+    R.pausado=true; if(R.duracao>0 && !R.loopAtivo)R.restante=Math.max(0,R.prazo-Date.now()); clearTimeout(R.timer);
     midias(v=>{ if(!v.paused){ v._pTela=1; v.pause(); } });
   };
   R.retomar=function(){
     if(R.morto||!R.pausado)return;
     R.pausado=false;
     midias(v=>{ if(v._pTela){ v._pTela=0; v.play().catch(()=>{}); } });
+    if(R.loopAtivo) { midias(v=>{ if(v.tagName==='VIDEO') v.loop=true; }); return; }
     if(R._fimPendente){ R._fimPendente=false; R.proximo(); return; }
     if(R.duracao>0&&itens.length>1){ const ms=Math.max(500,R.restante||500); R.prazo=Date.now()+ms; R.timer=setTimeout(R.proximo,ms); }
   };
   R.navegar=function(delta){
-    if(R.morto||!itens.length)return; clearTimeout(R.timer);
+    if(R.morto||!itens.length)return; if (R.loopAtivo) { R.loopAtivo=false; R._restaurarLoopVideo(); } clearTimeout(R.timer);
     R._forcedIndex=((R.idx+(delta<0?-1:1))%itens.length+itens.length)%itens.length; R.proximo(true);
   };
   if (P._startIdx && P._startIdx[id] != null && P._startIdx[id] < itens.length) R._forcedIndex = P._startIdx[id];   // volta ao slide em que estava
