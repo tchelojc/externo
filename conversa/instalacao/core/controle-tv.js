@@ -1,3 +1,17 @@
+/* ALMAFLUXO · CONTROLE — módulo da TV, SEM interface própria.
+ *
+ * Quem desenha o painel (centralizado e escondido) é o canais.js, que só roda
+ * dentro da janela do instalador (/portal e /conversa/instalacao). Este módulo
+ * não abre nada sozinho: nunca é carregado em /conversa nem no totem.
+ *
+ *   AFControle.iniciar({ canal, comandos:{prox,ant,alternar,vel,pular,canal},
+ *     imediatos:[...], estado(){...}, aoMudar(info){...}, cicloAtivo(){bool}, cicloMaxMs })
+ *   AFControle.ativar(true|false)  // true = painel aberto (polling mais rápido)
+ *   AFControle.parear()            // Promise<{code,...}|null>
+ *   AFControle.fimDeCiclo()        // aplica o que esperava o ciclo (troca de canal)
+ *   AFControle.qr(el, texto, px)   // QR gerado localmente
+ * Um handler pode devolver uma string de estado ('nao_suportado', ...).
+ */
 (function () {
   'use strict';
   if (window.AFControle) return;
@@ -15,7 +29,7 @@
   }
   function avisar(extra) {
     if (!cfg || !cfg.aoMudar) return;
-    var info = { code: par && par.code, url: par && CONTROLE_URL + '?p=' + par.code, controlador: ctlNome };
+    var info = { code: par && par.code, url: par && CONTROLE_URL + '?p=' + par.code, controlador: ctlNome, dono: par && par.dono };
     try { cfg.aoMudar(Object.assign(info, extra || {})); } catch (e) {}
   }
 
@@ -52,9 +66,11 @@
       avisar({ erro: 'Controle pelo telefone indisponível no servidor.' });
       return Promise.resolve(null);
     }
-    pareando = post({ action: 'parear', canal: cfg.canal }).then(function (r) {
+    var sess = null;
+    try { sess = cfg.sessao ? cfg.sessao() : null; } catch (e) {}
+    pareando = post(Object.assign({ action: 'parear', canal: cfg.canal }, sess || {})).then(function (r) {
       pareando = null;
-      if (r.ok) { par = { code: r.code, tvSecret: r.tvSecret, expiraEm: r.expiraEm }; ctlNome = null; visto = {}; falhas = 0; indisponivel = false; avisar(); return par; }
+      if (r.ok) { par = { code: r.code, tvSecret: r.tvSecret, expiraEm: r.expiraEm, dono: r.donoTv || null }; ctlNome = null; visto = {}; falhas = 0; indisponivel = false; avisar(); return par; }
       falhas++; tentouEm = Date.now();
       if (/CONTROLE_KV/.test(r.error || '') || falhas >= 3) indisponivel = true;
       avisar({ erro: indisponivel ? 'Controle pelo telefone indisponível no servidor.' : (r.error || 'Sem conexão com o servidor.') });
