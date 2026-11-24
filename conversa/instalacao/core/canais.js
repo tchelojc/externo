@@ -387,7 +387,7 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
   };
   // ═════════ Painel de controle: ESCONDIDO; quando aparece, fica no CENTRO ═════════
   var painel = null, boxQR = null, lblCodigo = null, lblStatus = null, lblPend = null, boxLista = null;
-  var tPainel = null, querAberto = false, controleCarregado = null, controleIniciado = false;
+  var msOcioso = 15000, tPainel = null, querAberto = false, controleCarregado = null, controleIniciado = false;
   var estiloBtn = 'font:inherit;color:#e8f1ff;background:#0a1d3a;border:1px solid #27c8ff;border-radius:10px;padding:12px 14px;cursor:pointer;min-height:44px';
   function btn(t, f, a) {
     var x = document.createElement('button');
@@ -398,7 +398,7 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
   function painelAberto() { return !!painel && painel.style.display !== 'none'; }
   function reiniciarAutoOcultar() {
     clearTimeout(tPainel);
-    tPainel = setTimeout(fecharPainel, 30000);
+    tPainel = setTimeout(fecharPainel, msOcioso);
   }
   function montarPainel() {
     if (painel) return;
@@ -515,7 +515,10 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
       }
     });
   }
-  function abrirPainel() {
+  // ms = quanto tempo fica na tela sem ninguém mexer. Aberto sozinho (link do portal): 8 s.
+  // Aberto por uma ação (botão Controle, tecla de canal): 15 s. Cada toque reinicia a contagem.
+  function abrirPainel(ms) {
+    msOcioso = ms || 15000;
     montarPainel();
     atualizarPainel();
     painel.style.display = 'block';
@@ -536,9 +539,9 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
   }
   function lista() { painelAberto() ? fecharPainel() : abrirPainel(); }
   var controle = {
-    abrir: function () { if (L.length) abrirPainel(); else querAberto = true; },
+    abrir: function () { if (L.length) abrirPainel(8000); else querAberto = true; },
     fechar: fecharPainel,
-    alternar: function () { painelAberto() ? fecharPainel() : controle.abrir(); }
+    alternar: function () { painelAberto() ? fecharPainel() : (L.length ? abrirPainel(15000) : (querAberto = true)); }
   };
   // Quadro (iframe do instalador) carregou: observa o ciclo SEM alterar o totem
   function quadroCarregado(frame) {
@@ -605,7 +608,7 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
     if (!L.length) return;
     document.documentElement.classList.add('af-canais');
     montarLista();
-    if (querAberto) { querAberto = false; abrirPainel(); }
+    if (querAberto) { querAberto = false; abrirPainel(8000); }
     atualizarRotulo();
     setInterval(atualizarRotulo, 800);
   }).catch(function (e) {
