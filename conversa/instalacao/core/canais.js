@@ -87,7 +87,7 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
       return _regenerator().w(function (_context) {
         while (1) switch (_context.p = _context.n) {
           case 0:
-            urls = ['/distribuicao/canais.json', BASE_INSTALACAO + 'distribuicao/canais.json', RAW_INSTALACAO + 'distribuicao/canais.json'];
+            urls = [BASE_INSTALACAO + 'distribuicao/canais.json', RAW_INSTALACAO + 'distribuicao/canais.json'];
             _i = 0, _urls = urls;
           case 1:
             if (!(_i < _urls.length)) {
