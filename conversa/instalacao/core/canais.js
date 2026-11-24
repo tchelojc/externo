@@ -386,7 +386,7 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
     }
   };
   // ═════════ Painel de controle: ESCONDIDO; quando aparece, fica no CENTRO ═════════
-  var painel = null, boxQR = null, lblCodigo = null, lblStatus = null, lblPend = null, boxLista = null;
+  var painel = null, boxQR = null, lblCodigo = null, lblSessao = null, lblStatus = null, lblPend = null, boxLista = null;
   var msOcioso = 15000, tPainel = null, querAberto = false, controleCarregado = null, controleIniciado = false;
   var estiloBtn = 'font:inherit;color:#e8f1ff;background:#0a1d3a;border:1px solid #27c8ff;border-radius:10px;padding:12px 14px;cursor:pointer;min-height:44px';
   function btn(t, f, a) {
@@ -421,14 +421,16 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
     lblPend.style.cssText = 'color:#ffd17a;font-size:14px;min-height:18px;margin-bottom:8px';
     var sep = document.createElement('div');
     sep.style.cssText = 'border-top:1px solid #1d4a73;margin:8px 0;padding-top:10px;font-size:14px;color:#b8cbe6';
-    sep.textContent = 'Controle pelo telefone — escaneie com a câmera (é preciso estar logado no ALMAFLUXO)';
+    sep.textContent = 'Controle pelo telefone — escaneie com a câmera e entre no telefone com a sua conta ALMAFLUXO';
     boxQR = document.createElement('div');
     boxQR.style.cssText = 'display:flex;justify-content:center;min-height:150px;margin:8px 0';
     lblCodigo = document.createElement('div');
     lblCodigo.style.cssText = 'font:700 20px ui-monospace,monospace;letter-spacing:3px';
+    lblSessao = document.createElement('div');
+    lblSessao.style.cssText = 'font-size:12px;color:#9fb6d4;margin-top:4px';
     lblStatus = document.createElement('div');
     lblStatus.style.cssText = 'font-size:13px;color:#cfe3ff;min-height:18px;margin:6px 0 10px';
-    painel.append(t, etiquetaCanal, nav, boxLista, lblPend, sep, boxQR, lblCodigo, lblStatus, btn('Fechar', fecharPainel, 'Fechar controle'));
+    painel.append(t, etiquetaCanal, nav, boxLista, lblPend, sep, boxQR, lblCodigo, lblSessao, lblStatus, btn('Fechar', fecharPainel, 'Fechar controle'));
     painel.addEventListener('click', reiniciarAutoOcultar);
     painel.addEventListener('keydown', reiniciarAutoOcultar);
     document.body.appendChild(painel);
@@ -485,6 +487,12 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
     controleIniciado = true;
     window.AFControle.iniciar({
       canal: 'instalacao',
+      sessao: function () {
+        try {
+          var u = JSON.parse(localStorage.getItem('almafluxo_usuario') || 'null');
+          return u && u.email && u.sessionToken ? { email: u.email, sessionToken: u.sessionToken } : null;
+        } catch (e) { return null; }
+      },
       imediatos: ['vel', 'pular', 'prox', 'ant', 'alternar'],
       cicloAtivo: function () { return cicloAtivo && janelaAberta(); },
       cicloMaxMs: (Number(cfg.ciclo_max_s) >= 30 ? Number(cfg.ciclo_max_s) : 900) * 1000,
@@ -511,6 +519,7 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
           lblCodigo.textContent = info.code;
           if (boxQR.dataset.url !== info.url) { boxQR.dataset.url = info.url; window.AFControle.qr(boxQR, info.url, 150); }
         }
+        lblSessao.textContent = info.dono ? 'Esta TV está logada: só a conta ' + info.dono + ' controla' : (info.code ? 'Esta TV não está logada: qualquer conta ALMAFLUXO pode controlar' : '');
         lblStatus.textContent = info.erro ? info.erro : (info.controlador ? 'Conectado: ' + info.controlador : 'Aguardando o telefone…');
       }
     });
