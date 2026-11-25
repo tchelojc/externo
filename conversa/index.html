@@ -2945,11 +2945,11 @@ const driveIdFrom = v => { const s=String(v||'').trim(); if (/^[A-Za-z0-9_-]{15,
 const TOTEM_MEDIA_BASE = /(^|\\.)almafluxo\\.uk$/i.test(location.hostname) ? '' : 'https://almafluxo.uk';
 const totemMediaUrl = (id, base64=false, mime='') => TOTEM_MEDIA_BASE+'/api/totem/midia?id='+encodeURIComponent(id)+(base64?'&base64=1':'')+(mime?'&mime='+encodeURIComponent(mime):'');
 const imgUrl = i => { const id=driveIdFrom(i.driveId||i.url); return id ? totemMediaUrl(id) : assetUrl(i.url); };
-/* Arquivos do repositório (ex.: conversar/IMG_1929.MOV) são servidos pelo GitHub Pages, NÃO pelo Worker de almafluxo.uk
+/* Arquivos do repositório (ex.: conversa/IMG_1929.MOV) são servidos pelo GitHub Pages, NÃO pelo Worker de almafluxo.uk
    (o Worker só responde às rotas dele e devolve 404 "Rota não encontrada" para o resto). Caminho relativo ou
-   almafluxo.uk/conversar/... é reescrito para a origem do Pages; se ela falhar, o slide tenta o raw do GitHub. */
+   almafluxo.uk/conversa/... é reescrito para a origem do Pages; se ela falhar, o slide tenta o raw do GitHub. */
 const GH_PAGES_BASE = 'https://tchelojc.github.io/externo/';
-/* Arquivos do repositório (ex.: conversar/IMG_1929.MOV) são servidos pelo GitHub Pages, NÃO pelo Worker de almafluxo.uk.
+/* Arquivos do repositório (ex.: conversa/IMG_1929.MOV) são servidos pelo GitHub Pages, NÃO pelo Worker de almafluxo.uk.
    ATENÇÃO: arquivos grandes (.MOV, .MP4) normalmente vão para o Git LFS, e o raw.githubusercontent.com
    devolve 404 para eles. O GitHub Pages entrega o binário do LFS já resolvido.
    Por isso a ordem agora é: Pages PRIMEIRO, raw como alternativa. */
@@ -2962,9 +2962,9 @@ const vidUrl = i => {
   // 1) Já é URL do GitHub Pages → usa direto (resolve LFS)
   if (/^https:\/\/tchelojc\.github\.io\/externo\//i.test(s)) return s;
 
-  // 2) Caminho relativo/absoluto de /conversar/ → reconstrói como Pages
-  if (/^\/conversar\//i.test(s)) return GH_PAGES_BASE + s.slice(1);
-  if (/^https?:\/\/[^/]*almafluxo\.uk\/conversar\//i.test(s)) {
+  // 2) Caminho relativo/absoluto de /conversa/ → reconstrói como Pages
+  if (/^\/conversa\//i.test(s)) return GH_PAGES_BASE + s.slice(1);
+  if (/^https?:\/\/[^/]*almafluxo\.uk\/conversa\//i.test(s)) {
     try {
       const u = new URL(s);
       return GH_PAGES_BASE + u.pathname.slice(1) + u.search;
@@ -2980,12 +2980,12 @@ const repoUrl = v => {
   try {
     if (/^\/\/|^[a-z][a-z0-9+.-]*:/i.test(v)) {
       const x = new URL(v, location.href);
-      return (/(^|\.)almafluxo\.uk$/i.test(x.hostname) && /^\/conversar\//i.test(x.pathname))
+      return (/(^|\.)almafluxo\.uk$/i.test(x.hostname) && /^\/conversa\//i.test(x.pathname))
         ? GH_PAGES_BASE + x.pathname.slice(1) + x.search
         : null;                                       // ← URLs absolutas de github.io caem AQUI
     }
-    if (v.charAt(0) === '/') return /^\/conversar\//i.test(v) ? GH_PAGES_BASE + v.slice(1) : null;
-    return new URL(v, GH_PAGES_BASE + 'conversar/').href;
+    if (v.charAt(0) === '/') return /^\/conversa\//i.test(v) ? GH_PAGES_BASE + v.slice(1) : null;
+    return new URL(v, GH_PAGES_BASE + 'conversa/').href;
   } catch (e) { return null; }
 };
 
@@ -3005,8 +3005,8 @@ const repoAlternativas = u => {
   // depois alma. O Pages fica como primeira tentativa só se a URL original já era Pages.
   const cand = [
     'https://tchelojc.github.io/externo/' + rel,
-    'https://raw.githubusercontent.com/tchelojc/externo/main/' + rel,
-    'https://raw.githubusercontent.com/tchelojc/externo/alma/' + rel
+    'https://raw.githubusercontent.com/tchelojc/externo/alma/' + rel,
+    'https://raw.githubusercontent.com/tchelojc/externo/main/' + rel
   ];
   // Remove duplicatas e a própria URL de origem
   return [...new Set(cand)].filter(x => x !== s);
@@ -5937,13 +5937,13 @@ TX.terremotos = {
 /* — versão globo COM textura de mapa-múndi assíncrona (fallback para wireframe) — */
 /* A textura é carregada em paralelo; enquanto isso, o wireframe aparece.         */
 /* Fontes em ordem de prioridade:                                                 */
-/*   1. GitHub Pages (externo/conversar/imagens/planeta.png) — CDN, sem redução   */
+/*   1. GitHub Pages (externo/conversa/imagens/planeta.png) — CDN, sem redução   */
 /*   2. ImgBB (fallback — CDN, mas pode reduzir a resolução)                      */
 /*   3. Drive via Worker (fallback — só se driveId for preenchido)                */
 /*   4. Wireframe procedural (último recurso — sempre funciona)                   */
 const TOTEM_MAPA_TERRA = {
   urlExterna: 'https://i.ibb.co/nNKG8cvK/planeta.png',
-  urlFallback: 'https://tchelojc.github.io/externo/conversar/imagens/planeta.png',
+  urlFallback: 'https://tchelojc.github.io/externo/conversa/imagens/planeta.png',
   driveId: '',
   cor: 0x0a4a66
 };
@@ -5951,7 +5951,7 @@ const TOTEM_MAPA_TERRA = {
 /* Mapa do Brasil — usado pelo slide de temperaturas (dentro do jornal) */
 const TOTEM_MAPA_BRASIL = {
   urlExterna: 'https://i.ibb.co/G4KpmPcG/brasil.png',
-  urlFallback: 'https://tchelojc.github.io/externo/conversar/imagens/brasil.png',
+  urlFallback: 'https://tchelojc.github.io/externo/conversa/imagens/brasil.png',
   driveId: '',
   cor: 0x061a2e
 };
