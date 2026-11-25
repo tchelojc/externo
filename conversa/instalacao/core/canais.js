@@ -150,19 +150,16 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
     }
   }
   function decidir(c, ctx) {
+    // Canais bloqueados por login continuam direcionando para autenticação.
     if (c.login && !ctx.logado) {
       return {
         tipo: 'login',
         rota: '/conversa/instalacao/'
       };
     }
-    if (c.tipo !== 'totem' && !c.direto && !ctx.vista) {
-      return {
-        tipo: 'conversa',
-        rota: '/conversa/',
-        proximo: c.rota
-      };
-    }
+
+    // Não redirecionar canais externos, sociais, vídeos ou links
+    // para o ciclo da conversa. O destino será a rota do canal.
     return {
       tipo: 'ir',
       rota: c.rota
