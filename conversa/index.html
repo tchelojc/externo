@@ -8025,17 +8025,20 @@ const TOTEM_AMBIENTE = {
   temFaixas(){ return this.lista.length>0; },
   rotulo(){ const f=this.lista[this.pos]; return f?('AMBIENTE '+f.n+' · ciclo '+Math.min(this.ciclos+1,this.CICLOS)+'/'+this.CICLOS):''; },
   analisador(){ return (this.an&&this.audio&&!this.audio.paused&&!this.audio.muted)?this.an:null; },
+  BUILD:'25nov-b',
   diagnostico(){
-    if(this.lista.length) return 'Música: '+this.estado+(this.erro?' · '+this.erro:'');
+    const b=' [build '+this.BUILD+']';
+    if(this.lista.length) return 'Música: '+this.estado+(this.erro?' · '+this.erro:'')+b;
+    if(!this.iniciado) return 'Música: módulo não iniciado nesta página ('+location.pathname+')'+b;
     if(this.semSessao) return 'Música: sem sessão para ler a pasta CONVERSA (entre com a conta uma vez).';
-    return 'Música: nenhum áudio "ambiente1, ambiente2…" na pasta'+(this.totalArquivos?' ('+this.totalArquivos+' arquivos lidos).':'.');
+    return 'Música: nenhum áudio "ambiente1, ambiente2…" na pasta'+(this.totalArquivos?' ('+this.totalArquivos+' arquivos lidos).':'.')+b;
   },
   avisar(t,ms){ txAviso(t,ms); },
   dicaToque(){ if(this.bloqueado&&this.lista.length) txAviso('🔇 Toque na tela (ou pressione OK) para ligar o som da música'); },
 
   iniciar(){
     if(this.iniciado) return;
-    if(!/\/totem[\w-]*\/?$/i.test(location.pathname) && !/[?&]t=/.test(location.search) && !/\/conversa\/?$/i.test(location.pathname)) return;
+    if(!/\/(totem[\w-]*|index)(\.html?)?\/?$/i.test(location.pathname) && !/[?&]t=/.test(location.search) && !/\/conversa\/?$/i.test(location.pathname)) return;
     this.iniciado=true; this.mudo=!!lsGet(this.K_MUDO,false);
     if (this.ARQUIVO_FIXO) {
       this.lista=[{n:1,id:'github-ambiente1',nome:'ambiente1.mp3',mime:'audio/mpeg',url:this.ARQUIVO_FIXO}];
