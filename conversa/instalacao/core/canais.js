@@ -348,46 +348,95 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
       navegar(rotaDestino, d.tipo === 'login');
     }, d.tipo === 'login' ? 1200 : 0);
   }
-  // ── Troca de canal: entra 60 s depois do pedido (configurável: troca_canal_s no canais.json) ──
+
+  // ── Troca de canal: 60 s somente na primeira troca; depois, imediata ──
   var pendenteCanal = null, tPend = null, tTick = null, fimTroca = 0;
+  var trocaInicialCumprida = false;
+
   function segundosTroca() {
     var n = Number(cfg.troca_canal_s);
     return Number.isFinite(n) && n >= 5 && n <= 600 ? n : 60;
   }
-  function restante() { return Math.max(0, Math.ceil((fimTroca - Date.now()) / 1000)); }
-  function limparTroca() {
-    clearTimeout(tPend); clearInterval(tTick);
-    tPend = null; tTick = null; pendenteCanal = null; fimTroca = 0;
+
+  function restante() {
+    return Math.max(0, Math.ceil((fimTroca - Date.now()) / 1000));
   }
-  function cancelarTroca() { limparTroca(); atualizarPainel(); }
+
+  function limparTroca() {
+    clearTimeout(tPend);
+    clearInterval(tTick);
+    tPend = null;
+    tTick = null;
+    pendenteCanal = null;
+    fimTroca = 0;
+  }
+
+  function cancelarTroca() {
+    limparTroca();
+    atualizarPainel();
+  }
+
   function executarTroca() {
     var c = pendenteCanal;
     limparTroca();
+
+    // A primeira espera foi concluída.
+    trocaInicialCumprida = true;
+
     atualizarPainel();
     if (c) irAgora(c);
   }
+
   function ir(c) {
-    if (!c) { irAgora(c); return; }
-    // Fora da janela do instalador, ou sem nenhum canal no ar ainda: entra na hora.
-    if (!janelaAberta() || !L[cur()]) { irAgora(c); return; }
-    if (L[cur()] === c) { cancelarTroca(); aviso('Você já está em ' + c.nome); return; }
+    if (!c) {
+      irAgora(c);
+      return;
+    }
+
+    // Fora da janela do instalador ou sem canal ativo: troca imediatamente.
+    if (!janelaAberta() || !L[cur()]) {
+      irAgora(c);
+      trocaInicialCumprida = true;
+      return;
+    }
+
+    if (L[cur()] === c) {
+      cancelarTroca();
+      aviso('Você já está em ' + c.nome);
+      return;
+    }
+
+    // Após a primeira espera de 60 s, todas as trocas são imediatas.
+    if (trocaInicialCumprida) {
+      cancelarTroca();
+      irAgora(c);
+      return;
+    }
+
+    // Durante a primeira espera, pedidos alteram o destino,
+    // mas não reiniciam o relógio.
     var novo = !pendenteCanal;
-    pendenteCanal = c;   // outro pedido só troca o destino; o relógio de 60 s não reinicia
+    pendenteCanal = c;
+
     if (novo) {
       fimTroca = Date.now() + segundosTroca() * 1000;
       tPend = setTimeout(executarTroca, segundosTroca() * 1000);
       tTick = setInterval(atualizarPainel, 1000);
     }
+
     aviso('Canal ' + c.numero + ' · ' + c.nome + ' entra em ' + restante() + ' s');
     atualizarPainel();
   }
+
   var mover = function mover(d) {
     return ir(vizinho(L, cur(), d));
   };
+
   var pelaNumero = function pelaNumero(n) {
     var c = L.find(function (x) {
       return String(x.numero) === String(n);
     });
+
     if (c) {
       ir(c);
     } else {
