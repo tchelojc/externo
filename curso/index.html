@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>ALMAFLUXO · Curso</title>
+<style>
+:root{color-scheme:dark;--bg:#030508;--card:#0a1d3a;--bd:#27c8ff;--tx:#eaf6ff;--mut:#9fb6d4;--ok:#5be39a;--er:#ff8a8a}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--tx);font:17px/1.45 system-ui,sans-serif;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+h1{font-size:22px;margin:0}
+.mut{color:var(--mut);font-size:15px}
+.card{background:var(--card);border:1px solid #1d4a73;border-radius:14px;padding:14px;margin:12px 0}
+button,input{font:inherit;color:var(--tx)}
+button{background:#0d2a52;border:1px solid var(--bd);border-radius:12px;padding:12px 14px;cursor:pointer;min-height:48px}
+button:active,button.on{background:#1f7bff}
+button:disabled{opacity:.45}
+input{width:100%;background:#06122c;border:1px solid #1d4a73;border-radius:10px;padding:12px;margin:6px 0}
+.hide{display:none}
+#st{min-height:22px;font-size:15px}
+.ok{color:var(--ok)}.er{color:var(--er)}
+#app{display:grid;grid-template-columns:260px 1fr;gap:14px;align-items:start}
+#lista{display:flex;flex-direction:column;gap:8px}
+#lista button{text-align:left}
+#lista small{display:block;color:var(--mut)}
+#mod{width:100%;height:600px;border:1px solid #1d4a73;border-radius:14px;background:#050b18}
+@media(max-width:760px){#app{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<h1>ALMAFLUXO · Curso</h1>
+<div class="mut" id="sub">Conectando…</div>
+
+<div id="login" class="card hide">
+  <div>Entre na sua conta ALMAFLUXO para acessar o curso.</div>
+  <input id="em" type="email" autocomplete="username" placeholder="E-mail">
+  <input id="sn" type="password" autocomplete="current-password" placeholder="Senha">
+  <button id="bEntrar" type="button" style="width:100%">Entrar</button>
+  <div class="mut" style="margin-top:8px">Ainda não tem cadastro? Crie a sua conta no <a href="/" style="color:#7fd6ff">ALMAFLUXO</a> e volte aqui.</div>
+</div>
+
+<div id="app" class="hide">
+  <nav id="lista" aria-label="Módulos"></nav>
+  <section><iframe id="mod" sandbox="allow-scripts" title="Módulo do curso"></iframe></section>
+</div>
+<div id="st" class="mut" role="status"></div>
+
+<!-- Estilo do módulo (fica dentro do quadro isolado) -->
+<style id="runtime-css" type="text/plain">
+:root{color-scheme:dark;--card:#0a1d3a;--bd:#27c8ff;--tx:#eaf6ff;--mut:#9fb6d4;--ok:#5be39a;--er:#ff8a8a}
+*{box-sizing:border-box}
+body{margin:0;padding:14px;background:#050b18;color:var(--tx);font:17px/1.5 system-ui,sans-serif}
+h2{margin:0 0 4px;font-size:22px}h3{margin:0 0 6px;font-size:18px}
+.mut{color:var(--mut);font-size:15px}
+.frase{font-size:19px;border-left:4px solid var(--bd);padding:6px 12px;margin:10px 0;background:#0a1d3a88;border-radius:0 10px 10px 0}
+.card{background:var(--card);border:1px solid #1d4a73;border-radius:14px;padding:14px;margin:12px 0}
+.barra{height:10px;background:#06122c;border:1px solid #1d4a73;border-radius:999px;overflow:hidden;margin:8px 0}
+.barra i{display:block;height:100%;width:0;background:var(--ok);transition:width .3s}
+button{font:inherit;color:var(--tx);background:#0d2a52;border:1px solid var(--bd);border-radius:10px;padding:10px 12px;cursor:pointer;min-height:44px}
+button.on{background:#1f7bff}
+.feito{display:flex;gap:10px;align-items:center;margin-top:10px;cursor:pointer}
+.feito input{width:24px;height:24px}
+ol,ul{margin:6px 0 6px 20px;padding:0}
+pre{background:#06122c;border:1px solid #1d4a73;border-radius:10px;padding:12px;overflow:auto;white-space:pre-wrap;word-break:break-word;font:14px/1.45 ui-monospace,Consolas,monospace;margin:8px 0}
+.rot{font-weight:700;color:var(--bd);margin-top:10px}
+.bad{color:var(--er)}
+.cena{position:relative;width:100%;height:320px;border:1px solid #1d4a73;border-radius:12px;overflow:hidden;background:#030710}
+.cena canvas{display:block;width:100%;height:100%;touch-action:none}
+.botoes{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.aviso{background:#3a2a0a;border:1px solid #ffd17a;color:#ffd17a;border-radius:10px;padding:10px;margin:10px 0}
+</style>
+
+<!-- Executor dos módulos: roda DENTRO do quadro isolado (sandbox), sem acesso à sua conta -->
+<script id="runtime-src" type="text/plain">
+(function () {
+  'use strict';
+  var raiz = document.getElementById('raiz');
+  var D = null, PROG = {}, barra = null, rotuloProg = null, caixas = [];
+
+  function el(tag, cls, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+  function enviar(o) { o.af = 'curso'; parent.postMessage(o, '*'); }
+  function altura() { enviar({ tipo: 'altura', h: document.documentElement.scrollHeight + 8 }); }
+
+  window.addEventListener('message', function (e) {
+    var d = e.data;
+    if (d && d.af === 'curso' && d.tipo === 'init') { PROG = d.progresso || {}; marcar(); }
+  });
+
+  function marcar() {
+    var feitos = 0;
+    caixas.forEach(function (c, i) { c.checked = !!PROG[i]; if (c.checked) feitos++; });
+    if (barra) barra.style.width = (caixas.length ? Math.round(feitos * 100 / caixas.length) : 0) + '%';
+    if (rotuloProg) rotuloProg.textContent = feitos + ' de ' + caixas.length + ' passos feitos';
+  }
+
+  function lista(tag, itens) {
+    var l = el(tag);
+    (itens || []).forEach(function (t) { l.appendChild(el('li', null, t)); });
+    return l;
+  }
+
+  function render() {
+    raiz.textContent = '';
+    raiz.appendChild(el('h2', null, D.titulo || 'Módulo'));
+    if (D.emConstrucao) raiz.appendChild(el('div', 'aviso', 'Módulo em construção: o esqueleto já está aqui; o conteúdo completo entra na próxima versão.'));
+    if (D.frase) raiz.appendChild(el('div', 'frase', '“' + D.frase + '”'));
+    if (D.trajeto) { var tj = el('div', 'card'); tj.appendChild(el('h3', null, 'O trajeto')); tj.appendChild(el('div', null, D.trajeto)); raiz.appendChild(tj); }
+    if (D.mapa) { var cm = el('div', 'card'); cm.appendChild(el('h3', null, D.mapa.titulo || 'Guia interativo')); cm.appendChild(el('div', 'mut', 'Arraste para girar. Toque numa peça para saber o que ela faz.')); cena(cm, D.mapa); raiz.appendChild(cm); }
+
+    var pr = el('div', 'card');
+    rotuloProg = el('div', 'mut');
+    var b = el('div', 'barra'); barra = el('i'); b.appendChild(barra);
+    pr.appendChild(rotuloProg); pr.appendChild(b); raiz.appendChild(pr);
+
+    caixas = [];
+    (D.passos || []).forEach(function (p, i) {
+      var c = el('div', 'card');
+      c.appendChild(el('h3', null, (i + 1) + '. ' + (p.titulo || 'Passo')));
+      if (p.porque) { c.appendChild(el('div', 'rot', 'Por quê')); c.appendChild(el('div', null, p.porque)); }
+      if (p.fazer && p.fazer.length) { c.appendChild(el('div', 'rot', 'Faça')); c.appendChild(lista('ol', p.fazer)); }
+      if (p.codigo) { c.appendChild(el('div', 'rot', p.rotuloCodigo || 'Código')); c.appendChild(bloco(p.codigo)); }
+      if (p.testar) { c.appendChild(el('div', 'rot', 'Teste')); c.appendChild(el('div', null, p.testar)); }
+      if (p.erros && p.erros.length) {
+        c.appendChild(el('div', 'rot bad', 'Se der erro'));
+        var ul = el('ul');
+        p.erros.forEach(function (x) { var li = el('li'); li.appendChild(el('b', null, x.sintoma + ': ')); li.appendChild(document.createTextNode(x.causa)); ul.appendChild(li); });
+        c.appendChild(ul);
+      }
+      if (p.prompt) { c.appendChild(el('div', 'rot', 'Prompt pronto (copie, troque o que está entre [colchetes] e cole na IA)')); c.appendChild(bloco(p.prompt)); }
+      var lab = el('label', 'feito'), cx = el('input'); cx.type = 'checkbox';
+      cx.addEventListener('change', function () { PROG[i] = cx.checked; marcar(); enviar({ tipo: 'progresso', passo: i, feito: cx.checked }); });
+      lab.appendChild(cx); lab.appendChild(el('span', null, 'Fiz e o teste passou'));
+      c.appendChild(lab); caixas.push(cx); raiz.appendChild(c);
+    });
+    marcar();
+    if (D.proximo) { var pm = el('div', 'card'); pm.appendChild(el('h3', null, 'Próximo')); pm.appendChild(el('div', null, D.proximo)); raiz.appendChild(pm); }
+    altura();
+  }
+
+  function bloco(texto) {
+    var w = el('div');
+    w.appendChild(el('pre', null, texto));
+    var bt = el('button', null, 'Copiar');
+    bt.addEventListener('click', function () { enviar({ tipo: 'copiar', texto: texto }); bt.textContent = 'Copiado!'; setTimeout(function () { bt.textContent = 'Copiar'; }, 1500); });
+    w.appendChild(bt);
+    return w;
+  }
+
+  /* ───────── Guia interativo: simulação de um pedido percorrendo as peças ───────── */
+  // Descobre até onde o "pacote" chega. onde = "no" (falha na peça) ou "a>b" (falha no caminho entre duas peças).
+  function percurso(mapa, falha) {
+    var rota = mapa.rota || [];
+    if (!falha) return { nos: rota.slice(), parou: null };
+    var onde = String(falha.onde || '');
+    if (onde.indexOf('>') > 0) {
+      var a = onde.split('>')[0], i = rota.indexOf(a);
+      return { nos: i >= 0 ? rota.slice(0, i + 1) : rota.slice(0, 1), parou: onde, entre: true };
+    }
+    var j = rota.indexOf(onde);
+    return { nos: j >= 0 ? rota.slice(0, j + 1) : rota.slice(0, 1), parou: onde, entre: false };
+  }
+
+  function cena(host, mapa) {
+    var painel = el('div', 'card'); painel.style.margin = '10px 0 0';
+    var botoes = el('div', 'botoes');
+    var area = el('div', 'cena');
+    var nomeNo = {};
+    (mapa.nos || []).forEach(function (n) { nomeNo[n.id] = n; });
+    host.appendChild(area); host.appendChild(botoes); host.appendChild(painel);
+
+    function escrever(titulo, linhas) {
+      painel.textContent = '';
+      painel.appendChild(el('h3', null, titulo));
+      (linhas || []).forEach(function (l) { if (!l) return; var d = el('div'); var b = el('b', null, l[0] + ' '); d.appendChild(b); d.appendChild(document.createTextNode(l[1])); d.style.margin = '4px 0'; painel.appendChild(d); });
+    }
+    escrever('Pronto', [['', 'Escolha “Tudo funcionando” ou um defeito para ver o que acontece com o pedido.']]);
+
+    var vis = montar3D(area, mapa, nomeNo, function (no) {
+      escrever(no.nome, [['O que é:', no.info || ''], ['Você precisa:', no.precisa || '']]);
+    });
+
+    function tocar(falha, btn) {
+      Array.prototype.forEach.call(botoes.children, function (x) { x.classList.remove('on'); });
+      btn.classList.add('on');
+      var pc = percurso(mapa, falha);
+      if (vis) vis.animar(pc, !!falha);
+      var caminho = pc.nos.map(function (n) { return nomeNo[n] ? nomeNo[n].nome : n; }).join(' → ');
+      if (!falha) {
+        escrever('Tudo funcionando', [!vis ? ['Caminho:', caminho + (pc.nos.length ? ' → e de volta' : '')] : null, ['', 'O pedido saiu da página, passou por cada peça e voltou com a resposta (200).']]);
+        return;
+      }
+      var onde = pc.entre ? 'no caminho ' + falha.onde.replace('>', ' → ') : (nomeNo[falha.onde] ? nomeNo[falha.onde].nome : falha.onde);
+      escrever(falha.nome, [
+        !vis ? ['Caminho:', caminho + '  ✗ parou ' + onde] : null,
+        ['Parou em:', onde], ['Você vê:', falha.sintoma], ['Causa:', falha.causa], ['Conserto:', falha.conserto]
+      ]);
+    }
+    var b0 = el('button', null, 'Tudo funcionando'); b0.addEventListener('click', function () { tocar(null, b0); }); botoes.appendChild(b0);
+    (mapa.falhas || []).forEach(function (f) { var b = el('button', null, f.nome); b.addEventListener('click', function () { tocar(f, b); }); botoes.appendChild(b); });
+    if (!vis) area.appendChild(el('div', 'mut', 'O 3D não está disponível neste aparelho. O guia continua funcionando em texto, logo abaixo.'));
+    if (!vis) area.style.height = 'auto', area.style.padding = '12px';
+  }
+
+  function montar3D(area, mapa, nomeNo, aoTocar) {
+    if (!window.THREE) return null;
+    var T = window.THREE, renderer;
+    try { renderer = new T.WebGLRenderer({ antialias: true, alpha: true }); } catch (e) { return null; }
+    var W = area.clientWidth || 600, H = 320;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(W, H); area.appendChild(renderer.domElement);
+    var sc = new T.Scene(), cam = new T.PerspectiveCamera(50, W / H, 0.1, 100);
+    cam.position.set(0, 2.5, 11);
+    sc.add(new T.AmbientLight(0xffffff, 0.7));
+    var luz = new T.PointLight(0xffffff, 0.9); luz.position.set(4, 8, 8); sc.add(luz);
+    var g = new T.Group(); sc.add(g);
+
+    var pos = {}, malhas = [], cores = {};
+    function rotulo(txt) {
+      var cv = document.createElement('canvas'); cv.width = 256; cv.height = 64;
+      var c = cv.getContext('2d'); c.fillStyle = '#eaf6ff'; c.font = 'bold 30px system-ui,sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(txt, 128, 34);
+      var s = new T.Sprite(new T.SpriteMaterial({ map: new T.CanvasTexture(cv), transparent: true })); s.scale.set(3, 0.75, 1); return s;
+    }
+    (mapa.nos || []).forEach(function (n) {
+      var p = n.pos || [0, 0, 0]; pos[n.id] = new T.Vector3(p[0], p[1], p[2]);
+      var cor = new T.Color(n.cor || '#27c8ff'); cores[n.id] = cor;
+      var m = new T.Mesh(new T.SphereGeometry(0.55, 24, 24), new T.MeshStandardMaterial({ color: cor, emissive: cor, emissiveIntensity: 0.25 }));
+      m.position.copy(pos[n.id]); m.userData.id = n.id; g.add(m); malhas.push(m);
+      var r = rotulo(n.nome); r.position.set(p[0], p[1] + 1.05, p[2]); g.add(r);
+    });
+    (mapa.ligacoes || []).forEach(function (l) {
+      if (!pos[l[0]] || !pos[l[1]]) return;
+      g.add(new T.Line(new T.BufferGeometry().setFromPoints([pos[l[0]], pos[l[1]]]), new T.LineBasicMaterial({ color: 0x3a8fd0 })));
+    });
+    var pacote = new T.Mesh(new T.SphereGeometry(0.22, 16, 16), new T.MeshBasicMaterial({ color: 0x5be39a }));
+    pacote.visible = false; g.add(pacote);
+    var anim = null;
+
+    function animar(pc, comFalha) {
+      malhas.forEach(function (m) { m.material.color.copy(cores[m.userData.id]); m.material.emissive.copy(cores[m.userData.id]); });
+      var pts = pc.nos.map(function (id) { return pos[id].clone(); }).filter(Boolean);
+      if (!pts.length) return;
+      var falhou = !!comFalha, destinoFalha = null;
+      if (falhou && pc.entre) {
+        var prox = nextAfter(pc), ultimo = pts[pts.length - 1];
+        destinoFalha = prox ? ultimo.clone().lerp(prox, 0.5) : ultimo.clone();
+        pts.push(destinoFalha);
+      } else if (!falhou) {
+        pts = pts.concat(pts.slice(0, -1).reverse());
+      }
+      pacote.material.color.set(0x5be39a); pacote.visible = true; pacote.position.copy(pts[0]);
+      anim = { pts: pts, seg: 0, t: 0, falhou: falhou, pc: pc };
+    }
+    function nextAfter(pc) { var rota = mapa.rota || [], i = rota.indexOf(pc.nos[pc.nos.length - 1]); return rota[i + 1] ? pos[rota[i + 1]] : null; }
+
+    function quadro() {
+      if (anim) {
+        var a = anim;
+        if (a.seg < a.pts.length - 1) {
+          a.t += 0.025;
+          pacote.position.copy(a.pts[a.seg]).lerp(a.pts[a.seg + 1], Math.min(a.t, 1));
+          if (a.t >= 1) { a.t = 0; a.seg++; }
+        } else if (a.falhou && !a.marcado) {
+          a.marcado = true; pacote.material.color.set(0xff5a5a);
+          if (!a.pc.entre) malhas.forEach(function (m) { if (m.userData.id === a.pc.parou) { m.material.color.set(0xff5a5a); m.material.emissive.set(0xff3030); } });
+        }
+      }
+      renderer.render(sc, cam);
+      requestAnimationFrame(quadro);
+    }
+    quadro();
+
+    var arrastando = false, mexeu = 0, ux = 0, uy = 0, ray = new T.Raycaster(), pt = new T.Vector2();
+    var cv = renderer.domElement;
+    cv.addEventListener('pointerdown', function (e) { arrastando = true; mexeu = 0; ux = e.clientX; uy = e.clientY; try { cv.setPointerCapture(e.pointerId); } catch (x) {} });
+    cv.addEventListener('pointermove', function (e) {
+      if (!arrastando) return;
+      var dx = e.clientX - ux, dy = e.clientY - uy; ux = e.clientX; uy = e.clientY; mexeu += Math.abs(dx) + Math.abs(dy);
+      g.rotation.y += dx * 0.01; g.rotation.x = Math.max(-1, Math.min(1, g.rotation.x + dy * 0.005));
+    });
+    cv.addEventListener('pointerup', function (e) {
+      arrastando = false;
+      if (mexeu > 6) return;
+      var r = cv.getBoundingClientRect();
+      pt.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+      ray.setFromCamera(pt, cam);
+      var hit = ray.intersectObjects(malhas)[0];
+      if (hit && nomeNo[hit.object.userData.id]) aoTocar(nomeNo[hit.object.userData.id]);
+    });
+    window.addEventListener('resize', function () { var w = area.clientWidth || W; renderer.setSize(w, H); cam.aspect = w / H; cam.updateProjectionMatrix(); });
+    return { animar: animar };
+  }
+
+  window.AFCurso = {
+    percurso: percurso,
+    modulo: function (d) { D = d || {}; render(); enviar({ tipo: 'pronto' }); }
+  };
+})();
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var API = '/proxy/curso';
+  var $ = function (id) { return document.getElementById(id); };
+  var usuario = null, indice = null, atual = null, prog = {};
+
+  function msg(t, cls) { var e = $('st'); e.textContent = t || ''; e.className = cls || 'mut'; }
+  function post(url, c) {
+    return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(c) })
+      .then(function (r) { return r.json().catch(function () { return { ok: false, error: 'Resposta inválida.' }; }); })
+      .catch(function () { return { ok: false, error: 'Sem conexão.' }; });
+  }
+  function lerUsuario() {
+    try { var u = JSON.parse(localStorage.getItem('almafluxo_usuario') || 'null'); return u && u.email && u.sessionToken ? u : null; } catch (e) { return null; }
+  }
+  function chaveProg() { return 'af_curso_prog_' + (usuario ? usuario.email : ''); }
+  function lerProg() { try { return JSON.parse(localStorage.getItem(chaveProg()) || '{}') || {}; } catch (e) { return {}; } }
+  function salvarProg() { try { localStorage.setItem(chaveProg(), JSON.stringify(prog)); } catch (e) {} }
+
+  function mostrarLogin(t) {
+    $('login').classList.remove('hide'); $('app').classList.add('hide');
+    $('sub').textContent = t || 'Faça login para continuar.';
+  }
+
+  function iniciar() {
+    usuario = lerUsuario();
+    if (!usuario) { mostrarLogin(); return; }
+    prog = lerProg();
+    $('sub').textContent = 'Carregando o curso…';
+    post(API, { action: 'indice', email: usuario.email, sessionToken: usuario.sessionToken }).then(function (r) {
+      if (r.ok && r.indice) {
+        indice = r.indice;
+        $('login').classList.add('hide'); $('app').classList.remove('hide');
+        $('sub').textContent = (indice.curso || 'Curso') + ' · ' + usuario.email;
+        desenharLista();
+        var ult = null; try { ult = localStorage.getItem('af_curso_ultimo_' + usuario.email); } catch (e) {}
+        var ids = (indice.modulos || []).map(function (m) { return m.id; });
+        abrir(ids.indexOf(ult) >= 0 ? ult : ids[0]);
+        msg('');
+      } else if (r.precisaLogin) {
+        try { localStorage.removeItem('almafluxo_usuario'); } catch (e) {}
+        mostrarLogin('Sua sessão expirou. Entre de novo.');
+      } else {
+        $('sub').textContent = r.error || 'Não foi possível carregar o curso.';
+      }
+    });
+  }
+
+  function desenharLista() {
+    var nav = $('lista'); nav.replaceChildren();
+    (indice.modulos || []).forEach(function (m) {
+      var b = document.createElement('button'); b.type = 'button'; b.dataset.id = m.id;
+      var feitos = 0, mp = prog[m.id] || {}; Object.keys(mp).forEach(function (k) { if (mp[k]) feitos++; });
+      b.textContent = 'Módulo ' + m.id + ' · ' + m.titulo + (feitos ? '  (' + feitos + ' ✓)' : '');
+      if (m.resumo) { var s = document.createElement('small'); s.textContent = m.resumo; b.appendChild(s); }
+      if (m.id === atual) b.classList.add('on');
+      b.addEventListener('click', function () { abrir(m.id); });
+      nav.appendChild(b);
+    });
+  }
+
+  function montarDoc(codigo) {
+    var seguro = String(codigo).replace(/<\/script/gi, '<\\/script');
+    return '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>' +
+      $('runtime-css').textContent + '</style></head><body><div id="raiz">Carregando…</div>' +
+      '<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>' +
+      '<script>' + $('runtime-src').textContent + '<\/script>' +
+      '<script>' + seguro + '<\/script></body></html>';
+  }
+
+  function abrir(id) {
+    if (!id || !usuario) return;
+    atual = id; desenharLista();
+    try { localStorage.setItem('af_curso_ultimo_' + usuario.email, id); } catch (e) {}
+    msg('Abrindo o módulo…');
+    post(API, { action: 'modulo', id: id, email: usuario.email, sessionToken: usuario.sessionToken }).then(function (r) {
+      if (r.ok && typeof r.codigo === 'string') {
+        var f = $('mod'); f.style.height = '600px';
+        f.srcdoc = montarDoc(r.codigo);
+        msg('');
+      } else if (r.precisaLogin) {
+        try { localStorage.removeItem('almafluxo_usuario'); } catch (e) {}
+        mostrarLogin('Sua sessão expirou. Entre de novo.');
+      } else {
+        msg(r.error || 'Não foi possível abrir o módulo.', 'er');
+      }
+    });
+  }
+
+  addEventListener('message', function (e) {
+    var f = $('mod');
+    if (!f || e.source !== f.contentWindow) return;
+    var d = e.data;
+    if (!d || d.af !== 'curso') return;
+    if (d.tipo === 'altura') {
+      var h = Math.max(320, Math.min(Number(d.h) || 0, 20000));
+      f.style.height = h + 'px';
+    } else if (d.tipo === 'pronto') {
+      f.contentWindow.postMessage({ af: 'curso', tipo: 'init', progresso: prog[atual] || {} }, '*');
+    } else if (d.tipo === 'progresso') {
+      prog[atual] = prog[atual] || {};
+      prog[atual][Number(d.passo)] = !!d.feito;
+      salvarProg(); desenharLista();
+    } else if (d.tipo === 'copiar' && typeof d.texto === 'string') {
+      var t = d.texto.slice(0, 8000);
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).catch(function () {});
+      else { var ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (x) {} ta.remove(); }
+    }
+  });
+
+  $('bEntrar').onclick = function () {
+    var email = $('em').value.trim().toLowerCase(), senha = $('sn').value;
+    if (!/^\S+@\S+\.\S+$/.test(email) || !senha) { msg('Digite e-mail e senha.', 'er'); return; }
+    $('bEntrar').disabled = true; msg('Entrando…');
+    post('/proxy/central', { action: 'login', email: email, senha: senha }).then(function (d) {
+      $('bEntrar').disabled = false;
+      var u = d.usuario || d, tok = d.token || d.sessionToken || u.sessionToken;
+      if (!(d.ok || d.success || tok) || !tok) { msg(d.error || d.message || 'Login não aceito.', 'er'); return; }
+      try { localStorage.setItem('almafluxo_usuario', JSON.stringify({ nome: u.nome || email.split('@')[0], email: email, balance: u.balance != null ? u.balance : (u.saldo != null ? u.saldo : 0), sessionToken: tok })); } catch (e) {}
+      $('sn').value = ''; msg(''); iniciar();
+    });
+  };
+
+  iniciar();
+})();
+</script>
+</body>
+</html>
