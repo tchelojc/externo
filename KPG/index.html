@@ -3176,11 +3176,10 @@ let PR={
     areasComuns:{economico:850,medio:1250,alto:1800}    // R$/m² de hall, escada, circulação
   },
 
-  // ➕ NOVO: QUITINETE — unidade compacta replicável
   quitinete:{
-    estrutura:{economico:1550,medio:1900,alto:2450},    // R$/m² de unidade
-    cozinhaCompacta:8500,                               // por unidade (bancada + cooktop + coifa + pontos)
-    banheiroPronto:7200                                 // por unidade (louças + metais + box)
+    estrutura:{economico:1100,medio:1350,alto:1750},
+    cozinhaCompacta:4200,
+    banheiroPronto:4800
   }
 };
 const L={
@@ -3246,7 +3245,7 @@ function calc(g){
   const CAT={civ:'Estrutura e obra civil',acab:'Acabamentos',ele:'Elétrica',hid:'Hidráulica',esq:'Esquadrias (janelas e portas)',clima:'Climatização e ventilação',muro:'Muro e portão',ref:'Reforma'};
 
   if(g.tipo==='muro'){
-    /* ───────── MURO (inalterado) ───────── */
+    /* ───────── MURO ───────── */
     const m=g.muro,L0=Math.max(0,num(m.comp)),H=Math.max(.5,num(m.alt));
     add(CAT.muro,'Muro — fundação, estrutura e alvenaria ('+N1(L0)+' m × '+N1(H)+' m)','m',L0,PR.muro.ml*(H/2)*(H>3?1.5:1));
     add(CAT.muro,'Acabamento do muro — '+L.acab[m.acab]+' (2 faces)','m²',L0*H*2,PR.muro.acab*(m.acab==='aparente'?.4:m.acab==='textura'?1.35:1));
@@ -3254,7 +3253,7 @@ function calc(g){
     area=L0*.3;
 
   }else if(g.tipo==='predio'){
-    /* ───────── PRÉDIO / MULTIFAMILIAR (novo) ───────── */
+    /* ───────── PRÉDIO / MULTIFAMILIAR ───────── */
     const padrao = g.padrao || 'medio';
     const pav    = Math.max(1, num(g.predioPav)       || 4);
     const apPav  = Math.max(1, num(g.predioApPorPav)  || 4);
@@ -3266,7 +3265,6 @@ function calc(g){
     area            = areaUnid * unidades;
     const areaComum = area * pComum;
 
-    /* estrutura + áreas comuns + elevador */
     if(area>0)
       add(CAT.civ,'Estrutura, fundação profunda, alvenaria e cobertura ('+L.padrao[padrao]+')','m²',area*1.12,PR.predio.estrutura[padrao]);
     if(areaComum>0)
@@ -3274,7 +3272,6 @@ function calc(g){
     if(elev>0)
       add(CAT.civ,'Elevador (equipamento + casa de máquinas + instalação)','un',elev,PR.predio.elevador);
 
-    /* acabamentos por cômodo × unidades */
     g.comodos.forEach(c=>{
       const A=Math.max(0,c.w*c.h)*unidades, per=2*(c.w+c.h)*unidades;
       const com=c.nome; const n0=it.length;
@@ -3300,7 +3297,7 @@ function calc(g){
       add(CAT.ele,'Quadro de distribuição (DR/DPS) e entrada — '+circ+' circuitos','vb',1,PR.quadroBase+circ*PR.quadroCirc);
 
   }else if(g.tipo==='quitinete'){
-    /* ───────── QUITINETE / STUDIO (novo) ───────── */
+    /* ───────── QUITINETE / STUDIO ───────── */
     const padrao = g.padrao || 'medio';
     const unid   = Math.max(1,  num(g.quitUnid) || 10);
     const areaUn = Math.max(10, num(g.quitArea) || 28);
@@ -3329,12 +3326,10 @@ function calc(g){
         porCom[c.id]=it.slice(n0).reduce((a,x)=>a+x.total,0);
       });
     }else{
-      /* estimativa-padrão por unidade quando não há cômodos configurados */
-      add(CAT.acab,'Piso porcelanato (padrão)','m²',area,PR.piso.porcelanato);
-      add(CAT.acab,'Parede — cerâmica (padrão)','m²',area*2.8,PR.parede.ceramica);
-      add(CAT.acab,'Forro de gesso','m²',area,PR.forro.gesso);
-      add(CAT.ele,'Tomadas (6/unidade)','un',unid*6,PR.tomada);            tomT+=unid*6;
-      add(CAT.ele,'Pontos de luz (3/unidade)','un',unid*3,PR.luz+PR.interruptor); luzT+=unid*3;
+      const kitAcab = ({ economico:18500, medio:26000, alto:38000 })[padrao] || 26000;
+      add(CAT.acab,'Kit acabamento quitinete — '+L.padrao[padrao]+' (piso, parede, forro, elétrica, esquadrias)','un',unid,kitAcab);
+      tomT += unid * 8;
+      luzT += unid * 3;
     }
 
     const circ=Math.ceil(tomT/8)+Math.ceil(luzT/10)+tueT;
@@ -3342,7 +3337,7 @@ function calc(g){
       add(CAT.ele,'Quadro de distribuição — '+circ+' circuitos','vb',1,PR.quadroBase+circ*PR.quadroCirc);
 
   }else{
-    /* ───────── CASA / CHALÉ / REFORMA (inalterado) ───────── */
+    /* ───────── CASA / CHALÉ / REFORMA ───────── */
     if(g.tipo==='reforma'){const a=Math.max(0,num(g.reforma.area));add(CAT.ref,'Reforma geral — '+L.estado[g.reforma.estado],'m²',a,PR.reforma[g.reforma.estado]);if(g.reforma.demol)add(CAT.ref,'Demolição, retirada de entulho e proteção','m²',a,PR.reforma.demol);area=a}
     g.comodos.forEach(c=>{
       const A=Math.max(0,c.w*c.h),per=2*(c.w+c.h);const n0=it.length;const com=c.nome;
@@ -3368,7 +3363,6 @@ function calc(g){
     if(g.comodos.length)add(CAT.ele,'Quadro de distribuição (DR/DPS) e entrada — '+circ+' circuitos','vb',1,PR.quadroBase+circ*PR.quadroCirc);
   }
 
-  /* ── subtotal, BDI, reserva, total (inalterado, agora FORA do if/else) ── */
   const subtotal=it.reduce((a,x)=>a+x.total,0);
   const bdi=subtotal*PR.bdi;
   const res=(subtotal+bdi)*PR.reserva;
@@ -3379,8 +3373,8 @@ function calc(g){
   let prazo=0;
   if(g.tipo==='muro')            prazo=Math.round(8+num(g.muro.comp)*.5);
   else if(g.tipo==='reforma')    prazo=Math.round(20+num(g.reforma.area)*1+(g.reforma.demol?7:0));
-  else if(g.tipo==='predio')     prazo=Math.round(60+(num(g.predioPav)||4)*8+(num(g.predioApPorPav)||4)*3);
-  else if(g.tipo==='quitinete')  prazo=Math.round(30+(num(g.quitUnid)||10)*2);
+  else if(g.tipo==='predio')     prazo=Math.round(90+(num(g.predioPav)||4)*30+(num(g.predioApPorPav)||4)*8);
+  else if(g.tipo==='quitinete')  prazo=Math.round(45+(num(g.quitUnid)||10)*6+(num(g.quitArea)||28)*1.5);
   else                           prazo=Math.round(45+area*1.5);
 
   Object.keys(porCom).forEach(i=>porCom[i]=porCom[i]*k*(1+PR.reserva));
