@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ALMAFLUXO · Inteligência Imobiliária</title>
+<style>
+:root{--bg:#0e1a1f;--pn:#14252c;--p2:#1b3039;--ln:#2c4651;--tx:#eaf2f0;--mu:#93aaa8;--ac:#e0a526;--ok:#4cc38a;--es:#e0a526;--no:#e5675f}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 "Segoe UI",system-ui,sans-serif}
+.app{max-width:1100px;margin:auto;padding:16px;display:grid;gap:14px}
+h1{font-size:22px;margin:0}h2{font-size:16px;margin:0 0 10px}h3{font-size:13px;color:var(--mu);margin:12px 0 6px;font-weight:600}
+.mu{color:var(--mu);font-size:13px}.card{background:var(--pn);border:1px solid var(--ln);border-radius:10px;padding:16px}
+.steps{display:flex;gap:6px;overflow:auto}.st{flex:1;min-width:120px;padding:8px 10px;border-radius:8px;background:var(--pn);border:1px solid var(--ln);color:var(--mu);font-size:13px;text-align:left;cursor:pointer}
+.st.on{border-color:var(--ac);color:var(--tx)}.st:disabled{opacity:.45;cursor:default}
+.scr{display:none;gap:14px}.scr.on{display:grid}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+label{display:block;font-size:12px;color:var(--mu);margin-bottom:3px}
+input,select,textarea{width:100%;background:#0b1519;color:var(--tx);border:1px solid var(--ln);border-radius:7px;padding:9px;font:inherit}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--ac);outline-offset:1px}
+.btn{background:var(--p2);color:var(--tx);border:1px solid var(--ln);border-radius:7px;padding:10px 14px;font:inherit;cursor:pointer}
+.btn.pr{background:var(--ac);border-color:var(--ac);color:#1a1405;font-weight:700}.btn:disabled{opacity:.5;cursor:wait}
+.hero{padding:44px 16px;text-align:left;max-width:680px;margin:0 auto;display:grid;gap:14px}.hero h1{font-size:30px}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row input{flex:1;min-width:220px}
+.pill{display:inline-block;border-radius:20px;padding:1px 8px;font-size:11px;border:1px solid}
+.confirmado{color:var(--ok)}.estimado{color:var(--es)}.nao_encontrado,.pendente{color:var(--no)}
+.kv{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid var(--ln);font-size:14px}
+ul{margin:0;padding-left:18px}li{margin:3px 0}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}.stat{background:var(--p2);border-radius:8px;padding:10px}.stat b{display:block;font-size:19px}.stat span{font-size:12px;color:var(--mu)}
+table{border-collapse:collapse;width:100%;font-size:13px}td,th{padding:7px;border-bottom:1px solid var(--ln);text-align:left;white-space:nowrap}th{color:var(--mu);font-weight:600}tr.best td:first-child{color:var(--ac);font-weight:700}
+.warn{border:1px solid #8a6a1c;background:#3a2d0c;color:#f6dc9a;border-radius:8px;padding:10px;font-size:13px}.bad{border-color:#8a3a35;background:#3a1512;color:#f3b4af}
+.err{color:var(--no);font-size:14px;min-height:20px}.ovf{overflow:auto}
+@media(max-width:760px){.two{grid-template-columns:1fr}}
+@media print{.steps,.noprint,button{display:none!important}body{background:#fff;color:#000}.card{border-color:#999;background:#fff}.scr{display:none!important}#s4{display:grid!important}}
+</style></head><body><div class="app">
+<nav class="steps" aria-label="Etapas"><button class="st on" data-s="1">1 Localização</button><button class="st" data-s="2" disabled>2 Orientação e dados</button><button class="st" data-s="3" disabled>3 Cenários</button><button class="st" data-s="4" disabled>4 Relatório</button></nav>
+
+<section class="scr on" id="s1"><div class="hero"><h1>Onde está a oportunidade?</h1>
+<p class="mu">Informe o CEP, o endereço ou um ponto de referência. O Worker identifica o território e prepara a orientação para o corretor.</p>
+<div class="row"><input id="consulta" placeholder="Ex.: 22290-240, Rua Voluntários da Pátria 100 ou Shopping Rio Sul" autocomplete="off"><button class="btn pr" id="go">Iniciar análise territorial</button></div>
+<div class="err" id="e1" role="alert"></div>
+<div class="row noprint"><button class="btn" id="minhas">Minhas análises salvas</button></div><div id="lista"></div>
+<p class="mu">Estimativa de decisão. Não é laudo de avaliação, garantia de retorno nem substitui análise técnica e jurídica.</p></div></section>
+
+<section class="scr" id="s2">
+<div class="card"><h2>Identificação territorial</h2><div id="terr"></div><div id="cands" class="mu"></div></div>
+<div class="two"><div class="card"><h2>Orientação para o corretor</h2><div id="orient"></div></div>
+<div class="card"><h2>Acessibilidade e perfil</h2><p class="mu">Preenchido pelo Worker a partir do entorno (estimado). Corrija se conhecer melhor o local.</p><div class="grid">
+<div><label>Região</label><input id="regiao"></div><div><label>Endereço / referência</label><input id="endereco"></div>
+<div><label>Transporte de massa (min a pé)</label><input id="metro" type="number" min="0" value="8"></div>
+<div><label>Serviços (min a pé)</label><input id="servicos" type="number" min="0" value="7"></div>
+<div><label>Emprego / ensino (min)</label><input id="emprego" type="number" min="0" value="15"></div>
+<div><label>Perfil dominante</label><select id="perfil"><option>Residencial misto</option><option>Jovem profissional / mobilidade</option><option>Famílias</option><option>Comercial / logística</option><option>Luxo / alta renda</option><option>Turismo / sazonal</option></select></div></div></div></div>
+<div class="card"><h2>Terreno e capital</h2><p class="mu">O Worker não conhece estes dados. Preencha com a matrícula, o proprietário e a prefeitura; os valores iniciais são só hipóteses.</p><div class="grid">
+<div><label>Área do terreno (m²)</label><input id="area" type="number" value="500"></div><div><label>Preço do terreno (R$)</label><input id="terreno" type="number" value="800000"></div>
+<div><label>ITBI / registro (%)</label><input id="taxas" type="number" step=".1" value="5"></div><div><label>Preparação / demolição (R$)</label><input id="preparacao" type="number" value="0"></div>
+<div><label>Infraestrutura / ligações (R$)</label><input id="infra" type="number" value="50000"></div><div><label>Contingência (%)</label><input id="contingencia" type="number" value="10"></div>
+<div><label>Coef. de aproveitamento</label><input id="ca" type="number" step=".1" value="2"></div><div><label>Ocupação (%)</label><input id="ocupacao" type="number" value="60"></div>
+<div><label>Pavimentos</label><input id="pavimentos" type="number" value="4"></div><div><label>Área útil / construída (%)</label><input id="eficiencia" type="number" value="80"></div>
+<div><label>Zoneamento / restrições</label><input id="zoneamento" placeholder="Confirmar na prefeitura"></div><div><label>Riscos (solo, drenagem)</label><input id="risco"></div></div></div>
+<div class="card"><h2>Produto e mercado</h2><p class="mu">Informe os valores do produto escolhido; o Worker deriva os demais produtos a partir deles.</p><div class="grid">
+<div><label>Produto de referência</label><select id="tipo"></select></div><div><label>Unidades</label><input id="unidades" type="number" value="12"></div>
+<div><label>Área por unidade (m²)</label><input id="areaUn" type="number" value="32"></div><div><label>Construção (R$/m²)</label><input id="custoM2" type="number" value="3200"></div>
+<div><label>Projetos e honorários (%)</label><input id="projetos" type="number" value="8"></div><div><label>Acabamento / extras (R$)</label><input id="extras" type="number" value="120000"></div>
+<div><label>Aluguel por unidade/mês (R$)</label><input id="aluguel" type="number" value="2200"></div><div><label>Venda por unidade (R$)</label><input id="vendaUn" type="number" value="350000"></div>
+<div><label>Vacância (%)</label><input id="vacancia" type="number" value="8"></div><div><label>Administração (%)</label><input id="admin" type="number" value="10"></div>
+<div><label>Manutenção anual (R$)</label><input id="manutencao" type="number" value="12000"></div><div><label>IPTU / taxas anuais (R$)</label><input id="iptu" type="number" value="12000"></div>
+<div><label>Custos de venda (%)</label><input id="vendaTax" type="number" value="6"></div><div><label>Prazo de obra (meses)</label><input id="prazo" type="number" value="18"></div>
+<div><label>Fonte dos comparáveis</label><input id="fonte" placeholder="Anúncios, corretores, dados públicos"></div><div><label>Notas do corretor</label><input id="notas"></div></div>
+<details style="margin-top:12px"><summary class="mu">Camada exploratória: sinais musicais (não entra em nenhum cálculo)</summary><div class="grid" style="margin-top:8px">
+<div><label>Indie / folk</label><input id="indie" type="number" value="45"></div><div><label>Lo-fi</label><input id="lofi" type="number" value="55"></div><div><label>Pop</label><input id="pop" type="number" value="50"></div>
+<div><label>Rock</label><input id="rock" type="number" value="40"></div><div><label>Eletrônica</label><input id="eletronica" type="number" value="35"></div><div><label>Samba / regional</label><input id="local" type="number" value="60"></div></div></details>
+<div class="row" style="margin-top:14px"><button class="btn pr" id="analisar">Analisar viabilidade</button><button class="btn" data-back="1">Nova localização</button></div><div class="err" id="e2" role="alert"></div></div></section>
+
+<section class="scr" id="s3"><div class="card"><h2>Comparação de produtos</h2><div id="reco"></div><div id="alertas"></div>
+<div class="ovf" style="margin-top:10px"><table id="cmp"></table></div><p class="mu">Os cenários usam o aproveitamento máximo do potencial construtivo e fatores relativos do modelo. Calibre com comparáveis reais antes de apresentar ao investidor.</p></div>
+<div class="card"><h2>Hipótese informada</h2><div class="stats" id="stat"></div><div class="two" style="margin-top:12px"><div id="loc"></div><div id="ven"></div></div></div>
+<div class="row"><button class="btn" data-back="2">Ajustar dados</button><button class="btn pr" data-go="4">Ver relatório</button></div></section>
+
+<section class="scr" id="s4"><div class="card"><h2 id="rt"></h2><div id="rb"></div></div>
+<div class="card"><h2>Metodologia e limites</h2><p id="met" class="mu"></p><p class="mu" id="avs"></p></div>
+<div class="row noprint"><input id="titulo" placeholder="Título para salvar" style="max-width:320px"><button class="btn pr" id="salvar">Salvar análise</button><button class="btn" id="imp">Imprimir / PDF</button><button class="btn" id="json">Exportar JSON</button><button class="btn" data-back="2">Ajustar dados</button></div><div class="err" id="e4" role="alert"></div></section>
+</div>
+<script>
+const $=id=>document.getElementById(id),B=location.hostname.endsWith('almafluxo.uk')?location.origin:'https://almafluxo.uk',API=(window.ALMA_API||B)+'/api/imobiliaria/';
+const IDS=['regiao','endereco','metro','servicos','emprego','perfil','indie','lofi','pop','rock','eletronica','local','fonte','notas','area','terreno','taxas','preparacao','contingencia','infra','ca','ocupacao','pavimentos','eficiencia','zoneamento','risco','tipo','unidades','areaUn','custoM2','projetos','extras','aluguel','vendaUn','vacancia','admin','manutencao','iptu','vendaTax','prazo'];
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const R=n=>(+n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}),P=n=>((+n||0)*100).toFixed(1)+'%';
+const stat=(l,v)=>`<div class="stat"><b>${v}</b><span>${l}</span></div>`;
+const ST={confirmado:'confirmado',estimado:'estimado',nao_encontrado:'não encontrado'};
+let S={cons:'',terr:null,res:null,ent:null,max:1};
+function sess(){let s=window.ALMA_SESSION||{};if(!s.email){try{s=JSON.parse(localStorage.getItem('almafluxo_usuario')||'{}')}catch(e){s={}}}return s}
+async function api(rota,corpo){const s=sess();if(!s.email||!s.sessionToken)throw new Error('Entre na sua conta ALMAFLUXO e abra esta página pelo portal.');
+ let r;try{r=await fetch(API+rota,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...corpo,email:s.email,sessionToken:s.sessionToken})})}catch(e){throw new Error('Sem conexão com o Worker. Verifique a internet e tente de novo.')}
+ const d=await r.json().catch(()=>({}));if(!r.ok||!d.ok)throw new Error(d.error||'Falha ao processar ('+r.status+')');return d}
+function show(n){S.max=Math.max(S.max,n);document.querySelectorAll('.scr').forEach(x=>x.classList.toggle('on',x.id==='s'+n));
+ document.querySelectorAll('.st').forEach(b=>{const k=+b.dataset.s;b.classList.toggle('on',k===n);b.disabled=k>S.max});scrollTo(0,0)}
+function busy(b,on,t){b.disabled=on;if(t)b.textContent=t}
+function inputs(){return Object.fromEntries(IDS.map(i=>[i,$(i).value]))}
+$('tipo').innerHTML='<option value="studios">Studios / quitinetes</option><option value="casas">Casas compactas</option><option value="luxo">Casas de alto padrão</option><option value="galpao">Galpões / logística</option><option value="comercial">Salas / lojas comerciais</option><option value="misto">Uso misto</option>';
+document.querySelectorAll('.st').forEach(b=>b.onclick=()=>show(+b.dataset.s));
+document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>show(+b.dataset.back));
+document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>show(+b.dataset.go));
+$('consulta').addEventListener('keydown',e=>{if(e.key==='Enter')$('go').click()});
+$('go').onclick=async()=>{const q=$('consulta').value.trim();$('e1').textContent='';if(q.length<3){$('e1').textContent='Informe um CEP, endereço ou ponto de referência.';return}
+ busy($('go'),true,'Analisando o território…');
+ try{const d=await api('cep',{consulta:q});S.cons=q;S.terr=d;fillTerr(d);show(2)}catch(e){$('e1').textContent=e.message}finally{busy($('go'),false,'Iniciar análise territorial')}};
+function fillTerr(d){const t=d.territorio,c=t.campos,rot={cep:'CEP',logradouro:'Logradouro',bairro:'Bairro',cidade:'Cidade',uf:'UF',coordenadas:'Coordenadas'};
+ $('terr').innerHTML=Object.keys(rot).map(k=>{const x=c[k]||{status:'nao_encontrado'};return `<div class="kv"><span>${rot[k]}: ${esc(x.valor)||'—'}</span><span class="pill ${x.status}">${ST[x.status]}${x.fonte?' · '+esc(x.fonte):''}</span></div>`}).join('')+`<p class="mu">${esc(d.aviso)}</p>`;
+ $('cands').innerHTML=(d.candidatos||[]).length?'Outras possibilidades: '+d.candidatos.map(x=>esc(x.display)).join(' | '):'';
+ const s=d.sugestao_campos||{},set=(k,v)=>{if(v!=null&&v!=='')$(k).value=v};['regiao','endereco','metro','servicos','emprego','perfil'].forEach(k=>set(k,s[k]));
+ const o=d.orientacao,li=a=>'<ul>'+a.map(x=>`<li>${esc(x)}</li>`).join('')+'</ul>';
+ const inf=d.infraestrutura?`<p class="mu">${esc(d.infraestrutura.fonte)}</p>`:'';
+ $('orient').innerHTML=(o.oportunidades.length?'<h3>Oportunidades (indícios)</h3>'+li(o.oportunidades):'')+(o.riscos.length?'<h3>Riscos e alertas</h3>'+li(o.riscos):'')+(o.lacunas_geo.length?'<h3>Não captado</h3>'+li(o.lacunas_geo):'')+'<h3>Pendente: o corretor precisa informar</h3>'+li(d.lacunas_dados)+'<h3>O que investigar</h3>'+li(o.investigar)+'<h3>Perguntas ao proprietário</h3>'+li(o.perguntas_proprietario)+inf}
+$('analisar').onclick=async()=>{$('e2').textContent='';busy($('analisar'),true,'Calculando…');
+ try{const d=await api('analisar',{inputs:inputs()});S.res=d.resultado;S.ent=d.entradas;fillRes(d.resultado);show(3)}catch(e){$('e2').textContent=e.message}finally{busy($('analisar'),false,'Analisar viabilidade')}};
+function fillRes(r){const p=r.principal,l=p.locacao,v=p.venda,best=r.ranking.renda[0];
+ $('reco').innerHTML=`<div class="warn">${esc(r.recomendacao)}</div>`;
+ $('alertas').innerHTML=r.alertas.map(a=>`<div class="warn ${a[0]==='bad'?'bad':''}" style="margin-top:8px">${esc(a[1])}</div>`).join('')+(r.lacunas.length?`<p class="mu">Lacunas que aumentam o risco: ${r.lacunas.map(esc).join('; ')}.</p>`:'');
+ $('cmp').innerHTML='<tr><th>Produto</th><th>Un.</th><th>Capital</th><th>Receita líq./ano</th><th>Yield líq.</th><th>Payback</th><th>Margem venda</th><th>Prazo</th><th>Risco</th><th>Aptidão</th></tr>'+
+  r.cenarios.map(c=>`<tr class="${c.produto===best?'best':''}"><td>${esc(c.nome)}</td><td>${c.unidades}</td><td>${R(c.investimento)}</td><td>${R(c.receita_liquida_ano)}</td><td>${P(c.yield_liquido)}</td><td>${c.payback_anos?c.payback_anos+' anos':'—'}</td><td>${P(c.margem_venda)}</td><td>${c.prazo_meses} m</td><td>${c.risco}/5</td><td>${c.aptidao_territorial}/100</td></tr>`).join('');
+ $('stat').innerHTML=stat('Acessibilidade',r.territorio.acessibilidade+'/100')+stat('Edificável',r.territorio.area_edificavel_m2+' m²')+stat('Investimento',R(p.investimento))+stat('Yield líquido',P(l.yield_liquido))+stat('Payback',l.payback_anos?l.payback_anos+' anos':'—')+stat('Margem de venda',P(v.margem));
+ $('loc').innerHTML=`<h3>Locação (${esc(p.produto)})</h3>Receita bruta ${R(l.receita_bruta_ano)}/ano<br>Vacância ${R(l.vacancia)} · Administração ${R(l.administracao)}<br>Manutenção ${R(l.manutencao)} · IPTU ${R(l.iptu_taxas)}<br><b>Líquida ${R(l.receita_liquida_ano)}/ano</b>`;
+ $('ven').innerHTML=`<h3>Venda</h3>Vendas ${R(v.receita_bruta)} · custos ${R(v.custos_venda)}<br>Investimento ${R(p.investimento)}<br><b>Resultado ${R(v.resultado)} (${P(v.margem)})</b><br>Prazo de obra ${v.prazo_obra_meses} meses`;
+ const t=S.terr&&S.terr.territorio,e=S.ent;$('rt').textContent=e.regiao||(t&&[t.bairro,t.cidade].filter(Boolean).join(', '))||'Análise imobiliária';
+ $('rb').innerHTML=`<p>Terreno de ${e.area} m², aquisição ${R(e.terreno)}, potencial edificável de ${r.territorio.area_edificavel_m2} m². Acessibilidade ${r.territorio.acessibilidade}/100 (tempos a pé estimados do entorno).</p><p>${esc(r.recomendacao)}</p><p>Hipótese informada: <b>${esc(p.produto)}</b>, ${p.unidades} unidades, investimento ${R(p.investimento)}. Locação: yield líquido ${P(l.yield_liquido)}, payback ${l.payback_anos||'—'} anos. Venda: resultado ${R(v.resultado)}, margem ${P(v.margem)}.</p>`+
+  (r.alertas.length?'<h3>Alertas</h3><ul>'+r.alertas.map(a=>`<li>${esc(a[1])}</li>`).join('')+'</ul>':'')+(r.lacunas.length?'<h3>Pendências de validação</h3><ul>'+r.lacunas.map(x=>`<li>${esc(x)}</li>`).join('')+'</ul>':'')+
+  `<p><b>Próximos passos:</b> comparáveis reais, zoneamento e custos confirmados, conversa com o proprietário. ${esc(e.notas)}</p>`;
+ $('met').textContent=r.metodologia;$('avs').textContent=r.aviso;$('titulo').value=$('titulo').value||$('rt').textContent}
+$('salvar').onclick=async()=>{$('e4').textContent='';busy($('salvar'),true,'Salvando…');
+ try{const d=await api('salvar',{inputs:inputs(),titulo:$('titulo').value,consulta:S.cons,territorio:S.terr&&S.terr.territorio});$('e4').style.color='var(--ok)';$('e4').textContent='Análise salva. Código: '+d.id}catch(e){$('e4').style.color='';$('e4').textContent=e.message}finally{busy($('salvar'),false,'Salvar análise')}};
+$('imp').onclick=()=>print();
+$('json').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({consulta:S.cons,territorio:S.terr,entradas:S.ent,resultado:S.res,gerado:new Date().toISOString()},null,2)],{type:'application/json'}));a.download='analise-imobiliaria.json';a.click();URL.revokeObjectURL(a.href)};
+$('minhas').onclick=async()=>{$('e1').textContent='';try{const d=await api('lista',{});$('lista').innerHTML=d.itens.length?d.itens.map(x=>`<div class="kv"><span>${esc(x.titulo)} <span class="mu">${esc(x.ts.slice(0,10))}</span></span><button class="btn" data-id="${esc(x.id)}">Abrir</button></div>`).join(''):'<p class="mu">Nenhuma análise salva ainda.</p>';
+ document.querySelectorAll('#lista [data-id]').forEach(b=>b.onclick=async()=>{try{const d=await api('relatorio',{id:b.dataset.id}),r=d.relatorio;IDS.forEach(i=>{if(r.inputs[i]!=null)$(i).value=r.inputs[i]});S.cons=r.entrada;S.terr=r.territorio?{territorio:r.territorio}:null;S.ent=r.inputs;S.res=r.resultado;$('titulo').value=r.titulo;fillRes(r.resultado);show(4);S.max=4;show(4)}catch(e){$('e1').textContent=e.message}})}catch(e){$('e1').textContent=e.message}};
+</script></body></html>
