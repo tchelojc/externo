@@ -3404,12 +3404,62 @@ const sel=(k,opts,cur,extra)=>`<select data-k="${k}" ${extra||''}>${Object.keys(
 const numIn=(k,v,step)=>`<input type="number" inputmode="decimal" step="${step||'any'}" min="0" data-k="${k}" data-t="n" value="${v}">`;
 function vBase(){
   let b='';
+
   if(G.tipo==='muro'){
-    b=`<div class="gb-grid">${fld('Comprimento (m)',numIn('muro.comp',G.muro.comp,'0.5'))}${fld('Altura (m)',numIn('muro.alt',G.muro.alt,'0.1'))}${fld('Acabamento',sel('muro.acab',L.acab,G.muro.acab))}${fld('Portão',sel('muro.portao',L.portao,G.muro.portao))}${G.muro.portao!=='nenhum'?fld('Largura do portão (m)',numIn('muro.pw',G.muro.pw,'0.1')):''}</div><div class="gb-warn" id="gbMuroWarn" style="display:${G.muro.alt>3?'block':'none'}">Muro acima de 3 m exige projeto estrutural e sondagem; o valor é uma estimativa inicial.</div>`;
+    b=`<div class="gb-grid">
+        ${fld('Comprimento (m)',numIn('muro.comp',G.muro.comp,'0.5'))}
+        ${fld('Altura (m)',numIn('muro.alt',G.muro.alt,'0.1'))}
+        ${fld('Acabamento',sel('muro.acab',L.acab,G.muro.acab))}
+        ${fld('Portão',sel('muro.portao',L.portao,G.muro.portao))}
+        ${G.muro.portao!=='nenhum'?fld('Largura do portão (m)',numIn('muro.pw',G.muro.pw,'0.1')):''}
+      </div>
+      <div class="gb-warn" id="gbMuroWarn" style="display:${G.muro.alt>3?'block':'none'}">Muro acima de 3 m exige projeto estrutural e sondagem; o valor é uma estimativa inicial.</div>`;
+
+  }else if(G.tipo==='predio'){
+    b=`<div class="gb-grid">
+        ${fld('Padrão de acabamento',sel('padrao',L.padrao,G.padrao))}
+        ${fld('Pé-direito (m)',numIn('pe',G.pe,'0.1'))}
+        ${fld('Nº de pavimentos',numIn('predioPav',G.predioPav||4,'1'))}
+        ${fld('Apartamentos por pavimento',numIn('predioApPorPav',G.predioApPorPav||4,'1'))}
+        ${fld('Nº de elevadores',numIn('predioElev',G.predioElev||1,'1'))}
+        ${fld('% de área comum (hall, escada, circulação)',numIn('predioComum',G.predioComum||15,'1'))}
+      </div>
+      <div class="gb-warn">O apartamento-tipo é configurado no próximo passo e depois replicado para todas as unidades.</div>`;
+
+  }else if(G.tipo==='quitinete'){
+    b=`<div class="gb-grid">
+        ${fld('Padrão de acabamento',sel('padrao',L.padrao,G.padrao))}
+        ${fld('Pé-direito (m)',numIn('pe',G.pe,'0.1'))}
+        ${fld('Nº de quitinetes',numIn('quitUnid',G.quitUnid||10,'1'))}
+        ${fld('Área por quitinete (m²)',numIn('quitArea',G.quitArea||28,'1'))}
+      </div>
+      <div class="gb-warn">Opcional: no próximo passo você pode detalhar cômodos (cozinha, banheiro, sala). Sem detalhamento, aplicamos kit fechado de acabamento por unidade.</div>`;
+
   }else{
-    b=`<div class="gb-grid">${fld('Padrão de acabamento',sel('padrao',L.padrao,G.padrao))}${fld('Pé-direito (m)',numIn('pe',G.pe,'0.1'))}${(G.tipo==='casa'||G.tipo==='chale')?fld('Energia',sel('offgrid',L.offgrid,G.offgrid)):''}${G.tipo==='reforma'?fld('Área existente (m²)',numIn('reforma.area',G.reforma.area,'1'))+fld('Estado da construção',sel('reforma.estado',L.estado,G.reforma.estado))+fld('Demolição necessária',sel('reforma.demol',{true:'Sim',false:'Não'},String(G.reforma.demol)))+'':''}</div>`;
+    /* casa / chalé / reforma — inalterado */
+    b=`<div class="gb-grid">
+        ${fld('Padrão de acabamento',sel('padrao',L.padrao,G.padrao))}
+        ${fld('Pé-direito (m)',numIn('pe',G.pe,'0.1'))}
+        ${(G.tipo==='casa'||G.tipo==='chale')?fld('Energia',sel('offgrid',L.offgrid,G.offgrid)):''}
+        ${G.tipo==='reforma'
+          ? fld('Área existente (m²)',numIn('reforma.area',G.reforma.area,'1'))
+            + fld('Estado da construção',sel('reforma.estado',L.estado,G.reforma.estado))
+            + fld('Demolição necessária',sel('reforma.demol',{true:'Sim',false:'Não'},String(G.reforma.demol)))
+          : ''}
+      </div>`;
   }
-  return `<div class="gb-card"><h3>${L.tipo[G.tipo][0]} ${L.tipo[G.tipo][1]} — medidas básicas</h3><p class="gb-sub">${G.tipo==='muro'?'Informe as medidas do muro.':'Defina o padrão. No próximo passo você monta cômodo por cômodo.'}</p>${b}</div>${nav(1,G.tipo==='muro'?4:3)}`;
+
+  const passo = G.tipo==='muro' ? 4 : 3;
+  return `<div class="gb-card">
+      <h3>${L.tipo[G.tipo][0]} ${L.tipo[G.tipo][1]} — medidas básicas</h3>
+      <p class="gb-sub">${G.tipo==='muro'
+        ? 'Informe as medidas do muro.'
+        : G.tipo==='predio'
+          ? 'Defina padrão, pavimentos e unidades. O apartamento-tipo é montado no próximo passo.'
+          : G.tipo==='quitinete'
+            ? 'Defina padrão, quantidade e área de cada unidade.'
+            : 'Defina o padrão. No próximo passo você monta cômodo por cômodo.'}</p>
+      ${b}</div>${nav(1,passo)}`;
 }
 function roomHTML(c,i){
   const A=c.w*c.h;
