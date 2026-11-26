@@ -88,6 +88,21 @@ const NV={baixo:'Baixo',medio:'Médio',alto:'Alto'};
 const ST={confirmado:'confirmado',estimado:'estimado',nao_encontrado:'não encontrado'};
 let S={cons:'',terr:null,res:null,ent:null,max:1};
 function sess(){let s=window.ALMA_SESSION||{};if(!s.email){try{s=JSON.parse(localStorage.getItem('almafluxo_usuario')||'{}')}catch(e){s={}}}return s}
+
+// ── NOVO: ponte com o Worker do Painel KPG (usa a mesma sessão) ──
+async function apiKPG(action, corpo){
+  const s = sess();
+  const r = await fetch('https://almafluxo.uk/proxy/kpg', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({action, email:s.email, sessionToken:s.sessionToken, ...corpo})
+  });
+  const j = await r.json().catch(()=>({}));
+  if(!r.ok || j.ok===false) throw new Error(j.error || 'HTTP '+r.status);
+  return j;
+}
+
+async function api(rota,corpo){ ... }   // ← o api() existente continua igual 
 async function api(rota,corpo){const s=sess();if(!s.email||!s.sessionToken)throw new Error('Entre na sua conta ALMAFLUXO e abra esta página pelo portal.');
  let r;try{r=await fetch(API+rota,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...corpo,email:s.email,sessionToken:s.sessionToken})})}catch(e){throw new Error('Sem conexão com o Worker. Verifique a internet e tente de novo.')}
  const d=await r.json().catch(()=>({}));if(!r.ok||!d.ok)throw new Error(d.error||'Falha ao processar ('+r.status+')');return d}
@@ -130,9 +145,84 @@ function fillRes(r){const p=r.principal,l=p.locacao,v=p.venda,best=r.ranking.ren
  $('met').textContent=r.metodologia;$('avs').textContent=r.aviso;$('titulo').value=$('titulo').value||$('rt').textContent}
 $('salvar').onclick=async()=>{$('e4').textContent='';busy($('salvar'),true,'Salvando…');
  try{const d=await api('salvar',{inputs:inputs(),titulo:$('titulo').value,consulta:S.cons,territorio:S.terr&&S.terr.territorio});$('e4').style.color='var(--ok)';S.savedId=d.id;$('e4').textContent='Análise salva. Código: '+d.id}catch(e){$('e4').style.color='';$('e4').textContent=e.message}finally{busy($('salvar'),false,'Salvar análise')}};
-async function enviar(){let id=S.savedId;if(!id){const d=await api('salvar',{inputs:inputs(),titulo:$('titulo').value,consulta:S.cons,territorio:S.terr&&S.terr.territorio});id=S.savedId=d.id}const d=await api('projetar',{id});S.projeto=d.projeto;return d.projeto}
+// ── NOVO: gera um projeto.json no formato que o Painel KPG lê ──
+// ── NOVO: gera um projeto.json no formato que o Painel KPG lê ──
+function projetoNoFormatoKPG(projeto, entrada, resultado) {
+  const p = resultado.principal;
+  const cliente = {
+    nome: $('titulo').value || (entrada.regiao || 'Orçamento ALMAFLUXO'),
+    whats: '',
+    cidade: (S.terr && S.terr.territorio && S.terr.territorio.cidade) || '',
+    obs: entrada.notas || ''
+  };
+  return {
+    formato: 'kpg-orcamento-guiado',          // ← chave que o Painel procura
+    versao: 1,
+    id: 'AF-' + Date.now(),
+    criadoEm: new Date().toISOString(),
+    tipo: p.produto,                           // studios | casas | luxo | galpao | comercial | misto
+    cliente,
+    comodos: [],
+    totais: {
+      total: p.investimento,
+      area: resultado.territorio.area_edificavel_m2 || 0,
+      prazo: p.venda.prazo_obra_meses * 30
+    },
+    detalhes: {
+      endereco: entrada.endereco || S.cons || '',
+      yieldLiquido: p.locacao.yield_liquido,
+      paybackAnos: p.locacao.payback_anos,
+      margemVenda: p.venda.margem,
+      risco: p.nivel_risco,
+      recomendacao: resultado.recomendacao,
+      projetoId: projeto && projeto.id || null
+    }
+  };
+}
+
+async function enviar(){
+  // trava de segurança: se não analisou, não envia
+  if(!S.res || !S.res.principal){
+    throw new Error('Analise a viabilidade antes de enviar.');
+  }
+
+  let id = S.savedId;
+  if(!id){
+    const d = await api('salvar', {
+      inputs: inputs(),
+      titulo: $('titulo').value,
+      consulta: S.cons,
+      territorio: S.terr && S.terr.territorio
+    });
+    id = S.savedId = d.id;
+  }
+
+  // 1) grava o projeto original no Drive (comportamento atual)
+  const d = await api('projetar', {id});
+  S.projeto = d.projeto;
+
+  // 2) grava o projeto.json no formato do orçamento guiado → aparece em "📥 Orçamentos do site"
+  const kpg = projetoNoFormatoKPG(d.projeto, S.ent, S.res);
+  const pastaId = d.projeto && (d.projeto.pastaId || d.projeto.pasta_id || d.projeto.drivePastaId);
+  if(!pastaId){
+    console.warn('Worker não devolveu pastaId do projeto; projeto.json não será gravado.');
+  } else {
+    try {
+      await apiKPG('criarArquivoTexto', {
+        nome: 'projeto.json',
+        conteudo: JSON.stringify(kpg, null, 2),
+        mimeType: 'application/json',
+        pastaId
+      });
+    } catch(e) {
+      console.warn('Não foi possível gravar projeto.json no formato KPG:', e.message);
+    }
+  }
+
+  return d.projeto;
+}
 $('proj').onclick=async()=>{const e=$('e4');e.style.color='';e.textContent='';busy($('proj'),true,'Enviando…');
- try{const pr=await enviar();e.style.color='var(--ok)';e.textContent='Projeto '+pr.id+' enviado. No Projetar, abra Projetos externos e use "Atualizar do Drive".'}catch(x){e.textContent=x.message}finally{busy($('proj'),false,'Enviar ao Projetar')}};
+ try{const pr=await enviar();e.style.color='var(--ok)';e.textContent='Projeto '+pr.id+' enviado ao Projetar e orçamento publicado em KPG › Orçamentos do site.';}catch(x){e.textContent=x.message}finally{busy($('proj'),false,'Enviar ao Projetar')}};
 $('projJson').onclick=async()=>{const e=$('e4');e.style.color='';e.textContent='';try{const pr=S.projeto||await enviar(),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(pr,null,2)],{type:'application/json'}));a.download=pr.id+'.json';a.click();URL.revokeObjectURL(a.href)}catch(x){e.textContent=x.message}};
 $('imp').onclick=()=>print();
 $('json').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({consulta:S.cons,territorio:S.terr,entradas:S.ent,resultado:S.res,gerado:new Date().toISOString()},null,2)],{type:'application/json'}));a.download='analise-imobiliaria.json';a.click();URL.revokeObjectURL(a.href)};
