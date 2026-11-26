@@ -102,7 +102,6 @@ async function apiKPG(action, corpo){
   return j;
 }
 
-async function api(rota,corpo){ ... }   // ← o api() existente continua igual 
 async function api(rota,corpo){const s=sess();if(!s.email||!s.sessionToken)throw new Error('Entre na sua conta ALMAFLUXO e abra esta página pelo portal.');
  let r;try{r=await fetch(API+rota,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...corpo,email:s.email,sessionToken:s.sessionToken})})}catch(e){throw new Error('Sem conexão com o Worker. Verifique a internet e tente de novo.')}
  const d=await r.json().catch(()=>({}));if(!r.ok||!d.ok)throw new Error(d.error||'Falha ao processar ('+r.status+')');return d}
