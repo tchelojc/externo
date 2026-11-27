@@ -378,4 +378,6 @@ $('imp').onclick=()=>print();
 $('json').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({consulta:S.cons,territorio:S.terr,entradas:S.ent,resultado:S.res,gerado:new Date().toISOString()},null,2)],{type:'application/json'}));a.download='analise-imobiliaria.json';a.click();URL.revokeObjectURL(a.href)};
 $('minhas').onclick=async()=>{$('e1').textContent='';try{const d=await api('lista',{});$('lista').innerHTML=d.itens.length?d.itens.map(x=>`<div class="kv"><span>${esc(x.titulo)} <span class="mu">${esc(x.ts.slice(0,10))}</span></span><button class="btn" data-id="${esc(x.id)}">Abrir</button></div>`).join(''):'<p class="mu">Nenhuma análise salva ainda.</p>';
  document.querySelectorAll('#lista [data-id]').forEach(b=>b.onclick=async()=>{try{const d=await api('relatorio',{id:b.dataset.id}),r=d.relatorio;IDS.forEach(i=>{if(r.inputs[i]!=null)$(i).value=r.inputs[i]});S.cons=r.entrada;S.terr=r.territorio?{territorio:r.territorio}:null;S.ent=r.inputs;S.res=r.resultado;$('usarCultural').checked=!!r.inputs.usarCultural;S.savedId=r.id;S.projeto=null;$('titulo').value=r.titulo;fillRes(r.resultado);show(4);S.max=4;show(4)}catch(e){$('e1').textContent=e.message}})}catch(e){$('e1').textContent=e.message}};
-</script></body></html>
+</script>
+</body>
+</html>
