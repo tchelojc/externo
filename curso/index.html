@@ -182,6 +182,7 @@ pre{background:#06122c;border:1px solid #1d4a73;border-radius:10px;padding:12px;
     if (D.frase) raiz.appendChild(el('div', 'frase', '“' + D.frase + '”'));
     if (D.trajeto) { var tj = el('div', 'card'); tj.appendChild(el('h3', null, 'O trajeto')); tj.appendChild(el('div', null, D.trajeto)); raiz.appendChild(tj); }
     if (D.mapa) { var cm = el('div', 'card'); cm.appendChild(el('h3', null, D.mapa.titulo || 'Guia interativo')); cm.appendChild(el('div', 'mut', 'Este é o seu universo. Arraste para girar e entrar nele; toque numa estrela para ver o que ela é e acendê-la no Flow.')); cena(cm, D.mapa); raiz.appendChild(cm); }
+    if (D.loki || window.AF_MODULO === '3') raiz.appendChild(lokiCena(D.loki || JSON.parse(JSON.stringify(LOKI_PADRAO))));
 
     var pr = el('div', 'card');
     rotuloProg = el('div', 'mut');
@@ -277,6 +278,184 @@ pre{background:#06122c;border:1px solid #1d4a73;border-radius:10px;padding:12px;
     (mapa.falhas || []).forEach(function (f) { var b = el('button', null, f.nome); b.addEventListener('click', function () { tocar(f, b); }); botoes.appendChild(b); });
     if (!vis) area.appendChild(el('div', 'mut', 'O 3D não está disponível neste aparelho. O guia continua funcionando em texto, logo abaixo.'));
     if (!vis) area.style.height = 'auto', area.style.padding = '12px';
+  }
+
+  /* ───────── Linhas do tempo (estilo Loki) · módulo 3 ─────────
+     4 argolas (peças) e várias linhas de luz (rotas). Onde a linha se parte, a comunicação quebrou.
+     Dados em D.loki = { titulo, aneis:[{id,nome,cor}], linhas:[{id,nome,cor,rota,estado:'ok'|'erro'|'obsoleta',explica,erro:{trecho,sintoma,causa,conserto,prompt}}] } */
+  var LOKI_PADRAO = {
+    titulo: 'As linhas do tempo do seu sistema',
+    aneis: [{ id: 'pagina', nome: 'Página', cor: '#27c8ff' }, { id: 'worker', nome: 'Worker', cor: '#b36bff' }, { id: 'apps', nome: 'Apps Script', cor: '#f5b942' }, { id: 'drive', nome: 'Drive', cor: '#5be39a' }],
+    linhas: [
+      { id: 'ler', nome: 'Ler dados', cor: '#27c8ff', rota: ['pagina', 'worker', 'apps', 'drive'], estado: 'ok', explica: 'O caminho saudável: o pedido sai da página, passa pelo Worker, o Apps Script abre o Drive e a resposta volta pelo mesmo caminho.' },
+      { id: 'login', nome: 'Login', cor: '#ff7ad9', rota: ['pagina', 'worker', 'apps'], estado: 'erro',
+        erro: { trecho: 'pagina>worker', sintoma: 'No console do navegador: "blocked by CORS policy".', causa: 'O Worker não devolveu a permissão (cabeçalho CORS) para o endereço da sua página, então o navegador bloqueou a resposta.', conserto: 'No Worker, responda ao pedido OPTIONS e devolva Access-Control-Allow-Origin com o endereço da sua página.',
+          prompt: 'Minha página chama meu Worker da Cloudflare e o console mostra "blocked by CORS policy". Me mostre como responder ao OPTIONS e devolver os cabeçalhos CORS no Worker, e explique cada linha de forma simples.' } },
+      { id: 'rota', nome: 'Rota nova', cor: '#f5b942', rota: ['pagina', 'worker', 'apps', 'drive'], estado: 'erro',
+        erro: { trecho: 'pagina>worker', sintoma: 'A resposta é {"ok":false,"error":"Rota não encontrada."}.', causa: 'Você criou a rota no código novo, mas o Worker que está no ar ainda é a versão antiga, sem essa rota.', conserto: 'Cole o código novo no Worker e clique em Implantar. Depois teste de novo.',
+          prompt: 'Meu Worker responde "Rota não encontrada" para /api/minharota, mas a rota existe no código que escrevi. Quais são as causas mais comuns (implantação, caminho, método) e como eu confiro cada uma?' } },
+      { id: 'salvar', nome: 'Salvar', cor: '#5be39a', rota: ['pagina', 'worker', 'apps', 'drive'], estado: 'erro',
+        erro: { trecho: 'worker>apps', sintoma: 'O Worker devolve erro 404 ou uma página HTML em vez de dados.', causa: 'A implantação do Apps Script foi refeita e o endereço (/exec) mudou; o Worker continua chamando o endereço antigo.', conserto: 'Copie o endereço da implantação atual do Apps Script e atualize a variável do Worker.',
+          prompt: 'Meu Worker chama um Apps Script e recebe 404/HTML. Como descubro o endereço /exec atual da implantação e onde atualizo isso no Worker? Explique passo a passo.' } },
+      { id: 'foto', nome: 'Enviar foto', cor: '#ff9a5a', rota: ['pagina', 'worker', 'apps', 'drive'], estado: 'erro',
+        erro: { trecho: 'apps>drive', sintoma: 'O Apps Script responde "sem permissão" ou "arquivo não encontrado".', causa: 'A pasta do Drive não foi compartilhada com a conta que executa o script, ou o ID da pasta está errado.', conserto: 'Compartilhe a pasta com a conta do script e confira o ID na URL da pasta.',
+          prompt: 'Meu Apps Script não consegue gravar numa pasta do Drive ("sem permissão"). Como confiro quem executa o script, o compartilhamento da pasta e o ID correto?' } },
+      { id: 'antiga', nome: 'Rota antiga /v1', cor: '#8b93a7', rota: ['pagina', 'worker'], estado: 'obsoleta', explica: 'Uma linha de uma versão que já não existe.',
+        erro: { trecho: 'worker>fim', sintoma: 'Nenhuma página nova chama esta rota; ela só confunde quem lê o código.', causa: 'Código obsoleto: a página nova usa outro caminho.', conserto: 'Pode podar: remova a rota antiga depois de confirmar que nada a usa.',
+          prompt: 'Tenho uma rota antiga no meu Worker que acho que ninguém usa mais. Como descubro com segurança se ela ainda é chamada antes de remover?' } }
+    ]
+  };
+
+  function lokiCena(L) {
+    var card = el('div', 'card'), linhasD = L.linhas || [], porId = {}, T = window.THREE, g3 = null;
+    (L.aneis || []).forEach(function (a) { porId[a.id] = a; });
+    card.appendChild(el('h3', null, L.titulo || 'Linhas do tempo'));
+    card.appendChild(el('div', 'mut', 'Cada linha de luz é um caminho que o seu pedido percorre, e o tempo corre da esquerda para a direita. Onde a luz se parte, a comunicação quebrou. Arraste para girar e toque numa linha ou na quebra.'));
+    var cont = el('div', 'mut'); cont.style.margin = '6px 0'; card.appendChild(cont);
+    var area = el('div', 'cena'); card.appendChild(area);
+    var ctl = el('div', 'botoes'), play = el('button', null, 'Pausar'), tl = document.createElement('input');
+    tl.type = 'range'; tl.min = 0; tl.max = 1000; tl.value = 0; tl.setAttribute('aria-label', 'Linha do tempo'); tl.style.cssText = 'flex:1;min-width:160px';
+    ctl.appendChild(play); ctl.appendChild(tl); card.appendChild(ctl);
+    var placa = el('div', 'card'); placa.style.margin = '10px 0 0'; card.appendChild(placa);
+    var resolvidas = 0, sel = null;
+    function pend() { return linhasD.filter(function (l) { return l.estado !== 'ok' && !l.podada; }).length; }
+    function atualizar() {
+      var total = linhasD.filter(function (l) { return l.erro; }).length, p = pend();
+      cont.textContent = p ? (p + ' linha(s) ainda precisam de atenção · ' + resolvidas + ' resolvida(s)') : 'Todas as linhas do tempo estão em ordem. Você leu o seu sistema como quem lê o tempo.';
+    }
+    function trechoTxt(l) {
+      var t = (l.erro && l.erro.trecho || '').split('>'), n = function (id) { return id === 'fim' ? 'o fim da linha' : (porId[id] ? porId[id].nome : id); };
+      return t.length === 2 ? 'entre ' + n(t[0]) + ' e ' + n(t[1]) : '';
+    }
+    function mostrar(l) {
+      sel = l; placa.textContent = '';
+      var est = l.podada ? 'podada' : l.estado === 'ok' ? 'funcionando' : l.estado === 'obsoleta' ? 'código obsoleto' : 'comunicação quebrada';
+      placa.appendChild(el('h3', null, l.nome + ' · ' + est));
+      var cam = l.rota.map(function (id, i) { var bad = l.estado === 'erro' && l.erro && l.erro.trecho === id + '>' + l.rota[i + 1]; return (porId[id] ? porId[id].nome : id) + (bad ? ' ✗' : ''); }).join(' → ');
+      placa.appendChild(el('div', null, cam));
+      if (l.explica) placa.appendChild(el('div', 'mut', l.explica));
+      if (l.podada) { placa.appendChild(el('div', 'mut', 'Linha podada: nenhum pedido segue por aqui.')); return; }
+      if (l.erro && l.estado !== 'ok') {
+        var e = l.erro;
+        [['Onde parou:', trechoTxt(l)], ['Você vê:', e.sintoma], ['Causa:', e.causa], ['Conserto:', e.conserto]].forEach(function (r) { if (r[1]) { var d = el('div'); d.appendChild(el('b', null, r[0] + ' ')); d.appendChild(document.createTextNode(r[1])); placa.appendChild(d); } });
+        if (e.prompt) { placa.appendChild(el('div', 'mut', 'Peça ajuda assim:')); placa.appendChild(bloco(e.prompt)); }
+        var bt = el('div', 'botoes');
+        if (l.estado === 'erro') { var c = el('button', null, 'Conectar (aplicar o conserto)'); c.addEventListener('click', function () { l.estado = 'ok'; resolvidas++; if (g3) g3.refazer(l); atualizar(); mostrar(l); placa.insertBefore(el('div', 'aviso', 'Conserto aplicado: a luz volta a correr pela linha inteira.'), placa.firstChild.nextSibling); }); bt.appendChild(c); }
+        var p = el('button', null, 'Podar esta linha'); p.addEventListener('click', function () { l.podada = true; resolvidas++; if (g3) g3.podar(l); atualizar(); mostrar(l); }); bt.appendChild(p);
+        placa.appendChild(bt);
+      }
+      altura();
+    }
+    if (!T) { linhasD.forEach(function (l) { var b = el('button', null, l.nome); b.addEventListener('click', function () { mostrar(l); }); ctl.appendChild(b); }); atualizar(); return card; }
+    var renderer; try { renderer = new T.WebGLRenderer({ antialias: true, alpha: true }); } catch (x) { renderer = null; }
+    if (!renderer) { linhasD.forEach(function (l) { var b = el('button', null, l.nome); b.addEventListener('click', function () { mostrar(l); }); ctl.appendChild(b); }); atualizar(); return card; }
+    var W = area.clientWidth || 600, H = 420, calmo = false; try { calmo = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (x) {}
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2)); renderer.setSize(W, H); area.appendChild(renderer.domElement);
+    var sc = new T.Scene(), cam = new T.PerspectiveCamera(50, W / H, 0.1, 200), g = new T.Group(); sc.add(g);
+    cam.position.set(0, 2.4, 14); cam.lookAt(new T.Vector3(0, 0, 0));
+    var cvg = document.createElement('canvas'); cvg.width = cvg.height = 128; var cx2 = cvg.getContext('2d'), gr = cx2.createRadialGradient(64, 64, 0, 64, 64, 64);
+    gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.25, 'rgba(255,255,255,0.55)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); cx2.fillStyle = gr; cx2.fillRect(0, 0, 128, 128);
+    var TEX = new T.CanvasTexture(cvg);
+    function glow(cor, esc, op) { var s = new T.Sprite(new T.SpriteMaterial({ map: TEX, color: cor, transparent: true, opacity: op, blending: T.AdditiveBlending, depthWrite: false })); s.scale.set(esc, esc, 1); return s; }
+    function rot(txt, cor) {
+      var c = document.createElement('canvas'); c.width = 256; c.height = 64; var x = c.getContext('2d'); x.fillStyle = cor || '#eaf6ff'; x.font = 'bold 30px system-ui,sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.shadowColor = '#27c8ff'; x.shadowBlur = 10; x.fillText(txt, 128, 34);
+      var s = new T.Sprite(new T.SpriteMaterial({ map: new T.CanvasTexture(c), transparent: true, depthTest: false })); s.scale.set(3, 0.75, 1); s.renderOrder = 10; return s;
+    }
+    [[0x3b2fb8, -9, 3, -16, 30, 0.3], [0x0f8fb8, 10, -4, -18, 32, 0.25], [0x8a2fa0, 0, 6, -20, 34, 0.18]].forEach(function (n) { var s = glow(n[0], n[4], n[5]); s.position.set(n[1], n[2], n[3]); sc.add(s); });
+    var qs = 900, arr = new Float32Array(qs * 3);
+    for (var i = 0; i < qs; i++) { var u = Math.random() * 2 - 1, th = Math.random() * 6.283, r = 25 + Math.random() * 40, s2 = Math.sqrt(1 - u * u); arr[i * 3] = r * s2 * Math.cos(th); arr[i * 3 + 1] = r * u * 0.8; arr[i * 3 + 2] = r * s2 * Math.sin(th); }
+    var gs = new T.BufferGeometry(); gs.setAttribute('position', new T.BufferAttribute(arr, 3));
+    sc.add(new T.Points(gs, new T.PointsMaterial({ size: 0.22, color: 0xcfe3ff, transparent: true, opacity: 0.9, depthWrite: false, sizeAttenuation: true })));
+
+    var aneis = {}, na = (L.aneis || []).length;
+    (L.aneis || []).forEach(function (a, i) {
+      var x = (i - (na - 1) / 2) * 4.4, cor = new T.Color(a.cor || '#27c8ff');
+      var t1 = new T.Mesh(new T.TorusGeometry(1.5, 0.07, 16, 72), new T.MeshBasicMaterial({ color: cor, transparent: true, opacity: 0.95 })); t1.position.set(x, 0, 0); t1.rotation.y = Math.PI / 2; g.add(t1);
+      var t2 = new T.Mesh(new T.TorusGeometry(1.85, 0.02, 8, 72), new T.MeshBasicMaterial({ color: cor, transparent: true, opacity: 0.4 })); t2.position.set(x, 0, 0); t2.rotation.y = Math.PI / 2; t2.rotation.x = 0.5; g.add(t2);
+      var h = glow(cor, 5, 0.28); h.position.set(x, 0, 0); g.add(h);
+      var lb = rot(a.nome, '#eaf6ff'); lb.position.set(x, 2.5, 0); g.add(lb);
+      aneis[a.id] = { x: x };
+    });
+    var xs = Object.keys(aneis).map(function (k) { return aneis[k].x; }), x0 = Math.min.apply(null, xs) - 1, x1 = Math.max.apply(null, xs) + 1;
+    var eixo = new T.Line(new T.BufferGeometry().setFromPoints([new T.Vector3(x0, -2.7, 0), new T.Vector3(x1, -2.7, 0)]), new T.LineBasicMaterial({ color: 0x3a8fd0, transparent: true, opacity: 0.6 })); g.add(eixo);
+    var te = rot('tempo →', '#9fe8ff'); te.position.set(x1 + 0.2, -2.7, 0); te.scale.set(2, 0.5, 1); g.add(te);
+    var cursor = glow(0xffffff, 1.1, 0.95); cursor.position.set(x0, -2.7, 0); g.add(cursor);
+
+    function tubo(curva, a, b, cor, op) {
+      var p = []; for (var k = 0; k <= 16; k++) p.push(curva.getPoint(a + (b - a) * k / 16));
+      var m = new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(p), 24, 0.05, 6, false), new T.MeshBasicMaterial({ color: cor, transparent: true, opacity: op, blending: T.AdditiveBlending, depthWrite: false }));
+      g.add(m); return m;
+    }
+    function hit(curva, id, raio) {
+      var p = []; for (var k = 0; k <= 10; k++) p.push(curva.getPoint(k / 10));
+      var m = new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(p), 12, raio, 5, false), new T.MeshBasicMaterial({ visible: false })); m.userData.linha = id; g.add(m); return m;
+    }
+    var duros = [];
+    function construir(l, idx) {
+      (l.obj || []).forEach(function (o) { g.remove(o); }); l.obj = []; l.hits = []; l.tr = [];
+      var th = idx / linhasD.length * Math.PI * 2, dy = Math.cos(th), dz = Math.sin(th), cor = new T.Color(l.estado === 'obsoleta' ? '#8b93a7' : (l.cor || '#27c8ff'));
+      var iq = -1; l.rota.forEach(function (id, s) { if (l.estado === 'erro' && l.erro && l.erro.trecho === id + '>' + l.rota[s + 1]) iq = s; });
+      l.iq = iq;
+      for (var s = 0; s < l.rota.length - 1; s++) {
+        var a = aneis[l.rota[s]], b = aneis[l.rota[s + 1]]; if (!a || !b) continue;
+        var curva = new T.QuadraticBezierCurve3(new T.Vector3(a.x, dy * 0.25, dz * 0.25), new T.Vector3((a.x + b.x) / 2, dy * 2.2, dz * 2.2), new T.Vector3(b.x, dy * 0.25, dz * 0.25));
+        var depois = iq >= 0 && s > iq, op = depois ? 0.14 : (l.estado === 'obsoleta' ? 0.45 : 0.85);
+        l.tr.push({ curva: curva, quebra: s === iq ? 0.5 : null });
+        if (s === iq) {
+          l.obj.push(tubo(curva, 0, 0.42, cor, op), tubo(curva, 0.58, 1, cor, 0.14));
+          var mk = glow(0xff4d4d, 1.5, 0.9); mk.position.copy(curva.getPoint(0.5)); g.add(mk); l.obj.push(mk); l.marca = mk;
+          var hm = new T.Mesh(new T.SphereGeometry(0.4, 8, 8), new T.MeshBasicMaterial({ visible: false })); hm.position.copy(curva.getPoint(0.5)); hm.userData.linha = l.id; g.add(hm); l.obj.push(hm); l.hits.push(hm);
+        } else l.obj.push(tubo(curva, 0, 1, cor, op));
+        var ht = hit(curva, l.id, 0.22); l.obj.push(ht); l.hits.push(ht);
+      }
+      if (l.estado === 'obsoleta') {
+        var u = aneis[l.rota[l.rota.length - 1]], fim = new T.Vector3(u.x + 1.6, dy * 0.25, dz * 0.25);
+        var cv2 = new T.QuadraticBezierCurve3(new T.Vector3(u.x, dy * 0.25, dz * 0.25), new T.Vector3(u.x + 0.8, dy * 0.9, dz * 0.9), fim); l.obj.push(tubo(cv2, 0, 1, cor, 0.3));
+        var cap = new T.Mesh(new T.SphereGeometry(0.14, 8, 8), new T.MeshBasicMaterial({ color: 0x8b93a7 })); cap.position.copy(fim); g.add(cap); l.obj.push(cap);
+        l.hits.push(hit(cv2, l.id, 0.25)); l.obj.push(l.hits[l.hits.length - 1]);
+      }
+      var lb = rot(l.nome, '#' + cor.getHexString()); lb.scale.set(2.2, 0.55, 1); var p0 = l.tr[0] && l.tr[0].curva.getPoint(0.5); if (p0) { lb.position.set(p0.x, p0.y + 0.35, p0.z); g.add(lb); l.obj.push(lb); }
+      if (!l.pulso) { l.pulso = glow(cor, 0.7, 1); g.add(l.pulso); l.obj.push(l.pulso); } else { l.obj.push(l.pulso); l.pulso.material.color.copy(cor); }
+      l.fade = 1;
+    }
+    linhasD.forEach(construir);
+    var tempo = 0, tocando = true, arrastando = false, mexeu = 0, ux = 0, uy = 0, ocioso = 0, ray = new T.Raycaster(), pt = new T.Vector2();
+    play.addEventListener('click', function () { tocando = !tocando; play.textContent = tocando ? 'Pausar' : 'Reproduzir'; });
+    tl.addEventListener('input', function () { tocando = false; play.textContent = 'Reproduzir'; tempo = tl.value / 1000; });
+    function pulsoEm(l, u) {
+      var n = l.tr.length; if (!n) return null;
+      var x = Math.min(0.999, u) * n, s = Math.floor(x), t = x - s;
+      if (l.iq >= 0 && (s > l.iq || (s === l.iq && t > 0.4))) { s = l.iq; t = 0.4; }
+      return l.tr[s].curva.getPoint(t);
+    }
+    function quadro() {
+      var agora = Date.now();
+      if (tocando) { tempo += 0.0022; if (tempo > 1.12) tempo = 0; tl.value = Math.round(Math.min(tempo, 1) * 1000); }
+      cursor.position.x = x0 + (x1 - x0) * Math.min(tempo, 1);
+      linhasD.forEach(function (l) {
+        if (l.podando) { l.fade -= 0.04; l.obj.forEach(function (o) { if (o.material && o.material.opacity != null) o.material.opacity = Math.max(0, o.material.opacity * 0.92); }); if (l.fade <= 0) { l.obj.forEach(function (o) { g.remove(o); }); l.obj = []; l.hits = []; l.podando = false; l.pulso.visible = false; } return; }
+        if (l.podada) return;
+        var p = pulsoEm(l, Math.min(tempo, 1)); if (p) { l.pulso.position.copy(p); l.pulso.visible = true; }
+        if (l.marca) { var k = 1.4 + 0.25 * Math.sin(agora / 180); l.marca.scale.set(k, k, 1); }
+      });
+      if (!calmo && !arrastando && agora - ocioso > 2500) g.rotation.y += (Math.sin(agora / 3500) * 0.3 - g.rotation.y) * 0.01;
+      renderer.render(sc, cam); requestAnimationFrame(quadro);
+    }
+    quadro();
+    var cv = renderer.domElement;
+    cv.addEventListener('pointerdown', function (e) { arrastando = true; mexeu = 0; ux = e.clientX; uy = e.clientY; ocioso = Date.now(); try { cv.setPointerCapture(e.pointerId); } catch (x) {} });
+    cv.addEventListener('pointermove', function (e) { if (!arrastando) return; var dx = e.clientX - ux, dy = e.clientY - uy; ux = e.clientX; uy = e.clientY; mexeu += Math.abs(dx) + Math.abs(dy); ocioso = Date.now(); g.rotation.y += dx * 0.01; g.rotation.x = Math.max(-0.8, Math.min(0.8, g.rotation.x + dy * 0.005)); });
+    cv.addEventListener('pointerup', function (e) {
+      arrastando = false; ocioso = Date.now(); if (mexeu > 6) return;
+      var r = cv.getBoundingClientRect(); pt.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); ray.setFromCamera(pt, cam);
+      var alvos = []; linhasD.forEach(function (l) { if (!l.podada) alvos = alvos.concat(l.hits || []); });
+      var h = ray.intersectObjects(alvos)[0]; if (!h) return;
+      var id = h.object.userData.linha; linhasD.forEach(function (l) { if (l.id === id) mostrar(l); });
+    });
+    window.addEventListener('resize', function () { var w = area.clientWidth || W; renderer.setSize(w, H); cam.aspect = w / H; cam.updateProjectionMatrix(); });
+    g3 = { refazer: function (l) { construir(l, linhasD.indexOf(l)); }, podar: function (l) { l.podando = true; } };
+    atualizar();
+    return card;
   }
 
   function montar3D(area, mapa, nomeNo, aoTocar) {
@@ -529,10 +708,11 @@ pre{background:#06122c;border:1px solid #1d4a73;border-radius:10px;padding:12px;
     });
   }
 
-  function montarDoc(codigo) {
+  function montarDoc(codigo, idMod) {
     var seguro = String(codigo).replace(/<\/script/gi, '<\\/script');
     return '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>' +
       $('runtime-css').textContent + '</style></head><body><div id="raiz">Carregando…</div>' +
+      '<script>window.AF_MODULO=' + JSON.stringify(String(idMod || '')) + ';<\/script>' +
       '<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>' +
       '<script>' + $('runtime-src').textContent + '<\/script>' +
       '<script>' + seguro + '<\/script></body></html>';
@@ -546,7 +726,7 @@ pre{background:#06122c;border:1px solid #1d4a73;border-radius:10px;padding:12px;
     post(API, { action: 'modulo', id: id, email: usuario.email, sessionToken: usuario.sessionToken }).then(function (r) {
       if (r.ok && typeof r.codigo === 'string') {
         var f = $('mod'); f.style.height = '600px';
-        f.srcdoc = montarDoc(r.codigo);
+        f.srcdoc = montarDoc(r.codigo, id);
         msg('');
       } else if (r.precisaLogin) {
         try { localStorage.removeItem('almafluxo_usuario'); } catch (e) {}
