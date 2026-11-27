@@ -83,9 +83,83 @@ pre{background:#06122c;border:1px solid #1d4a73;border-radius:10px;padding:12px;
   function enviar(o) { o.af = 'curso'; parent.postMessage(o, '*'); }
   function altura() { enviar({ tipo: 'altura', h: document.documentElement.scrollHeight + 8 }); }
 
+  /* ───────── Ligação com o Flow (assíncrona, via página do curso) ─────────
+     Cada peça do guia vira um bloco do Flow. O Flow devolve o estado de cada peça:
+     fora (não está no Flow) · configurando · pronta · pendente (faltam campos). */
+  var FLOW = { on: false, t: 0, nos: {}, rotulo: null, mapa: null }, VIS = null, TIMER_FLOW = null;
+  var KINDS = { github: 'GitHub', worker: 'Cloudflare Worker', apps: 'Apps Script', drive: 'Google Drive', streamlit: 'Servidor / Streamlit', html: 'Página HTML' };
+  var ROT = { fora: 'ainda não está no Flow', configurando: 'no Flow, aguardando sua configuração', pronta: 'configurada no Flow', pendente: 'no Flow, faltam campos obrigatórios' };
+  var REGRAS = [['github', /github|reposit/], ['apps', /apps? ?script|google script/], ['worker', /worker|cloudflare|proxy/], ['drive', /drive|pasta/], ['streamlit', /streamlit|python|servidor|porta/], ['html', /html|p[aá]gina|site|navegador/]];
+  function tipoFlow(n) {
+    if (n.flow && KINDS[n.flow.kind]) return n.flow.kind;
+    var textos = [((n.id || '') + ' ' + (n.nome || '')).toLowerCase(), String(n.info || '').toLowerCase()];
+    for (var k = 0; k < textos.length; k++) for (var i = 0; i < REGRAS.length; i++) if (REGRAS[i][1].test(textos[k])) return REGRAS[i][0];
+    return 'html';
+  }
+  function limites(mapa) {
+    var xs = [], ys = [];
+    (mapa.nos || []).forEach(function (n) { var p = n.pos || [0, 0, 0]; xs.push(p[0]); ys.push(-p[1] + p[2] * 0.3); });
+    return { x0: Math.min.apply(null, xs), x1: Math.max.apply(null, xs), y0: Math.min.apply(null, ys), y1: Math.max.apply(null, ys) };
+  }
+  function pacoteNo(n, kind, lim) {
+    var p = n.pos || [0, 0, 0], f = (n.flow && n.flow.fields) || {};
+    var sx = (lim.x1 - lim.x0) || 1, sy = (lim.y1 - lim.y0) || 1;
+    return { ref: n.id, kind: kind, title: n.nome || n.id, fields: f, notes: (n.info || '') + (n.precisa ? '\nVocê precisa: ' + n.precisa : ''),
+      x: Math.round(140 + (p[0] - lim.x0) / sx * 820), y: Math.round(140 + ((-p[1] + p[2] * 0.3) - lim.y0) / sy * 340) };
+  }
+  function pedirFlow(mapa, ids, kindUnico, focar) {
+    var set = {}; ids.forEach(function (i) { set[i] = 1; });
+    var lim = limites(mapa);
+    var nos = (mapa.nos || []).filter(function (n) { return set[n.id]; }).map(function (n) { return pacoteNo(n, kindUnico && ids.length === 1 ? kindUnico : tipoFlow(n), lim); });
+    var lig = (mapa.ligacoes || []).filter(function (l) { return set[l[0]] || set[l[1]]; });
+    enviar({ tipo: 'flow', acao: 'aplicar', modulo: D && D.titulo || '', nos: nos, ligacoes: lig, focar: focar || '' });
+  }
+  function atualizarRotulo(extra) {
+    if (!FLOW.rotulo) return;
+    var n = 0, p = 0; ((FLOW.mapa && FLOW.mapa.nos) || []).forEach(function (x) { var e = FLOW.nos[x.id]; if (e) { n++; if (e === 'pronta') p++; } });
+    FLOW.rotulo.textContent = (FLOW.on ? 'Flow conectado' : 'Flow desconectado (abra o Flow para configurar)') + (n ? ' · ' + p + ' de ' + n + ' peças desta lista configuradas' : '') + (extra ? ' · ' + extra : '');
+  }
+  function receberFlow(d) {
+    FLOW.on = !!d.conectado; FLOW.t = Date.now(); FLOW.nos = d.nos && typeof d.nos === 'object' ? d.nos : {};
+    if (VIS && VIS.estado) VIS.estado(FLOW.nos);
+    atualizarRotulo(typeof d.msg === 'string' ? d.msg.slice(0, 120) : '');
+  }
+  function barraFlow(host, painel, mapa) {
+    FLOW.mapa = mapa;
+    var b = el('div', 'card'); b.style.margin = '10px 0 0';
+    b.appendChild(el('h3', null, 'Ligar ao Flow'));
+    FLOW.rotulo = el('div', 'mut'); b.appendChild(FLOW.rotulo);
+    var bt = el('div', 'botoes');
+    var a = el('button', null, 'Montar todas as peças no Flow');
+    a.addEventListener('click', function () { pedirFlow(mapa, (mapa.nos || []).map(function (n) { return n.id; }), null, ''); enviar({ tipo: 'flow', acao: 'abrir' }); });
+    var o = el('button', null, 'Abrir o Flow');
+    o.addEventListener('click', function () { enviar({ tipo: 'flow', acao: 'abrir' }); });
+    bt.appendChild(a); bt.appendChild(o); b.appendChild(bt);
+    host.insertBefore(b, painel);
+    atualizarRotulo();
+    enviar({ tipo: 'flow', acao: 'ping' });
+    if (!TIMER_FLOW) TIMER_FLOW = setInterval(function () {
+      enviar({ tipo: 'flow', acao: 'ping' });
+      if (FLOW.on && Date.now() - FLOW.t > 15000) { FLOW.on = false; atualizarRotulo(); }
+    }, 6000);
+  }
+  function acoesNo(painel, no, mapa) {
+    var est = FLOW.nos[no.id] || 'fora';
+    var info = el('div', 'mut', 'No Flow: ' + ROT[est]); info.style.margin = '8px 0 4px'; painel.appendChild(info);
+    var linha = el('div', 'botoes');
+    var sel = document.createElement('select'); sel.setAttribute('aria-label', 'Tipo de bloco no Flow');
+    sel.style.cssText = 'background:#06122c;color:#eaf6ff;border:1px solid #1d4a73;border-radius:8px;padding:8px;font:inherit';
+    Object.keys(KINDS).forEach(function (k) { var op = document.createElement('option'); op.value = k; op.textContent = KINDS[k]; sel.appendChild(op); });
+    sel.value = tipoFlow(no); linha.appendChild(sel);
+    var b = el('button', null, est === 'fora' ? 'Configurar esta peça no Flow' : 'Abrir esta peça no Flow');
+    b.addEventListener('click', function () { pedirFlow(mapa, [no.id], sel.value, no.id); enviar({ tipo: 'flow', acao: 'abrir' }); });
+    linha.appendChild(b); painel.appendChild(linha);
+  }
+
   window.addEventListener('message', function (e) {
     var d = e.data;
     if (d && d.af === 'curso' && d.tipo === 'init') { PROG = d.progresso || {}; marcar(); }
+    else if (d && d.af === 'curso' && d.tipo === 'flow-estado' && e.source === parent) receberFlow(d);
   });
 
   function marcar() {
@@ -179,7 +253,9 @@ pre{background:#06122c;border:1px solid #1d4a73;border-radius:10px;padding:12px;
 
     var vis = montar3D(area, mapa, nomeNo, function (no) {
       escrever(no.nome, [['O que é:', no.info || ''], ['Você precisa:', no.precisa || '']]);
+      acoesNo(painel, no, mapa);
     });
+    VIS = vis; barraFlow(host, painel, mapa);
 
     function tocar(falha, btn) {
       Array.prototype.forEach.call(botoes.children, function (x) { x.classList.remove('on'); });
@@ -216,7 +292,7 @@ pre{background:#06122c;border:1px solid #1d4a73;border-radius:10px;padding:12px;
     var luz = new T.PointLight(0xffffff, 0.9); luz.position.set(4, 8, 8); sc.add(luz);
     var g = new T.Group(); sc.add(g);
 
-    var pos = {}, malhas = [], cores = {};
+    var pos = {}, malhas = [], cores = {}, est = {}, linhas = [], pulsos = [];
     function rotulo(txt) {
       var cv = document.createElement('canvas'); cv.width = 256; cv.height = 64;
       var c = cv.getContext('2d'); c.fillStyle = '#eaf6ff'; c.font = 'bold 30px system-ui,sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(txt, 128, 34);
@@ -231,7 +307,9 @@ pre{background:#06122c;border:1px solid #1d4a73;border-radius:10px;padding:12px;
     });
     (mapa.ligacoes || []).forEach(function (l) {
       if (!pos[l[0]] || !pos[l[1]]) return;
-      g.add(new T.Line(new T.BufferGeometry().setFromPoints([pos[l[0]], pos[l[1]]]), new T.LineBasicMaterial({ color: 0x3a8fd0 })));
+      var ln = new T.Line(new T.BufferGeometry().setFromPoints([pos[l[0]], pos[l[1]]]), new T.LineBasicMaterial({ color: 0x3a8fd0 })); g.add(ln);
+      var pm = new T.Mesh(new T.SphereGeometry(0.09, 10, 10), new T.MeshBasicMaterial({ color: 0x7fd6ff })); pm.visible = false; g.add(pm);
+      linhas.push({ ln: ln, a: l[0], b: l[1] }); pulsos.push({ m: pm, a: pos[l[0]], b: pos[l[1]], ia: l[0], ib: l[1], k: pulsos.length });
     });
     var pacote = new T.Mesh(new T.SphereGeometry(0.22, 16, 16), new T.MeshBasicMaterial({ color: 0x5be39a }));
     pacote.visible = false; g.add(pacote);
@@ -239,6 +317,7 @@ pre{background:#06122c;border:1px solid #1d4a73;border-radius:10px;padding:12px;
 
     function animar(pc, comFalha) {
       malhas.forEach(function (m) { m.material.color.copy(cores[m.userData.id]); m.material.emissive.copy(cores[m.userData.id]); });
+      aplicarEstado();
       var pts = pc.nos.map(function (id) { return pos[id].clone(); }).filter(Boolean);
       if (!pts.length) return;
       var falhou = !!comFalha, destinoFalha = null;
@@ -254,7 +333,25 @@ pre{background:#06122c;border:1px solid #1d4a73;border-radius:10px;padding:12px;
     }
     function nextAfter(pc) { var rota = mapa.rota || [], i = rota.indexOf(pc.nos[pc.nos.length - 1]); return rota[i + 1] ? pos[rota[i + 1]] : null; }
 
+    var COR_EST = { configurando: 0xf5b942, pronta: 0x5be39a, pendente: 0xff8a5a };
+    function aplicarEstado() {
+      malhas.forEach(function (m) {
+        var c = COR_EST[est[m.userData.id]];
+        if (c != null) { m.material.color.setHex(c); m.material.emissive.setHex(c); }
+        else { m.material.color.copy(cores[m.userData.id]); m.material.emissive.copy(cores[m.userData.id]); }
+      });
+      linhas.forEach(function (l) { l.ln.material.color.setHex(est[l.a] && est[l.b] ? 0x5be39a : 0x3a8fd0); });
+    }
+    function definirEstado(nos) { est = nos || {}; aplicarEstado(); }
+
     function quadro() {
+      var agora = Date.now();
+      pulsos.forEach(function (p) {
+        var ligado = FLOW.on && (est[p.ia] || est[p.ib]); p.m.visible = !!ligado;
+        if (!ligado) return;
+        p.m.position.copy(p.a).lerp(p.b, ((agora / 1700) + p.k * 0.23) % 1);
+        p.m.material.color.setHex(est[p.ia] === 'pronta' && est[p.ib] === 'pronta' ? 0x5be39a : 0xf5b942);
+      });
       if (anim) {
         var a = anim;
         if (a.seg < a.pts.length - 1) {
@@ -289,7 +386,7 @@ pre{background:#06122c;border:1px solid #1d4a73;border-radius:10px;padding:12px;
       if (hit && nomeNo[hit.object.userData.id]) aoTocar(nomeNo[hit.object.userData.id]);
     });
     window.addEventListener('resize', function () { var w = area.clientWidth || W; renderer.setSize(w, H); cam.aspect = w / H; cam.updateProjectionMatrix(); });
-    return { animar: animar };
+    return { animar: animar, estado: definirEstado };
   }
 
   window.AFCurso = {
@@ -389,6 +486,45 @@ pre{background:#06122c;border:1px solid #1d4a73;border-radius:10px;padding:12px;
     });
   }
 
+  /* ───────── Ponte curso ⇄ Flow (assíncrona) ─────────
+     Ao vivo: BroadcastChannel (mesma origem). Reserva: localStorage (fila de pedidos e último estado).
+     O módulo roda isolado; só esta página conversa com o Flow. */
+  var KFILA = 'ALMAFLUXO_FLOW_CURSO', KEST = 'ALMAFLUXO_FLOW_CURSO_ESTADO', FLOW_URL = '/flow', CANAL = null;
+  var KINDS_OK = { github: 1, worker: 1, apps: 1, drive: 1, streamlit: 1, html: 1 };
+  function paraMod(o) { var f = $('mod'); try { f.contentWindow.postMessage(Object.assign({ af: 'curso', tipo: 'flow-estado' }, o), '*'); } catch (x) {} }
+  function estadoSalvo() { try { var s = JSON.parse(localStorage.getItem(KEST) || 'null'); return s && s.nos && typeof s.nos === 'object' ? s.nos : null; } catch (x) { return null; } }
+  function limpar(s, n) { return String(s == null ? '' : s).slice(0, n); }
+  try {
+    CANAL = new BroadcastChannel('almafluxo-flow-curso');
+    CANAL.onmessage = function (e) {
+      var m = e.data; if (!m || m.v !== 1) return;
+      if (m.tipo === 'flow:estado' || m.tipo === 'flow:pong' || m.tipo === 'flow:aplicado') paraMod({ nos: m.nos || {}, conectado: true, msg: m.resumo || '' });
+    };
+  } catch (x) { CANAL = null; }
+  addEventListener('storage', function (e) { if (e.key === KEST) { var s = estadoSalvo(); if (s) paraMod({ nos: s, conectado: true }); } });
+  function sanitizar(d) {
+    var nos = (Array.isArray(d.nos) ? d.nos : []).slice(0, 40).map(function (n) {
+      var f = {}; if (n && n.fields && typeof n.fields === 'object') Object.keys(n.fields).slice(0, 8).forEach(function (k) { f[limpar(k, 30)] = limpar(n.fields[k], 200); });
+      return { ref: limpar(n && n.ref, 60), kind: n && KINDS_OK[n.kind] ? n.kind : 'html', title: limpar(n && n.title, 80), fields: f, notes: limpar(n && n.notes, 500), x: Number(n && n.x) || 0, y: Number(n && n.y) || 0 };
+    }).filter(function (n) { return n.ref; });
+    var lig = (Array.isArray(d.ligacoes) ? d.ligacoes : []).slice(0, 80).filter(function (l) { return Array.isArray(l) && l.length >= 2; }).map(function (l) { return [limpar(l[0], 60), limpar(l[1], 60)]; });
+    return { v: 1, tipo: 'curso:aplicar', id: Date.now() + '-' + Math.random().toString(36).slice(2, 7), modulo: limpar(d.modulo, 80), focar: limpar(d.focar, 60), nos: nos, ligacoes: lig };
+  }
+  function ponteFlow(d) {
+    if (d.acao === 'abrir') {
+      var w = null; try { w = window.open(FLOW_URL, 'almafluxo_flow'); } catch (x) {}
+      if (!w) msg('Seu navegador bloqueou a nova aba. Abra ' + location.origin + FLOW_URL + ' e volte aqui.', 'er');
+    } else if (d.acao === 'ping') {
+      if (CANAL) CANAL.postMessage({ v: 1, tipo: 'curso:ping' });
+      var s = estadoSalvo(); if (s) paraMod({ nos: s, conectado: false });
+    } else if (d.acao === 'aplicar') {
+      var m = sanitizar(d); if (!m.nos.length) return;
+      try { localStorage.setItem(KFILA, JSON.stringify(m)); } catch (x) {}
+      if (CANAL) CANAL.postMessage(m);
+      msg('Peça enviada ao Flow.'); setTimeout(function () { msg(''); }, 2500);
+    }
+  }
+
   addEventListener('message', function (e) {
     var f = $('mod');
     if (!f || e.source !== f.contentWindow) return;
@@ -403,6 +539,8 @@ pre{background:#06122c;border:1px solid #1d4a73;border-radius:10px;padding:12px;
       prog[atual] = prog[atual] || {};
       prog[atual][Number(d.passo)] = !!d.feito;
       salvarProg(); desenharLista();
+    } else if (d.tipo === 'flow') {
+      ponteFlow(d);
     } else if (d.tipo === 'copiar' && typeof d.texto === 'string') {
       var t = d.texto.slice(0, 8000);
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).catch(function () {});
