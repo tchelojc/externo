@@ -274,44 +274,47 @@ function fillRes(r){const p=r.principal,l=p.locacao,v=p.venda,best=r.ranking.ren
  $('met').textContent=r.metodologia;$('avs').textContent=r.aviso;$('titulo').value=$('titulo').value||$('rt').textContent}
 $('salvar').onclick=async()=>{$('e4').textContent='';busy($('salvar'),true,'Salvando…');
  try{const d=await api('salvar',{inputs:inputs(),titulo:$('titulo').value,consulta:S.cons,territorio:S.terr&&S.terr.territorio});$('e4').style.color='var(--ok)';S.savedId=d.id;$('e4').textContent='Análise salva. Código: '+d.id}catch(e){$('e4').style.color='';$('e4').textContent=e.message}finally{busy($('salvar'),false,'Salvar análise')}};
-// ── NOVO: gera um projeto.json no formato que o Painel KPG lê ──
-// Substitua a parte que grava o projeto.json por esta versão mais robusta
-async function salvarProjetoJson(kpg, pastaId) {
-  if (!pastaId) {
-    console.warn('⚠️ Sem pastaId — baixando arquivo localmente');
-    // ✅ Fallback: baixa automaticamente no computador do usuário
-    const blob = new Blob([JSON.stringify(kpg, null, 2)], {type: 'application/json'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = kpg.id + '.json';
-    a.click();
-    URL.revokeObjectURL(a.href);
-    return { ok: true, metodo: 'download_local' };
+// ── INTEGRAÇÃO DIRETA COM KPG: listar → localizar/criar pasta → gravar JSON ──
+async function pastaOrcamentosKPG(){
+  const sk = 'almafluxo_kpg_orcamentos_pasta:' + String(sess().email || '').toLowerCase();
+  try { const guardado = localStorage.getItem(sk); if(guardado) return guardado; } catch(e) {}
+  const lista = await apiKPG('listar', {});
+  const raiz = lista.raiz || lista.rootId || lista.pastaRaiz || '';
+  const itens = Array.isArray(lista.itens) ? lista.itens : [];
+  if(!raiz) throw new Error('KPG não informou a pasta raiz em listar().');
+
+  const nomePasta = 'Orçamentos do site';
+  let pasta = itens.find(x => x && x.p === raiz &&
+    String(x.n || x.nome || '').trim().toLocaleLowerCase('pt-BR') === nomePasta.toLocaleLowerCase('pt-BR') &&
+    (x.m === 'application/vnd.google-apps.folder' || x.tipo === 'pasta' || x.mimeType === 'application/vnd.google-apps.folder'));
+
+  if(pasta){
+    const existente = pasta.id || pasta.idPasta || pasta.pastaId;
+    if(existente){ try { localStorage.setItem(sk, existente); } catch(e) {} return existente; }
   }
-  // Se tiver pastaId, tenta no servidor
-  return await apiKPG('criarArquivoTexto', {
-    nome: 'projeto.json',
-    conteudo: JSON.stringify(kpg, null, 2),
-    mimeType: 'application/json',
-    pastaId
-  });
+
+  const criada = await apiKPG('criarPasta', { nome: nomePasta, pastaId: raiz });
+  const r = criada.result || criada.pasta || criada;
+  const pastaId = r.id || r.pastaId || r.idPasta || r.folderId || (r.pasta && (r.pasta.id || r.pasta.pastaId || r.pasta.folderId));
+  if(!pastaId) throw new Error('KPG recebeu criarPasta, mas não devolveu o ID da pasta. Resposta: ' + JSON.stringify(criada).slice(0,500));
+  try { localStorage.setItem(sk, pastaId); } catch(e) {}
+  return pastaId;
 }
 
 function projetoNoFormatoKPG(projeto, entrada, resultado) {
   const p = resultado.principal;
-  const cliente = {
-    nome: $('titulo').value || (entrada.regiao || 'Orçamento ALMAFLUXO'),
-    whats: '',
-    cidade: (S.terr && S.terr.territorio && S.terr.territorio.cidade) || '',
-    obs: entrada.notas || ''
-  };
   return {
-    formato: 'kpg-orcamento-guiado',          // ← chave que o Painel procura
-    versao: 1,
-    id: 'AF-' + Date.now(),
+    formato: 'kpg-orcamento-guiado',
+    v: 1,
+    id: 'KPG-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-' + Math.random().toString(36).slice(2,6).toUpperCase(),
     criadoEm: new Date().toISOString(),
-    tipo: p.produto,                           // studios | casas | luxo | galpao | comercial | misto
-    cliente,
+    tipo: p.produto,
+    cliente: {
+      nome: $('titulo').value || entrada.regiao || 'Orçamento ALMAFLUXO',
+      whats: '',
+      cidade: (S.terr && S.terr.territorio && S.terr.territorio.cidade) || '',
+      obs: entrada.notas || ''
+    },
     comodos: [],
     totais: {
       total: p.investimento,
@@ -331,53 +334,43 @@ function projetoNoFormatoKPG(projeto, entrada, resultado) {
 }
 
 async function enviar(){
-  // trava de segurança: se não analisou, não envia
-  if(!S.res || !S.res.principal){
-    throw new Error('Analise a viabilidade antes de enviar.');
-  }
+  if(!S.res || !S.res.principal) throw new Error('Analise a viabilidade antes de enviar.');
 
+  // Mantém a análise no KV da imobiliária para histórico e recuperação.
   let id = S.savedId;
   if(!id){
-    const d = await api('salvar', {
-      inputs: inputs(),
-      titulo: $('titulo').value,
-      consulta: S.cons,
-      territorio: S.terr && S.terr.territorio
+    const salvo = await api('salvar', {
+      inputs: inputs(), titulo: $('titulo').value,
+      consulta: S.cons, territorio: S.terr && S.terr.territorio
     });
-    id = S.savedId = d.id;
+    id = S.savedId = salvo.id;
   }
 
-  // 1) grava o projeto original no Drive (comportamento atual)
-  const d = await api('projetar', {id});
-  S.projeto = d.projeto;
+  // A publicação é feita diretamente no KPG pelo endpoint único /proxy/kpg.
+  const kpg = projetoNoFormatoKPG({id}, S.ent || inputs(), S.res);
+  const pastaId = await pastaOrcamentosKPG();
+  const gravado = await apiKPG('criarArquivoTexto', {
+    nome: kpg.id + '.json',
+    conteudo: JSON.stringify(kpg, null, 2),
+    mimeType: 'application/json',
+    pastaId
+  });
 
-  // 2) grava o projeto.json no formato do orçamento guiado → aparece em "📥 Orçamentos do site"
-  const kpg = projetoNoFormatoKPG(d.projeto, S.ent, S.res);
-  const pastaId = d.projeto && (d.projeto.pastaId || d.projeto.pasta_id || d.projeto.drivePastaId);
-  if(!pastaId){
-    console.warn('Worker não devolveu pastaId do projeto; projeto.json não será gravado.');
-  } else {
-    try {
-      await apiKPG('criarArquivoTexto', {
-        nome: 'projeto.json',
-        conteudo: JSON.stringify(kpg, null, 2),
-        mimeType: 'application/json',
-        pastaId
-      });
-    } catch(e) {
-      console.warn('Não foi possível gravar projeto.json no formato KPG:', e.message);
-    }
-  }
-
-  return d.projeto;
+  // Guarda o retorno confirmado pelo KPG para a interface.
+  S.projeto = {
+    id: kpg.id,
+    analiseId: id,
+    formato: kpg.formato,
+    arquivo: gravado.arquivo || gravado.result || null,
+    pastaId
+  };
+  return S.projeto;
 }
 $('proj').onclick=async()=>{const e=$('e4');e.style.color='';e.textContent='';busy($('proj'),true,'Enviando…');
- try{const pr=await enviar();e.style.color='var(--ok)';e.textContent='Projeto '+pr.id+' enviado ao Projetar e orçamento publicado em KPG › Orçamentos do site.';}catch(x){e.textContent=x.message}finally{busy($('proj'),false,'Enviar ao Projetar')}};
+ try{const pr=await enviar();e.style.color='var(--ok)';e.textContent='Orçamento '+pr.id+' gravado diretamente em KPG › Orçamentos do site.';}catch(x){e.textContent=x.message}finally{busy($('proj'),false,'Enviar ao Projetar')}};
 $('projJson').onclick=async()=>{const e=$('e4');e.style.color='';e.textContent='';try{const pr=S.projeto||await enviar(),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(pr,null,2)],{type:'application/json'}));a.download=pr.id+'.json';a.click();URL.revokeObjectURL(a.href)}catch(x){e.textContent=x.message}};
 $('imp').onclick=()=>print();
 $('json').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({consulta:S.cons,territorio:S.terr,entradas:S.ent,resultado:S.res,gerado:new Date().toISOString()},null,2)],{type:'application/json'}));a.download='analise-imobiliaria.json';a.click();URL.revokeObjectURL(a.href)};
 $('minhas').onclick=async()=>{$('e1').textContent='';try{const d=await api('lista',{});$('lista').innerHTML=d.itens.length?d.itens.map(x=>`<div class="kv"><span>${esc(x.titulo)} <span class="mu">${esc(x.ts.slice(0,10))}</span></span><button class="btn" data-id="${esc(x.id)}">Abrir</button></div>`).join(''):'<p class="mu">Nenhuma análise salva ainda.</p>';
  document.querySelectorAll('#lista [data-id]').forEach(b=>b.onclick=async()=>{try{const d=await api('relatorio',{id:b.dataset.id}),r=d.relatorio;IDS.forEach(i=>{if(r.inputs[i]!=null)$(i).value=r.inputs[i]});S.cons=r.entrada;S.terr=r.territorio?{territorio:r.territorio}:null;S.ent=r.inputs;S.res=r.resultado;$('usarCultural').checked=!!r.inputs.usarCultural;S.savedId=r.id;S.projeto=null;$('titulo').value=r.titulo;fillRes(r.resultado);show(4);S.max=4;show(4)}catch(e){$('e1').textContent=e.message}})}catch(e){$('e1').textContent=e.message}};
-</script>
-</body>
-</html>
+</script></body></html>
