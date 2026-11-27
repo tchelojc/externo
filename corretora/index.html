@@ -275,7 +275,28 @@ function fillRes(r){const p=r.principal,l=p.locacao,v=p.venda,best=r.ranking.ren
 $('salvar').onclick=async()=>{$('e4').textContent='';busy($('salvar'),true,'Salvando…');
  try{const d=await api('salvar',{inputs:inputs(),titulo:$('titulo').value,consulta:S.cons,territorio:S.terr&&S.terr.territorio});$('e4').style.color='var(--ok)';S.savedId=d.id;$('e4').textContent='Análise salva. Código: '+d.id}catch(e){$('e4').style.color='';$('e4').textContent=e.message}finally{busy($('salvar'),false,'Salvar análise')}};
 // ── NOVO: gera um projeto.json no formato que o Painel KPG lê ──
-// ── NOVO: gera um projeto.json no formato que o Painel KPG lê ──
+// Substitua a parte que grava o projeto.json por esta versão mais robusta
+async function salvarProjetoJson(kpg, pastaId) {
+  if (!pastaId) {
+    console.warn('⚠️ Sem pastaId — baixando arquivo localmente');
+    // ✅ Fallback: baixa automaticamente no computador do usuário
+    const blob = new Blob([JSON.stringify(kpg, null, 2)], {type: 'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = kpg.id + '.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    return { ok: true, metodo: 'download_local' };
+  }
+  // Se tiver pastaId, tenta no servidor
+  return await apiKPG('criarArquivoTexto', {
+    nome: 'projeto.json',
+    conteudo: JSON.stringify(kpg, null, 2),
+    mimeType: 'application/json',
+    pastaId
+  });
+}
+
 function projetoNoFormatoKPG(projeto, entrada, resultado) {
   const p = resultado.principal;
   const cliente = {
