@@ -27,7 +27,49 @@ table{border-collapse:collapse;width:100%;font-size:13px}td,th{padding:7px;borde
 .nv.baixo{color:var(--ok)}.nv.medio{color:var(--es)}.nv.alto{color:var(--no)}.nv{font-weight:700}.err{color:var(--no);font-size:14px;min-height:20px}.ovf{overflow:auto}
 @media(max-width:760px){.two{grid-template-columns:1fr}}
 @media print{.steps,.noprint,button{display:none!important}body{background:#fff;color:#000}.card{border-color:#999;background:#fff}.scr{display:none!important}#s4{display:grid!important}}
-</style></head><body><div class="app">
+</style>
+
+<!-- Estilos da tela de login -->
+<style>
+#tela-login{position:fixed;inset:0;background:#07111d;display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;transition:opacity .3s}
+#tela-login.oculta{opacity:0;pointer-events:none}
+.caixa-login{background:#0e1d2c;border:1px solid #294158;border-radius:12px;padding:28px;width:100%;max-width:400px}
+.caixa-login h2{margin:0 0 8px;font-size:20px;color:#eff7ff}
+.caixa-login .sub{color:#9eb1c4;margin-bottom:20px;font-size:14px}
+.caixa-login label{display:block;font-size:13px;color:#9eb1c4;margin-bottom:4px}
+.caixa-login input{width:100%;background:#091725;color:#eff7ff;border:1px solid #294158;border-radius:7px;padding:10px;font-size:15px;margin-bottom:12px}
+.caixa-login input:focus{outline:2px solid #ffd17a;outline-offset:1px}
+.caixa-login button{width:100%;background:linear-gradient(100deg,#147dc0,#168eaa);border:none;border-radius:7px;padding:10px;font-size:15px;font-weight:600;color:#fff;cursor:pointer}
+.caixa-login button:disabled{opacity:.5;cursor:wait}
+.erro-login{margin-top:12px;color:#ff7777;min-height:20px;font-size:14px}
+#info-logado{padding:12px;background:#0f2a38;border-radius:6px;color:#69e2b6;margin-bottom:14px}
+.sair-btn{background:transparent;border:1px solid #294158;color:#9eb1c4;margin-top:10px}
+body.logado{visibility:visible}
+</style>
+</head><body style="visibility:hidden"><div class="app">
+<!-- ═══════════════════════════════════════
+  TELA DE LOGIN — ALMAFLUXO
+═══════════════════════════════════════ -->
+<div id="tela-login">
+  <div class="caixa-login">
+    <h2>⚡ ALMAFLUXO</h2>
+    <p class="sub">Faça login para acessar</p>
+
+    <div id="info-logado" style="display:none"></div>
+
+    <div id="form-login">
+      <label for="af_e">E-mail</label>
+      <input id="af_e" type="email" placeholder="seu@email.com">
+
+      <label for="af_s">Senha</label>
+      <input id="af_s" type="password" placeholder="••••••••">
+
+      <button id="af_entrar">Entrar</button>
+      <div class="erro-login" id="af_erro"></div>
+    </div>
+  </div>
+</div>
+
 <nav class="steps" aria-label="Etapas"><button class="st on" data-s="1">1 Localização</button><button class="st" data-s="2" disabled>2 Orientação e dados</button><button class="st" data-s="3" disabled>3 Cenários</button><button class="st" data-s="4" disabled>4 Relatório</button></nav>
 
 <section class="scr on" id="s1"><div class="hero"><h1>Onde está a oportunidade?</h1>
@@ -82,6 +124,86 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const R=n=>(+n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}),P=n=>((+n||0)*100).toFixed(1)+'%';
 const stat=(l,v)=>`<div class="stat"><b>${v}</b><span>${l}</span></div>`;
 const MU=[['mpb','MPB'],['classica','Clássica'],['poprock','Pop / rock'],['sertanejo','Sertanejo'],['sambapagode','Samba / pagode'],['hiphop','Hip-hop'],['funk','Funk'],['forro','Forró']];
+// ═══════════════════════════════════════
+//  LÓGICA DE AUTENTICAÇÃO — VERIFICAÇÃO
+//═══════════════════════════════════════
+(function(){
+  const tela = document.getElementById('tela-login');
+  const form = document.getElementById('form-login');
+  const info = document.getElementById('info-logado');
+  const erro = document.getElementById('af_erro');
+  const btn = document.getElementById('af_entrar');
+  const eInput = document.getElementById('af_e');
+  const sInput = document.getElementById('af_s');
+  const CHAVE_SESSAO = 'almafluxo_usuario'; // ✅ Mesma chave usada na API
+
+  function logado(usuario){
+    tela.classList.add('oculta');
+    document.body.classList.add('logado');
+    console.log('✅ Sessão ativa:', usuario.email);
+  }
+
+  function deslogar(){
+    if (window.AFEstado && typeof AFEstado.sair === 'function') {
+      AFEstado.sair();
+    }
+    localStorage.removeItem(CHAVE_SESSAO);
+    tela.classList.remove('oculta');
+    document.body.classList.remove('logado');
+    info.style.display = 'none';
+    form.style.display = 'block';
+    erro.textContent = '';
+  }
+
+  function jaEstouLogado(){
+    try{
+      if (window.AFEstado && typeof AFEstado.usuario === 'function') {
+        const u = AFEstado.usuario();
+        if (u && u.email) return u;
+      }
+      const salva = localStorage.getItem(CHAVE_SESSAO);
+      if (salva) return JSON.parse(salva);
+    }catch(e){}
+    return null;
+  }
+
+  async function fazerLogin(){
+    const email = eInput.value.trim().toLowerCase();
+    const senha = sInput.value;
+    erro.textContent = '';
+    btn.disabled = true;
+    btn.textContent = 'Entrando...';
+
+    try{
+      if (!window.AFEstado || typeof AFEstado.login !== 'function'){
+        throw new Error('Módulo de autenticação não disponível.');
+      }
+      const usuario = await AFEstado.login(email, senha);
+      if (!usuario || !usuario.email){
+        throw new Error('Resposta de autenticação inválida.');
+      }
+      localStorage.setItem(CHAVE_SESSAO, JSON.stringify(usuario));
+      logado(usuario);
+    }catch(er){
+      erro.textContent = er.message || 'Não foi possível entrar.';
+    }finally{
+      btn.disabled = false;
+      btn.textContent = 'Entrar';
+      sInput.value = '';
+    }
+  }
+
+  // Inicialização
+  const u = jaEstouLogado();
+  if (u){
+    logado(u);
+  }else{
+    tela.classList.remove('oculta');
+    document.body.classList.remove('logado');
+    btn.onclick = fazerLogin;
+    sInput.addEventListener('keydown', e => e.key === 'Enter' && fazerLogin());
+  }
+})();
 function culturalHtml(r){const s=r.sinal_cultural;if(!s||!s.perfil)return'';const L=MU.filter(([k])=>s.perfil[k]>0);if(!L.length)return'';
  return '<h3>Perfil musical do território · '+esc(s.fonte)+'</h3>'+L.map(([k,n])=>`<div class="kv"><span>${n}</span><span style="width:45%;background:var(--p2);border-radius:4px"><span style="display:block;height:8px;border-radius:4px;background:var(--ac);width:${s.perfil[k]}%"></span></span></div>`).join('')+'<p class="mu">'+(s.uso_no_calculo?'Incluído na aderência dos produtos como hipótese de peso limitado; não altera o nível de risco.':'Apenas descritivo; fora do cálculo.')+'</p>'}
 const NV={baixo:'Baixo',medio:'Médio',alto:'Alto'};
