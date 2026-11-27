@@ -66,7 +66,7 @@ ol,ul{margin:6px 0 6px 20px;padding:0}
 pre{background:#06122c;border:1px solid #1d4a73;border-radius:10px;padding:12px;overflow:auto;white-space:pre-wrap;word-break:break-word;font:14px/1.45 ui-monospace,Consolas,monospace;margin:8px 0}
 .rot{font-weight:700;color:var(--bd);margin-top:10px}
 .bad{color:var(--er)}
-.cena{position:relative;width:100%;height:320px;border:1px solid #1d4a73;border-radius:12px;overflow:hidden;background:#030710}
+.cena{position:relative;width:100%;height:420px;border:1px solid #1d4a73;border-radius:12px;overflow:hidden;background:radial-gradient(ellipse at 50% 50%,#10204a 0%,#070d24 48%,#02040c 100%)}
 .cena canvas{display:block;width:100%;height:100%;touch-action:none}
 .botoes{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
 .aviso{background:#3a2a0a;border:1px solid #ffd17a;color:#ffd17a;border-radius:10px;padding:10px;margin:10px 0}
@@ -117,7 +117,7 @@ pre{background:#06122c;border:1px solid #1d4a73;border-radius:10px;padding:12px;
   function atualizarRotulo(extra) {
     if (!FLOW.rotulo) return;
     var n = 0, p = 0; ((FLOW.mapa && FLOW.mapa.nos) || []).forEach(function (x) { var e = FLOW.nos[x.id]; if (e) { n++; if (e === 'pronta') p++; } });
-    FLOW.rotulo.textContent = (FLOW.on ? 'Flow conectado' : 'Flow desconectado (abra o Flow para configurar)') + (n ? ' · ' + p + ' de ' + n + ' peças desta lista configuradas' : '') + (extra ? ' · ' + extra : '');
+    FLOW.rotulo.textContent = (FLOW.on ? 'Flow conectado' : 'Flow desconectado (abra o Flow para configurar)') + (n ? ' · ' + p + ' de ' + n + ' peças desta lista configuradas' : '') + (n && p === ((FLOW.mapa && FLOW.mapa.nos) || []).length ? ' · seu universo está aceso' : '') + (extra ? ' · ' + extra : '');
   }
   function receberFlow(d) {
     FLOW.on = !!d.conectado; FLOW.t = Date.now(); FLOW.nos = d.nos && typeof d.nos === 'object' ? d.nos : {};
@@ -181,7 +181,7 @@ pre{background:#06122c;border:1px solid #1d4a73;border-radius:10px;padding:12px;
     if (D.emConstrucao) raiz.appendChild(el('div', 'aviso', 'Módulo em construção: o esqueleto já está aqui; o conteúdo completo entra na próxima versão.'));
     if (D.frase) raiz.appendChild(el('div', 'frase', '“' + D.frase + '”'));
     if (D.trajeto) { var tj = el('div', 'card'); tj.appendChild(el('h3', null, 'O trajeto')); tj.appendChild(el('div', null, D.trajeto)); raiz.appendChild(tj); }
-    if (D.mapa) { var cm = el('div', 'card'); cm.appendChild(el('h3', null, D.mapa.titulo || 'Guia interativo')); cm.appendChild(el('div', 'mut', 'Arraste para girar. Toque numa peça para saber o que ela faz.')); cena(cm, D.mapa); raiz.appendChild(cm); }
+    if (D.mapa) { var cm = el('div', 'card'); cm.appendChild(el('h3', null, D.mapa.titulo || 'Guia interativo')); cm.appendChild(el('div', 'mut', 'Este é o seu universo. Arraste para girar e entrar nele; toque numa estrela para ver o que ela é e acendê-la no Flow.')); cena(cm, D.mapa); raiz.appendChild(cm); }
 
     var pr = el('div', 'card');
     rotuloProg = el('div', 'mut');
@@ -283,43 +283,105 @@ pre{background:#06122c;border:1px solid #1d4a73;border-radius:10px;padding:12px;
     if (!window.THREE) return null;
     var T = window.THREE, renderer;
     try { renderer = new T.WebGLRenderer({ antialias: true, alpha: true }); } catch (e) { return null; }
-    var W = area.clientWidth || 600, H = 320;
+    var W = area.clientWidth || 600, H = 420;
+    var calmo = false; try { calmo = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (x) {}
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setSize(W, H); area.appendChild(renderer.domElement);
-    var sc = new T.Scene(), cam = new T.PerspectiveCamera(50, W / H, 0.1, 100);
-    cam.position.set(0, 2.5, 11);
-    sc.add(new T.AmbientLight(0xffffff, 0.7));
+    var sc = new T.Scene(), cam = new T.PerspectiveCamera(50, W / H, 0.1, 200);
+    sc.add(new T.AmbientLight(0xffffff, 0.75));
     var luz = new T.PointLight(0xffffff, 0.9); luz.position.set(4, 8, 8); sc.add(luz);
     var g = new T.Group(); sc.add(g);
+    var pos = {}, malhas = [], cores = {}, est = {}, linhas = [], pulsos = [], halos = {}, curvas = {};
 
-    var pos = {}, malhas = [], cores = {}, est = {}, linhas = [], pulsos = [];
+    // Centraliza o universo na origem e aponta a câmera para o centro (antes a cena ficava na parte de baixo do quadro).
+    var lista = mapa.nos || [], cx = 0, cy = 0, cz = 0, raio = 3;
+    lista.forEach(function (n) { var p = n.pos || [0, 0, 0]; cx += p[0]; cy += p[1]; cz += p[2]; });
+    if (lista.length) { cx /= lista.length; cy /= lista.length; cz /= lista.length; }
+    lista.forEach(function (n) { var p = n.pos || [0, 0, 0]; pos[n.id] = new T.Vector3(p[0] - cx, p[1] - cy, p[2] - cz); raio = Math.max(raio, pos[n.id].length()); });
+    cam.position.set(0, raio * 0.28, Math.max(9, raio * 2.4)); cam.lookAt(new T.Vector3(0, 0, 0));
+
+    function texBrilho() {
+      var cv = document.createElement('canvas'); cv.width = cv.height = 128;
+      var c = cv.getContext('2d'), gr = c.createRadialGradient(64, 64, 0, 64, 64, 64);
+      gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.25, 'rgba(255,255,255,0.55)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+      c.fillStyle = gr; c.fillRect(0, 0, 128, 128); return new T.CanvasTexture(cv);
+    }
+    var TEX = texBrilho();
+    function glow(cor, escala, op) {
+      var s = new T.Sprite(new T.SpriteMaterial({ map: TEX, color: cor, transparent: true, opacity: op, blending: T.AdditiveBlending, depthWrite: false }));
+      s.scale.set(escala, escala, 1); return s;
+    }
     function rotulo(txt) {
       var cv = document.createElement('canvas'); cv.width = 256; cv.height = 64;
-      var c = cv.getContext('2d'); c.fillStyle = '#eaf6ff'; c.font = 'bold 30px system-ui,sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(txt, 128, 34);
-      var s = new T.Sprite(new T.SpriteMaterial({ map: new T.CanvasTexture(cv), transparent: true })); s.scale.set(3, 0.75, 1); return s;
+      var c = cv.getContext('2d'); c.fillStyle = '#eaf6ff'; c.font = 'bold 30px system-ui,sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.shadowColor = '#27c8ff'; c.shadowBlur = 10; c.fillText(txt, 128, 34);
+      var s = new T.Sprite(new T.SpriteMaterial({ map: new T.CanvasTexture(cv), transparent: true, depthTest: false })); s.scale.set(3, 0.75, 1); s.renderOrder = 10; return s;
     }
-    (mapa.nos || []).forEach(function (n) {
-      var p = n.pos || [0, 0, 0]; pos[n.id] = new T.Vector3(p[0], p[1], p[2]);
-      var cor = new T.Color(n.cor || '#27c8ff'); cores[n.id] = cor;
-      var m = new T.Mesh(new T.SphereGeometry(0.55, 24, 24), new T.MeshStandardMaterial({ color: cor, emissive: cor, emissiveIntensity: 0.25 }));
-      m.position.copy(pos[n.id]); m.userData.id = n.id; g.add(m); malhas.push(m);
-      var r = rotulo(n.nome); r.position.set(p[0], p[1] + 1.05, p[2]); g.add(r);
+
+    // Fundo: nebulosas e estrelas (não giram junto com o grafo, dando profundidade)
+    [[0x3b2fb8, -9, 3, -16, 30, 0.35], [0x0f8fb8, 10, -4, -18, 32, 0.28], [0x8a2fa0, 0, 6, -20, 34, 0.2], [0x1a5fd0, -6, -6, -14, 24, 0.25]].forEach(function (n) {
+      var s = glow(n[0], n[4], n[5]); s.position.set(n[1], n[2], n[3]); sc.add(s);
     });
+    function campo(qtd, rmin, rmax, tam, cor, op) {
+      var arr = new Float32Array(qtd * 3);
+      for (var i = 0; i < qtd; i++) {
+        var u = Math.random() * 2 - 1, th = Math.random() * Math.PI * 2, r = rmin + Math.random() * (rmax - rmin), s = Math.sqrt(1 - u * u);
+        arr[i * 3] = r * s * Math.cos(th); arr[i * 3 + 1] = r * u * 0.8; arr[i * 3 + 2] = r * s * Math.sin(th);
+      }
+      var geo = new T.BufferGeometry(); geo.setAttribute('position', new T.BufferAttribute(arr, 3));
+      var pts = new T.Points(geo, new T.PointsMaterial({ size: tam, color: cor, transparent: true, opacity: op, depthWrite: false, sizeAttenuation: true }));
+      sc.add(pts); return pts;
+    }
+    var estrelasLonge = campo(1100, 30, 70, 0.22, 0xcfe3ff, 0.9), estrelasPerto = campo(260, 14, 30, 0.34, 0x9fe8ff, 0.8);
+
+    // A alma: galáxia em espiral ao redor do centro, com um núcleo luminoso
+    var nGal = 900, gal = new Float32Array(nGal * 3), galC = new Float32Array(nGal * 3), cA = new T.Color(0x27c8ff), cB = new T.Color(0xb36bff), cm = new T.Color(0xffffff);
+    for (var i = 0; i < nGal; i++) {
+      var braco = i % 3, t = Math.random(), rr = 0.6 + t * (raio + 3.5), ang = t * 5.2 + braco * (Math.PI * 2 / 3) + (Math.random() - 0.5) * 0.5;
+      gal[i * 3] = Math.cos(ang) * rr; gal[i * 3 + 1] = (Math.random() - 0.5) * 0.6 * (1 - t * 0.5); gal[i * 3 + 2] = Math.sin(ang) * rr;
+      cm.copy(cA).lerp(cB, t); galC[i * 3] = cm.r; galC[i * 3 + 1] = cm.g; galC[i * 3 + 2] = cm.b;
+    }
+    var gGeo = new T.BufferGeometry(); gGeo.setAttribute('position', new T.BufferAttribute(gal, 3)); gGeo.setAttribute('color', new T.BufferAttribute(galC, 3));
+    g.add(new T.Points(gGeo, new T.PointsMaterial({ size: 0.12, vertexColors: true, transparent: true, opacity: 0.9, depthWrite: false, sizeAttenuation: true })));
+    var nucleo = glow(0x7fd6ff, 5.5, 0.5); g.add(nucleo);
+    var centro = glow(0xffffff, 1.6, 0.85); g.add(centro);
+
+    // As peças: estrelas com halo e anel
+    lista.forEach(function (n) {
+      var cor = new T.Color(n.cor || '#27c8ff'); cores[n.id] = cor;
+      var m = new T.Mesh(new T.SphereGeometry(0.5, 28, 28), new T.MeshStandardMaterial({ color: cor, emissive: cor, emissiveIntensity: 0.55, roughness: 0.4, metalness: 0.1 }));
+      m.position.copy(pos[n.id]); m.userData.id = n.id; g.add(m); malhas.push(m);
+      var h = glow(cor, 3.2, 0.7); h.position.copy(pos[n.id]); h.userData.base = 3.2; g.add(h); halos[n.id] = h;
+      var anel = new T.Mesh(new T.RingGeometry(0.85, 0.9, 48), new T.MeshBasicMaterial({ color: cor, transparent: true, opacity: 0.35, side: T.DoubleSide, depthWrite: false }));
+      anel.position.copy(pos[n.id]); anel.rotation.x = Math.PI / 2.3; g.add(anel);
+      var r = rotulo(n.nome); r.position.set(pos[n.id].x, pos[n.id].y + 1.15, pos[n.id].z); g.add(r);
+    });
+    // As ligações: arcos de luz, com pulsos que correm por elas quando o Flow está conectado
     (mapa.ligacoes || []).forEach(function (l) {
       if (!pos[l[0]] || !pos[l[1]]) return;
-      var ln = new T.Line(new T.BufferGeometry().setFromPoints([pos[l[0]], pos[l[1]]]), new T.LineBasicMaterial({ color: 0x3a8fd0 })); g.add(ln);
-      var pm = new T.Mesh(new T.SphereGeometry(0.09, 10, 10), new T.MeshBasicMaterial({ color: 0x7fd6ff })); pm.visible = false; g.add(pm);
-      linhas.push({ ln: ln, a: l[0], b: l[1] }); pulsos.push({ m: pm, a: pos[l[0]], b: pos[l[1]], ia: l[0], ib: l[1], k: pulsos.length });
+      var A = pos[l[0]], B = pos[l[1]], meio = A.clone().add(B).multiplyScalar(0.5), dist = A.distanceTo(B);
+      meio.y += 0.5 + dist * 0.12;
+      var curva = new T.QuadraticBezierCurve3(A.clone(), meio, B.clone()); curvas[l[0] + '>' + l[1]] = curva;
+      var ln = new T.Line(new T.BufferGeometry().setFromPoints(curva.getPoints(36)), new T.LineBasicMaterial({ color: 0x3a8fd0, transparent: true, opacity: 0.8 })); g.add(ln);
+      var pm = glow(0x7fd6ff, 0.55, 0.95); pm.visible = false; g.add(pm);
+      linhas.push({ ln: ln, a: l[0], b: l[1] }); pulsos.push({ m: pm, c: curva, ia: l[0], ib: l[1], k: pulsos.length });
     });
-    var pacote = new T.Mesh(new T.SphereGeometry(0.22, 16, 16), new T.MeshBasicMaterial({ color: 0x5be39a }));
+    function trecho(a, b) {
+      var c = curvas[a + '>' + b], inv = false;
+      if (!c) { c = curvas[b + '>' + a]; inv = true; }
+      if (!c) return [pos[a].clone(), pos[b].clone()];
+      var p = c.getPoints(14); return inv ? p.reverse() : p;
+    }
+    var pacote = new T.Mesh(new T.SphereGeometry(0.2, 16, 16), new T.MeshBasicMaterial({ color: 0x5be39a }));
     pacote.visible = false; g.add(pacote);
     var anim = null;
 
     function animar(pc, comFalha) {
-      malhas.forEach(function (m) { m.material.color.copy(cores[m.userData.id]); m.material.emissive.copy(cores[m.userData.id]); });
       aplicarEstado();
-      var pts = pc.nos.map(function (id) { return pos[id].clone(); }).filter(Boolean);
-      if (!pts.length) return;
+      var ids = pc.nos.filter(function (id) { return pos[id]; });
+      if (!ids.length) return;
+      var pts = [];
+      ids.forEach(function (id, i) { if (i === 0) pts.push(pos[id].clone()); else pts = pts.concat(trecho(ids[i - 1], id).slice(1)); });
       var falhou = !!comFalha, destinoFalha = null;
       if (falhou && pc.entre) {
         var prox = nextAfter(pc), ultimo = pts[pts.length - 1];
@@ -336,31 +398,41 @@ pre{background:#06122c;border:1px solid #1d4a73;border-radius:10px;padding:12px;
     var COR_EST = { configurando: 0xf5b942, pronta: 0x5be39a, pendente: 0xff8a5a };
     function aplicarEstado() {
       malhas.forEach(function (m) {
-        var c = COR_EST[est[m.userData.id]];
-        if (c != null) { m.material.color.setHex(c); m.material.emissive.setHex(c); }
-        else { m.material.color.copy(cores[m.userData.id]); m.material.emissive.copy(cores[m.userData.id]); }
+        var id = m.userData.id, c = COR_EST[est[id]], h = halos[id];
+        if (c != null) { m.material.color.setHex(c); m.material.emissive.setHex(c); h.material.color.setHex(c); }
+        else { m.material.color.copy(cores[id]); m.material.emissive.copy(cores[id]); h.material.color.copy(cores[id]); }
+        h.userData.base = est[id] === 'pronta' ? 4.4 : (est[id] ? 3.7 : 3.2);
       });
       linhas.forEach(function (l) { l.ln.material.color.setHex(est[l.a] && est[l.b] ? 0x5be39a : 0x3a8fd0); });
     }
     function definirEstado(nos) { est = nos || {}; aplicarEstado(); }
 
+    var arrastando = false, mexeu = 0, ux = 0, uy = 0, ultimoToque = 0, ray = new T.Raycaster(), pt = new T.Vector2();
     function quadro() {
       var agora = Date.now();
       pulsos.forEach(function (p) {
         var ligado = FLOW.on && (est[p.ia] || est[p.ib]); p.m.visible = !!ligado;
         if (!ligado) return;
-        p.m.position.copy(p.a).lerp(p.b, ((agora / 1700) + p.k * 0.23) % 1);
+        p.m.position.copy(p.c.getPoint(((agora / 1700) + p.k * 0.23) % 1));
         p.m.material.color.setHex(est[p.ia] === 'pronta' && est[p.ib] === 'pronta' ? 0x5be39a : 0xf5b942);
       });
+      if (!calmo) {
+        var i = 0;
+        Object.keys(halos).forEach(function (id) { var h = halos[id], s = h.userData.base * (1 + 0.07 * Math.sin(agora / 700 + (i++) * 1.7)); h.scale.set(s, s, 1); });
+        var sn = 5.5 * (1 + 0.05 * Math.sin(agora / 1100)); nucleo.scale.set(sn, sn, 1);
+        estrelasLonge.rotation.y += 0.0002; estrelasPerto.rotation.y -= 0.0003;
+        if (!arrastando && agora - ultimoToque > 2500) g.rotation.y += 0.0012;
+      }
       if (anim) {
         var a = anim;
         if (a.seg < a.pts.length - 1) {
-          a.t += 0.025;
+          var d = a.pts[a.seg].distanceTo(a.pts[a.seg + 1]) || 0.01;
+          a.t += 0.07 / d;
           pacote.position.copy(a.pts[a.seg]).lerp(a.pts[a.seg + 1], Math.min(a.t, 1));
           if (a.t >= 1) { a.t = 0; a.seg++; }
         } else if (a.falhou && !a.marcado) {
           a.marcado = true; pacote.material.color.set(0xff5a5a);
-          if (!a.pc.entre) malhas.forEach(function (m) { if (m.userData.id === a.pc.parou) { m.material.color.set(0xff5a5a); m.material.emissive.set(0xff3030); } });
+          if (!a.pc.entre) malhas.forEach(function (m) { if (m.userData.id === a.pc.parou) { m.material.color.set(0xff5a5a); m.material.emissive.set(0xff3030); halos[m.userData.id].material.color.set(0xff5a5a); } });
         }
       }
       renderer.render(sc, cam);
@@ -368,16 +440,15 @@ pre{background:#06122c;border:1px solid #1d4a73;border-radius:10px;padding:12px;
     }
     quadro();
 
-    var arrastando = false, mexeu = 0, ux = 0, uy = 0, ray = new T.Raycaster(), pt = new T.Vector2();
     var cv = renderer.domElement;
-    cv.addEventListener('pointerdown', function (e) { arrastando = true; mexeu = 0; ux = e.clientX; uy = e.clientY; try { cv.setPointerCapture(e.pointerId); } catch (x) {} });
+    cv.addEventListener('pointerdown', function (e) { arrastando = true; mexeu = 0; ux = e.clientX; uy = e.clientY; ultimoToque = Date.now(); try { cv.setPointerCapture(e.pointerId); } catch (x) {} });
     cv.addEventListener('pointermove', function (e) {
       if (!arrastando) return;
-      var dx = e.clientX - ux, dy = e.clientY - uy; ux = e.clientX; uy = e.clientY; mexeu += Math.abs(dx) + Math.abs(dy);
+      var dx = e.clientX - ux, dy = e.clientY - uy; ux = e.clientX; uy = e.clientY; mexeu += Math.abs(dx) + Math.abs(dy); ultimoToque = Date.now();
       g.rotation.y += dx * 0.01; g.rotation.x = Math.max(-1, Math.min(1, g.rotation.x + dy * 0.005));
     });
     cv.addEventListener('pointerup', function (e) {
-      arrastando = false;
+      arrastando = false; ultimoToque = Date.now();
       if (mexeu > 6) return;
       var r = cv.getBoundingClientRect();
       pt.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
